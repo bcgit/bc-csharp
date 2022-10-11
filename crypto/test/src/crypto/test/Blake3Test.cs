@@ -395,7 +395,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] myAlt = new byte[myLen];
 
             /* Perform standard output */
-            pDigest.DoOutput(pBuffer, 0, myLen);
+            pDigest.Output(pBuffer, 0, myLen);
             pDigest.Reset(mySave);
 
             /* Loop creating output 5 bytes at a time */
@@ -403,7 +403,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 /* Output bytes */
                 int myRead = System.Math.Min(PARTOUT, myLen - i);
-                pDigest.DoOutput(myAlt, i, myRead);
+                pDigest.Output(myAlt, i, myRead);
 
                 /* Around halfway through */
                 if (i == PARTBREAK)

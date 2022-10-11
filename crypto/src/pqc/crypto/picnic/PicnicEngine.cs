@@ -1508,7 +1508,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             /* Hash the salt & message */
             digest.BlockUpdate(salt, 0, saltSizeBytes);
             digest.BlockUpdate(message, 0, message.Length);
-            digest.DoFinal(hash, 0, digestSizeBytes);
+            digest.OutputFinal(hash, 0, digestSizeBytes);
 
             /* Convert hash to a packed string of values in {0,1,2} */
             int round = 0;
@@ -1548,7 +1548,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 /* We need more bits; hash set hash = H_1(hash) */
                 digest.Update((byte) 1);
                 digest.BlockUpdate(hash, 0, digestSizeBytes);
-                digest.DoFinal(hash, 0, digestSizeBytes);
+                digest.OutputFinal(hash, 0, digestSizeBytes);
             }
         }
 
@@ -1569,7 +1569,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             /* Hash the seed with H_5, store digest in output */
             digest.Update((byte) 5);
             digest.BlockUpdate(seed, seedOffset, seedSizeBytes);
-            digest.DoFinal(output, 0, digestSizeBytes);
+            digest.OutputFinal(output, 0, digestSizeBytes);
 
             /* Hash H_5(seed), the view, and the length */
             digest.BlockUpdate(output, 0, digestSizeBytes);
@@ -1582,7 +1582,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(view.communicatedBits, 0, andSizeBytes);
 
             digest.BlockUpdate(Pack.UInt32_To_LE((uint)outputBytes), 0, 2);
-            digest.DoFinal(output, 0, outputBytes);
+            digest.OutputFinal(output, 0, outputBytes);
         }
 
         private void mpc_LowMC(Tape tapes, View[] views, uint[] plaintext, uint[] slab)
@@ -1635,7 +1635,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             /* Hash the seed, store result in `hash` */
             digest.Update((byte) 4);
             digest.BlockUpdate(seed, seedOffset, seedSizeBytes);
-            digest.DoFinal(hash, 0, digestSizeBytes);
+            digest.OutputFinal(hash, 0, digestSizeBytes);
 
             /* Compute H_0(H_4(seed), view) */
             digest.Update((byte) 0);
@@ -1643,7 +1643,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(Pack.UInt32_To_LE(view.inputShare), 0, stateSizeBytes);
             digest.BlockUpdate(view.communicatedBits, 0, andSizeBytes);
             digest.BlockUpdate(Pack.UInt32_To_LE(view.outputShare), 0, stateSizeBytes);
-            digest.DoFinal(hash, 0, digestSizeBytes);
+            digest.OutputFinal(hash, 0, digestSizeBytes);
         }
 
         private void mpc_substitution(uint[] state, Tape rand, View[] views)
@@ -1747,7 +1747,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             /* Hash the seed and a constant, store the result in tape. */
             digest.Update((byte) 2);
             digest.BlockUpdate(seed, seedOffset, seedSizeBytes);
-            digest.DoFinal(tape, 0, digestSizeBytes);
+            digest.OutputFinal(tape, 0, digestSizeBytes);
 //        Console.Error.Write("tape: " + Hex.toHexString(tape));
 
             /* Expand the hashed seed, salt, round and player indices, and output
@@ -1757,7 +1757,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(Pack.UInt32_To_LE(roundNumber), 0, 2);
             digest.BlockUpdate(Pack.UInt32_To_LE(playerNumber), 0, 2);
             digest.BlockUpdate(Pack.UInt32_To_LE((uint)tapeLen), 0, 2);
-            digest.DoFinal(tape, 0, tapeLen);
+            digest.OutputFinal(tape, 0, tapeLen);
 
             return true;
         }
@@ -1773,7 +1773,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(Pack.UInt32_To_LE((uint)stateSizeBits), 0, 2);
 
             // Derive the N*T seeds + 1 salt
-            digest.DoFinal(allSeeds, 0, seedSizeBytes * (numMPCParties * numMPCRounds) + saltSizeBytes);
+            digest.OutputFinal(allSeeds, 0, seedSizeBytes * (numMPCParties * numMPCRounds) + saltSizeBytes);
 
             return allSeeds;
         }
@@ -1963,7 +1963,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(Pack.UInt32_To_LE(pubKey), 0, stateSizeBytes);
             digest.BlockUpdate(Pack.UInt32_To_LE(plaintext), 0, stateSizeBytes);
             digest.BlockUpdate(message, 0, message.Length);
-            digest.DoFinal(challengeHash, 0, digestSizeBytes);
+            digest.OutputFinal(challengeHash, 0, digestSizeBytes);
 
             if ((challengeC != null) && (challengeP != null))
             {
@@ -2041,7 +2041,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
                 digest.Update((byte) 1);
                 digest.BlockUpdate(h, 0, digestSizeBytes);
-                digest.DoFinal(h, 0, digestSizeBytes);
+                digest.OutputFinal(h, 0, digestSizeBytes);
             }
 
             // Note that we always compute h = H(h) after setting C
@@ -2066,7 +2066,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
                 digest.Update((byte) 1);
                 digest.BlockUpdate(h, 0, digestSizeBytes);
-                digest.DoFinal(h, 0, digestSizeBytes);
+                digest.OutputFinal(h, 0, digestSizeBytes);
             }
         }
 
@@ -2077,7 +2077,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 digest.BlockUpdate(C[i], 0, digestSizeBytes);
             }
 
-            digest.DoFinal(digest_arr, 0, digestSizeBytes);
+            digest.OutputFinal(digest_arr, 0, digestSizeBytes);
         }
 
         private void commit_v(byte[] digest_arr, byte[] input, Msg msg)
@@ -2089,7 +2089,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 digest.BlockUpdate(msg.msgs[i], 0, msgs_size);
             }
 
-            digest.DoFinal(digest_arr, 0, digestSizeBytes);
+            digest.OutputFinal(digest_arr, 0, digestSizeBytes);
         }
 
         private int SimulateOnline(uint[] maskedKey, Tape tape, uint[] tmp_shares,
@@ -2139,7 +2139,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 digest.BlockUpdate(salt, 0, saltSizeBytes);
                 digest.BlockUpdate(Pack.UInt32_To_LE(t), 0, 2);
                 digest.BlockUpdate(Pack.UInt32_To_LE(i), 0, 2);
-                digest.DoFinal(tape.tapes[i], 0, tapeSizeBytes);
+                digest.OutputFinal(tape.tapes[i], 0, tapeSizeBytes);
             }
         }
 
@@ -2314,7 +2314,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(salt, 0, saltSizeBytes);
             digest.BlockUpdate(Pack.UInt32_To_LE(t), 0, 2);
             digest.BlockUpdate(Pack.UInt32_To_LE(j), 0, 2);
-            digest.DoFinal(digest_arr, 0, digestSizeBytes);
+            digest.OutputFinal(digest_arr, 0, digestSizeBytes);
         }
 
         private void ComputeSaltAndRootSeed(byte[] saltAndRoot, uint[] privateKey, uint[] pubKey, uint[] plaintext, byte[] message)
@@ -2338,7 +2338,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(pubkey_bytes, 0, stateSizeBytes);
             digest.BlockUpdate(plaintext_bytes, 0, stateSizeBytes);
             digest.BlockUpdate(Pack.UInt16_To_LE((ushort) (stateSizeBits & 0xffff)), 0, 2);
-            digest.DoFinal(saltAndRoot, 0, saltAndRoot.Length);
+            digest.OutputFinal(saltAndRoot, 0, saltAndRoot.Length);
         }
 
         static bool is_picnic3(int parameters)

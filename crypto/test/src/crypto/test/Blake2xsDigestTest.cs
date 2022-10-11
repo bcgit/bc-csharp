@@ -2609,7 +2609,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 h.BlockUpdate(input, 0, input.Length);
                 Blake2xsDigest clone = new Blake2xsDigest(h);
 
-                h.DoOutput(output, outOff, digestSize);
+                h.Output(output, outOff, digestSize);
                 if (!AreEqual(output, outOff, outOff + digestSize, expected, 0, digestSize))
                 {
                     Fail("BLAKE2xs mismatch on test vector after a reset", XofTestVectors[i, 2],
@@ -2617,7 +2617,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 }
 
                 byte[] outClone = new byte[digestSize];
-                clone.DoFinal(outClone, 0, outClone.Length);
+                clone.OutputFinal(outClone, 0, outClone.Length);
                 if (!AreEqual(outClone, expected))
                 {
                     Fail("BLAKE2xs mismatch on test vector against a clone", XofTestVectors[i, 2],
@@ -2646,7 +2646,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                h.DoFinal(output, 0, output.Length);
+                h.OutputFinal(output, 0, output.Length);
                 Fail("no exception");
             }
             catch (ArgumentException e)
@@ -2654,7 +2654,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 IsEquals("Output length is above the digest length", e.Message);
             }
 
-            h.DoFinal(output, 0, 1);
+            h.OutputFinal(output, 0, 1);
         }
 
         //private void TestBlake2xsUnknownLength()

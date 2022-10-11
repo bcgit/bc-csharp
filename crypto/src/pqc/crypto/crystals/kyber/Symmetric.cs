@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
             internal override void XofSqueezeBlocks(byte[] output, int outOffset, int outLen)
             {
-                xof.DoOutput(output, outOffset, outLen);
+                xof.Output(output, outOffset, outLen);
             }
 
             internal override void Prf(byte[] output, byte[] seed, byte nonce)
@@ -80,13 +80,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 Array.Copy(seed, 0, extSeed, 0, seed.Length);
                 extSeed[seed.Length] = nonce;
                 shakeDigest.BlockUpdate(extSeed, 0, extSeed.Length);
-                shakeDigest.DoFinal(output, 0, output.Length);
+                shakeDigest.OutputFinal(output, 0, output.Length);
             }
 
             internal override void Kdf(byte[] output, byte[] input)
             {
                 shakeDigest.BlockUpdate(input, 0, input.Length);
-                shakeDigest.DoFinal(output, 0, output.Length);
+                shakeDigest.OutputFinal(output, 0, output.Length);
             }
         }
 

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="outOff">offset to start writing the bytes at.</param>
         /// <param name="outLen">the number of output bytes requested.</param>
         /// <returns>the number of bytes written</returns>
-        int DoFinal(byte[] output, int outOff, int outLen);
+        int OutputFinal(byte[] output, int outOff, int outLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         /// <summary>
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="outOff">offset to start writing the bytes at.</param>
         /// <param name="outLen">the number of output bytes requested.</param>
         /// <returns>the number of bytes written</returns>
-        int DoOutput(byte[] output, int outOff, int outLen);
+        int Output(byte[] output, int outOff, int outLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         /// <summary>

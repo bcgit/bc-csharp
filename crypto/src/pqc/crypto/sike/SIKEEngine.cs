@@ -126,7 +126,7 @@ internal class SIKEEngine
 
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_PUBLICKEYBYTES + param.MSG_BYTES));
-            digest.DoFinal(ephemeralsk, 0, (int) param.SECRETKEY_B_BYTES);
+            digest.OutputFinal(ephemeralsk, 0, (int) param.SECRETKEY_B_BYTES);
 
             sidhCompressed.FormatPrivKey_B(ephemeralsk);
 
@@ -144,7 +144,7 @@ internal class SIKEEngine
 //            System.out.println("jinv: " + Hex.toHexstring(jinvariant));
 
             digest.BlockUpdate(jinvariant, 0, (int) param.FP2_ENCODED_BYTES);
-            digest.DoFinal(h, 0, (int) param.MSG_BYTES);
+            digest.OutputFinal(h, 0, (int) param.MSG_BYTES);
 
 //            System.out.println("h: " + Hex.toHexstring(h));
 //            System.out.println("temp: " + Hex.toHexstring(temp));
@@ -158,7 +158,7 @@ internal class SIKEEngine
             System.Array.Copy(ct, 0, temp, param.MSG_BYTES, param.CRYPTO_CIPHERTEXTBYTES);
 
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_CIPHERTEXTBYTES + param.MSG_BYTES));
-            digest.DoFinal(ss, 0, (int) param.CRYPTO_BYTES);
+            digest.OutputFinal(ss, 0, (int) param.CRYPTO_BYTES);
             return 0;
         }
         else
@@ -174,7 +174,7 @@ internal class SIKEEngine
 
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_PUBLICKEYBYTES + param.MSG_BYTES));
-            digest.DoFinal(ephemeralsk, 0, (int) param.SECRETKEY_A_BYTES);
+            digest.OutputFinal(ephemeralsk, 0, (int) param.SECRETKEY_A_BYTES);
             ephemeralsk[param.SECRETKEY_A_BYTES - 1] &= (byte) param.MASK_ALICE;
 
             // Encrypt
@@ -182,7 +182,7 @@ internal class SIKEEngine
             sidh.EphemeralSecretAgreement_A(ephemeralsk, pk, jinvariant);
 
             digest.BlockUpdate(jinvariant, 0, (int) param.FP2_ENCODED_BYTES);
-            digest.DoFinal(h, 0, (int) param.MSG_BYTES);
+            digest.OutputFinal(h, 0, (int) param.MSG_BYTES);
 
             for (int i = 0; i < param.MSG_BYTES; i++)
             {
@@ -193,7 +193,7 @@ internal class SIKEEngine
             System.Array.Copy(ct, 0, temp, param.MSG_BYTES, param.CRYPTO_CIPHERTEXTBYTES);
 
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_CIPHERTEXTBYTES + param.MSG_BYTES));
-            digest.DoFinal(ss, 0, (int) param.CRYPTO_BYTES);
+            digest.OutputFinal(ss, 0, (int) param.CRYPTO_BYTES);
 
             return 0;
         }
@@ -218,7 +218,7 @@ internal class SIKEEngine
 
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(jinvariant_, 0, (int) param.FP2_ENCODED_BYTES);
-            digest.DoFinal(h_, 0, (int) param.MSG_BYTES);
+            digest.OutputFinal(h_, 0, (int) param.MSG_BYTES);
 
 //            System.out.println("h_: " + Hex.toHexstring(h_));
 
@@ -231,7 +231,7 @@ internal class SIKEEngine
             System.Array.Copy(sk, param.MSG_BYTES + param.SECRETKEY_A_BYTES, temp, param.MSG_BYTES, param.CRYPTO_PUBLICKEYBYTES);
 
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_PUBLICKEYBYTES + param.MSG_BYTES));
-            digest.DoFinal(ephemeralsk_, 0, (int) param.SECRETKEY_B_BYTES);
+            digest.OutputFinal(ephemeralsk_, 0, (int) param.SECRETKEY_B_BYTES);
             sidhCompressed.FormatPrivKey_B(ephemeralsk_);
 
             // Generate shared secret ss <- H(m||ct), or output ss <- H(s||ct) in case of ct verification failure
@@ -242,7 +242,7 @@ internal class SIKEEngine
 
             System.Array.Copy(ct, 0, temp, param.MSG_BYTES, param.CRYPTO_CIPHERTEXTBYTES);
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_CIPHERTEXTBYTES + param.MSG_BYTES));
-            digest.DoFinal(ss, 0, (int) param.CRYPTO_BYTES);
+            digest.OutputFinal(ss, 0, (int) param.CRYPTO_BYTES);
 
             return 0;
         }
@@ -260,7 +260,7 @@ internal class SIKEEngine
 
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(jinvariant_, 0, (int) param.FP2_ENCODED_BYTES);
-            digest.DoFinal(h_, 0, (int) param.MSG_BYTES);
+            digest.OutputFinal(h_, 0, (int) param.MSG_BYTES);
             for (int i = 0; i < param.MSG_BYTES; i++)
             {
                 temp[i] = (byte) (ct[i + param.CRYPTO_PUBLICKEYBYTES] ^ h_[i]);
@@ -270,7 +270,7 @@ internal class SIKEEngine
             System.Array.Copy(sk, param.MSG_BYTES + param.SECRETKEY_B_BYTES, temp, param.MSG_BYTES, param.CRYPTO_PUBLICKEYBYTES);
 
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_PUBLICKEYBYTES + param.MSG_BYTES));
-            digest.DoFinal(ephemeralsk_, 0, (int) param.SECRETKEY_A_BYTES);
+            digest.OutputFinal(ephemeralsk_, 0, (int) param.SECRETKEY_A_BYTES);
             ephemeralsk_[param.SECRETKEY_A_BYTES - 1] &= (byte) param.MASK_ALICE;
 
 
@@ -283,7 +283,7 @@ internal class SIKEEngine
 
             System.Array.Copy(ct, 0, temp, param.MSG_BYTES, param.CRYPTO_CIPHERTEXTBYTES);
             digest.BlockUpdate(temp, 0, (int) (param.CRYPTO_CIPHERTEXTBYTES + param.MSG_BYTES));
-            digest.DoFinal(ss, 0, (int) param.CRYPTO_BYTES);
+            digest.OutputFinal(ss, 0, (int) param.CRYPTO_BYTES);
 
             return 0;
         }

@@ -450,7 +450,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             engine.digest.BlockUpdate(salt, 0, PicnicEngine.saltSizeBytes);
             engine.digest.BlockUpdate(Pack.UInt32_To_LE(parent), 0, 2);
-            engine.digest.DoFinal(this.nodes[parent], 0, engine.digestSizeBytes);
+            engine.digest.OutputFinal(this.nodes[parent], 0, engine.digestSizeBytes);
             this.haveNode[parent] = true;
         }
 
@@ -545,7 +545,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             engine.digest.BlockUpdate(salt, 0, PicnicEngine.saltSizeBytes);
             engine.digest.BlockUpdate(Pack.UInt16_To_LE((ushort) (repIndex & 0xffff)), 0, 2); //todo check endianness
             engine.digest.BlockUpdate(Pack.UInt16_To_LE((ushort) (nodeIndex & 0xffff)), 0, 2); //todo check endianness
-            engine.digest.DoFinal(digest_arr, 0, 2 * engine.seedSizeBytes);
+            engine.digest.OutputFinal(digest_arr, 0, 2 * engine.seedSizeBytes);
 //        System.out.println("hash: " + Hex.toHexString(digest_arr));
         }
 

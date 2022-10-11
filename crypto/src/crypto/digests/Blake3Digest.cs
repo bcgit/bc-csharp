@@ -468,11 +468,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return OutputFinal(pOutput.AsSpan(pOutOffset, GetDigestSize()));
 #else
-            return DoFinal(pOutput, pOutOffset, GetDigestSize());
+            return OutputFinal(pOutput, pOutOffset, GetDigestSize());
 #endif
         }
 
-        public int DoFinal(byte[] pOut, int pOutOffset, int pOutLen)
+        public int OutputFinal(byte[] pOut, int pOutOffset, int pOutLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return OutputFinal(pOut.AsSpan(pOutOffset, pOutLen));
@@ -482,7 +482,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 throw new InvalidOperationException(ERR_OUTPUTTING);
 
             /* Build the required output */
-            int length = DoOutput(pOut, pOutOffset, pOutLen);
+            int length = Output(pOut, pOutOffset, pOutLen);
 
             /* reset the underlying digest and return the length */
             Reset();
@@ -490,7 +490,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #endif
         }
 
-        public int DoOutput(byte[] pOut, int pOutOffset, int pOutLen)
+        public int Output(byte[] pOut, int pOutOffset, int pOutLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Output(pOut.AsSpan(pOutOffset, pOutLen));

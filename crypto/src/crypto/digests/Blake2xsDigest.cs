@@ -223,7 +223,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         public int DoFinal(byte[] output, int outOff)
         {
-            return DoFinal(output, outOff, digestLength);
+            return OutputFinal(output, outOff, digestLength);
         }
 
         /**
@@ -234,9 +234,9 @@ namespace Org.BouncyCastle.Crypto.Digests
          * @param outOff offset to start writing the bytes at.
          * @param outLen the number of output bytes requested.
          */
-        public int DoFinal(byte[] output, int outOff, int outLen)
+        public int OutputFinal(byte[] output, int outOff, int outLen)
         {
-            int ret = DoOutput(output, outOff, outLen);
+            int ret = Output(output, outOff, outLen);
 
             Reset();
 
@@ -252,7 +252,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          * @param outLen the number of output bytes requested.
          * @return the number of bytes written
          */
-        public int DoOutput(byte[] output, int outOff, int outLen)
+        public int Output(byte[] output, int outOff, int outLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Output(output.AsSpan(outOff, outLen));

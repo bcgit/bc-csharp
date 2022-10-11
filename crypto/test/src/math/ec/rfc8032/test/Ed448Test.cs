@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 IXof prehash = Ed448.CreatePrehash();
                 prehash.BlockUpdate(m, 0, mLen);
-                prehash.DoFinal(ph, 0, ph.Length);
+                prehash.OutputFinal(ph, 0, ph.Length);
 
                 Ed448.SignPrehash(sk, 0, ctx, ph, 0, sig1, 0);
                 Ed448.SignPrehash(sk, 0, pk, 0, ctx, ph, 0, sig2, 0);
@@ -607,7 +607,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 prehash.BlockUpdate(m, 0, m.Length);
 
                 byte[] ph = new byte[Ed448.PrehashSize];
-                prehash.DoFinal(ph, 0, ph.Length);
+                prehash.OutputFinal(ph, 0, ph.Length);
 
                 Ed448.SignPrehash(sk, 0, ctx, ph, 0, sigGen, 0);
                 Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);

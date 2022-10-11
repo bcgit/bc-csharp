@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
             IXof digest = new ShakeDigest(128);
             digest.BlockUpdate(seed, 0, engine.getSABER_SEEDBYTES());
-            digest.DoFinal(buf, 0, buf.Length);
+            digest.OutputFinal(buf, 0, buf.Length);
 
             for (i = 0; i < SABER_L; i++)
             {
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             int i;
             IXof digest = new ShakeDigest(128);
             digest.BlockUpdate(seed, 0, engine.getSABER_NOISE_SEEDBYTES());
-            digest.DoFinal(buf, 0, buf.Length);
+            digest.OutputFinal(buf, 0, buf.Length);
 
             for (i = 0; i < SABER_L; i++)
             {

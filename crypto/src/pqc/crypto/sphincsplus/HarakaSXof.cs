@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             byte[] buf = new byte[640];
             BlockUpdate(pkSeed, 0, pkSeed.Length);
-            DoFinal(buf, 0, buf.Length);
+            OutputFinal(buf, 0, buf.Length);
             haraka512_rc = new ulong[10][];
             haraka256_rc = new uint[10][];
             for (int i = 0; i < 10; ++i)
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
         }
 
-        public int DoFinal(byte[] output, int outOff, int len)
+        public int OutputFinal(byte[] output, int outOff, int len)
         {
             int outLen = len;
 

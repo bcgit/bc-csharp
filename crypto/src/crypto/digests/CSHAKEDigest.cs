@@ -78,11 +78,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             get { return "CSHAKE" + fixedOutputLength; }
         }
 
-        public override int DoOutput(byte[] output, int outOff, int outLen)
+        public override int Output(byte[] output, int outOff, int outLen)
         {
             if (diff == null)
             {
-                return base.DoOutput(output, outOff, outLen);
+                return base.Output(output, outOff, outLen);
             }
 
             if (!squeezing)

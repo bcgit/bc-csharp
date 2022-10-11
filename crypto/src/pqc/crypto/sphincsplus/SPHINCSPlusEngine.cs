@@ -372,7 +372,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 treeDigest.BlockUpdate(mTheta, 0, mTheta.Length);
-                treeDigest.DoFinal(rv, 0, rv.Length);
+                treeDigest.OutputFinal(rv, 0, rv.Length);
 
                 return rv;
             }
@@ -395,7 +395,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     treeDigest.BlockUpdate(m2, 0, m2.Length);
                 }
 
-                treeDigest.DoFinal(rv, 0, rv.Length);
+                treeDigest.OutputFinal(rv, 0, rv.Length);
 
                 return rv;
             }
@@ -414,7 +414,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(pkRoot, 0, pkRoot.Length);
                 treeDigest.BlockUpdate(message, 0, message.Length);
-                treeDigest.DoFinal(output, 0, output.Length);
+                treeDigest.OutputFinal(output, 0, output.Length);
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
@@ -440,7 +440,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 treeDigest.BlockUpdate(mTheta, 0, mTheta.Length);
-                treeDigest.DoFinal(rv, 0, rv.Length);
+                treeDigest.OutputFinal(rv, 0, rv.Length);
 
                 return rv;
             }
@@ -450,7 +450,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 treeDigest.BlockUpdate(skSeed, 0, skSeed.Length);
-                treeDigest.DoFinal(prf, prfOff, N);
+                treeDigest.OutputFinal(prf, prfOff, N);
             }
 
             public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
@@ -459,7 +459,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.BlockUpdate(randomiser, 0, randomiser.Length);
                 treeDigest.BlockUpdate(message, 0, message.Length);
                 byte[] output = new byte[N];
-                treeDigest.DoFinal(output, 0, output.Length);
+                treeDigest.OutputFinal(output, 0, output.Length);
                 return output;
             }
 
@@ -469,8 +469,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 maskDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 maskDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
-
-                maskDigest.DoFinal(mask, 0, mask.Length);
+                maskDigest.OutputFinal(mask, 0, mask.Length);
 
                 for (int i = 0; i < m.Length; ++i)
                 {
@@ -486,8 +485,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 maskDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 maskDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
-
-                maskDigest.DoFinal(mask, 0, mask.Length);
+                maskDigest.OutputFinal(mask, 0, mask.Length);
 
                 for (int i = 0; i < m1.Length; ++i)
                 {
@@ -555,7 +553,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 m = Bitmask(adrs, m);
                 harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 harakaSXof.BlockUpdate(m, 0, m.Length);
-                harakaSXof.DoFinal(rv, 0, rv.Length);
+                harakaSXof.OutputFinal(rv, 0, rv.Length);
                 return rv;
             }
 
@@ -571,7 +569,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 harakaSXof.BlockUpdate(prf, 0, prf.Length);
                 harakaSXof.BlockUpdate(pkRoot, 0, pkRoot.Length);
                 harakaSXof.BlockUpdate(message, 0, message.Length);
-                harakaSXof.DoFinal(output, 0, output.Length);
+                harakaSXof.OutputFinal(output, 0, output.Length);
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
@@ -590,7 +588,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 m = Bitmask(adrs, m);
                 harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 harakaSXof.BlockUpdate(m, 0, m.Length);
-                harakaSXof.DoFinal(rv, 0, rv.Length);
+                harakaSXof.OutputFinal(rv, 0, rv.Length);
                 return rv;
             }
 
@@ -609,7 +607,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 harakaSXof.BlockUpdate(prf, 0, prf.Length);
                 harakaSXof.BlockUpdate(randomiser, 0, randomiser.Length);
                 harakaSXof.BlockUpdate(message, 0, message.Length);
-                harakaSXof.DoFinal(rv, 0, rv.Length);
+                harakaSXof.OutputFinal(rv, 0, rv.Length);
                 return rv;
             }
 
@@ -619,7 +617,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 {
                     byte[] mask = new byte[m.Length];
                     harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
-                    harakaSXof.DoFinal(mask, 0, mask.Length);
+                    harakaSXof.OutputFinal(mask, 0, mask.Length);
                     for (int i = 0; i < m.Length; ++i)
                     {
                         m[i] ^= mask[i];

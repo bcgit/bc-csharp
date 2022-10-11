@@ -403,7 +403,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] h = new byte[ScalarBytes * 2];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0, h.Length);
+            d.OutputFinal(h, 0, h.Length);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -495,7 +495,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Dom4(d, phflag, ctx);
             d.BlockUpdate(h, ScalarBytes, ScalarBytes);
             d.BlockUpdate(m, mOff, mLen);
-            d.DoFinal(h, 0, h.Length);
+            d.OutputFinal(h, 0, h.Length);
 
             byte[] r = ReduceScalar(h);
             byte[] R = new byte[PointBytes];
@@ -505,7 +505,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(R, 0, PointBytes);
             d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
-            d.DoFinal(h, 0, h.Length);
+            d.OutputFinal(h, 0, h.Length);
 
             byte[] k = ReduceScalar(h);
             byte[] S = CalculateS(r, k, s);
@@ -524,7 +524,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] h = new byte[ScalarBytes * 2];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0, h.Length);
+            d.OutputFinal(h, 0, h.Length);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -545,7 +545,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] h = new byte[ScalarBytes * 2];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0, h.Length);
+            d.OutputFinal(h, 0, h.Length);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -580,7 +580,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(R, 0, PointBytes);
             d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
-            d.DoFinal(h, 0, h.Length);
+            d.OutputFinal(h, 0, h.Length);
 
             byte[] k = ReduceScalar(h);
 
@@ -1726,7 +1726,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, IXof ph, byte[] sig, int sigOff)
         {
             byte[] m = new byte[PrehashSize];
-            if (PrehashSize != ph.DoFinal(m, 0, PrehashSize))
+            if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
                 throw new ArgumentException("ph");
 
             byte phflag = 0x01;
@@ -1737,7 +1737,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IXof ph, byte[] sig, int sigOff)
         {
             byte[] m = new byte[PrehashSize];
-            if (PrehashSize != ph.DoFinal(m, 0, PrehashSize))
+            if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
                 throw new ArgumentException("ph");
 
             byte phflag = 0x01;
@@ -1791,7 +1791,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, IXof ph)
         {
             byte[] m = new byte[PrehashSize];
-            if (PrehashSize != ph.DoFinal(m, 0, PrehashSize))
+            if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
                 throw new ArgumentException("ph");
 
             byte phflag = 0x01;

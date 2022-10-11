@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 throw new InvalidOperationException("Ed448phSigner not initialised for signature generation.");
 
             byte[] msg = new byte[Ed448.PrehashSize];
-            if (Ed448.PrehashSize != prehash.DoFinal(msg, 0, Ed448.PrehashSize))
+            if (Ed448.PrehashSize != prehash.OutputFinal(msg, 0, Ed448.PrehashSize))
                 throw new InvalidOperationException("Prehash digest failed");
 
             byte[] signature = new byte[Ed448PrivateKeyParameters.SignatureSize];

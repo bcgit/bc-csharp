@@ -204,7 +204,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
             IXof digest = new ShakeDigest(128);
             digest.BlockUpdate(seed_A, 0, SABER_SEEDBYTES);
-            digest.DoFinal(seed_A, 0, SABER_SEEDBYTES);
+            digest.OutputFinal(seed_A, 0, SABER_SEEDBYTES);
 
             random.NextBytes(seed_s);
 

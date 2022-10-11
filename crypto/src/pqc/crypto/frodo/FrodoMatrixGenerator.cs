@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                     // 2. c_{i,0} || c_{i,1} || ... || c_{i,n-1} = SHAKE128(b, 16n) (length in bits) where each c_{i,j} is parsed as a 16-bit integer in little-endian byte order format
                     IXof digest = new ShakeDigest(128);
                     digest.BlockUpdate(b, 0, b.Length);
-                    digest.DoFinal(tmp, 0, tmp.Length);
+                    digest.OutputFinal(tmp, 0, tmp.Length);
                     for (j = 0; j < n; j++)
                     {
                         A[i * n + j] = (short) (Pack.LE_To_UInt16(tmp, 2 * j) % q);//todo add % q

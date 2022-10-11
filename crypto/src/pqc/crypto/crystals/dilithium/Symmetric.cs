@@ -116,12 +116,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             internal override void Stream128SqueezeBlocks(byte[] output, int offset, int size)
             {
-                digest128.DoOutput(output, offset, size);
+                digest128.Output(output, offset, size);
             }
 
             internal override void Stream256SqueezeBlocks(byte[] output, int offset, int size)
             {
-                digest256.DoOutput(output, offset, size);
+                digest256.Output(output, offset, size);
             }
         }
     }

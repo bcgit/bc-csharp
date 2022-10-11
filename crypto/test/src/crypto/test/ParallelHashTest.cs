@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[32];
 
-            pHash.DoOutput(res, 0, res.Length);
+            pHash.Output(res, 0, res.Length);
 
             IsTrue("oops!", !Arrays.AreEqual(Hex.Decode("F7 FD 53 12 89 6C 66 85 C8 28 AF 7E 2A DB 97 E3 93 E7 F8 D5 4E 3C 2E A4 B9 5E 5A CA 37 96 E8 FC"), res));
             IsTrue("oops!", Arrays.AreEqual(Hex.Decode("0127ad9772ab904691987fcc4a24888f341fa0db2145e872d4efd255376602f0"), res));
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[64];
 
-            pHash.DoOutput(res, 0, res.Length);
+            pHash.Output(res, 0, res.Length);
 
             IsTrue("oops!", !Arrays.AreEqual(Hex.Decode("69 D0 FC B7 64 EA 05 5D D0 93 34 BC 60 21 CB 7E 4B 61 34 8D FF 37 5D A2 62 67 1C DE C3 EF FA 8D 1B 45 68 A6 CC E1 6B 1C AD 94 6D DD E2 7F 6C E2 B8 DE E4 CD 1B 24 85 1E BF 00 EB 90 D4 38 13 E9"), res));
             IsTrue("oops!", Arrays.AreEqual(Hex.Decode("6b3e790b330c889a204c2fbc728d809f19367328d852f4002dc829f73afd6bcefb7fe5b607b13a801c0be5c1170bdb794e339458fdb0e62a6af3d42558970249"), res));
@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] res = new byte[16 / 8];
 
-            pHash.DoOutput(res, 0, res.Length);
+            pHash.Output(res, 0, res.Length);
 
             IsTrue(Arrays.AreEqual(Hex.Decode("13C4"), res));
         }

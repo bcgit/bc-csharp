@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             
             ShakeDigest Shake256Digest = new ShakeDigest(256);
             Shake256Digest.BlockUpdate(SeedBuf, 0, SeedBytes);
-            Shake256Digest.DoFinal(buf, 0, 2 * SeedBytes + CrhBytes);
+            Shake256Digest.OutputFinal(buf, 0, 2 * SeedBytes + CrhBytes);
 
             rho = Arrays.CopyOfRange(buf, 0, SeedBytes);
             rhoPrime = Arrays.CopyOfRange(buf, SeedBytes, SeedBytes + CrhBytes);
@@ -171,7 +171,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             Shake256Digest.BlockUpdate(rho, 0, rho.Length);
             Shake256Digest.BlockUpdate(encT1, 0, encT1.Length);
-            Shake256Digest.DoFinal(tr, 0, SeedBytes);
+            Shake256Digest.OutputFinal(tr, 0, SeedBytes);
 
             Packing.PackSecretKey(t0_, s1_, s2_, t0, s1, s2, this);
         }
@@ -192,7 +192,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             ShakeDigest ShakeDigest256 = new ShakeDigest(256);
             ShakeDigest256.BlockUpdate(tr, 0, SeedBytes);
             ShakeDigest256.BlockUpdate(msg, 0, msglen);
-            ShakeDigest256.DoFinal(mu, 0, CrhBytes);
+            ShakeDigest256.OutputFinal(mu, 0, CrhBytes);
 
             if (_random != null)
             {
@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 byte[] KeyMu = Arrays.CopyOf(key, SeedBytes + CrhBytes);
                 Array.Copy(mu, 0, KeyMu, SeedBytes, CrhBytes);
                 ShakeDigest256.BlockUpdate(KeyMu, 0, SeedBytes + CrhBytes);
-                ShakeDigest256.DoFinal(rhoPrime, 0, CrhBytes);
+                ShakeDigest256.OutputFinal(rhoPrime, 0, CrhBytes);
             }
 
             Matrix.ExpandMatrix(rho);
@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             ShakeDigest256.BlockUpdate(mu, 0, CrhBytes);
             ShakeDigest256.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
-            ShakeDigest256.DoFinal(sig, 0, SeedBytes);
+            ShakeDigest256.OutputFinal(sig, 0, SeedBytes);
 
             cp.Challenge(sig);
 
@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             ShakeDigest Shake256Digest = new ShakeDigest(256);
             Shake256Digest.BlockUpdate(rho, 0, rho.Length);
             Shake256Digest.BlockUpdate(encT1, 0, encT1.Length);
-            Shake256Digest.DoFinal(mu, 0, SeedBytes);
+            Shake256Digest.OutputFinal(mu, 0, SeedBytes);
 
             Shake256Digest.BlockUpdate(mu, 0, SeedBytes);
             Shake256Digest.BlockUpdate(msg, 0, msglen);
@@ -341,7 +341,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             Shake256Digest.BlockUpdate(mu, 0, CrhBytes);
             Shake256Digest.BlockUpdate(buf, 0, K * PolyW1PackedBytes);
-            Shake256Digest.DoFinal(c2, 0, SeedBytes);
+            Shake256Digest.OutputFinal(c2, 0, SeedBytes);
 
             for (int i = 0; i < SeedBytes; ++i)
             {

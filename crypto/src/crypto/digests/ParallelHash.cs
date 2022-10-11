@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private void Compress(byte[] buf, int offSet, int len)
         {
             compressor.BlockUpdate(buf, offSet, len);
-            compressor.DoFinal(compressorBuffer, 0, compressorBuffer.Length);
+            compressor.OutputFinal(compressorBuffer, 0, compressorBuffer.Length);
 
             cshake.BlockUpdate(compressorBuffer, 0, compressorBuffer.Length);
 
@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private void Compress(ReadOnlySpan<byte> input, int pos, int len)
         {
             compressor.BlockUpdate(input.Slice(pos, len));
-            compressor.DoFinal(compressorBuffer, 0, compressorBuffer.Length);
+            compressor.OutputFinal(compressorBuffer, 0, compressorBuffer.Length);
 
             cshake.BlockUpdate(compressorBuffer, 0, compressorBuffer.Length);
 
@@ -234,14 +234,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        public virtual int DoFinal(byte[] outBuf, int outOff, int outLen)
+        public virtual int OutputFinal(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
             {
                 WrapUp(outputLength);
             }
 
-            int rv = cshake.DoFinal(outBuf, outOff, outLen);
+            int rv = cshake.OutputFinal(outBuf, outOff, outLen);
 
             Reset();
 
@@ -264,14 +264,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        public virtual int DoOutput(byte[] outBuf, int outOff, int outLen)
+        public virtual int Output(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
             {
                 WrapUp(0);
             }
 
-            return cshake.DoOutput(outBuf, outOff, outLen);
+            return cshake.Output(outBuf, outOff, outLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

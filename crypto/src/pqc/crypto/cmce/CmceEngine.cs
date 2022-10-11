@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update(64);
             digest.BlockUpdate(sk, 0, 32);
-            ((IXof)digest).DoFinal(hash, 0, hash.Length);
+            ((IXof)digest).OutputFinal(hash, 0, hash.Length);
 
             for (int i = 0; i < (1 << GFBITS); i++)
             {
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)64);
             digest.BlockUpdate(sk, 0, 32); // input
-            ((IXof)digest).DoFinal(hash, 0, hash.Length);
+            ((IXof)digest).OutputFinal(hash, 0, hash.Length);
 
 
             // generate g
@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 // SeededKeyGen - 1. Compute E = G(δ), a string of n + σ2q + σ1t + l bits. (3488 + 32*4096 + 16*64 + 256)
                 digest.BlockUpdate(seed_a, 0, seed_a.Length);
                 digest.BlockUpdate(seed_b, 0, seed_b.Length);
-                ((IXof)digest).DoFinal(E, 0, E.Length);
+                ((IXof)digest).OutputFinal(E, 0, E.Length);
                 // Store the seeds generated
 
                 // SeededKeyGen - 2. Define δ′ as the last l bits of E.
@@ -532,7 +532,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)0x02);
             digest.BlockUpdate(error_vector, 0, error_vector.Length); // input
-            ((IXof)digest).DoFinal(cipher_text, SYND_BYTES, cipher_text.Length - SYND_BYTES);     // output
+            ((IXof)digest).OutputFinal(cipher_text, SYND_BYTES, cipher_text.Length - SYND_BYTES);     // output
 
             /*
             2.4.5 Encapsulation
@@ -543,7 +543,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             digest.Update((byte)0x01);
             digest.BlockUpdate(error_vector, 0, error_vector.Length);
             digest.BlockUpdate(cipher_text, 0, cipher_text.Length); // input
-            ((IXof)digest).DoFinal(key, 0, key.Length);     // output
+            ((IXof)digest).OutputFinal(key, 0, key.Length);     // output
 
             if (usePadding)
             {
@@ -598,7 +598,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)0x02);
             digest.BlockUpdate(error_vector, 0, error_vector.Length); // input
-            ((IXof)digest).DoFinal(conf, 0, conf.Length);     // output
+            ((IXof)digest).OutputFinal(conf, 0, conf.Length);     // output
 
             /*
             2.3.3 Decapsulation
@@ -640,7 +640,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             //  = SHAKE256(preimage, 32)
             digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.BlockUpdate(preimage, 0, preimage.Length); // input
-            ((IXof)digest).DoFinal(key, 0, key.Length);     // output
+            ((IXof)digest).OutputFinal(key, 0, key.Length);     // output
 
 
             // clear outputs (set to all 1's) if padding bits are not all zero

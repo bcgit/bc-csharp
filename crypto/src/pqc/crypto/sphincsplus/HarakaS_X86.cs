@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return OutputFinal(output[..32]);
         }
 
-        public int DoOutput(byte[] output, int outOff, int outLen)
+        public int Output(byte[] output, int outOff, int outLen)
         {
             return Output(output.AsSpan(outOff, outLen));
         }
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return result;
         }
 
-        public int DoFinal(byte[] output, int outOff, int outLen)
+        public int OutputFinal(byte[] output, int outOff, int outLen)
         {
             return OutputFinal(output.AsSpan(outOff, outLen));
         }

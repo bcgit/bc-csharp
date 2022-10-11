@@ -358,7 +358,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 			{
 				byte[] mask = new byte[length];
 				mgfDigest.BlockUpdate(Z, zOff, zLen);
-				((IXof)mgfDigest).DoFinal(mask, 0, mask.Length);
+				((IXof)mgfDigest).OutputFinal(mask, 0, mask.Length);
 
 				return mask;
 			}

@@ -295,7 +295,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             {
                 byte[] mask = new byte[length];
                 mgf1Hash.BlockUpdate(Z, zOff, zLen);
-                ((IXof)mgf1Hash).DoFinal(mask, 0, mask.Length);
+                ((IXof)mgf1Hash).OutputFinal(mask, 0, mask.Length);
 
                 return mask;
             }
