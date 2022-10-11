@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             var state = Load128(inBuf.AsSpan(inOff, 16));
             ImplRounds(ref state);
-            Store128(ref state, outBuf.AsSpan(outOff, 16));
+            Store128(state, outBuf.AsSpan(outOff, 16));
             return 16;
         }
 
@@ -196,7 +196,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             var state = Load128(input[..16]);
             ImplRounds(ref state);
-            Store128(ref state, output[..16]);
+            Store128(state, output[..16]);
             return 16;
         }
 
@@ -210,10 +210,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             var s3 = Load128(input[32..48]);
             var s4 = Load128(input[48..64]);
             ImplRounds(ref s1, ref s2, ref s3, ref s4);
-            Store128(ref s1, output[..16]);
-            Store128(ref s2, output[16..32]);
-            Store128(ref s3, output[32..48]);
-            Store128(ref s4, output[48..64]);
+            Store128(s1, output[..16]);
+            Store128(s2, output[16..32]);
+            Store128(s3, output[32..48]);
+            Store128(s4, output[48..64]);
             return 64;
         }
 
@@ -804,7 +804,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private static void Store128(ref Vector128<byte> s, Span<byte> t)
+        private static void Store128(Vector128<byte> s, Span<byte> t)
         {
 #if NET7_0_OR_GREATER
             Vector128.CopyTo(s, t);

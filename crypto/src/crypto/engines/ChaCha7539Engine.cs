@@ -298,10 +298,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n2 = Avx2.Xor(n2, Load256_Byte(input[0x40..]));
 			n3 = Avx2.Xor(n3, Load256_Byte(input[0x60..]));
 
-			Store256_Byte(ref n0, output);
-			Store256_Byte(ref n1, output[0x20..]);
-			Store256_Byte(ref n2, output[0x40..]);
-			Store256_Byte(ref n3, output[0x60..]);
+			Store256_Byte(n0, output);
+			Store256_Byte(n1, output[0x20..]);
+			Store256_Byte(n2, output[0x40..]);
+			Store256_Byte(n3, output[0x60..]);
 		}
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -379,10 +379,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n2 = Sse2.Xor(n2, v2.AsByte());
 			n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(ref n0, output);
-			Store128_Byte(ref n1, output[0x10..]);
-			Store128_Byte(ref n2, output[0x20..]);
-			Store128_Byte(ref n3, output[0x30..]);
+			Store128_Byte(n0, output);
+			Store128_Byte(n1, output[0x10..]);
+			Store128_Byte(n2, output[0x20..]);
+			Store128_Byte(n3, output[0x30..]);
 
 			x3 = Load128_UInt32(state.AsSpan(12));
 			++state[12];
@@ -444,10 +444,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n2 = Sse2.Xor(n2, v2.AsByte());
 			n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(ref n0, output[0x40..]);
-			Store128_Byte(ref n1, output[0x50..]);
-			Store128_Byte(ref n2, output[0x60..]);
-			Store128_Byte(ref n3, output[0x70..]);
+			Store128_Byte(n0, output[0x40..]);
+			Store128_Byte(n1, output[0x50..]);
+			Store128_Byte(n2, output[0x60..]);
+			Store128_Byte(n3, output[0x70..]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -481,7 +481,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store128_Byte(ref Vector128<byte> s, Span<byte> t)
+		private static void Store128_Byte(Vector128<byte> s, Span<byte> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
 			{
@@ -495,7 +495,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store256_Byte(ref Vector256<byte> s, Span<byte> t)
+		private static void Store256_Byte(Vector256<byte> s, Span<byte> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
 			{

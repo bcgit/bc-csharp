@@ -135,10 +135,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 				v2 = Sse2.Add(v2, x2);
 				v3 = Sse2.Add(v3, x3);
 
-				Store128_UInt32(ref v0, output.AsSpan());
-				Store128_UInt32(ref v1, output.AsSpan(0x10));
-				Store128_UInt32(ref v2, output.AsSpan(0x20));
-				Store128_UInt32(ref v3, output.AsSpan(0x30));
+				Store128_UInt32(v0, output.AsSpan());
+				Store128_UInt32(v1, output.AsSpan(0x10));
+				Store128_UInt32(v2, output.AsSpan(0x20));
+				Store128_UInt32(v3, output.AsSpan(0x30));
 				return;
 			}
 #endif
@@ -222,7 +222,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store128_UInt32(ref Vector128<uint> s, Span<byte> t)
+		private static void Store128_UInt32(Vector128<uint> s, Span<byte> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
 			{
