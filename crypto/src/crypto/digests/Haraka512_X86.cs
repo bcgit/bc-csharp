@@ -80,6 +80,30 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store64(s3.GetLower(), output[24..32]);
         }
 
+        public static void Hash(ReadOnlySpan<byte> input, Span<byte> output,
+            ReadOnlySpan<Vector128<byte>> roundConstants)
+        {
+            if (!IsSupported)
+                throw new PlatformNotSupportedException(nameof(Haraka512_X86));
+
+            var s0 = Load128(input[  ..16]);
+            var s1 = Load128(input[16..32]);
+            var s2 = Load128(input[32..48]);
+            var s3 = Load128(input[48..64]);
+
+            ImplRounds(ref s0, ref s1, ref s2, ref s3, roundConstants[..40]);
+
+            s0 = Sse2.Xor(s0, Load128(input[  ..16]));
+            s1 = Sse2.Xor(s1, Load128(input[16..32]));
+            s2 = Sse2.Xor(s2, Load128(input[32..48]));
+            s3 = Sse2.Xor(s3, Load128(input[48..64]));
+
+            Store64(s0.GetUpper(), output[..8]);
+            Store64(s1.GetUpper(), output[8..16]);
+            Store64(s2.GetLower(), output[16..24]);
+            Store64(s3.GetLower(), output[24..32]);
+        }
+
         public static void Permute(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!IsSupported)
@@ -98,9 +122,28 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store128(s3, output[48..64]);
         }
 
+        public static void Permute(ReadOnlySpan<byte> input, Span<byte> output,
+            ReadOnlySpan<Vector128<byte>> roundConstants)
+        {
+            if (!IsSupported)
+                throw new PlatformNotSupportedException(nameof(Haraka512_X86));
+
+            var s0 = Load128(input[  ..16]);
+            var s1 = Load128(input[16..32]);
+            var s2 = Load128(input[32..48]);
+            var s3 = Load128(input[48..64]);
+
+            ImplRounds(ref s0, ref s1, ref s2, ref s3, roundConstants[..40]);
+
+            Store128(s0, output[  ..16]);
+            Store128(s1, output[16..32]);
+            Store128(s2, output[32..48]);
+            Store128(s3, output[48..64]);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ImplRounds(ref Vector128<byte> s0, ref Vector128<byte> s1, ref Vector128<byte> s2,
-            ref Vector128<byte> s3, Span<Vector128<byte>> rc)
+            ref Vector128<byte> s3, ReadOnlySpan<Vector128<byte>> rc)
         {
             ImplRound(ref s0, ref s1, ref s2, ref s3, rc[  .. 8]);
             ImplRound(ref s0, ref s1, ref s2, ref s3, rc[ 8..16]);
@@ -111,7 +154,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ImplRound(ref Vector128<byte> s0, ref Vector128<byte> s1, ref Vector128<byte> s2,
-            ref Vector128<byte> s3, Span<Vector128<byte>> rc)
+            ref Vector128<byte> s3, ReadOnlySpan<Vector128<byte>> rc)
         {
             ImplAes(ref s0, ref s1, ref s2, ref s3, rc[..8]);
             ImplMix(ref s0, ref s1, ref s2, ref s3);
@@ -119,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ImplAes(ref Vector128<byte> s0, ref Vector128<byte> s1, ref Vector128<byte> s2,
-            ref Vector128<byte> s3, Span<Vector128<byte>> rc)
+            ref Vector128<byte> s3, ReadOnlySpan<Vector128<byte>> rc)
         {
             s0 = Aes.Encrypt(s0, rc[0]);
             s1 = Aes.Encrypt(s1, rc[1]);

@@ -29,6 +29,24 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store128(s1, output[16..32]);
         }
 
+        public static void Hash(ReadOnlySpan<byte> input, Span<byte> output,
+            ReadOnlySpan<Vector128<byte>> roundConstants)
+        {
+            if (!IsSupported)
+                throw new PlatformNotSupportedException(nameof(Haraka256_X86));
+
+            var s0 = Load128(input[  ..16]);
+            var s1 = Load128(input[16..32]);
+
+            ImplRounds(ref s0, ref s1, roundConstants[..20]);
+
+            s0 = Sse2.Xor(s0, Load128(input[  ..16]));
+            s1 = Sse2.Xor(s1, Load128(input[16..32]));
+
+            Store128(s0, output[  ..16]);
+            Store128(s1, output[16..32]);
+        }
+
         public static void Permute(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!IsSupported)
@@ -43,8 +61,23 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store128(s1, output[16..32]);
         }
 
+        public static void Permute(ReadOnlySpan<byte> input, Span<byte> output,
+            ReadOnlySpan<Vector128<byte>> roundConstants)
+        {
+            if (!IsSupported)
+                throw new PlatformNotSupportedException(nameof(Haraka256_X86));
+
+            var s0 = Load128(input[  ..16]);
+            var s1 = Load128(input[16..32]);
+
+            ImplRounds(ref s0, ref s1, roundConstants[..20]);
+
+            Store128(s0, output[  ..16]);
+            Store128(s1, output[16..32]);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ImplRounds(ref Vector128<byte> s0, ref Vector128<byte> s1, Span<Vector128<byte>> rc)
+        private static void ImplRounds(ref Vector128<byte> s0, ref Vector128<byte> s1, ReadOnlySpan<Vector128<byte>> rc)
         {
             ImplRound(ref s0, ref s1, rc[  .. 4]);
             ImplRound(ref s0, ref s1, rc[ 4.. 8]);
@@ -54,14 +87,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ImplRound(ref Vector128<byte> s0, ref Vector128<byte> s1, Span<Vector128<byte>> rc)
+        private static void ImplRound(ref Vector128<byte> s0, ref Vector128<byte> s1, ReadOnlySpan<Vector128<byte>> rc)
         {
             ImplAes(ref s0, ref s1, rc[..4]);
             ImplMix(ref s0, ref s1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ImplAes(ref Vector128<byte> s0, ref Vector128<byte> s1, Span<Vector128<byte>> rc)
+        private static void ImplAes(ref Vector128<byte> s0, ref Vector128<byte> s1, ReadOnlySpan<Vector128<byte>> rc)
         {
             s0 = Aes.Encrypt(s0, rc[0]);
             s1 = Aes.Encrypt(s1, rc[1]);
