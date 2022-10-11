@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
@@ -11,7 +10,7 @@ namespace Org.BouncyCastle.Tls.Tests
 {
     public class TlsTestSuite
     {
-        internal static TlsCrypto BC_CRYPTO = new BcTlsCrypto(new SecureRandom());
+        internal static TlsCrypto BC_CRYPTO = new BcTlsCrypto();
 
         internal static TlsCrypto GetCrypto(TlsTestConfig config)
         {

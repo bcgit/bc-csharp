@@ -27,6 +27,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         private readonly SecureRandom m_entropySource;
 
+        public BcTlsCrypto()
+            : this(new SecureRandom())
+        {
+        }
+
         public BcTlsCrypto(SecureRandom entropySource)
         {
             this.m_entropySource = entropySource;

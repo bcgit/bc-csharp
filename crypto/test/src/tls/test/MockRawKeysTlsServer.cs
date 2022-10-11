@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.X509;
@@ -25,7 +24,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal MockRawKeysTlsServer(short serverCertType, short clientCertType, short[] allowedClientCertTypes,
             Ed25519PrivateKeyParameters privateKey, ProtocolVersion tlsVersion)
-            : base(new BcTlsCrypto(new SecureRandom()))
+            : base(new BcTlsCrypto())
         {
             m_serverCertType = serverCertType;
             m_clientCertType = clientCertType;

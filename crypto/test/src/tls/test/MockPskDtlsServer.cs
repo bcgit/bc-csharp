@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -13,7 +12,7 @@ namespace Org.BouncyCastle.Tls.Tests
         : PskTlsServer
     {
         internal MockPskDtlsServer()
-            : base(new BcTlsCrypto(new SecureRandom()), new MyIdentityManager())
+            : base(new BcTlsCrypto(), new MyIdentityManager())
         {
         }
 

@@ -5,7 +5,6 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Tls.Tests;
 using Org.BouncyCastle.Utilities;
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             + "c1 fc eb e1 1a 03 9e c1 76 94 fa c6 e9 85 27 b6 42 f2 ed d5 ce"
             + "61");
 
-        private readonly TlsCrypto m_crypto = new BcTlsCrypto(new SecureRandom());
+        private readonly TlsCrypto m_crypto = new BcTlsCrypto();
 
         protected TlsCredentialedSigner LoadCredentialedSigner(TlsCryptoParameters cryptoParams, string resource,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)
