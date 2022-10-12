@@ -65,7 +65,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             BrAesCtOrtho(output);
         }
 
-        protected void Haraka512Perm(byte[] output)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void Haraka512Perm(Span<byte> output)
+#else
+        internal void Haraka512Perm(byte[] output)
+#endif
         {
             uint[] w = new uint[16];
             ulong[] q = new ulong[8];
@@ -116,7 +120,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
         }
 
-        protected void Haraka256Perm(byte[] output)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void Haraka256Perm(Span<byte> output)
+#else
+        internal void Haraka256Perm(byte[] output)
+#endif
         {
             uint[] q = new uint[8];
             InterleaveConstant32(q, buffer, 0);
@@ -138,8 +146,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             BrAesCtOrtho(q);
             for (int i = 0; i < 4; i++)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Pack.UInt32_To_LE(q[i << 1], output[(i << 2)..]);
+                Pack.UInt32_To_LE(q[(i << 1) + 1], output[((i << 2) + 16)..]);
+#else
                 Pack.UInt32_To_LE(q[i << 1], output, i << 2);
                 Pack.UInt32_To_LE(q[(i << 1) + 1], output, (i << 2) + 16);
+#endif
             }
         }
 
@@ -678,5 +691,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected static void Xor(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> z)
+        {
+            for (int i = 0; i < z.Length; i++)
+            {
+                z[i] = (byte)(x[i] ^ y[i]);
+            }
+        }
+#endif
     }
 }

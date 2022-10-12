@@ -40,6 +40,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             off += len;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            if (off > 64 - input.Length)
+                throw new ArgumentException("total input cannot be more than 64 bytes");
+
+            input.CopyTo(buffer.AsSpan(off));
+            off += input.Length;
+        }
+#endif
+
         public int DoFinal(byte[] output, int outOff)
         {
             // TODO Check received all 64 bytes of input?
@@ -52,7 +63,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             Reset();
 
-            return s.Length;
+            return 32;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            // TODO Check received all 64 bytes of input?
+
+            Span<byte> s = stackalloc byte[64];
+            Haraka512Perm(s);
+            Xor(s[8..], buffer.AsSpan(8), output[..8]);
+            Xor(s[24..], buffer.AsSpan(24), output[8..24]);
+            Xor(s[48..], buffer.AsSpan(48), output[24..32]);
+
+            Reset();
+
+            return 32;
+        }
+#endif
     }
 }
