@@ -121,26 +121,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public int Output(Span<byte> output)
         {
+            int result = output.Length;
+
             if (m_state != State.Squeezing)
             {
                 m_buf[m_bufPos] ^= 0x1F;
                 m_buf[31] ^= 0x80;
                 m_bufPos = 32;
                 m_state = State.Squeezing;
+
+                if (output.IsEmpty)
+                    return result;
             }
-
-            int result = output.Length;
-
-            int available = 32 - m_bufPos;
-            if (output.Length <= available)
+            else
             {
-                output.CopyFrom(m_buf.AsSpan(m_bufPos));
-                m_bufPos += available;
-                return result;
+                int available = 32 - m_bufPos;
+                if (output.Length <= available)
+                {
+                    output.CopyFrom(m_buf.AsSpan(m_bufPos));
+                    m_bufPos += available;
+                    return result;
+                }
+
+                output[..available].CopyFrom(m_buf.AsSpan(m_bufPos));
+                output = output[available..];
             }
 
-            output[..available].CopyFrom(m_buf.AsSpan(m_bufPos));
-            output = output[available..];
             Debug.Assert(!output.IsEmpty);
 
             while (output.Length > 32)

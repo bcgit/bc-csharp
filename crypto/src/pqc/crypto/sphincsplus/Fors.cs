@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     adrsTreeIndex = (adrsTreeIndex - 1) / 2;
                     adrs.SetTreeIndex(adrsTreeIndex);
 
-                    node = engine.H(pkSeed, adrs, stack.Pop().nodeValue, node);
+                    engine.H(pkSeed, adrs, stack.Pop().nodeValue, node, node);
 
                     //topmost node is now one layer higher
                     adrs.SetTreeHeight(++adrsTreeHeight);
@@ -123,13 +123,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     {
                         adrsTreeIndex = adrsTreeIndex / 2;
                         adrs.SetTreeIndex(adrsTreeIndex);
-                        node = engine.H(pkSeed, adrs, node, authPath[j]);
+                        engine.H(pkSeed, adrs, node, authPath[j], node);
                     }
                     else
                     {
                         adrsTreeIndex = (adrsTreeIndex - 1) / 2;
                         adrs.SetTreeIndex(adrsTreeIndex);
-                        node = engine.H(pkSeed, adrs, authPath[j], node);
+                        engine.H(pkSeed, adrs, authPath[j], node, node);
                     }
                 }
 
@@ -139,7 +139,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             Adrs forspkAdrs = new Adrs(adrs); // copy address to create FTS public key address
             forspkAdrs.SetAdrsType(Adrs.FORS_PK);
             forspkAdrs.SetKeyPairAddress(adrs.GetKeyPairAddress());
-            return engine.T_l(pkSeed, forspkAdrs, Arrays.ConcatenateAll(root));
+
+            byte[] result = new byte[engine.N];
+            engine.T_l(pkSeed, forspkAdrs, Arrays.ConcatenateAll(root), result);
+            return result;
         }
 
         /**

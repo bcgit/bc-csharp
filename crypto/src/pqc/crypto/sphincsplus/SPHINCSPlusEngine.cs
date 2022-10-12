@@ -94,11 +94,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public abstract byte[] F(byte[] pkSeed, Adrs adrs, byte[] m1);
 
-        public abstract byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract void F(byte[] pkSeed, Adrs adrs, Span<byte> m1);
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, Span<byte> output);
+#else
+        public abstract void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, byte[] output);
+#endif
 
         public abstract IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message);
 
-        public abstract byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract void T_l(byte[] pkSeed, Adrs adrs, byte[] m, Span<byte> output);
+#else
+        public abstract void T_l(byte[] pkSeed, Adrs adrs, byte[] m, byte[] output);
+#endif
 
         public abstract void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff);
 
@@ -177,7 +189,54 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return Arrays.CopyOfRange(sha256Buf, 0, N);
             }
 
-            public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void F(byte[] pkSeed, Adrs adrs, Span<byte> m1)
+            {
+                byte[] compressedAdrs = CompressedAdrs(adrs);
+
+                ((IMemoable)sha256).Reset(sha256Memo);
+
+                sha256.BlockUpdate(compressedAdrs);
+
+                if (robust)
+                {
+                    sha256.BlockUpdate(Bitmask256(Arrays.Concatenate(pkSeed, compressedAdrs), m1));
+                }
+                else
+                {
+                    sha256.BlockUpdate(m1);
+                }
+
+                sha256.DoFinal(sha256Buf);
+                m1.CopyFrom(sha256Buf);
+            }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, Span<byte> output)
+            {
+                byte[] compressedAdrs = CompressedAdrs(adrs);
+
+                ((IMemoable)msgDigest).Reset(msgMemo);
+
+                msgDigest.BlockUpdate(compressedAdrs);
+                if (robust)
+                {
+                    byte[] m1m2 = Bitmask(Arrays.Concatenate(pkSeed, compressedAdrs), m1, m2);
+                    msgDigest.BlockUpdate(m1m2);
+                }
+                else
+                {
+                    msgDigest.BlockUpdate(m1);
+                    msgDigest.BlockUpdate(m2);
+                }
+
+                msgDigest.DoFinal(msgDigestBuf);
+
+                output[..N].CopyFrom(msgDigestBuf);
+            }
+#else
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, byte[] output)
             {
                 byte[] compressedAdrs = CompressedAdrs(adrs);
 
@@ -197,8 +256,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 msgDigest.DoFinal(msgDigestBuf, 0);
 
-                return Arrays.CopyOfRange(msgDigestBuf, 0, N);
+                Array.Copy(msgDigestBuf, 0, output, 0, N);
             }
+#endif
 
             public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
             {
@@ -230,7 +290,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
             }
 
-            public override byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, Span<byte> output)
+#else
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, byte[] output)
+#endif
             {
                 byte[] compressedAdrs = CompressedAdrs(adrs);
                 if (robust)
@@ -238,14 +302,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     m = Bitmask(Arrays.Concatenate(pkSeed, compressedAdrs), m);
                 }
 
-
                 ((IMemoable)msgDigest).Reset(msgMemo);
 
                 msgDigest.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
                 msgDigest.BlockUpdate(m, 0, m.Length);
                 msgDigest.DoFinal(msgDigestBuf, 0);
 
-                return Arrays.CopyOfRange(msgDigestBuf, 0, N);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                output[..N].CopyFrom(msgDigestBuf);
+#else
+                Array.Copy(msgDigestBuf, 0, output, 0, N);
+#endif
             }
 
             public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
@@ -300,7 +367,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return mask;
             }
 
-
             protected byte[] Bitmask(byte[] key, byte[] m1, byte[] m2)
             {
                 byte[] mask = new byte[m1.Length + m2.Length];
@@ -322,7 +388,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return mask;
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            protected byte[] Bitmask256(byte[] key, ReadOnlySpan<byte> m)
+#else
             protected byte[] Bitmask256(byte[] key, byte[] m)
+#endif
             {
                 byte[] mask = new byte[m.Length];
 
@@ -368,18 +438,50 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 }
 
                 byte[] rv = new byte[N];
-
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 treeDigest.BlockUpdate(mTheta, 0, mTheta.Length);
                 treeDigest.OutputFinal(rv, 0, rv.Length);
-
                 return rv;
             }
 
-            public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void F(byte[] pkSeed, Adrs adrs, Span<byte> m1)
             {
-                byte[] rv = new byte[N];
+                if (robust)
+                {
+                    Bitmask(pkSeed, adrs, m1);
+                }
+
+                treeDigest.BlockUpdate(pkSeed);
+                treeDigest.BlockUpdate(adrs.value);
+                treeDigest.BlockUpdate(m1);
+                treeDigest.OutputFinal(m1);
+            }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, Span<byte> output)
+            {
+                treeDigest.BlockUpdate(pkSeed);
+                treeDigest.BlockUpdate(adrs.value);
+
+                if (robust)
+                {
+                    byte[] m1m2 = Bitmask(pkSeed, adrs, m1, m2);
+                    treeDigest.BlockUpdate(m1m2);
+                }
+                else
+                {
+                    treeDigest.BlockUpdate(m1);
+                    treeDigest.BlockUpdate(m2);
+                }
+
+                treeDigest.OutputFinal(output[..N]);
+            }
+#else
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, byte[] output)
+            {
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
 
@@ -395,10 +497,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     treeDigest.BlockUpdate(m2, 0, m2.Length);
                 }
 
-                treeDigest.OutputFinal(rv, 0, rv.Length);
-
-                return rv;
+                treeDigest.OutputFinal(output, 0, N);
             }
+#endif
 
             public override IndexedDigest H_msg(byte[] R, byte[] pkSeed, byte[] pkRoot, byte[] message)
             {
@@ -427,7 +528,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
             }
 
-            public override byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, Span<byte> output)
+#else
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, byte[] output)
+#endif
             {
                 byte[] mTheta = m;
                 if (robust)
@@ -435,14 +540,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     mTheta = Bitmask(pkSeed, adrs, m);
                 }
 
-                byte[] rv = new byte[N];
-
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 treeDigest.BlockUpdate(mTheta, 0, mTheta.Length);
-                treeDigest.OutputFinal(rv, 0, rv.Length);
-
-                return rv;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                treeDigest.OutputFinal(output[..N]);
+#else
+                treeDigest.OutputFinal(output, 0, N);
+#endif
             }
 
             public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
@@ -478,6 +583,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 return mask;
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            protected void Bitmask(ReadOnlySpan<byte> pkSeed, Adrs adrs, Span<byte> m)
+            {
+                Span<byte> mask = stackalloc byte[m.Length];
+                maskDigest.BlockUpdate(pkSeed);
+                maskDigest.BlockUpdate(adrs.value);
+                maskDigest.OutputFinal(mask);
+
+                for (int i = 0; i < m.Length; ++i)
+                {
+                    m[i] ^= mask[i];
+                }
+            }
+#endif
 
             protected byte[] Bitmask(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
             {
@@ -544,18 +664,59 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return N == 32 ? hash : Arrays.CopyOfRange(hash, 0, N);
             }
 
-            public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void F(byte[] pkSeed, Adrs adrs, Span<byte> m1)
             {
-                byte[] rv = new byte[N];
+                Span<byte> hash = stackalloc byte[32];
+                if (robust)
+                {
+                    harakaS256Digest.BlockUpdate(adrs.value);
+                    harakaS256Digest.DoFinal(hash);
+                    for (int i = 0; i < m1.Length; ++i)
+                    {
+                        m1[i] ^= hash[i];
+                    }
+                }
+
+                harakaS512Digest.BlockUpdate(adrs.value);
+                harakaS512Digest.BlockUpdate(m1);
+                // NOTE The digest implementation implicitly pads the input with zeros up to 64 length
+                harakaS512Digest.DoFinal(hash);
+                m1.CopyFrom(hash);
+            }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, Span<byte> output)
+            {
+                Span<byte> m = stackalloc byte[m1.Length + m2.Length];
+                m1.CopyTo(m);
+                m2.CopyTo(m[m1.Length..]);
+                if (robust)
+                {
+                    Bitmask(adrs, m);
+                }
+
+                harakaSXof.BlockUpdate(adrs.value);
+                harakaSXof.BlockUpdate(m);
+                harakaSXof.OutputFinal(output[..N]);
+            }
+#else
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, byte[] output)
+            {
                 byte[] m = new byte[m1.Length + m2.Length];
                 Array.Copy(m1, 0, m, 0, m1.Length);
                 Array.Copy(m2, 0, m, m1.Length, m2.Length);
-                m = Bitmask(adrs, m);
+                if (robust)
+                {
+                    Bitmask(adrs, m);
+                }
+
                 harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 harakaSXof.BlockUpdate(m, 0, m.Length);
-                harakaSXof.OutputFinal(rv, 0, rv.Length);
-                return rv;
+                harakaSXof.OutputFinal(output, 0, N);
             }
+#endif
 
             public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
             {
@@ -582,14 +743,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
             }
 
-            public override byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, Span<byte> output)
+#else
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, byte[] output)
+#endif
             {
-                byte[] rv = new byte[N];
-                m = Bitmask(adrs, m);
+                if (robust)
+                {
+                    Bitmask(adrs, m);
+                }
+
                 harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 harakaSXof.BlockUpdate(m, 0, m.Length);
-                harakaSXof.OutputFinal(rv, 0, rv.Length);
-                return rv;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                harakaSXof.OutputFinal(output[..N]);
+#else
+                harakaSXof.OutputFinal(output, 0, N);
+#endif
             }
 
             public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
@@ -611,20 +782,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return rv;
             }
 
-            protected byte[] Bitmask(Adrs adrs, byte[] m)
+            protected void Bitmask(Adrs adrs, byte[] m)
             {
-                if (robust)
+                byte[] mask = new byte[m.Length];
+                harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
+                harakaSXof.OutputFinal(mask, 0, mask.Length);
+                for (int i = 0; i < m.Length; ++i)
                 {
-                    byte[] mask = new byte[m.Length];
-                    harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
-                    harakaSXof.OutputFinal(mask, 0, mask.Length);
-                    for (int i = 0; i < m.Length; ++i)
-                    {
-                        m[i] ^= mask[i];
-                    }
+                    m[i] ^= mask[i];
                 }
-                return m;
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            protected void Bitmask(Adrs adrs, Span<byte> m)
+            {
+                Span<byte> mask = stackalloc byte[m.Length];
+                harakaSXof.BlockUpdate(adrs.value);
+                harakaSXof.OutputFinal(mask);
+                for (int i = 0; i < m.Length; ++i)
+                {
+                    m[i] ^= mask[i];
+                }
+            }
+#endif
         }
 
 #if NETCOREAPP3_0_OR_GREATER
@@ -668,18 +848,41 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return buf[..N].ToArray();
             }
 
-            public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
+            public override void F(byte[] pkSeed, Adrs adrs, Span<byte> m1)
+            {
+                Span<byte> buf = stackalloc byte[64];
+                adrs.value.CopyTo(buf);
+
+                if (robust)
+                {
+                    Span<byte> mask = stackalloc byte[32];
+                    Haraka256_X86.Hash(adrs.value, mask, m_harakaS.RoundConstants);
+                    for (int i = 0; i < m1.Length; ++i)
+                    {
+                        buf[32 + i] = (byte)(m1[i] ^ mask[i]);
+                    }
+                }
+                else
+                {
+                    m1.CopyTo(buf[32..]);
+                }
+                Haraka512_X86.Hash(buf, buf, m_harakaS.RoundConstants);
+                m1.CopyFrom(buf);
+            }
+
+            public override void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, Span<byte> output)
             {
                 Span<byte> m = stackalloc byte[m1.Length + m2.Length];
                 m1.CopyTo(m);
                 m2.CopyTo(m[m1.Length..]);
-                Bitmask(adrs, m);
+                if (robust)
+                {
+                    Bitmask(adrs, m);
+                }
 
-                byte[] rv = new byte[N];
                 m_harakaS.BlockUpdate(adrs.value);
                 m_harakaS.BlockUpdate(m);
-                m_harakaS.OutputFinal(rv);
-                return rv;
+                m_harakaS.OutputFinal(output[..N]);
             }
 
             public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
@@ -710,15 +913,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return new IndexedDigest(treeIndex, leafIndex, output);
             }
 
-            public override byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m)
+            public override void T_l(byte[] pkSeed, Adrs adrs, byte[] m, Span<byte> output)
             {
-                Bitmask(adrs, m);
+                if (robust)
+                {
+                    Bitmask(adrs, m);
+                }
 
-                byte[] rv = new byte[N];
                 m_harakaS.BlockUpdate(adrs.value);
                 m_harakaS.BlockUpdate(m);
-                m_harakaS.OutputFinal(rv);
-                return rv;
+                m_harakaS.OutputFinal(output[..N]);
             }
 
             public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
@@ -742,15 +946,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             protected void Bitmask(Adrs adrs, Span<byte> m)
             {
-                if (robust)
+                Span<byte> mask = stackalloc byte[m.Length];
+                m_harakaS.BlockUpdate(adrs.value);
+                m_harakaS.OutputFinal(mask);
+                for (int i = 0; i < m.Length; ++i)
                 {
-                    Span<byte> mask = stackalloc byte[m.Length];
-                    m_harakaS.BlockUpdate(adrs.value);
-                    m_harakaS.OutputFinal(mask);
-                    for (int i = 0; i < m.Length; ++i)
-                    {
-                        m[i] ^= mask[i];
-                    }
+                    m[i] ^= mask[i];
                 }
             }
         }
