@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class PicnicVectorTest
     {
-        private static readonly Dictionary<string, PicnicParameters> parameters = new Dictionary<string, PicnicParameters>()
+        private static readonly Dictionary<string, PicnicParameters> Parameters = new Dictionary<string, PicnicParameters>()
         {
             { "picnicl1fs.rsp", PicnicParameters.picnicl1fs },
             { "picnicl1ur.rsp", PicnicParameters.picnicl1ur },
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] sigExpected = Hex.Decode(buf["sm"]); // signature
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            PicnicParameters picnicParameters = parameters[name];
+            PicnicParameters picnicParameters = Parameters[name];
 
             PicnicKeyPairGenerator kpGen = new PicnicKeyPairGenerator();
             PicnicKeyGenerationParameters genParams = new PicnicKeyGenerationParameters(random, picnicParameters);
