@@ -7,20 +7,20 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABERKEMGenerator
+    public class SaberKemGenerator
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
         private SecureRandom sr;
 
-        public SABERKEMGenerator(SecureRandom random)
+        public SaberKemGenerator(SecureRandom random)
         {
             this.sr = random;
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            SABERPublicKeyParameters key = (SABERPublicKeyParameters) recipientKey;
+            SaberPublicKeyParameters key = (SaberPublicKeyParameters) recipientKey;
             SABEREngine engine = key.GetParameters().GetEngine();
             byte[] cipher_text = new byte[engine.GetCipherTextSize()];
             byte[] sessionKey = new byte[engine.GetSessionKeySize()];

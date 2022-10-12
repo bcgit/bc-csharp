@@ -3,20 +3,20 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABERKeyParameters
+    public class SaberKeyParameters
         : AsymmetricKeyParameter
     {
-        private SABERParameters parameters;
+        private SaberParameters parameters;
 
-        public SABERKeyParameters(
+        public SaberKeyParameters(
             bool isPrivate,
-            SABERParameters parameters)
+            SaberParameters parameters)
             : base(isPrivate)
         {
             this.parameters = parameters;
         }
 
-        public SABERParameters GetParameters()
+        public SaberParameters GetParameters()
         {
             return parameters;
         }

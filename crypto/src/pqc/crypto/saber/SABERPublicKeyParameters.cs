@@ -2,8 +2,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABERPublicKeyParameters
-        : SABERKeyParameters
+    public class SaberPublicKeyParameters
+        : SaberKeyParameters
     {
         public byte[] publicKey;
 
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return PublicKey;
         }
 
-        public SABERPublicKeyParameters(SABERParameters parameters, byte[] publicKey)
+        public SaberPublicKeyParameters(SaberParameters parameters, byte[] publicKey)
             : base(false, parameters)
         {
             this.publicKey = Arrays.Clone(publicKey);

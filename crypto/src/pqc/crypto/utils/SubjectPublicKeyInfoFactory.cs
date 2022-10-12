@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
+using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
@@ -62,9 +63,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new CmcePublicKey(encoding));
             }
-            if (publicKey is SABERPublicKeyParameters)
+            if (publicKey is SaberPublicKeyParameters)
             {
-                SABERPublicKeyParameters parameters = (SABERPublicKeyParameters)publicKey;
+                SaberPublicKeyParameters parameters = (SaberPublicKeyParameters)publicKey;
 
                 byte[] encoding = parameters.GetEncoded();
 
@@ -120,9 +121,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 v.Add(new DerOctetString(parameters.T1));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(v));
             }
-            
-            throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
+            if (publicKey is BikePublicKeyParameters)
+            { 
+                BikePublicKeyParameters parameters = (BikePublicKeyParameters)publicKey;
 
+       
+                byte[] encoding = parameters.GetEncoded();
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.BikeOidLookup(parameters.Parameters));
+
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+            }
+
+            throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }
         
         private static void ExtractBytes(

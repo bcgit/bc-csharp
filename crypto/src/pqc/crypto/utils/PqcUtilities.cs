@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
+using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
@@ -19,8 +20,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<CmceParameters, DerObjectIdentifier> mcElieceOids = new Dictionary<CmceParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, CmceParameters> mcElieceParams = new Dictionary<DerObjectIdentifier, CmceParameters>();
         
-        private readonly static Dictionary<SABERParameters, DerObjectIdentifier> saberOids = new Dictionary<SABERParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, SABERParameters> saberParams = new Dictionary<DerObjectIdentifier, SABERParameters>();
+        private readonly static Dictionary<SaberParameters, DerObjectIdentifier> saberOids = new Dictionary<SaberParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, SaberParameters> saberParams = new Dictionary<DerObjectIdentifier, SaberParameters>();
 
         private readonly static Dictionary<PicnicParameters, DerObjectIdentifier> picnicOids = new Dictionary<PicnicParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, PicnicParameters> picnicParams = new Dictionary<DerObjectIdentifier, PicnicParameters>();
@@ -37,7 +38,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<FalconParameters, DerObjectIdentifier> falconOids = new Dictionary<FalconParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, FalconParameters> falconParams = new Dictionary<DerObjectIdentifier, FalconParameters>();
 
-        
+        private readonly static Dictionary<BikeParameters, DerObjectIdentifier> bikeOids = new Dictionary<BikeParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, BikeParameters> bikeParams = new Dictionary<DerObjectIdentifier, BikeParameters>();
+
         static PqcUtilities()
         {
             // CMCE
@@ -63,25 +66,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             mcElieceParams[BCObjectIdentifiers.mceliece8192128_r3] = CmceParameters.mceliece8192128r3;
             mcElieceParams[BCObjectIdentifiers.mceliece8192128f_r3] = CmceParameters.mceliece8192128fr3;
             
-            saberOids[SABERParameters.lightsaberkem128r3] = BCObjectIdentifiers.lightsaberkem128r3;
-            saberOids[SABERParameters.saberkem128r3] = BCObjectIdentifiers.saberkem128r3;
-            saberOids[SABERParameters.firesaberkem128r3] = BCObjectIdentifiers.firesaberkem128r3;
-            saberOids[SABERParameters.lightsaberkem192r3] = BCObjectIdentifiers.lightsaberkem192r3;
-            saberOids[SABERParameters.saberkem192r3] = BCObjectIdentifiers.saberkem192r3;
-            saberOids[SABERParameters.firesaberkem192r3] = BCObjectIdentifiers.firesaberkem192r3;
-            saberOids[SABERParameters.lightsaberkem256r3] = BCObjectIdentifiers.lightsaberkem256r3;
-            saberOids[SABERParameters.saberkem256r3] = BCObjectIdentifiers.saberkem256r3;
-            saberOids[SABERParameters.firesaberkem256r3] = BCObjectIdentifiers.firesaberkem256r3;
+            saberOids[SaberParameters.lightsaberkem128r3] = BCObjectIdentifiers.lightsaberkem128r3;
+            saberOids[SaberParameters.saberkem128r3] = BCObjectIdentifiers.saberkem128r3;
+            saberOids[SaberParameters.firesaberkem128r3] = BCObjectIdentifiers.firesaberkem128r3;
+            saberOids[SaberParameters.lightsaberkem192r3] = BCObjectIdentifiers.lightsaberkem192r3;
+            saberOids[SaberParameters.saberkem192r3] = BCObjectIdentifiers.saberkem192r3;
+            saberOids[SaberParameters.firesaberkem192r3] = BCObjectIdentifiers.firesaberkem192r3;
+            saberOids[SaberParameters.lightsaberkem256r3] = BCObjectIdentifiers.lightsaberkem256r3;
+            saberOids[SaberParameters.saberkem256r3] = BCObjectIdentifiers.saberkem256r3;
+            saberOids[SaberParameters.firesaberkem256r3] = BCObjectIdentifiers.firesaberkem256r3;
             
-            saberParams[BCObjectIdentifiers.lightsaberkem128r3] = SABERParameters.lightsaberkem128r3;
-            saberParams[BCObjectIdentifiers.saberkem128r3] = SABERParameters.saberkem128r3;
-            saberParams[BCObjectIdentifiers.firesaberkem128r3] = SABERParameters.firesaberkem128r3;
-            saberParams[BCObjectIdentifiers.lightsaberkem192r3] = SABERParameters.lightsaberkem192r3;
-            saberParams[BCObjectIdentifiers.saberkem192r3] = SABERParameters.saberkem192r3;
-            saberParams[BCObjectIdentifiers.firesaberkem192r3] = SABERParameters.firesaberkem192r3;
-            saberParams[BCObjectIdentifiers.lightsaberkem256r3] = SABERParameters.lightsaberkem256r3;
-            saberParams[BCObjectIdentifiers.saberkem256r3] = SABERParameters.saberkem256r3;
-            saberParams[BCObjectIdentifiers.firesaberkem256r3] = SABERParameters.firesaberkem256r3;
+            saberParams[BCObjectIdentifiers.lightsaberkem128r3] = SaberParameters.lightsaberkem128r3;
+            saberParams[BCObjectIdentifiers.saberkem128r3] = SaberParameters.saberkem128r3;
+            saberParams[BCObjectIdentifiers.firesaberkem128r3] = SaberParameters.firesaberkem128r3;
+            saberParams[BCObjectIdentifiers.lightsaberkem192r3] = SaberParameters.lightsaberkem192r3;
+            saberParams[BCObjectIdentifiers.saberkem192r3] = SaberParameters.saberkem192r3;
+            saberParams[BCObjectIdentifiers.firesaberkem192r3] = SaberParameters.firesaberkem192r3;
+            saberParams[BCObjectIdentifiers.lightsaberkem256r3] = SaberParameters.lightsaberkem256r3;
+            saberParams[BCObjectIdentifiers.saberkem256r3] = SaberParameters.saberkem256r3;
+            saberParams[BCObjectIdentifiers.firesaberkem256r3] = SaberParameters.firesaberkem256r3;
 
             
             picnicOids[PicnicParameters.picnicl1fs] = BCObjectIdentifiers.picnicl1fs;
@@ -162,6 +165,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             dilithiumParams[BCObjectIdentifiers.dilithium2_aes] = DilithiumParameters.Dilithium2Aes;
             dilithiumParams[BCObjectIdentifiers.dilithium3_aes] = DilithiumParameters.Dilithium3Aes;
             dilithiumParams[BCObjectIdentifiers.dilithium5_aes] = DilithiumParameters.Dilithium5Aes;
+
+            bikeOids[BikeParameters.bike128] = BCObjectIdentifiers.bike128;
+            bikeOids[BikeParameters.bike192] = BCObjectIdentifiers.bike192;
+            bikeOids[BikeParameters.bike256] = BCObjectIdentifiers.bike256;
+
+            bikeParams[BCObjectIdentifiers.bike128] = BikeParameters.bike128;
+            bikeParams[BCObjectIdentifiers.bike192] = BikeParameters.bike192;
+            bikeParams[BCObjectIdentifiers.bike256] = BikeParameters.bike256;
         }
 
         public static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
@@ -174,11 +185,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return mcElieceParams[oid];
         }
         
-        internal static DerObjectIdentifier SaberOidLookup(SABERParameters parameters)
+        internal static DerObjectIdentifier SaberOidLookup(SaberParameters parameters)
         {
             return saberOids[parameters];
         }
-        internal static SABERParameters SaberParamsLookup(DerObjectIdentifier oid)
+        internal static SaberParameters SaberParamsLookup(DerObjectIdentifier oid)
         {
             return saberParams[oid];
         }
@@ -243,5 +254,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return sikeParams[oid];
         }
 
+        internal static DerObjectIdentifier BikeOidLookup(BikeParameters parameters)
+        {
+            return bikeOids[parameters];
+        }
+
+        internal static BikeParameters BikeParamsLookup(DerObjectIdentifier oid)
+        {
+            return bikeParams[oid];
+        }
     }
 }

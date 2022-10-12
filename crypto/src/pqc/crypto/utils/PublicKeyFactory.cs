@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
+using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
@@ -93,6 +94,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             converters[BCObjectIdentifiers.kyber768_aes] = new KyberConverter();
             converters[BCObjectIdentifiers.kyber1024] = new KyberConverter();
             converters[BCObjectIdentifiers.kyber1024_aes] = new KyberConverter();
+
+            converters[BCObjectIdentifiers.bike128] = new BikeConverter();
+            converters[BCObjectIdentifiers.bike192] = new BikeConverter();
+            converters[BCObjectIdentifiers.bike256] = new BikeConverter();
         }
         
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -180,9 +185,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] keyEnc = DerOctetString.GetInstance(
                     DerSequence.GetInstance(keyInfo.ParsePublicKey())[0]).GetOctets();
 
-                SABERParameters saberParams = PqcUtilities.SaberParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                SaberParameters saberParams = PqcUtilities.SaberParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
-                    return new SABERPublicKeyParameters(saberParams, keyEnc);
+                return new SaberPublicKeyParameters(saberParams, keyEnc);
             }
         }
         
@@ -285,6 +290,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     }
                     return new FalconPublicKeyParameters(falconParams, Arrays.CopyOfRange(keyEnc, 1, keyEnc.Length));
                 }
+            }
+        }
+
+        private class BikeConverter: SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
+            {
+                byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+
+                BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                return new BikePublicKeyParameters(bikeParams, keyEnc);
             }
         }
     }

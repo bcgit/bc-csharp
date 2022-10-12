@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
+using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
@@ -90,9 +91,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             if (algOID.On(BCObjectIdentifiers.pqc_kem_saber))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
-                SABERParameters spParams = PqcUtilities.SaberParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+                SaberParameters spParams = PqcUtilities.SaberParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
 
-                return new SABERPrivateKeyParameters(spParams, keyEnc);
+                return new SaberPrivateKeyParameters(spParams, keyEnc);
             }
             if (algOID.On(BCObjectIdentifiers.picnic))
             {
@@ -107,6 +108,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 SIKEParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
 
                 return new SIKEPrivateKeyParameters(sikeParams, keyEnc);
+            }
+            if (algOID.On(BCObjectIdentifiers.pqc_kem_bike))
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
+                BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+
+                byte[] h0 = Arrays.CopyOfRange(keyEnc, 0, bikeParams.RByte);
+                byte[] h1 = Arrays.CopyOfRange(keyEnc, bikeParams.RByte, 2 * bikeParams.RByte);
+                byte[] sigma = Arrays.CopyOfRange(keyEnc, 2 * bikeParams.RByte, keyEnc.Length);
+
+
+                return new BikePrivateKeyParameters(bikeParams, h0, h1, sigma);
             }
             if (algOID.Equals(BCObjectIdentifiers.kyber512)
                 || algOID.Equals(BCObjectIdentifiers.kyber512_aes)

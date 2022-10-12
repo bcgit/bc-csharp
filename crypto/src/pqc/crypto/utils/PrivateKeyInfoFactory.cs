@@ -13,6 +13,7 @@ using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
+using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -85,9 +86,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     parameters.Alpha, parameters.S, CmcePub);
                 return new PrivateKeyInfo(algorithmIdentifier, CmcePriv, attributes);
             }
-            if (privateKey is SABERPrivateKeyParameters)
+            if (privateKey is SaberPrivateKeyParameters)
             {
-                SABERPrivateKeyParameters parameters = (SABERPrivateKeyParameters)privateKey;
+                SaberPrivateKeyParameters parameters = (SaberPrivateKeyParameters)privateKey;
 
                 byte[] encoding = parameters.GetEncoded();
 
@@ -168,6 +169,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 vPub.Add(new DerOctetString(parameters.T1));
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes, new DerSequence(vPub).GetEncoded());
+            }
+            if (privateKey is BikePrivateKeyParameters)
+            {
+                BikePrivateKeyParameters parameters = (BikePrivateKeyParameters)privateKey;
+
+                byte[] encoding = parameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.BikeOidLookup(parameters.Parameters));
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));

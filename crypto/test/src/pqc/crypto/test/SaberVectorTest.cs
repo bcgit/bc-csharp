@@ -19,38 +19,38 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [Test]
         public void TestParamaters()
         {
-            SABERParameters[] parameters = {
-                    SABERParameters.lightsaberkem128r3,
-                    SABERParameters.saberkem128r3,
-                    SABERParameters.firesaberkem128r3,
-                    SABERParameters.lightsaberkem192r3,
-                    SABERParameters.saberkem192r3,
-                    SABERParameters.firesaberkem192r3,
-                    SABERParameters.lightsaberkem256r3,
-                    SABERParameters.saberkem256r3,
-                    SABERParameters.firesaberkem256r3,
+            SaberParameters[] parameters = {
+                    SaberParameters.lightsaberkem128r3,
+                    SaberParameters.saberkem128r3,
+                    SaberParameters.firesaberkem128r3,
+                    SaberParameters.lightsaberkem192r3,
+                    SaberParameters.saberkem192r3,
+                    SaberParameters.firesaberkem192r3,
+                    SaberParameters.lightsaberkem256r3,
+                    SaberParameters.saberkem256r3,
+                    SaberParameters.firesaberkem256r3,
                 };
 
-            Assert.AreEqual(128, SABERParameters.lightsaberkem128r3.DefaultKeySize);
-            Assert.AreEqual(128, SABERParameters.saberkem128r3.DefaultKeySize);
-            Assert.AreEqual(128, SABERParameters.firesaberkem128r3.DefaultKeySize);
-            Assert.AreEqual(192, SABERParameters.lightsaberkem192r3.DefaultKeySize);
-            Assert.AreEqual(192, SABERParameters.saberkem192r3.DefaultKeySize);
-            Assert.AreEqual(192, SABERParameters.firesaberkem192r3.DefaultKeySize);
-            Assert.AreEqual(256, SABERParameters.lightsaberkem256r3.DefaultKeySize);
-            Assert.AreEqual(256, SABERParameters.saberkem256r3.DefaultKeySize);
-            Assert.AreEqual(256, SABERParameters.firesaberkem256r3.DefaultKeySize);
+            Assert.AreEqual(128, SaberParameters.lightsaberkem128r3.DefaultKeySize);
+            Assert.AreEqual(128, SaberParameters.saberkem128r3.DefaultKeySize);
+            Assert.AreEqual(128, SaberParameters.firesaberkem128r3.DefaultKeySize);
+            Assert.AreEqual(192, SaberParameters.lightsaberkem192r3.DefaultKeySize);
+            Assert.AreEqual(192, SaberParameters.saberkem192r3.DefaultKeySize);
+            Assert.AreEqual(192, SaberParameters.firesaberkem192r3.DefaultKeySize);
+            Assert.AreEqual(256, SaberParameters.lightsaberkem256r3.DefaultKeySize);
+            Assert.AreEqual(256, SaberParameters.saberkem256r3.DefaultKeySize);
+            Assert.AreEqual(256, SaberParameters.firesaberkem256r3.DefaultKeySize);
         }
 
         [Test]
         public void TestVectors()
         {
 
-            SABERParameters[] saberParameters = 
+            SaberParameters[] saberParameters = 
             {
-                SABERParameters.lightsaberkem256r3,
-                SABERParameters.saberkem256r3,
-                SABERParameters.firesaberkem256r3,
+                SaberParameters.lightsaberkem256r3,
+                SaberParameters.saberkem256r3,
+                SaberParameters.firesaberkem256r3,
             };
             String[] files = 
             {
@@ -90,31 +90,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             byte[] ss = Hex.Decode(buf["ss"]); // session key
 
                             NistSecureRandom random = new NistSecureRandom(seed, null);
-                            SABERParameters parameters = saberParameters[fileIndex];
+                            SaberParameters parameters = saberParameters[fileIndex];
 
-                            SABERKeyPairGenerator kpGen = new SABERKeyPairGenerator();
-                            SABERKeyGenerationParameters
-                                genParam = new SABERKeyGenerationParameters(random, parameters);
+                            SaberKeyPairGenerator kpGen = new SaberKeyPairGenerator();
+                            SaberKeyGenerationParameters
+                                genParam = new SaberKeyGenerationParameters(random, parameters);
                             //
                             // Generate keys and test.
                             //
                             kpGen.Init(genParam);
                             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-                            SABERPublicKeyParameters pubParams =
-                                (SABERPublicKeyParameters) PublicKeyFactory.CreateKey(
+                            SaberPublicKeyParameters pubParams =
+                                (SaberPublicKeyParameters) PublicKeyFactory.CreateKey(
                                     SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
-                                        (SABERPublicKeyParameters) kp.Public));
-                            SABERPrivateKeyParameters privParams =
-                                (SABERPrivateKeyParameters) PrivateKeyFactory.CreateKey(
-                                    PrivateKeyInfoFactory.CreatePrivateKeyInfo((SABERPrivateKeyParameters) kp.Private));
+                                        (SaberPublicKeyParameters) kp.Public));
+                            SaberPrivateKeyParameters privParams =
+                                (SaberPrivateKeyParameters) PrivateKeyFactory.CreateKey(
+                                    PrivateKeyInfoFactory.CreatePrivateKeyInfo((SaberPrivateKeyParameters) kp.Private));
 
 
                             Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), name + " " + count + ": public key");
                             Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), name + " " + count + ": secret key");
 
                             // KEM Enc
-                            SABERKEMGenerator SABEREncCipher = new SABERKEMGenerator(random);
+                            SaberKemGenerator SABEREncCipher = new SaberKemGenerator(random);
                             ISecretWithEncapsulation secWenc = SABEREncCipher.GenerateEncapsulated(pubParams);
                             byte[] generated_cipher_text = secWenc.GetEncapsulation();
                             Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc key");
 
                             // KEM Dec
-                            SABERKEMExtractor SABERDecCipher = new SABERKEMExtractor(privParams);
+                            SaberKemExtractor SABERDecCipher = new SaberKemExtractor(privParams);
 
                             byte[] dec_key = SABERDecCipher.ExtractSecret(generated_cipher_text);
 
