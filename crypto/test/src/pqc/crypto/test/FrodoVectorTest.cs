@@ -138,7 +138,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     }
                 }
 
-                if (buf.Count > 0)
+                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                 {
                     RunTestVector(name, buf);
                 }

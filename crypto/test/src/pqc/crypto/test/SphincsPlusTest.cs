@@ -383,13 +383,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(sk) };
             SecureRandom random = new FixedSecureRandom(source);
 
-            SphincsPlusParameters parameters;
-
             string[] nameParts = SplitOn(name, '-');
             bool sha2 = nameParts[0].Equals("sha2");
             bool shake = nameParts[0].Equals("shake");
             bool haraka = nameParts[0].Equals("haraka");
-            int size = Int32.Parse(nameParts[1].Substring(0, 3));
+            int size = int.Parse(nameParts[1].Substring(0, 3));
             bool fast = nameParts[1].EndsWith("f");
             bool slow = nameParts[1].EndsWith("s");
             bool simple = nameParts[2].Equals("simple.rsp");
@@ -442,7 +440,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 throw new ArgumentException("unknown complexity");
             }
 
-            parameters = (SphincsPlusParameters)typeof(SphincsPlusParameters).GetField(b.ToString()).GetValue(null);//todo unsure
+
+            SphincsPlusParameters parameters = (SphincsPlusParameters)
+                typeof(SphincsPlusParameters).GetField(b.ToString()).GetValue(null);//todo unsure
 
             //
             // Generate keys and test.
@@ -505,7 +505,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     }
                 }
 
-                if (buf.Count > 0)
+                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                 {
                     RunTestVector(name, buf);
                 }
