@@ -26,8 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             "PQCkemKAT_BIKE_3114.rsp",
             "PQCkemKAT_BIKE_6198.rsp",
-            // FIXME
-            //"PQCkemKAT_BIKE_10276.rsp"
+            "PQCkemKAT_BIKE_10276.rsp"
         };
 
         [Test]

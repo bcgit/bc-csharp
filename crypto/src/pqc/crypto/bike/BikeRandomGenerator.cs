@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         {
             byte[] output = new byte[4];
             digest.Output(output, 0, output.Length);
-            int tmp = Pack.LE_To_UInt16(output, 0);
+            int tmp = (int)Pack.LE_To_UInt32(output, 0);
             return tmp;
         }
     }
