@@ -18,14 +18,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [Test]
         public void TestParameters()
         {
-            
             FrodoParameters[] parameters = {
-                    FrodoParameters.frodokem19888r3,
-                    FrodoParameters.frodokem19888shaker3,
-                    FrodoParameters.frodokem31296r3,
-                    FrodoParameters.frodokem31296shaker3,
-                    FrodoParameters.frodokem43088r3,
-                    FrodoParameters.frodokem43088shaker3
+                FrodoParameters.frodokem19888r3,
+                FrodoParameters.frodokem19888shaker3,
+                FrodoParameters.frodokem31296r3,
+                FrodoParameters.frodokem31296shaker3,
+                FrodoParameters.frodokem43088r3,
+                FrodoParameters.frodokem43088shaker3
             };
 
             Assert.AreEqual(128, FrodoParameters.frodokem19888r3.DefaultKeySize);
@@ -39,43 +38,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [Test]
         public void TestVectors()
         {
-            // bool full = System.getProperty("test.full", "false").equals("true");
-            bool full = false;
+            string[] files = {
+                "PQCkemKAT_19888.rsp",
+                "PQCkemKAT_31296.rsp",
+                "PQCkemKAT_43088.rsp",
+                "PQCkemKAT_19888_shake.rsp",
+                "PQCkemKAT_31296_shake.rsp",
+                "PQCkemKAT_43088_shake.rsp"
+            };
 
-            string[] files;
-            FrodoParameters[] parameters;
-            if (full)
-            {
-                files = new []{
-                    "PQCkemKAT_19888.rsp",
-                    "PQCkemKAT_31296.rsp",
-                    "PQCkemKAT_43088.rsp",
-                    "PQCkemKAT_19888_shake.rsp",
-                    "PQCkemKAT_31296_shake.rsp",
-                    "PQCkemKAT_43088_shake.rsp"
-                };
+            FrodoParameters[] parameters = {
+                FrodoParameters.frodokem19888r3,
+                FrodoParameters.frodokem31296r3,
+                FrodoParameters.frodokem43088r3,
+                FrodoParameters.frodokem19888shaker3,
+                FrodoParameters.frodokem31296shaker3,
+                FrodoParameters.frodokem43088shaker3
+            };
 
-                parameters = new []{
-                    FrodoParameters.frodokem19888r3,
-                    FrodoParameters.frodokem31296r3,
-                    FrodoParameters.frodokem43088r3,
-                    FrodoParameters.frodokem19888shaker3,
-                    FrodoParameters.frodokem31296shaker3,
-                    FrodoParameters.frodokem43088shaker3
-                };
-            }
-            else
-            {
-                files = new[]{
-                    "PQCkemKAT_19888.rsp",
-                    "PQCkemKAT_19888_shake.rsp",
-                };
-
-                parameters = new[]{
-                    FrodoParameters.frodokem19888r3,
-                    FrodoParameters.frodokem19888shaker3,
-                };
-            }
             TestSampler sampler = new TestSampler();
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
             {
@@ -96,17 +76,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     }
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                        if (buf.Count > 0)
                         {
-                            String count = buf["count"];
-                            if (!"0".Equals(count))
-                            {
-                                // randomly skip tests after zero.
-                                // if (rnd.nextBoolean())
-                                // {
-                                //     continue;
-                                // }
-                            }
+                            string count = buf["count"];
+                            if (sampler.SkipTest(count))
+                                continue;
+
                             Console.Write($"test case: {count}");
 
                             byte[] seed = Hex.Decode(buf["seed"]); // seed for nist secure random

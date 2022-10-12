@@ -1,9 +1,7 @@
-
-
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -62,17 +60,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         internal class Aes128MatrixGenerator
             : FrodoMatrixGenerator
         {
-            BufferedBlockCipher cipher;
+            private readonly IBlockCipher m_cipher;
 
             public Aes128MatrixGenerator(int n, int q)
                 : base(n, q)
             {
-                cipher = new BufferedBlockCipher(AesUtilities.CreateEngine());
-
+                m_cipher = AesUtilities.CreateEngine();
             }
 
             internal override short[] GenMatrix(byte[] seedA)
             {
+                KeyParameter kp = new KeyParameter(seedA);
+                m_cipher.Init(true, kp);
+
                 //        """Generate matrix A using AES-128 (FrodoKEM specification, Algorithm 7)"""
                 //        A = [[None for j in range(self.n)] for i in range(self.n)]
                 short[] A = new short[n * n];
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                         //                struct.pack_into('<H', b, 0, i)
                         //                struct.pack_into('<H', b, 2, j)
                         // 4. c = AES128(seedA, b)
-                        Aes128(c, seedA, b);
+                        m_cipher.ProcessBlock(b, 0, c, 0);
                         // 5. for k = 0; k < 8; k += 1
                         for (int k = 0; k < 8; k++)
                         {
@@ -107,22 +107,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                 }
 
                 return A;
-            }
-
-            void Aes128(byte[] output, byte[] keyBytes, byte[] msg)
-            {
-                try
-                {
-                    KeyParameter kp = new KeyParameter(keyBytes);
-                    cipher.Init(true, kp);
-                    int len = cipher.ProcessBytes(msg, 0, msg.Length, output, 0);
-                    cipher.DoFinal(output, len);
-                }
-                catch (InvalidCipherTextException e)
-                {
-                    throw new Exception(e.ToString(), e);
-                }
-
             }
         }
     }
