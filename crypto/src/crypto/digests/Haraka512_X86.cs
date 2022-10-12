@@ -74,8 +74,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             s2 = Sse2.Xor(s2, Load128(input[32..48]));
             s3 = Sse2.Xor(s3, Load128(input[48..64]));
 
-            Store64(s0.GetUpper(), output[..8]);
-            Store64(s1.GetUpper(), output[8..16]);
+            Store64(s0.GetUpper(), output[  .. 8]);
+            Store64(s1.GetUpper(), output[ 8..16]);
             Store64(s2.GetLower(), output[16..24]);
             Store64(s3.GetLower(), output[24..32]);
         }
@@ -98,8 +98,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             s2 = Sse2.Xor(s2, Load128(input[32..48]));
             s3 = Sse2.Xor(s3, Load128(input[48..64]));
 
-            Store64(s0.GetUpper(), output[..8]);
-            Store64(s1.GetUpper(), output[8..16]);
+            Store64(s0.GetUpper(), output[  .. 8]);
+            Store64(s1.GetUpper(), output[ 8..16]);
             Store64(s2.GetLower(), output[16..24]);
             Store64(s3.GetLower(), output[24..32]);
         }
