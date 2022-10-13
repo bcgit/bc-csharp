@@ -551,6 +551,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ushort LE_To_UInt16(ReadOnlySpan<byte> bs)
+        {
+            uint n =    bs[0]
+                | (uint)bs[1] << 8;
+            return (ushort)n;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static uint LE_To_UInt32(ReadOnlySpan<byte> bs)
         {
             return      bs[0]
@@ -592,6 +600,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
         {
             bs[0] = (byte)(n >> 8);
             bs[1] = (byte)n;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt16_To_LE(ushort n, Span<byte> bs)
+        {
+            bs[0] = (byte)n;
+            bs[1] = (byte)(n >> 8);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
