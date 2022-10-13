@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for nist secure random
+            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
             byte[] pk = Hex.Decode(buf["pk"]);     // public key
             byte[] sk = Hex.Decode(buf["sk"]);     // private key
             byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.frodo." + name)))
             {
-                string line = null;
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
                     line = line.Trim();

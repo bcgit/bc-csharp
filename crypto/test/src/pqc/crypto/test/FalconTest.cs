@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         {
                             string count = buf["count"];
                             Console.Write("test case: " + count);
-                            byte[] seed = Hex.Decode(buf["seed"]); // seed for nist secure random
+                            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
                             byte[] pk = Hex.Decode(buf["pk"]);     // public key
                             byte[] sk = Hex.Decode(buf["sk"]);     // private key
                             byte[] sm = Hex.Decode(buf["sm"]);     // sm

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Utilities;
@@ -42,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static void TestVectors(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);      // seed for Dilithium secure random
+            byte[] seed = Hex.Decode(buf["seed"]);      // seed for SecureRandom
             int mlen = int.Parse(buf["mlen"]);          // message length
             byte[] msg = Hex.Decode(buf["msg"]);        // message
             byte[] pk = Hex.Decode(buf["pk"]);          // public key

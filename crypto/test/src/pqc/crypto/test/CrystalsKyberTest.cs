@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             string count = buf["count"];
 
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for Kyber secure random
+            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
             byte[] pk = Hex.Decode(buf["pk"]); // public key
             byte[] sk = Hex.Decode(buf["sk"]); // private key
             byte[] ct = Hex.Decode(buf["ct"]); // ciphertext
