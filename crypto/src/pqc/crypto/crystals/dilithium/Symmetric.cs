@@ -1,9 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
@@ -53,7 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 expnonce[0] = (byte)nonce;
                 expnonce[1] = (byte)(nonce >> 8);
                 
-                ParametersWithIV kp = new ParametersWithIV(new KeyParameter(Arrays.CopyOfRange(key, 0, 32)), expnonce);
+                ParametersWithIV kp = new ParametersWithIV(new KeyParameter(key, 0, 32), expnonce);
                 cipher.Init(true, kp);
             }
 

@@ -4,7 +4,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
@@ -135,7 +134,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 expnonce[0] = x;
                 expnonce[1] = y;
 
-                ParametersWithIV kp = new ParametersWithIV(new KeyParameter(Arrays.CopyOfRange(key, 0, 32)), expnonce);
+                ParametersWithIV kp = new ParametersWithIV(new KeyParameter(key, 0, 32), expnonce);
                 cipher.Init(true, kp);
             }
 
@@ -149,7 +148,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 byte[] expnonce = new byte[12];
                 expnonce[0] = nonce;
 
-                ParametersWithIV kp = new ParametersWithIV(new KeyParameter(Arrays.CopyOfRange(key, 0, 32)), expnonce);
+                ParametersWithIV kp = new ParametersWithIV(new KeyParameter(key, 0, 32), expnonce);
                 cipher.Init(true, kp);
                 Aes128(output, 0, output.Length);
             }
