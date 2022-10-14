@@ -14,15 +14,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     public class NtruPrimeVectorTest
     {
         [Test]
-        public void TestParameters()
-        {
-            // Console.WriteLine("Testing");
-            // Console.WriteLine(NtruPrimeParameters.ntrulpr653.P);
-            // Console.WriteLine(NtruPrimeParameters.ntrulpr653.Q);
-            // Console.WriteLine(NtruPrimeParameters.ntrulpr653.lpr);
-        }
-
-        [Test]
         public void TestVectors()
         {
             string[] files =
