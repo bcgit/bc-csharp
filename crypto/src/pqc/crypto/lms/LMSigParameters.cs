@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly int m_h;
         private readonly DerObjectIdentifier m_digestOid;
 
-        protected LMSigParameters(int id, int m, int h, DerObjectIdentifier digestOid)
+        internal LMSigParameters(int id, int m, int h, DerObjectIdentifier digestOid)
         {
             m_id = id;
             m_m = m;

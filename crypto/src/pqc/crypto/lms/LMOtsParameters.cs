@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly uint m_sigLen;
         private readonly DerObjectIdentifier m_digestOid;
 
-        protected LMOtsParameters(int id, int n, int w, int p, int ls, uint sigLen, DerObjectIdentifier digestOid)
+        internal LMOtsParameters(int id, int n, int w, int p, int ls, uint sigLen, DerObjectIdentifier digestOid)
         {
             m_id = id;
             m_n = n;
