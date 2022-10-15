@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
@@ -120,6 +121,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
 
                 return new BikePrivateKeyParameters(bikeParams, h0, h1, sigma);
+            }
+            if (algOID.On(BCObjectIdentifiers.pqc_kem_hqc))
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
+                HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+
+                return new HqcPrivateKeyParameters(hqcParams, keyEnc);
             }
             if (algOID.Equals(BCObjectIdentifiers.kyber512)
                 || algOID.Equals(BCObjectIdentifiers.kyber512_aes)

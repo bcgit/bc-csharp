@@ -226,5 +226,14 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier bike128 = pqc_kem_bike.Branch("1");
         public static readonly DerObjectIdentifier bike192 = pqc_kem_bike.Branch("2");
         public static readonly DerObjectIdentifier bike256 = pqc_kem_bike.Branch("3");
+
+        /**
+         * HQC
+         */
+        public static readonly DerObjectIdentifier pqc_kem_hqc = bc_kem.Branch("9");
+
+        public static readonly DerObjectIdentifier hqc128 = pqc_kem_hqc.Branch("1");
+        public static readonly DerObjectIdentifier hqc192 = pqc_kem_hqc.Branch("2");
+        public static readonly DerObjectIdentifier hqc256 = pqc_kem_hqc.Branch("3");
     }
 }

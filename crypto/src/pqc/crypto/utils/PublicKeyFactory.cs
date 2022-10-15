@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -98,6 +99,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             converters[BCObjectIdentifiers.bike128] = new BikeConverter();
             converters[BCObjectIdentifiers.bike192] = new BikeConverter();
             converters[BCObjectIdentifiers.bike256] = new BikeConverter();
+
+            converters[BCObjectIdentifiers.hqc128] = new HqcConverter();
+            converters[BCObjectIdentifiers.hqc192] = new HqcConverter();
+            converters[BCObjectIdentifiers.hqc256] = new HqcConverter();
         }
         
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -302,6 +307,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
                 return new BikePublicKeyParameters(bikeParams, keyEnc);
+            }
+        }
+
+        private class HqcConverter : SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
+            {
+                byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+
+                HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                return new HqcPublicKeyParameters(hqcParams, keyEnc);
             }
         }
     }

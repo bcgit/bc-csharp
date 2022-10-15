@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
+using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -177,6 +178,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] encoding = parameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.BikeOidLookup(parameters.Parameters));
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
+            }
+            if (privateKey is HqcPrivateKeyParameters)
+            {
+                HqcPrivateKeyParameters parameters = (HqcPrivateKeyParameters)privateKey;
+
+                byte[] encoding = parameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.HqcOidLookup(parameters.Parameters));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
 

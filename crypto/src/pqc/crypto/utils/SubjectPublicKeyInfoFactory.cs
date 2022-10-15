@@ -10,6 +10,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -126,6 +127,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
        
                 byte[] encoding = parameters.GetEncoded();
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.BikeOidLookup(parameters.Parameters));
+
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+            }
+            if (publicKey is HqcPublicKeyParameters)
+            {
+                HqcPublicKeyParameters parameters = (HqcPublicKeyParameters)publicKey;
+
+
+                byte[] encoding = parameters.GetEncoded();
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.HqcOidLookup(parameters.Parameters));
 
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
