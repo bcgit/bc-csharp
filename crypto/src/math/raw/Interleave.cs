@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static void Expand64To128(ulong[] xs, int xsOff, int xsLen, ulong[] zs, int zsOff)
         {
-            int xsPos = xsLen, zsPos = zsOff + xsLen << 1;
+            int xsPos = xsLen, zsPos = zsOff + (xsLen << 1);
             while (--xsPos >= 0)
             {
                 zsPos -= 2;
