@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
@@ -84,9 +83,10 @@ namespace Org.BouncyCastle.Cms
 			var result = new List<Asn1TaggedObject>();
 			if (attrCertStore != null)
             {
-				result.AddRange(
-					attrCertStore.EnumerateMatches(null)
-								 .Select(c => new DerTaggedObject(false, 2, c.AttributeCertificate)));
+				foreach (var attrCert in attrCertStore.EnumerateMatches(null))
+				{
+					result.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
+				}
             }
 			return result;
 		}
@@ -96,9 +96,10 @@ namespace Org.BouncyCastle.Cms
 			var result = new List<X509CertificateStructure>();
 			if (certStore != null)
             {
-				result.AddRange(
-					certStore.EnumerateMatches(null)
-					         .Select(c => c.CertificateStructure));
+                foreach (var cert in certStore.EnumerateMatches(null))
+                {
+                    result.Add(cert.CertificateStructure);
+                }
 			}
 			return result;
 		}
@@ -108,9 +109,10 @@ namespace Org.BouncyCastle.Cms
 			var result = new List<CertificateList>();
 			if (crlStore != null)
 			{
-				result.AddRange(
-					crlStore.EnumerateMatches(null)
-					        .Select(c => c.CertificateList));
+                foreach (var crl in crlStore.EnumerateMatches(null))
+                {
+                    result.Add(crl.CertificateList);
+                }
 			}
 			return result;
 		}
