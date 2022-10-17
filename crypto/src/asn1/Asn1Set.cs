@@ -306,6 +306,10 @@ namespace Org.BouncyCastle.Asn1
                 if (a0 != b0)
                     return a0 < b0 ? -1 : 1;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                int compareLength = System.Math.Min(a.Length, b.Length) - 1;
+                return a.AsSpan(1, compareLength).SequenceCompareTo(b.AsSpan(1, compareLength));
+#else
                 int len = System.Math.Min(a.Length, b.Length);
                 for (int i = 1; i < len; ++i)
                 {
@@ -315,6 +319,7 @@ namespace Org.BouncyCastle.Asn1
                 }
                 Debug.Assert(a.Length == b.Length);
                 return 0;
+#endif
             }
         }
     }
