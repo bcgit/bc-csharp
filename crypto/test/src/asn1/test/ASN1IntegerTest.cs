@@ -3,13 +3,13 @@
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
 {
     [TestFixture]
+    [NonParallelizable] // Environment.SetEnvironmentVariable
     public class Asn1IntegerTest
         : SimpleTest
     {

@@ -11,6 +11,7 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Asn1.Tests
 {
     [TestFixture]
+    [NonParallelizable] // Environment.SetEnvironmentVariable
     public class MiscTest
         : SimpleTest
     {
