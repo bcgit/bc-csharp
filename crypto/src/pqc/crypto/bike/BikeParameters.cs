@@ -1,11 +1,11 @@
-﻿using Org.BouncyCastle.Crypto;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+
+using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    public class BikeParameters : ICipherParameters
+    public class BikeParameters
+        : ICipherParameters
     {
         // 128 bits security
         public static BikeParameters bike128 = new BikeParameters("bike128", 12323, 142, 134, 256, 5, 3, 128);
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private int defaultKeySize;
 
         private BikeEngine bikeEngine;
-        internal BikeParameters(String name, int r, int w, int t, int l, int nbIter, int tau, int defaultKeySize)
+        internal BikeParameters(string name, int r, int w, int t, int l, int nbIter, int tau, int defaultKeySize)
         {
             this.name = name;
             this.r = r;

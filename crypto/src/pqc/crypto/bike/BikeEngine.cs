@@ -1,11 +1,9 @@
-﻿using Org.BouncyCastle.Crypto;
+﻿using System;
+
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Pqc.Math.LinearAlgebra;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
@@ -32,8 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         // tau
         private int tau;
 
-        private GF2mField field;
-        private PolynomialGF2mSmallM reductionPoly;
+        private BikePolynomial reductionPoly;
         private int L_BYTE;
         private int R_BYTE;
 
@@ -49,13 +46,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.L_BYTE = l / 8;
             this.R_BYTE = (r + 7) / 8;
 
-            // finite field GF(2)
-            GF2mField field = new GF2mField(1);
-            this.field = field;
-
             // generate reductionPoly (X^r + 1)
-            PolynomialGF2mSmallM poly = new PolynomialGF2mSmallM(field, r);
-            this.reductionPoly = poly.AddMonomial(0);
+            this.reductionPoly = new BikePolynomial(r);
         }
 
         public int GetSessionKeySize()
@@ -143,11 +135,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] h1Cut = Utils.RemoveLast0Bits(h1Bits);
 
             // 2. Compute h
-            PolynomialGF2mSmallM h0Poly = new PolynomialGF2mSmallM(this.field, h0Cut);
-            PolynomialGF2mSmallM h1Poly = new PolynomialGF2mSmallM(this.field, h1Cut);
+            BikePolynomial h0Poly = new BikePolynomial(h0Cut);
+            BikePolynomial h1Poly = new BikePolynomial(h1Cut);
 
-            PolynomialGF2mSmallM h0Inv = h0Poly.ModInverseBigDeg(reductionPoly);
-            PolynomialGF2mSmallM hPoly = h1Poly.ModKaratsubaMultiplyBigDeg(h0Inv, reductionPoly);
+            BikePolynomial h0Inv = h0Poly.ModInverseBigDeg(reductionPoly);
+            BikePolynomial hPoly = h1Poly.ModKaratsubaMultiplyBigDeg(h0Inv, reductionPoly);
 
             // Get coefficients of hPoly
             byte[] hTmp = hPoly.GetEncoded();
@@ -191,15 +183,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] e0Cut = Utils.RemoveLast0Bits(e0Bits);
             byte[] e1Cut = Utils.RemoveLast0Bits(e1Bits);
 
-            PolynomialGF2mSmallM e0 = new PolynomialGF2mSmallM(field, e0Cut);
-            PolynomialGF2mSmallM e1 = new PolynomialGF2mSmallM(field, e1Cut);
+            BikePolynomial e0 = new BikePolynomial(e0Cut);
+            BikePolynomial e1 = new BikePolynomial(e1Cut);
 
             // 3. Calculate c
             // calculate c0
             byte[] h0Bits = new byte[r];
             Utils.FromByteArrayToBitArray(h0Bits, h);
-            PolynomialGF2mSmallM hPoly = new PolynomialGF2mSmallM(field, Utils.RemoveLast0Bits(h0Bits));
-            PolynomialGF2mSmallM c0Poly = e0.add(e1.ModKaratsubaMultiplyBigDeg(hPoly, reductionPoly));
+            BikePolynomial hPoly = new BikePolynomial(Utils.RemoveLast0Bits(h0Bits));
+            BikePolynomial c0Poly = e0.Add(e1.ModKaratsubaMultiplyBigDeg(hPoly, reductionPoly));
 
             byte[] c0Bits = c0Poly.GetEncoded();
             byte[] c0Bytes = new byte[R_BYTE];
@@ -287,10 +279,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] ComputeSyndrome(byte[] h0, byte[] c0)
         {
-            PolynomialGF2mSmallM coPoly = new PolynomialGF2mSmallM(field, c0);
-            PolynomialGF2mSmallM h0Poly = new PolynomialGF2mSmallM(field, h0);
+            BikePolynomial coPoly = new BikePolynomial(c0);
+            BikePolynomial h0Poly = new BikePolynomial(h0);
 
-            PolynomialGF2mSmallM s = coPoly.ModKaratsubaMultiplyBigDeg(h0Poly, reductionPoly);
+            BikePolynomial s = coPoly.ModKaratsubaMultiplyBigDeg(h0Poly, reductionPoly);
             byte[] transposedS = Transpose(s.GetEncoded());
             return transposedS;
         }
@@ -318,11 +310,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                     BFMaskedIter(s, e, gray, (hw + 1) / 2 + 1, h0Compact, h1Compact, h0CompactCol, h1CompactCol);
                 }
             }
+
             if (Utils.GetHammingWeight(s) == 0)
-            {
                 return e;
-            }
-            else return null;
+
+            return null;
         }
 
         private byte[] Transpose(byte[] input)
@@ -336,6 +328,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
             return output;
         }
+
         private void BFIter(byte[] s, byte[] e, int T, int[] h0Compact, int[] h1Compact, int[] h0CompactCol, int[] h1CompactCol, byte[] black, byte[] gray)
         {
             int[] updatedIndices = new int[2 * r];

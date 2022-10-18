@@ -1,40 +1,21 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    class BikeRandomGenerator
+    internal class BikeRandomGenerator
     {
-        private static int BitScanReverse(int t)
-        {
-            int res = 0;
-            while (t != 0)
-            {
-                t >>= 1;
-                res++;
-            }
-
-            return res;
-        }
-
         private static int GetRandomInMod(int mod, IXof digest)
         {
-            int mask = MaskNumber(BitScanReverse(mod));
-            int res = -1;
+            int highest = Integers.HighestOneBit(mod);
+            int mask = highest | (highest - 1);
             while (true)
             {
-                res = GetRandomNumber(digest);
-                res &= mask;
-
+                int res = GetRandomNumber(digest) & mask;
                 if (res < mod)
-                {
-                    break;
-                }
+                    return res;
             }
-            return res;
         }
 
         private static void GenerateRandomArray(byte[] res, int mod, int weight, IXof digest)
@@ -59,8 +40,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return ((a[index] >> (pos)) & 0x01);
         }
 
-
-
         private static void SetBit(byte[] a, int position)
         {
             int index = position / 8;
@@ -75,17 +54,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return res;
         }
 
-        private static int MaskNumber(int n)
-        {
-            return ((1 << n) - 1);
-        }
-
         private static int GetRandomNumber(IXof digest)
         {
             byte[] output = new byte[4];
             digest.Output(output, 0, output.Length);
-            int tmp = (int)Pack.LE_To_UInt32(output, 0);
-            return tmp;
+            return (int)Pack.LE_To_UInt32(output, 0);
         }
     }
 }

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    class Utils
+    internal class Utils
     {
         internal static byte[] XorBytes(byte[] a, byte[] b, int size)
         {
@@ -34,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             {
                 for (int j = 0; j != 8; j++)
                 {
-                    output[i * 8 + j] = (byte)UnsignedRightBitShiftInt(input[i] & (1 << j), j);
+                    output[i * 8 + j] = (byte)((input[i] >> j) & 1);
                 }
             }
             if (output.Length % 8 != 0)
@@ -43,7 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 int count = 0;
                 while (off < output.Length)
                 {
-                    output[off++] = (byte)(UnsignedRightBitShiftInt(input[max] & (1 << count), count));
+                    output[off++] = (byte)((input[max] >> count) & 1);
                     count++;
                 }
             }
@@ -101,19 +99,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] output = new byte[length];
             Array.Copy(input, 0, output, 0, input.Length);
             return output;
-        }
-        internal static int UnsignedRightBitShiftInt(int a, int b)
-        {
-            uint tmp = (uint)a;
-            tmp >>= b;
-            return (int)tmp;
-        }
-
-        internal static long UnsignedRightBitShiftLong(long a, int b)
-        {
-            ulong tmp = (ulong)a;
-            tmp >>= b;
-            return (long)tmp;
         }
     }
 }
