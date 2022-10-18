@@ -1,28 +1,28 @@
 ﻿using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    public class BikePublicKeyParameters : BikeKeyParameters
+    public class BikePublicKeyParameters
+        : BikeKeyParameters
     {
-        byte[] publicKey;
+        private readonly byte[] publicKey;
 
         /**
          * Constructor.
          *
          * @param publicKey      byte
          */
-        public BikePublicKeyParameters(BikeParameters param, byte[] publicKey) : base(false, param)
+        public BikePublicKeyParameters(BikeParameters param, byte[] publicKey)
+            : base(false, param)
         {
             this.publicKey = Arrays.Clone(publicKey);
         }
 
-       public byte[] PublicKey => Arrays.Clone(publicKey);
+        internal byte[] PublicKey => publicKey;
+
         public byte[] GetEncoded()
         {
-            return PublicKey;
+            return Arrays.Clone(publicKey);
         }
     }
 }

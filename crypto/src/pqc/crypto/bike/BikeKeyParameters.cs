@@ -1,21 +1,18 @@
 ﻿using Org.BouncyCastle.Crypto;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    public class BikeKeyParameters : AsymmetricKeyParameter
+    public abstract class BikeKeyParameters
+        : AsymmetricKeyParameter
     {
-        private BikeParameters param;
+        private readonly BikeParameters m_parameters;
 
-        public BikeKeyParameters(
-                bool isPrivate,
-                BikeParameters param) : base(isPrivate)
+        public BikeKeyParameters(bool isPrivate, BikeParameters parameters)
+            : base(isPrivate)
         {
-            this.param = param;
+            this.m_parameters = parameters;
         }
 
-        public BikeParameters Parameters => param;
+        public BikeParameters Parameters => m_parameters;
     }
 }

@@ -1,12 +1,10 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    public class BikeKeyPairGenerator : IAsymmetricCipherKeyPairGenerator
+    public sealed class BikeKeyPairGenerator
+        : IAsymmetricCipherKeyPairGenerator
     {
         private SecureRandom random;
 
@@ -34,6 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private int R_BYTE;
 
         private BikeKeyGenerationParameters bikeKeyGenerationParameters;
+
         public void Init(KeyGenerationParameters param)
         {
             this.bikeKeyGenerationParameters = (BikeKeyGenerationParameters)param;
@@ -51,9 +50,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.R_BYTE = (r + 7) / 8;
         }
 
-        private AsymmetricCipherKeyPair GenKeyPair()
+        public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            BikeEngine engine = bikeKeyGenerationParameters.Parameters.BIKEEngine;
+            BikeParameters parameters = bikeKeyGenerationParameters.Parameters;
+            BikeEngine engine = parameters.BikeEngine;
             byte[] h0 = new byte[R_BYTE];
             byte[] h1 = new byte[R_BYTE];
             byte[] h = new byte[R_BYTE];
@@ -62,15 +62,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             engine.GenKeyPair(h0, h1, sigma, h, random);
 
             // form keys
-            BikePublicKeyParameters publicKey = new BikePublicKeyParameters(bikeKeyGenerationParameters.Parameters, h);
-            BikePrivateKeyParameters privateKey = new BikePrivateKeyParameters(bikeKeyGenerationParameters.Parameters, h0, h1, sigma);
+            BikePublicKeyParameters publicKey = new BikePublicKeyParameters(parameters, h);
+            BikePrivateKeyParameters privateKey = new BikePrivateKeyParameters(parameters, h0, h1, sigma);
 
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
-        }
-
-        public AsymmetricCipherKeyPair GenerateKeyPair()
-        {
-            return GenKeyPair();
         }
     }
 }

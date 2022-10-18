@@ -1,4 +1,5 @@
 ﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Utilities;
 using System;
 using System.Collections.Generic;
@@ -6,28 +7,23 @@ using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    public class BikeKemExtractor : IEncapsulatedSecretExtractor
+    public sealed class BikeKemExtractor
+        : IEncapsulatedSecretExtractor
     {
-        private BikeEngine engine;
-
-        private BikeKeyParameters key;
-        private int defaultKeySize; 
+        private readonly BikeKeyParameters key;
 
         public BikeKemExtractor(BikePrivateKeyParameters privParams)
         {
             this.key = privParams;
-            initCipher(key.Parameters);
-        }
-
-        private void initCipher(BikeParameters param)
-        {
-            engine = param.BIKEEngine;
-            defaultKeySize = param.DefaultKeySize;
         }
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            byte[] session_key = new byte[engine.GetSessionKeySize()];
+            BikeParameters parameters = key.Parameters;
+            BikeEngine engine = parameters.BikeEngine;
+            int defaultKeySize = parameters.DefaultKeySize;
+
+            byte[] session_key = new byte[engine.SessionKeySize];
             BikePrivateKeyParameters secretKey = (BikePrivateKeyParameters)key;
 
             // Extract c0, c1 from encapsulation c
@@ -43,6 +39,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         }
 
         public int EncapsulationLength => key.Parameters.RByte + key.Parameters.LByte;
-
     }
 }

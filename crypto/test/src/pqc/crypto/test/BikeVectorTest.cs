@@ -64,11 +64,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             kpGen.Init(genParam);
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            BikePublicKeyParameters pubParams = (BikePublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((BikePublicKeyParameters) kp.Public));
-            BikePrivateKeyParameters privParams = (BikePrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo((BikePrivateKeyParameters) kp.Private));
+            BikePublicKeyParameters pubParams = (BikePublicKeyParameters)PublicKeyFactory.CreateKey(
+                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((BikePublicKeyParameters) kp.Public));
+            BikePrivateKeyParameters privParams = (BikePrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                PrivateKeyInfoFactory.CreatePrivateKeyInfo((BikePrivateKeyParameters) kp.Private));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
 
             // KEM Enc
             BikeKemGenerator BikeEncCipher = new BikeKemGenerator(random);

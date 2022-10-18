@@ -1,22 +1,19 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    public class BikeKeyGenerationParameters : KeyGenerationParameters
+    public sealed class BikeKeyGenerationParameters
+        : KeyGenerationParameters
     {
-        private BikeParameters param;
+        private readonly BikeParameters m_parameters;
 
-        public BikeKeyGenerationParameters(
-                SecureRandom random,
-                BikeParameters param) : base(random, 256)
+        public BikeKeyGenerationParameters(SecureRandom random, BikeParameters parameters)
+            : base(random, 256)
         {
-            this.param = param;
+            m_parameters = parameters;
         }
 
-        public BikeParameters Parameters => param;
+        public BikeParameters Parameters => m_parameters;
     }
 }

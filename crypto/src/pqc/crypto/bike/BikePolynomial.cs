@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          */
         internal BikePolynomial(int degree)
         {
-            // Initial value (X^r + 1)
+            // Initial value (X^degree + 1)
             this.m_coefficients = new int[degree + 1];
             this.m_coefficients[degree] = 1;
             this.m_coefficients[0] ^= 1;
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          */
         private BikePolynomial(int[] coeffs)
         {
-            this.m_coefficients = NormalForm(coeffs);
+            this.m_coefficients = coeffs;
         }
 
         /**
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         internal BikePolynomial Add(BikePolynomial addend)
         {
             int[] resultCoeff = Add(m_coefficients, addend.m_coefficients);
-            return new BikePolynomial(resultCoeff);
+            return new BikePolynomial(NormalForm(resultCoeff));
         }
 
         /**
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          * @param b the second polynomial
          * @return a + b
          */
-        private int[] Add(int[] a, int[] b)
+        private static int[] Add(int[] a, int[] b)
         {
             int[] result, addend;
             if (a.Length < b.Length)
@@ -122,35 +122,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return result;
         }
 
-        /**
-         * Compute the product of a polynomial a with an element from the finite
-         * field <tt>GF(2^m)</tt>.
-         *
-         * @param a       the polynomial
-         * @param element an element of the finite field GF(2^m)
-         * @return <tt>a * element</tt>
-         */
-        private int[] MultWithElement(int[] a, int element)
+        private static void AddAt(int[] x, int[] z, int zPos)
         {
-            return element == 0 ? new int[1] : Arrays.Clone(a);
-        }
-
-        /**
-         * Compute the product of a polynomial with a monomial X^k.
-         *
-         * @param a the polynomial
-         * @param k the degree of the monomial
-         * @return <tt>a * X^k</tt>
-         */
-        private static int[] MultWithMonomial(int[] a, int k)
-        {
-            int d = ComputeDegree(a);
-            if (d == -1)
-                return new int[1];
-
-            int[] result = new int[k + d + 1];
-            Array.Copy(a, 0, result, k, d + 1);
-            return result;
+            for (int i = 0; i < x.Length; ++i)
+            {
+                z[zPos + i] ^= x[i];
+            }
         }
 
         /**
@@ -161,7 +138,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          * @param f the second polynomial
          * @return int[][] {q,r}, where a = q*f+r and deg(r) &lt; deg(f);
          */
-        private int[][] Div(int[] a, int[] f)
+        private static int[][] Div(int[] a, int[] f)
         {
             int df = ComputeDegree(f);
             if (df == -1)
@@ -169,93 +146,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             int degreeR1 = ComputeDegree(a);
             int[][] result = new int[2][];
-            result[0] = new int[1]{ 0 };
+            result[0] = new int[System.Math.Max(0, degreeR1 - df) + 1];
             result[1] = Arrays.CopyOf(a, degreeR1 + 1);
 
             while (df <= degreeR1)
             {
-                int[] q;
-                int[] coeff = new int[1];
-                coeff[0] = degreeR1 == -1 ? 0 : result[1][degreeR1];
-                q = MultWithElement(f, coeff[0]);
                 int n = degreeR1 - df;
-                q = MultWithMonomial(q, n);
-                coeff = MultWithMonomial(coeff, n);
-                result[0] = Add(coeff, result[0]);
-                result[1] = Add(q, result[1]);
-                degreeR1 = ComputeDegree(result[1]);
+                result[0][n] ^= 1;
+                AddAt(f, result[1], n);
+                degreeR1 = ComputeDegree(result[1], degreeR1 - 1);
             }
-            return result;
-        }
-
-        /**
-         * Compute the product of two polynomials over the field <tt>GF(2^m)</tt>
-         * using a Karatzuba like multiplication.
-         *
-         * @param a the first polynomial
-         * @param b the second polynomial
-         * @return a * b
-         */
-        private int[] Multiply(int[] a, int[] b)
-        {
-            int[] mult1, mult2;
-            if (ComputeDegree(a) < ComputeDegree(b))
-            {
-                mult1 = b;
-                mult2 = a;
-            }
-            else
-            {
-                mult1 = a;
-                mult2 = b;
-            }
-
-            mult1 = NormalForm(mult1);
-            mult2 = NormalForm(mult2);
-
-            if (mult2.Length == 1)
-                return MultWithElement(mult1, mult2[0]);
-
-            int d1 = mult1.Length;
-            int d2 = mult2.Length;
-            int[] result;
-
-            if (d2 != d1)
-            {
-                int[] res1 = new int[d2];
-                int[] res2 = new int[d1 - d2];
-                Array.Copy(mult1, 0, res1, 0, res1.Length);
-                Array.Copy(mult1, d2, res2, 0, res2.Length);
-                res1 = Multiply(res1, mult2);
-                res2 = Multiply(res2, mult2);
-                res2 = MultWithMonomial(res2, d2);
-                result = Add(res1, res2);
-            }
-            else
-            {
-                d2 = (int)((uint)(d1 + 1) >> 1);
-                int d = d1 - d2;
-                int[] firstPartMult1 = new int[d2];
-                int[] firstPartMult2 = new int[d2];
-                int[] secondPartMult1 = new int[d];
-                int[] secondPartMult2 = new int[d];
-                Array.Copy(mult1, 0, firstPartMult1, 0, firstPartMult1.Length);
-                Array.Copy(mult1, d2, secondPartMult1, 0, secondPartMult1.Length);
-                Array.Copy(mult2, 0, firstPartMult2, 0, firstPartMult2.Length);
-                Array.Copy(mult2, d2, secondPartMult2, 0, secondPartMult2.Length);
-                int[] helpPoly1 = Add(firstPartMult1, secondPartMult1);
-                int[] helpPoly2 = Add(firstPartMult2, secondPartMult2);
-                int[] res1 = Multiply(firstPartMult1, firstPartMult2);
-                int[] res2 = Multiply(helpPoly1, helpPoly2);
-                int[] res3 = Multiply(secondPartMult1, secondPartMult2);
-                res2 = Add(res2, res1);
-                res2 = Add(res2, res3);
-                res3 = MultWithMonomial(res3, d2);
-                result = Add(res2, res3);
-                result = MultWithMonomial(result, d2);
-                result = Add(result, res1);
-            }
-
+            result[1] = NormalForm(result[1]);
             return result;
         }
 
@@ -266,7 +167,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          * @param f the reduction polynomial
          * @return <tt>a mod f</tt>
          */
-        private int[] Mod(int[] a, int[] f)
+        private static int[] Mod(int[] a, int[] f)
         {
             int df = ComputeDegree(f);
             if (df == -1)
@@ -277,13 +178,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             while (df <= degreeR)
             {
-                int coeff = degreeR == -1 ? 0 : result[degreeR];
-                int[] q = MultWithMonomial(f, degreeR - df);
-                q = MultWithElement(q, coeff);
-                result = Add(q, result);
-                degreeR = ComputeDegree(result);
+                int n = degreeR - df;
+                AddAt(f, result, n);
+                degreeR = ComputeDegree(result, degreeR - 1);
             }
-            return result;
+            return NormalForm(result);
         }
 
         /**
@@ -295,8 +194,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          */
         private static int ComputeDegree(int[] a)
         {
+            return ComputeDegree(a, a.Length - 1);
+        }
+
+        private static int ComputeDegree(int[] a, int from)
+        {
             int degree;
-            for (degree = a.Length - 1; degree >= 0 && a[degree] == 0; degree--)
+            for (degree = from; degree >= 0 && a[degree] == 0; degree--)
             {
             }
             return degree;
@@ -358,7 +262,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return new BikePolynomial(resultCoeff);
         }
 
-        private int[] ModInvBigDeg(int[] b, int[] g)
+        private static int[] ModInvBigDeg(int[] b, int[] g)
         {
             int[] r0 = NormalForm(g);
             int[] r1 = Mod(b, g);
@@ -387,7 +291,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          * @param g the reduction polynomial
          * @return <tt>a * b mod g</tt>
          */
-        private int[] ModKaratsubaMultiplyBigDeg(int[] aa, int[] bb, int[] g)
+        private static int[] ModKaratsubaMultiplyBigDeg(int[] aa, int[] bb, int[] g)
         {
             int[] a, b;
             if (aa.Length >= bb.Length)
@@ -420,25 +324,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 for (int p = 0; p < pLimit; p++)
                 {
                     int q = i - p;
-
-                    int ap = a[p];
                     int aq = q < a.Length ? a[q] : 0;
-
-                    int bp = b[p];
-                    int dp = D[p];
 
                     if (q < m)
                     {
-                        int bq = b[q];
-                        int dq = D[q];
-
-                        S[i] = S[i] + (ap + aq) * (bp + bq);
-                        T[i] = T[i] + dp + dq;
+                        S[i] += (a[p] + aq) * (b[p] + b[q]);
+                        T[i] += D[p] + D[q];
                     }
                     else if (q < n)
                     {
-                        S[i] = S[i] + ((ap + aq) * bp);
-                        T[i] = T[i] + dp;
+                        S[i] += (a[p] + aq) * b[p];
+                        T[i] += D[p];
                     }
                 }
             }

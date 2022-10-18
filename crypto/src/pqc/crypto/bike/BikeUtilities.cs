@@ -1,8 +1,12 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
-    internal class Utils
+    internal class BikeUtilities
     {
         internal static byte[] XorBytes(byte[] a, byte[] b, int size)
         {
@@ -99,6 +103,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] output = new byte[length];
             Array.Copy(input, 0, output, 0, input.Length);
             return output;
+        }
+
+        internal static byte[] GenerateRandomByteArray(int mod, int size, int weight, IXof digest)
+        {
+            byte[] buf = new byte[4];
+            int highest = Integers.HighestOneBit(mod);
+            int mask = highest | (highest - 1);
+
+            byte[] res = new byte[size];
+            int count = 0;
+            while (count < weight)
+            {
+                digest.Output(buf, 0, 4);
+                int tmp = (int)Pack.LE_To_UInt32(buf) & mask;
+
+                if (tmp < mod && SetBit(res, tmp))
+                {
+                    ++count;
+                }
+            }
+            return res;
+        }
+
+        private static bool SetBit(byte[] a, int position)
+        {
+            int index = position / 8;
+            int pos = position % 8;
+            int selector = 1 << pos;
+            bool result = (a[index] & selector) == 0;
+            a[index] |= (byte)selector;
+            return result;
         }
     }
 }
