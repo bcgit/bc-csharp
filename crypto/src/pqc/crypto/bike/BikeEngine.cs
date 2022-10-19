@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Diagnostics;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
@@ -10,29 +10,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
     internal sealed class BikeEngine
     {
         // degree of R
-        private int r;
+        private readonly int r;
 
         // the row weight
-        private int w;
+        private readonly int w;
 
         // Hamming weight of h0, h1
-        private int hw;
+        private readonly int hw;
 
         // the error weight
-        private int t;
+        private readonly int t;
 
         //the shared secret size
-        private int l;
+        private readonly int l;
 
         // number of iterations in BGF decoder
-        private int nbIter;
+        private readonly int nbIter;
 
         // tau
-        private int tau;
+        private readonly int tau;
 
-        private BikePolynomial reductionPoly;
-        private int L_BYTE;
-        private int R_BYTE;
+        private readonly BikeRing bikeRing;
+        private readonly int L_BYTE;
+        private readonly int R_BYTE;
 
         internal BikeEngine(int r, int w, int t, int l, int nbIter, int tau)
         {
@@ -45,9 +45,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.hw = this.w / 2;
             this.L_BYTE = l / 8;
             this.R_BYTE = (r + 7) / 8;
-
-            // generate reductionPoly (X^r + 1)
-            this.reductionPoly = new BikePolynomial(r);
+            this.bikeRing = new BikeRing(r);
         }
 
         internal int SessionKeySize => L_BYTE;
@@ -59,24 +57,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return BikeUtilities.GenerateRandomByteArray(r * 2, 2 * R_BYTE, t, digest);
         }
 
-        private byte[] FunctionL(byte[] e0, byte[] e1)
+        private void FunctionL(byte[] e0, byte[] e1, byte[] result)
         {
             byte[] hashRes = new byte[48];
-            byte[] res = new byte[L_BYTE];
 
             Sha3Digest digest = new Sha3Digest(384);
             digest.BlockUpdate(e0, 0, e0.Length);
             digest.BlockUpdate(e1, 0, e1.Length);
             digest.DoFinal(hashRes, 0);
 
-            Array.Copy(hashRes, 0, res, 0, L_BYTE);
-            return res;
+            Array.Copy(hashRes, 0, result, 0, L_BYTE);
         }
 
-        private byte[] FunctionK(byte[] m, byte[] c0, byte[] c1)
+        private void FunctionK(byte[] m, byte[] c0, byte[] c1, byte[] result)
         {
             byte[] hashRes = new byte[48];
-            byte[] res = new byte[L_BYTE];
 
             Sha3Digest digest = new Sha3Digest(384);
             digest.BlockUpdate(m, 0, m.Length);
@@ -84,8 +79,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             digest.BlockUpdate(c1, 0, c1.Length);
             digest.DoFinal(hashRes, 0);
 
-            Array.Copy(hashRes, 0, res, 0, L_BYTE);
-            return res;
+            Array.Copy(hashRes, 0, result, 0, L_BYTE);
         }
 
         /**
@@ -113,34 +107,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             digest.BlockUpdate(seed1, 0, seed1.Length);
 
             // 1. Randomly generate h0, h1
-            byte[] h0Tmp = BikeUtilities.GenerateRandomByteArray(r, R_BYTE, hw, digest);
-            byte[] h1Tmp = BikeUtilities.GenerateRandomByteArray(r, R_BYTE, hw, digest);
+            ulong[] h0Element = bikeRing.GenerateRandom(hw, digest);
+            ulong[] h1Element = bikeRing.GenerateRandom(hw, digest);
 
-            Array.Copy(h0Tmp, 0, h0, 0, h0.Length);
-            Array.Copy(h1Tmp, 0, h1, 0, h1.Length);
-
-            byte[] h1Bits = new byte[r];
-            byte[] h0Bits = new byte[r];
-
-            BikeUtilities.FromByteArrayToBitArray(h0Bits, h0Tmp);
-            BikeUtilities.FromByteArrayToBitArray(h1Bits, h1Tmp);
-
-            // remove last 0 bits (most significant bits with 0 mean non-sense)
-            byte[] h0Cut = BikeUtilities.RemoveLast0Bits(h0Bits);
-            byte[] h1Cut = BikeUtilities.RemoveLast0Bits(h1Bits);
+            bikeRing.EncodeBytes(h0Element, h0);
+            bikeRing.EncodeBytes(h1Element, h1);
 
             // 2. Compute h
-            BikePolynomial h0Poly = new BikePolynomial(h0Cut);
-            BikePolynomial h1Poly = new BikePolynomial(h1Cut);
-
-            BikePolynomial h0Inv = h0Poly.ModInverseBigDeg(reductionPoly);
-            BikePolynomial hPoly = h1Poly.ModKaratsubaMultiplyBigDeg(h0Inv, reductionPoly);
-
-            // Get coefficients of hPoly
-            byte[] hTmp = hPoly.GetEncoded();
-            byte[] hByte = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(hByte, hTmp);
-            Array.Copy(hByte, 0, h, 0, h.Length);
+            ulong[] hElement = bikeRing.Create();
+            bikeRing.Inv(h0Element, hElement);
+            bikeRing.Multiply(hElement, h1Element, hElement);
+            bikeRing.EncodeBytes(hElement, h);
 
             //3. Parse seed2 as sigma
             Array.Copy(seed2, 0, sigma, 0, sigma.Length);
@@ -172,40 +149,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             BikeUtilities.FromByteArrayToBitArray(eBits, eBytes);
 
             byte[] e0Bits = Arrays.CopyOfRange(eBits, 0, r);
-            byte[] e1Bits = Arrays.CopyOfRange(eBits, r, eBits.Length);
-
-            // remove last 0 bits (most significant bits with 0 mean no sense)
-            byte[] e0Cut = BikeUtilities.RemoveLast0Bits(e0Bits);
-            byte[] e1Cut = BikeUtilities.RemoveLast0Bits(e1Bits);
-
-            BikePolynomial e0 = new BikePolynomial(e0Cut);
-            BikePolynomial e1 = new BikePolynomial(e1Cut);
-
-            // 3. Calculate c
-            // calculate c0
-            byte[] h0Bits = new byte[r];
-            BikeUtilities.FromByteArrayToBitArray(h0Bits, h);
-            BikePolynomial hPoly = new BikePolynomial(BikeUtilities.RemoveLast0Bits(h0Bits));
-            BikePolynomial c0Poly = e0.Add(e1.ModKaratsubaMultiplyBigDeg(hPoly, reductionPoly));
-
-            byte[] c0Bits = c0Poly.GetEncoded();
-            byte[] c0Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(c0Bytes, c0Bits);
-            Array.Copy(c0Bytes, 0, c0, 0, c0.Length);
-
-            //calculate c1
             byte[] e0Bytes = new byte[R_BYTE];
             BikeUtilities.FromBitArrayToByteArray(e0Bytes, e0Bits);
+
+            byte[] e1Bits = Arrays.CopyOfRange(eBits, r, eBits.Length);
             byte[] e1Bytes = new byte[R_BYTE];
             BikeUtilities.FromBitArrayToByteArray(e1Bytes, e1Bits);
 
-            byte[] tmp = FunctionL(e0Bytes, e1Bytes);
-            byte[] c1Tmp = BikeUtilities.XorBytes(m, tmp, L_BYTE);
-            Array.Copy(c1Tmp, 0, c1, 0, c1.Length);
+            ulong[] e0Element = bikeRing.Create();
+            ulong[] e1Element = bikeRing.Create();
+
+            bikeRing.DecodeBytes(e0Bytes, e0Element);
+            bikeRing.DecodeBytes(e1Bytes, e1Element);
+
+            ulong[] hElement = bikeRing.Create();
+            bikeRing.DecodeBytes(h, hElement);
+
+            // 3. Calculate c
+            // calculate c0
+            ulong[] c0Element = bikeRing.Create();
+            bikeRing.Multiply(e1Element, hElement, c0Element);
+            bikeRing.Add(c0Element, e0Element, c0Element);
+            bikeRing.EncodeBytes(c0Element, c0);
+
+            //calculate c1
+            FunctionL(e0Bytes, e1Bytes, c1);
+            BikeUtilities.XorTo(m, c1, L_BYTE);
 
             // 4. Calculate K
-            byte[] kTmp = FunctionK(m, c0, c1);
-            Array.Copy(kTmp, 0, k, 0, kTmp.Length);
+            FunctionK(m, c0, c1, k);
         }
 
         /**
@@ -221,18 +193,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          **/
         internal void Decaps(byte[] k, byte[] h0, byte[] h1, byte[] sigma, byte[] c0, byte[] c1)
         {
-            //convert to bits
-            byte[] c0Bits = new byte[this.r];
-            byte[] h0Bits = new byte[this.r];
-            byte[] sigmaBits = new byte[this.l];
-
-            BikeUtilities.FromByteArrayToBitArray(c0Bits, c0);
-            BikeUtilities.FromByteArrayToBitArray(h0Bits, h0);
-            BikeUtilities.FromByteArrayToBitArray(sigmaBits, sigma);
-
-            byte[] c0Cut = BikeUtilities.RemoveLast0Bits(c0Bits);
-            byte[] h0Cut = BikeUtilities.RemoveLast0Bits(h0Bits);
-
             // Get compact version of h0, h1
             int[] h0Compact = new int[hw];
             int[] h1Compact = new int[hw];
@@ -240,10 +200,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             ConvertToCompact(h1Compact, h1);
 
             // Compute syndrome
-            byte[] syndrome = ComputeSyndrome(c0Cut, h0Cut);
+            byte[] syndromeBits = ComputeSyndrome(c0, h0);
 
             // 1. Compute e'
-            byte[] ePrimeBits = BGFDecoder(syndrome, h0Compact, h1Compact);
+            byte[] ePrimeBits = BGFDecoder(syndromeBits, h0Compact, h1Compact);
             byte[] ePrimeBytes = new byte[2 * R_BYTE];
             BikeUtilities.FromBitArrayToByteArray(ePrimeBytes, ePrimeBits);
 
@@ -256,30 +216,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             BikeUtilities.FromBitArrayToByteArray(e1Bytes, e1Bits);
 
             // 2. Compute m'
-            byte[] mPrime = BikeUtilities.XorBytes(c1, FunctionL(e0Bytes, e1Bytes), L_BYTE);
+            byte[] mPrime = new byte[L_BYTE];
+            FunctionL(e0Bytes, e1Bytes, mPrime);
+            BikeUtilities.XorTo(c1, mPrime, L_BYTE);
 
             // 3. Compute K
-            byte[] tmpK = new byte[l];
             byte[] wlist = FunctionH(mPrime);
             if (Arrays.AreEqual(ePrimeBytes, wlist))
             {
-                tmpK = FunctionK(mPrime, c0, c1);
+                FunctionK(mPrime, c0, c1, k);
             }
             else
             {
-                tmpK = FunctionK(sigma, c0, c1);
+                FunctionK(sigma, c0, c1, k);
             }
-            Array.Copy(tmpK, 0, k, 0, tmpK.Length);
         }
 
-        private byte[] ComputeSyndrome(byte[] h0, byte[] c0)
+        private byte[] ComputeSyndrome(byte[] c0, byte[] h0)
         {
-            BikePolynomial coPoly = new BikePolynomial(c0);
-            BikePolynomial h0Poly = new BikePolynomial(h0);
-
-            BikePolynomial s = coPoly.ModKaratsubaMultiplyBigDeg(h0Poly, reductionPoly);
-            byte[] transposedS = Transpose(s.GetEncoded());
-            return transposedS;
+            ulong[] c0Element = bikeRing.Create();
+            ulong[] h0Element = bikeRing.Create();
+            bikeRing.DecodeBytes(c0, c0Element);
+            bikeRing.DecodeBytes(h0, h0Element);
+            ulong[] sElement = bikeRing.Create();
+            bikeRing.Multiply(c0Element, h0Element, sElement);
+            return Transpose(bikeRing.EncodeBits(sElement));
         }
 
         private byte[] BGFDecoder(byte[] s, int[] h0Compact, int[] h1Compact)
@@ -314,12 +275,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] Transpose(byte[] input)
         {
-            byte[] tmp = BikeUtilities.Append0s(input, r); // append zeros to s
             byte[] output = new byte[r];
-            output[0] = tmp[0];
+            output[0] = input[0];
             for (int i = 1; i < r; i++)
             {
-                output[i] = tmp[r - i];
+                output[i] = input[r - i];
             }
             return output;
         }
@@ -332,13 +292,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             // calculate for h0compact
             for (int j = 0; j < r; j++)
             {
-                if (Ctr(h0CompactCol, s, j) >= T)
+                int ctr = Ctr(h0CompactCol, s, j);
+                if (ctr >= T)
                 {
                     UpdateNewErrorIndex(e, j);
                     updatedIndices[j] = 1;
                     black[j] = 1;
                 }
-                else if (Ctr(h0CompactCol, s, j) >= T - tau)
+                else if (ctr >= T - tau)
                 {
                     gray[j] = 1;
                 }
@@ -347,13 +308,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             // calculate for h1Compact
             for (int j = 0; j < r; j++)
             {
-                if (Ctr(h1CompactCol, s, j) >= T)
+                int ctr = Ctr(h1CompactCol, s, j);
+                if (ctr >= T)
                 {
                     UpdateNewErrorIndex(e, r + j);
                     updatedIndices[r + j] = 1;
                     black[r + j] = 1;
                 }
-                else if (Ctr(h1CompactCol, s, j) >= T - tau)
+                else if (ctr >= T - tau)
                 {
                     gray[r + j] = 1;
                 }
@@ -369,13 +331,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        private void BFMaskedIter(byte[] s, byte[] e, byte[] mask, int T, int[] h0Compact, int[] h1Compact, int[] h0CompactCol, int[] h1CompactCol)
+        private void BFMaskedIter(byte[] s, byte[] e, byte[] mask, int T, int[] h0Compact, int[] h1Compact,
+            int[] h0CompactCol, int[] h1CompactCol)
         {
             int[] updatedIndices = new int[2 * r];
 
             for (int j = 0; j < r; j++)
             {
-                if (Ctr(h0CompactCol, s, j) >= T && mask[j] == 1)
+                if (mask[j] == 1 && Ctr(h0CompactCol, s, j) >= T)
                 {
                     UpdateNewErrorIndex(e, j);
                     updatedIndices[j] = 1;
@@ -384,7 +347,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             for (int j = 0; j < r; j++)
             {
-                if (Ctr(h1CompactCol, s, j) >= T && mask[r + j] == 1)
+                if (mask[r + j] == 1 && Ctr(h1CompactCol, s, j) >= T)
                 {
                     UpdateNewErrorIndex(e, r + j);
                     updatedIndices[r + j] = 1;
@@ -429,13 +392,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private int Ctr(int[] hCompactCol, byte[] s, int j)
         {
+            Debug.Assert(0 <= j && j < r);
+
             int count = 0;
             for (int i = 0; i < hw; i++)
             {
-                if (s[(hCompactCol[i] + j) % r] == 1)
-                {
-                    count += 1;
-                }
+                //int sPos = (hCompactCol[i] + j) % r;
+                int sPos = hCompactCol[i] + j - r;
+                sPos += (sPos >> 31) & r;
+
+                //if (s[sPos] == 1)
+                //{
+                //    count += 1;
+                //}
+                count += s[sPos];
             }
             return count;
         }

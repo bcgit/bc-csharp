@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Crypto.Utilities;
+﻿using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 
@@ -8,15 +6,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
     internal class BikeUtilities
     {
-        internal static byte[] XorBytes(byte[] a, byte[] b, int size)
+        internal static void XorTo(byte[] x, byte[] z, int zLen)
         {
-            byte[] output = new byte[size];
-
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < zLen; ++i)
             {
-                output[i] = (byte)(a[i] ^ b[i]);
+                z[i] ^= x[i];
             }
-            return output;
         }
 
         internal static int GetHammingWeight(byte[] bytes)
@@ -80,29 +75,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 count += 8;
                 pos++;
             }
-        }
-
-        internal static byte[] RemoveLast0Bits(byte[] output)
-        {
-            int lastIndexOf1 = 0;
-            for (int i = output.Length - 1; i >= 0; i--)
-            {
-                if (output[i] == 1)
-                {
-                    lastIndexOf1 = i;
-                    break;
-                }
-            }
-            byte[] res = new byte[lastIndexOf1 + 1];
-            Array.Copy(output, 0, res, 0, res.Length);
-            return res;
-        }
-
-        internal static byte[] Append0s(byte[] input, int length)
-        {
-            byte[] output = new byte[length];
-            Array.Copy(input, 0, output, 0, input.Length);
-            return output;
         }
 
         internal static byte[] GenerateRandomByteArray(int mod, int size, int weight, IXof digest)
