@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             "PQCkemKAT_BIKE_3114.rsp",
             "PQCkemKAT_BIKE_6198.rsp",
-            "PQCkemKAT_BIKE_10276.rsp"
+            "PQCkemKAT_BIKE_10276.rsp",
         };
 
         [Test]
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectors(string testVectorFile)
+        public void TV(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
@@ -114,16 +114,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
-                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

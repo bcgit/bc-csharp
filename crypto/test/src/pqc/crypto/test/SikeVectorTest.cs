@@ -16,8 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class SikeVectorTest
     {
-        
-        private static readonly Dictionary<string, SIKEParameters> parameters = new Dictionary<string, SIKEParameters>()
+        private static readonly Dictionary<string, SIKEParameters> Parameters = new Dictionary<string, SIKEParameters>()
         {
             { "PQCkemKAT_374.rsp" , SIKEParameters.sikep434 },
             { "PQCkemKAT_434.rsp" , SIKEParameters.sikep503 },
@@ -26,7 +25,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "PQCkemKAT_350.rsp" , SIKEParameters.sikep434_compressed },
             { "PQCkemKAT_407.rsp" , SIKEParameters.sikep503_compressed },
             { "PQCkemKAT_491.rsp" , SIKEParameters.sikep610_compressed },
-            { "PQCkemKAT_602.rsp" , SIKEParameters.sikep751_compressed }
+            { "PQCkemKAT_602.rsp" , SIKEParameters.sikep751_compressed },
         };
 
         private static readonly string[] TestVectorFilesBasic =
@@ -47,14 +46,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFilesBasic))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorsBasic(string testVectorFile)
+        public void TVBasic(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
 
         [TestCaseSource(nameof(TestVectorFilesCompressed))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorCompressed(string testVectorFile)
+        public void TVCompressed(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] ss = Hex.Decode(buf["ss"]);          // session key
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            SIKEParameters SIKEParameters = parameters[name];
+            SIKEParameters SIKEParameters = Parameters[name];
 
             SIKEKeyPairGenerator kpGen = new SIKEKeyPairGenerator();
             SIKEKeyGenerationParameters genParams = new SIKEKeyGenerationParameters(random, SIKEParameters);
@@ -81,8 +80,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
             // todo
-            SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
+            SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)PublicKeyFactory.CreateKey(
+                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
             // SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)kp.Public;
             // SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)kp.Private;
@@ -98,14 +99,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] generated_cipher_text = secWenc.GetEncapsulation();
 
 
-//                        System.out.println(Hex.toHexString(ct));
-//                        System.out.println(Hex.toHexString(generated_cipher_text));
+            //System.out.println(Hex.toHexString(ct));
+            //System.out.println(Hex.toHexString(generated_cipher_text));
 
             Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
             byte[] secret = secWenc.GetSecret();
 
-//                        System.out.println(Hex.toHexString(ss).toUpperCase());
-//                        System.out.println(Hex.toHexString(secret).toUpperCase());
+            //System.out.println(Hex.toHexString(ss).toUpperCase());
+            //System.out.println(Hex.toHexString(secret).toUpperCase());
             Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
 
             // KEM Dec
@@ -113,13 +114,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             byte[] dec_key = sikeDecCipher.ExtractSecret(generated_cipher_text);
 
-            //                        System.out.println(Hex.toHexString(dec_key).toUpperCase());
-            //                        System.out.println(Hex.toHexString(ss).toUpperCase());
+            //System.out.println(Hex.toHexString(dec_key).toUpperCase());
+            //System.out.println(Hex.toHexString(ss).toUpperCase());
 
             Assert.True(SIKEParameters.DefaultKeySize == dec_key.Length * 8);
             Assert.True(Arrays.AreEqual(dec_key, ss), name + " " + count + ": kem_dec ss" );
             Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key" );
-        
         }
         
         
@@ -146,16 +146,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
-                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

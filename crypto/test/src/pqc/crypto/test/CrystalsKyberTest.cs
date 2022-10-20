@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Utilities;
@@ -13,37 +14,47 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class CrystalsKyberTest
     {
-        private static readonly Dictionary<string, KyberParameters> parameters = new Dictionary<string, KyberParameters>()
+        private static readonly Dictionary<string, KyberParameters> Parameters = new Dictionary<string, KyberParameters>()
         {
             { "kyber512.rsp", KyberParameters.kyber512 },
             { "kyber768.rsp", KyberParameters.kyber768 },
             { "kyber1024.rsp", KyberParameters.kyber1024 },
             { "kyber512aes.rsp", KyberParameters.kyber512_aes },
             { "kyber768aes.rsp", KyberParameters.kyber768_aes },
-            { "kyber1024aes.rsp", KyberParameters.kyber1024_aes }
+            { "kyber1024aes.rsp", KyberParameters.kyber1024_aes },
         };
-        
-        private static readonly string[] TestVectorFilesBasic =
+
+        private static readonly string[] TestVectorFiles =
         {
             "kyber512.rsp",
             "kyber768.rsp",
             "kyber1024.rsp",
+        };
+
+        private static readonly string[] TestVectorFilesAes =
+        {
             "kyber512aes.rsp",
             "kyber768aes.rsp",
             "kyber1024aes.rsp",
         };
-        
-        [TestCaseSource(nameof(TestVectorFilesBasic))]
+
+        [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorsBasic(string testVectorFile)
+        public void TV(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
-        
-        private static void TestVectors(string name, IDictionary<string, string> buf)
+
+        [TestCaseSource(nameof(TestVectorFilesAes))]
+        [Parallelizable(ParallelScope.All)]
+        public void TVAes(string testVectorFile)
+        {
+            RunTestVectorFile(testVectorFile);
+        }
+
+        private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
-
             byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
             byte[] pk = Hex.Decode(buf["pk"]); // public key
             byte[] sk = Hex.Decode(buf["sk"]); // private key
@@ -51,11 +62,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] ss = Hex.Decode(buf["ss"]); // session key
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            KyberParameters kyberparameters = CrystalsKyberTest.parameters[name];
+            KyberParameters kyberparameters = Parameters[name];
 
             KyberKeyPairGenerator kpGen = new KyberKeyPairGenerator();
-            KyberKeyGenerationParameters
-                genParam = new KyberKeyGenerationParameters(random, kyberparameters);
+            KyberKeyGenerationParameters genParam = new KyberKeyGenerationParameters(random, kyberparameters);
             
             //
             // Generate keys and test.
@@ -85,13 +95,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             Assert.True(Arrays.AreEqual(dec_key, ss), name + " " + count + ": kem_dec ss");
             Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
-            
         }
-        
+
         public static void RunTestVectorFile(string name)
         {
             var buf = new Dictionary<string, string>();
-
+            TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.crystals.kyber." + name)))
             {
                 string line;
@@ -113,14 +122,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                     if (buf.Count > 0)
                     {
-                        TestVectors(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
                 if (buf.Count > 0)
                 {
-                    TestVectors(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

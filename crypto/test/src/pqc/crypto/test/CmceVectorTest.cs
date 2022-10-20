@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -37,15 +36,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static readonly string[] TestVectorFiles =
         {
             "3488-64-cmce.txt",
-            "3488-64-f-cmce.txt",
             "4608-96-cmce.txt",
-            "4608-96-f-cmce.txt",
             "6688-128-cmce.txt",
-            "6688-128-f-cmce.txt",
             "6960-119-cmce.txt",
-            "6960-119-f-cmce.txt",
             "8192-128-cmce.txt",
-            "8192-128-f-cmce.txt"
+        };
+
+        private static readonly string[] TestVectorFilesFast =
+        {
+            "3488-64-f-cmce.txt",
+            "4608-96-f-cmce.txt",
+            "6688-128-f-cmce.txt",
+            "6960-119-f-cmce.txt",
+            "8192-128-f-cmce.txt",
         };
 
         [Test]
@@ -65,7 +68,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectors(string testVectorFile)
+        public void TV(string testVectorFile)
+        {
+            RunTestVectorFile(testVectorFile);
+        }
+
+        [TestCaseSource(nameof(TestVectorFilesFast))]
+        [Parallelizable(ParallelScope.All)]
+        public void TVFast(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
@@ -137,16 +147,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
-                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

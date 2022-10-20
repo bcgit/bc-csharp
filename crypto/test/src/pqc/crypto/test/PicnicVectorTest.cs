@@ -54,14 +54,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFilesBasic))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorsBasic(string testVectorFile)
+        public void TVBasic(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
 
         [Explicit, TestCaseSource(nameof(TestVectorFilesExtra))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorsExtra(string testVectorFile)
+        public void TVExtra(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
@@ -145,16 +145,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
-                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

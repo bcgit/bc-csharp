@@ -1,7 +1,7 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
@@ -14,7 +14,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private byte[] personalization;
         private byte[] key;
         private byte[] v;
-        int reseed_counuter = 1;
 
         /// <summary>
         /// Return a seeded FixedSecureRandom representing the result of processing a
@@ -66,8 +65,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         private void Init(int strength)
         {
-            randombytes_init(seed, personalization, strength);
-            reseed_counuter = 1;
+            RandomBytesInit(seed, personalization, strength);
         }
 
         public override void NextBytes(byte[] buf)
@@ -84,15 +82,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             {
                 for (int j = 15; j >= 0; j--)
                 {
-                    if ((v[j] & 0xFF) == 0xff)
-                    {
-                        v[j] = 0x00;
-                    }
-                    else
-                    {
-                        v[j]++;
+                    if (++v[j] != 0x00)
                         break;
-                    }
                 }
 
                 AES256_ECB(key, v, block, 0);
@@ -111,9 +102,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             }
 
             AES256_CTR_DRBG_Update(null, key, v);
-            reseed_counuter++;
         }
-
 
         private void AES256_ECB(byte[] key, byte[] ctr, byte[] buffer, int startPosition)
         {
@@ -130,10 +119,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             }
         }
 
-
         private void AES256_CTR_DRBG_Update(byte[] entropy_input, byte[] key, byte[] v)
         {
-
             byte[] tmp = new byte[48];
 
             for (int i = 0; i < 3; i++)
@@ -141,15 +128,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 //increment V
                 for (int j = 15; j >= 0; j--)
                 {
-                    if ((v[j] & 0xFF) == 0xff)
-                    {
-                        v[j] = 0x00;
-                    }
-                    else
-                    {
-                        v[j]++;
+                    if (++v[j] != 0x00)
                         break;
-                    }
                 }
 
                 AES256_ECB(key, v, tmp, 16 * i);
@@ -165,12 +145,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             Array.Copy(tmp, 0, key, 0, key.Length);
             Array.Copy(tmp, 32, v, 0, v.Length);
-
-
         }
 
-
-        private void randombytes_init(byte[] entropyInput, byte[] personalization, int strength)
+        private void RandomBytesInit(byte[] entropyInput, byte[] personalization, int strength)
         {
             byte[] seedMaterial = new byte[48];
 
@@ -186,11 +163,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             key = new byte[32];
             v = new byte[16];
 
-
             AES256_CTR_DRBG_Update(seedMaterial, key, v);
-
-            reseed_counuter = 1;
-
         }
     }
 }
