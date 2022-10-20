@@ -5,10 +5,10 @@ using NUnit.Framework;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Lms
+namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
     [TestFixture]
-    public class LMSTests
+    public class LmsTests
     {
         [Test]
         public void TestCoefFunc()
@@ -32,11 +32,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] ms = new byte[32];
             for (int t = 0; t < ms.Length; t++)
             {
-                ms[t] = (byte) t;
+                ms[t] = (byte)t;
             }
 
             LMSContext ctx = privateKey.GetSignatureContext(null, null);
-            
+
             ctx.BlockUpdate(ms, 0, ms.Length);
 
             LMOtsSignature sig = LM_OTS.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 Assert.False(LMS.VerifySignature(publicKey, signature, msg2));
             }
         }
-        
+
         [Test]
         public void TestContextSingleUse()
         {
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LMOtsPublicKey publicKey = LM_OTS.LmsOtsGeneratePublicKey(privateKey);
 
             byte[] ms = new byte[32];
-                for (int t = 0; t < ms.Length; t++)
+            for (int t = 0; t < ms.Length; t++)
             {
                 ms[t] = (byte)t;
             }
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             try
             {
-                ctx.Update((byte)1);
+                ctx.Update(1);
                 Assert.Fail("Digest reuse after signature taken.");
             }
             catch (NullReferenceException)

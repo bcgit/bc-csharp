@@ -2,9 +2,9 @@ using System.IO;
 
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Lms
+namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
-    public class LMSVectorUtils
+    public class LmsVectorUtilities
     {
         public static byte[] ExtractPrefixedBytes(string vectorFromRFC)
         {

@@ -10,13 +10,11 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Lms
+namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
-
     [TestFixture]
-    public class HSSTests
+    public class HssTests
     {
-
         [Test]
         public void TestHssKeySerialisation()
         {
@@ -26,7 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 fixedSource[t] = 1;
             }
 
-            FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(fixedSource)};
+            FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedSource) };
             SecureRandom rand = new FixedSecureRandom(source);
 
             HSSPrivateKeyParameters generatedPrivateKey = HSS.GenerateHssKeyPair(
@@ -65,12 +63,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          * From https://tools.ietf.org/html/rfc8554#appendix-F
          */
         [Test]
-        public void TestHSSVector_1()
+        public void TestHssVector_1()
         {
             var blocks = LoadVector("pqc.lms.testcase_1.txt");
 
             HSSPublicKeyParameters publicKey = HSSPublicKeyParameters.GetInstance(blocks[0]);
-            byte[] message = (byte[]) blocks[1];
+            byte[] message = blocks[1];
             HSSSignature signature = HSSSignature.GetInstance(blocks[2], publicKey.L);
             Assert.True(HSS.VerifySignature(publicKey, signature, message), "Test Case 1 ");
         }
@@ -80,7 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          * From https://tools.ietf.org/html/rfc8554#appendix-F
          */
         [Test]
-        public void TestHSSVector_2()
+        public void TestHssVector_2()
         {
             var blocks = LoadVector("pqc.lms.testcase_2.txt");
 
@@ -109,7 +107,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 {
                     if (sw.Length > 0)
                     {
-                        blocks.Add(LMSVectorUtils.ExtractPrefixedBytes(sw.ToString()));
+                        blocks.Add(LmsVectorUtilities.ExtractPrefixedBytes(sw.ToString()));
                         sw.Length = 0;
                     }
                 }
@@ -119,7 +117,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             if (sw.Length > 0)
             {
-                blocks.Add(LMSVectorUtils.ExtractPrefixedBytes(sw.ToString()));
+                blocks.Add(LmsVectorUtilities.ExtractPrefixedBytes(sw.ToString()));
                 sw.Length = 0;
             }
             return blocks;
@@ -173,7 +171,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 fixedSource[t] = 1;
             }
 
-            FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(fixedSource)};
+            FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedSource) };
             SecureRandom rand = new FixedSecureRandom(source);
 
             HSSPrivateKeyParameters keyPair = HSS.GenerateHssKeyPair(
@@ -204,7 +202,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // This is a sanity test
             //
             {
-                FixedSecureRandom.Source[] source1 = {new FixedSecureRandom.Source(fixedSource)};
+                FixedSecureRandom.Source[] source1 = { new FixedSecureRandom.Source(fixedSource) };
                 SecureRandom rand1 = new FixedSecureRandom(source1);
 
                 HSSPrivateKeyParameters regenKeyPair = HSS.GenerateHssKeyPair(
@@ -349,7 +347,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     //
                     // Assumes Signature is the last element in the set of vectors.
                     //
-                    FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(fixedESBuffer.ToArray())};
+                    FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedESBuffer.ToArray()) };
                     FixedSecureRandom fixRnd = new FixedSecureRandom(source);
                     fixedESBuffer.SetLength(0);//todo is this correct? buffer.reset();
                     //fixedESBuffer = new MemoryStream();
@@ -485,7 +483,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 //
                 // Assumes Signature is the last element in the set of vectors.
                 //
-                FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(fixedESBuffer.ToArray())};
+                FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedESBuffer.ToArray()) };
                 FixedSecureRandom fixRnd = new FixedSecureRandom(source);
                 fixedESBuffer.SetLength(0);
                 var lmsParams = new List<LMSParameters>();
@@ -544,12 +542,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (i % 5 == 0)
                     {
                         HSSSignature sigCalculated = HSS.GenerateSignature(pair, message);
-                        Assert.True(Arrays.AreEqual(sigCalculated.GetEncoded(),(byte[]) sigVectors[c]));
+                        Assert.True(Arrays.AreEqual(sigCalculated.GetEncoded(), sigVectors[c]));
 
                         Assert.True(HSS.VerifySignature(pubKeyFromVector, sigCalculated, message));
                         Assert.True(HSS.VerifySignature(pubKeyGenerated, sigCalculated, message));
 
-                        HSSSignature sigFromVector = HSSSignature.GetInstance((byte[]) sigVectors[c],
+                        HSSSignature sigFromVector = HSSSignature.GetInstance(sigVectors[c],
                             pubKeyFromVector.L);
 
                         Assert.True(HSS.VerifySignature(pubKeyFromVector, sigFromVector, message));
@@ -568,7 +566,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 }
             }
         }
-        
+
         /**
          * Test remaining calculation is accurate and a new key is generated when
          * all the ots keys for that level are consumed.
@@ -760,7 +758,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                         Assert.True(ctr % 1024 == sig.Signature.Q);
 
                         // Check there was a post increment in the tail end LMS key.
-                        Assert.True((ctr % 1024) + 1 == keyPair.GetKeys()[keyPair.L - 1].GetIndex());
+                        Assert.True(ctr % 1024 + 1 == keyPair.GetKeys()[keyPair.L - 1].GetIndex());
 
                         Assert.True(ctr + 1 == keyPair.GetIndex());
 
@@ -852,7 +850,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             bs[off] = (byte)(n >> 24);
             bs[off + 1] = (byte)(n >> 16);
             bs[off + 2] = (byte)(n >> 8);
-            bs[off + 3] = (byte)(n);
+            bs[off + 3] = (byte)n;
         }
 
         private static bool TrimLine(ref string line)

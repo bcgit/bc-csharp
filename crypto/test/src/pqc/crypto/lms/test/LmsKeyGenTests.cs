@@ -1,14 +1,12 @@
-using System;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Lms
+namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
     [TestFixture]
-    public class LMSKeyGenTests
+    public class LmsKeyGenTests
     {
         [Test]
         public void TestGeneratePrivateKey()

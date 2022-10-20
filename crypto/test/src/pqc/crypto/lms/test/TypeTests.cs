@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Lms
+namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
     [TestFixture]
     public class TypeTests
