@@ -8,6 +8,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -40,6 +41,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private readonly static Dictionary<BikeParameters, DerObjectIdentifier> bikeOids = new Dictionary<BikeParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, BikeParameters> bikeParams = new Dictionary<DerObjectIdentifier, BikeParameters>();
+
+        private readonly static Dictionary<HqcParameters, DerObjectIdentifier> hqcOids = new Dictionary<HqcParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, HqcParameters> hqcParams = new Dictionary<DerObjectIdentifier, HqcParameters>();
 
         static PqcUtilities()
         {
@@ -166,13 +170,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             dilithiumParams[BCObjectIdentifiers.dilithium3_aes] = DilithiumParameters.Dilithium3Aes;
             dilithiumParams[BCObjectIdentifiers.dilithium5_aes] = DilithiumParameters.Dilithium5Aes;
 
+            bikeParams[BCObjectIdentifiers.bike128] = BikeParameters.bike128;
+            bikeParams[BCObjectIdentifiers.bike192] = BikeParameters.bike192;
+            bikeParams[BCObjectIdentifiers.bike256] = BikeParameters.bike256;
+
             bikeOids[BikeParameters.bike128] = BCObjectIdentifiers.bike128;
             bikeOids[BikeParameters.bike192] = BCObjectIdentifiers.bike192;
             bikeOids[BikeParameters.bike256] = BCObjectIdentifiers.bike256;
 
-            bikeParams[BCObjectIdentifiers.bike128] = BikeParameters.bike128;
-            bikeParams[BCObjectIdentifiers.bike192] = BikeParameters.bike192;
-            bikeParams[BCObjectIdentifiers.bike256] = BikeParameters.bike256;
+            hqcParams[BCObjectIdentifiers.hqc128] = HqcParameters.hqc128;
+            hqcParams[BCObjectIdentifiers.hqc192] = HqcParameters.hqc192;
+            hqcParams[BCObjectIdentifiers.hqc256] = HqcParameters.hqc256;
+
+            hqcOids[HqcParameters.hqc128] = BCObjectIdentifiers.hqc128;
+            hqcOids[HqcParameters.hqc192] = BCObjectIdentifiers.hqc192;
+            hqcOids[HqcParameters.hqc256] = BCObjectIdentifiers.hqc256;
         }
 
         public static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
@@ -262,6 +274,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         internal static BikeParameters BikeParamsLookup(DerObjectIdentifier oid)
         {
             return bikeParams[oid];
+        }
+
+        internal static DerObjectIdentifier HqcOidLookup(HqcParameters parameters)
+        {
+            return hqcOids[parameters];
+        }
+
+        internal static HqcParameters HqcParamsLookup(DerObjectIdentifier oid)
+        {
+            return hqcParams[oid];
         }
     }
 }

@@ -16,6 +16,7 @@ using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Pqc.Crypto.Hqc;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -170,13 +171,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes, new DerSequence(vPub).GetEncoded());
             }
-            if (privateKey is BikePrivateKeyParameters)
+            if (privateKey is BikePrivateKeyParameters bikePrivateKeyParameters)
             {
-                BikePrivateKeyParameters parameters = (BikePrivateKeyParameters)privateKey;
+                byte[] encoding = bikePrivateKeyParameters.GetEncoded();
 
-                byte[] encoding = parameters.GetEncoded();
-
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.BikeOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.BikeOidLookup(bikePrivateKeyParameters.Parameters));
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
+            }
+            else if (privateKey is HqcPrivateKeyParameters hqcPrivateKeyParameters)
+            {
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.HqcOidLookup(hqcPrivateKeyParameters.Parameters));
+                byte[] encoding = hqcPrivateKeyParameters.PrivateKey;
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
 
