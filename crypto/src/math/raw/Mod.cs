@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint Inverse32(uint d)
         {
-            Debug.Assert((d & 1) == 1);
+            Debug.Assert((d & 1U) == 1U);
 
             //int x = d + (((d + 1) & 4) << 1);   // d.x == 1 mod 2**4
             uint x = d;                         // d.x == 1 mod 2**3
@@ -50,6 +50,21 @@ namespace Org.BouncyCastle.Math.Raw
             x *= 2 - d * x;                     // d.x == 1 mod 2**24
             x *= 2 - d * x;                     // d.x == 1 mod 2**48
             Debug.Assert(d * x == 1U);
+            return x;
+        }
+
+        public static ulong Inverse64(ulong d)
+        {
+            Debug.Assert((d & 1UL) == 1UL);
+
+            //ulong x = d + (((d + 1) & 4) << 1);   // d.x == 1 mod 2**4
+            ulong x = d;                            // d.x == 1 mod 2**3
+            x *= 2 - d * x;                         // d.x == 1 mod 2**6
+            x *= 2 - d * x;                         // d.x == 1 mod 2**12
+            x *= 2 - d * x;                         // d.x == 1 mod 2**24
+            x *= 2 - d * x;                         // d.x == 1 mod 2**48
+            x *= 2 - d * x;                         // d.x == 1 mod 2**96
+            Debug.Assert(d * x == 1UL);
             return x;
         }
 
