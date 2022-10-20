@@ -3,13 +3,9 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-	public sealed class Streams
+	public static class Streams
 	{
 		private const int BufferSize = 4096;
-
-		private Streams()
-		{
-		}
 
 		public static void Drain(Stream inStr)
 		{

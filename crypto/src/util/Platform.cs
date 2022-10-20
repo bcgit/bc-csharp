@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Org.BouncyCastle.Utilities
 {
-    internal abstract class Platform
+    internal static class Platform
     {
         private static readonly CompareInfo InvariantCompareInfo = CultureInfo.InvariantCulture.CompareInfo;
 

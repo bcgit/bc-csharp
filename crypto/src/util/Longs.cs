@@ -1,4 +1,7 @@
 ﻿using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers.Binary;
+#endif
 #if NETCOREAPP3_0_OR_GREATER
 using System.Numerics;
 using System.Runtime.Intrinsics.X86;
@@ -8,7 +11,7 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Utilities
 {
-    public abstract class Longs
+    public static class Longs
     {
         public const int NumBits = 64;
         public const int NumBytes = 8;
@@ -95,16 +98,24 @@ namespace Org.BouncyCastle.Utilities
 
         public static long ReverseBytes(long i)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return BinaryPrimitives.ReverseEndianness(i);
+#else
             return (long)ReverseBytes((ulong)i);
+#endif
         }
 
         [CLSCompliant(false)]
         public static ulong ReverseBytes(ulong i)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return BinaryPrimitives.ReverseEndianness(i);
+#else
             return RotateLeft(i & 0xFF000000FF000000UL,  8) |
                    RotateLeft(i & 0x00FF000000FF0000UL, 24) |
                    RotateLeft(i & 0x0000FF000000FF00UL, 40) |
                    RotateLeft(i & 0x000000FF000000FFUL, 56);
+#endif
         }
 
         public static long RotateLeft(long i, int distance)
