@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
      * @return An HSSSignature instance.
      * @throws IOException
      */
-        public static HSSSignature GetInstance(Object src, int L)
+        public static HSSSignature GetInstance(object src, int L)
         {
             if (src is HSSSignature hssSignature)
             {
@@ -35,9 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int lminus = BitConverter.ToInt32(data, 0);
+                int lminus = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 if (lminus != L - 1)
                     throw new Exception("nspk exceeded maxNspk");
 

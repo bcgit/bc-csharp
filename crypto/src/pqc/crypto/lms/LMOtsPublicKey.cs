@@ -32,22 +32,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int index = BitConverter.ToInt32(data, 0);
-                
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
-                byte[] I = new byte[16];
-                binaryReader.Read(I, 0, I.Length);
-                
-                Array.Reverse(data);
-                int q = BitConverter.ToInt32(data, 0);
 
-                byte[] K = new byte[parameter.N];
-                binaryReader.Read(K, 0, K.Length);
+                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                byte[] K = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
 
                 return new LMOtsPublicKey(parameter, I, q, K);
-
             }
             else if (src is byte[] bytes)
             {

@@ -23,33 +23,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.T1 = Arrays.Clone(T1);
         }
 
-        public static LMSPublicKeyParameters GetInstance(Object src)
+        public static LMSPublicKeyParameters GetInstance(object src)
         {
             if (src is LMSPublicKeyParameters lmsPublicKeyParameters)
             {
                 return lmsPublicKeyParameters;
             }
-            // todo
-             else if (src is BinaryReader binaryReader)
-             {
-                 byte[] data = binaryReader.ReadBytes(4);
-                 Array.Reverse(data);
-                 int pubType = BitConverter.ToInt32(data, 0);
-                 LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
-                 
-                 data = binaryReader.ReadBytes(4);
-                 Array.Reverse(data);
-                 int index = BitConverter.ToInt32(data, 0);
-                 LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
-            
-                 byte[] I = new byte[16];
-                binaryReader.Read(I, 0, I.Length);//change to readbytes?
-            
-                 byte[] T1 = new byte[lmsParameter.M];
-                binaryReader.Read(T1, 0, T1.Length);
-                 return new LMSPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
-             }
-             else if (src is byte[] bytes)
+            else if (src is BinaryReader binaryReader)
+            {
+                int pubType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
+
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
+
+                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+                byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
+
+                return new LMSPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
+            }
+            else if (src is byte[] bytes)
              {
                  BinaryReader input = null;
                  try // 1.5 / 1.6 compatibility

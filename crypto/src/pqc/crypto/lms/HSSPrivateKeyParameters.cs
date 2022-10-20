@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return pKey;
         }
 
-        public static HSSPrivateKeyParameters GetInstance(Object src)
+        public static HSSPrivateKeyParameters GetInstance(object src)
         {
             if (src is HSSPrivateKeyParameters hssPrivateKeyParameters)
             {
@@ -69,28 +69,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int version = BitConverter.ToInt32(data, 0);
+                int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 if (version != 0)
-                {
-                    throw new Exception("unknown version for hss private key");
-                }
-                data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int d = BitConverter.ToInt32(data, 0);
-                
-                data = binaryReader.ReadBytes(8);
-                Array.Reverse(data);
-                long index = BitConverter.ToInt64(data, 0);
-                
-                data = binaryReader.ReadBytes(8);
-                Array.Reverse(data);
-                long maxIndex = BitConverter.ToInt64(data, 0);;
-                
-                data = binaryReader.ReadBytes(1);
-                Array.Reverse(data);
-                bool limited = BitConverter.ToBoolean(data, 0);
+                    throw new Exception("unknown version for HSS private key");
+
+                int d = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                long index = BinaryReaders.ReadInt64BigEndian(binaryReader);
+
+                long maxIndex = BinaryReaders.ReadInt64BigEndian(binaryReader);
+
+                bool limited = binaryReader.ReadBoolean();
 
                 var keys = new List<LMSPrivateKeyParameters>();
                 var signatures = new List<LMSSignature>();
@@ -133,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public int L => l;
 
-        public  long GetIndex()
+        public long GetIndex()
         {
             lock (this)
                 return index;

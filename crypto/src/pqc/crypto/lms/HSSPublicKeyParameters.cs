@@ -26,10 +26,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int L = BitConverter.ToInt32(data, 0);
-                LMSPublicKeyParameters lmsPublicKey = LMSPublicKeyParameters.GetInstance(src);// todo check endianness
+                int L = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                LMSPublicKeyParameters lmsPublicKey = LMSPublicKeyParameters.GetInstance(src);
                 return new HSSPublicKeyParameters(L, lmsPublicKey);
             }
             else if (src is byte[] bytes)

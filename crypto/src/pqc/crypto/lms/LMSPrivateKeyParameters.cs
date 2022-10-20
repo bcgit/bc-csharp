@@ -42,7 +42,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private LMSPublicKeyParameters publicKey;
 
 
-        public LMSPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I, int maxQ, byte[] masterSecret)
+        public LMSPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I,
+            int maxQ, byte[] masterSecret)
             : base(true)
         {
             this.parameters = lmsParameter;
@@ -80,83 +81,44 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return pKey;
         }
 
-        public static LMSPrivateKeyParameters GetInstance(Object src)
+        public static LMSPrivateKeyParameters GetInstance(object src)
         {
-            if (src is LMSPrivateKeyParameters)
+            if (src is LMSPrivateKeyParameters lmsPrivateKeyParameters)
             {
-                return (LMSPrivateKeyParameters)src;
+                return lmsPrivateKeyParameters;
             }
-            //TODO
-            else if (src is BinaryReader)
+            else if (src is BinaryReader binaryReader)
             {
-                BinaryReader dIn = (BinaryReader)src;
-            
-                /*
-                .u32str(0) // version
-                .u32str(parameters.getType()) // type
-                .u32str(otsParameters.getType()) // ots type
-                .bytes(I) // I at 16 bytes
-                .u32str(q) // q
-                .u32str(maxQ) // maximum q
-                .u32str(masterSecret.length) // length of master secret.
-                .bytes(masterSecret) // the master secret
-                .build();
-                 */
-            
-            
-                if (dIn.ReadInt32() != 0) // todo check endienness
-                {
+                int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                if (version != 0)
                     throw new Exception("expected version 0 lms private key");
-                }
-                
-                // todo check endienness
-                byte[] data = ((BinaryReader) src).ReadBytes(4);
-                Array.Reverse(data);
-                int paramType = BitConverter.ToInt32(data, 0);
-                LMSigParameters parameter = LMSigParameters.GetParametersByID(paramType);
 
-                data = ((BinaryReader) src).ReadBytes(4);
-                Array.Reverse(data);
-                paramType = BitConverter.ToInt32(data, 0);
-                
-                LMOtsParameters otsParameter = LMOtsParameters.GetParametersByID(paramType);
-                byte[] I = new byte[16];
-                dIn.Read(I, 0, I.Length);
-            
-                
-                data = ((BinaryReader) src).ReadBytes(4);
-                Array.Reverse(data);
-                int q =  BitConverter.ToInt32(data, 0);
-                
-                data = ((BinaryReader) src).ReadBytes(4);
-                Array.Reverse(data);
-                int maxQ = BitConverter.ToInt32(data, 0);
-                
-                data = ((BinaryReader) src).ReadBytes(4);
-                Array.Reverse(data);
-                int l = BitConverter.ToInt32(data, 0);
-                
-                
+                int sigParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                LMSigParameters sigParameter = LMSigParameters.GetParametersByID(sigParamType);
+
+                int otsParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                LMOtsParameters otsParameter = LMOtsParameters.GetParametersByID(otsParamType);
+
+                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                int maxQ = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                int l = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 if (l < 0)
-                {
                     throw new Exception("secret length less than zero");
-                }
-                if (l > dIn.BaseStream.Length)
-                {
-                    throw new IOException("secret length exceeded " + dIn.BaseStream.Length);
-                }
-                byte[] masterSecret = new byte[l];
-                dIn.Read(masterSecret, 0, masterSecret.Length);
-            
-                return new LMSPrivateKeyParameters(parameter, otsParameter, q, I, maxQ, masterSecret);
-            
+
+                byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
+
+                return new LMSPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
             }
-            else if (src is byte[])
+            else if (src is byte[] bytes)
             {
                 BinaryReader input = null;
                 try // 1.5 / 1.6 compatibility
                 {
-                    input = new BinaryReader(new MemoryStream((byte[])src, false));
+                    input = new BinaryReader(new MemoryStream(bytes, false));
                     return GetInstance(input);
                 }
                 finally
@@ -167,9 +129,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     }
                 }
             }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream)src));
+                return GetInstance(Streams.ReadAll(memoryStream));
             }
 
             throw new ArgumentException($"cannot parse {src}");
@@ -181,9 +143,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             lock (this)
             {
                 if (q >= maxQ)
-                {
                     throw new Exception("ots private keys expired");
-                }
+
                 return new LMOtsPrivateKey(otsParameters, I, q, masterSecret);
             }
         }
@@ -247,9 +208,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             lock (this)
             {
                 if (q >= maxQ)
-                {
                     throw new Exception("ots private key exhausted");
-                }
+
                 LMOtsPrivateKey otsPrivateKey = new LMOtsPrivateKey(otsParameters, I, q, masterSecret);
                 IncIndex();
                 return otsPrivateKey;
@@ -270,9 +230,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             lock (this)
             {
                 if (q + usageCount >= maxQ)
-                {
                     throw new ArgumentException("usageCount exceeds usages remaining");
-                }
+
                 LMSPrivateKeyParameters keyParameters = new LMSPrivateKeyParameters(this, q, q + usageCount);
                 q += usageCount;
 

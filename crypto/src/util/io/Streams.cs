@@ -60,7 +60,12 @@ namespace Org.BouncyCastle.Utilities.IO
 			return buf.ToArray();
 		}
 
-		public static byte[] ReadAllLimited(Stream inStr, int limit)
+        public static byte[] ReadAll(MemoryStream inStr)
+        {
+			return inStr.ToArray();
+        }
+
+        public static byte[] ReadAllLimited(Stream inStr, int limit)
 		{
 			MemoryStream buf = new MemoryStream();
 			PipeAllLimited(inStr, limit, buf);

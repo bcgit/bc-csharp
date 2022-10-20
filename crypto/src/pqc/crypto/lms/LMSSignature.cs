@@ -30,15 +30,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int q = BitConverter.ToInt32(data, 0);
-                
+                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
                 LMOtsSignature otsSignature = LMOtsSignature.GetInstance(src);
 
-                data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int index = BitConverter.ToInt32(data, 0);
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 LMSigParameters type = LMSigParameters.GetParametersByID(index);
 
                 byte[][] path = new byte[type.H][];
@@ -47,7 +43,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     path[h] = new byte[type.M];
                     binaryReader.Read(path[h], 0, path[h].Length);
                 }
-            
+
                 return new LMSSignature(q, otsSignature, type, path);
             }
             else if (src is byte[] bytes)

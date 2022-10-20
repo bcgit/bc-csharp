@@ -42,10 +42,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LMOtsSignature sig = LM_OTS.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
             Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, sig, ms, false));
 
-            //  Vandalise signature
+            // Recreate signature
+            {
+                byte[] recreatedSignature = sig.GetEncoded();
+                Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(recreatedSignature), ms, false));
+            }
+
+            // Recreate public key.
+            {
+                byte[] recreatedPubKey = Arrays.Clone(publicKey.GetEncoded());
+                Assert.True(LM_OTS.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(recreatedPubKey), sig, ms, false));
+            }
+
+            // Vandalise signature
             {
 
-                byte[] vandalisedSignature = sig.GetEncoded(); // Arrays.clone(sig);
+                byte[] vandalisedSignature = sig.GetEncoded();
                 vandalisedSignature[256] ^= 1; // Single bit error
                 Assert.False(LM_OTS.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(vandalisedSignature), ms, false));
             }
