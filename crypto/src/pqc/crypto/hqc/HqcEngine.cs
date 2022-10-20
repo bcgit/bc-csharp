@@ -1,6 +1,6 @@
-﻿
+﻿using System;
+
 using Org.BouncyCastle.Utilities;
-using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             HqcKeccakRandomGenerator secretKeySeedExpander = new HqcKeccakRandomGenerator(256);
             secretKeySeedExpander.SeedExpanderInit(secretKeySeed, secretKeySeed.Length);
 
-            long[] xLongBytes = new long[N_BYTE_64];
+            ulong[] xLongBytes = new ulong[N_BYTE_64];
             int[] yPos = new int[this.w];
 
             GenerateSecretKey(xLongBytes, secretKeySeedExpander, w);
@@ -97,13 +97,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             HqcKeccakRandomGenerator randomPublic = new HqcKeccakRandomGenerator(256);
             randomPublic.SeedExpanderInit(publicKeySeed, publicKeySeed.Length);
 
-            long[] hLongBytes = new long[N_BYTE_64];
+            ulong[] hLongBytes = new ulong[N_BYTE_64];
             GeneratePublicKeyH(hLongBytes, randomPublic);
 
             // 3. Compute s
             ulong[] s = new ulong[N_BYTE_64];
             GF2PolynomialCalculator.ModMult(s, yPos, hLongBytes, w, n, N_BYTE_64, we, secretKeySeedExpander);
-            GF2PolynomialCalculator.AddLongs(s, s, xLongBytes);
+            GF2PolynomialCalculator.AddULongs(s, s, xLongBytes);
             byte[] sBytes = new byte[N_BYTE];
             Utils.FromULongArrayToByteArray(sBytes, s);
 
@@ -150,13 +150,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             // 3. Generate ciphertext c = (u,v)
             // Extract public keys
-            long[] h = new long[N_BYTE_64];
+            ulong[] h = new ulong[N_BYTE_64];
             byte[] s = new byte[N_BYTE];
             ExtractPublicKeys(h, s, pk);
 
-            long[] vTmp = new long[N1N2_BYTE_64];
+            ulong[] vTmp = new ulong[N1N2_BYTE_64];
             Encrypt(u, vTmp, h, s, m, theta);
-            Utils.FromLongArrayToByteArray(v, vTmp);
+            Utils.FromULongArrayToByteArray(v, vTmp);
 
             // 4. Compute d
             shakeDigest.SHAKE256_512_ds(d, m, m.Length, new byte[] { H_FCT_DOMAIN });
@@ -201,15 +201,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             // 3. Compute c' = Enc(pk, m', theta')
             // Extract public keys
-            long[] h = new long[N_BYTE_64];
+            ulong[] h = new ulong[N_BYTE_64];
             byte[] s = new byte[N_BYTE];
             ExtractPublicKeys(h, s, pk);
 
             byte[] u2Bytes = new byte[N_BYTE];
             byte[] v2Bytes = new byte[N1N2_BYTE];
-            long[] vTmp = new long[N1N2_BYTE_64];
+            ulong[] vTmp = new ulong[N1N2_BYTE_64];
             Encrypt(u2Bytes, vTmp, h, s, mPrimeBytes, theta);
-            Utils.FromLongArrayToByteArray(v2Bytes, vTmp);
+            Utils.FromULongArrayToByteArray(v2Bytes, vTmp);
 
             // 4. Compute d' = H(m')
             byte[] dPrime = new byte[SHA512_BYTES];
@@ -263,13 +263,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
          * @param u ciphertext
          * @param v ciphertext
          **/
-        private void Encrypt(byte[] u, long[] v, long[] h, byte[] s, byte[] m, byte[] theta)
+        private void Encrypt(byte[] u, ulong[] v, ulong[] h, byte[] s, byte[] m, byte[] theta)
         {
             // Randomly generate e, r1, r2
             HqcKeccakRandomGenerator randomGenerator = new HqcKeccakRandomGenerator(256);
             randomGenerator.SeedExpanderInit(theta, SEED_SIZE);
-            long[] e = new long[N_BYTE_64];
-            long[] r1 = new long[N_BYTE_64];
+            ulong[] e = new ulong[N_BYTE_64];
+            ulong[] r1 = new ulong[N_BYTE_64];
             int[] r2 = new int[wr];
             GenerateSecretKey(r1, randomGenerator, wr);
             GenerateSecretKeyByCoordinates(r2, randomGenerator, wr);
@@ -278,29 +278,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // Calculate u
             ulong[] uLong = new ulong[N_BYTE_64];
             GF2PolynomialCalculator.ModMult(uLong, r2, h, wr, n, N_BYTE_64, we, randomGenerator);
-            GF2PolynomialCalculator.AddLongs(uLong, uLong, r1);
-            Utils.FromULongArrayToByteArray(u,uLong);
+            GF2PolynomialCalculator.AddULongs(uLong, uLong, r1);
+            Utils.FromULongArrayToByteArray(u, uLong);
 
             // Calculate v
             // encode m
             byte[] res = new byte[n1];
-            long[] vLong = new long[N1N2_BYTE_64];
-            long[] tmpVLong = new long[N_BYTE_64];
+            ulong[] vLong = new ulong[N1N2_BYTE_64];
+            ulong[] tmpVLong = new ulong[N_BYTE_64];
             ReedSolomon.Encode(res, m, K_BYTE * 8, n1, k, g, generatorPoly);
             ReedMuller.Encode(vLong, res, n1, mulParam);
             Array.Copy(vLong, 0, tmpVLong, 0, vLong.Length);
 
-
             //Compute v
-            long[] sLong = new long[N_BYTE_64];
-            Utils.FromByteArrayToLongArray(sLong, s);
+            ulong[] sLong = new ulong[N_BYTE_64];
+            Utils.FromByteArrayToULongArray(sLong, s);
 
             ulong[] tmpLong = new ulong[N_BYTE_64];
             GF2PolynomialCalculator.ModMult(tmpLong, r2, sLong, wr, n, N_BYTE_64, we, randomGenerator);
-            GF2PolynomialCalculator.AddLongs(tmpLong, tmpLong, tmpVLong);
-            GF2PolynomialCalculator.AddLongs(tmpLong, tmpLong, e);
+            GF2PolynomialCalculator.AddULongs(tmpLong, tmpLong, tmpVLong);
+            GF2PolynomialCalculator.AddULongs(tmpLong, tmpLong, e);
 
-            Utils.ResizeArray(v, n1n2, Utils.FromULongArrayToLongArray(tmpLong), n, N1N2_BYTE_64, N1N2_BYTE_64);
+            Utils.ResizeArray(v, n1n2, tmpLong, n, N1N2_BYTE_64, N1N2_BYTE_64);
         }
 
         private void Decrypt(byte[] output, byte[] m, byte[] u, byte[] v, int[] y)
@@ -309,38 +308,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             HqcKeccakRandomGenerator randomGenerator = new HqcKeccakRandomGenerator(256);
             randomGenerator.SeedExpanderInit(tmpSeed, SEED_SIZE);
 
-            long[] uLongs = new long[N_BYTE_64];
-            Utils.FromByteArrayToLongArray(uLongs, u);
+            ulong[] uLongs = new ulong[N_BYTE_64];
+            Utils.FromByteArrayToULongArray(uLongs, u);
 
-            long[] vLongs = new long[N1N2_BYTE_64];
-            Utils.FromByteArrayToLongArray(vLongs, v);
+            ulong[] vLongs = new ulong[N1N2_BYTE_64];
+            Utils.FromByteArrayToULongArray(vLongs, v);
 
-            long[] tmpV = new long[N_BYTE_64];
+            ulong[] tmpV = new ulong[N_BYTE_64];
             Array.Copy(vLongs, 0, tmpV, 0, vLongs.Length);
 
             ulong[] tmpLong = new ulong[N_BYTE_64];
             GF2PolynomialCalculator.ModMult(tmpLong, y, uLongs, w, n, N_BYTE_64, we, randomGenerator);
-            GF2PolynomialCalculator.AddLongs(tmpLong, tmpLong, tmpV);
+            GF2PolynomialCalculator.AddULongs(tmpLong, tmpLong, tmpV);
 
             // Decode res
             byte[] tmp = new byte[n1];
-            ReedMuller.decode(tmp, Utils.FromULongArrayToLongArray(tmpLong), n1, mulParam);
-            ReedSolomon.decode(m, tmp, n1, fft, delta, k, g);
+            ReedMuller.Decode(tmp, tmpLong, n1, mulParam);
+            ReedSolomon.Decode(m, tmp, n1, fft, delta, k, g);
 
-           Array.Copy(m, 0, output, 0, output.Length);
+            Array.Copy(m, 0, output, 0, output.Length);
         }
 
-        private void GenerateSecretKey(long[] output, HqcKeccakRandomGenerator random, int w)
+        private void GenerateSecretKey(ulong[] output, HqcKeccakRandomGenerator random, int w)
         {
             int[] tmp = new int[w];
-
             GenerateSecretKeyByCoordinates(tmp, random, w);
 
             for (int i = 0; i < w; ++i)
             {
                 int index = tmp[i] / 64;
                 int pos = tmp[i] % 64;
-                long t = ((1L) << pos);
+                ulong t = 1UL << pos;
                 output[index] |= t;
             }
         }
@@ -384,57 +382,55 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
-        void GeneratePublicKeyH(long[] output, HqcKeccakRandomGenerator random)
+        void GeneratePublicKeyH(ulong[] output, HqcKeccakRandomGenerator random)
         {
             byte[] randBytes = new byte[N_BYTE];
             random.ExpandSeed(randBytes, N_BYTE);
-            long[] tmp = new long[N_BYTE_64];
-            Utils.FromByteArrayToLongArray(tmp, randBytes);
-            tmp[N_BYTE_64 - 1] &= Utils.BitMask(n, 64);
+            ulong[] tmp = new ulong[N_BYTE_64];
+            Utils.FromByteArrayToULongArray(tmp, randBytes);
+            tmp[N_BYTE_64 - 1] &= Utils.BitMask((ulong)n, 64);
             Array.Copy(tmp, 0, output, 0, output.Length);
         }
 
-
-
-        private void ExtractPublicKeys(long[] h, byte[] s, byte[] pk)
+        private void ExtractPublicKeys(ulong[] h, byte[] s, byte[] pk)
         {
             byte[] publicKeySeed = new byte[SEED_SIZE];
-           Array.Copy(pk, 0, publicKeySeed, 0, publicKeySeed.Length);
+            Array.Copy(pk, 0, publicKeySeed, 0, publicKeySeed.Length);
 
             HqcKeccakRandomGenerator randomPublic = new HqcKeccakRandomGenerator(256);
             randomPublic.SeedExpanderInit(publicKeySeed, publicKeySeed.Length);
 
-           long[] hLongBytes = new long[N_BYTE_64];
+            ulong[] hLongBytes = new ulong[N_BYTE_64];
             GeneratePublicKeyH(hLongBytes, randomPublic);
 
-           Array.Copy(hLongBytes, 0, h, 0, h.Length);
-           Array.Copy(pk, 40, s, 0, s.Length);
+            Array.Copy(hLongBytes, 0, h, 0, h.Length);
+            Array.Copy(pk, 40, s, 0, s.Length);
         }
 
         private void ExtractKeysFromSecretKeys(int[] y, byte[] pk, byte[] sk)
         {
             byte[] secretKeySeed = new byte[SEED_SIZE];
-           Array.Copy(sk, 0, secretKeySeed, 0, secretKeySeed.Length);
+            Array.Copy(sk, 0, secretKeySeed, 0, secretKeySeed.Length);
 
             // Randomly generate secret keys x, y
             HqcKeccakRandomGenerator secretKeySeedExpander = new HqcKeccakRandomGenerator(256);
             secretKeySeedExpander.SeedExpanderInit(secretKeySeed, secretKeySeed.Length);
 
-            long[] xLongBytes = new long[N_BYTE_64];
+            ulong[] xLongBytes = new ulong[N_BYTE_64];
             int[] yPos = new int[this.w];
 
             GenerateSecretKey(xLongBytes, secretKeySeedExpander, w);
             GenerateSecretKeyByCoordinates(yPos, secretKeySeedExpander, w);
 
-           Array.Copy(yPos, 0, y, 0, yPos.Length);
-           Array.Copy(sk, SEED_SIZE, pk, 0, pk.Length);
+            Array.Copy(yPos, 0, y, 0, yPos.Length);
+            Array.Copy(sk, SEED_SIZE, pk, 0, pk.Length);
         }
 
         private static void ExtractCiphertexts(byte[] u, byte[] v, byte[] d, byte[] ct)
         {
-           Array.Copy(ct, 0, u, 0, u.Length);
-           Array.Copy(ct, u.Length, v, 0, v.Length);
-           Array.Copy(ct, u.Length + v.Length, d, 0, d.Length);
+            Array.Copy(ct, 0, u, 0, u.Length);
+            Array.Copy(ct, u.Length, v, 0, v.Length);
+            Array.Copy(ct, u.Length + v.Length, d, 0, d.Length);
         }
     }
 }

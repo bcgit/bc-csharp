@@ -1,19 +1,15 @@
-﻿using Org.BouncyCastle.Crypto.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal class Utils
     {
-        internal static void ResizeArray(long[] output, int sizeOutBits, long[] input, int sizeInBits, int n1n2ByteSize, int n1n2Byte64Size)
+        internal static void ResizeArray(ulong[] output, int sizeOutBits, ulong[] input, int sizeInBits,
+            int n1n2ByteSize, int n1n2Byte64Size)
         {
-
-            long mask = 0x7FFFFFFFFFFFFFFFl;
+            ulong mask = 0x7FFFFFFFFFFFFFFFUL;
             int val = 0;
             if (sizeOutBits < sizeInBits)
             {
@@ -26,85 +22,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int i = 0; i < val; ++i)
                 {
-                    output[n1n2Byte64Size - 1] &= (mask >> i);
+                    output[n1n2Byte64Size - 1] &= mask >> i;
                 }
             }
             else
             {
                 Array.Copy(input, 0, output, 0, (sizeInBits + 7) / 8);
-            }
-        }
-
-        internal static long[] FromULongArrayToLongArray(ulong[] input)
-        {
-            long[] output = new long[input.Length];
-            for (int i =0; i< output.Length; i++)
-            {
-                output[i] = (long) input[i];
-            }
-            return output;
-        }
-
-        internal static void FromByteArrayToBitArray(byte[] output, byte[] input)
-        {
-            int max = (output.Length / 8);
-            for (int i = 0; i < max; i++)
-            {
-                for (int j = 0; j != 8; j++)
-                {
-                    output[i * 8 + j] = (byte) UnsignedRightBitShiftLong((input[i] & (1 << j)), j);
-                }
-            }
-            if (output.Length % 8 != 0)
-            {
-                int off = max * 8;
-                int count = 0;
-                while (off < output.Length)
-                {
-                    output[off++] = (byte) UnsignedRightBitShiftLong((input[max] & (1 << count)), count);
-                    count++;
-                }
-            }
-        }
-
-        internal static void FromLongArrayToBitArray(byte[] output, long[] input)
-        {
-            int max = (output.Length / 64);
-            for (int i = 0; i < max; i++)
-            {
-                for (int j = 0; j != 64; j++)
-                {
-                    output[i * 64 + j] = (byte)UnsignedRightBitShiftLong((input[i] & (1L << j)), j);
-                }
-            }
-            if (output.Length % 64 != 0)
-            {
-                int off = max * 64;
-                int count = 0;
-                while (off < output.Length)
-                {
-                    output[off++] = (byte) UnsignedRightBitShiftLong((input[max] & (1L << count)), count);
-                    count++;
-                }
-            }
-        }
-
-        internal static void FromLongArrayToByteArray(byte[] output, long[] input)
-        {
-            int max = output.Length / 8;
-            for (int i = 0; i != max; i++)
-            {
-                Pack.UInt64_To_LE((ulong) input[i], output, i * 8); 
-            }
-
-            if (output.Length % 8 != 0)
-            {
-                int off = max * 8;
-                int count = 0;
-                while (off < output.Length)
-                {
-                    output[off++] = (byte) UnsignedRightBitShiftLong(input[max], (count++ * 8));
-                }
             }
         }
 
@@ -127,13 +50,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
-        internal static long BitMask(long a, long b)
+        internal static ulong BitMask(ulong a, ulong b)
         {
-            int tmp = (int) (a % b);
-            return ((1L << tmp) - 1);
+            uint tmp = (uint)(a % b);
+            return ((1UL << (int)tmp) - 1);
         }
 
-        internal static void FromByteArrayToLongArray(long[] output, byte[] input)
+        internal static void FromByteArrayToULongArray(ulong[] output, byte[] input)
         {
             byte[] tmp = input;
             if (input.Length % 8 != 0)
@@ -145,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int off = 0;
             for (int i = 0; i < output.Length; i++)
             {
-                output[i] = (long) Pack.LE_To_UInt64(tmp, off);
+                output[i] = Pack.LE_To_UInt64(tmp, off);
                 off += 8;
             }
         }
@@ -167,38 +90,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
-        internal static void FromByte32ArrayToLongArray(long[] output, int[] input)
+        internal static void FromByte32ArrayToULongArray(ulong[] output, int[] input)
         {
             for (int i = 0; i != input.Length; i += 2)
             {
-                output[i / 2] = input[i] & 0xffffffffL;
-                output[i / 2] |= (long)input[i + 1] << 32;
+                output[i / 2] = (uint)input[i];
+                output[i / 2] |= (ulong)input[i + 1] << 32;
             }
         }
 
-        internal static void FromByte16ArrayToLongArray(ulong[] output, int[] input)
+        internal static void FromByte16ArrayToULongArray(ulong[] output, ushort[] input)
         {
             for (int i = 0; i != input.Length; i += 4)
             {
-                output[i / 4] = (ulong) input[i] & 0xffffL;
-                output[i / 4] |= (ulong) input[i + 1] << 16;
-                output[i / 4] |= (ulong) input[i + 2] << 32;
-                output[i / 4] |= (ulong) input[i + 3] << 48;
+                output[i / 4] = input[i];
+                output[i / 4] |= (ulong)input[i + 1] << 16;
+                output[i / 4] |= (ulong)input[i + 2] << 32;
+                output[i / 4] |= (ulong)input[i + 3] << 48;
             }
         }
 
-        internal static void FromULongArrayToByte16Array(int[] output, ulong[] input)
-        {
-            for (int i = 0; i != input.Length; i++)
-            {
-                output[4 * i] = (UInt16)input[i];
-                output[4 * i + 1] = (UInt16)(input[i] >> 16);
-                output[4 * i + 2] = (UInt16)(input[i] >> 32);
-                output[4 * i + 3] = (UInt16)(input[i] >> 48);
-            }
-        }
-
-        internal static void FromLongArrayToByte32Array(int[] output, long[] input)
+        internal static void FromULongArrayToByte32Array(int[] output, ulong[] input)
         {
             for (int i = 0; i != input.Length; i++)
             {
@@ -239,5 +151,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return (long)tmp;
         }
 
+        internal static void XorULongToByte16Array(ushort[] output, int outOff, ulong input)
+        {
+            output[outOff + 0] ^= (ushort)input;
+            output[outOff + 1] ^= (ushort)(input >> 16);
+            output[outOff + 2] ^= (ushort)(input >> 32);
+            output[outOff + 3] ^= (ushort)(input >> 48);
+        }
     }
 }

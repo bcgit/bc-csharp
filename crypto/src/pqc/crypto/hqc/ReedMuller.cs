@@ -1,9 +1,6 @@
-﻿using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
@@ -59,9 +56,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 }
 
                 //swap srcCode and desCode
-                int[] tmp = Arrays.Clone(srcCodeCopy);
-                srcCodeCopy = Arrays.Clone(desCodeCopy);
-                desCodeCopy = Arrays.Clone(tmp);
+                int[] tmp = srcCodeCopy; srcCodeCopy = desCodeCopy; desCodeCopy = tmp;
             }
 
             // swap
@@ -122,7 +117,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return (int) ((-(b & 1)) & 0xffffffff);
         }
 
-        public static void Encode(long[] codeword, byte[] m, int n1, int mulParam)
+        public static void Encode(ulong[] codeword, byte[] m, int n1, int mulParam)
         {
             byte[] mBytes = Arrays.Clone(m);
 
@@ -152,17 +147,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 off += 4;
             }
 
-            Utils.FromByte32ArrayToLongArray(codeword, cwd64);
+            Utils.FromByte32ArrayToULongArray(codeword, cwd64);
         }
 
-
-        public static void decode(byte[] m, long[] codeword, int n1, int mulParam)
+        public static void Decode(byte[] m, ulong[] codeword, int n1, int mulParam)
         {
             byte[] mBytes = Arrays.Clone(m);
 
             Codeword[] codewordCopy = new Codeword[codeword.Length / 2]; // because each codewordCopy has a 32 bit array size 4
             int[] byteCodeWords = new int[codeword.Length * 2];
-            Utils.FromLongArrayToByte32Array(byteCodeWords, codeword);
+            Utils.FromULongArrayToByte32Array(byteCodeWords, codeword);
 
             for (int i = 0; i < codewordCopy.Length; i++)
             {
@@ -195,7 +189,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 Array.Copy(codewordCopy[i].type32, 0, cwd64, off, codewordCopy[i].type32.Length);
                 off += 4;
             }
-            Utils.FromByte32ArrayToLongArray(codeword, cwd64);
+            Utils.FromByte32ArrayToULongArray(codeword, cwd64);
             Array.Copy(mBytes, 0, m, 0, m.Length);
         }
     }

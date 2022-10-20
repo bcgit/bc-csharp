@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for Cmce secure random
+            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
             byte[] pk = Hex.Decode(buf["pk"]);     // public key
             byte[] sk = Hex.Decode(buf["sk"]);     // private key
             byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext

@@ -1,10 +1,6 @@
-﻿using Org.BouncyCastle.Pqc.Crypto.Hqc;
+﻿using System;
+
 using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
@@ -47,7 +43,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         }
 
         // Decode
-        internal static void decode(byte[] message, byte[] codeWord, int n1, int fft, int delta, int paramK, int paramG)
+        internal static void Decode(byte[] message, byte[] codeWord, int n1, int fft, int delta, int paramK, int paramG)
         {
             int fftSize = 1 << fft;
             int mSize = 1 << (HqcParameters.PARAM_M - 1);

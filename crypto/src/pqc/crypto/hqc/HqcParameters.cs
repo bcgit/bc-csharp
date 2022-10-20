@@ -30,8 +30,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private int[] generatorPoly;
         private int defaultKeySize;
 
-        volatile internal static int PARAM_M = 8;
-        volatile internal static int GF_MUL_ORDER = 255;
+        internal const int PARAM_M = 8;
+        internal const int GF_MUL_ORDER = 255;
 
         private HqcEngine hqcEngine;
 

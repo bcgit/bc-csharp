@@ -1,4 +1,5 @@
 ﻿using Org.BouncyCastle.Crypto;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     public class HqcKemExtractor : IEncapsulatedSecretExtractor
