@@ -1,4 +1,5 @@
 using System.IO;
+
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
@@ -7,7 +8,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         public static byte[] ExtractPrefixedBytes(string vectorFromRFC)
         {
-
             MemoryStream bos = new MemoryStream();
             byte[] hexByte;
             foreach (string line in vectorFromRFC.Split('\n'))
@@ -32,7 +32,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 }
             }
             return bos.ToArray();
-
         }
     }
 }

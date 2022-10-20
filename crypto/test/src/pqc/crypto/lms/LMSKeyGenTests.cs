@@ -1,6 +1,7 @@
 using System;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -40,7 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
 
             // From the vector.
-            String pkEnc = "0000000500000004215f83b7ccb9acbcd08db97b0d04dc2ba1cd035833e0e90059603f26e07ad2aad152338e7a5e5984bcd5f7bb4eba40b7";
+            string pkEnc = "0000000500000004215f83b7ccb9acbcd08db97b0d04dc2ba1cd035833e0e90059603f26e07ad2aad152338e7a5e5984bcd5f7bb4eba40b7";
 
             // Test public key encoded matched vector.
             Assert.True(Arrays.AreEqual(Hex.Decode(pkEnc), publicKey.GetEncoded()));
@@ -53,7 +54,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LMSSignature signature = LMS.GenerateSign(lmsPrivateKey, msg);
 
             // The expected signature as encoded.
-            String sigEnc = "00000004\n" +
+            string sigEnc = "00000004\n" +
                 "00000004\n" +
                 "0eb1ed54a2460d512388cad533138d24\n" +
                 "0534e97b1e82d33bd927d201dfc24ebb\n" +
@@ -137,14 +138,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 "e4041d95398a6f7f3e0ee97cc1591849\n" +
                 "d4ed236338b147abde9f51ef9fd4e1c1";
 
-
             // Check generated signature matches vector.
             Assert.True(Arrays.AreEqual(Hex.Decode(sigEnc), signature.GetEncoded()));
 
-
             // Sanity test
             Assert.True(LMS.VerifySignature(publicKey, signature, msg));
-            
         }
     }
 }
