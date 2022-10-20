@@ -196,21 +196,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             {
                 Array.Copy(input, inOff, currentBlock, currentBlockOffset, available);
                 pos = available;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                ProcessBlock(currentBlock);
-#else
                 ProcessBlock(currentBlock, 0);
-#endif
             }
 
             int remaining;
             while ((remaining = len - pos) >= BlockSize)
             {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                ProcessBlock(input.AsSpan(inOff + pos));
-#else
                 ProcessBlock(input, inOff + pos);
-#endif
                 pos += BlockSize;
             }
 
@@ -253,62 +245,24 @@ namespace Org.BouncyCastle.Crypto.Macs
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void ProcessBlock(ReadOnlySpan<byte> block)
         {
-#if NETCOREAPP3_0_OR_GREATER
-            if (BitConverter.IsLittleEndian)
-            {
-                Span<uint> t = stackalloc uint[4];
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<uint, byte>(ref t[0]), ref Unsafe.AsRef(block[0]), 16);
-
-                h0 +=   t[0]                        & 0x3ffffffU;
-                h1 += ((t[1] <<  6) | (t[0] >> 26)) & 0x3ffffffU;
-                h2 += ((t[2] << 12) | (t[1] >> 20)) & 0x3ffffffU;
-                h3 += ((t[3] << 18) | (t[2] >> 14)) & 0x3ffffffU;
-                h4 += (1 << 24) | (t[3] >> 8);
-            }
-            else
-#endif
-            {
-                uint t0 = Pack.LE_To_UInt32(block);
-                uint t1 = Pack.LE_To_UInt32(block[4..]);
-                uint t2 = Pack.LE_To_UInt32(block[8..]);
-                uint t3 = Pack.LE_To_UInt32(block[12..]);
-
-                h0 +=   t0                      & 0x3ffffffU;
-                h1 += ((t1 <<  6) | (t0 >> 26)) & 0x3ffffffU;
-                h2 += ((t2 << 12) | (t1 >> 20)) & 0x3ffffffU;
-                h3 += ((t3 << 18) | (t2 >> 14)) & 0x3ffffffU;
-                h4 +=  ( 1 << 24) | (t3 >>  8);
-            }
-
-            ulong tp0 = (ulong)h0 * r0 + (ulong)h1 * s4 + (ulong)h2 * s3 + (ulong)h3 * s2 + (ulong)h4 * s1;
-            ulong tp1 = (ulong)h0 * r1 + (ulong)h1 * r0 + (ulong)h2 * s4 + (ulong)h3 * s3 + (ulong)h4 * s2;
-            ulong tp2 = (ulong)h0 * r2 + (ulong)h1 * r1 + (ulong)h2 * r0 + (ulong)h3 * s4 + (ulong)h4 * s3;
-            ulong tp3 = (ulong)h0 * r3 + (ulong)h1 * r2 + (ulong)h2 * r1 + (ulong)h3 * r0 + (ulong)h4 * s4;
-            ulong tp4 = (ulong)h0 * r4 + (ulong)h1 * r3 + (ulong)h2 * r2 + (ulong)h3 * r1 + (ulong)h4 * r0;
-
-            h0 = (uint)tp0 & 0x3ffffff; tp1 += (tp0 >> 26);
-            h1 = (uint)tp1 & 0x3ffffff; tp2 += (tp1 >> 26);
-            h2 = (uint)tp2 & 0x3ffffff; tp3 += (tp2 >> 26);
-            h3 = (uint)tp3 & 0x3ffffff; tp4 += (tp3 >> 26);
-            h4 = (uint)tp4 & 0x3ffffff;
-            h0 += (uint)(tp4 >> 26) * 5;
-            h1 += h0 >> 26; h0 &= 0x3ffffff;
-        }
+            uint t0 = Pack.LE_To_UInt32(block);
+            uint t1 = Pack.LE_To_UInt32(block[4..]);
+            uint t2 = Pack.LE_To_UInt32(block[8..]);
+            uint t3 = Pack.LE_To_UInt32(block[12..]);
 #else
         private void ProcessBlock(byte[] buf, int off)
         {
-            {
-                uint t0 = Pack.LE_To_UInt32(buf, off +  0);
-                uint t1 = Pack.LE_To_UInt32(buf, off +  4);
-                uint t2 = Pack.LE_To_UInt32(buf, off +  8);
-                uint t3 = Pack.LE_To_UInt32(buf, off + 12);
+            uint t0 = Pack.LE_To_UInt32(buf, off +  0);
+            uint t1 = Pack.LE_To_UInt32(buf, off +  4);
+            uint t2 = Pack.LE_To_UInt32(buf, off +  8);
+            uint t3 = Pack.LE_To_UInt32(buf, off + 12);
+#endif
 
-                h0 +=   t0                      & 0x3ffffffU;
-                h1 += ((t1 <<  6) | (t0 >> 26)) & 0x3ffffffU;
-                h2 += ((t2 << 12) | (t1 >> 20)) & 0x3ffffffU;
-                h3 += ((t3 << 18) | (t2 >> 14)) & 0x3ffffffU;
-                h4 +=  ( 1 << 24) | (t3 >>  8);
-            }
+            h0 +=   t0                      & 0x3ffffffU;
+            h1 += ((t1 <<  6) | (t0 >> 26)) & 0x3ffffffU;
+            h2 += ((t2 << 12) | (t1 >> 20)) & 0x3ffffffU;
+            h3 += ((t3 << 18) | (t2 >> 14)) & 0x3ffffffU;
+            h4 +=  ( 1 << 24) | (t3 >>  8);
 
             ulong tp0 = (ulong)h0 * r0 + (ulong)h1 * s4 + (ulong)h2 * s3 + (ulong)h3 * s2 + (ulong)h4 * s1;
             ulong tp1 = (ulong)h0 * r1 + (ulong)h1 * r0 + (ulong)h2 * s4 + (ulong)h3 * s3 + (ulong)h4 * s2;
@@ -324,7 +278,6 @@ namespace Org.BouncyCastle.Crypto.Macs
             h0 += (uint)(tp4 >> 26) * 5;
             h1 += h0 >> 26; h0 &= 0x3ffffff;
         }
-#endif
 
         public int DoFinal(byte[] output, int outOff)
         {
