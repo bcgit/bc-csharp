@@ -1460,9 +1460,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     row = i * 8 + j;
 
                     if (row >= PK_NROWS)
-                    {
                         break;
-                    }
+
+                    byte[] mat_row = mat[row];
 
                     if (usePivots)
                     {
@@ -1470,7 +1470,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         {
                             if (MovColumns(mat, pi, pivots) != 0)
                             {
-                                //                            System.out.println("failed mov column!");
+                                //System.out.println("failed mov column!");
                                 return -1;
                             }
                         }
@@ -1478,21 +1478,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
                     for (k = row + 1; k < PK_NROWS; k++)
                     {
-                        mask = (byte)(mat[row][i] ^ mat[k][i]);
+                        byte[] mat_k = mat[k];
+                        mask = (byte)(mat_row[i] ^ mat_k[i]);
                         mask >>= j;
                         mask &= 1;
                         mask = (byte)-mask;
 
                         for (c = 0; c < SYS_N / 8; c++)
                         {
-                            mat[row][c] ^= (byte)(mat[k][c] & mask);
+                            mat_row[c] ^= (byte)(mat_k[c] & mask);
                         }
                     }
+
                     // 7. Compute (T,cn−k−μ+1,...,cn−k,Γ′) ← MatGen(Γ). If this fails, set δ ← δ′ and
                     // restart the algorithm.
-                    if (((mat[row][i] >> j) & 1) == 0) // return if not systematic
+                    if (((mat_row[i] >> j) & 1) == 0) // return if not systematic
                     {
-                        //                    System.out.println("FAIL 2\n");
+                        //System.out.println("FAIL 2\n");
                         return -1;
                     }
 
@@ -1500,14 +1502,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     {
                         if (k != row)
                         {
-                            mask = (byte)(mat[k][i] >> j);
+                            byte[] mat_k = mat[k];
+                            mask = (byte)(mat_k[i] >> j);
                             mask &= 1;
                             mask = (byte)-mask;
 
                             for (c = 0; c < SYS_N / 8; c++)
                             {
-                                mat[k][c] ^= (byte)(mat[row][c] & mask);
-
+                                mat_k[c] ^= (byte)(mat_row[c] & mask);
                             }
                         }
                     }
@@ -1545,7 +1547,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
             return 0;
         }
-
 
         private ushort Eval(ushort[] f, ushort a)
         {
