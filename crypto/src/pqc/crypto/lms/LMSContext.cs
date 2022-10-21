@@ -4,7 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public sealed class LMSContext
+    public sealed class LmsContext
         : IDigest
     {
         private readonly byte[] m_c;
@@ -14,10 +14,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private readonly LMOtsPublicKey m_publicKey;
         private readonly object m_signature;
-        private LMSSignedPubKey[] m_signedPubKeys;
+        private LmsSignedPubKey[] m_signedPubKeys;
         private volatile IDigest m_digest;
 
-        public LMSContext(LMOtsPrivateKey privateKey, LMSigParameters sigParams, IDigest digest, byte[] C,
+        public LmsContext(LMOtsPrivateKey privateKey, LMSigParameters sigParams, IDigest digest, byte[] C,
             byte[][] path)
         {
             m_privateKey = privateKey;
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_signature = null;
         }
 
-        public LMSContext(LMOtsPublicKey publicKey, object signature, IDigest digest)
+        public LmsContext(LMOtsPublicKey publicKey, object signature, IDigest digest)
         {
             m_publicKey = publicKey;
             m_signature = signature;
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetQ()
         {
-            byte[] Q = new byte[LM_OTS.MAX_HASH + 2];
+            byte[] Q = new byte[LMOts.MAX_HASH + 2];
             m_digest.DoFinal(Q, 0);
             m_digest = null;
             return Q;
@@ -60,9 +60,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public object Signature => m_signature;
 
-        internal LMSSignedPubKey[] SignedPubKeys => m_signedPubKeys;
+        internal LmsSignedPubKey[] SignedPubKeys => m_signedPubKeys;
 
-        internal LMSContext WithSignedPublicKeys(LMSSignedPubKey[] signedPubKeys)
+        internal LmsContext WithSignedPublicKeys(LmsSignedPubKey[] signedPubKeys)
         {
             m_signedPubKeys = signedPubKeys;
             return this;

@@ -2,19 +2,19 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public sealed class HSSKeyPairGenerator
+    public sealed class HssKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private HSSKeyGenerationParameters m_parameters;
+        private HssKeyGenerationParameters m_parameters;
 
         public void Init(KeyGenerationParameters parameters)
         {
-            m_parameters = (HSSKeyGenerationParameters)parameters;
+            m_parameters = (HssKeyGenerationParameters)parameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            HSSPrivateKeyParameters privKey = HSS.GenerateHssKeyPair(m_parameters);
+            HssPrivateKeyParameters privKey = Hss.GenerateHssKeyPair(m_parameters);
 
             return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);
         }

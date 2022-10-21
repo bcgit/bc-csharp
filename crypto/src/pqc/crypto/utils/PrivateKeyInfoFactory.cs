@@ -20,13 +20,8 @@ using Org.BouncyCastle.Pqc.Crypto.Hqc;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public class PrivateKeyInfoFactory
+    public static class PrivateKeyInfoFactory
     {
-        private PrivateKeyInfoFactory()
-        {
-
-        }
-
         /// <summary> Create a PrivateKeyInfo representation of a private key.</summary>
         /// <param name="privateKey"> the key to be encoded into the info object.</param>
         /// <returns> the appropriate PrivateKeyInfo</returns>
@@ -43,22 +38,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <exception cref="ArgumentException"> on an error encoding the key</exception>
         public static PrivateKeyInfo CreatePrivateKeyInfo(AsymmetricKeyParameter privateKey, Asn1Set attributes)
         {
-            if (privateKey is LMSPrivateKeyParameters)
+            if (privateKey is LmsPrivateKeyParameters lmsPrivateKeyParameters)
             {
-                LMSPrivateKeyParameters parameters = (LMSPrivateKeyParameters)privateKey;
-
-                byte[] encoding = Composer.Compose().U32Str(1).Bytes(parameters).Build();
-                byte[] pubEncoding = Composer.Compose().U32Str(1).Bytes(parameters.GetPublicKey()).Build();
+                byte[] encoding = Composer.Compose().U32Str(1).Bytes(lmsPrivateKeyParameters).Build();
+                byte[] pubEncoding = Composer.Compose().U32Str(1).Bytes(lmsPrivateKeyParameters.GetPublicKey()).Build();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);
             }
-            if (privateKey is HSSPrivateKeyParameters)
+            if (privateKey is HssPrivateKeyParameters hssPrivateKeyParameters)
             {
-                HSSPrivateKeyParameters parameters = (HSSPrivateKeyParameters)privateKey;
-
-                byte[] encoding = Composer.Compose().U32Str(parameters.L).Bytes(parameters).Build();
-                byte[] pubEncoding = Composer.Compose().U32Str(parameters.L).Bytes(parameters.GetPublicKey().LmsPublicKey).Build();
+                int L = hssPrivateKeyParameters.L;
+                byte[] encoding = Composer.Compose().U32Str(L).Bytes(hssPrivateKeyParameters).Build();
+                byte[] pubEncoding = Composer.Compose().U32Str(L).Bytes(hssPrivateKeyParameters.GetPublicKey().LmsPublicKey).Build();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);

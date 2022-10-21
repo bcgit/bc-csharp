@@ -103,28 +103,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        internal LMSContext CreateOtsContext(LMOtsSignature signature)
+        internal LmsContext CreateOtsContext(LMOtsSignature signature)
         {
             IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(m_I, ctx);
-            LmsUtils.U32Str(m_q, ctx);
-            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
-            LmsUtils.ByteArray(signature.C, ctx);
+            LmsUtilities.ByteArray(m_I, ctx);
+            LmsUtilities.U32Str(m_q, ctx);
+            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.ByteArray(signature.C, ctx);
 
-            return new LMSContext(this, signature, ctx);
+            return new LmsContext(this, signature, ctx);
         }
 
-        internal LMSContext CreateOtsContext(LMSSignature signature)
+        internal LmsContext CreateOtsContext(LmsSignature signature)
         {
             IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(m_I, ctx);
-            LmsUtils.U32Str(m_q, ctx);
-            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
-            LmsUtils.ByteArray(signature.OtsSignature.C, ctx);
+            LmsUtilities.ByteArray(m_I, ctx);
+            LmsUtilities.U32Str(m_q, ctx);
+            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.ByteArray(signature.OtsSignature.C, ctx);
 
-            return new LMSContext(this, signature, ctx);
+            return new LmsContext(this, signature, ctx);
         }
     }
 }

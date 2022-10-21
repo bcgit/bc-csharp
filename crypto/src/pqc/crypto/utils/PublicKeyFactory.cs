@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -15,6 +16,7 @@ using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -23,86 +25,88 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public class PublicKeyFactory
+    public static class PublicKeyFactory
     {
-        private static Dictionary<DerObjectIdentifier, SubjectPublicKeyInfoConverter> converters = new Dictionary<DerObjectIdentifier, SubjectPublicKeyInfoConverter>();
-
+        private static Dictionary<DerObjectIdentifier, SubjectPublicKeyInfoConverter> Converters =
+            new Dictionary<DerObjectIdentifier, SubjectPublicKeyInfoConverter>();
 
         static PublicKeyFactory()
         {
-            converters[BCObjectIdentifiers.sphincsPlus] = new SphincsPlusConverter();
-            converters[BCObjectIdentifiers.sphincsPlus_shake_256] = new SphincsPlusConverter();
-            converters[BCObjectIdentifiers.sphincsPlus_sha_256] = new SphincsPlusConverter();
-            converters[BCObjectIdentifiers.sphincsPlus_sha_512] = new SphincsPlusConverter();
+            Converters[PkcsObjectIdentifiers.IdAlgHssLmsHashsig] = new LmsConverter();
+
+            Converters[BCObjectIdentifiers.sphincsPlus] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_256] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha_256] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha_512] = new SphincsPlusConverter();
             
-            converters[BCObjectIdentifiers.mceliece348864_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece348864f_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece460896_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece460896f_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece6688128_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece6688128f_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece6960119_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece6960119f_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece8192128_r3] = new CmceConverter();
-            converters[BCObjectIdentifiers.mceliece8192128f_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece348864_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece348864f_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece460896_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece460896f_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece6688128_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece6688128f_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece6960119_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece6960119f_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece8192128_r3] = new CmceConverter();
+            Converters[BCObjectIdentifiers.mceliece8192128f_r3] = new CmceConverter();
            
-            converters[BCObjectIdentifiers.lightsaberkem128r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.saberkem128r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.firesaberkem128r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.lightsaberkem192r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.saberkem192r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.firesaberkem192r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.lightsaberkem256r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.saberkem256r3] = new SaberConverter();
-            converters[BCObjectIdentifiers.firesaberkem256r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.lightsaberkem128r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.saberkem128r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.firesaberkem128r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.lightsaberkem192r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.saberkem192r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.firesaberkem192r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.lightsaberkem256r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.saberkem256r3] = new SaberConverter();
+            Converters[BCObjectIdentifiers.firesaberkem256r3] = new SaberConverter();
             
-            converters[BCObjectIdentifiers.picnic] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl1fs] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl1ur] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl3fs] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl3ur] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl5fs] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl5ur] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnic3l1] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnic3l3] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnic3l5] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl1full] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl3full] = new PicnicConverter();
-            converters[BCObjectIdentifiers.picnicl5full] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnic] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl1fs] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl1ur] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl3fs] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl3ur] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl5fs] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl5ur] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnic3l1] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnic3l3] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnic3l5] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl1full] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl3full] = new PicnicConverter();
+            Converters[BCObjectIdentifiers.picnicl5full] = new PicnicConverter();
             
-            converters[BCObjectIdentifiers.sikep434] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep503] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep610] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep751] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep434_compressed] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep503_compressed] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep610_compressed] = new SikeConverter();
-            converters[BCObjectIdentifiers.sikep751_compressed] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep434] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep503] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep610] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep751] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep434_compressed] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep503_compressed] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep610_compressed] = new SikeConverter();
+            Converters[BCObjectIdentifiers.sikep751_compressed] = new SikeConverter();
             
-            converters[BCObjectIdentifiers.dilithium2] = new DilithiumConverter();
-            converters[BCObjectIdentifiers.dilithium3] = new DilithiumConverter();
-            converters[BCObjectIdentifiers.dilithium5] = new DilithiumConverter();
-            converters[BCObjectIdentifiers.dilithium2_aes] = new DilithiumConverter();
-            converters[BCObjectIdentifiers.dilithium3_aes] = new DilithiumConverter();
-            converters[BCObjectIdentifiers.dilithium5_aes] = new DilithiumConverter();
+            Converters[BCObjectIdentifiers.dilithium2] = new DilithiumConverter();
+            Converters[BCObjectIdentifiers.dilithium3] = new DilithiumConverter();
+            Converters[BCObjectIdentifiers.dilithium5] = new DilithiumConverter();
+            Converters[BCObjectIdentifiers.dilithium2_aes] = new DilithiumConverter();
+            Converters[BCObjectIdentifiers.dilithium3_aes] = new DilithiumConverter();
+            Converters[BCObjectIdentifiers.dilithium5_aes] = new DilithiumConverter();
             
-            converters[BCObjectIdentifiers.falcon_512] = new FalconConverter();
-            converters[BCObjectIdentifiers.falcon_1024] = new FalconConverter();
+            Converters[BCObjectIdentifiers.falcon_512] = new FalconConverter();
+            Converters[BCObjectIdentifiers.falcon_1024] = new FalconConverter();
             
-            converters[BCObjectIdentifiers.kyber512] = new KyberConverter();
-            converters[BCObjectIdentifiers.kyber512_aes] = new KyberConverter();
-            converters[BCObjectIdentifiers.kyber768] = new KyberConverter();
-            converters[BCObjectIdentifiers.kyber768_aes] = new KyberConverter();
-            converters[BCObjectIdentifiers.kyber1024] = new KyberConverter();
-            converters[BCObjectIdentifiers.kyber1024_aes] = new KyberConverter();
+            Converters[BCObjectIdentifiers.kyber512] = new KyberConverter();
+            Converters[BCObjectIdentifiers.kyber512_aes] = new KyberConverter();
+            Converters[BCObjectIdentifiers.kyber768] = new KyberConverter();
+            Converters[BCObjectIdentifiers.kyber768_aes] = new KyberConverter();
+            Converters[BCObjectIdentifiers.kyber1024] = new KyberConverter();
+            Converters[BCObjectIdentifiers.kyber1024_aes] = new KyberConverter();
 
-            converters[BCObjectIdentifiers.bike128] = new BikeConverter();
-            converters[BCObjectIdentifiers.bike192] = new BikeConverter();
-            converters[BCObjectIdentifiers.bike256] = new BikeConverter();
+            Converters[BCObjectIdentifiers.bike128] = new BikeConverter();
+            Converters[BCObjectIdentifiers.bike192] = new BikeConverter();
+            Converters[BCObjectIdentifiers.bike256] = new BikeConverter();
 
-            converters[BCObjectIdentifiers.hqc128] = new HqcConverter();
-            converters[BCObjectIdentifiers.hqc192] = new HqcConverter();
-            converters[BCObjectIdentifiers.hqc256] = new HqcConverter();
+            Converters[BCObjectIdentifiers.hqc128] = new HqcConverter();
+            Converters[BCObjectIdentifiers.hqc192] = new HqcConverter();
+            Converters[BCObjectIdentifiers.hqc256] = new HqcConverter();
         }
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -140,7 +144,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
             AlgorithmIdentifier algId = keyInfo.AlgorithmID;
-            SubjectPublicKeyInfoConverter converter = (SubjectPublicKeyInfoConverter)converters[algId.Algorithm];
+            SubjectPublicKeyInfoConverter converter = (SubjectPublicKeyInfoConverter)Converters[algId.Algorithm];
 
             if (converter != null)
             {
@@ -155,7 +159,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal abstract AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams);
         }
-        
+
+        private class LmsConverter
+        :   SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+
+                if (Pack.BE_To_UInt32(keyEnc, 0) == 1U)
+                {
+                    return LmsPublicKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                }
+                else
+                {
+                    // public key with extra tree height
+                    if (keyEnc.Length == 64)
+                    {
+                        keyEnc = Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length);
+                    }
+                    return HssPublicKeyParameters.GetInstance(keyEnc);
+                }
+            }
+        }
+
         private class SphincsPlusConverter
             : SubjectPublicKeyInfoConverter
         {

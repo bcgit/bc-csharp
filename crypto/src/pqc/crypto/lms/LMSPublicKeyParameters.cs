@@ -6,15 +6,15 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSPublicKeyParameters
-        : LMSKeyParameters, ILMSContextBasedVerifier
+    public class LmsPublicKeyParameters
+        : LmsKeyParameters, ILmsContextBasedVerifier
     {
         private LMSigParameters parameterSet;
         private LMOtsParameters lmOtsType;
         private byte[] I;
         private byte[] T1;
 
-        public LMSPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
+        public LmsPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
             : base(false)
         {
             this.parameterSet = parameterSet;
@@ -23,9 +23,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.T1 = Arrays.Clone(T1);
         }
 
-        public static LMSPublicKeyParameters GetInstance(object src)
+        public static LmsPublicKeyParameters GetInstance(object src)
         {
-            if (src is LMSPublicKeyParameters lmsPublicKeyParameters)
+            if (src is LmsPublicKeyParameters lmsPublicKeyParameters)
             {
                 return lmsPublicKeyParameters;
             }
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
 
-                return new LMSPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
+                return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
             }
             else if (src is byte[] bytes)
              {
@@ -81,9 +81,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return lmOtsType;
         }
 
-        public LMSParameters GetLmsParameters()
+        public LmsParameters GetLmsParameters()
         {
-            return new LMSParameters(this.GetSigParameters(), this.GetOtsParameters());
+            return new LmsParameters(this.GetSigParameters(), this.GetOtsParameters());
         }
 
         public byte[] GetT1()
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return false;
             }
 
-            LMSPublicKeyParameters publicKey = (LMSPublicKeyParameters)o;
+            LmsPublicKeyParameters publicKey = (LmsPublicKeyParameters)o;
 
             if (!parameterSet.Equals(publicKey.parameterSet))
             {
@@ -153,11 +153,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        public LMSContext GenerateLmsContext(byte[] signature)
+        public LmsContext GenerateLmsContext(byte[] signature)
         {
             try
             {
-                return GenerateOtsContext(LMSSignature.GetInstance(signature));
+                return GenerateOtsContext(LmsSignature.GetInstance(signature));
             }
             catch (IOException e)
             {
@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        internal LMSContext GenerateOtsContext(LMSSignature S)
+        internal LmsContext GenerateOtsContext(LmsSignature S)
         {
             int ots_typecode = GetOtsParameters().ID;
             if (S.OtsSignature.ParamType.ID != ots_typecode)
@@ -178,9 +178,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .CreateOtsContext(S);
         }
 
-        public bool Verify(LMSContext context)
+        public bool Verify(LmsContext context)
         {
-            return LMS.VerifySignature(this, context);
+            return Lms.VerifySignature(this, context);
         }
     }
 }

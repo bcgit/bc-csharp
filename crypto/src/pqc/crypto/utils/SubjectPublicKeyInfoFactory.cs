@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
@@ -11,6 +12,7 @@ using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -23,26 +25,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
     /// <summary>
     /// A factory to produce Public Key Info Objects.
     /// </summary>
-    public class SubjectPublicKeyInfoFactory
+    public static class SubjectPublicKeyInfoFactory
     {
-        private SubjectPublicKeyInfoFactory()
-        {
-        }
-
         /// <summary>
         /// Create a Subject Public Key Info object for a given public key.
         /// </summary>
         /// <param name="publicKey">One of ElGammalPublicKeyParameters, DSAPublicKeyParameter, DHPublicKeyParameters, RsaKeyParameters or ECPublicKeyParameters</param>
         /// <returns>A subject public key info object.</returns>
         /// <exception cref="Exception">Throw exception if object provided is not one of the above.</exception>
-        public static SubjectPublicKeyInfo CreateSubjectPublicKeyInfo(
-            AsymmetricKeyParameter publicKey)
+        public static SubjectPublicKeyInfo CreateSubjectPublicKeyInfo(AsymmetricKeyParameter publicKey)
         {
             if (publicKey == null)
                 throw new ArgumentNullException("publicKey");
             if (publicKey.IsPrivate)
                 throw new ArgumentException("Private key passed - public key expected.", "publicKey");
-            
+
+            if (publicKey is LmsPublicKeyParameters lmsPublicKeyParameters)
+            {
+                byte[] encoding = Composer.Compose().U32Str(1).Bytes(lmsPublicKeyParameters).Build();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+            }
+            if (publicKey is HssPublicKeyParameters hssPublicKeyParameters)
+            {
+                int L = hssPublicKeyParameters.L;
+                byte[] encoding = Composer.Compose().U32Str(L).Bytes(hssPublicKeyParameters.LmsPublicKey).Build();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+            }
             if (publicKey is SphincsPlusPublicKeyParameters)
             {
                 SphincsPlusPublicKeyParameters parameters = (SphincsPlusPublicKeyParameters)publicKey;

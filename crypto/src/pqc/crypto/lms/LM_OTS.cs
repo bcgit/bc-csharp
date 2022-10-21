@@ -7,7 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LM_OTS
+    public static class LMOts
     {
         private static ushort D_PBLC = 0x8080;
         private static int ITER_K = 20;
@@ -113,9 +113,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             if (!preHashed)
             {
-                LMSContext qCtx = privateKey.GetSignatureContext(sigParams, path);
+                LmsContext qCtx = privateKey.GetSignatureContext(sigParams, path);
 
-                LmsUtils.ByteArray(message, 0, message.Length, qCtx);
+                LmsUtilities.ByteArray(message, 0, message.Length, qCtx);
 
                 C = qCtx.C;
                 Q = qCtx.GetQ();
@@ -175,7 +175,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             bool prehashed)
         {
             if (!signature.ParamType.Equals(publicKey.Parameters)) // todo check
-                throw new LMSException("public key and signature ots types do not match");
+                throw new LmsException("public key and signature ots types do not match");
 
             return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message), publicKey.K);
         }
@@ -183,22 +183,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature, 
             byte[] message)
         {
-            LMSContext ctx = publicKey.CreateOtsContext(signature);
+            LmsContext ctx = publicKey.CreateOtsContext(signature);
 
-            LmsUtils.ByteArray(message, ctx);
+            LmsUtilities.ByteArray(message, ctx);
 
             return LMOtsValidateSignatureCalculate(ctx);
         }
 
-        public static byte[] LMOtsValidateSignatureCalculate(LMSContext context)
+        public static byte[] LMOtsValidateSignatureCalculate(LmsContext context)
         {
             LMOtsPublicKey publicKey = context.PublicKey;
             LMOtsParameters parameter = publicKey.Parameters;
             object sig = context.Signature;
             LMOtsSignature signature;
-            if (sig is LMSSignature)
+            if (sig is LmsSignature)
             {
-                signature = ((LMSSignature)sig).OtsSignature;
+                signature = ((LmsSignature)sig).OtsSignature;
             }
             else
             {
@@ -218,9 +218,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             int q = publicKey.Q;
 
             IDigest finalContext = DigestUtilities.GetDigest(parameter.DigestOid);
-            LmsUtils.ByteArray(I, finalContext);
-            LmsUtils.U32Str(q, finalContext);
-            LmsUtils.U16Str(D_PBLC, finalContext);
+            LmsUtilities.ByteArray(I, finalContext);
+            LmsUtilities.U32Str(q, finalContext);
+            LmsUtilities.U16Str(D_PBLC, finalContext);
 
             byte[] tmp = Composer.Compose()
                 .Bytes(I)

@@ -32,11 +32,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int level = 1; // This is the second level, we use this because it signs the message.
 
             // Generate the private key.
-            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersByID(5),
+            LmsPrivateKeyParameters lmsPrivateKey = Lms.GenerateKeys(LMSigParameters.GetParametersByID(5),
                 LMOtsParameters.GetParametersByID(4), level, I, seed);
 
             // This derives the public key.
-            LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
+            LmsPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
 
             // From the vector.
             string pkEnc = "0000000500000004215f83b7ccb9acbcd08db97b0d04dc2ba1cd035833e0e90059603f26e07ad2aad152338e7a5e5984bcd5f7bb4eba40b7";
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             //
             lmsPrivateKey.ExtractKeyShard(3);
 
-            LMSSignature signature = LMS.GenerateSign(lmsPrivateKey, msg);
+            LmsSignature signature = Lms.GenerateSign(lmsPrivateKey, msg);
 
             // The expected signature as encoded.
             string sigEnc = "00000004\n" +
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(Arrays.AreEqual(Hex.Decode(sigEnc), signature.GetEncoded()));
 
             // Sanity test
-            Assert.True(LMS.VerifySignature(publicKey, signature, msg));
+            Assert.True(Lms.VerifySignature(publicKey, signature, msg));
         }
     }
 }

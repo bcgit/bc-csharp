@@ -1,10 +1,10 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public interface ILMSContextBasedSigner
+    public interface ILmsContextBasedSigner
     {
-        LMSContext GenerateLmsContext();
+        LmsContext GenerateLmsContext();
 
-        byte[] GenerateSignature(LMSContext context);
+        byte[] GenerateSignature(LmsContext context);
 
         long GetUsagesRemaining();
     }

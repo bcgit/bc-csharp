@@ -1,9 +1,9 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public interface ILMSContextBasedVerifier
+    public interface ILmsContextBasedVerifier
     {
-        LMSContext GenerateLmsContext(byte[] signature);
+        LmsContext GenerateLmsContext(byte[] signature);
 
-        bool Verify(LMSContext context);
+        bool Verify(LmsContext context);
     }
 }

@@ -20,14 +20,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         public void TestKeyGenAndSign()
         {
             byte[] msg = Strings.ToByteArray("Hello, world!");
-            IAsymmetricCipherKeyPairGenerator kpGen = new LMSKeyPairGenerator();
+            IAsymmetricCipherKeyPairGenerator kpGen = new LmsKeyPairGenerator();
 
-            kpGen.Init(new LMSKeyGenerationParameters(
-                new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4), new SecureRandom()));
+            kpGen.Init(new LmsKeyGenerationParameters(
+                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4), new SecureRandom()));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            LMSSigner signer = new LMSSigner();
+            LmsSigner signer = new LmsSigner();
 
             signer.Init(true, kp.Private);
 
@@ -44,18 +44,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] msg1 = Strings.ToByteArray("Hello, world!");
             byte[] msg2 = Strings.ToByteArray("Now is the time");
 
-            IAsymmetricCipherKeyPairGenerator kpGen = new LMSKeyPairGenerator();
+            IAsymmetricCipherKeyPairGenerator kpGen = new LmsKeyPairGenerator();
 
-            kpGen.Init(new LMSKeyGenerationParameters(
-                new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4), new SecureRandom()));
+            kpGen.Init(new LmsKeyGenerationParameters(
+                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4), new SecureRandom()));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            LMSPrivateKeyParameters privKey = ((LMSPrivateKeyParameters)kp.Private).ExtractKeyShard(2);
+            LmsPrivateKeyParameters privKey = ((LmsPrivateKeyParameters)kp.Private).ExtractKeyShard(2);
 
-            Assert.AreEqual(2, ((LMSPrivateKeyParameters)kp.Private).GetIndex());
+            Assert.AreEqual(2, ((LmsPrivateKeyParameters)kp.Private).GetIndex());
 
-            LMSSigner signer = new LMSSigner();
+            LmsSigner signer = new LmsSigner();
 
             Assert.AreEqual(2, privKey.GetUsagesRemaining());
             Assert.AreEqual(0, privKey.GetIndex());
@@ -90,11 +90,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 Assert.AreEqual("ots private key exhausted", e.Message);
             }
 
-            signer.Init(true, ((LMSPrivateKeyParameters)kp.Private));
+            signer.Init(true, ((LmsPrivateKeyParameters)kp.Private));
 
             sig = signer.GenerateSignature(msg1);
 
-            Assert.AreEqual(3, ((LMSPrivateKeyParameters)kp.Private).GetIndex());
+            Assert.AreEqual(3, ((LmsPrivateKeyParameters)kp.Private).GetIndex());
 
             Assert.False(Arrays.AreEqual(sig1, sig));
 
@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             PrivateKeyInfo pInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);//TODO
             AsymmetricKeyParameter pKey = PrivateKeyFactory.CreateKey(pInfo.GetEncoded());
 
-            signer.Init(false, ((LMSPrivateKeyParameters)pKey).GetPublicKey());
+            signer.Init(false, ((LmsPrivateKeyParameters)pKey).GetPublicKey());
 
             Assert.True(signer.VerifySignature(msg1, sig1));
         }

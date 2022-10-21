@@ -5,12 +5,12 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public static class LMS
+    public static class Lms
     {
         internal static ushort D_LEAF = 0x8282;
         internal static ushort D_INTR = 0x8383;
 
-        public static LMSPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
+        public static LmsPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
             LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] rootSeed)
         {
             //
@@ -30,10 +30,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             int twoToH = 1 << parameterSet.H;
 
-            return new LMSPrivateKeyParameters(parameterSet, lmOtsParameters, q, I, twoToH, rootSeed);
+            return new LmsPrivateKeyParameters(parameterSet, lmOtsParameters, q, I, twoToH, rootSeed);
         }
 
-        public static LMSSignature GenerateSign(LMSPrivateKeyParameters privateKey, byte[] message)
+        public static LmsSignature GenerateSign(LmsPrivateKeyParameters privateKey, byte[] message)
         {
             //
             // Get T from the public key.
@@ -42,14 +42,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // byte[][] T = new byte[privateKey.getMaxQ()][];
 
             // Step 2
-            LMSContext context = privateKey.GenerateLmsContext();
+            LmsContext context = privateKey.GenerateLmsContext();
 
             context.BlockUpdate(message, 0, message.Length);
 
             return GenerateSign(context);
         }
 
-        public static LMSSignature GenerateSign(LMSContext context)
+        public static LmsSignature GenerateSign(LmsContext context)
         {
             //
             // Get T from the public key.
@@ -59,36 +59,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             // Step 1.
             LMOtsSignature ots_signature =
-                LM_OTS.LMOtsGenerateSignature(context.PrivateKey, context.GetQ(), context.C);
+                LMOts.LMOtsGenerateSignature(context.PrivateKey, context.GetQ(), context.C);
 
-            return new LMSSignature(context.PrivateKey.Q, ots_signature, context.SigParams, context.Path);
+            return new LmsSignature(context.PrivateKey.Q, ots_signature, context.SigParams, context.Path);
         }
 
-        public static bool VerifySignature(LMSPublicKeyParameters publicKey, LMSSignature S, byte[] message)
+        public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message)
         {
-            LMSContext context = publicKey.GenerateOtsContext(S);
+            LmsContext context = publicKey.GenerateOtsContext(S);
 
-            LmsUtils.ByteArray(message, context);
+            LmsUtilities.ByteArray(message, context);
 
             return VerifySignature(publicKey, context);
         }
 
-        public static bool VerifySignature(LMSPublicKeyParameters publicKey, byte[] S, byte[] message)
+        public static bool VerifySignature(LmsPublicKeyParameters publicKey, byte[] S, byte[] message)
         {
-            LMSContext context = publicKey.GenerateLmsContext(S);
+            LmsContext context = publicKey.GenerateLmsContext(S);
 
-            LmsUtils.ByteArray(message, context);
+            LmsUtilities.ByteArray(message, context);
 
             return VerifySignature(publicKey, context);
         }
 
-        public static bool VerifySignature(LMSPublicKeyParameters publicKey, LMSContext context)
+        public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsContext context)
         {
-            LMSSignature S = (LMSSignature)context.Signature;
+            LmsSignature S = (LmsSignature)context.Signature;
             LMSigParameters lmsParameter = S.SigParameters;
             int h = lmsParameter.H;
             byte[][] path = S.Y;
-            byte[] Kc = LM_OTS.LMOtsValidateSignatureCalculate(context);
+            byte[] Kc = LMOts.LMOtsValidateSignatureCalculate(context);
             // Step 4
             // node_num = 2^h + q
             int node_num = (1 << h) + S.Q;
@@ -99,8 +99,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] tmp = new byte[H.GetDigestSize()];
 
             H.BlockUpdate(I, 0, I.Length);
-            LmsUtils.U32Str(node_num, H);
-            LmsUtils.U16Str(D_LEAF, H);
+            LmsUtilities.U32Str(node_num, H);
+            LmsUtilities.U16Str(D_LEAF, H);
             H.BlockUpdate(Kc, 0, Kc.Length);
             H.DoFinal(tmp, 0);
 
@@ -112,8 +112,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 {
                     // is odd
                     H.BlockUpdate(I, 0, I.Length);
-                    LmsUtils.U32Str(node_num / 2, H);
-                    LmsUtils.U16Str(D_INTR, H);
+                    LmsUtilities.U32Str(node_num / 2, H);
+                    LmsUtilities.U16Str(D_INTR, H);
                     H.BlockUpdate(path[i], 0, path[i].Length);
                     H.BlockUpdate(tmp, 0, tmp.Length);
                     H.DoFinal(tmp, 0);
@@ -121,8 +121,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 else
                 {
                     H.BlockUpdate(I, 0, I.Length);
-                    LmsUtils.U32Str(node_num / 2, H);
-                    LmsUtils.U16Str(D_INTR, H);
+                    LmsUtilities.U32Str(node_num / 2, H);
+                    LmsUtilities.U16Str(D_INTR, H);
                     H.BlockUpdate(tmp, 0, tmp.Length);
                     H.BlockUpdate(path[i], 0, path[i].Length);
                     H.DoFinal(tmp, 0);

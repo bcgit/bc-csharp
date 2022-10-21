@@ -14,8 +14,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         public void TestCoefFunc()
         {
             byte[] S = Hex.Decode("1234");
-            Assert.AreEqual(0, LM_OTS.Coef(S, 7, 1));
-            Assert.AreEqual(1, LM_OTS.Coef(S, 0, 4));
+            Assert.AreEqual(0, LMOts.Coef(S, 7, 1));
+            Assert.AreEqual(1, LMOts.Coef(S, 0, 4));
         }
 
         [Test]
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LM_OTS.LmsOtsGeneratePublicKey(privateKey);
+            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
 
             byte[] ms = new byte[32];
             for (int t = 0; t < ms.Length; t++)
@@ -35,23 +35,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 ms[t] = (byte)t;
             }
 
-            LMSContext ctx = privateKey.GetSignatureContext(null, null);
+            LmsContext ctx = privateKey.GetSignatureContext(null, null);
 
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsSignature sig = LM_OTS.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
-            Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, sig, ms, false));
+            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
+            Assert.True(LMOts.LMOtsValidateSignature(publicKey, sig, ms, false));
 
             // Recreate signature
             {
                 byte[] recreatedSignature = sig.GetEncoded();
-                Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(recreatedSignature), ms, false));
+                Assert.True(LMOts.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(recreatedSignature), ms, false));
             }
 
             // Recreate public key.
             {
                 byte[] recreatedPubKey = Arrays.Clone(publicKey.GetEncoded());
-                Assert.True(LM_OTS.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(recreatedPubKey), sig, ms, false));
+                Assert.True(LMOts.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(recreatedPubKey), sig, ms, false));
             }
 
             // Vandalise signature
@@ -59,14 +59,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                 byte[] vandalisedSignature = sig.GetEncoded();
                 vandalisedSignature[256] ^= 1; // Single bit error
-                Assert.False(LM_OTS.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(vandalisedSignature), ms, false));
+                Assert.False(LMOts.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(vandalisedSignature), ms, false));
             }
 
             // Vandalise public key.
             {
                 byte[] vandalisedPubKey = Arrays.Clone(publicKey.GetEncoded());
                 vandalisedPubKey[50] ^= 1;
-                Assert.False(LM_OTS.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false));
+                Assert.False(LMOts.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false));
             }
 
             //
@@ -76,10 +76,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             {
                 byte[] vandalisedPubKey = Arrays.Clone(publicKey.GetEncoded());
                 vandalisedPubKey[3] += 1;
-                LM_OTS.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false);
+                LMOts.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false);
                 Assert.True(false, "Must fail as public key type not match signature type.");
             }
-            catch (LMSException ex)
+            catch (LmsException ex)
             {
                 Assert.True(ex.Message.Contains("public key and signature ots types do not match"));
             }
@@ -100,22 +100,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             byte[] seed = Hex.Decode("a1c4696e2608035a886100d05cd99945eb3370731884a8235e2fb3d4d71f2547");
             int level = 1;
-            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(
+            LmsPrivateKeyParameters lmsPrivateKey = Lms.GenerateKeys(
                 LMSigParameters.GetParametersByID(5),
                 LMOtsParameters.GetParametersByID(4),
                 level, Hex.Decode("215f83b7ccb9acbcd08db97b0d04dc2b"), seed);
 
-            LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
+            LmsPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
 
             lmsPrivateKey.ExtractKeyShard(3);
 
-            LMSSignature signature = LMS.GenerateSign(lmsPrivateKey, msg);
-            Assert.True(LMS.VerifySignature(publicKey, signature, msg));
+            LmsSignature signature = Lms.GenerateSign(lmsPrivateKey, msg);
+            Assert.True(Lms.VerifySignature(publicKey, signature, msg));
 
             // Serialize / Deserialize
-            Assert.True(LMS.VerifySignature(
-                LMSPublicKeyParameters.GetInstance(publicKey.GetEncoded()),
-                LMSSignature.GetInstance(signature.GetEncoded()), msg));
+            Assert.True(Lms.VerifySignature(
+                LmsPublicKeyParameters.GetInstance(publicKey.GetEncoded()),
+                LmsSignature.GetInstance(signature.GetEncoded()), msg));
 
             //
             // Vandalise signature.
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             {
                 byte[] bustedSig = Arrays.Clone(signature.GetEncoded());
                 bustedSig[100] ^= 1;
-                Assert.False(LMS.VerifySignature(publicKey, LMSSignature.GetInstance(bustedSig), msg));
+                Assert.False(Lms.VerifySignature(publicKey, LmsSignature.GetInstance(bustedSig), msg));
             }
 
             //
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             {
                 byte[] msg2 = Arrays.Clone(msg);
                 msg2[10] ^= 1;
-                Assert.False(LMS.VerifySignature(publicKey, signature, msg2));
+                Assert.False(Lms.VerifySignature(publicKey, signature, msg2));
             }
         }
 
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LM_OTS.LmsOtsGeneratePublicKey(privateKey);
+            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
 
             byte[] ms = new byte[32];
             for (int t = 0; t < ms.Length; t++)
@@ -153,12 +153,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 ms[t] = (byte)t;
             }
 
-            LMSContext ctx = privateKey.GetSignatureContext(null, null);
+            LmsContext ctx = privateKey.GetSignatureContext(null, null);
 
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsSignature sig = LM_OTS.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
-            Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, sig, ms, false));
+            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
+            Assert.True(LMOts.LMOtsValidateSignature(publicKey, sig, ms, false));
 
             try
             {

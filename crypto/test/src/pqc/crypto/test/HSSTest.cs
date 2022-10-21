@@ -16,17 +16,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 		public void TestKeyGenAndSign()
         {
             byte[] msg = Strings.ToByteArray("Hello, world!");
-            IAsymmetricCipherKeyPairGenerator kpGen = new HSSKeyPairGenerator();
+            IAsymmetricCipherKeyPairGenerator kpGen = new HssKeyPairGenerator();
 
-            kpGen.Init(new HSSKeyGenerationParameters(
-                new LMSParameters[]{
-                    new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                    new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
+            kpGen.Init(new HssKeyGenerationParameters(
+                new LmsParameters[]{
+                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
                 }, new SecureRandom()));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            HSSSigner signer = new HSSSigner();
+            HssSigner signer = new HssSigner();
 
             signer.Init(true, kp.Private);
 
@@ -41,26 +41,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 		public void TestKeyGenAndUsage()
         {
             byte[] msg = Strings.ToByteArray("Hello, world!");
-            IAsymmetricCipherKeyPairGenerator kpGen = new HSSKeyPairGenerator();
+            IAsymmetricCipherKeyPairGenerator kpGen = new HssKeyPairGenerator();
 
-            kpGen.Init(new HSSKeyGenerationParameters(
-                new LMSParameters[]{
-                    new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                    new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
+            kpGen.Init(new HssKeyGenerationParameters(
+                new LmsParameters[]{
+                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
                 }, new SecureRandom()));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            HSSPrivateKeyParameters privKey = (HSSPrivateKeyParameters)kp.Private;
+            HssPrivateKeyParameters privKey = (HssPrivateKeyParameters)kp.Private;
 
-            HSSPublicKeyParameters pubKey = (HSSPublicKeyParameters)kp.Public;
+            HssPublicKeyParameters pubKey = (HssPublicKeyParameters)kp.Public;
             
-            LMSParameters lmsParam = pubKey.LmsPublicKey.GetLmsParameters();
+            LmsParameters lmsParam = pubKey.LmsPublicKey.GetLmsParameters();
 
             Assert.AreEqual(LMSigParameters.lms_sha256_n32_h5, lmsParam.LMSigParameters);
             Assert.AreEqual(LMOtsParameters.sha256_n32_w4, lmsParam.LMOtsParameters);
 
-            HSSSigner signer = new HSSSigner();
+            HssSigner signer = new HssSigner();
 
             signer.Init(true, privKey);
 
@@ -82,21 +82,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] msg1 = Strings.ToByteArray("Hello, world!");
             byte[] msg2 = Strings.ToByteArray("Now is the time");
 
-            IAsymmetricCipherKeyPairGenerator kpGen = new HSSKeyPairGenerator();
+            IAsymmetricCipherKeyPairGenerator kpGen = new HssKeyPairGenerator();
 
-            kpGen.Init(new HSSKeyGenerationParameters(
-                new LMSParameters[]{
-                    new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                    new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
+            kpGen.Init(new HssKeyGenerationParameters(
+                new LmsParameters[]{
+                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
                 }, new SecureRandom()));
             
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            HSSPrivateKeyParameters privKey = ((HSSPrivateKeyParameters)kp.Private).ExtractKeyShard(2);
+            HssPrivateKeyParameters privKey = ((HssPrivateKeyParameters)kp.Private).ExtractKeyShard(2);
 
-            Assert.AreEqual(2, ((HSSPrivateKeyParameters)kp.Private).GetIndex());
+            Assert.AreEqual(2, ((HssPrivateKeyParameters)kp.Private).GetIndex());
 
-            HSSSigner signer = new HSSSigner();
+            HssSigner signer = new HssSigner();
 
             Assert.AreEqual(0, privKey.GetIndex());
 
@@ -130,11 +130,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 Assert.AreEqual("hss private key shard is exhausted", e.Message);
             }
 
-            signer.Init(true, ((HSSPrivateKeyParameters)kp.Private));
+            signer.Init(true, ((HssPrivateKeyParameters)kp.Private));
 
             sig = signer.GenerateSignature(msg1);
 
-            Assert.AreEqual(3, ((HSSPrivateKeyParameters)kp.Private).GetIndex());
+            Assert.AreEqual(3, ((HssPrivateKeyParameters)kp.Private).GetIndex());
 
             Assert.False(Arrays.AreEqual(sig1, sig));
 

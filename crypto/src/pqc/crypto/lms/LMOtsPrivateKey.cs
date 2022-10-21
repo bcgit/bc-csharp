@@ -18,22 +18,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_masterSecret = masterSecret;
         }
 
-        public LMSContext GetSignatureContext(LMSigParameters sigParams, byte[][] path)
+        public LmsContext GetSignatureContext(LMSigParameters sigParams, byte[][] path)
         {
-            byte[] C = new byte[LM_OTS.SEED_LEN];
+            byte[] C = new byte[LMOts.SEED_LEN];
 
             SeedDerive derive = GetDerivationFunction();
-            derive.J = LM_OTS.SEED_RANDOMISER_INDEX; // This value from reference impl.
+            derive.J = LMOts.SEED_RANDOMISER_INDEX; // This value from reference impl.
             derive.DeriveSeed(false, C, 0);
 
             IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(m_I, ctx);
-            LmsUtils.U32Str(m_q, ctx);
-            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
-            LmsUtils.ByteArray(C, ctx);
+            LmsUtilities.ByteArray(m_I, ctx);
+            LmsUtilities.U32Str(m_q, ctx);
+            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.ByteArray(C, ctx);
 
-            return new LMSContext(this, sigParams, ctx, C, path);
+            return new LmsContext(this, sigParams, ctx, C, path);
         }
 
         internal SeedDerive GetDerivationFunction()

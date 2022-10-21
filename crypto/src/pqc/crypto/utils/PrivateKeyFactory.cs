@@ -24,9 +24,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public class PrivateKeyFactory
+    public static class PrivateKeyFactory
     {
-
         /// <summary> Create a private key parameter from a PKCS8 PrivateKeyInfo encoding.</summary>
         /// <param name="privateKeyInfoData"> the PrivateKeyInfo encoding</param>
         /// <returns> a suitable private key parameter</returns>
@@ -44,7 +43,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CreateKey(PrivateKeyInfo.GetInstance(new Asn1InputStream(inStr).ReadObject()));
         }
-
 
         /// <summary> Create a private key parameter from the passed in PKCS8 PrivateKeyInfo object.</summary>
         /// <param name="keyInfo"> the PrivateKeyInfo object containing the key material</param>
@@ -66,14 +64,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     {
                         byte[] pubEnc = pubKey.GetOctets();
 
-                        return LMSPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length),
+                        return LmsPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length),
                             Arrays.CopyOfRange(pubEnc, 4, pubEnc.Length));
                     }
 
-                    return LMSPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                    return LmsPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
                 }
             }
-
             if (algOID.On(BCObjectIdentifiers.pqc_kem_mceliece))
             {
                 CmcePrivateKey cmceKey = CmcePrivateKey.GetInstance(keyInfo.ParsePrivateKey());
@@ -81,7 +78,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new CmcePrivateKeyParameters(spParams, cmceKey.Delta, cmceKey.C, cmceKey.G, cmceKey.Alpha, cmceKey.S);
             }
-            
             if (algOID.On(BCObjectIdentifiers.sphincsPlus))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
