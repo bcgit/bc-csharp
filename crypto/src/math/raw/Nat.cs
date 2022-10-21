@@ -2640,6 +2640,110 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static void Xor(int len, uint[] x, uint[] y, uint[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y[i];
+            }
+        }
+
+        public static void Xor(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = x[xOff + i] ^ y[yOff + i];
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Xor(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y[i];
+            }
+        }
+#endif
+
+        public static void Xor64(int len, ulong[] x, ulong[] y, ulong[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y[i];
+            }
+        }
+
+        public static void Xor64(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = x[xOff + i] ^ y[yOff + i];
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Xor64(int len, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y[i];
+            }
+        }
+#endif
+
+        public static void XorTo(int len, uint[] x, uint[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] ^= x[i];
+            }
+        }
+
+        public static void XorTo(int len, uint[] x, int xOff, uint[] z, int zOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] ^= x[xOff + i];
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorTo(int len, ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] ^= x[i];
+            }
+        }
+#endif
+
+        public static void XorTo64(int len, ulong[] x, ulong[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] ^= x[i];
+            }
+        }
+
+        public static void XorTo64(int len, ulong[] x, int xOff, ulong[] z, int zOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] ^= x[xOff + i];
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorTo64(int len, ReadOnlySpan<ulong> x, Span<ulong> z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] ^= x[i];
+            }
+        }
+#endif
+
         public static void Zero(int len, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

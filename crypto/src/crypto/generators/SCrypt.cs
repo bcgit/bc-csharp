@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
@@ -143,8 +144,8 @@ namespace Org.BouncyCastle.Crypto.Generators
                     int j = (int)(X[BCount - 16] & mask);
                     uint[] V = VV[j >> chunkPow];
                     int VOff = (j & chunkMask) * BCount;
-                    Array.Copy(V, VOff, blockY, 0, BCount);
-                    Xor(blockY, X, 0, blockY);
+                    Nat.Xor(BCount, V, VOff, X, 0, blockY, 0);
+
                     BlockMix(blockY, blockX1, blockX2, X, r);
                 }
 
@@ -165,21 +166,13 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			for (int i = 2 * r; i > 0; --i)
 			{
-				Xor(X1, B, BOff, X2);
+                Nat512.Xor(X1, 0, B, BOff, X2, 0);
 
 				Salsa20Engine.SalsaCore(8, X2, X1);
 				Array.Copy(X1, 0, Y, YOff, 16);
 
 				YOff = halfLen + BOff - YOff;
 				BOff += 16;
-			}
-		}
-
-		private static void Xor(uint[] a, uint[] b, int bOff, uint[] output)
-		{
-			for (int i = output.Length - 1; i >= 0; --i)
-			{
-				output[i] = a[i] ^ b[bOff + i];
 			}
 		}
 

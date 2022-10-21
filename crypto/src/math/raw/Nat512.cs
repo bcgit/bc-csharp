@@ -1,5 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 namespace Org.BouncyCastle.Math.Raw
 {
@@ -41,6 +46,67 @@ namespace Org.BouncyCastle.Math.Raw
 
             c24 += (uint)Nat.SubFrom(16, m, 0, zz, 8);
             Nat.AddWordAt(32, c24, zz, 24); 
+        }
+
+        public static void Xor(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Avx2.IsSupported && Unsafe.SizeOf<Vector256<byte>>() == 32)
+            {
+                var X = MemoryMarshal.Cast<uint, byte>(x.AsSpan(xOff, 16));
+                var Y = MemoryMarshal.Cast<uint, byte>(y.AsSpan(yOff, 16));
+                var Z = MemoryMarshal.Cast<uint, byte>(z.AsSpan(zOff, 16));
+
+                var X0 = MemoryMarshal.Read<Vector256<byte>>(X[0x00..0x20]);
+                var X1 = MemoryMarshal.Read<Vector256<byte>>(X[0x20..0x40]);
+
+                var Y0 = MemoryMarshal.Read<Vector256<byte>>(Y[0x00..0x20]);
+                var Y1 = MemoryMarshal.Read<Vector256<byte>>(Y[0x20..0x40]);
+
+                var Z0 = Avx2.Xor(X0, Y0);
+                var Z1 = Avx2.Xor(X1, Y1);
+
+                MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+                return;
+            }
+
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            {
+                var X = MemoryMarshal.Cast<uint, byte>(x.AsSpan(xOff, 16));
+                var Y = MemoryMarshal.Cast<uint, byte>(y.AsSpan(yOff, 16));
+                var Z = MemoryMarshal.Cast<uint, byte>(z.AsSpan(zOff, 16));
+
+                var X0 = MemoryMarshal.Read<Vector128<byte>>(X[0x00..0x10]);
+                var X1 = MemoryMarshal.Read<Vector128<byte>>(X[0x10..0x20]);
+                var X2 = MemoryMarshal.Read<Vector128<byte>>(X[0x20..0x30]);
+                var X3 = MemoryMarshal.Read<Vector128<byte>>(X[0x30..0x40]);
+
+                var Y0 = MemoryMarshal.Read<Vector128<byte>>(Y[0x00..0x10]);
+                var Y1 = MemoryMarshal.Read<Vector128<byte>>(Y[0x10..0x20]);
+                var Y2 = MemoryMarshal.Read<Vector128<byte>>(Y[0x20..0x30]);
+                var Y3 = MemoryMarshal.Read<Vector128<byte>>(Y[0x30..0x40]);
+
+                var Z0 = Sse2.Xor(X0, Y0);
+                var Z1 = Sse2.Xor(X1, Y1);
+                var Z2 = Sse2.Xor(X2, Y2);
+                var Z3 = Sse2.Xor(X3, Y3);
+
+                MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
+                return;
+            }
+#endif
+
+            for (int i = 0; i < 16; i += 4)
+            {
+                z[zOff + i + 0] = x[xOff + i + 0] ^ y[yOff + i + 0];
+                z[zOff + i + 1] = x[xOff + i + 1] ^ y[yOff + i + 1];
+                z[zOff + i + 2] = x[xOff + i + 2] ^ y[yOff + i + 2];
+                z[zOff + i + 3] = x[xOff + i + 3] ^ y[yOff + i + 3];
+            }
         }
     }
 }
