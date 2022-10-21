@@ -1580,22 +1580,52 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint ShiftUpBit(int len, uint[] z, uint c)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = z[i + 0];
+                uint next1 = z[i + 1];
+                uint next2 = z[i + 2];
+                uint next3 = z[i + 3];
+                z[i + 0] = (next0 << 1) | (c     >> 31);
+                z[i + 1] = (next1 << 1) | (next0 >> 31);
+                z[i + 2] = (next2 << 1) | (next1 >> 31);
+                z[i + 3] = (next3 << 1) | (next2 >> 31);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = z[i];
                 z[i] = (next << 1) | (c >> 31);
                 c = next;
+                ++i;
             }
             return c >> 31;
         }
 
         public static uint ShiftUpBit(int len, uint[] z, int zOff, uint c)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = z[zOff + i + 0];
+                uint next1 = z[zOff + i + 1];
+                uint next2 = z[zOff + i + 2];
+                uint next3 = z[zOff + i + 3];
+                z[zOff + i + 0] = (next0 << 1) | (c     >> 31);
+                z[zOff + i + 1] = (next1 << 1) | (next0 >> 31);
+                z[zOff + i + 2] = (next2 << 1) | (next1 >> 31);
+                z[zOff + i + 3] = (next3 << 1) | (next2 >> 31);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = z[zOff + i];
                 z[zOff + i] = (next << 1) | (c >> 31);
                 c = next;
+                ++i;
             }
             return c >> 31;
         }
@@ -1603,11 +1633,26 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint ShiftUpBit(int len, Span<uint> z, uint c)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = z[i + 0];
+                uint next1 = z[i + 1];
+                uint next2 = z[i + 2];
+                uint next3 = z[i + 3];
+                z[i + 0] = (next0 << 1) | (c     >> 31);
+                z[i + 1] = (next1 << 1) | (next0 >> 31);
+                z[i + 2] = (next2 << 1) | (next1 >> 31);
+                z[i + 3] = (next3 << 1) | (next2 >> 31);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = z[i];
                 z[i] = (next << 1) | (c >> 31);
                 c = next;
+                ++i;
             }
             return c >> 31;
         }
@@ -1615,22 +1660,52 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint ShiftUpBit(int len, uint[] x, uint c, uint[] z)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = x[i + 0];
+                uint next1 = x[i + 1];
+                uint next2 = x[i + 2];
+                uint next3 = x[i + 3];
+                z[i + 0] = (next0 << 1) | (c     >> 31);
+                z[i + 1] = (next1 << 1) | (next0 >> 31);
+                z[i + 2] = (next2 << 1) | (next1 >> 31);
+                z[i + 3] = (next3 << 1) | (next2 >> 31);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = x[i];
                 z[i] = (next << 1) | (c >> 31);
                 c = next;
+                ++i;
             }
             return c >> 31;
         }
 
         public static uint ShiftUpBit(int len, uint[] x, int xOff, uint c, uint[] z, int zOff)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = x[xOff + i + 0];
+                uint next1 = x[xOff + i + 1];
+                uint next2 = x[xOff + i + 2];
+                uint next3 = x[xOff + i + 3];
+                z[zOff + i + 0] = (next0 << 1) | (c     >> 31);
+                z[zOff + i + 1] = (next1 << 1) | (next0 >> 31);
+                z[zOff + i + 2] = (next2 << 1) | (next1 >> 31);
+                z[zOff + i + 3] = (next3 << 1) | (next2 >> 31);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = x[xOff + i];
                 z[zOff + i] = (next << 1) | (c >> 31);
                 c = next;
+                ++i;
             }
             return c >> 31;
         }
@@ -1638,11 +1713,26 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint ShiftUpBit(int len, ReadOnlySpan<uint> x, uint c, Span<uint> z)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = x[i + 0];
+                uint next1 = x[i + 1];
+                uint next2 = x[i + 2];
+                uint next3 = x[i + 3];
+                z[i + 0] = (next0 << 1) | (c     >> 31);
+                z[i + 1] = (next1 << 1) | (next0 >> 31);
+                z[i + 2] = (next2 << 1) | (next1 >> 31);
+                z[i + 3] = (next3 << 1) | (next2 >> 31);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = x[i];
                 z[i] = (next << 1) | (c >> 31);
                 c = next;
+                ++i;
             }
             return c >> 31;
         }
@@ -1650,22 +1740,52 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static ulong ShiftUpBit64(int len, ulong[] x, ulong c, ulong[] z)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = x[i + 0];
+                ulong next1 = x[i + 1];
+                ulong next2 = x[i + 2];
+                ulong next3 = x[i + 3];
+                z[i + 0] = (next0 << 1) | (c     >> 63);
+                z[i + 1] = (next1 << 1) | (next0 >> 63);
+                z[i + 2] = (next2 << 1) | (next1 >> 63);
+                z[i + 3] = (next3 << 1) | (next2 >> 63);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = x[i];
                 z[i] = (next << 1) | (c >> 63);
                 c = next;
+                ++i;
             }
             return c >> 63;
         }
 
         public static ulong ShiftUpBit64(int len, ulong[] x, int xOff, ulong c, ulong[] z, int zOff)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = x[xOff + i + 0];
+                ulong next1 = x[xOff + i + 1];
+                ulong next2 = x[xOff + i + 2];
+                ulong next3 = x[xOff + i + 3];
+                z[zOff + i + 0] = (next0 << 1) | (c     >> 63);
+                z[zOff + i + 1] = (next1 << 1) | (next0 >> 63);
+                z[zOff + i + 2] = (next2 << 1) | (next1 >> 63);
+                z[zOff + i + 3] = (next3 << 1) | (next2 >> 63);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = x[xOff + i];
                 z[zOff + i] = (next << 1) | (c >> 63);
                 c = next;
+                ++i;
             }
             return c >> 63;
         }
@@ -1673,11 +1793,26 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ulong ShiftUpBit64(int len, ReadOnlySpan<ulong> x, ulong c, Span<ulong> z)
         {
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = x[i + 0];
+                ulong next1 = x[i + 1];
+                ulong next2 = x[i + 2];
+                ulong next3 = x[i + 3];
+                z[i + 0] = (next0 << 1) | (c     >> 63);
+                z[i + 1] = (next1 << 1) | (next0 >> 63);
+                z[i + 2] = (next2 << 1) | (next1 >> 63);
+                z[i + 3] = (next3 << 1) | (next2 >> 63);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = x[i];
                 z[i] = (next << 1) | (c >> 63);
                 c = next;
+                ++i;
             }
             return c >> 63;
         }
@@ -1686,11 +1821,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] z, int bits, uint c)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = z[i + 0];
+                uint next1 = z[i + 1];
+                uint next2 = z[i + 2];
+                uint next3 = z[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = z[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1698,11 +1848,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] z, int zOff, int bits, uint c)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = z[zOff + i + 0];
+                uint next1 = z[zOff + i + 1];
+                uint next2 = z[zOff + i + 2];
+                uint next3 = z[zOff + i + 3];
+                z[zOff + i + 0] = (next0 << bits) | (c     >> -bits);
+                z[zOff + i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[zOff + i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[zOff + i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = z[zOff + i];
                 z[zOff + i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1711,11 +1876,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, Span<uint> z, int bits, uint c)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = z[i + 0];
+                uint next1 = z[i + 1];
+                uint next2 = z[i + 2];
+                uint next3 = z[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = z[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1724,11 +1904,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] x, int bits, uint c, uint[] z)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = x[i + 0];
+                uint next1 = x[i + 1];
+                uint next2 = x[i + 2];
+                uint next3 = x[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = x[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1736,11 +1931,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] x, int xOff, int bits, uint c, uint[] z, int zOff)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = x[xOff + i + 0];
+                uint next1 = x[xOff + i + 1];
+                uint next2 = x[xOff + i + 2];
+                uint next3 = x[xOff + i + 3];
+                z[zOff + i + 0] = (next0 << bits) | (c     >> -bits);
+                z[zOff + i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[zOff + i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[zOff + i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = x[xOff + i];
                 z[zOff + i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1749,11 +1959,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, ReadOnlySpan<uint> x, int bits, uint c, Span<uint> z)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                uint next0 = x[i + 0];
+                uint next1 = x[i + 1];
+                uint next2 = x[i + 2];
+                uint next3 = x[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 uint next = x[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1762,11 +1987,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] z, int bits, ulong c)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = z[i + 0];
+                ulong next1 = z[i + 1];
+                ulong next2 = z[i + 2];
+                ulong next3 = z[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = z[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1774,11 +2014,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] z, int zOff, int bits, ulong c)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = z[zOff + i + 0];
+                ulong next1 = z[zOff + i + 1];
+                ulong next2 = z[zOff + i + 2];
+                ulong next3 = z[zOff + i + 3];
+                z[zOff + i + 0] = (next0 << bits) | (c     >> -bits);
+                z[zOff + i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[zOff + i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[zOff + i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = z[zOff + i];
                 z[zOff + i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1787,11 +2042,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, Span<ulong> z, int bits, ulong c)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = z[i + 0];
+                ulong next1 = z[i + 1];
+                ulong next2 = z[i + 2];
+                ulong next3 = z[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = z[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1800,11 +2070,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] x, int bits, ulong c, ulong[] z)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = x[i + 0];
+                ulong next1 = x[i + 1];
+                ulong next2 = x[i + 2];
+                ulong next3 = x[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = x[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1812,11 +2097,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] x, int xOff, int bits, ulong c, ulong[] z, int zOff)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = x[xOff + i + 0];
+                ulong next1 = x[xOff + i + 1];
+                ulong next2 = x[xOff + i + 2];
+                ulong next3 = x[xOff + i + 3];
+                z[zOff + i + 0] = (next0 << bits) | (c     >> -bits);
+                z[zOff + i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[zOff + i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[zOff + i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = x[xOff + i];
                 z[zOff + i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -1825,11 +2125,26 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ReadOnlySpan<ulong> x, int bits, ulong c, Span<ulong> z)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            for (int i = 0; i < len; ++i)
+            int i = 0, limit4 = len - 4;
+            while (i <= limit4)
+            {
+                ulong next0 = x[i + 0];
+                ulong next1 = x[i + 1];
+                ulong next2 = x[i + 2];
+                ulong next3 = x[i + 3];
+                z[i + 0] = (next0 << bits) | (c     >> -bits);
+                z[i + 1] = (next1 << bits) | (next0 >> -bits);
+                z[i + 2] = (next2 << bits) | (next1 >> -bits);
+                z[i + 3] = (next3 << bits) | (next2 >> -bits);
+                c = next3;
+                i += 4;
+            }
+            while (i < len)
             {
                 ulong next = x[i];
                 z[i] = (next << bits) | (c >> -bits);
                 c = next;
+                ++i;
             }
             return c >> -bits;
         }
@@ -2327,37 +2642,39 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static void Zero(int len, uint[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            z.AsSpan(0, len).Fill(0U);
+#else
             for (int i = 0; i < len; ++i)
             {
                 z[i] = 0U;
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Zero(int len, Span<uint> z)
         {
-            for (int i = 0; i < len; ++i)
-            {
-                z[i] = 0U;
-            }
+            z[..len].Fill(0U);
         }
 #endif
 
         public static void Zero64(int len, ulong[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            z.AsSpan(0, len).Fill(0UL);
+#else
             for (int i = 0; i < len; ++i)
             {
                 z[i] = 0UL;
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Zero64(int len, Span<ulong> z)
         {
-            for (int i = 0; i < len; ++i)
-            {
-                z[i] = 0UL;
-            }
+            z[..len].Fill(0UL);
         }
 #endif
     }
