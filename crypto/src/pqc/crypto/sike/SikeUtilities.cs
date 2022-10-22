@@ -1,8 +1,8 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    internal class Utils
+    internal static class SikeUtilities
     {
-        public static ulong[][] InitArray(uint size1, uint size2)
+        internal static ulong[][] InitArray(uint size1, uint size2)
         {
             ulong[][] res = new ulong[size1][];
             for (int i = 0; i < size1; i++)
@@ -12,8 +12,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             return res;
         }
-        
-        public static ulong[][][] InitArray(uint size1, uint size2, uint size3)
+
+        internal static ulong[][][] InitArray(uint size1, uint size2, uint size3)
         {
             ulong[][][] res = new ulong[size1][][];
             for (int i = 0; i < size1; i++)
@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             return res;
         }
-        
-        public static ulong[][][][] InitArray(uint size1, uint size2, uint size3, uint size4)
+
+        internal static ulong[][][][] InitArray(uint size1, uint size2, uint size3, uint size4)
         {
             ulong[][][][] res = new ulong[size1][][][];
             for (int i = 0; i < size1; i++)

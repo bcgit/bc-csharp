@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
@@ -27,8 +26,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<PicnicParameters, DerObjectIdentifier> picnicOids = new Dictionary<PicnicParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, PicnicParameters> picnicParams = new Dictionary<DerObjectIdentifier, PicnicParameters>();
         
-        private readonly static Dictionary<SIKEParameters, DerObjectIdentifier> sikeOids = new Dictionary<SIKEParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, SIKEParameters> sikeParams = new Dictionary<DerObjectIdentifier, SIKEParameters>();
+        private readonly static Dictionary<SikeParameters, DerObjectIdentifier> sikeOids = new Dictionary<SikeParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, SikeParameters> sikeParams = new Dictionary<DerObjectIdentifier, SikeParameters>();
      
         private readonly static Dictionary<KyberParameters, DerObjectIdentifier> kyberOids = new Dictionary<KyberParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, KyberParameters> kyberParams = new Dictionary<DerObjectIdentifier, KyberParameters>();
@@ -117,23 +116,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
             
-            sikeParams[BCObjectIdentifiers.sikep434] = SIKEParameters.sikep434;
-            sikeParams[BCObjectIdentifiers.sikep503] = SIKEParameters.sikep503;
-            sikeParams[BCObjectIdentifiers.sikep610] = SIKEParameters.sikep610;
-            sikeParams[BCObjectIdentifiers.sikep751] = SIKEParameters.sikep751;
-            sikeParams[BCObjectIdentifiers.sikep434_compressed] = SIKEParameters.sikep434_compressed;
-            sikeParams[BCObjectIdentifiers.sikep503_compressed] = SIKEParameters.sikep503_compressed;
-            sikeParams[BCObjectIdentifiers.sikep610_compressed] = SIKEParameters.sikep610_compressed;
-            sikeParams[BCObjectIdentifiers.sikep751_compressed] = SIKEParameters.sikep751_compressed;
+            sikeParams[BCObjectIdentifiers.sikep434] = SikeParameters.sikep434;
+            sikeParams[BCObjectIdentifiers.sikep503] = SikeParameters.sikep503;
+            sikeParams[BCObjectIdentifiers.sikep610] = SikeParameters.sikep610;
+            sikeParams[BCObjectIdentifiers.sikep751] = SikeParameters.sikep751;
+            sikeParams[BCObjectIdentifiers.sikep434_compressed] = SikeParameters.sikep434_compressed;
+            sikeParams[BCObjectIdentifiers.sikep503_compressed] = SikeParameters.sikep503_compressed;
+            sikeParams[BCObjectIdentifiers.sikep610_compressed] = SikeParameters.sikep610_compressed;
+            sikeParams[BCObjectIdentifiers.sikep751_compressed] = SikeParameters.sikep751_compressed;
             
-            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep503] = BCObjectIdentifiers.sikep503;
-            sikeOids[SIKEParameters.sikep610] = BCObjectIdentifiers.sikep610;
-            sikeOids[SIKEParameters.sikep751] = BCObjectIdentifiers.sikep751;
-            sikeOids[SIKEParameters.sikep434_compressed] = BCObjectIdentifiers.sikep434_compressed;
-            sikeOids[SIKEParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
-            sikeOids[SIKEParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
-            sikeOids[SIKEParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
+            sikeOids[SikeParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            sikeOids[SikeParameters.sikep503] = BCObjectIdentifiers.sikep503;
+            sikeOids[SikeParameters.sikep610] = BCObjectIdentifiers.sikep610;
+            sikeOids[SikeParameters.sikep751] = BCObjectIdentifiers.sikep751;
+            sikeOids[SikeParameters.sikep434_compressed] = BCObjectIdentifiers.sikep434_compressed;
+            sikeOids[SikeParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
+            sikeOids[SikeParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
+            sikeOids[SikeParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
             
             kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
             kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
@@ -256,12 +255,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return picnicParams[oid];
         }
-        internal static DerObjectIdentifier SikeOidLookup(SIKEParameters parameters)
+        internal static DerObjectIdentifier SikeOidLookup(SikeParameters parameters)
         {
             return sikeOids[parameters];
         }
 
-        internal static SIKEParameters SikeParamsLookup(DerObjectIdentifier oid)
+        internal static SikeParameters SikeParamsLookup(DerObjectIdentifier oid)
         {
             return sikeParams[oid];
         }

@@ -1,10 +1,10 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-internal class SIDH
+internal sealed class Sidh
 {
-    private SIKEEngine engine;
+    private readonly SikeEngine engine;
 
-    public SIDH(SIKEEngine engine)
+    public Sidh(SikeEngine engine)
     {
         this.engine = engine;
     }
@@ -32,14 +32,14 @@ internal class SIDH
 
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
 
-        ulong[][] XPB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] XPB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
         ulong[] SecretKeyB = new ulong[engine.param.NWORDS_ORDER];
@@ -116,14 +116,14 @@ internal class SIDH
                 phiR = new PointProj(engine.param.NWORDS_FIELD);
 
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_ALICE];
-        ulong[][] XPA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            C24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] XPA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            C24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
         uint index = 0, npts = 0, ii = 0, m, i, row;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
         ulong[] SecretKeyA = new ulong[engine.param.NWORDS_ORDER];
@@ -213,12 +213,12 @@ internal class SIDH
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_ALICE];
-        ulong[][][] PKB = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD),
-            coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
-        ulong[][] jinv = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            C24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] PKB = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD),
+            coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][] jinv = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            C24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         uint i = 0, row = 0, m = 0, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
@@ -292,13 +292,13 @@ internal class SIDH
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD),
-            PKB = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD),
+            PKB = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
 
-        ulong[][] jinv = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] jinv = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
         ulong[] SecretKeyB = new ulong[engine.param.NWORDS_ORDER];

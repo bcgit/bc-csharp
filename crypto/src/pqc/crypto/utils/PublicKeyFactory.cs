@@ -242,9 +242,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                SIKEParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
-                return new SIKEPublicKeyParameters(sikeParams, keyEnc);
+                return new SikePublicKeyParameters(sikeParams, keyEnc);
             }
         }
         private class DilithiumConverter

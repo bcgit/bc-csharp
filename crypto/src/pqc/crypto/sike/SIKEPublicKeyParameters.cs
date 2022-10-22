@@ -2,26 +2,25 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class SIKEPublicKeyParameters
-    : SIKEKeyParameters
-{
-    public byte[] publicKey;
-
-    public byte[] GetPublicKey()
+    public sealed class SikePublicKeyParameters
+        : SikeKeyParameters
     {
-        return Arrays.Clone(publicKey);
-    }
+        public readonly byte[] publicKey;
 
-    public byte[] GetEncoded()
-    {
-        return GetPublicKey();
-    }
+        public SikePublicKeyParameters(SikeParameters param, byte[] publicKey)
+            : base(false, param)
+        {
+            this.publicKey = Arrays.Clone(publicKey);
+        }
 
-    public SIKEPublicKeyParameters(SIKEParameters param, byte[] publicKey)
-    	: base(false, param)
-    {
-        this.publicKey = Arrays.Clone(publicKey);
-    }
-}
+        public byte[] GetEncoded()
+        {
+            return Arrays.Clone(publicKey);
+        }
 
+        public byte[] GetPublicKey()
+        {
+            return Arrays.Clone(publicKey);
+        }
+    }
 }

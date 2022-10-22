@@ -3,6 +3,7 @@
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
@@ -14,6 +15,61 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
      */
     internal abstract class HarakaSBase
     {
+        private static readonly byte[] RC0  = Hex.DecodeStrict("0684704ce620c00ab2c5fef075817b9d");
+        private static readonly byte[] RC1  = Hex.DecodeStrict("8b66b4e188f3a06b640f6ba42f08f717");
+        private static readonly byte[] RC2  = Hex.DecodeStrict("3402de2d53f28498cf029d609f029114");
+        private static readonly byte[] RC3  = Hex.DecodeStrict("0ed6eae62e7b4f08bbf3bcaffd5b4f79");
+        private static readonly byte[] RC4  = Hex.DecodeStrict("cbcfb0cb4872448b79eecd1cbe397044");
+        private static readonly byte[] RC5  = Hex.DecodeStrict("7eeacdee6e9032b78d5335ed2b8a057b");
+        private static readonly byte[] RC6  = Hex.DecodeStrict("67c28f435e2e7cd0e2412761da4fef1b");
+        private static readonly byte[] RC7  = Hex.DecodeStrict("2924d9b0afcacc07675ffde21fc70b3b");
+        private static readonly byte[] RC8  = Hex.DecodeStrict("ab4d63f1e6867fe9ecdb8fcab9d465ee");
+        private static readonly byte[] RC9  = Hex.DecodeStrict("1c30bf84d4b7cd645b2a404fad037e33");
+        private static readonly byte[] RC10 = Hex.DecodeStrict("b2cc0bb9941723bf69028b2e8df69800");
+        private static readonly byte[] RC11 = Hex.DecodeStrict("fa0478a6de6f55724aaa9ec85c9d2d8a");
+        private static readonly byte[] RC12 = Hex.DecodeStrict("dfb49f2b6b772a120efa4f2e29129fd4");
+        private static readonly byte[] RC13 = Hex.DecodeStrict("1ea10344f449a23632d611aebb6a12ee");
+        private static readonly byte[] RC14 = Hex.DecodeStrict("af0449884b0500845f9600c99ca8eca6");
+        private static readonly byte[] RC15 = Hex.DecodeStrict("21025ed89d199c4f78a2c7e327e593ec");
+        private static readonly byte[] RC16 = Hex.DecodeStrict("bf3aaaf8a759c9b7b9282ecd82d40173");
+        private static readonly byte[] RC17 = Hex.DecodeStrict("6260700d6186b01737f2efd910307d6b");
+        private static readonly byte[] RC18 = Hex.DecodeStrict("5aca45c22130044381c29153f6fc9ac6");
+        private static readonly byte[] RC19 = Hex.DecodeStrict("9223973c226b68bb2caf92e836d1943a");
+        private static readonly byte[] RC20 = Hex.DecodeStrict("d3bf9238225886eb6cbab958e51071b4");
+        private static readonly byte[] RC21 = Hex.DecodeStrict("db863ce5aef0c677933dfddd24e1128d");
+        private static readonly byte[] RC22 = Hex.DecodeStrict("bb606268ffeba09c83e48de3cb2212b1");
+        private static readonly byte[] RC23 = Hex.DecodeStrict("734bd3dce2e4d19c2db91a4ec72bf77d");
+        private static readonly byte[] RC24 = Hex.DecodeStrict("43bb47c361301b434b1415c42cb3924e");
+        private static readonly byte[] RC25 = Hex.DecodeStrict("dba775a8e707eff603b231dd16eb6899");
+        private static readonly byte[] RC26 = Hex.DecodeStrict("6df3614b3c7559778e5e23027eca472c");
+        private static readonly byte[] RC27 = Hex.DecodeStrict("cda75a17d6de7d776d1be5b9b88617f9");
+        private static readonly byte[] RC28 = Hex.DecodeStrict("ec6b43f06ba8e9aa9d6c069da946ee5d");
+        private static readonly byte[] RC29 = Hex.DecodeStrict("cb1e6950f957332ba25311593bf327c1");
+        private static readonly byte[] RC30 = Hex.DecodeStrict("2cee0c7500da619ce4ed0353600ed0d9");
+        private static readonly byte[] RC31 = Hex.DecodeStrict("f0b1a5a196e90cab80bbbabc63a4a350");
+        private static readonly byte[] RC32 = Hex.DecodeStrict("ae3db1025e962988ab0dde30938dca39");
+        private static readonly byte[] RC33 = Hex.DecodeStrict("17bb8f38d554a40b8814f3a82e75b442");
+        private static readonly byte[] RC34 = Hex.DecodeStrict("34bb8a5b5f427fd7aeb6b779360a16f6");
+        private static readonly byte[] RC35 = Hex.DecodeStrict("26f65241cbe5543843ce5918ffbaafde");
+        private static readonly byte[] RC36 = Hex.DecodeStrict("4ce99a54b9f3026aa2ca9cf7839ec978");
+        private static readonly byte[] RC37 = Hex.DecodeStrict("ae51a51a1bdff7be40c06e2822901235");
+        private static readonly byte[] RC38 = Hex.DecodeStrict("a0c1613cba7ed22bc173bc0f48a659cf");
+        private static readonly byte[] RC39 = Hex.DecodeStrict("756acc03022882884ad6bdfde9c59da1");
+
+        private static readonly byte[][] RoundConstants =
+        {
+            RC0 , RC1 , RC2 , RC3 ,
+            RC4 , RC5 , RC6 , RC7 ,
+            RC8 , RC9 , RC10, RC11,
+            RC12, RC13, RC14, RC15,
+            RC16, RC17, RC18, RC19,
+            RC20, RC21, RC22, RC23,
+            RC24, RC25, RC26, RC27,
+            RC28, RC29, RC30, RC31,
+            RC32, RC33, RC34, RC35,
+            RC36, RC37, RC38, RC39,
+        };
+
         internal ulong[][] haraka512_rc = new ulong[][]{
             new ulong[]{0x24cf0ab9086f628bL, 0xbdd6eeecc83b8382L, 0xd96fb0306cdad0a7L, 0xaace082ac8f95f89L, 0x449d8e8870d7041fL, 0x49bb2f80b2b3e2f8L, 0x0569ae98d93bb258L, 0x23dc9691e7d6a4b1L},
             new ulong[]{0xd8ba10ede0fe5b6eL, 0x7ecf7dbe424c7b8eL, 0x6ea9949c6df62a31L, 0xbf3f3c97ec9c313eL, 0x241d03a196a1861eL, 0xead3a51116e5a2eaL, 0x77d479fcad9574e3L, 0x18657a1af894b7a0L},
@@ -36,6 +92,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             this.buffer = new byte[64];
             off = 0;
+
+            byte[] buf = new byte[640];
+            byte[] tmp = new byte[16];
+            for (int rc = 0; rc < 40; ++rc)
+            {
+                Arrays.Reverse(RoundConstants[rc]).CopyTo(buf, rc << 4);
+            }
+            for (int round = 0; round < 10; ++round)
+            {
+                InterleaveConstant(haraka512_rc[round], buf, round << 6);
+                //for (int j = 0; j < 8; ++j)
+                //{
+                //    Console.Write(haraka512_rc[round][j].ToString("X") + ", ");
+                //}
+                //Console.WriteLine();
+            }
+            //Console.WriteLine("-----");
         }
 
         protected void Reset()

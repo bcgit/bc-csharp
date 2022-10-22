@@ -16,16 +16,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class SikeVectorTest
     {
-        private static readonly Dictionary<string, SIKEParameters> Parameters = new Dictionary<string, SIKEParameters>()
+        private static readonly Dictionary<string, SikeParameters> Parameters = new Dictionary<string, SikeParameters>()
         {
-            { "PQCkemKAT_374.rsp" , SIKEParameters.sikep434 },
-            { "PQCkemKAT_434.rsp" , SIKEParameters.sikep503 },
-            { "PQCkemKAT_524.rsp" , SIKEParameters.sikep610 },
-            { "PQCkemKAT_644.rsp" , SIKEParameters.sikep751 },
-            { "PQCkemKAT_350.rsp" , SIKEParameters.sikep434_compressed },
-            { "PQCkemKAT_407.rsp" , SIKEParameters.sikep503_compressed },
-            { "PQCkemKAT_491.rsp" , SIKEParameters.sikep610_compressed },
-            { "PQCkemKAT_602.rsp" , SIKEParameters.sikep751_compressed },
+            { "PQCkemKAT_374.rsp" , SikeParameters.sikep434 },
+            { "PQCkemKAT_434.rsp" , SikeParameters.sikep503 },
+            { "PQCkemKAT_524.rsp" , SikeParameters.sikep610 },
+            { "PQCkemKAT_644.rsp" , SikeParameters.sikep751 },
+            { "PQCkemKAT_350.rsp" , SikeParameters.sikep434_compressed },
+            { "PQCkemKAT_407.rsp" , SikeParameters.sikep503_compressed },
+            { "PQCkemKAT_491.rsp" , SikeParameters.sikep610_compressed },
+            { "PQCkemKAT_602.rsp" , SikeParameters.sikep751_compressed },
         };
 
         private static readonly string[] TestVectorFilesBasic =
@@ -68,10 +68,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] ss = Hex.Decode(buf["ss"]);          // session key
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            SIKEParameters SIKEParameters = Parameters[name];
+            SikeParameters SIKEParameters = Parameters[name];
 
-            SIKEKeyPairGenerator kpGen = new SIKEKeyPairGenerator();
-            SIKEKeyGenerationParameters genParams = new SIKEKeyGenerationParameters(random, SIKEParameters);
+            SikeKeyPairGenerator kpGen = new SikeKeyPairGenerator();
+            SikeKeyGenerationParameters genParams = new SikeKeyGenerationParameters(random, SIKEParameters);
 
             //
             // Generate keys and test.
@@ -80,9 +80,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
             // todo
-            SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)PublicKeyFactory.CreateKey(
+            SikePublicKeyParameters pubParams = (SikePublicKeyParameters)PublicKeyFactory.CreateKey(
                 SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+            SikePrivateKeyParameters privParams = (SikePrivateKeyParameters)PrivateKeyFactory.CreateKey(
                 PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
             // SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)kp.Public;
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
 
             // KEM Enc
-            SIKEKEMGenerator sikeEncCipher = new SIKEKEMGenerator(random);
+            SikeKemGenerator sikeEncCipher = new SikeKemGenerator(random);
             ISecretWithEncapsulation secWenc = sikeEncCipher.GenerateEncapsulated(pubParams);
             byte[] generated_cipher_text = secWenc.GetEncapsulation();
 
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
 
             // KEM Dec
-            SIKEKEMExtractor sikeDecCipher = new SIKEKEMExtractor(privParams);
+            SikeKemExtractor sikeDecCipher = new SikeKemExtractor(privParams);
 
             byte[] dec_key = sikeDecCipher.ExtractSecret(generated_cipher_text);
 

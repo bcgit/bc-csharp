@@ -4,7 +4,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
@@ -21,7 +20,6 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    
     /// <summary>
     /// A factory to produce Public Key Info Objects.
     /// </summary>
@@ -55,90 +53,74 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
-            if (publicKey is SphincsPlusPublicKeyParameters)
+            if (publicKey is SphincsPlusPublicKeyParameters sphincsPlusPublicKeyParameters)
             {
-                SphincsPlusPublicKeyParameters parameters = (SphincsPlusPublicKeyParameters)publicKey;
-
-                byte[] encoding = parameters.GetEncoded();
+                byte[] encoding = sphincsPlusPublicKeyParameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.SphincsPlusOidLookup(parameters.Parameters));
+                    PqcUtilities.SphincsPlusOidLookup(sphincsPlusPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
-            if (publicKey is CmcePublicKeyParameters)
+            if (publicKey is CmcePublicKeyParameters cmcePublicKeyParameters)
             {
-                CmcePublicKeyParameters key = (CmcePublicKeyParameters)publicKey;
-
-                byte[] encoding = key.GetEncoded();
+                byte[] encoding = cmcePublicKeyParameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.McElieceOidLookup(key.Parameters));
+                    PqcUtilities.McElieceOidLookup(cmcePublicKeyParameters.Parameters));
 
                 // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new CmcePublicKey(encoding));
             }
-            if (publicKey is SaberPublicKeyParameters)
+            if (publicKey is SaberPublicKeyParameters saberPublicKeyParameters)
             {
-                SaberPublicKeyParameters parameters = (SaberPublicKeyParameters)publicKey;
-
-                byte[] encoding = parameters.GetEncoded();
+                byte[] encoding = saberPublicKeyParameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.SaberOidLookup(parameters.Parameters));
+                    PqcUtilities.SaberOidLookup(saberPublicKeyParameters.Parameters));
 
                 // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(new DerOctetString(encoding)));
             }
-            if (publicKey is PicnicPublicKeyParameters)
+            if (publicKey is PicnicPublicKeyParameters picnicPublicKeyParameters)
             {
-                PicnicPublicKeyParameters parameters = (PicnicPublicKeyParameters)publicKey;
-
-                byte[] encoding = parameters.GetEncoded();
+                byte[] encoding = picnicPublicKeyParameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.PicnicOidLookup(parameters.Parameters));
+                    PqcUtilities.PicnicOidLookup(picnicPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
-            if (publicKey is SIKEPublicKeyParameters)
+            if (publicKey is SikePublicKeyParameters sikePublicKeyParameters)
             {
-                SIKEPublicKeyParameters parameters = (SIKEPublicKeyParameters)publicKey;
-
-                byte[] encoding = parameters.GetEncoded();
+                byte[] encoding = sikePublicKeyParameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.SikeOidLookup(parameters.GetParameters()));
+                    PqcUtilities.SikeOidLookup(sikePublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
-            if (publicKey is FalconPublicKeyParameters)
+            if (publicKey is FalconPublicKeyParameters falconPublicKeyParameters)
             {
-                FalconPublicKeyParameters parameters = (FalconPublicKeyParameters)publicKey;
+                byte[] encoding = falconPublicKeyParameters.GetEncoded();
 
-                byte[] encoding = parameters.GetEncoded();
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.FalconOidLookup(parameters.Parameters));
-
+                    PqcUtilities.FalconOidLookup(falconPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(new DerOctetString(encoding)));
             }
-            if (publicKey is KyberPublicKeyParameters)
+            if (publicKey is KyberPublicKeyParameters kyberPublicKeyParameters)
             {
-                KyberPublicKeyParameters parameters = (KyberPublicKeyParameters)publicKey;
-
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.KyberOidLookup(parameters.Parameters));
+                    PqcUtilities.KyberOidLookup(kyberPublicKeyParameters.Parameters));
                 Asn1EncodableVector v = new Asn1EncodableVector();
-                v.Add(new DerOctetString(parameters.T));
-                v.Add(new DerOctetString(parameters.Rho));
+                v.Add(new DerOctetString(kyberPublicKeyParameters.T));
+                v.Add(new DerOctetString(kyberPublicKeyParameters.Rho));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(v));
             }
-            if (publicKey is DilithiumPublicKeyParameters)
+            if (publicKey is DilithiumPublicKeyParameters dilithiumPublicKeyParameters)
             {
-                DilithiumPublicKeyParameters parameters = (DilithiumPublicKeyParameters)publicKey;
-
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.DilithiumOidLookup(parameters.Parameters));
+                    PqcUtilities.DilithiumOidLookup(dilithiumPublicKeyParameters.Parameters));
             
                 return new SubjectPublicKeyInfo(algorithmIdentifier,
-                    new DerOctetString(Arrays.Concatenate(parameters.Rho, parameters.T1)));
+                    new DerOctetString(Arrays.Concatenate(dilithiumPublicKeyParameters.Rho, dilithiumPublicKeyParameters.T1)));
             }
             if (publicKey is BikePublicKeyParameters bikePublicKeyParameters)
             { 
@@ -160,37 +142,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }
-        
-        private static void ExtractBytes(
-            byte[]		encKey,
-            int			offset,
-            BigInteger	bI)
-        {
-            byte[] val = bI.ToByteArray();
-            int n = (bI.BitLength + 7) / 8;
-
-            for (int i = 0; i < n; ++i)
-            {
-                encKey[offset + i] = val[val.Length - 1 - i];
-            }
-        }
-
-
-        private static void ExtractBytes(byte[] encKey, int size, int offSet, BigInteger bI)
-        {
-            byte[] val = bI.ToByteArray();
-            if (val.Length < size)
-            {
-                byte[] tmp = new byte[size];
-                Array.Copy(val, 0, tmp, tmp.Length - val.Length, val.Length);
-                val = tmp;
-            }
-
-            for (int i = 0; i != size; i++)
-            {
-                encKey[offSet + i] = val[val.Length - 1 - i];
-            }
-        }
-
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
@@ -8,11 +7,11 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    internal class Fpx
+    internal sealed class Fpx
     {
-        private SIKEEngine engine;
+        private readonly SikeEngine engine;
 
-        internal Fpx(SIKEEngine engine)
+        internal Fpx(SikeEngine engine)
         {
             this.engine = engine;
         }
@@ -47,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Also, vec and out CANNOT be the same variable!
         protected internal void mont_n_way_inv(ulong[][][] vec, uint n, ulong[][][] output)
         {
-            ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
             int i;
 
             fp2copy(vec[0], output[0]);                      // output[0] = vec[0]
@@ -368,7 +367,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // This uses the binary GCD for inversion in fp and is NOT constant time!!!
         protected internal void fp2inv_mont_bingcd(ulong[][] a)
         {
-            ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
             fpsqr_mont(a[0], t1[0]);             // t10 = a0^2
             fpsqr_mont(a[1], t1[1]);             // t11 = a1^2
@@ -892,7 +891,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Conversion of GF(p^2) element from Montgomery to standard representation, and encoding by removing leading 0 bytes
         protected internal void fp2_encode(ulong[][] x, byte[] enc, uint encOffset)
         {
-            ulong[][] t = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
             from_fp2mont(x, t);
             encode_to_bytes(t[0], enc, encOffset,engine.param.FP2_ENCODED_BYTES / 2);
@@ -1280,8 +1279,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         protected internal byte cmp_f2elm(ulong[][] x, ulong[][] y)
         { // Comparison of two GF(p^2) elements in constant time. 
             // Is x != y? return -1 if condition is true, 0 otherwise.
-            ulong[][] a = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-                b = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] a = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+                b = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
             byte r = 0;
 
             fp2copy(x, a);
@@ -1661,7 +1660,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // GF(p^2) inversion using Montgomery arithmetic, a = (a0-i*a1)/(a0^2+a1^2).
         protected internal void fp2inv_mont(ulong[][] a)
         {
-            ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
             fpsqr_mont(a[0], t1[0]);                 // t10 = a0^2
             fpsqr_mont(a[1], t1[1]);                 // t11 = a1^2
@@ -1808,7 +1807,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             if (engine.param.NBITS_FIELD == 434)
             {
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
-                ulong[][] t =  Utils.InitArray(31, engine.param.NWORDS_FIELD);
+                ulong[][] t =  SikeUtilities.InitArray(31, engine.param.NWORDS_FIELD);
 
                 // Precomputed table
                 fpsqr_mont(a, tt);
@@ -1888,7 +1887,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             if (engine.param.NBITS_FIELD == 503)
             {
-                ulong[][] t = Utils.InitArray(15, engine.param.NWORDS_FIELD);
+                ulong[][] t = SikeUtilities.InitArray(15, engine.param.NWORDS_FIELD);
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
 
                 // Precomputed table
@@ -1991,7 +1990,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             if (engine.param.NBITS_FIELD == 610)
             {   
-                ulong[][] t = Utils.InitArray(31, engine.param.NWORDS_FIELD); 
+                ulong[][] t = SikeUtilities.InitArray(31, engine.param.NWORDS_FIELD); 
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
 
                 // Precomputed table
@@ -2096,7 +2095,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             if (engine.param.NBITS_FIELD == 751)
             {
-                ulong[][] t = Utils.InitArray(27, engine.param.NWORDS_FIELD);
+                ulong[][] t = SikeUtilities.InitArray(27, engine.param.NWORDS_FIELD);
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
 
                 // Precomputed table

@@ -1,17 +1,19 @@
 using System;
+
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-internal class SIDH_Compressed
+internal sealed class SidhCompressed
 {
-    private SIKEEngine engine;
+    private readonly SikeEngine engine;
 
-    public SIDH_Compressed(SIKEEngine engine)
+    public SidhCompressed(SikeEngine engine)
     {
         this.engine = engine;
     }
+
     protected void init_basis(ulong[] gen, ulong[][] XP, ulong[][] XQ, ulong[][] XR)
     { // Initialization of basis points
 
@@ -104,8 +106,8 @@ internal class SIDH_Compressed
                 N = new ulong[engine.param.NWORDS_FIELD],
                 temp0 = new ulong[engine.param.NWORDS_FIELD],
                 temp1 = new ulong[engine.param.NWORDS_FIELD];
-        ulong[][] A = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            y2 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            y2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint t_ptr = 0;
 
 //        System.out.print("a24: ");
@@ -214,12 +216,12 @@ internal class SIDH_Compressed
 
     protected void BiQuad_affine(ulong[][] a24, ulong[][] x0, ulong[][] x1, PointProj R)
     {
-        ulong[][] Ap2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            aa = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            bb = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            cc = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] Ap2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            aa = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            bb = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            cc = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2add(a24, a24, Ap2);
         engine.fpx.fp2add(Ap2, Ap2, Ap2);    // Ap2 = a+2 = 4*a24
@@ -275,7 +277,7 @@ internal class SIDH_Compressed
 
     protected void eval_dual_2_isog(ulong[][] X2, ulong[][] Z2, PointProj P)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2add(P.X, P.Z, t0);
         engine.fpx.fp2sub(P.X, P.Z, P.Z);
@@ -288,8 +290,8 @@ internal class SIDH_Compressed
 
     protected void eval_final_dual_2_isog(PointProj P)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         ulong[] t2 = new ulong[engine.param.NWORDS_FIELD];
 
         engine.fpx.fp2add(P.X, P.Z, t0);
@@ -341,10 +343,10 @@ internal class SIDH_Compressed
 
     protected void eval_dual_4_isog(ulong[][] A24, ulong[][] C24, ulong[][][] coeff, uint coeffOffset, PointProj P)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2add(P.X, P.Z, t0);
         engine.fpx.fp2sub(P.X, P.Z, t1);
@@ -395,8 +397,8 @@ internal class SIDH_Compressed
 
     protected void Tate3_proj(PointProjFull P, PointProjFull Q, ulong[][] gX, ulong[][] gZ)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            l1x = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            l1x = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         TripleAndParabola_proj(P, l1x, gZ);
         engine.fpx.fp2sub(Q.X, P.X, gX);
@@ -411,7 +413,7 @@ internal class SIDH_Compressed
     {
         uint i;
 
-        ulong[][] f_ = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] f_ = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2copy(gZ, f_);
         engine.fpx.fpnegPRIME(f_[1]);
@@ -435,8 +437,8 @@ internal class SIDH_Compressed
     {
         uint i, j;
 
-        ulong[][][] f_ = Utils.InitArray(2, 2, engine.param.NWORDS_FIELD),
-            finv = Utils.InitArray(2, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] f_ = SikeUtilities.InitArray(2, 2, engine.param.NWORDS_FIELD),
+            finv = SikeUtilities.InitArray(2, 2, engine.param.NWORDS_FIELD);
 
         for(i = 0; i < 2; i++)
         {
@@ -467,8 +469,8 @@ internal class SIDH_Compressed
         PointProjFull R3 = new PointProjFull(engine.param.NWORDS_FIELD),
                       S3 = new PointProjFull(engine.param.NWORDS_FIELD);
 
-        ulong[][][] gX = Utils.InitArray(2, 2, engine.param.NWORDS_FIELD),
-            gZ = Utils.InitArray(2, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] gX = SikeUtilities.InitArray(2, 2, engine.param.NWORDS_FIELD),
+            gZ = SikeUtilities.InitArray(2, 2, engine.param.NWORDS_FIELD);
         ulong[] zero = new ulong[engine.param.NWORDS_FIELD];
         uint nbytes = engine.param.NWORDS_FIELD;// (((engine.param.NBITS_FIELD)+7)/8);
         uint alpha,beta;
@@ -583,8 +585,8 @@ internal class SIDH_Compressed
     {
         PointProjFull RS3 = new PointProjFull(engine.param.NWORDS_FIELD);
 
-        ulong[][] gX = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            gZ = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] gX = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            gZ = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         ulong[] zero = new ulong[engine.param.NWORDS_FIELD];
         uint nbytes = engine.param.NWORDS_FIELD;
@@ -725,9 +727,9 @@ internal class SIDH_Compressed
 
     protected void makeDiff(PointProjFull R, PointProjFull S, PointProj D)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint nbytes = engine.param.NWORDS_FIELD;
 
         engine.fpx.fp2sub(R.X, S.X, t0);
@@ -752,7 +754,7 @@ internal class SIDH_Compressed
     {
         PointProj D = new PointProj(engine.param.NWORDS_FIELD);
 
-        ulong[][][] xs = Utils.InitArray(2, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] xs = SikeUtilities.InitArray(2, 2, engine.param.NWORDS_FIELD);
         byte[] ind = new byte[1],
                bit = new byte[1];
 
@@ -815,14 +817,14 @@ internal class SIDH_Compressed
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_ALICE];
 
-        ulong[][] XPA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            C24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] XPA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            C24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
-        ulong[][][] coeff = Utils.InitArray(5, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(5, 2, engine.param.NWORDS_FIELD);
 
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
@@ -1074,7 +1076,7 @@ internal class SIDH_Compressed
     {
         byte bit;
         uint[] rs = new uint[3];
-        ulong[][] A24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         PointProj[] Rs = new PointProj[3];
         Rs[0] = new PointProj(engine.param.NWORDS_FIELD);
         Rs[1] = new PointProj(engine.param.NWORDS_FIELD);
@@ -1159,7 +1161,7 @@ internal class SIDH_Compressed
         uint bit;
         ulong[] temp = new ulong[engine.param.NWORDS_ORDER],
                inv = new ulong[engine.param.NWORDS_ORDER];
-        ulong[][] A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2add(a24,a24,A);
         engine.fpx.fp2add(A,A,A);
@@ -1233,10 +1235,10 @@ internal class SIDH_Compressed
     {
         uint[] rs = new uint[3];
         int[] D = new int[engine.param.DLEN_3];
-        ulong[][] a24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] a24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         
-        ulong[][][][] As = Utils.InitArray(engine.param.MAX_Alice + 1, 5, 2, engine.param.NWORDS_FIELD);
-        ulong[][][] f = Utils.InitArray(4, 2, engine.param.NWORDS_FIELD);
+        ulong[][][][] As = SikeUtilities.InitArray(engine.param.MAX_Alice + 1, 5, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] f = SikeUtilities.InitArray(4, 2, engine.param.NWORDS_FIELD);
         ulong[] c0 = new ulong[engine.param.NWORDS_ORDER],
                d0 = new ulong[engine.param.NWORDS_ORDER],
                c1 = new ulong[engine.param.NWORDS_ORDER],
@@ -1309,9 +1311,9 @@ internal class SIDH_Compressed
                d0 = new ulong[engine.param.NWORDS_ORDER],
                c1 = new ulong[engine.param.NWORDS_ORDER],
                d1 = new ulong[engine.param.NWORDS_ORDER];
-        ulong[][] a24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
-        ulong[][][] f = Utils.InitArray(4, 2, engine.param.NWORDS_FIELD);
-        ulong[][][][] As = Utils.InitArray(engine.param.MAX_Alice + 1, 5, 2, engine.param.NWORDS_FIELD);
+        ulong[][] a24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] f = SikeUtilities.InitArray(4, 2, engine.param.NWORDS_FIELD);
+        ulong[][][][] As = SikeUtilities.InitArray(engine.param.MAX_Alice + 1, 5, 2, engine.param.NWORDS_FIELD);
         PointProjFull[] Rs = new PointProjFull[2];
 
         FullIsogeny_A_dual(PrivateKeyA, As, a24, 0);
@@ -1331,14 +1333,14 @@ internal class SIDH_Compressed
     {
         uint i, ii = 0, row, m, index = 0, npts = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
-        ulong[][] A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
-        ulong[][] jinv = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
-        ulong[][] param_A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] jinv = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][] param_A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         PKADecompression_dual(PrivateKeyB, PKA, R, param_A);
         engine.fpx.fp2copy(param_A, A);
@@ -1392,8 +1394,8 @@ internal class SIDH_Compressed
     {
         ulong[] s = new ulong[engine.param.NWORDS_FIELD];
         ulong[][] t_ptr,
-            r = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            r = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint t_ptrOffset = 0;
 
         // Select the correct table
@@ -1457,11 +1459,11 @@ internal class SIDH_Compressed
 
     protected void RecoverY(ulong[][] A, PointProj[] xs, PointProjFull[] Rs)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t4 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t4 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2mul_mont(xs[2].X, xs[1].Z, t0);
         engine.fpx.fp2mul_mont(xs[1].X, xs[2].Z, t1);
@@ -1500,7 +1502,7 @@ internal class SIDH_Compressed
     {
         uint i;
         ulong[] t0 = new ulong[engine.param.NWORDS_FIELD];
-        ulong[][] A6 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A6 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         PointProj[] xs = new PointProj[3];
         xs[0] = new PointProj(engine.param.NWORDS_FIELD);
         xs[1] = new PointProj(engine.param.NWORDS_FIELD);
@@ -1566,12 +1568,12 @@ internal class SIDH_Compressed
         PointProj R = new PointProj(engine.param.NWORDS_FIELD),
         Q3 = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
-        ulong[][] XPB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD);
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][] XPB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
         ulong[] SecretKeyB = new ulong[engine.param.NWORDS_ORDER];
@@ -1663,8 +1665,8 @@ internal class SIDH_Compressed
     protected void BuildEntangledXonly_Decomp(ulong[][] A, PointProj[] R, uint qnr, uint ind)
     {
         ulong[][] t_ptr,
-            r = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            r = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         // Select the correct table
         if ( qnr == 1 )
@@ -1716,8 +1718,8 @@ internal class SIDH_Compressed
     { 
         ulong mask = unchecked((ulong) -1L);
         uint qnr, ind;
-        ulong[][] A24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            Adiv2 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            Adiv2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         
         ulong[] tmp1 = new ulong[2*engine.param.NWORDS_ORDER],
                 tmp2 = new ulong[2*engine.param.NWORDS_ORDER],
@@ -1879,7 +1881,7 @@ internal class SIDH_Compressed
         ulong mask = unchecked((ulong) -1L);
         uint bit,qnr,ind;
 
-        ulong[][] A24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         ulong[] tmp1 = new ulong[2*engine.param.NWORDS_ORDER],
                tmp2 = new ulong[2*engine.param.NWORDS_ORDER],
                vone = new ulong[2*engine.param.NWORDS_ORDER],
@@ -1996,9 +1998,9 @@ internal class SIDH_Compressed
                d0 = new ulong[engine.param.NWORDS_ORDER],
                c1 = new ulong[engine.param.NWORDS_ORDER],
                d1 = new ulong[engine.param.NWORDS_ORDER];
-        ulong[][][][] Ds = Utils.InitArray(engine.param.MAX_Bob, 2, 2, engine.param.NWORDS_FIELD);
-        ulong[][][] f = Utils.InitArray(4, 2, engine.param.NWORDS_FIELD);
-        ulong[][] A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][][] Ds = SikeUtilities.InitArray(engine.param.MAX_Bob, 2, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] f = SikeUtilities.InitArray(4, 2, engine.param.NWORDS_FIELD);
+        ulong[][] A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         PointProjFull[] Rs = new PointProjFull[2];
         Rs[0] = new PointProjFull(engine.param.NWORDS_FIELD);
@@ -2122,15 +2124,15 @@ internal class SIDH_Compressed
     {
         uint i, ii = 0, row, m, index = 0, npts = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
-        ulong[][] A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            C24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            C24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_ALICE];
-        ulong[][] jinv = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            param_A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
-        ulong[][][] coeff = Utils.InitArray(5, 2, engine.param.NWORDS_FIELD);
+        ulong[][] jinv = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            param_A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(5, 2, engine.param.NWORDS_FIELD);
 
 
         if (sike == 1)
@@ -2216,16 +2218,16 @@ internal class SIDH_Compressed
         PointProj R = new PointProj(engine.param.NWORDS_FIELD),
                   S = new PointProj(engine.param.NWORDS_FIELD);
 
-        ulong[][] XPB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            comp1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            comp2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            one = Utils.InitArray(2, engine.param.NWORDS_FIELD);
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);;
+        ulong[][] XPB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            comp1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            comp2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);;
 
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
@@ -2455,8 +2457,8 @@ internal class SIDH_Compressed
     void Traverse_w_notdiv_e_fullsigned(ulong[][] r, uint j, uint k, uint z, uint[] P, ulong[] CT1, ulong[] CT2,
                                         int[] D, uint Dlen, uint ell, uint ellw, uint ell_emodw, uint w, uint e)
     {
-        ulong[][] rp = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            alpha = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] rp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            alpha = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
 
         if (z > 1)
@@ -2633,8 +2635,8 @@ internal class SIDH_Compressed
     // Assume the integer w divides the exponent e
     void Traverse_w_div_e_fullsigned(ulong[][] r, uint j, uint k, uint z, uint[] P, ulong[] CT, int[] D, uint Dlen, uint ellw, uint w)
     {
-        ulong[][] rp = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            alpha = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] rp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            alpha = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         if (z > 1)
         {
@@ -2729,18 +2731,18 @@ internal class SIDH_Compressed
                 x23 = new ulong[engine.param.NWORDS_FIELD],
                 x2p3 = new ulong[engine.param.NWORDS_FIELD];
 
-        ulong[][][] xQ2s = Utils.InitArray(t_points, 2, engine.param.NWORDS_FIELD),
-            finv = Utils.InitArray(2*t_points, 2, engine.param.NWORDS_FIELD);
-        ulong[][] one = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t4 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t5 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            g = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            h = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            tf = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] xQ2s = SikeUtilities.InitArray(t_points, 2, engine.param.NWORDS_FIELD),
+            finv = SikeUtilities.InitArray(2*t_points, 2, engine.param.NWORDS_FIELD);
+        ulong[][] one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t4 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t5 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            g = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            h = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            tf = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
 
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, one[0]);
@@ -2919,7 +2921,7 @@ internal class SIDH_Compressed
     private void final_exponentiation_3_torsion(ulong[][] f, ulong[][] finv, ulong[][] fout)
     {
         ulong[] one = new ulong[engine.param.NWORDS_FIELD];
-        ulong[][] temp = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] temp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint i;
 
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, one);
@@ -2938,16 +2940,16 @@ internal class SIDH_Compressed
     private void Tate2_pairings(PointProj P, PointProj Q, PointProjFull[] Qj, ulong[][][] f)
     {
         ulong[] x, y, x_, y_, l1;
-        ulong[][][] finv = Utils.InitArray(2 * t_points, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] finv = SikeUtilities.InitArray(2 * t_points, 2, engine.param.NWORDS_FIELD);
 
         ulong[][] x_first,
             y_first,
-            one = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            l1_first = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            g = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            h = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            l1_first = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            g = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            h = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         uint x_Offset, y_Offset, l1Offset, xOffset, yOffset;
 
@@ -3141,7 +3143,7 @@ internal class SIDH_Compressed
     private void final_exponentiation_2_torsion(ulong[][] f, ulong[][] finv, ulong[][] fout)
     {
         ulong[] one = new ulong[engine.param.NWORDS_FIELD];
-        ulong[][] temp = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] temp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint i;
 
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, one);
