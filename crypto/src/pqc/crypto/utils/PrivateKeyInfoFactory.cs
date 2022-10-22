@@ -85,7 +85,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SaberOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.SaberOidLookup(parameters.Parameters));
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
@@ -95,7 +96,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.PicnicOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.PicnicOidLookup(parameters.Parameters));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
             if (privateKey is SIKEPrivateKeyParameters)
@@ -104,7 +106,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SikeOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.SikeOidLookup(parameters.GetParameters()));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
             if (privateKey is FalconPrivateKeyParameters)
@@ -118,7 +121,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 v.Add(new DerOctetString(parameters.GetG()));
                 v.Add(new DerOctetString(parameters.GetSpolyF()));
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.FalconOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.FalconOidLookup(parameters.Parameters));
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes, parameters.GetPublicKey());
             }
@@ -133,7 +137,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 v.Add(new DerOctetString(parameters.Hpk));
                 v.Add(new DerOctetString(parameters.Nonce));
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.KyberOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.KyberOidLookup(parameters.Parameters));
 
                 Asn1EncodableVector vPub = new Asn1EncodableVector();
                 vPub.Add(new DerOctetString(parameters.T));
@@ -155,13 +160,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 v.Add(new DerBitString(parameters.S2));
                 v.Add(new DerBitString(parameters.T0));
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.DilithiumOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.DilithiumOidLookup(parameters.Parameters));
 
                 Asn1EncodableVector vPub = new Asn1EncodableVector();
                 vPub.Add(new DerOctetString(parameters.Rho));
                 vPub.Add(new DerOctetString(parameters.T1));
 
-                return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes, new DerSequence(vPub).GetEncoded());
+                return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes,
+                    new DerSequence(vPub).GetEncoded());
             }
             if (privateKey is BikePrivateKeyParameters bikePrivateKeyParameters)
             {

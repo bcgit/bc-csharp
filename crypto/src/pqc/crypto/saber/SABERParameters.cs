@@ -1,5 +1,3 @@
-
-using System;
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
@@ -19,17 +17,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         public static SaberParameters saberkem256r3 = new SaberParameters("saberkem256r3", 3, 256);
         public static SaberParameters firesaberkem256r3 = new SaberParameters("firesaberkem256r3", 4, 256);
 
-        private string name;
-        private int l;
-        private int defaultKeySize;
-        private SABEREngine engine;
+        private readonly string name;
+        private readonly int l;
+        private readonly int defaultKeySize;
+        private readonly SaberEngine engine;
 
-        public SaberParameters(string name, int l, int defaultKeySize)
+        private SaberParameters(string name, int l, int defaultKeySize)
         {
             this.name = name;
             this.l = l;
             this.defaultKeySize = defaultKeySize;
-            this.engine = new SABEREngine(l, defaultKeySize);
+            this.engine = new SaberEngine(l, defaultKeySize);
         }
 
         public string Name => name;
@@ -38,9 +36,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
         public int DefaultKeySize => defaultKeySize;
 
-        internal SABEREngine GetEngine()
-        {
-            return engine;
-        }
+        internal SaberEngine Engine => engine;
     }
 }

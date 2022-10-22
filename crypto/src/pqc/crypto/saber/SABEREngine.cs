@@ -1,5 +1,5 @@
-
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
@@ -7,103 +7,66 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    internal class SABEREngine
+    internal sealed class SaberEngine
     {
         // constant parameters
-        public static int SABER_EQ = 13;
-        public static int SABER_EP = 10;
-        public static int SABER_N = 256;
+        internal const int SABER_EQ = 13;
+        internal const int SABER_EP = 10;
+        internal const int SABER_N = 256;
 
-        private static int SABER_SEEDBYTES = 32;
-        private static int SABER_NOISE_SEEDBYTES = 32;
-        private static int SABER_KEYBYTES = 32;
-        private static int SABER_HASHBYTES = 32;
-
+        private const int SABER_SEEDBYTES = 32;
+        private const int SABER_NOISE_SEEDBYTES = 32;
+        private const int SABER_KEYBYTES = 32;
+        private const int SABER_HASHBYTES = 32;
 
         // parameters for SABER{n}
-        private int SABER_L;
-        private int SABER_MU;
-        private int SABER_ET;
+        private readonly int SABER_L;
+        private readonly int SABER_MU;
+        private readonly int SABER_ET;
 
-        private int SABER_POLYCOINBYTES;
-        private int SABER_POLYBYTES;
-        private int SABER_POLYVECBYTES;
-        private int SABER_POLYCOMPRESSEDBYTES;
-        private int SABER_POLYVECCOMPRESSEDBYTES;
-        private int SABER_SCALEBYTES_KEM;
-        private int SABER_INDCPA_PUBLICKEYBYTES;
-        private int SABER_INDCPA_SECRETKEYBYTES;
-        private int SABER_PUBLICKEYBYTES;
-        private int SABER_SECRETKEYBYTES;
-        private int SABER_BYTES_CCA_DEC;
-        private int defaultKeySize;
+        private readonly int SABER_POLYCOINBYTES;
+        private readonly int SABER_POLYBYTES;
+        private readonly int SABER_POLYVECBYTES;
+        private readonly int SABER_POLYCOMPRESSEDBYTES;
+        private readonly int SABER_POLYVECCOMPRESSEDBYTES;
+        private readonly int SABER_SCALEBYTES_KEM;
+        private readonly int SABER_INDCPA_PUBLICKEYBYTES;
+        private readonly int SABER_INDCPA_SECRETKEYBYTES;
+        private readonly int SABER_PUBLICKEYBYTES;
+        private readonly int SABER_SECRETKEYBYTES;
+        private readonly int SABER_BYTES_CCA_DEC;
+        private readonly int defaultKeySize;
 
         //
         private int h1;
         private int h2;
 
-        private Utils utils;
+        private SaberUtilities utils;
         private Poly poly;
 
-        public int getSABER_N()
-        {
-            return SABER_N;
-        }
+        public int N => SABER_N;
 
-        public int getSABER_EP()
-        {
-            return SABER_EP;
-        }
+        public int EP => SABER_EP;
 
-        public int getSABER_KEYBYTES()
-        {
-            return SABER_KEYBYTES;
-        }
+        public int KeyBytes => SABER_KEYBYTES;
 
-        public int getSABER_L()
-        {
-            return SABER_L;
-        }
+        public int L => SABER_L;
 
-        public int getSABER_ET()
-        {
-            return SABER_ET;
-        }
+        public int ET => SABER_ET;
 
-        public int getSABER_POLYBYTES()
-        {
-            return SABER_POLYBYTES;
-        }
+        public int PolyBytes => SABER_POLYBYTES;
 
-        public int getSABER_POLYVECBYTES()
-        {
-            return SABER_POLYVECBYTES;
-        }
+        public int PolyVecBytes => SABER_POLYVECBYTES;
 
-        public int getSABER_SEEDBYTES()
-        {
-            return SABER_SEEDBYTES;
-        }
+        public int SeedBytes => SABER_SEEDBYTES;
 
-        public int getSABER_POLYCOINBYTES()
-        {
-            return SABER_POLYCOINBYTES;
-        }
+        public int PolyCoinBytes => SABER_POLYCOINBYTES;
 
-        public int getSABER_NOISE_SEEDBYTES()
-        {
-            return SABER_NOISE_SEEDBYTES;
-        }
+        public int NoiseSeedBytes => SABER_NOISE_SEEDBYTES;
 
-        public int getSABER_MU()
-        {
-            return SABER_MU;
-        }
+        public int MU => SABER_MU;
 
-        public Utils GetUtils()
-        {
-            return utils;
-        }
+        public SaberUtilities Utilities => utils;
 
         public int GetSessionKeySize()
         {
@@ -126,7 +89,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return SABER_SECRETKEYBYTES;
         }
 
-        public SABEREngine(int l, int defaultKeySize)
+        internal SaberEngine(int l, int defaultKeySize)
         {
             this.defaultKeySize = defaultKeySize;
 
@@ -162,7 +125,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
             this.h1 = (1 << (SABER_EQ - SABER_EP - 1));
             this.h2 = ((1 << (SABER_EP - 2)) - (1 << (SABER_EP - SABER_ET - 1)) + (1 << (SABER_EQ - SABER_EP - 1)));
-            utils = new Utils(this);
+            utils = new SaberUtilities(this);
             poly = new Poly(this);
         }
 

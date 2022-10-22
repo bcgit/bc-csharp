@@ -71,7 +71,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = key.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.McElieceOidLookup(key.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.McElieceOidLookup(key.Parameters));
 
                 // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new CmcePublicKey(encoding));
@@ -82,7 +83,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SaberOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.SaberOidLookup(parameters.Parameters));
 
                 // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(new DerOctetString(encoding)));
@@ -93,7 +95,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.PicnicOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.PicnicOidLookup(parameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
             if (publicKey is SIKEPublicKeyParameters)
@@ -102,7 +105,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SikeOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.SikeOidLookup(parameters.GetParameters()));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
             if (publicKey is FalconPublicKeyParameters)
@@ -110,7 +114,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 FalconPublicKeyParameters parameters = (FalconPublicKeyParameters)publicKey;
 
                 byte[] encoding = parameters.GetEncoded();
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.FalconOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.FalconOidLookup(parameters.Parameters));
 
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(new DerOctetString(encoding)));
             }
@@ -118,7 +123,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 KyberPublicKeyParameters parameters = (KyberPublicKeyParameters)publicKey;
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.KyberOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.KyberOidLookup(parameters.Parameters));
                 Asn1EncodableVector v = new Asn1EncodableVector();
                 v.Add(new DerOctetString(parameters.T));
                 v.Add(new DerOctetString(parameters.Rho));
@@ -128,9 +134,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 DilithiumPublicKeyParameters parameters = (DilithiumPublicKeyParameters)publicKey;
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.DilithiumOidLookup(parameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.DilithiumOidLookup(parameters.Parameters));
             
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(Arrays.Concatenate(parameters.Rho, parameters.T1)));
+                return new SubjectPublicKeyInfo(algorithmIdentifier,
+                    new DerOctetString(Arrays.Concatenate(parameters.Rho, parameters.T1)));
             }
             if (publicKey is BikePublicKeyParameters bikePublicKeyParameters)
             { 

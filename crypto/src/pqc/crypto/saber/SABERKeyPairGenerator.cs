@@ -1,4 +1,3 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
@@ -16,7 +15,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         private void Initialize(
             KeyGenerationParameters param)
         {
-            this.saberParams = (SaberKeyGenerationParameters) param;
+            this.saberParams = (SaberKeyGenerationParameters)param;
             this.random = param.Random;
 
             this.l = this.saberParams.Parameters.L;
@@ -24,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
         private AsymmetricCipherKeyPair GenKeyPair()
         {
-            SABEREngine engine = saberParams.Parameters.GetEngine();
+            SaberEngine engine = saberParams.Parameters.Engine;
             byte[] sk = new byte[engine.GetPrivateKeySize()];
             byte[] pk = new byte[engine.GetPublicKeySize()];
             engine.crypto_kem_keypair(pk, sk, random);

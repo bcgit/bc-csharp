@@ -1,23 +1,22 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    internal class Utils
+    internal class SaberUtilities
     {
+        private readonly int SABER_N;
+        private readonly int SABER_L;
+        private readonly int SABER_ET;
+        private readonly int SABER_POLYBYTES;
+        private readonly int SABER_EP;
+        private readonly int SABER_KEYBYTES;
 
-        private int SABER_N;
-        private int SABER_L;
-        private int SABER_ET;
-        private int SABER_POLYBYTES;
-        private int SABER_EP;
-        private int SABER_KEYBYTES;
-
-        internal Utils(SABEREngine engine)
+        internal SaberUtilities(SaberEngine engine)
         {
-            this.SABER_N = engine.getSABER_N();
-            this.SABER_L = engine.getSABER_L();
-            this.SABER_ET = engine.getSABER_ET();
-            this.SABER_POLYBYTES = engine.getSABER_POLYBYTES();
-            this.SABER_EP = engine.getSABER_EP();
-            this.SABER_KEYBYTES = engine.getSABER_KEYBYTES();
+            this.SABER_N = engine.N;
+            this.SABER_L = engine.L;
+            this.SABER_ET = engine.ET;
+            this.SABER_POLYBYTES = engine.PolyBytes;
+            this.SABER_EP = engine.EP;
+            this.SABER_KEYBYTES = engine.KeyBytes;
         }
 
         public void POLT2BS(byte[] bytes, int byteIndex, short[] data)

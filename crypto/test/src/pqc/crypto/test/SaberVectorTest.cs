@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SaberPrivateKeyParameters privParams = (SaberPrivateKeyParameters)PrivateKeyFactory.CreateKey(
                     PrivateKeyInfoFactory.CreatePrivateKeyInfo((SaberPrivateKeyParameters)kp.Private));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), name + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), name + " " + count + ": secret key");
 
             // KEM Enc
