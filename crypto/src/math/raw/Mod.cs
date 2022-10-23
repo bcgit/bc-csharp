@@ -12,10 +12,8 @@ namespace Org.BouncyCastle.Math.Raw
      * computation and modular inversion" by Daniel J. Bernstein and Bo-Yin Yang.
      */
 
-    internal abstract class Mod
+    internal static class Mod
     {
-        private static readonly SecureRandom RandomSource = new SecureRandom();
-
         private const int M30 = 0x3FFFFFFF;
         private const ulong M32UL = 0xFFFFFFFFUL;
 
@@ -364,7 +362,7 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
-        public static uint[] Random(uint[] p)
+        public static uint[] Random(SecureRandom random, uint[] p)
         {
             int len = p.Length;
             uint[] s = Nat.Create(len);
@@ -379,7 +377,7 @@ namespace Org.BouncyCastle.Math.Raw
             byte[] bytes = new byte[len << 2];
             do
             {
-                RandomSource.NextBytes(bytes);
+                random.NextBytes(bytes);
                 Pack.BE_To_UInt32(bytes, 0, s);
                 s[len - 1] &= m;
             }
@@ -389,7 +387,7 @@ namespace Org.BouncyCastle.Math.Raw
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void Random(ReadOnlySpan<uint> p, Span<uint> z)
+        public static void Random(SecureRandom random, ReadOnlySpan<uint> p, Span<uint> z)
         {
             int len = p.Length;
             if (z.Length < len)
@@ -410,7 +408,7 @@ namespace Org.BouncyCastle.Math.Raw
 
             do
             {
-                RandomSource.NextBytes(bytes);
+                random.NextBytes(bytes);
                 Pack.BE_To_UInt32(bytes, s);
                 s[len - 1] &= m;
             }

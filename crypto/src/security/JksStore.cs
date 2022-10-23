@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Security
             byte[] pkcs8Key = PrivateKeyInfoFactory.CreatePrivateKeyInfo(key).GetEncoded();
             byte[] protectedKey = new byte[pkcs8Key.Length + 40];
 
-            SecureRandom rnd = new SecureRandom();
+            SecureRandom rnd = CryptoServicesRegistrar.GetSecureRandom();
             rnd.NextBytes(protectedKey, 0, 20);
 
             IDigest digest = DigestUtilities.GetDigest("SHA-1");

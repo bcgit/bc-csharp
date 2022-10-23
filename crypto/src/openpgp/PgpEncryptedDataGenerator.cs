@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			SymmetricKeyAlgorithmTag encAlgorithm)
 		{
 			this.defAlgorithm = encAlgorithm;
-			this.rand = new SecureRandom();
+            this.rand = CryptoServicesRegistrar.GetSecureRandom();
 		}
 
 		public PgpEncryptedDataGenerator(
@@ -228,42 +228,51 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 			this.defAlgorithm = encAlgorithm;
 			this.withIntegrityPacket = withIntegrityPacket;
-			this.rand = new SecureRandom();
-		}
+            this.rand = CryptoServicesRegistrar.GetSecureRandom();
+        }
 
-		/// <summary>Existing SecureRandom constructor.</summary>
-		/// <param name="encAlgorithm">The symmetric algorithm to use.</param>
-		/// <param name="rand">Source of randomness.</param>
+        /// <summary>Existing SecureRandom constructor.</summary>
+        /// <param name="encAlgorithm">The symmetric algorithm to use.</param>
+        /// <param name="random">Source of randomness.</param>
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
-            SecureRandom				rand)
+            SecureRandom				random)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             this.defAlgorithm = encAlgorithm;
-            this.rand = rand;
+            this.rand = random;
         }
 
 		/// <summary>Creates a cipher stream which will have an integrity packet associated with it.</summary>
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
             bool						withIntegrityPacket,
-            SecureRandom				rand)
+            SecureRandom				random)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             this.defAlgorithm = encAlgorithm;
-            this.rand = rand;
+            this.rand = random;
             this.withIntegrityPacket = withIntegrityPacket;
         }
 
-		/// <summary>Base constructor.</summary>
-		/// <param name="encAlgorithm">The symmetric algorithm to use.</param>
-		/// <param name="rand">Source of randomness.</param>
-		/// <param name="oldFormat">PGP 2.6.x compatibility required.</param>
+        /// <summary>Base constructor.</summary>
+        /// <param name="encAlgorithm">The symmetric algorithm to use.</param>
+        /// <param name="random">Source of randomness.</param>
+        /// <param name="oldFormat">PGP 2.6.x compatibility required.</param>
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
-            SecureRandom				rand,
+            SecureRandom				random,
             bool						oldFormat)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             this.defAlgorithm = encAlgorithm;
-            this.rand = rand;
+            this.rand = random;
             this.oldFormat = oldFormat;
         }
 

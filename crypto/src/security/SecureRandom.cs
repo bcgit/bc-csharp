@@ -17,7 +17,8 @@ namespace Org.BouncyCastle.Security
             return Interlocked.Increment(ref counter);
         }
 
-        private static readonly SecureRandom Master = new SecureRandom(new CryptoApiRandomGenerator());
+        private static readonly SecureRandom MasterRandom = new SecureRandom(new CryptoApiRandomGenerator());
+        internal static readonly SecureRandom ArbitraryRandom = new SecureRandom(new VmpcRandomGenerator(), 16);
 
         private static DigestRandomGenerator CreatePrng(string digestName, bool autoSeed)
         {
@@ -102,13 +103,13 @@ namespace Org.BouncyCastle.Security
 
         public virtual byte[] GenerateSeed(int length)
         {
-            return GetNextBytes(Master, length);
+            return GetNextBytes(MasterRandom, length);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual void GenerateSeed(Span<byte> seed)
         {
-            Master.NextBytes(seed);
+            MasterRandom.NextBytes(seed);
         }
 #endif
 
@@ -255,7 +256,7 @@ namespace Org.BouncyCastle.Security
 #else
                 byte[] seed = new byte[seedLength];
 #endif
-            Master.NextBytes(seed);
+            MasterRandom.NextBytes(seed);
             generator.AddSeedMaterial(seed);
         }
     }

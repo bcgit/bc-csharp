@@ -1,9 +1,7 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
@@ -17,12 +15,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         {
             if (forSigning)
             {
-                if (param is ParametersWithRandom)
+                if (param is ParametersWithRandom withRandom)
                 {
-                    FalconPrivateKeyParameters skparam = ((FalconPrivateKeyParameters)((ParametersWithRandom)param).Parameters);
+                    FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)withRandom.Parameters;
                     encodedkey = skparam.GetEncoded();
                     nist = new FalconNIST(
-                        ((ParametersWithRandom)param).Random, 
+                        withRandom.Random,
                         skparam.Parameters.LogN,
                         skparam.Parameters.NonceLength);
                 }
@@ -31,13 +29,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)param;
                     encodedkey = ((FalconPrivateKeyParameters)param).GetEncoded();
                     nist = new FalconNIST(
-                        new SecureRandom(),
-                        // CryptoServicesRegistrar.GetSecureRandom(),
+                        CryptoServicesRegistrar.GetSecureRandom(),
                         skparam.Parameters.LogN,
-                        skparam.Parameters.NonceLength
-                        ); 
-                        // TODO when CryptoServicesRegistrar has been implemented, use that instead
-
+                        skparam.Parameters.NonceLength);
                 }
             }
             else
@@ -45,8 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 FalconPublicKeyParameters pkparam = (FalconPublicKeyParameters)param;
                 encodedkey = pkparam.GetEncoded();
                 nist = new FalconNIST(
-                    new SecureRandom(),
-                    // CryptoServicesRegistrar.GetSecureRandom()
+                    CryptoServicesRegistrar.GetSecureRandom(),
                     pkparam.Parameters.LogN,
                     pkparam.Parameters.NonceLength);
             }
