@@ -27,18 +27,7 @@ namespace Org.BouncyCastle.Security
             DigestRandomGenerator prng = new DigestRandomGenerator(digest);
             if (autoSeed)
             {
-                prng.AddSeedMaterial(NextCounterValue());
-
-                int seedLength = digest.GetDigestSize();
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                Span<byte> seed = seedLength <= 128
-                    ? stackalloc byte[seedLength]
-                    : new byte[seedLength];
-#else
-                byte[] seed = new byte[seedLength];
-#endif
-                Master.NextBytes(seed);
-                prng.AddSeedMaterial(seed);
+                AutoSeed(prng, digest.GetDigestSize());
             }
             return prng;
         }
@@ -100,6 +89,14 @@ namespace Org.BouncyCastle.Security
         public SecureRandom(IRandomGenerator generator)
             : base(0)
         {
+            this.generator = generator;
+        }
+
+        public SecureRandom(IRandomGenerator generator, int autoSeedLengthInBytes)
+            : base(0)
+        {
+            AutoSeed(generator, autoSeedLengthInBytes);
+
             this.generator = generator;
         }
 
@@ -245,6 +242,21 @@ namespace Org.BouncyCastle.Security
 #endif
             NextBytes(bytes);
             return (long)Pack.BE_To_UInt64(bytes);
+        }
+
+        private static void AutoSeed(IRandomGenerator generator, int seedLength)
+        {
+            generator.AddSeedMaterial(NextCounterValue());
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> seed = seedLength <= 128
+                ? stackalloc byte[seedLength]
+                : new byte[seedLength];
+#else
+                byte[] seed = new byte[seedLength];
+#endif
+            Master.NextBytes(seed);
+            generator.AddSeedMaterial(seed);
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Runtime.Intrinsics.X86;
 #endif
 using System.Runtime.Serialization;
 using System.Text;
-
+using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Math
         private const int chunk2 = 1, chunk8 = 1, chunk10 = 19, chunk16 = 16;
         private static readonly BigInteger radix2, radix2E, radix8, radix8E, radix10, radix10E, radix16, radix16E;
 
-        private static readonly SecureRandom RandomSource = new SecureRandom();
+        private static readonly SecureRandom RandomSource = new SecureRandom(new VmpcRandomGenerator(), 16);
 
         /*
          * These are the threshold bit-lengths (of an exponent) where we increase the window size.
