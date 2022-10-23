@@ -222,6 +222,8 @@ namespace Org.BouncyCastle.Security
             AddKpgAlgorithm("ECGOST3410",
                 "ECGOST-3410",
                 "GOST-3410-2001");
+            AddKpgAlgorithm("ECGOST3410-2012",
+                "GOST-3410-2012");
             AddKpgAlgorithm("Ed25519",
                 "Ed25519ctx",
                 "Ed25519ph",
@@ -358,7 +360,7 @@ namespace Org.BouncyCastle.Security
             if (canonicalName == "DSA")
                 return new DsaKeyPairGenerator();
 
-            // "EC", "ECDH", "ECDHC", "ECDSA", "ECGOST3410", "ECMQV"
+            // "EC", "ECDH", "ECDHC", "ECDSA", "ECGOST3410", "ECGOST3410-2012", "ECMQV"
             if (Platform.StartsWith(canonicalName, "EC"))
                 return new ECKeyPairGenerator(canonicalName);
 
