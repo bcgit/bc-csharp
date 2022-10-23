@@ -1,6 +1,8 @@
 ﻿#if NETCOREAPP3_0_OR_GREATER
 using System;
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
 using Org.BouncyCastle.Crypto.Parameters;
@@ -16,7 +18,6 @@ namespace Org.BouncyCastle.Crypto.Engines
     {
         public static bool IsSupported => Aes.IsSupported;
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static Vector128<byte>[] CreateRoundKeys(byte[] key, bool forEncryption)
         {
             Vector128<byte>[] K;
@@ -217,7 +218,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return 64;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ImplRounds(ref Vector128<byte> state)
         {
             switch (m_mode)
@@ -232,7 +233,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ImplRounds(
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -248,7 +249,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Decrypt128(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
             state = Sse2.Xor(state, roundKeys[0]);
@@ -264,7 +265,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state = Aes.DecryptLast(state, roundKeys[10]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Decrypt192(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
             state = Sse2.Xor(state, roundKeys[0]);
@@ -282,7 +283,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state = Aes.DecryptLast(state, roundKeys[12]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Decrypt256(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
             state = Sse2.Xor(state, roundKeys[0]);
@@ -302,7 +303,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state = Aes.DecryptLast(state, roundKeys[14]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void DecryptFour128(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -362,7 +363,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             s4 = Aes.DecryptLast(s4, rk[10]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void DecryptFour192(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -432,7 +433,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             s4 = Aes.DecryptLast(s4, rk[12]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void DecryptFour256(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -512,7 +513,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             s4 = Aes.DecryptLast(s4, rk[14]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Encrypt128(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
             state = Sse2.Xor(state, roundKeys[0]);
@@ -528,7 +529,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state = Aes.EncryptLast(state, roundKeys[10]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Encrypt192(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
             state = Sse2.Xor(state, roundKeys[0]);
@@ -546,7 +547,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state = Aes.EncryptLast(state, roundKeys[12]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Encrypt256(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
             state = Sse2.Xor(state, roundKeys[0]);
@@ -566,7 +567,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state = Aes.EncryptLast(state, roundKeys[14]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EncryptFour128(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -626,7 +627,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             s4 = Aes.EncryptLast(s4, rk[10]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EncryptFour192(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -696,7 +697,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             s4 = Aes.EncryptLast(s4, rk[12]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EncryptFour256(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
@@ -776,34 +777,38 @@ namespace Org.BouncyCastle.Crypto.Engines
             s4 = Aes.EncryptLast(s4, rk[14]);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector128<byte> Load128(ReadOnlySpan<byte> t)
         {
 #if NET7_0_OR_GREATER
             return Vector128.Create<byte>(t);
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
-                return Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(t[0]));
+                return MemoryMarshal.Read<Vector128<byte>>(t);
 
-            return Vector128.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12],
-                t[13], t[14], t[15]);
+            return Vector128.Create(
+                BinaryPrimitives.ReadUInt64LittleEndian(t[..8]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[8..])
+            ).AsByte();
 #endif
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector64<byte> Load64(ReadOnlySpan<byte> t)
         {
 #if NET7_0_OR_GREATER
             return Vector64.Create<byte>(t);
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector64<byte>>() == 8)
-                return Unsafe.ReadUnaligned<Vector64<byte>>(ref Unsafe.AsRef(t[0]));
+                return MemoryMarshal.Read<Vector64<byte>>(t);
 
-            return Vector64.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            return Vector64.Create(
+                BinaryPrimitives.ReadUInt64LittleEndian(t[..8])
+            ).AsByte();
 #endif
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Store128(Vector128<byte> s, Span<byte> t)
         {
 #if NET7_0_OR_GREATER
@@ -811,13 +816,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
-                Unsafe.WriteUnaligned(ref t[0], s);
+                MemoryMarshal.Write(t, ref s);
                 return;
             }
 
             var u = s.AsUInt64();
-            Utilities.Pack.UInt64_To_LE(u.GetElement(0), t);
-            Utilities.Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
+            BinaryPrimitives.WriteUInt64LittleEndian(t[..8], u.GetElement(0));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[8..], u.GetElement(1));
 #endif
         }
     }

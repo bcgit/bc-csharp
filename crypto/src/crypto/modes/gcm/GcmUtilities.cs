@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #endif
 #if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -46,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 var X = Vector128.Create(x0, x1).AsByte();
                 // TODO[Arm] System.Runtime.Intrinsics.Arm.AdvSimd.Reverse8
                 var Z = Ssse3.Shuffle(X, EndianMask);
-                Unsafe.WriteUnaligned(ref z[0], Z);
+                MemoryMarshal.Write(z.AsSpan(), ref Z);
                 return;
             }
 #endif
@@ -71,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 #if NETCOREAPP3_0_OR_GREATER
             if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
-                var X = Unsafe.ReadUnaligned<Vector128<byte>>(ref x[0]);
+                var X = MemoryMarshal.Read<Vector128<byte>>(x.AsSpan());
                 var Z = Ssse3.Shuffle(X, EndianMask).AsUInt64();
                 z.n0 = Z.GetElement(0);
                 z.n1 = Z.GetElement(1);

@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
 #if NETCOREAPP3_0_OR_GREATER
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -215,10 +217,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
 		{
-			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
-				return Unsafe.ReadUnaligned<Vector128<uint>>(ref Unsafe.As<uint, byte>(ref Unsafe.AsRef(t[0])));
+            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
+                return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.Cast<uint, byte>(t));
 
-			return Vector128.Create(t[0], t[1], t[2], t[3]);
+            return Vector128.Create(t[0], t[1], t[2], t[3]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -226,13 +228,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
 			{
-				Unsafe.WriteUnaligned(ref t[0], s);
+				MemoryMarshal.Write(t, ref s);
 				return;
 			}
 
 			var u = s.AsUInt64();
-			Pack.UInt64_To_LE(u.GetElement(0), t);
-			Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
+            BinaryPrimitives.WriteUInt64LittleEndian(t[..8], u.GetElement(0));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[8..], u.GetElement(1));
 		}
 #endif
 	}
