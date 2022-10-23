@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         ///      Caller should clear the input password as soon as possible.</param>
         /// <param name="group">Prime order group. See JPakePrimeOrderGroups for standard groups.</param>
         public JPakeParticipant(string participantId, char[] password, JPakePrimeOrderGroup group)
-            : this(participantId, password, group, new Sha256Digest(), new SecureRandom()) { }
+            : this(participantId, password, group, new Sha256Digest(), CryptoServicesRegistrar.GetSecureRandom()) { }
 
 
         /// <summary>
@@ -162,7 +162,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// <param name="digest">Digest to use during zero knowledge proofs and key confirmation
         ///     (SHA-256 or stronger preferred).</param>
         /// <param name="random">Source of secure random data for x1 and x2, and for the zero knowledge proofs.</param>
-        public JPakeParticipant(string participantId, char[] password, JPakePrimeOrderGroup group, IDigest digest, SecureRandom random)
+        public JPakeParticipant(string participantId, char[] password, JPakePrimeOrderGroup group, IDigest digest,
+            SecureRandom random)
         {
             JPakeUtilities.ValidateNotNull(participantId, "participantId");
             JPakeUtilities.ValidateNotNull(password, "password");
@@ -171,9 +172,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             JPakeUtilities.ValidateNotNull(random, "random");
 
             if (password.Length == 0)
-            {
                 throw new ArgumentException("Password must not be empty.");
-            }
 
             this.participantId = participantId;
 

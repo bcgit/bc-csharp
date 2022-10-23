@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             }
             else
             {
-                this.random = new SecureRandom();
+                this.random = CryptoServicesRegistrar.GetSecureRandom();
             }
 
             engine.Init(forEncryption, parameters);

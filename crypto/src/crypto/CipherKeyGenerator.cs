@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto
 
 				uninitialised = false;
 
-				EngineInit(new KeyGenerationParameters(new SecureRandom(), defaultStrength));
+				EngineInit(new KeyGenerationParameters(CryptoServicesRegistrar.GetSecureRandom(), defaultStrength));
 			}
 
 			return EngineGenerateKey();
