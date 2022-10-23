@@ -50,12 +50,28 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static void Xor(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor(x.AsSpan(xOff), y.AsSpan(yOff), z.AsSpan(zOff));
+#else
+            for (int i = 0; i < 16; i += 4)
+            {
+                z[zOff + i + 0] = x[xOff + i + 0] ^ y[yOff + i + 0];
+                z[zOff + i + 1] = x[xOff + i + 1] ^ y[yOff + i + 1];
+                z[zOff + i + 2] = x[xOff + i + 2] ^ y[yOff + i + 2];
+                z[zOff + i + 3] = x[xOff + i + 3] ^ y[yOff + i + 3];
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Xor(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
 #if NETCOREAPP3_0_OR_GREATER
             if (Avx2.IsSupported && Unsafe.SizeOf<Vector256<byte>>() == 32)
             {
-                var X = MemoryMarshal.Cast<uint, byte>(x.AsSpan(xOff, 16));
-                var Y = MemoryMarshal.Cast<uint, byte>(y.AsSpan(yOff, 16));
-                var Z = MemoryMarshal.Cast<uint, byte>(z.AsSpan(zOff, 16));
+                var X = MemoryMarshal.Cast<uint, byte>(x[..16]);
+                var Y = MemoryMarshal.Cast<uint, byte>(y[..16]);
+                var Z = MemoryMarshal.Cast<uint, byte>(z[..16]);
 
                 var X0 = MemoryMarshal.Read<Vector256<byte>>(X[0x00..0x20]);
                 var X1 = MemoryMarshal.Read<Vector256<byte>>(X[0x20..0x40]);
@@ -73,9 +89,9 @@ namespace Org.BouncyCastle.Math.Raw
 
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
-                var X = MemoryMarshal.Cast<uint, byte>(x.AsSpan(xOff, 16));
-                var Y = MemoryMarshal.Cast<uint, byte>(y.AsSpan(yOff, 16));
-                var Z = MemoryMarshal.Cast<uint, byte>(z.AsSpan(zOff, 16));
+                var X = MemoryMarshal.Cast<uint, byte>(x[..16]);
+                var Y = MemoryMarshal.Cast<uint, byte>(y[..16]);
+                var Z = MemoryMarshal.Cast<uint, byte>(z[..16]);
 
                 var X0 = MemoryMarshal.Read<Vector128<byte>>(X[0x00..0x10]);
                 var X1 = MemoryMarshal.Read<Vector128<byte>>(X[0x10..0x20]);
@@ -102,11 +118,12 @@ namespace Org.BouncyCastle.Math.Raw
 
             for (int i = 0; i < 16; i += 4)
             {
-                z[zOff + i + 0] = x[xOff + i + 0] ^ y[yOff + i + 0];
-                z[zOff + i + 1] = x[xOff + i + 1] ^ y[yOff + i + 1];
-                z[zOff + i + 2] = x[xOff + i + 2] ^ y[yOff + i + 2];
-                z[zOff + i + 3] = x[xOff + i + 3] ^ y[yOff + i + 3];
+                z[i + 0] = x[i + 0] ^ y[i + 0];
+                z[i + 1] = x[i + 1] ^ y[i + 1];
+                z[i + 2] = x[i + 2] ^ y[i + 2];
+                z[i + 3] = x[i + 3] ^ y[i + 3];
             }
         }
+#endif
     }
 }
