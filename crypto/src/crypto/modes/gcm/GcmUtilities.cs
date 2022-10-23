@@ -17,9 +17,8 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
     internal abstract class GcmUtilities
     {
 #if NETCOREAPP3_0_OR_GREATER
-        private static readonly Vector128<byte> EndianMask = Vector128.Create(
-            (byte)0x07, (byte)0x06, (byte)0x05, (byte)0x04, (byte)0x03, (byte)0x02, (byte)0x01, (byte)0x00,
-            (byte)0x0F, (byte)0x0E, (byte)0x0D, (byte)0x0C, (byte)0x0B, (byte)0x0A, (byte)0x09, (byte)0x08);
+        private static readonly Vector128<byte> EndianMask = Vector128.Create((byte)
+            0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00, 0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08);
 #endif
 
         internal struct FieldElement

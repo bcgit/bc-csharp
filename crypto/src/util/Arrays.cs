@@ -631,10 +631,7 @@ namespace Org.BouncyCastle.Utilities
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Fill<T>(Span<T> ts, T t)
         {
-            for (int i = 0; i < ts.Length; ++i)
-            {
-                ts[i] = t;
-            }
+            ts.Fill(t);
         }
 #endif
 

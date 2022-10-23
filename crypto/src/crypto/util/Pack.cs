@@ -7,12 +7,8 @@ using System.Runtime.CompilerServices;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
-    internal sealed class Pack
+    internal static class Pack
     {
-        private Pack()
-        {
-        }
-
         internal static void UInt16_To_BE(ushort n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
