@@ -396,7 +396,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
 
-			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null));
+			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
 		}
 
         /*

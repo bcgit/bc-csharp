@@ -55,6 +55,7 @@ namespace Org.BouncyCastle.Cms
 			internal SignerInf(
                 CmsSignedGenerator			outer,
 	            AsymmetricKeyParameter		key,
+				SecureRandom                random,
 	            SignerIdentifier			signerIdentifier,
 	            string						digestOID,
 	            string						encOID,
@@ -67,7 +68,7 @@ namespace Org.BouncyCastle.Cms
                 string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(encOID);
 
                 this.outer = outer;
-                this.sigCalc = new Asn1SignatureFactory(signatureName, key);
+                this.sigCalc = new Asn1SignatureFactory(signatureName, key, random);
                 this.signerIdentifier = signerIdentifier;
                 this.digestOID = digestOID;
                 this.encOID = encOID;
@@ -110,10 +111,7 @@ namespace Org.BouncyCastle.Cms
 				get { return unsAttr; }
             }
 
-			internal SignerInfo ToSignerInfo(
-                DerObjectIdentifier	contentType,
-                CmsProcessable		content,
-				SecureRandom		random)
+			internal SignerInfo ToSignerInfo(DerObjectIdentifier contentType, CmsProcessable content)
             {
                 AlgorithmIdentifier digAlgId = DigestAlgorithmID;
 				string digestName = Helper.GetDigestAlgName(digestOID);
@@ -196,10 +194,9 @@ namespace Org.BouncyCastle.Cms
         }
 
 		/// <summary>Constructor allowing specific source of randomness</summary>
-		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-		public CmsSignedDataGenerator(
-			SecureRandom rand)
-			: base(rand)
+		/// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsSignedDataGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 
@@ -425,7 +422,7 @@ namespace Org.BouncyCastle.Cms
 			CmsAttributeTableGenerator  unsignedAttrGen,
 			Asn1.Cms.AttributeTable		baseSignedTable)
 		{
-			signerInfs.Add(new SignerInf(this, privateKey, signerIdentifier, digestOID, encryptionOID,
+			signerInfs.Add(new SignerInf(this, privateKey, m_random, signerIdentifier, digestOID, encryptionOID,
 				signedAttrGen, unsignedAttrGen, baseSignedTable));
 		}
 
@@ -480,7 +477,7 @@ namespace Org.BouncyCastle.Cms
 				try
                 {
 					digestAlgs.Add(signer.DigestAlgorithmID);
-                    signerInfos.Add(signer.ToSignerInfo(contentTypeOid, content, rand));
+                    signerInfos.Add(signer.ToSignerInfo(contentTypeOid, content));
 				}
                 catch (IOException e)
                 {

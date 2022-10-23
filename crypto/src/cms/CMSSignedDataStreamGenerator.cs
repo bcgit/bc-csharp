@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Cms
 					}
 				}
 
-				_sig.Init(true, new ParametersWithRandom(key, outer.rand));
+				_sig.Init(true, new ParametersWithRandom(key, outer.m_random));
 			}
 
 			public SignerInfo Generate(DerObjectIdentifier contentType, AlgorithmIdentifier digestAlgorithm,
@@ -234,10 +234,9 @@ namespace Org.BouncyCastle.Cms
         }
 
 		/// <summary>Constructor allowing specific source of randomness</summary>
-		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-		public CmsSignedDataStreamGenerator(
-			SecureRandom rand)
-			: base(rand)
+		/// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsSignedDataStreamGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 

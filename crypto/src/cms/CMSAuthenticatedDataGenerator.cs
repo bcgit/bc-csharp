@@ -29,20 +29,14 @@ namespace Org.BouncyCastle.Cms
 	public class CmsAuthenticatedDataGenerator
 	    : CmsAuthenticatedGenerator
 	{
-	    /**
-	     * base constructor
-	     */
 	    public CmsAuthenticatedDataGenerator()
 	    {
 	    }
 
-	    /**
-	     * constructor allowing specific source of randomness
-	     * @param rand instance of SecureRandom to use
-	     */
-	    public CmsAuthenticatedDataGenerator(
-	        SecureRandom rand)
-	        : base(rand)
+        /// <summary>Constructor allowing specific source of randomness</summary>
+        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+	    public CmsAuthenticatedDataGenerator(SecureRandom random)
+	        : base(random)
 	    {
 	    }
 
@@ -109,7 +103,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				try
 				{
-					recipientInfos.Add(rig.Generate(encKey, rand));
+					recipientInfos.Add(rig.Generate(encKey, m_random));
 				}
 				catch (InvalidKeyException e)
 				{
@@ -142,7 +136,7 @@ namespace Org.BouncyCastle.Cms
 				// FIXME Will this work for macs?
 				CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-				keyGen.Init(new KeyGenerationParameters(rand, keyGen.DefaultStrength));
+				keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
 				return Generate(content, encryptionOid, keyGen);
             }

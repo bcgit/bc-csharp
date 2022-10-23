@@ -15,6 +15,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -481,7 +482,7 @@ namespace Org.BouncyCastle.Cms
         }
     }
 
-    public class CmsSignedGenerator
+    public abstract class CmsSignedGenerator
     {
         /**
         * Default type for the signed data.
@@ -516,19 +517,21 @@ namespace Org.BouncyCastle.Cms
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
-        protected readonly SecureRandom rand;
+        protected readonly SecureRandom m_random;
 
         protected CmsSignedGenerator()
-            : this(new SecureRandom())
+            : this(CryptoServicesRegistrar.GetSecureRandom())
         {
         }
 
         /// <summary>Constructor allowing specific source of randomness</summary>
-        /// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-        protected CmsSignedGenerator(
-            SecureRandom rand)
+        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        protected CmsSignedGenerator(SecureRandom random)
         {
-            this.rand = rand;
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            m_random = random;
         }
 
         internal protected virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
