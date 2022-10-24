@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 	{
 		private readonly NameOrPseudonym	nameOrPseudonym;
 		private readonly BigInteger			nameDistinguisher;
-		private readonly DerGeneralizedTime	dateOfBirth;
+		private readonly Asn1GeneralizedTime dateOfBirth;
 		private readonly DirectoryString	placeOfBirth;
 		private readonly string				gender;
 		private readonly DirectoryString	postalAddress;
@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 					nameDistinguisher = DerInteger.GetInstance(o, false).Value;
 					break;
 				case 1:
-					dateOfBirth = DerGeneralizedTime.GetInstance(o, false);
+					dateOfBirth = Asn1GeneralizedTime.GetInstance(o, false);
 					break;
 				case 2:
 					placeOfBirth = DirectoryString.GetInstance(o, true);
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 		public PersonalData(
 			NameOrPseudonym		nameOrPseudonym,
 			BigInteger			nameDistinguisher,
-			DerGeneralizedTime	dateOfBirth,
+            Asn1GeneralizedTime dateOfBirth,
 			DirectoryString		placeOfBirth,
 			string				gender,
 			DirectoryString		postalAddress)
@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 			get { return nameDistinguisher; }
 		}
 
-		public DerGeneralizedTime DateOfBirth
+		public Asn1GeneralizedTime DateOfBirth
 		{
 			get { return dateOfBirth; }
 		}

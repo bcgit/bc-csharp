@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
@@ -44,7 +45,13 @@ namespace Org.BouncyCastle.Cmp
             return this;
         }
 
-        public ProtectedPkiMessageBuilder SetMessageTime(DerGeneralizedTime generalizedTime)
+        public ProtectedPkiMessageBuilder SetMessageTime(DateTime time)
+        {
+            m_hdrBuilder.SetMessageTime(new Asn1GeneralizedTime(time));
+            return this;
+        }
+
+        public ProtectedPkiMessageBuilder SetMessageTime(Asn1GeneralizedTime generalizedTime)
         {
             m_hdrBuilder.SetMessageTime(generalizedTime);
             return this;

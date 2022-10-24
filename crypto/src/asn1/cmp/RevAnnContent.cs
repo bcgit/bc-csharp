@@ -19,18 +19,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private readonly PkiStatusEncodable m_status;
 		private readonly CertId m_certID;
-		private readonly DerGeneralizedTime m_willBeRevokedAt;
-		private readonly DerGeneralizedTime m_badSinceDate;
+		private readonly Asn1GeneralizedTime m_willBeRevokedAt;
+		private readonly Asn1GeneralizedTime m_badSinceDate;
 		private readonly X509Extensions m_crlDetails;
 
-        public RevAnnContent(PkiStatusEncodable status, CertId certID, DerGeneralizedTime willBeRevokedAt,
-			DerGeneralizedTime badSinceDate)
+        public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
+            Asn1GeneralizedTime badSinceDate)
             : this(status, certID, willBeRevokedAt, badSinceDate, null)
         {
 		}
 
-        public RevAnnContent(PkiStatusEncodable status, CertId certID, DerGeneralizedTime willBeRevokedAt,
-			DerGeneralizedTime badSinceDate, X509Extensions crlDetails)
+        public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
+            Asn1GeneralizedTime badSinceDate, X509Extensions crlDetails)
         {
             m_status = status;
             m_certID = certID;
@@ -43,8 +43,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		{
 			m_status = PkiStatusEncodable.GetInstance(seq[0]);
 			m_certID = CertId.GetInstance(seq[1]);
-			m_willBeRevokedAt = DerGeneralizedTime.GetInstance(seq[2]);
-			m_badSinceDate = DerGeneralizedTime.GetInstance(seq[3]);
+			m_willBeRevokedAt = Asn1GeneralizedTime.GetInstance(seq[2]);
+			m_badSinceDate = Asn1GeneralizedTime.GetInstance(seq[3]);
 
 			if (seq.Count > 4)
 			{
@@ -56,9 +56,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual CertId CertID => m_certID;
 
-		public virtual DerGeneralizedTime WillBeRevokedAt => m_willBeRevokedAt;
+		public virtual Asn1GeneralizedTime WillBeRevokedAt => m_willBeRevokedAt;
 
-		public virtual DerGeneralizedTime BadSinceDate => m_badSinceDate;
+		public virtual Asn1GeneralizedTime BadSinceDate => m_badSinceDate;
 
 		public virtual X509Extensions CrlDetails => m_crlDetails;
 

@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		}
 
 		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
-			DerGeneralizedTime invalidityDate)
+            Asn1GeneralizedTime invalidityDate)
 		{
             var extOids = new List<DerObjectIdentifier>();
             var extValues = new List<X509Extension>();

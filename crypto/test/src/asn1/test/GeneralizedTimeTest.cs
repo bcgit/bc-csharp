@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 string ii = input[i], oi = output[i];
 
-                DerGeneralizedTime t = new DerGeneralizedTime(ii);
+                Asn1GeneralizedTime t = new Asn1GeneralizedTime(ii);
                 DateTime dt = t.ToDateTime();
                 string st = t.GetTime();
 
@@ -171,14 +171,14 @@ namespace Org.BouncyCastle.Asn1.Tests
                 {
                     if (!st.Equals(oi))
                     {
-                        Fail("failed conversion test");
+                        Fail("failed GMT conversion test " + i);
                     }
 
                     string dts = dt.ToString(@"yyyyMMddHHmmss\Z");
                     string zi = zOutput[i];
                     if (!dts.Equals(zi))
                     {
-                        Fail("failed date conversion test");
+                        Fail("failed date conversion test " + i);
                     }
                 }
                 else
@@ -186,70 +186,74 @@ namespace Org.BouncyCastle.Asn1.Tests
                     string offset = CalculateGmtOffset(dt);
                     if (!st.Equals(oi + offset))
                     {
-                        Fail("failed conversion test");
+                        Fail("failed conversion test " + i);
                     }
                 }
             }
 
             for (int i = 0; i != input.Length; i++)
             {
-                DerGeneralizedTime t = new DerGeneralizedTime(input[i]);
+                Asn1GeneralizedTime t = new Asn1GeneralizedTime(input[i]);
 
                 if (!t.ToDateTime().ToString(@"yyyyMMddHHmmss.fff\Z").Equals(mzOutput[i]))
                 {
-                    Console.WriteLine("{0} != {1}", t.ToDateTime().ToString(@"yyyyMMddHHmmss.SSS\Z"), mzOutput[i]);
+                    Console.WriteLine("{0} != {1}", t.ToDateTime().ToString(@"yyyyMMddHHmmss.fff\Z"), mzOutput[i]);
 
-                    Fail("failed long date conversion test");
+                    Fail("failed long date conversion test " + i);
                 }
             }
 
-            // TODO
-            //for (int i = 0; i != mzOutput.Length; i++)
-            //{
-            //    DerGeneralizedTime t = new DerGeneralizedTime(mzOutput[i]);
+            for (int i = 0; i != mzOutput.Length; i++)
+            {
+                DerGeneralizedTime t = new DerGeneralizedTime(mzOutput[i]);
 
-            //    if (!AreEqual(t.GetEncoded(), new DerGeneralizedTime(derMzOutput[i]).GetEncoded()))
-            //    {
-            //        Fail("der encoding wrong");
-            //    }
-            //}
+                if (!AreEqual(t.GetEncoded(), new Asn1GeneralizedTime(derMzOutput[i]).GetEncoded()))
+                {
+                    Fail("der encoding wrong");
+                }
+            }
 
-            // TODO
-            //for (int i = 0; i != truncOutput.Length; i++)
-            //{
-            //    DerGeneralizedTime t = new DerGeneralizedTime(truncOutput[i]);
+            for (int i = 0; i != truncOutput.Length; i++)
+            {
+                DerGeneralizedTime t = new DerGeneralizedTime(truncOutput[i]);
 
-            //    if (!AreEqual(t.GetEncoded(), new DerGeneralizedTime(derTruncOutput[i]).GetEncoded()))
-            //    {
-            //        Fail("trunc der encoding wrong");
-            //    }
-            //}
+                if (!AreEqual(t.GetEncoded(), new Asn1GeneralizedTime(derTruncOutput[i]).GetEncoded()))
+                {
+                    Fail("trunc der encoding wrong");
+                }
+            }
 
             {
                 // check BER encoding is still "as given"
-                DerGeneralizedTime t = new DerGeneralizedTime("202208091215Z");
+                Asn1GeneralizedTime ber = new Asn1GeneralizedTime("202208091215Z");
 
-                //IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), t.GetEncoded(Asn1Encodable.DL)));
-                IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), t.GetEncoded(Asn1Encodable.Ber)));
-                IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), t.GetEncoded(Asn1Encodable.Der)));
+                //IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), ber.GetEncoded(Asn1Encodable.DL)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), ber.GetEncoded(Asn1Encodable.Ber)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), ber.GetEncoded(Asn1Encodable.Der)));
+
+                // check always uses DER encoding
+                DerGeneralizedTime der = new DerGeneralizedTime("202208091215Z");
+
+                //IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.DL)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Ber)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Der)));
             }
 
-            // TODO
-            //{
-            //    // check an actual GMT string comes back untampered
-            //    DerGeneralizedTime time = new DerGeneralizedTime("20190704031318GMT+00:00");
+            {
+                // check an actual GMT string comes back untampered
+                Asn1GeneralizedTime time = new Asn1GeneralizedTime("20190704031318GMT+00:00");
 
-            //    IsTrue("20190704031318GMT+00:00".Equals(time.GetTime()));
+                IsTrue("20190704031318GMT+00:00".Equals(time.GetTime()));
+            }
 
-            //    try
-            //    {
-            //        DerGeneralizedTime.GetInstance(new byte[0]);
-            //    }
-            //    catch (ArgumentException e)
-            //    {
-            //        IsTrue(e.Message.Equals("GeneralizedTime string too short"));
-            //    }
-            //}
+            try
+            {
+                new DerGeneralizedTime(new byte[0]);
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue(e.Message.StartsWith("GeneralizedTime string too short"));
+            }
 
             /*
              * [BMA-87]
@@ -275,16 +279,23 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private string CalculateGmtOffset(DateTime date)
         {
-            char sign = '+';
+            TimeZoneInfo timeZone = TimeZoneInfo.Local;
+            TimeSpan offset = timeZone.BaseUtcOffset;
 
-            TimeSpan offset = TimeZoneInfo.Local.GetUtcOffset(date);
+            char sign = '+';
             if (offset.CompareTo(TimeSpan.Zero) < 0)
             {
                 sign = '-';
                 offset = offset.Duration();
             }
+
             int hours = offset.Hours;
             int minutes = offset.Minutes;
+
+            if (timeZone.SupportsDaylightSavingTime && timeZone.IsDaylightSavingTime(date))
+            {
+                hours += sign.Equals("+") ? 1 : -1;
+            }
 
             return "GMT" + sign + Convert(hours) + ":" + Convert(minutes);
         }

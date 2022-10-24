@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		private readonly DerObjectIdentifier	tsaPolicyId;
 		private readonly MessageImprint			messageImprint;
 		private readonly DerInteger				serialNumber;
-		private readonly DerGeneralizedTime		genTime;
+		private readonly Asn1GeneralizedTime	genTime;
 		private readonly Accuracy				accuracy;
 		private readonly DerBoolean				ordering;
 		private readonly DerInteger				nonce;
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
 			// genTime
 			e.MoveNext();
-			genTime = DerGeneralizedTime.GetInstance(e.Current);
+			genTime = Asn1GeneralizedTime.GetInstance(e.Current);
 
 			// default for ordering
 			ordering = DerBoolean.False;
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			DerObjectIdentifier	tsaPolicyId,
 			MessageImprint		messageImprint,
 			DerInteger			serialNumber,
-			DerGeneralizedTime	genTime,
+            Asn1GeneralizedTime genTime,
 			Accuracy			accuracy,
 			DerBoolean			ordering,
 			DerInteger			nonce,
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			get { return accuracy; }
 		}
 
-		public DerGeneralizedTime GenTime
+		public Asn1GeneralizedTime GenTime
 		{
 			get { return genTime; }
 		}

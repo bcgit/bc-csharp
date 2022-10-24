@@ -426,7 +426,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.BitString:
                 return DerBitString.CreatePrimitive(bytes);
             case Asn1Tags.GeneralizedTime:
-                return DerGeneralizedTime.CreatePrimitive(bytes);
+                return Asn1GeneralizedTime.CreatePrimitive(bytes);
             case Asn1Tags.GeneralString:
                 return DerGeneralString.CreatePrimitive(bytes);
             case Asn1Tags.GraphicString:

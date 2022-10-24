@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.UtcTime:                  // [UNIVERSAL 23] IMPLICIT VisibleString (restricted values)
                 return DerUtcTime.Meta.Instance;
             case Asn1Tags.GeneralizedTime:          // [UNIVERSAL 24] IMPLICIT VisibleString (restricted values)
-                return DerGeneralizedTime.Meta.Instance;
+                return Asn1GeneralizedTime.Meta.Instance;
             case Asn1Tags.GraphicString:            // [UNIVERSAL 25] IMPLICIT OCTET STRING (encode as if)
                 return DerGraphicString.Meta.Instance;
             case Asn1Tags.VisibleString:            // [UNIVERSAL 26] IMPLICIT OCTET STRING (encode as if)
