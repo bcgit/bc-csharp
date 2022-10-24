@@ -266,7 +266,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				Vector128<uint> b0, b1, b2, b3;
 				{
-                    var I = MemoryMarshal.Cast<uint, byte>(input.AsSpan(0, 16));
+                    var I = MemoryMarshal.AsBytes(input.AsSpan(0, 16));
 					var t0 = MemoryMarshal.Read<Vector128<short>>(I[0x00..0x10]);
                     var t1 = MemoryMarshal.Read<Vector128<short>>(I[0x10..0x20]);
                     var t2 = MemoryMarshal.Read<Vector128<short>>(I[0x20..0x30]);
@@ -315,7 +315,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     var v2 = Sse41.Blend(u0, u2, 0x0F);
                     var v3 = Sse41.Blend(u1, u3, 0x3C);
 
-                    var X = MemoryMarshal.Cast<uint, byte>(x.AsSpan(0, 16));
+                    var X = MemoryMarshal.AsBytes(x.AsSpan(0, 16));
                     MemoryMarshal.Write(X[0x00..0x10], ref v0);
                     MemoryMarshal.Write(X[0x10..0x20], ref v1);
                     MemoryMarshal.Write(X[0x20..0x30], ref v2);

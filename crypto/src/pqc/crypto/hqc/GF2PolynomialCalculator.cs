@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> resBytes = MemoryMarshal.Cast<ulong, byte>(res);
+            Span<byte> resBytes = MemoryMarshal.AsBytes(res.AsSpan());
             for (int i = 0; i < weight; i++)
             {
                 int dec = a[permutedSparseVect[i]] & 0xf;

@@ -69,9 +69,9 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP3_0_OR_GREATER
             if (Avx2.IsSupported && Unsafe.SizeOf<Vector256<byte>>() == 32)
             {
-                var X = MemoryMarshal.Cast<uint, byte>(x[..16]);
-                var Y = MemoryMarshal.Cast<uint, byte>(y[..16]);
-                var Z = MemoryMarshal.Cast<uint, byte>(z[..16]);
+                var X = MemoryMarshal.AsBytes(x[..16]);
+                var Y = MemoryMarshal.AsBytes(y[..16]);
+                var Z = MemoryMarshal.AsBytes(z[..16]);
 
                 var X0 = MemoryMarshal.Read<Vector256<byte>>(X[0x00..0x20]);
                 var X1 = MemoryMarshal.Read<Vector256<byte>>(X[0x20..0x40]);
@@ -89,9 +89,9 @@ namespace Org.BouncyCastle.Math.Raw
 
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
-                var X = MemoryMarshal.Cast<uint, byte>(x[..16]);
-                var Y = MemoryMarshal.Cast<uint, byte>(y[..16]);
-                var Z = MemoryMarshal.Cast<uint, byte>(z[..16]);
+                var X = MemoryMarshal.AsBytes(x[..16]);
+                var Y = MemoryMarshal.AsBytes(y[..16]);
+                var Z = MemoryMarshal.AsBytes(z[..16]);
 
                 var X0 = MemoryMarshal.Read<Vector128<byte>>(X[0x00..0x10]);
                 var X1 = MemoryMarshal.Read<Vector128<byte>>(X[0x10..0x20]);

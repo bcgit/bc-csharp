@@ -218,7 +218,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
 		{
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
-                return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.Cast<uint, byte>(t));
+                return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.AsBytes(t));
 
             return Vector128.Create(t[0], t[1], t[2], t[3]);
 		}
