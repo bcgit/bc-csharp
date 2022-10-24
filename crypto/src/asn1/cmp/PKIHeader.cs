@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly DerInteger pvno;
         private readonly GeneralName sender;
         private readonly GeneralName recipient;
-        private readonly DerGeneralizedTime messageTime;
+        private readonly Asn1GeneralizedTime messageTime;
         private readonly AlgorithmIdentifier protectionAlg;
         private readonly Asn1OctetString senderKID;       // KeyIdentifier
         private readonly Asn1OctetString recipKID;        // KeyIdentifier
@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 switch (tObj.TagNo)
                 {
                 case 0:
-                    messageTime = DerGeneralizedTime.GetInstance(tObj, true);
+                    messageTime = Asn1GeneralizedTime.GetInstance(tObj, true);
                     break;
                 case 1:
                     protectionAlg = AlgorithmIdentifier.GetInstance(tObj, true);
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             get { return recipient; }
         }
 
-        public virtual DerGeneralizedTime MessageTime
+        public virtual Asn1GeneralizedTime MessageTime
         {
             get { return messageTime; }
         }

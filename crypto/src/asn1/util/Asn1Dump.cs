@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
                 buf.Append(indent);
                 buf.AppendLine("UTCTime(" + utcTime.TimeString + ")");
             }
-            else if (obj is DerGeneralizedTime generalizedTime)
+            else if (obj is Asn1GeneralizedTime generalizedTime)
             {
                 buf.Append(indent);
                 buf.AppendLine("GeneralizedTime(" + generalizedTime.GetTime() + ")");

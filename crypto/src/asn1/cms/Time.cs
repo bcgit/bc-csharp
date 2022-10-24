@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             if (time == null)
                 throw new ArgumentNullException("time");
-            if (!(time is DerUtcTime) && !(time is DerGeneralizedTime))
+            if (!(time is DerUtcTime) && !(time is Asn1GeneralizedTime))
                 throw new ArgumentException("unknown object passed to Time");
 
             this.time = time;
@@ -33,8 +33,7 @@ namespace Org.BouncyCastle.Asn1.Cms
          * and 2049 a UTCTime object is Generated, otherwise a GeneralizedTime
          * is used.
          */
-        public Time(
-            DateTime date)
+        public Time(DateTime date)
         {
             string d = date.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
 
@@ -57,8 +56,8 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return (Time)obj;
 			if (obj is DerUtcTime)
                 return new Time((DerUtcTime)obj);
-			if (obj is DerGeneralizedTime)
-                return new Time((DerGeneralizedTime)obj);
+			if (obj is Asn1GeneralizedTime)
+                return new Time((Asn1GeneralizedTime)obj);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
@@ -73,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 				}
 				else
 				{
-					return ((DerGeneralizedTime)time).GetTime();
+					return ((Asn1GeneralizedTime)time).GetTime();
 				}
 			}
         }
@@ -89,7 +88,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 						return ((DerUtcTime)time).ToAdjustedDateTime();
 					}
 
-					return ((DerGeneralizedTime)time).ToDateTime();
+					return ((Asn1GeneralizedTime)time).ToDateTime();
 				}
 				catch (FormatException e)
 				{

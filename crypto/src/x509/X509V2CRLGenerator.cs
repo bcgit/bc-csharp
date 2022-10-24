@@ -79,7 +79,8 @@ namespace Org.BouncyCastle.X509
 			int			reason,
 			DateTime	invalidityDate)
 		{
-			tbsGen.AddCrlEntry(new DerInteger(userCertificate), new Time(revocationDate), reason, new DerGeneralizedTime(invalidityDate));
+			tbsGen.AddCrlEntry(new DerInteger(userCertificate), new Time(revocationDate), reason,
+				new Asn1GeneralizedTime(invalidityDate));
 		}
 
 		/**

@@ -334,21 +334,18 @@ namespace Org.BouncyCastle.Tsp
                 respExtensions = extGen.Generate();
             }
 
-
-
-            DerGeneralizedTime generalizedTime;
-            if (resolution != Resolution.R_SECONDS)
+            Asn1GeneralizedTime timeStampTime;
+            if (resolution == Resolution.R_SECONDS)
             {
-                generalizedTime = new DerGeneralizedTime(createGeneralizedTime(genTime));
-            } 
+                timeStampTime = new Asn1GeneralizedTime(genTime);
+            }
             else
             {
-                generalizedTime = new DerGeneralizedTime(genTime);
-            }
-
+                timeStampTime = CreateGeneralizedTime(genTime);
+            } 
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
-                new DerInteger(serialNumber), generalizedTime, accuracy,
+                new DerInteger(serialNumber), timeStampTime, accuracy,
                 derOrdering, nonce, tsa, respExtensions);
 
             try
@@ -382,13 +379,13 @@ namespace Org.BouncyCastle.Tsp
             {
                 throw new TspException("Exception encoding info", e);
             }
-            //			catch (InvalidAlgorithmParameterException e)
-            //			{
-            //				throw new TspException("Exception handling CertStore CRLs", e);
-            //			}
+            //catch (InvalidAlgorithmParameterException e)
+            //{
+            //    throw new TspException("Exception handling CertStore CRLs", e);
+            //}
         }
 
-        private string createGeneralizedTime(DateTime genTime)
+        private Asn1GeneralizedTime CreateGeneralizedTime(DateTime genTime)
         {
             string format = "yyyyMMddHHmmss.fff";
            
@@ -398,33 +395,31 @@ namespace Org.BouncyCastle.Tsp
             if (dotIndex <0)
             {
                 sBuild.Append("Z");
-                return sBuild.ToString();
+                return new Asn1GeneralizedTime(sBuild.ToString());
             }
 
             switch(resolution)
             {
-                case Resolution.R_TENTHS_OF_SECONDS:
-                    if (sBuild.Length > dotIndex + 2)
-                    {
-                        sBuild.Remove(dotIndex + 2, sBuild.Length-(dotIndex+2));
-                    }
-                    break;
-                case Resolution.R_HUNDREDTHS_OF_SECONDS:
-                    if (sBuild.Length > dotIndex + 3)
-                    {
-                        sBuild.Remove(dotIndex + 3, sBuild.Length-(dotIndex+3));
-                    }
-                    break;
+            case Resolution.R_TENTHS_OF_SECONDS:
+                if (sBuild.Length > dotIndex + 2)
+                {
+                    sBuild.Remove(dotIndex + 2, sBuild.Length-(dotIndex+2));
+                }
+                break;
+            case Resolution.R_HUNDREDTHS_OF_SECONDS:
+                if (sBuild.Length > dotIndex + 3)
+                {
+                    sBuild.Remove(dotIndex + 3, sBuild.Length-(dotIndex+3));
+                }
+                break;
 
 
-                case Resolution.R_SECONDS:
-                case Resolution.R_MILLISECONDS:
-                    // do nothing.
-                    break;
-             
+            case Resolution.R_SECONDS:
+            case Resolution.R_MILLISECONDS:
+                // do nothing.
+                break;
             }
 
-           
             while (sBuild[sBuild.Length - 1] == '0')
             {
                 sBuild.Remove(sBuild.Length - 1,1);
@@ -436,7 +431,7 @@ namespace Org.BouncyCastle.Tsp
             }
 
             sBuild.Append("Z");
-            return sBuild.ToString();
+            return new Asn1GeneralizedTime(sBuild.ToString());
         }
 
         private class TableGen
