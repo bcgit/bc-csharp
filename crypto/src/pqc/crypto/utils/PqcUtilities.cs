@@ -78,7 +78,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             saberOids[SaberParameters.lightsaberkem256r3] = BCObjectIdentifiers.lightsaberkem256r3;
             saberOids[SaberParameters.saberkem256r3] = BCObjectIdentifiers.saberkem256r3;
             saberOids[SaberParameters.firesaberkem256r3] = BCObjectIdentifiers.firesaberkem256r3;
-            
+            saberOids[SaberParameters.ulightsaberkemr3] = BCObjectIdentifiers.ulightsaberkemr3;
+            saberOids[SaberParameters.usaberkemr3] = BCObjectIdentifiers.usaberkemr3;
+            saberOids[SaberParameters.ufiresaberkemr3] = BCObjectIdentifiers.ufiresaberkemr3;
+            saberOids[SaberParameters.lightsaberkem90sr3] = BCObjectIdentifiers.lightsaberkem90sr3;
+            saberOids[SaberParameters.saberkem90sr3] = BCObjectIdentifiers.saberkem90sr3;
+            saberOids[SaberParameters.firesaberkem90sr3] = BCObjectIdentifiers.firesaberkem90sr3;
+            saberOids[SaberParameters.ulightsaberkem90sr3] = BCObjectIdentifiers.ulightsaberkem90sr3;
+            saberOids[SaberParameters.usaberkem90sr3] = BCObjectIdentifiers.usaberkem90sr3;
+            saberOids[SaberParameters.ufiresaberkem90sr3] = BCObjectIdentifiers.ufiresaberkem90sr3;
+
             saberParams[BCObjectIdentifiers.lightsaberkem128r3] = SaberParameters.lightsaberkem128r3;
             saberParams[BCObjectIdentifiers.saberkem128r3] = SaberParameters.saberkem128r3;
             saberParams[BCObjectIdentifiers.firesaberkem128r3] = SaberParameters.firesaberkem128r3;
@@ -88,7 +97,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             saberParams[BCObjectIdentifiers.lightsaberkem256r3] = SaberParameters.lightsaberkem256r3;
             saberParams[BCObjectIdentifiers.saberkem256r3] = SaberParameters.saberkem256r3;
             saberParams[BCObjectIdentifiers.firesaberkem256r3] = SaberParameters.firesaberkem256r3;
-
+            saberParams[BCObjectIdentifiers.ulightsaberkemr3] = SaberParameters.ulightsaberkemr3;
+            saberParams[BCObjectIdentifiers.usaberkemr3] = SaberParameters.usaberkemr3;
+            saberParams[BCObjectIdentifiers.ufiresaberkemr3] = SaberParameters.ufiresaberkemr3;
+            saberParams[BCObjectIdentifiers.lightsaberkem90sr3] = SaberParameters.lightsaberkem90sr3;
+            saberParams[BCObjectIdentifiers.saberkem90sr3] = SaberParameters.saberkem90sr3;
+            saberParams[BCObjectIdentifiers.firesaberkem90sr3] = SaberParameters.firesaberkem90sr3;
+            saberParams[BCObjectIdentifiers.ulightsaberkem90sr3] = SaberParameters.ulightsaberkem90sr3;
+            saberParams[BCObjectIdentifiers.usaberkem90sr3] = SaberParameters.usaberkem90sr3;
+            saberParams[BCObjectIdentifiers.ufiresaberkem90sr3] = SaberParameters.ufiresaberkem90sr3;
             
             picnicOids[PicnicParameters.picnicl1fs] = BCObjectIdentifiers.picnicl1fs;
             picnicOids[PicnicParameters.picnicl1ur] = BCObjectIdentifiers.picnicl1ur;

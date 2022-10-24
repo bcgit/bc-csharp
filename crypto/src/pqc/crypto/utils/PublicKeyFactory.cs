@@ -53,6 +53,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             converters[BCObjectIdentifiers.lightsaberkem256r3] = new SaberConverter();
             converters[BCObjectIdentifiers.saberkem256r3] = new SaberConverter();
             converters[BCObjectIdentifiers.firesaberkem256r3] = new SaberConverter();
+            converters[BCObjectIdentifiers.ulightsaberkemr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.usaberkemr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.ufiresaberkemr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.lightsaberkem90sr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.saberkem90sr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.firesaberkem90sr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.ulightsaberkem90sr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.usaberkem90sr3] = new SaberConverter();
+            converters[BCObjectIdentifiers.ufiresaberkem90sr3] = new SaberConverter();
             
             converters[BCObjectIdentifiers.picnic] = new PicnicConverter();
             converters[BCObjectIdentifiers.picnicl1fs] = new PicnicConverter();

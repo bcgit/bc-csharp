@@ -32,9 +32,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             byte[] buf = new byte[SABER_L * engine.PolyVecBytes];
             int i;
 
-            IXof digest = new ShakeDigest(128);
-            digest.BlockUpdate(seed, 0, engine.SeedBytes);
-            digest.OutputFinal(buf, 0, buf.Length);
+            engine.Symmetric.Prf(buf, seed, engine.SeedBytes, buf.Length);
+
 
             for (i = 0; i < SABER_L; i++)
             {
@@ -46,13 +45,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         {
             byte[] buf = new byte[SABER_L * engine.PolyCoinBytes];
 
-            IXof digest = new ShakeDigest(128);
-            digest.BlockUpdate(seed, 0, engine.NoiseSeedBytes);
-            digest.OutputFinal(buf, 0, buf.Length);
+            engine.Symmetric.Prf(buf, seed, engine.NoiseSeedBytes, buf.Length);
+
 
             for (int i = 0; i < SABER_L; i++)
             {
-                Cbd(s[i], buf, i * engine.PolyCoinBytes);
+                if (!engine.UsingEffectiveMasking)
+                {
+                    Cbd(s[i], buf, i * engine.PolyCoinBytes);
+                }
+                else
+                {
+                    for(int j = 0; j<SABER_N/4; j++)
+                    {
+                        s[i][4*j] = (short) ((((buf[j + i * engine.PolyCoinBytes]) & 0x03) ^ 2) - 2);
+                        s[i][4*j+1] = (short) ((((buf[j + i * engine.PolyCoinBytes] >> 2) & 0x03)  ^ 2) - 2);
+                        s[i][4*j+2] = (short) ((((buf[j + i * engine.PolyCoinBytes] >> 4) & 0x03)  ^ 2) - 2);
+                        s[i][4*j+3] = (short) ((((buf[j + i * engine.PolyCoinBytes] >> 6) & 0x03)  ^ 2) - 2);
+                    }
+                }
             }
         }
 

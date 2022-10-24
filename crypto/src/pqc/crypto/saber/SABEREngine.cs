@@ -10,7 +10,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
     internal sealed class SaberEngine
     {
         // constant parameters
-        internal const int SABER_EQ = 13;
         internal const int SABER_EP = 10;
         internal const int SABER_N = 256;
 
@@ -25,6 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         private readonly int SABER_ET;
 
         private readonly int SABER_POLYCOINBYTES;
+        private readonly int SABER_EQ;
         private readonly int SABER_POLYBYTES;
         private readonly int SABER_POLYVECBYTES;
         private readonly int SABER_POLYCOMPRESSEDBYTES;
@@ -41,9 +41,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         private int h1;
         private int h2;
 
+        private Symmetric symmetric;
         private SaberUtilities utils;
         private Poly poly;
 
+        private readonly bool usingAes;
+        private readonly bool usingEffectiveMasking;
+
+        public bool UsingAes => usingAes;
+        public bool UsingEffectiveMasking => usingEffectiveMasking;
+        public Symmetric Symmetric => symmetric;
+        
+        public int EQ => SABER_EQ;
         public int N => SABER_N;
 
         public int EP => SABER_EP;
@@ -89,10 +98,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return SABER_SECRETKEYBYTES;
         }
 
-        internal SaberEngine(int l, int defaultKeySize)
+        internal SaberEngine(int l, int defaultKeySize, bool usingAes, bool usingEffectiveMasking)
         {
             this.defaultKeySize = defaultKeySize;
-
+            this.usingAes = usingAes;
+            this.usingEffectiveMasking = usingEffectiveMasking;
             this.SABER_L = l;
             if (l == 2)
             {
@@ -109,8 +119,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
                 this.SABER_MU = 6;
                 this.SABER_ET = 6;
             }
+            if(usingAes)
+            {
+                symmetric = new Symmetric.AesSymmetric();
+            }
+            else
+            {
+                symmetric = new Symmetric.ShakeSymmetric();
+            }
 
-            this.SABER_POLYCOINBYTES = (SABER_MU * SABER_N / 8);
+            if(usingEffectiveMasking)
+            {
+                this.SABER_EQ = 12;
+                this.SABER_POLYCOINBYTES = (2 * SABER_N / 8);
+            }
+            else
+            {
+                this.SABER_EQ = 13;
+                this.SABER_POLYCOINBYTES = (SABER_MU * SABER_N / 8);
+            }
             this.SABER_POLYBYTES = (SABER_EQ * SABER_N / 8);
             this.SABER_POLYVECBYTES = (SABER_L * SABER_POLYBYTES);
             this.SABER_POLYCOMPRESSEDBYTES = (SABER_EP * SABER_N / 8);
@@ -165,9 +192,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
             random.NextBytes(seed_A);
 
-            IXof digest = new ShakeDigest(128);
-            digest.BlockUpdate(seed_A, 0, SABER_SEEDBYTES);
-            digest.OutputFinal(seed_A, 0, SABER_SEEDBYTES);
+            symmetric.Prf(seed_A, seed_A, SABER_SEEDBYTES, SABER_SEEDBYTES);
 
             random.NextBytes(seed_s);
 
@@ -196,13 +221,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             int i;
             indcpa_kem_keypair(pk, sk, random); // sk[0:SABER_INDCPA_SECRETKEYBYTES-1] <-- sk
             for (i = 0; i < SABER_INDCPA_PUBLICKEYBYTES; i++)
+            {
                 sk[i + SABER_INDCPA_SECRETKEYBYTES] =
                     pk[i]; // sk[SABER_INDCPA_SECRETKEYBYTES:SABER_INDCPA_SECRETKEYBYTES+SABER_INDCPA_SECRETKEYBYTES-1] <-- pk
-
+            }
             // Then hash(pk) is appended.
-            Sha3Digest digest = new Sha3Digest(256);
-            digest.BlockUpdate(pk, 0, SABER_INDCPA_PUBLICKEYBYTES);
-            digest.DoFinal(sk, SABER_SECRETKEYBYTES - 64);
+            symmetric.Hash_h(sk, pk, SABER_SECRETKEYBYTES - 64);
 
             // Remaining part of sk contains a pseudo-random number.
             byte[] nonce = new byte[SABER_KEYBYTES];
@@ -252,7 +276,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             }
 
             short[] mp = new short[SABER_N];
-            ;
             short[] vp = new short[SABER_N];
             byte[] seed_A = Arrays.CopyOfRange(pk, SABER_POLYVECCOMPRESSEDBYTES, pk.Length);
 
@@ -290,35 +313,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             byte[] nonce = new byte[32];
             random.NextBytes(nonce);
 
-            Sha3Digest digest_256 = new Sha3Digest(256);
-            Sha3Digest digest_512 = new Sha3Digest(512);
+           
 
             // BUF[0:31] <-- random message (will be used as the key for client) Note: hash doesnot release system RNG output
-            digest_256.BlockUpdate(nonce, 0, 32);
-            digest_256.DoFinal(nonce, 0);
+            symmetric.Hash_h(nonce, nonce, 0);
+
             Array.Copy(nonce, 0, buf, 0, 32);
 
             // BUF[32:63] <-- Hash(public key);  Multitarget countermeasure for coins + contributory KEM
-            digest_256.BlockUpdate(pk, 0, SABER_INDCPA_PUBLICKEYBYTES);
-            digest_256.DoFinal(buf, 32);
+            symmetric.Hash_h(buf, pk, 32);
 
             // kr[0:63] <-- Hash(buf[0:63]);
-            digest_512.BlockUpdate(buf, 0, 64);
-            digest_512.DoFinal(kr, 0);
+            symmetric.Hash_g(kr, buf);
 
             // K^ <-- kr[0:31]
             // noiseseed (r) <-- kr[32:63];
             // buf[0:31] contains message; kr[32:63] contains randomness r;
             indcpa_kem_enc(buf, Arrays.CopyOfRange(kr, 32, kr.Length), pk, c);
 
-            digest_256.BlockUpdate(c, 0, SABER_BYTES_CCA_DEC);
-            digest_256.DoFinal(kr, 32);
+            symmetric.Hash_h(kr, c, 32);
 
             // hash concatenation of pre-k and h(c) to k
             //todo support 128 and 192 bit keys
             byte[] temp_k = new byte[32];
-            digest_256.BlockUpdate(kr, 0, 64);
-            digest_256.DoFinal(temp_k, 0);
+            symmetric.Hash_h(temp_k, kr, 0);
 
             Array.Copy(temp_k, 0, k, 0, defaultKeySize / 8);
 
@@ -370,14 +388,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
             // Multitarget countermeasure for coins + contributory KEM
             for (i = 0; i < 32; i++) // Save hash by storing h(pk) in sk
+            {
                 buf[32 + i] = sk[SABER_SECRETKEYBYTES - 64 + i];
+            }
 
 
-            Sha3Digest digest_256 = new Sha3Digest(256);
-            Sha3Digest digest_512 = new Sha3Digest(512);
-
-            digest_512.BlockUpdate(buf, 0, 64);
-            digest_512.DoFinal(kr, 0);
+            symmetric.Hash_g(kr, buf);
 
             indcpa_kem_enc(buf, Arrays.CopyOfRange(kr, 32, kr.Length), pk, cmp);
 
@@ -385,16 +401,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
             // overwrite coins in kr with h(c)
 
-            digest_256.BlockUpdate(c, 0, SABER_BYTES_CCA_DEC);
-            digest_256.DoFinal(kr, 32);
-
+            symmetric.Hash_h(kr, c, 32);
+            
             cmov(kr, sk, SABER_SECRETKEYBYTES - SABER_KEYBYTES, SABER_KEYBYTES, (byte) fail);
 
             // hash concatenation of pre-k and h(c) to k
             //todo support 128 and 192 bit keys
             byte[] temp_k = new byte[32];
-            digest_256.BlockUpdate(kr, 0, 64);
-            digest_256.DoFinal(temp_k, 0);
+            symmetric.Hash_h(temp_k, kr, 0);
 
             Array.Copy(temp_k, 0, k, 0, defaultKeySize / 8);
             return 0;

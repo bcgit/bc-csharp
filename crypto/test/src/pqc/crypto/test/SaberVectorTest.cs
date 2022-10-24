@@ -33,6 +33,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "lightsaber.rsp", SaberParameters.lightsaberkem256r3 },
             { "saber.rsp", SaberParameters.saberkem256r3 },
             { "firesaber.rsp", SaberParameters.firesaberkem256r3 },
+            
+            { "ulightsaber.rsp", SaberParameters.ulightsaberkemr3},
+            { "usaber.rsp", SaberParameters.usaberkemr3},
+            { "ufiresaber.rsp", SaberParameters.ufiresaberkemr3},
+
+            { "lightsaber-90s.rsp", SaberParameters.lightsaberkem90sr3},
+            { "saber-90s.rsp", SaberParameters.saberkem90sr3},
+            { "firesaber-90s.rsp", SaberParameters.firesaberkem90sr3},
+
+            { "ulightsaber-90s.rsp", SaberParameters.ulightsaberkem90sr3},
+            { "usaber-90s.rsp", SaberParameters.usaberkem90sr3},
+            { "ufiresaber-90s.rsp", SaberParameters.ufiresaberkem90sr3},
         };
 
         private static readonly string[] TestVectorFiles = 
@@ -40,6 +52,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "lightsaber.rsp",
             "saber.rsp",
             "firesaber.rsp",
+            
+            "ulightsaber.rsp",
+            "usaber.rsp",
+            "ufiresaber.rsp",
+
+            "lightsaber-90s.rsp",
+            "saber-90s.rsp",
+            "firesaber-90s.rsp",
+
+            "ulightsaber-90s.rsp",
+            "usaber-90s.rsp",
+            "ufiresaber-90s.rsp",
         };
 
         [Test]
