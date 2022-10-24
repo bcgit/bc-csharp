@@ -27,10 +27,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
-namespace Org.BouncyCastle.Bzip2
+namespace Org.BouncyCastle.Utilities.Bzip2
 {
 	/**
     * An output stream that compresses into the BZip2 format (with the file
@@ -1596,6 +1595,25 @@ namespace Org.BouncyCastle.Bzip2
                 a[k] = new byte[n2];
             }
             return a;
+        }
+    }
+
+    public class CBZip2OutputStreamLeaveOpen
+        : CBZip2OutputStream
+    {
+        public CBZip2OutputStreamLeaveOpen(Stream outStream)
+            : base(outStream)
+        {
+        }
+
+        public CBZip2OutputStreamLeaveOpen(Stream outStream, int blockSize)
+            : base(outStream, blockSize)
+        {
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            Detach(disposing);
         }
     }
 }

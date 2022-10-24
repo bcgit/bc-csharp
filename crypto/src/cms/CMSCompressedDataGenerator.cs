@@ -5,7 +5,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Zlib;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -22,9 +21,12 @@ namespace Org.BouncyCastle.Cms
     */
     public class CmsCompressedDataGenerator
     {
-        public const string ZLib = "1.2.840.113549.1.9.16.3.8";
+        public const string ZLibOid = "1.2.840.113549.1.9.16.3.8";
 
-		public CmsCompressedDataGenerator()
+        [Obsolete("Use 'ZLibOid' instead")]
+        public const string ZLib = ZLibOid;
+
+        public CmsCompressedDataGenerator()
         {
         }
 
@@ -41,7 +43,7 @@ namespace Org.BouncyCastle.Cms
             try
             {
                 MemoryStream bOut = new MemoryStream();
-                ZOutputStream zOut = new ZOutputStream(bOut, JZlib.Z_DEFAULT_COMPRESSION);
+                Stream zOut = Utilities.IO.Compression.ZLib.CompressOutput(bOut, -1);
 
 				content.Write(zOut);
 

@@ -3,7 +3,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Utilities.Zlib;
+using Org.BouncyCastle.Utilities.IO.Compression;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -44,8 +44,9 @@ namespace Org.BouncyCastle.Cms
                 ContentInfoParser content = comData.GetEncapContentInfo();
 
                 Asn1OctetStringParser bytes = (Asn1OctetStringParser)content.GetContent(Asn1Tags.OctetString);
+                Stream zIn = ZLib.DecompressInput(bytes.GetOctetStream());
 
-                return new CmsTypedStream(content.ContentType.ToString(), new ZInputStream(bytes.GetOctetStream()));
+                return new CmsTypedStream(content.ContentType.ToString(), zIn);
             }
             catch (IOException e)
             {

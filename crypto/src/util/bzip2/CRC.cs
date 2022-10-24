@@ -22,12 +22,9 @@
  * great code.
  */
 
-using System;
 using System.Diagnostics;
 
-using Org.BouncyCastle.Utilities;
-
-namespace Org.BouncyCastle.Bzip2
+namespace Org.BouncyCastle.Utilities.Bzip2
 {
     /**
     * A simple class the hold and calculate the CRC for sanity checking

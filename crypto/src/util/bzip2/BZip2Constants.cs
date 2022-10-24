@@ -22,9 +22,7 @@
  * great code.
  */
 
-using System;
-
-namespace Org.BouncyCastle.Bzip2
+namespace Org.BouncyCastle.Utilities.Bzip2
 {
     /**
     * Base class for both the compress and decompress classes.
