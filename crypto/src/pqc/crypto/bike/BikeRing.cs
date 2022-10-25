@@ -30,10 +30,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         internal void Add(ulong[] x, ulong[] y, ulong[] z)
         {
-            for (int i = 0; i < Size; ++i)
-            {
-                z[i] = x[i] ^ y[i];
-            }
+            Nat.Xor64(Size, x, y, z);
+        }
+
+        internal void AddTo(ulong[] x, ulong[] z)
+        {
+            Nat.XorTo64(Size, x, z);
         }
 
         internal void Copy(ulong[] x, ulong[] z)
@@ -170,12 +172,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             ulong c = Nat.ShiftUpBits64(Size, tt, Size, excessBits, tt[Size - 1], z, 0);
             Debug.Assert(c == 0UL);
-
-            for (int i = 0; i < Size; ++i)
-            {
-                z[i] ^= tt[i];
-            }
-
+            AddTo(tt, z);
             z[Size - 1] &= partialMask;
         }
 
