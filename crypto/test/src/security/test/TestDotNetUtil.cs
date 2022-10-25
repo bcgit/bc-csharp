@@ -20,12 +20,13 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Security.Tests
 {
 	[TestFixture]
-#if NET5_0_OR_GREATER
-    [SupportedOSPlatform("windows")]
-#endif
     public class TestDotNetUtilities
 	{
-		[Test]
+//#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
+        [Test]
 		public void TestRsaInterop()
 		{
 			for (int i = 0; i < 100; ++i)
