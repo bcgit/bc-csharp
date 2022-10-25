@@ -452,7 +452,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.UniversalString:
                 return DerUniversalString.CreatePrimitive(bytes);
             case Asn1Tags.UtcTime:
-                return DerUtcTime.CreatePrimitive(bytes);
+                return Asn1UtcTime.CreatePrimitive(bytes);
             case Asn1Tags.Utf8String:
                 return DerUtf8String.CreatePrimitive(bytes);
             case Asn1Tags.VideotexString:

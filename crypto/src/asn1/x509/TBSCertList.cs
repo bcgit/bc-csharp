@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Asn1.X509
             thisUpdate = Time.GetInstance(seq[seqPos++]);
 
 			if (seqPos < seq.Count
-                && (seq[seqPos] is DerUtcTime
+                && (seq[seqPos] is Asn1UtcTime
                    || seq[seqPos] is Asn1GeneralizedTime
                    || seq[seqPos] is Time))
             {

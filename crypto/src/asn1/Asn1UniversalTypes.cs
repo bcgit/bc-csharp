@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.IA5String:                // [UNIVERSAL 22] IMPLICIT OCTET STRING (encode as if)
                 return DerIA5String.Meta.Instance;
             case Asn1Tags.UtcTime:                  // [UNIVERSAL 23] IMPLICIT VisibleString (restricted values)
-                return DerUtcTime.Meta.Instance;
+                return Asn1UtcTime.Meta.Instance;
             case Asn1Tags.GeneralizedTime:          // [UNIVERSAL 24] IMPLICIT VisibleString (restricted values)
                 return Asn1GeneralizedTime.Meta.Instance;
             case Asn1Tags.GraphicString:            // [UNIVERSAL 25] IMPLICIT OCTET STRING (encode as if)

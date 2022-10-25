@@ -1,5 +1,5 @@
 using System;
-
+using System.Reflection;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 		: Asn1Encodable
 	{
 		private readonly X509Name	crlIssuer;
-		private readonly DerUtcTime	crlIssuedTime;
+		private readonly Asn1UtcTime crlIssuedTime;
 		private readonly DerInteger	crlNumber;
 
 		public static CrlIdentifier GetInstance(
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
 
 			this.crlIssuer = X509Name.GetInstance(seq[0]);
-			this.crlIssuedTime = DerUtcTime.GetInstance(seq[1]);
+			this.crlIssuedTime = Asn1UtcTime.GetInstance(seq[1]);
 
 			if (seq.Count > 2)
 			{
@@ -56,31 +56,36 @@ namespace Org.BouncyCastle.Asn1.Esf
 			}
 		}
 
-		public CrlIdentifier(
-			X509Name	crlIssuer,
-			DateTime	crlIssuedTime)
-			: this(crlIssuer, crlIssuedTime, null)
+        public CrlIdentifier(X509Name crlIssuer, DateTime crlIssuedTime)
+            : this(crlIssuer, crlIssuedTime, null)
 		{
 		}
 
-		public CrlIdentifier(
-			X509Name	crlIssuer,
-			DateTime	crlIssuedTime,
-			BigInteger	crlNumber)
+		public CrlIdentifier(X509Name crlIssuer, DateTime crlIssuedTime, BigInteger crlNumber)
+			: this(crlIssuer, new Asn1UtcTime(crlIssuedTime), crlNumber)
 		{
-			if (crlIssuer == null)
-				throw new ArgumentNullException("crlIssuer");
-
-			this.crlIssuer = crlIssuer;
-			this.crlIssuedTime = new DerUtcTime(crlIssuedTime);
-
-			if (crlNumber != null)
-			{
-				this.crlNumber = new DerInteger(crlNumber);
-			}
 		}
 
-		public X509Name CrlIssuer
+        public CrlIdentifier(X509Name crlIssuer, Asn1UtcTime crlIssuedTime)
+            : this(crlIssuer, crlIssuedTime, null)
+        {
+        }
+
+        public CrlIdentifier(X509Name crlIssuer, Asn1UtcTime crlIssuedTime, BigInteger crlNumber)
+        {
+            if (crlIssuer == null)
+                throw new ArgumentNullException(nameof(crlIssuer));
+
+            this.crlIssuer = crlIssuer;
+            this.crlIssuedTime = crlIssuedTime;
+
+            if (null != crlNumber)
+            {
+                this.crlNumber = new DerInteger(crlNumber);
+            }
+        }
+
+        public X509Name CrlIssuer
 		{
 			get { return crlIssuer; }
 		}

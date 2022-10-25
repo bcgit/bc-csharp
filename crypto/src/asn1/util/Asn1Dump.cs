@@ -206,7 +206,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
                 buf.Append(indent);
                 buf.AppendLine("VideotexString(" + videotexString.GetString() + ")");
             }
-            else if (obj is DerUtcTime utcTime)
+            else if (obj is Asn1UtcTime utcTime)
             {
                 buf.Append(indent);
                 buf.AppendLine("UTCTime(" + utcTime.TimeString + ")");
