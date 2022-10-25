@@ -144,13 +144,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return a & 0xffff;
         }
 
-        internal static long UnsignedRightBitShiftLong(long a, int b)
-        {
-            ulong tmp = (ulong)a;
-            tmp >>= b;
-            return (long)tmp;
-        }
-
         internal static void XorULongToByte16Array(ushort[] output, int outOff, ulong input)
         {
             output[outOff + 0] ^= (ushort)input;
