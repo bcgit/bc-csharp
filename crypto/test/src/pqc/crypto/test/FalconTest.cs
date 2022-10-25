@@ -22,11 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "falcon1024-KAT.rsp", FalconParameters.falcon_1024 },
         };
 
-        private static readonly string[] TestVectorFiles =
-        {
-            "falcon512-KAT.rsp",
-            "falcon1024-KAT.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
         [Test]
         public void TestParameters()

@@ -16,18 +16,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class SaberVectorTest
     {
-        //SaberParameters[] parameters = {
-        //    SaberParameters.lightsaberkem128r3,
-        //    SaberParameters.saberkem128r3,
-        //    SaberParameters.firesaberkem128r3,
-        //    SaberParameters.lightsaberkem192r3,
-        //    SaberParameters.saberkem192r3,
-        //    SaberParameters.firesaberkem192r3,
-        //    SaberParameters.lightsaberkem256r3,
-        //    SaberParameters.saberkem256r3,
-        //    SaberParameters.firesaberkem256r3,
-        //};
-
         private static readonly Dictionary<string, SaberParameters> Parameters = new Dictionary<string, SaberParameters>()
         {
             { "lightsaber.rsp", SaberParameters.lightsaberkem256r3 },
@@ -47,24 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "ufiresaber-90s.rsp", SaberParameters.ufiresaberkem90sr3},
         };
 
-        private static readonly string[] TestVectorFiles = 
-        {
-            "lightsaber.rsp",
-            "saber.rsp",
-            "firesaber.rsp",
-            
-            "ulightsaber.rsp",
-            "usaber.rsp",
-            "ufiresaber.rsp",
-
-            "lightsaber-90s.rsp",
-            "saber-90s.rsp",
-            "firesaber-90s.rsp",
-
-            "ulightsaber-90s.rsp",
-            "usaber-90s.rsp",
-            "ufiresaber-90s.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
         [Test]
         public void TestParameters()

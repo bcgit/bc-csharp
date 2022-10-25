@@ -22,12 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "PQCkemKAT_BIKE_10276.rsp", BikeParameters.bike256 },
         };
 
-        private static readonly string[] TestVectorFiles =
-        {
-            "PQCkemKAT_BIKE_3114.rsp",
-            "PQCkemKAT_BIKE_6198.rsp",
-            "PQCkemKAT_BIKE_10276.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
         [Test]
         public void TestParameters()

@@ -34,25 +34,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "kat_kem_sntrup_1277.rsp", SNtruPrimeParameters.sntrup1277 },
         };
 
-        private static readonly string[] TestVectorFilesNtruLP =
-        {
-            "kat_kem_ntrulp_653.rsp",
-            "kat_kem_ntrulp_761.rsp",
-            "kat_kem_ntrulp_857.rsp",
-            "kat_kem_ntrulp_953.rsp",
-            "kat_kem_ntrulp_1013.rsp",
-            "kat_kem_ntrulp_1277.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFilesNtruLP = ParametersNtruLP.Keys;
 
-        private static readonly string[] TestVectorFilesSNtruP =
-        {
-            "kat_kem_sntrup_653.rsp",
-            "kat_kem_sntrup_761.rsp",
-            "kat_kem_sntrup_857.rsp",
-            "kat_kem_sntrup_953.rsp",
-            "kat_kem_sntrup_1013.rsp",
-            "kat_kem_sntrup_1277.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFilesSNtruP = ParametersSNtruP.Keys;
 
         [TestCaseSource(nameof(TestVectorFilesNtruLP))]
         [Parallelizable(ParallelScope.All)]

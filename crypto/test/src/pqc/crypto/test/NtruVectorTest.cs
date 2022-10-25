@@ -25,13 +25,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "PQCkemKAT_1450.rsp", NtruParameters.NtruHrss701 },
         };
 
-        private static readonly string[] TestVectorFiles =
-        {
-            "PQCkemKAT_935.rsp",
-            "PQCkemKAT_1234.rsp",
-            "PQCkemKAT_1590.rsp",
-            "PQCkemKAT_1450.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
