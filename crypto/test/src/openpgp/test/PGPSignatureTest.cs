@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             hashedGen = new PgpSignatureSubpacketGenerator();
 
-            DateTime creationTime = new DateTime(1973, 7, 27);
+            DateTime creationTime = new DateTime(1973, 7, 27, 0, 0, 0, DateTimeKind.Utc);
             hashedGen.SetSignatureCreationTime(false, creationTime);
 
             sGen.SetHashedSubpackets(hashedGen.Generate());
@@ -997,7 +997,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpSignature sig = sGen.Generate();
 
-            if (sig.CreationTime == DateTimeUtilities.UnixMsToDateTime(0))
+            if (DateTimeUtilities.DateTimeToUnixMs(sig.CreationTime) == 0)
             {
                 Fail("creation time not set in v3 signature");
             }

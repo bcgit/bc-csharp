@@ -4,6 +4,7 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
@@ -126,16 +127,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
 
-//			Date testDate = new Date((System.currentTimeMillis() / 1000) * 1000);
-			DateTime testDate = new DateTime(
-				(DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond) * TimeSpan.TicksPerSecond);
+			DateTime modificationTime = DateTimeUtilities.UnixMsToDateTime(
+				DateTimeUtilities.CurrentUnixMs() / 1000 * 1000);
 
 			Stream lOut = lGen.Open(
 				new UncloseableStream(bcOut),
 				PgpLiteralData.Binary,
 				"_CONSOLE",
 				dataBytes.Length,
-				testDate);
+				modificationTime);
 
 			int ch;
 			while ((ch = testIn.ReadByte()) >= 0)
@@ -156,7 +156,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			Assert.AreEqual(PublicKeyAlgorithmTag.Dsa, ops.KeyAlgorithm);
 
 			PgpLiteralData          p2 = (PgpLiteralData)pgpFact.NextPgpObject();
-			if (!p2.ModificationTime.Equals(testDate))
+			if (!p2.ModificationTime.Equals(modificationTime))
 			{
 				Assert.Fail("Modification time not preserved");
 			}

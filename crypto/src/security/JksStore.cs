@@ -461,8 +461,7 @@ namespace Org.BouncyCastle.Security
         private static DateTime ReadDateTime(BinaryReader br)
         {
             long unixMS = BinaryReaders.ReadInt64BigEndian(br);
-            DateTime unix = DateTimeUtilities.UnixMsToDateTime(unixMS);
-            return new DateTime(unix.Ticks, DateTimeKind.Utc);
+            return DateTimeUtilities.UnixMsToDateTime(unixMS);
         }
 
         private static X509Certificate ReadTypedCertificate(BinaryReader br, int storeVersion)
@@ -517,8 +516,7 @@ namespace Org.BouncyCastle.Security
 
         private static void WriteDateTime(BinaryWriter bw, DateTime dateTime)
         {
-            DateTime utc = dateTime.ToUniversalTime();
-            long unixMS = DateTimeUtilities.DateTimeToUnixMs(utc);
+            long unixMS = DateTimeUtilities.DateTimeToUnixMs(dateTime);
             BinaryWriters.WriteInt64BigEndian(bw, unixMS);
         }
 
