@@ -26,13 +26,10 @@ namespace Org.BouncyCastle.Cms
 	*/
 	public class CmsCompressedDataStreamGenerator
 	{
-        public const string ZLibOid = "1.2.840.113549.1.9.16.3.8";
+        public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
 
-        [Obsolete("Use 'ZLibOid' instead")]
-        public const string ZLib = ZLibOid;
+        private int _bufferSize;
 
-		private int _bufferSize;
-		
 		/**
 		* base constructor
 		*/
@@ -45,24 +42,27 @@ namespace Org.BouncyCastle.Cms
 		*
 		* @param bufferSize length of octet strings to buffer the data.
 		*/
-		public void SetBufferSize(
-			int bufferSize)
+		public void SetBufferSize(int bufferSize)
 		{
 			_bufferSize = bufferSize;
 		}
 
-		public Stream Open(
-			Stream	outStream,
-			string	compressionOID)
+        public Stream Open(Stream outStream)
+        {
+            return Open(outStream, CmsObjectIdentifiers.Data.Id, ZLib);
+        }
+
+        public Stream Open(Stream outStream, string compressionOid)
 		{
-			return Open(outStream, CmsObjectIdentifiers.Data.Id, compressionOID);
+			return Open(outStream, CmsObjectIdentifiers.Data.Id, compressionOid);
 		}
 
-		public Stream Open(
-			Stream	outStream,
-			string	contentOID,
-			string	compressionOID)
+		public Stream Open(Stream outStream, string contentOid, string compressionOid)
 		{
+			if (ZLib != compressionOid)
+				throw new ArgumentException("Unsupported compression algorithm: " + compressionOid,
+					nameof(compressionOid));
+
 			BerSequenceGenerator sGen = new BerSequenceGenerator(outStream);
 
 			sGen.AddObject(CmsObjectIdentifiers.CompressedData);
@@ -77,14 +77,14 @@ namespace Org.BouncyCastle.Cms
 			cGen.AddObject(new DerInteger(0));
 
 			// CompressionAlgorithmIdentifier
-			cGen.AddObject(new AlgorithmIdentifier(new DerObjectIdentifier(ZLib)));
+			cGen.AddObject(new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress));
 
 			//
 			// Encapsulated ContentInfo
 			//
 			BerSequenceGenerator eiGen = new BerSequenceGenerator(cGen.GetRawOutputStream());
 
-			eiGen.AddObject(new DerObjectIdentifier(contentOID));
+			eiGen.AddObject(new DerObjectIdentifier(contentOid));
 
 			Stream octetStream = CmsUtilities.CreateBerOctetOutputStream(
 				eiGen.GetRawOutputStream(), 0, true, _bufferSize);

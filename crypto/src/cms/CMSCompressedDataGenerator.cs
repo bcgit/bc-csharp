@@ -21,10 +21,7 @@ namespace Org.BouncyCastle.Cms
     */
     public class CmsCompressedDataGenerator
     {
-        public const string ZLibOid = "1.2.840.113549.1.9.16.3.8";
-
-        [Obsolete("Use 'ZLibOid' instead")]
-        public const string ZLib = ZLibOid;
+        public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
 
         public CmsCompressedDataGenerator()
         {
@@ -33,10 +30,12 @@ namespace Org.BouncyCastle.Cms
 		/**
         * Generate an object that contains an CMS Compressed Data
         */
-        public CmsCompressedData Generate(
-            CmsProcessable	content,
-            string			compressionOid)
+        public CmsCompressedData Generate(CmsProcessable content, string compressionOid)
         {
+            if (ZLib != compressionOid)
+                throw new ArgumentException("Unsupported compression algorithm: " + compressionOid,
+                    nameof(compressionOid));
+
             AlgorithmIdentifier comAlgId;
             Asn1OctetString comOcts;
 
@@ -49,7 +48,7 @@ namespace Org.BouncyCastle.Cms
 
                 Platform.Dispose(zOut);
 
-                comAlgId = new AlgorithmIdentifier(new DerObjectIdentifier(compressionOid));
+                comAlgId = new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress);
 				comOcts = new BerOctetString(bOut.ToArray());
             }
             catch (IOException e)

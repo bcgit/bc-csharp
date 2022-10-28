@@ -138,11 +138,12 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public static readonly DerObjectIdentifier IdAlg = IdSmime.Branch("3");
 
-        public static readonly DerObjectIdentifier IdAlgEsdh        = IdAlg.Branch("5");
-        public static readonly DerObjectIdentifier IdAlgCms3DesWrap = IdAlg.Branch("6");
-        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap  = IdAlg.Branch("7");
-        public static readonly DerObjectIdentifier IdAlgPwriKek     = IdAlg.Branch("9");
-        public static readonly DerObjectIdentifier IdAlgSsdh        = IdAlg.Branch("10");
+        public static readonly DerObjectIdentifier IdAlgEsdh            = IdAlg.Branch("5");
+        public static readonly DerObjectIdentifier IdAlgCms3DesWrap     = IdAlg.Branch("6");
+        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap      = IdAlg.Branch("7");
+        public static readonly DerObjectIdentifier IdAlgZlibCompress    = IdAlg.Branch("8");
+        public static readonly DerObjectIdentifier IdAlgPwriKek         = IdAlg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlgSsdh            = IdAlg.Branch("10");
 
         /*
          * <pre>
