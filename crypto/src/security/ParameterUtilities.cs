@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("GOST28147",
                 "GOST",
                 "GOST-28147",
-                CryptoProObjectIdentifiers.GostR28147Cbc);
+                CryptoProObjectIdentifiers.GostR28147Gcfb);
             AddAlgorithm("HC128");
             AddAlgorithm("HC256");
             AddAlgorithm("IDEA",

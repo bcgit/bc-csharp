@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Security
             AddKgAlgorithm("GOST28147",
                 "GOST",
                 "GOST-28147",
-                CryptoProObjectIdentifiers.GostR28147Cbc);
+                CryptoProObjectIdentifiers.GostR28147Gcfb);
             AddKgAlgorithm("HC128");
             AddKgAlgorithm("HC256");
             AddKgAlgorithm("IDEA",
