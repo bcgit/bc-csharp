@@ -12,10 +12,8 @@ namespace Org.BouncyCastle.Math.Raw
      * computation and modular inversion" by Daniel J. Bernstein and Bo-Yin Yang.
      */
 
-    internal abstract class Mod
+    internal static class Mod
     {
-        private static readonly SecureRandom RandomSource = new SecureRandom();
-
         private const int M30 = 0x3FFFFFFF;
         private const ulong M32UL = 0xFFFFFFFFUL;
 
@@ -41,7 +39,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint Inverse32(uint d)
         {
-            Debug.Assert((d & 1) == 1);
+            Debug.Assert((d & 1U) == 1U);
 
             //int x = d + (((d + 1) & 4) << 1);   // d.x == 1 mod 2**4
             uint x = d;                         // d.x == 1 mod 2**3
@@ -50,6 +48,21 @@ namespace Org.BouncyCastle.Math.Raw
             x *= 2 - d * x;                     // d.x == 1 mod 2**24
             x *= 2 - d * x;                     // d.x == 1 mod 2**48
             Debug.Assert(d * x == 1U);
+            return x;
+        }
+
+        public static ulong Inverse64(ulong d)
+        {
+            Debug.Assert((d & 1UL) == 1UL);
+
+            //ulong x = d + (((d + 1) & 4) << 1);   // d.x == 1 mod 2**4
+            ulong x = d;                            // d.x == 1 mod 2**3
+            x *= 2 - d * x;                         // d.x == 1 mod 2**6
+            x *= 2 - d * x;                         // d.x == 1 mod 2**12
+            x *= 2 - d * x;                         // d.x == 1 mod 2**24
+            x *= 2 - d * x;                         // d.x == 1 mod 2**48
+            x *= 2 - d * x;                         // d.x == 1 mod 2**96
+            Debug.Assert(d * x == 1UL);
             return x;
         }
 
@@ -349,7 +362,7 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
-        public static uint[] Random(uint[] p)
+        public static uint[] Random(SecureRandom random, uint[] p)
         {
             int len = p.Length;
             uint[] s = Nat.Create(len);
@@ -364,7 +377,7 @@ namespace Org.BouncyCastle.Math.Raw
             byte[] bytes = new byte[len << 2];
             do
             {
-                RandomSource.NextBytes(bytes);
+                random.NextBytes(bytes);
                 Pack.BE_To_UInt32(bytes, 0, s);
                 s[len - 1] &= m;
             }
@@ -374,7 +387,7 @@ namespace Org.BouncyCastle.Math.Raw
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void Random(ReadOnlySpan<uint> p, Span<uint> z)
+        public static void Random(SecureRandom random, ReadOnlySpan<uint> p, Span<uint> z)
         {
             int len = p.Length;
             if (z.Length < len)
@@ -395,7 +408,7 @@ namespace Org.BouncyCastle.Math.Raw
 
             do
             {
-                RandomSource.NextBytes(bytes);
+                random.NextBytes(bytes);
                 Pack.BE_To_UInt32(bytes, s);
                 s[len - 1] &= m;
             }

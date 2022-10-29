@@ -115,7 +115,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
 
         public override ECFieldElement Invert()
         {
-            //return new SM2P256V1FieldElement(ToBigInteger().ModInverse(Q));
             uint[] z = Nat256.Create();
             SM2P256V1Field.Inv(x, z);
             return new SM2P256V1FieldElement(z);

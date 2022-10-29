@@ -109,42 +109,36 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <exception cref="ArgumentException">if wrong parameter type or a fixed
         /// salt is passed in which is the wrong length.
         /// </exception>
-        public virtual void Init(
-            bool				forSigning,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             RsaKeyParameters kParam;
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                ParametersWithRandom p = (ParametersWithRandom) parameters;
-
-                kParam = (RsaKeyParameters) p.Parameters;
+                kParam = (RsaKeyParameters)withRandom.Parameters;
 
                 if (forSigning)
                 {
-                    random = p.Random;
+                    random = withRandom.Random;
                 }
             }
-            else if (parameters is ParametersWithSalt)
+            else if (parameters is ParametersWithSalt withSalt)
             {
                 if (!forSigning)
-                    throw new ArgumentException("ParametersWithSalt only valid for signing", "parameters");
+                    throw new ArgumentException("ParametersWithSalt only valid for signing", nameof(parameters));
 
-                ParametersWithSalt p = (ParametersWithSalt) parameters;
-
-                kParam = (RsaKeyParameters) p.Parameters;
-                standardSalt = p.GetSalt();
+                kParam = (RsaKeyParameters)withSalt.Parameters;
+                standardSalt = withSalt.GetSalt();
 
                 if (standardSalt.Length != saltLength)
                     throw new ArgumentException("Fixed salt is of wrong length");
             }
             else
             {
-                kParam = (RsaKeyParameters) parameters;
+                kParam = (RsaKeyParameters)parameters;
 
                 if (forSigning)
                 {
-                    random = new SecureRandom();
+                    random = CryptoServicesRegistrar.GetSecureRandom();
                 }
             }
 

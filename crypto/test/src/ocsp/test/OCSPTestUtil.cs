@@ -12,8 +12,9 @@ namespace Org.BouncyCastle.Ocsp.Tests
 {
 	public class OcspTestUtil
 	{
-		public static SecureRandom rand;
-		public static IAsymmetricCipherKeyPairGenerator kpg, ecKpg;
+        public static readonly SecureRandom Random = new SecureRandom();
+
+        public static IAsymmetricCipherKeyPairGenerator kpg, ecKpg;
 		public static CipherKeyGenerator desede128kg;
 		public static CipherKeyGenerator desede192kg;
 		public static CipherKeyGenerator rc240kg;
@@ -25,18 +26,16 @@ namespace Org.BouncyCastle.Ocsp.Tests
 
 		static OcspTestUtil()
 		{
-			rand = new SecureRandom();
-
 //			kpg  = KeyPairGenerator.GetInstance("RSA");
 //			kpg.initialize(1024, rand);
 			kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 			kpg.Init(new RsaKeyGenerationParameters(
-				BigInteger.ValueOf(0x10001), rand, 1024, 25));
+				BigInteger.ValueOf(0x10001), Random, 1024, 25));
 
 			serialNumber = BigInteger.One;
 
 			ecKpg = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
-			ecKpg.Init(new KeyGenerationParameters(rand, 192));
+			ecKpg.Init(new KeyGenerationParameters(Random, 192));
 		}
 
 		public static AsymmetricCipherKeyPair MakeKeyPair()
@@ -106,7 +105,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			_v3CertGen.AddExtension(X509Extensions.BasicConstraints, false,
 				new BasicConstraints(_ca));
 
-            X509Certificate _cert = _v3CertGen.Generate(new Asn1SignatureFactory(algorithm, _issPriv, null));
+            X509Certificate _cert = _v3CertGen.Generate(new Asn1SignatureFactory(algorithm, _issPriv, Random));
 
             _cert.CheckValidity(DateTime.UtcNow);
 			_cert.Verify(_issPub);

@@ -12,22 +12,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private int r;
 
         // the row weight
-        private int w;
+        //private int w;
 
         // Hamming weight of h0, h1
-        private int hw;
+        //private int hw;
 
         // the error weight
-        private int t;
+        //private int t;
 
         //the shared secret size
         private int l;
 
         // number of iterations in BGF decoder
-        private int nbIter;
+        //private int nbIter;
 
         // tau
-        private int tau;
+        //private int tau;
         private int L_BYTE;
         private int R_BYTE;
 
@@ -40,12 +40,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             // get parameters
             this.r = this.bikeKeyGenerationParameters.Parameters.R;
-            this.w = this.bikeKeyGenerationParameters.Parameters.W;
+            //this.w = this.bikeKeyGenerationParameters.Parameters.W;
             this.l = this.bikeKeyGenerationParameters.Parameters.L;
-            this.t = this.bikeKeyGenerationParameters.Parameters.T;
-            this.nbIter = this.bikeKeyGenerationParameters.Parameters.NbIter;
-            this.tau = this.bikeKeyGenerationParameters.Parameters.Tau;
-            this.hw = w / 2;
+            //this.t = this.bikeKeyGenerationParameters.Parameters.T;
+            //this.nbIter = this.bikeKeyGenerationParameters.Parameters.NbIter;
+            //this.tau = this.bikeKeyGenerationParameters.Parameters.Tau;
+            //this.hw = w / 2;
             this.L_BYTE = l / 8;
             this.R_BYTE = (r + 7) / 8;
         }

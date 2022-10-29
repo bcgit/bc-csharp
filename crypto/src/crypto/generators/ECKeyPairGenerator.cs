@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             if (this.random == null)
             {
-                this.random = new SecureRandom();
+                this.random = CryptoServicesRegistrar.GetSecureRandom();
             }
         }
 

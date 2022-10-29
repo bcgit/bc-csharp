@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
         {
-            return !needed ? null : (provided != null) ? provided : new SecureRandom();
+            return !needed ? null : CryptoServicesRegistrar.GetSecureRandom(provided);
         }
     }
 }

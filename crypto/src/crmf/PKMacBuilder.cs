@@ -224,10 +224,7 @@ namespace Org.BouncyCastle.Crmf
 
             byte[] salt = new byte[saltLength];
 
-            if (random == null)
-            {
-                this.random = new SecureRandom();
-            }
+            this.random = CryptoServicesRegistrar.GetSecureRandom(random);
 
             random.NextBytes(salt);
 

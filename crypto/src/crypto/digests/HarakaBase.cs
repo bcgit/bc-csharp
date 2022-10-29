@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             s = SubBytes(s);
             s = ShiftRows(s);
             s = MixColumns(s);
-            XorWith(rk, s);
+            XorTo(rk, s);
             return s;
         }
 
@@ -131,11 +131,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        private static void XorWith(byte[] x, byte[] z)
+        private static void XorTo(byte[] x, byte[] z)
         {
-            for (int i = 0; i < 16; ++i)
+            for (int i = 0; i < 16; i += 4)
             {
-                z[i] ^= x[i];
+                z[i + 0] ^= x[i + 0];
+                z[i + 1] ^= x[i + 1];
+                z[i + 2] ^= x[i + 2];
+                z[i + 3] ^= x[i + 3];
             }
         }
 

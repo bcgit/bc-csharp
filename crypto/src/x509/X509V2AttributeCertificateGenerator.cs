@@ -54,13 +54,13 @@ namespace Org.BouncyCastle.X509
 		public void SetNotBefore(
 			DateTime date)
 		{
-			acInfoGen.SetStartDate(new DerGeneralizedTime(date));
+			acInfoGen.SetStartDate(new Asn1GeneralizedTime(date));
 		}
 
 		public void SetNotAfter(
 			DateTime date)
 		{
-			acInfoGen.SetEndDate(new DerGeneralizedTime(date));
+			acInfoGen.SetEndDate(new Asn1GeneralizedTime(date));
 		}
 
 		/// <summary>Add an attribute.</summary>

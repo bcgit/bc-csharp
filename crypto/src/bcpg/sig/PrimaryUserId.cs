@@ -8,20 +8,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class PrimaryUserId
         : SignatureSubpacket
     {
-        private static byte[] BooleanToByteArray(
-            bool    val)
+        private static byte[] BooleanToByteArray(bool val)
         {
-            byte[]    data = new byte[1];
-
-            if (val)
-            {
-                data[0] = 1;
-                return data;
-            }
-            else
-            {
-                return data;
-            }
+            return new byte[1]{ Convert.ToByte(val) };
         }
 
         public PrimaryUserId(

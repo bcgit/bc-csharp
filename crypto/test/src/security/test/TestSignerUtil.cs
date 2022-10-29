@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Security.Tests
                     signParams = dsaPriv;
                     verifyParams = dsaPub;
                 }
-                else if (cipherName == "ECGOST3410")
+                else if (cipherName.StartsWith("ECGOST"))
                 {
                     signParams = ecGostPair.Private;
                     verifyParams = ecGostPair.Public;

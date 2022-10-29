@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Ocsp
 			DateTime	revocationDate,
 			int			reason)
 		{
-			this.info = new RevokedInfo(new DerGeneralizedTime(revocationDate), new CrlReason(reason));
+			this.info = new RevokedInfo(new Asn1GeneralizedTime(revocationDate), new CrlReason(reason));
 		}
 
 		public DateTime RevocationTime

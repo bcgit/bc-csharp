@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             "PQCkemKAT_19888_shake.rsp",
             "PQCkemKAT_31296_shake.rsp",
-            "PQCkemKAT_43088_shake.rsp"
+            "PQCkemKAT_43088_shake.rsp",
         };
 
         [Test]
@@ -131,16 +131,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
-                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

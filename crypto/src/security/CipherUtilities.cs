@@ -246,7 +246,7 @@ namespace Org.BouncyCastle.Security
 
             Algorithms["GOST"] = "GOST28147";
             Algorithms["GOST-28147"] = "GOST28147";
-            Algorithms[CryptoProObjectIdentifiers.GostR28147Cbc.Id] = "GOST28147/CBC/PKCS7PADDING";
+            Algorithms[CryptoProObjectIdentifiers.GostR28147Gcfb.Id] = "GOST28147/CBC/PKCS7PADDING";
 
             Algorithms["RC5-32"] = "RC5";
 

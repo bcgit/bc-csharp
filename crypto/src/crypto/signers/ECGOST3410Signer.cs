@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
                 else
                 {
-                    this.random = new SecureRandom();
+                    this.random = CryptoServicesRegistrar.GetSecureRandom();
                 }
 
                 if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))

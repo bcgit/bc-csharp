@@ -13,9 +13,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly byte[] m_C;
         private readonly byte[] m_y;
 
-        public LMOtsSignature(LMOtsParameters ParamType, byte[] c, byte[] y)
+        public LMOtsSignature(LMOtsParameters paramType, byte[] c, byte[] y)
         {
-            m_paramType = ParamType;
+            m_paramType = paramType;
             m_C = c;
             m_y = y;
         }
@@ -26,22 +26,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 return lmOtsSignature;
             }
-            //TODO replace inputstreams with something
-            
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int index = BitConverter.ToInt32(data, 0);
-                LMOtsParameters type = LMOtsParameters.GetParametersByID(index);
-                byte[] C = new byte[type.N];
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
 
-                binaryReader.Read(C, 0, C.Length);
-            
-                byte[] sig = new byte[type.P * type.N];
-                binaryReader.Read(sig, 0, sig.Length);
+                byte[] C = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
 
-                return new LMOtsSignature(type, C, sig);
+                byte[] sig = BinaryReaders.ReadBytesFully(binaryReader, parameter.P * parameter.N);
+
+                return new LMOtsSignature(parameter, C, sig);
             }
             else if (src is byte[] bytes)
             {

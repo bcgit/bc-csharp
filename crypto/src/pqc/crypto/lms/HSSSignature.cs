@@ -6,54 +6,51 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class HSSSignature
+    public sealed class HssSignature
         : IEncodable
     {
         private int lMinus1;
-        private LMSSignedPubKey[] signedPubKey;
-        private LMSSignature signature;
+        private LmsSignedPubKey[] signedPubKey;
+        private LmsSignature signature;
 
-        public HSSSignature(int lMinus1, LMSSignedPubKey[] signedPubKey, LMSSignature signature)
+        public HssSignature(int lMinus1, LmsSignedPubKey[] signedPubKey, LmsSignature signature)
         {
             this.lMinus1 = lMinus1;
             this.signedPubKey = signedPubKey;
             this.signature = signature;
         }
 
-
         /**
-     * @param src byte[], InputStream or HSSSignature
-     * @param L   The HSS depth, available from public key.
-     * @return An HSSSignature instance.
-     * @throws IOException
-     */
-        public static HSSSignature GetInstance(Object src, int L)
+         * @param src byte[], InputStream or HSSSignature
+         * @param L   The HSS depth, available from public key.
+         * @return An HSSSignature instance.
+         * @throws IOException
+         */
+        public static HssSignature GetInstance(object src, int L)
         {
-            if (src is HSSSignature hssSignature)
+            if (src is HssSignature hssSignature)
             {
                 return hssSignature;
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int lminus = BitConverter.ToInt32(data, 0);
+                int lminus = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 if (lminus != L - 1)
                     throw new Exception("nspk exceeded maxNspk");
 
-                LMSSignedPubKey[] signedPubKeys = new LMSSignedPubKey[lminus];
+                LmsSignedPubKey[] signedPubKeys = new LmsSignedPubKey[lminus];
                 if (lminus != 0)
                 {
                     for (int t = 0; t < signedPubKeys.Length; t++)
                     {
-                        signedPubKeys[t] = new LMSSignedPubKey(LMSSignature.GetInstance(src),
-                            LMSPublicKeyParameters.GetInstance(src));
+                        signedPubKeys[t] = new LmsSignedPubKey(LmsSignature.GetInstance(src),
+                            LmsPublicKeyParameters.GetInstance(src));
                     }
                 }
 
-                LMSSignature sig = LMSSignature.GetInstance(src);
+                LmsSignature sig = LmsSignature.GetInstance(src);
 
-                return new HSSSignature(lminus, signedPubKeys, sig);
+                return new HssSignature(lminus, signedPubKeys, sig);
             }
             else if (src is byte[] bytes)
             {
@@ -82,12 +79,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return lMinus1;
         }
 
-        public LMSSignedPubKey[] GetSignedPubKeys()
+        public LmsSignedPubKey[] GetSignedPubKeys()
         {
             return signedPubKey;
         }
 
-        public LMSSignature Signature => signature;
+        public LmsSignature Signature => signature;
 
         public override bool Equals(Object o)
         {
@@ -101,7 +98,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return false;
             }
 
-            HSSSignature signature1 = (HSSSignature) o;
+            HssSignature signature1 = (HssSignature) o;
 
             if (lMinus1 != signature1.lMinus1)
             {
@@ -141,7 +138,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             composer.U32Str(lMinus1);
             if (signedPubKey != null)
             {
-                foreach (LMSSignedPubKey sigPub in signedPubKey)
+                foreach (LmsSignedPubKey sigPub in signedPubKey)
                 {
                     composer.Bytes(sigPub);
                 }

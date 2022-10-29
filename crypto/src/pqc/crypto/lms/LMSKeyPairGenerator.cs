@@ -3,14 +3,14 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public sealed class LMSKeyPairGenerator
+    public sealed class LmsKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private LMSKeyGenerationParameters m_parameters;
+        private LmsKeyGenerationParameters m_parameters;
 
         public void Init(KeyGenerationParameters parameters)
         {
-            m_parameters = (LMSKeyGenerationParameters)parameters;
+            m_parameters = (LmsKeyGenerationParameters)parameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] rootSecret = new byte[32];
             source.NextBytes(rootSecret);
 
-            LMSPrivateKeyParameters privKey = LMS.GenerateKeys(m_parameters.LmsParameters.LMSigParameters,
+            LmsPrivateKeyParameters privKey = Lms.GenerateKeys(m_parameters.LmsParameters.LMSigParameters,
                 m_parameters.LmsParameters.LMOtsParameters, 0, I, rootSecret);
 
             return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);

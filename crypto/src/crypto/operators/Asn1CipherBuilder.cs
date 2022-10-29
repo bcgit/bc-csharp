@@ -18,10 +18,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
         public Asn1CipherBuilderWithKey(DerObjectIdentifier encryptionOID, int keySize, SecureRandom random)
         {
-            if (random == null)
-            {
-                random = new SecureRandom();
-            }
+            random = CryptoServicesRegistrar.GetSecureRandom(random);
 
             CipherKeyGenerator keyGen = CipherKeyGeneratorFactory.CreateKeyGenerator(encryptionOID, random);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
@@ -22,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private readonly int t;
 
         //the shared secret size
-        private readonly int l;
+        //private readonly int l;
 
         // number of iterations in BGF decoder
         private readonly int nbIter;
@@ -39,7 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.r = r;
             this.w = w;
             this.t = t;
-            this.l = l;
+            //this.l = l;
             this.nbIter = nbIter;
             this.tau = tau;
             this.hw = this.w / 2;

@@ -21,20 +21,17 @@ namespace Org.BouncyCastle.Crypto.Generators
 		*
 		* @param param the necessary RSA key parameters.
 		*/
-		public void Init(
-			ICipherParameters param)
+		public void Init(ICipherParameters param)
 		{
-			if (param is ParametersWithRandom)
+			if (param is ParametersWithRandom rParam)
 			{
-				ParametersWithRandom rParam = (ParametersWithRandom)param;
-
 				key = (RsaKeyParameters)rParam.Parameters;
 				random = rParam.Random;
 			}
 			else
 			{
 				key = (RsaKeyParameters)param;
-				random = new SecureRandom();
+				random = CryptoServicesRegistrar.GetSecureRandom();
 			}
 
 			if (key.IsPrivate)

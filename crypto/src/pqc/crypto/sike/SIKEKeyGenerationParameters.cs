@@ -3,23 +3,17 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class SIKEKeyGenerationParameters
-    : KeyGenerationParameters
-{
-    private SIKEParameters param;
-
-    public SIKEKeyGenerationParameters(
-            SecureRandom random,
-            SIKEParameters sikeParameters
-    )
-    	: base(random, 256)
+    public sealed class SikeKeyGenerationParameters
+        : KeyGenerationParameters
     {
-        this.param = sikeParameters;
-    }
-    public SIKEParameters GetParameters()
-    {
-        return param;
-    }
-}
+        private readonly SikeParameters m_parameters;
 
+        public SikeKeyGenerationParameters(SecureRandom random, SikeParameters sikeParameters)
+            : base(random, 256)
+        {
+            m_parameters = sikeParameters;
+        }
+
+        public SikeParameters Parameters => m_parameters;
+    }
 }

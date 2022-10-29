@@ -15,34 +15,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class CrystalsDilithiumTest
     {
-        private static readonly Dictionary<string, DilithiumParameters> parameters = new Dictionary<string, DilithiumParameters>()
+        private static readonly Dictionary<string, DilithiumParameters> Parameters = new Dictionary<string, DilithiumParameters>()
         {
             { "PQCsignKAT_Dilithium2.rsp", DilithiumParameters.Dilithium2 },
             { "PQCsignKAT_Dilithium3.rsp", DilithiumParameters.Dilithium3 },
             { "PQCsignKAT_Dilithium5.rsp", DilithiumParameters.Dilithium5 },
             { "PQCsignKAT_Dilithium2-AES.rsp", DilithiumParameters.Dilithium2Aes },
             { "PQCsignKAT_Dilithium3-AES.rsp", DilithiumParameters.Dilithium3Aes },
-            { "PQCsignKAT_Dilithium5-AES.rsp", DilithiumParameters.Dilithium5Aes }
+            { "PQCsignKAT_Dilithium5-AES.rsp", DilithiumParameters.Dilithium5Aes },
         };
 
-        private static readonly string[] TestVectorFilesBasic =
+        private static readonly string[] TestVectorFiles =
         {
             "PQCsignKAT_Dilithium2.rsp",
             "PQCsignKAT_Dilithium3.rsp",
             "PQCsignKAT_Dilithium5.rsp",
+        };
+
+        private static readonly string[] TestVectorFilesAes =
+        {
             "PQCsignKAT_Dilithium2-AES.rsp",
             "PQCsignKAT_Dilithium3-AES.rsp",
             "PQCsignKAT_Dilithium5-AES.rsp",
         };
 
-        [TestCaseSource(nameof(TestVectorFilesBasic))]
+        [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorsBasic(string testVectorFile)
+        public void TV(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
 
-        private static void TestVectors(string name, IDictionary<string, string> buf)
+        [TestCaseSource(nameof(TestVectorFilesAes))]
+        [Parallelizable(ParallelScope.All)]
+        public void TVAes(string testVectorFile)
+        {
+            RunTestVectorFile(testVectorFile);
+        }
+
+        private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
             byte[] seed = Hex.Decode(buf["seed"]);      // seed for SecureRandom
@@ -54,10 +65,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] sm = Hex.Decode(buf["sm"]);          // signature
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            DilithiumParameters dilithiumparameters = parameters[name];
+            DilithiumParameters dilithiumparameters = Parameters[name];
 
             DilithiumKeyPairGenerator kpGen = new DilithiumKeyPairGenerator();
-            DilithiumKeyGenerationParameters genParams = new DilithiumKeyGenerationParameters(random, dilithiumparameters);
+            DilithiumKeyGenerationParameters genParams =
+                new DilithiumKeyGenerationParameters(random, dilithiumparameters);
 
             //
             // Generate keys and test.
@@ -66,8 +78,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair ackp = kpGen.GenerateKeyPair();
 
 
-            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters) ackp.Public;
-            DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters) ackp.Private;
+            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters)ackp.Public;
+            DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters)ackp.Private;
 
             //Console.WriteLine(string.Format("{0} Expected pk       = {1}", pk.Length, Convert.ToHexString(pk)));
             //Console.WriteLine(String.Format("{0} Actual Public key = {1}", pubParams.GetEncoded().Length, Convert.ToHexString(pubParams.GetEncoded())));
@@ -105,19 +117,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.False(vrfyresfail, name + " " + count + " verify passed when should fail");
         }
 
-        private static byte[] UInt32_To_LE(uint n)
-        {
-            byte[] bs = new byte[4];
-            bs[0] = (byte)(n);
-            bs[1] = (byte)(n >> 8);
-            bs[2] = (byte)(n >> 16);
-            bs[3] = (byte)(n >> 24);
-            return bs;
-        }
         public static void RunTestVectorFile(string name)
         {
             var buf = new Dictionary<string, string>();
-
+            TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.crystals.dilithium." + name)))
             {
                 string line;
@@ -139,14 +142,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                     if (buf.Count > 0)
                     {
-                        TestVectors(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
                 if (buf.Count > 0)
                 {
-                    TestVectors(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

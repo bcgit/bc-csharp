@@ -16,12 +16,6 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
     internal abstract class GcmUtilities
     {
-#if NETCOREAPP3_0_OR_GREATER
-        private static readonly Vector128<byte> EndianMask = Vector128.Create(
-            (byte)0x07, (byte)0x06, (byte)0x05, (byte)0x04, (byte)0x03, (byte)0x02, (byte)0x01, (byte)0x00,
-            (byte)0x0F, (byte)0x0E, (byte)0x0D, (byte)0x0C, (byte)0x0B, (byte)0x0A, (byte)0x09, (byte)0x08);
-#endif
-
         internal struct FieldElement
         {
             internal ulong n0, n1;
@@ -41,17 +35,6 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 #endif
         internal static void AsBytes(ulong x0, ulong x1, byte[] z)
         {
-#if NETCOREAPP3_0_OR_GREATER
-            if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
-            {
-                var X = Vector128.Create(x0, x1).AsByte();
-                // TODO[Arm] System.Runtime.Intrinsics.Arm.AdvSimd.Reverse8
-                var Z = Ssse3.Shuffle(X, EndianMask);
-                Unsafe.WriteUnaligned(ref z[0], Z);
-                return;
-            }
-#endif
-
             Pack.UInt64_To_BE(x0, z, 0);
             Pack.UInt64_To_BE(x1, z, 8);
         }
@@ -69,17 +52,6 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 #endif
         internal static void AsFieldElement(byte[] x, out FieldElement z)
         {
-#if NETCOREAPP3_0_OR_GREATER
-            if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
-            {
-                var X = Unsafe.ReadUnaligned<Vector128<byte>>(ref x[0]);
-                var Z = Ssse3.Shuffle(X, EndianMask).AsUInt64();
-                z.n0 = Z.GetElement(0);
-                z.n1 = Z.GetElement(1);
-                return;
-            }
-#endif
-
             z.n0 = Pack.BE_To_UInt64(x, 0);
             z.n1 = Pack.BE_To_UInt64(x, 8);
         }

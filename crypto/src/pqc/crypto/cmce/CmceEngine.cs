@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto;
@@ -1460,9 +1463,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     row = i * 8 + j;
 
                     if (row >= PK_NROWS)
-                    {
                         break;
-                    }
+
+                    byte[] mat_row = mat[row];
 
                     if (usePivots)
                     {
@@ -1470,7 +1473,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         {
                             if (MovColumns(mat, pi, pivots) != 0)
                             {
-                                //                            System.out.println("failed mov column!");
+                                //System.out.println("failed mov column!");
                                 return -1;
                             }
                         }
@@ -1478,21 +1481,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
                     for (k = row + 1; k < PK_NROWS; k++)
                     {
-                        mask = (byte)(mat[row][i] ^ mat[k][i]);
+                        byte[] mat_k = mat[k];
+                        mask = (byte)(mat_row[i] ^ mat_k[i]);
                         mask >>= j;
                         mask &= 1;
-                        mask = (byte)-mask;
 
-                        for (c = 0; c < SYS_N / 8; c++)
+                        c = 0;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        ulong mask64 = 0UL - mask;
+                        int limit64 = (SYS_N / 8) - 8;
+                        while (c <= limit64)
                         {
-                            mat[row][c] ^= (byte)(mat[k][c] & mask);
+                            ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c)) & mask64;
+                            ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c)) ^ t0;
+                            MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
+                            c += 8;
+                        }
+#endif
+                        byte maskByte = (byte)-mask;
+                        while (c < SYS_N / 8)
+                        {
+                            mat_row[c] ^= (byte)(mat_k[c] & maskByte);
+                            ++c;
                         }
                     }
+
                     // 7. Compute (T,cn−k−μ+1,...,cn−k,Γ′) ← MatGen(Γ). If this fails, set δ ← δ′ and
                     // restart the algorithm.
-                    if (((mat[row][i] >> j) & 1) == 0) // return if not systematic
+                    if (((mat_row[i] >> j) & 1) == 0) // return if not systematic
                     {
-                        //                    System.out.println("FAIL 2\n");
+                        //System.out.println("FAIL 2\n");
                         return -1;
                     }
 
@@ -1500,14 +1519,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     {
                         if (k != row)
                         {
-                            mask = (byte)(mat[k][i] >> j);
+                            byte[] mat_k = mat[k];
+                            mask = (byte)(mat_k[i] >> j);
                             mask &= 1;
-                            mask = (byte)-mask;
 
-                            for (c = 0; c < SYS_N / 8; c++)
+                            //mask = (byte)-mask;
+
+                            //for (c = 0; c < SYS_N / 8; c++)
+                            //{
+                            //    mat_k[c] ^= (byte)(mat_row[c] & mask);
+                            //}
+
+                            c = 0;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                            ulong mask64 = 0UL - mask;
+                            int limit64 = (SYS_N / 8) - 8;
+                            while (c <= limit64)
                             {
-                                mat[k][c] ^= (byte)(mat[row][c] & mask);
-
+                                ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c)) & mask64;
+                                ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c)) ^ t0;
+                                MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
+                                c += 8;
+                            }
+#endif
+                            byte maskByte = (byte)-mask;
+                            while (c < SYS_N / 8)
+                            {
+                                mat_k[c] ^= (byte)(mat_row[c] & maskByte);
+                                ++c;
                             }
                         }
                     }
@@ -1545,7 +1585,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
             return 0;
         }
-
 
         private ushort Eval(ushort[] f, ushort a)
         {

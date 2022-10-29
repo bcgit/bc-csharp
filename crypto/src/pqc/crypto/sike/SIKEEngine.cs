@@ -4,16 +4,15 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    
-internal class SIKEEngine
+internal sealed class SikeEngine
 {
-    private SecureRandom random;
-    
+    //private readonly SecureRandom random;
+
     protected internal Internal param;
     protected internal Isogeny isogeny;
     protected internal Fpx fpx;
-    private SIDH sidh;
-    private SIDH_Compressed sidhCompressed;
+    private Sidh sidh;
+    private SidhCompressed sidhCompressed;
     private bool isCompressed;
 
     public uint GetDefaultSessionKeySize()
@@ -35,9 +34,9 @@ internal class SIKEEngine
     {
         return param.CRYPTO_PUBLICKEYBYTES;
     }
-    public SIKEEngine(int ver, bool isCompressed, SecureRandom random)
+    public SikeEngine(int ver, bool isCompressed, SecureRandom random)
     {
-        this.random = random;
+        //this.random = random;
         this.isCompressed = isCompressed;
         //todo switch for different parameters
         switch(ver)
@@ -62,9 +61,9 @@ internal class SIKEEngine
         isogeny = new Isogeny(this);
         if(isCompressed)
         {
-            sidhCompressed = new SIDH_Compressed(this);
+            sidhCompressed = new SidhCompressed(this);
         }
-        sidh = new SIDH(this);
+        sidh = new Sidh(this);
     }
 
     // SIKE's key generation

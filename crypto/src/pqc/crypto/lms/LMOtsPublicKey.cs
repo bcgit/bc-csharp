@@ -32,22 +32,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int index = BitConverter.ToInt32(data, 0);
-                
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
-                byte[] I = new byte[16];
-                binaryReader.Read(I, 0, I.Length);
-                
-                Array.Reverse(data);
-                int q = BitConverter.ToInt32(data, 0);
 
-                byte[] K = new byte[parameter.N];
-                binaryReader.Read(K, 0, K.Length);
+                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                byte[] K = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
 
                 return new LMOtsPublicKey(parameter, I, q, K);
-
             }
             else if (src is byte[] bytes)
             {
@@ -109,28 +103,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        internal LMSContext CreateOtsContext(LMOtsSignature signature)
+        internal LmsContext CreateOtsContext(LMOtsSignature signature)
         {
             IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(m_I, ctx);
-            LmsUtils.U32Str(m_q, ctx);
-            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
-            LmsUtils.ByteArray(signature.C, ctx);
+            LmsUtilities.ByteArray(m_I, ctx);
+            LmsUtilities.U32Str(m_q, ctx);
+            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.ByteArray(signature.C, ctx);
 
-            return new LMSContext(this, signature, ctx);
+            return new LmsContext(this, signature, ctx);
         }
 
-        internal LMSContext CreateOtsContext(LMSSignature signature)
+        internal LmsContext CreateOtsContext(LmsSignature signature)
         {
             IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(m_I, ctx);
-            LmsUtils.U32Str(m_q, ctx);
-            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
-            LmsUtils.ByteArray(signature.OtsSignature.C, ctx);
+            LmsUtilities.ByteArray(m_I, ctx);
+            LmsUtilities.U32Str(m_q, ctx);
+            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.ByteArray(signature.OtsSignature.C, ctx);
 
-            return new LMSContext(this, signature, ctx);
+            return new LmsContext(this, signature, ctx);
         }
     }
 }

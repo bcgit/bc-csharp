@@ -737,7 +737,6 @@ namespace Org.BouncyCastle.Math.EC
         private const int FP_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
 
         private static readonly HashSet<BigInteger> KnownQs = new HashSet<BigInteger>();
-        private static readonly SecureRandom random = new SecureRandom();
 
         protected readonly BigInteger m_q, m_r;
         protected readonly FpPoint m_infinity;
@@ -771,7 +770,8 @@ namespace Org.BouncyCastle.Math.EC
                         throw new ArgumentException("Fp q value out of range");
 
                     if (Primes.HasAnySmallFactors(q) ||
-                        !Primes.IsMRProbablePrime(q, random, GetNumberOfIterations(qBitLength, certainty)))
+                        !Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom,
+                            GetNumberOfIterations(qBitLength, certainty)))
                     {
                         throw new ArgumentException("Fp q value not prime");
                     }

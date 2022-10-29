@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSSignature
+    public class LmsSignature
         : IEncodable
     {
         private int q;
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private LMSigParameters parameter;
         private byte[][] y;
 
-        public LMSSignature(int q, LMOtsSignature otsSignature, LMSigParameters parameter, byte[][] y)
+        public LmsSignature(int q, LMOtsSignature otsSignature, LMSigParameters parameter, byte[][] y)
         {
             this.q = q;
             this.otsSignature = otsSignature;
@@ -22,23 +22,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.y = y;
         }
 
-        public static LMSSignature GetInstance(object src)
+        public static LmsSignature GetInstance(object src)
         {
-            if (src is LMSSignature lmsSignature)
+            if (src is LmsSignature lmsSignature)
             {
                 return lmsSignature;
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int q = BitConverter.ToInt32(data, 0);
-                
+                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
                 LMOtsSignature otsSignature = LMOtsSignature.GetInstance(src);
 
-                data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int index = BitConverter.ToInt32(data, 0);
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
                 LMSigParameters type = LMSigParameters.GetParametersByID(index);
 
                 byte[][] path = new byte[type.H][];
@@ -47,8 +43,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     path[h] = new byte[type.M];
                     binaryReader.Read(path[h], 0, path[h].Length);
                 }
-            
-                return new LMSSignature(q, otsSignature, type, path);
+
+                return new LmsSignature(q, otsSignature, type, path);
             }
             else if (src is byte[] bytes)
             {
@@ -81,7 +77,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return false;
             }
 
-            LMSSignature that = (LMSSignature)o;
+            LmsSignature that = (LmsSignature)o;
 
             if (q != that.q)
             {

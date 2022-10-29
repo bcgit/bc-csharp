@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "haraka-192f-robust.rsp",
             "haraka-256f-robust.rsp",
         };
+
         private static readonly string[] TestVectorFilesRobustSlow =
         {
             "sha2-128s-robust.rsp",
@@ -48,6 +49,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "haraka-192s-robust.rsp",
             "haraka-256s-robust.rsp",
         };
+
         private static readonly string[] TestVectorFilesSimpleFast =
         {
             "sha2-128f-simple.rsp",
@@ -60,6 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "haraka-192f-simple.rsp",
             "haraka-256f-simple.rsp",
         };
+
         private static readonly string[] TestVectorFilesSimpleSlow =
         {
             "sha2-128s-simple.rsp",
@@ -498,16 +501,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
-                if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

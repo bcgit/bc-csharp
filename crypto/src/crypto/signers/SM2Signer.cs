@@ -72,10 +72,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                if (baseParam is ParametersWithRandom)
+                if (baseParam is ParametersWithRandom rParam)
                 {
-                    ParametersWithRandom rParam = (ParametersWithRandom)baseParam;
-
                     ecKey = (ECKeyParameters)rParam.Parameters;
                     ecParams = ecKey.Parameters;
                     kCalculator.Init(ecParams.N, rParam.Random);
@@ -84,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 {
                     ecKey = (ECKeyParameters)baseParam;
                     ecParams = ecKey.Parameters;
-                    kCalculator.Init(ecParams.N, new SecureRandom());
+                    kCalculator.Init(ecParams.N, CryptoServicesRegistrar.GetSecureRandom());
                 }
                 pubPoint = CreateBasePointMultiplier().Multiply(ecParams.G, ((ECPrivateKeyParameters)ecKey).D).Normalize();
             }

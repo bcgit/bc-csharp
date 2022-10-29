@@ -305,13 +305,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
 
-			DateTime testDateTime = new DateTime(1973, 7, 27);
+			DateTime modificationTime = new DateTime(1973, 7, 27, 0, 0, 0, DateTimeKind.Utc);
+
 			Stream lOut = lGen.Open(
 				new UncloseableStream(bcOut),
 				PgpLiteralData.Binary,
 				"_CONSOLE",
 				dataBytes.Length,
-				testDateTime);
+				modificationTime);
 
 			int ch;
             while ((ch = testIn.ReadByte()) >= 0)
@@ -335,7 +336,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpOnePassSignature ops = p1[0];
 
             PgpLiteralData p2 = (PgpLiteralData) pgpFact.NextPgpObject();
-			if (!p2.ModificationTime.Equals(testDateTime))
+			if (!p2.ModificationTime.Equals(modificationTime))
 			{
 				Fail("Modification time not preserved");
 			}
@@ -429,13 +430,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sGen.GenerateOnePassVersion(false).Encode(bcOut);
 
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
-			DateTime testDateTime = new DateTime(1973, 7, 27);
-			Stream lOut = lGen.Open(
+
+            DateTime modificationTime = new DateTime(1973, 7, 27, 0, 0, 0, DateTimeKind.Utc);
+            
+            Stream lOut = lGen.Open(
 				new UncloseableStream(bcOut),
 				PgpLiteralData.Text,
 				"_CONSOLE",
 				dataBytes.Length,
-				testDateTime);
+                modificationTime);
 
 			while ((ch = testIn.ReadByte()) >= 0)
             {
@@ -463,7 +466,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             ops = p1[0];
 
             p2 = (PgpLiteralData) pgpFact.NextPgpObject();
-			if (!p2.ModificationTime.Equals(testDateTime))
+			if (!p2.ModificationTime.Equals(modificationTime))
 			{
 				Fail("Modification time not preserved");
 			}

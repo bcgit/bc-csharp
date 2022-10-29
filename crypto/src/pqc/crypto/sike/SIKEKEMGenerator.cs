@@ -1,40 +1,39 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
-using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class SIKEKEMGenerator
-    : IEncapsulatedSecretGenerator
-{
-    // the source of randomness
-    private SecureRandom sr;
-
-
-    public SIKEKEMGenerator(SecureRandom random)
+    public sealed class SikeKemGenerator
+        : IEncapsulatedSecretGenerator
     {
-        this.sr = random;
-    }
+        // the source of randomness
+        private readonly SecureRandom sr;
 
-    public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
-    {
-        SIKEPublicKeyParameters key = (SIKEPublicKeyParameters)recipientKey;
-        SIKEEngine engine = key.GetParameters().GetEngine();
+        public SikeKemGenerator(SecureRandom random)
+        {
+            this.sr = CryptoServicesRegistrar.GetSecureRandom(random);
+        }
 
-        return GenerateEncapsulated(recipientKey, engine.GetDefaultSessionKeySize());
-    }
+        public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
+        {
+            SikePublicKeyParameters key = (SikePublicKeyParameters)recipientKey;
+            SikeEngine engine = key.Parameters.Engine;
 
-    public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey, uint sessionKeySizeInBits)
-    {
+            return GenerateEncapsulated(recipientKey, engine.GetDefaultSessionKeySize());
+        }
+
+        public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey, uint sessionKeySizeInBits)
+        {
             Console.Error.WriteLine("WARNING: the SIKE algorithm is only for research purposes, insecure");
-        SIKEPublicKeyParameters key = (SIKEPublicKeyParameters)recipientKey;
-        SIKEEngine engine = key.GetParameters().GetEngine();
-        byte[] cipher_text = new byte[engine.GetCipherTextSize()];
-        byte[] sessionKey = new byte[sessionKeySizeInBits / 8];
-        engine.crypto_kem_enc(cipher_text, sessionKey, key.GetPublicKey(), sr);
-        return new SecretWithEncapsulationImpl(sessionKey, cipher_text);
+            SikePublicKeyParameters key = (SikePublicKeyParameters)recipientKey;
+            SikeEngine engine = key.Parameters.Engine;
+            byte[] cipher_text = new byte[engine.GetCipherTextSize()];
+            byte[] sessionKey = new byte[sessionKeySizeInBits / 8];
+            engine.crypto_kem_enc(cipher_text, sessionKey, key.GetPublicKey(), sr);
+            return new SecretWithEncapsulationImpl(sessionKey, cipher_text);
+        }
     }
-}
-
 }

@@ -5,10 +5,10 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public sealed class HSSKeyGenerationParameters
+    public sealed class HssKeyGenerationParameters
         : KeyGenerationParameters
     {
-        private static LMSParameters[] ValidateLmsParameters(LMSParameters[] lmsParameters)
+        private static LmsParameters[] ValidateLmsParameters(LmsParameters[] lmsParameters)
         {
             if (lmsParameters == null)
                 throw new ArgumentNullException(nameof(lmsParameters));
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return lmsParameters;
         }
 
-        private readonly LMSParameters[] m_lmsParameters;
+        private readonly LmsParameters[] m_lmsParameters;
 
         /**
          * Base constructor - parameters and a source of randomness.
@@ -25,15 +25,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          * @param lmsParameters array of LMS parameters, one per level in the hierarchy (up to 8 levels).
          * @param random   the random byte source.
          */
-        public HSSKeyGenerationParameters(LMSParameters[] lmsParameters, SecureRandom random)
-            :base(random, LmsUtils.CalculateStrength(ValidateLmsParameters(lmsParameters)[0]))
+        public HssKeyGenerationParameters(LmsParameters[] lmsParameters, SecureRandom random)
+            :base(random, LmsUtilities.CalculateStrength(ValidateLmsParameters(lmsParameters)[0]))
         {
             m_lmsParameters = lmsParameters;
         }
 
         public int Depth => m_lmsParameters.Length;
 
-        public LMSParameters GetLmsParameters(int index)
+        public LmsParameters GetLmsParameters(int index)
         {
             if (index < 0 || index >= m_lmsParameters.Length)
                 throw new ArgumentOutOfRangeException(nameof(index));

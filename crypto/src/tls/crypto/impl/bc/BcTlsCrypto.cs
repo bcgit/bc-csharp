@@ -28,12 +28,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         private readonly SecureRandom m_entropySource;
 
         public BcTlsCrypto()
-            : this(new SecureRandom())
+            : this(CryptoServicesRegistrar.GetSecureRandom())
         {
         }
 
         public BcTlsCrypto(SecureRandom entropySource)
         {
+            if (entropySource == null)
+                throw new ArgumentNullException(nameof(entropySource));
+
             this.m_entropySource = entropySource;
         }
 

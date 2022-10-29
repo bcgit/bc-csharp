@@ -5,32 +5,31 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public sealed class HSSPublicKeyParameters
-        : LMSKeyParameters, ILMSContextBasedVerifier
+    public sealed class HssPublicKeyParameters
+        : LmsKeyParameters, ILmsContextBasedVerifier
     {
         private readonly int m_l;
-        private readonly LMSPublicKeyParameters m_lmsPublicKey;
+        private readonly LmsPublicKeyParameters m_lmsPublicKey;
 
-        public HSSPublicKeyParameters(int l, LMSPublicKeyParameters lmsPublicKey)
+        public HssPublicKeyParameters(int l, LmsPublicKeyParameters lmsPublicKey)
     	    :base(false)
         {
             m_l = l;
             m_lmsPublicKey = lmsPublicKey;
         }
 
-        public static HSSPublicKeyParameters GetInstance(object src)
+        public static HssPublicKeyParameters GetInstance(object src)
         {
-            if (src is HSSPublicKeyParameters hssPublicKeyParameters)
+            if (src is HssPublicKeyParameters hssPublicKeyParameters)
             {
                 return hssPublicKeyParameters;
             }
             else if (src is BinaryReader binaryReader)
             {
-                byte[] data = binaryReader.ReadBytes(4);
-                Array.Reverse(data);
-                int L = BitConverter.ToInt32(data, 0);
-                LMSPublicKeyParameters lmsPublicKey = LMSPublicKeyParameters.GetInstance(src);// todo check endianness
-                return new HSSPublicKeyParameters(L, lmsPublicKey);
+                int L = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+                LmsPublicKeyParameters lmsPublicKey = LmsPublicKeyParameters.GetInstance(src);
+                return new HssPublicKeyParameters(L, lmsPublicKey);
             }
             else if (src is byte[] bytes)
             {
@@ -55,7 +54,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public int L => m_l;
 
-        public LMSPublicKeyParameters LmsPublicKey => m_lmsPublicKey;
+        public LmsPublicKeyParameters LmsPublicKey => m_lmsPublicKey;
 
         public override bool Equals(Object o)
         {
@@ -64,7 +63,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (o == null || GetType() != o.GetType())
                 return false;
 
-            HSSPublicKeyParameters publicKey = (HSSPublicKeyParameters)o;
+            HssPublicKeyParameters publicKey = (HssPublicKeyParameters)o;
 
             return m_l == publicKey.m_l
                 && m_lmsPublicKey.Equals(publicKey.m_lmsPublicKey);
@@ -84,39 +83,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        public LMSContext GenerateLmsContext(byte[] sigEnc)
+        public LmsContext GenerateLmsContext(byte[] sigEnc)
         {
-            HSSSignature signature;
+            HssSignature signature;
             try
             {
-                signature = HSSSignature.GetInstance(sigEnc, L);
+                signature = HssSignature.GetInstance(sigEnc, L);
             }
             catch (IOException e)
             {
                 throw new Exception($"cannot parse signature: {e.Message}");
             }
 
-            LMSSignedPubKey[] signedPubKeys = signature.GetSignedPubKeys();
-            LMSPublicKeyParameters key = signedPubKeys[signedPubKeys.Length - 1].GetPublicKey();
+            LmsSignedPubKey[] signedPubKeys = signature.GetSignedPubKeys();
+            LmsPublicKeyParameters key = signedPubKeys[signedPubKeys.Length - 1].GetPublicKey();
 
             return key.GenerateOtsContext(signature.Signature).WithSignedPublicKeys(signedPubKeys);
         }
 
-        public bool Verify(LMSContext context)
+        public bool Verify(LmsContext context)
         {
-            LMSSignedPubKey[] sigKeys = context.SignedPubKeys;
+            LmsSignedPubKey[] sigKeys = context.SignedPubKeys;
 
             if (sigKeys.Length != L - 1)
                 return false;
 
-            LMSPublicKeyParameters key = LmsPublicKey;
+            LmsPublicKeyParameters key = LmsPublicKey;
             bool failed = false;
 
             for (int i = 0; i < sigKeys.Length; i++)
             {
-                LMSSignature sig = sigKeys[i].GetSignature();
+                LmsSignature sig = sigKeys[i].GetSignature();
                 byte[] msg = sigKeys[i].GetPublicKey().ToByteArray();
-                if (!LMS.VerifySignature(key, sig, msg))
+                if (!Lms.VerifySignature(key, sig, msg))
                 {
                     failed = true;
                 }

@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Cms
 	*      CMSEnvelopedData         data = fact.generate(content, algorithm, "BC");
 	* </pre>
 	*/
-	public class CmsEnvelopedGenerator
+	public abstract class CmsEnvelopedGenerator
 	{
 		// Note: These tables are complementary: If rc2Table[i]==j, then rc2Ekb[j]==i
 		internal static readonly short[] rc2Table =
@@ -100,21 +100,23 @@ namespace Org.BouncyCastle.Cms
 		public static readonly string ECMqvSha1Kdf		= X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
 
 		internal readonly IList<RecipientInfoGenerator> recipientInfoGenerators = new List<RecipientInfoGenerator>();
-		internal readonly SecureRandom rand;
+		internal readonly SecureRandom m_random;
 
         internal CmsAttributeTableGenerator unprotectedAttributeGenerator = null;
 
-		public CmsEnvelopedGenerator()
-			: this(new SecureRandom())
+        protected CmsEnvelopedGenerator()
+			: this(CryptoServicesRegistrar.GetSecureRandom())
 		{
 		}
 
 		/// <summary>Constructor allowing specific source of randomness</summary>
-		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-		public CmsEnvelopedGenerator(
-			SecureRandom rand)
+		/// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		protected CmsEnvelopedGenerator(SecureRandom random)
 		{
-			this.rand = rand;
+			if (random == null)
+				throw new ArgumentNullException(nameof(random));
+
+			m_random = random;
 		}
 
         public CmsAttributeTableGenerator UnprotectedAttributeGenerator
@@ -304,7 +306,7 @@ namespace Org.BouncyCastle.Cms
 				if (encryptionOid.Equals(RC2Cbc))
 				{
 					byte[] iv = new byte[8];
-					rand.NextBytes(iv);
+                    m_random.NextBytes(iv);
 
 					// TODO Is this detailed repeat of Java version really necessary?
 					int effKeyBits = encKeyBytes.Length * 8;
@@ -323,7 +325,7 @@ namespace Org.BouncyCastle.Cms
 				}
 				else
 				{
-					asn1Params = ParameterUtilities.GenerateParameters(encryptionOid, rand);
+					asn1Params = ParameterUtilities.GenerateParameters(encryptionOid, m_random);
 				}
 			}
 			catch (SecurityUtilityException)

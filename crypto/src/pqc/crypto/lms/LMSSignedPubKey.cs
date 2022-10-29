@@ -4,25 +4,25 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSSignedPubKey
+    public class LmsSignedPubKey
         : IEncodable
     {
-        private LMSSignature signature;
-        private LMSPublicKeyParameters publicKey;
+        private LmsSignature signature;
+        private LmsPublicKeyParameters publicKey;
 
-        public LMSSignedPubKey(LMSSignature signature, LMSPublicKeyParameters publicKey)
+        public LmsSignedPubKey(LmsSignature signature, LmsPublicKeyParameters publicKey)
         {
             this.signature = signature;
             this.publicKey = publicKey;
         }
 
 
-        public LMSSignature GetSignature()
+        public LmsSignature GetSignature()
         {
             return signature;
         }
 
-        public LMSPublicKeyParameters GetPublicKey()
+        public LmsPublicKeyParameters GetPublicKey()
         {
             return publicKey;
         }
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return false;
             }
 
-            LMSSignedPubKey that = (LMSSignedPubKey)o;
+            LmsSignedPubKey that = (LmsSignedPubKey)o;
 
             if (signature != null ? !signature.Equals(that.signature) : that.signature != null)
             {

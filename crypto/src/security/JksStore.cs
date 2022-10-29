@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Security
             using (var br = new BinaryReader(stream))
             try
             {
-                return Magic == ReadInt32(br);
+                return Magic == BinaryReaders.ReadInt32BigEndian(br);
             }
             catch (EndOfStreamException)
             {
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Security
             byte[] pkcs8Key = PrivateKeyInfoFactory.CreatePrivateKeyInfo(key).GetEncoded();
             byte[] protectedKey = new byte[pkcs8Key.Length + 40];
 
-            SecureRandom rnd = new SecureRandom();
+            SecureRandom rnd = CryptoServicesRegistrar.GetSecureRandom();
             rnd.NextBytes(protectedKey, 0, 20);
 
             IDigest digest = DigestUtilities.GetDigest("SHA-1");
@@ -263,24 +263,24 @@ namespace Org.BouncyCastle.Security
             IDigest checksumDigest = CreateChecksumDigest(password);
             BinaryWriter bw = new BinaryWriter(new DigestStream(stream, null, checksumDigest));
 
-            WriteInt32(bw, Magic);
-            WriteInt32(bw, 2);
+            BinaryWriters.WriteInt32BigEndian(bw, Magic);
+            BinaryWriters.WriteInt32BigEndian(bw, 2);
 
-            WriteInt32(bw, Count);
+            BinaryWriters.WriteInt32BigEndian(bw, Count);
 
             foreach (var entry in m_keyEntries)
             {
                 string alias = entry.Key;
                 JksKeyEntry keyEntry = entry.Value;
 
-                WriteInt32(bw, 1);
+                BinaryWriters.WriteInt32BigEndian(bw, 1);
                 WriteUtf(bw, alias);
                 WriteDateTime(bw, keyEntry.date);
-                WriteBufferWithLength(bw, keyEntry.keyData.GetEncoded());
+                WriteBufferWithInt32Length(bw, keyEntry.keyData.GetEncoded());
 
                 X509Certificate[] chain = keyEntry.chain;
                 int chainLength = chain == null ? 0 : chain.Length;
-                WriteInt32(bw, chainLength);
+                BinaryWriters.WriteInt32BigEndian(bw, chainLength);
                 for (int i = 0; i < chainLength; ++i)
                 {
                     WriteTypedCertificate(bw, chain[i]);
@@ -292,7 +292,7 @@ namespace Org.BouncyCastle.Security
                 string alias = entry.Key;
                 JksTrustedCertEntry certEntry = entry.Value;
 
-                WriteInt32(bw, 2);
+                BinaryWriters.WriteInt32BigEndian(bw, 2);
                 WriteUtf(bw, alias);
                 WriteDateTime(bw, certEntry.date);
                 WriteTypedCertificate(bw, certEntry.cert);
@@ -314,39 +314,39 @@ namespace Org.BouncyCastle.Security
 
             using (var storeStream = ValidateStream(stream, password))
             {
-                BinaryReader dIn = new BinaryReader(storeStream);
+                BinaryReader br = new BinaryReader(storeStream);
 
-                int magic = ReadInt32(dIn);
-                int storeVersion = ReadInt32(dIn);
+                int magic = BinaryReaders.ReadInt32BigEndian(br);
+                int storeVersion = BinaryReaders.ReadInt32BigEndian(br);
 
                 if (!(magic == Magic && (storeVersion == 1 || storeVersion == 2)))
                     throw new IOException("Invalid keystore format");
 
-                int numEntries = ReadInt32(dIn);
+                int numEntries = BinaryReaders.ReadInt32BigEndian(br);
 
                 for (int t = 0; t < numEntries; t++)
                 {
-                    int tag = ReadInt32(dIn);
+                    int tag = BinaryReaders.ReadInt32BigEndian(br);
 
                     switch (tag)
                     {
                     case 1: // keys
                     {
-                        string alias = ReadUtf(dIn);
-                        DateTime date = ReadDateTime(dIn);
+                        string alias = ReadUtf(br);
+                        DateTime date = ReadDateTime(br);
 
                         // encrypted key data
-                        byte[] keyData = ReadBufferWithLength(dIn);
+                        byte[] keyData = ReadBufferWithInt32Length(br);
 
                         // certificate chain
-                        int chainLength = ReadInt32(dIn);
+                        int chainLength = BinaryReaders.ReadInt32BigEndian(br);
                         X509Certificate[] chain = null;
                         if (chainLength > 0)
                         {
                             var certs = new List<X509Certificate>(System.Math.Min(10, chainLength));
                             for (int certNo = 0; certNo != chainLength; certNo++)
                             {
-                                certs.Add(ReadTypedCertificate(dIn, storeVersion));
+                                certs.Add(ReadTypedCertificate(br, storeVersion));
                             }
                             chain = certs.ToArray();
                         }
@@ -355,10 +355,10 @@ namespace Org.BouncyCastle.Security
                     }
                     case 2: // certificate
                     {
-                        string alias = ReadUtf(dIn);
-                        DateTime date = ReadDateTime(dIn);
+                        string alias = ReadUtf(br);
+                        DateTime date = ReadDateTime(br);
 
-                        X509Certificate cert = ReadTypedCertificate(dIn, storeVersion);
+                        X509Certificate cert = ReadTypedCertificate(br, storeVersion);
 
                         m_certificateEntries.Add(alias, new JksTrustedCertEntry(date, cert));
                         break;
@@ -446,29 +446,22 @@ namespace Org.BouncyCastle.Security
             return digest;
         }
 
-        private static byte[] ReadBufferWithLength(BinaryReader br)
+        private static byte[] ReadBufferWithInt16Length(BinaryReader br)
         {
-            int length = ReadInt32(br);
-            return br.ReadBytes(length);
+            int length = BinaryReaders.ReadInt16BigEndian(br);
+            return BinaryReaders.ReadBytesFully(br, length);
+        }
+
+        private static byte[] ReadBufferWithInt32Length(BinaryReader br)
+        {
+            int length = BinaryReaders.ReadInt32BigEndian(br);
+            return BinaryReaders.ReadBytesFully(br, length);
         }
 
         private static DateTime ReadDateTime(BinaryReader br)
         {
-            DateTime unixMs = DateTimeUtilities.UnixMsToDateTime(Longs.ReverseBytes(br.ReadInt64()));
-            DateTime utc = new DateTime(unixMs.Ticks, DateTimeKind.Utc);
-            return utc;
-        }
-
-        private static short ReadInt16(BinaryReader br)
-        {
-            short n = br.ReadInt16();
-            n = (short)(((n & 0xFF) << 8) | ((n >> 8) & 0xFF));
-            return n;
-        }
-
-        private static int ReadInt32(BinaryReader br)
-        {
-            return Integers.ReverseBytes(br.ReadInt32());
+            long unixMS = BinaryReaders.ReadInt64BigEndian(br);
+            return DateTimeUtilities.UnixMsToDateTime(unixMS);
         }
 
         private static X509Certificate ReadTypedCertificate(BinaryReader br, int storeVersion)
@@ -480,7 +473,7 @@ namespace Org.BouncyCastle.Security
                     throw new IOException("Unsupported certificate format: " + certFormat);
             }
 
-            byte[] certData = ReadBufferWithLength(br);
+            byte[] certData = ReadBufferWithInt32Length(br);
             try
             {
                 return new X509Certificate(certData);
@@ -493,8 +486,7 @@ namespace Org.BouncyCastle.Security
 
         private static string ReadUtf(BinaryReader br)
         {
-            short length = ReadInt16(br);
-            byte[] utfBytes = br.ReadBytes(length);
+            byte[] utfBytes = ReadBufferWithInt16Length(br);
 
             /*
              * FIXME JKS actually uses a "modified UTF-8" format. For the moment we will just support single-byte
@@ -510,32 +502,28 @@ namespace Org.BouncyCastle.Security
             return Encoding.UTF8.GetString(utfBytes);
         }
 
-        private static void WriteBufferWithLength(BinaryWriter bw, byte[] buffer)
+        private static void WriteBufferWithInt16Length(BinaryWriter bw, byte[] buffer)
         {
-            WriteInt32(bw, buffer.Length);
+            BinaryWriters.WriteInt16BigEndian(bw, Convert.ToInt16(buffer.Length));
+            bw.Write(buffer);
+        }
+
+        private static void WriteBufferWithInt32Length(BinaryWriter bw, byte[] buffer)
+        {
+            BinaryWriters.WriteInt32BigEndian(bw, buffer.Length);
             bw.Write(buffer);
         }
 
         private static void WriteDateTime(BinaryWriter bw, DateTime dateTime)
         {
-            bw.Write(Longs.ReverseBytes(DateTimeUtilities.DateTimeToUnixMs(dateTime.ToUniversalTime())));
-        }
-
-        private static void WriteInt16(BinaryWriter bw, short n)
-        {
-            n = (short)(((n & 0xFF) << 8) | ((n >> 8) & 0xFF));
-            bw.Write(n);
-        }
-
-        private static void WriteInt32(BinaryWriter bw, int n)
-        {
-            bw.Write(Integers.ReverseBytes(n));
+            long unixMS = DateTimeUtilities.DateTimeToUnixMs(dateTime);
+            BinaryWriters.WriteInt64BigEndian(bw, unixMS);
         }
 
         private static void WriteTypedCertificate(BinaryWriter bw, X509Certificate cert)
         {
             WriteUtf(bw, "X.509");
-            WriteBufferWithLength(bw, cert.GetEncoded());
+            WriteBufferWithInt32Length(bw, cert.GetEncoded());
         }
 
         private static void WriteUtf(BinaryWriter bw, string s)
@@ -553,8 +541,7 @@ namespace Org.BouncyCastle.Security
                     throw new NotSupportedException("Currently missing support for modified UTF-8 encoding in JKS");
             }
 
-            WriteInt16(bw, Convert.ToInt16(utfBytes.Length));
-            bw.Write(utfBytes);
+            WriteBufferWithInt16Length(bw, utfBytes);
         }
 
         /**

@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		private readonly SecureRandom m_random;
 
         public ParametersWithRandom(ICipherParameters parameters)
-            : this(parameters, new SecureRandom())
+            : this(parameters, CryptoServicesRegistrar.GetSecureRandom())
         {
         }
 

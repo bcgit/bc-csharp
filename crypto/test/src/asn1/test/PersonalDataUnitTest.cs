@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			NameOrPseudonym nameOrPseudonym = new NameOrPseudonym("pseudonym");
 			BigInteger nameDistinguisher = BigInteger.ValueOf(10);
-			DerGeneralizedTime dateOfBirth= new DerGeneralizedTime("20070315173729Z");
+            Asn1GeneralizedTime dateOfBirth = new Asn1GeneralizedTime("20070315173729Z");
 			DirectoryString placeOfBirth = new DirectoryString("placeOfBirth");
 			string gender = "M";
 			DirectoryString postalAddress = new DirectoryString("address");
@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			PersonalData		data,
 			NameOrPseudonym		nameOrPseudonym,
 			BigInteger			nameDistinguisher,
-			DerGeneralizedTime	dateOfBirth,
+            Asn1GeneralizedTime dateOfBirth,
 			DirectoryString		placeOfBirth,
 			string				gender,
 			DirectoryString		postalAddress)
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			PersonalData		data,
 			NameOrPseudonym		nameOrPseudonym,
 			BigInteger			nameDistinguisher,
-			DerGeneralizedTime	dateOfBirth,
+            Asn1GeneralizedTime dateOfBirth,
 			DirectoryString		placeOfBirth,
 			string				gender,
 			DirectoryString		postalAddress)

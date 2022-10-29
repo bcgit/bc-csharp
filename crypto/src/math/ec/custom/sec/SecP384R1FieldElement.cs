@@ -115,7 +115,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Invert()
         {
-            //return new SecP384R1FieldElement(ToBigInteger().ModInverse(Q));
             uint[] z = Nat.Create(12);
             SecP384R1Field.Inv(x, z);
             return new SecP384R1FieldElement(z);

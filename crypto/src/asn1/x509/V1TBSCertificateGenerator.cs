@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
 		public void SetStartDate(
-            DerUtcTime startDate)
+            Asn1UtcTime startDate)
         {
             this.startDate = new Time(startDate);
         }
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
 		public void SetEndDate(
-            DerUtcTime endDate)
+            Asn1UtcTime endDate)
         {
             this.endDate = new Time(endDate);
         }

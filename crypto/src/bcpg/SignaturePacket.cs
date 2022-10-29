@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Bcpg
 
 			if (hashedData != null)
 			{
-				setCreationTime();
+				SetCreationTime();
 			}
 		}
 
@@ -446,18 +446,18 @@ namespace Org.BouncyCastle.Bcpg
 			return sOut.ToArray();
 		}
 
-		private void setCreationTime()
+		private void SetCreationTime()
 		{
 			foreach (SignatureSubpacket p in hashedData)
 			{
-				if (p is SignatureCreationTime)
+				if (p is SignatureCreationTime signatureCreationTime)
 				{
-                    creationTime = DateTimeUtilities.DateTimeToUnixMs(
-						((SignatureCreationTime)p).GetTime());
+                    creationTime = DateTimeUtilities.DateTimeToUnixMs(signatureCreationTime.GetTime());
 					break;
 				}
 			}
 		}
+
         public static SignaturePacket FromByteArray(byte[] data)
         {
             BcpgInputStream input = BcpgInputStream.Wrap(new MemoryStream(data));

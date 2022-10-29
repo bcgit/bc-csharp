@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             if (time == null)
                 throw new ArgumentNullException("time");
-            if (!(time is DerUtcTime) && !(time is DerGeneralizedTime))
+            if (!(time is Asn1UtcTime) && !(time is Asn1GeneralizedTime))
                 throw new ArgumentException("unknown object passed to Time");
 
             this.time = time;
@@ -49,27 +49,26 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-        public static Time GetInstance(
-            object obj)
+        public static Time GetInstance(object obj)
         {
-            if (obj == null || obj is Time)
-                return (Time)obj;
-            if (obj is DerUtcTime)
-                return new Time((DerUtcTime)obj);
-            if (obj is DerGeneralizedTime)
-                return new Time((DerGeneralizedTime)obj);
+            if (obj == null)
+                return null;
+            if (obj is Time time)
+                return time;
+            if (obj is Asn1UtcTime utcTime)
+                return new Time(utcTime);
+            if (obj is Asn1GeneralizedTime generalizedTime)
+                return new Time(generalizedTime);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
         public string GetTime()
         {
-            if (time is DerUtcTime)
-            {
-                return ((DerUtcTime) time).AdjustedTimeString;
-            }
+            if (time is Asn1UtcTime utcTime)
+                return utcTime.AdjustedTimeString;
 
-            return ((DerGeneralizedTime) time).GetTime();
+            return ((Asn1GeneralizedTime)time).GetTime();
         }
 
         /// <summary>
@@ -80,14 +79,10 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             try
             {
-                if (time is DerUtcTime)
-                {
-                    return ((DerUtcTime)time).ToAdjustedDateTime();
-                }
-                else
-                {
-                    return ((DerGeneralizedTime)time).ToDateTime();
-                }
+                if (time is Asn1UtcTime utcTime)
+                    return utcTime.ToAdjustedDateTime();
+
+                return ((Asn1GeneralizedTime)time).ToDateTime();
             }
             catch (FormatException e)
             {

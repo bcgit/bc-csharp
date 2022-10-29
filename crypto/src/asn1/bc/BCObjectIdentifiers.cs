@@ -192,7 +192,16 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier lightsaberkem256r3 = pqc_kem_saber.Branch("7");
         public static readonly DerObjectIdentifier saberkem256r3 = pqc_kem_saber.Branch("8");
         public static readonly DerObjectIdentifier firesaberkem256r3 = pqc_kem_saber.Branch("9");
-        
+        public static readonly DerObjectIdentifier ulightsaberkemr3 = pqc_kem_saber.Branch("10");
+        public static readonly DerObjectIdentifier usaberkemr3 = pqc_kem_saber.Branch("11");
+        public static readonly DerObjectIdentifier ufiresaberkemr3 = pqc_kem_saber.Branch("12");
+        public static readonly DerObjectIdentifier lightsaberkem90sr3 = pqc_kem_saber.Branch("13");
+        public static readonly DerObjectIdentifier saberkem90sr3 = pqc_kem_saber.Branch("14");
+        public static readonly DerObjectIdentifier firesaberkem90sr3 = pqc_kem_saber.Branch("15");
+        public static readonly DerObjectIdentifier ulightsaberkem90sr3 = pqc_kem_saber.Branch("16");
+        public static readonly DerObjectIdentifier usaberkem90sr3 = pqc_kem_saber.Branch("17");
+        public static readonly DerObjectIdentifier ufiresaberkem90sr3 = pqc_kem_saber.Branch("18");
+
         /**
          * SIKE
          */

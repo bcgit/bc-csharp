@@ -630,11 +630,11 @@ namespace Org.BouncyCastle.Pkix
 
 			if (index - 1 == 0)
 			{
-				DerGeneralizedTime dateOfCertgen;
+                Asn1GeneralizedTime dateOfCertgen;
 				try
 				{
 					Asn1OctetString extVal = cert.GetExtensionValue(IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen);
-					dateOfCertgen = DerGeneralizedTime.GetInstance(extVal);
+					dateOfCertgen = Asn1GeneralizedTime.GetInstance(extVal);
 				}
 				catch (ArgumentException)
 				{

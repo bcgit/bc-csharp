@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             if (time == null)
                 throw new ArgumentNullException("time");
-            if (!(time is DerUtcTime) && !(time is DerGeneralizedTime))
+            if (!(time is Asn1UtcTime) && !(time is Asn1GeneralizedTime))
                 throw new ArgumentException("unknown object passed to Time");
 
             this.time = time;
@@ -33,8 +33,7 @@ namespace Org.BouncyCastle.Asn1.Cms
          * and 2049 a UTCTime object is Generated, otherwise a GeneralizedTime
          * is used.
          */
-        public Time(
-            DateTime date)
+        public Time(DateTime date)
         {
             string d = date.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
 
@@ -50,15 +49,16 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
-		public static Time GetInstance(
-            object obj)
+		public static Time GetInstance(object obj)
         {
-            if (obj == null || obj is Time)
-                return (Time)obj;
-			if (obj is DerUtcTime)
-                return new Time((DerUtcTime)obj);
-			if (obj is DerGeneralizedTime)
-                return new Time((DerGeneralizedTime)obj);
+            if (obj == null)
+                return null;
+            if (obj is Time time)
+                return time;
+			if (obj is Asn1UtcTime utcTime)
+                return new Time(utcTime);
+			if (obj is Asn1GeneralizedTime generalizedTime)
+                return new Time(generalizedTime);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
@@ -67,14 +67,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
 			get
 			{
-				if (time is DerUtcTime)
-				{
-					return ((DerUtcTime)time).AdjustedTimeString;
-				}
-				else
-				{
-					return ((DerGeneralizedTime)time).GetTime();
-				}
+				if (time is Asn1UtcTime utcTime)
+					return utcTime.AdjustedTimeString;
+
+                return ((Asn1GeneralizedTime)time).GetTime();
 			}
         }
 
@@ -84,12 +80,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 			{
 				try
 				{
-					if (time is DerUtcTime)
-					{
-						return ((DerUtcTime)time).ToAdjustedDateTime();
-					}
+					if (time is Asn1UtcTime utcTime)
+						return utcTime.ToAdjustedDateTime();
 
-					return ((DerGeneralizedTime)time).ToDateTime();
+					return ((Asn1GeneralizedTime)time).ToDateTime();
 				}
 				catch (FormatException e)
 				{

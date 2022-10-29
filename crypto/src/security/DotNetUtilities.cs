@@ -18,9 +18,6 @@ namespace Org.BouncyCastle.Security
     /// <summary>
     /// A class containing methods to interface the BouncyCastle world to the .NET Crypto world.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [SupportedOSPlatform("windows")]
-#endif
     public static class DotNetUtilities
     {
         /// <summary>
@@ -153,33 +150,51 @@ namespace Org.BouncyCastle.Security
             throw new ArgumentException("Unsupported algorithm specified", "privateKey");
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         public static RSA ToRSA(RsaKeyParameters rsaKey)
         {
             // TODO This appears to not work for private keys (when no CRT info)
             return CreateRSAProvider(ToRSAParameters(rsaKey));
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         public static RSA ToRSA(RsaKeyParameters rsaKey, CspParameters csp)
         {
             // TODO This appears to not work for private keys (when no CRT info)
             return CreateRSAProvider(ToRSAParameters(rsaKey), csp);
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey)
         {
             return CreateRSAProvider(ToRSAParameters(privKey));
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey, CspParameters csp)
         {
             return CreateRSAProvider(ToRSAParameters(privKey), csp);
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         public static RSA ToRSA(RsaPrivateKeyStructure privKey)
         {
             return CreateRSAProvider(ToRSAParameters(privKey));
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         public static RSA ToRSA(RsaPrivateKeyStructure privKey, CspParameters csp)
         {
             return CreateRSAProvider(ToRSAParameters(privKey), csp);
@@ -229,6 +244,9 @@ namespace Org.BouncyCastle.Security
             return BigIntegers.AsUnsignedByteArray(size, n);
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp)
         {
             CspParameters csp = new CspParameters();
@@ -236,6 +254,9 @@ namespace Org.BouncyCastle.Security
             return CreateRSAProvider(rp, csp);
         }
 
+#if NET5_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
         private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp, CspParameters csp)
         {
             RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);

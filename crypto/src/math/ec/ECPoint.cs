@@ -12,8 +12,6 @@ namespace Org.BouncyCastle.Math.EC
      */
     public abstract class ECPoint
     {
-        private static readonly SecureRandom Random = new SecureRandom();
-
         protected static ECFieldElement[] EMPTY_ZS = new ECFieldElement[0];
 
         protected static ECFieldElement[] GetInitialZCoords(ECCurve curve)
@@ -246,10 +244,7 @@ namespace Org.BouncyCastle.Math.EC
                      * Any side-channel in the implementation of 'inverse' now only leaks information about
                      * the value (z * b), and no longer reveals information about 'z' itself.
                      */
-                    // TODO Add CryptoServicesRegistrar class and use here
-                    //SecureRandom r = CryptoServicesRegistrar.GetSecureRandom();
-                    SecureRandom r = Random;
-                    ECFieldElement b = m_curve.RandomFieldElementMult(r);
+                    ECFieldElement b = m_curve.RandomFieldElementMult(SecureRandom.ArbitraryRandom);
                     ECFieldElement zInv = z.Multiply(b).Invert().Multiply(b);
                     return Normalize(zInv);
                 }
