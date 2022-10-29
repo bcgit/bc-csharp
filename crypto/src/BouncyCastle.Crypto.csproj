@@ -1,17 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netstandard2.0;net451</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0;net462</TargetFrameworks>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+	<NoWarn>1591</NoWarn>
+
+    <Authors />
+    <Company>Legion of the Bouncy Castle Inc.</Company>
+    <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2022</Copyright>
+    <DebugType>embedded</DebugType>
+    <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>	  
+    <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
+    <PackageId>BouncyCastle.Cryptography</PackageId>
+    <PackageLicenseFile>License.html</PackageLicenseFile>
+    <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
+    <PackageTags>bouncycastle cryptography dtls encryption security tls</PackageTags>
+	<Product>BouncyCastle.NET</Product>
+    <!--<PublishRepositoryUrl>true</PublishRepositoryUrl>-->
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/bcgit/bc-csharp</RepositoryUrl>
+    <Title>BouncyCastle.NET Cryptography</Title>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DefineConstants />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -20,12 +39,23 @@
     <None Remove="**\*.properties" />
     <EmbeddedResource Include="**\*.properties" />
   </ItemGroup>
+
   <ItemGroup>
+    <None Include="..\License.html">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.113">
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

@@ -507,7 +507,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 return cipher.ProcessBlock(input, inOff, output, outOff);
             }
 
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)

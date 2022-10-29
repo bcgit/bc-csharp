@@ -1,6 +1,6 @@
-﻿#if NETCOREAPP3_0_OR_GREATER
-using System;
-
+﻿// NOTE: .NET Core 3.1 is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP3_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Engines;

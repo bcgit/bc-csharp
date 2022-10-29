@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         internal void SpanConsistencyTests()
         {
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             IDigest digest1 = new TupleHash(128, new byte[0]);
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         internal void SpanConsistencyTest(IDigest digest1, IDigest digest2, byte[] buf, int off, int len)
         {
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             digest1.Reset();

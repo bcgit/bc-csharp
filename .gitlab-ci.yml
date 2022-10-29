@@ -7,12 +7,17 @@ net462-job:   # This job runs in the test stage.
   script:
     - "dotnet test --framework net462 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
 
+net472-job:
+  stage: test
+  script:
+    - "dotnet test --framework net462 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
+
 net60-job:
   stage: test
   script:
     - "dotnet test --framework net6.0 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
 
-netcoreapp21-job:
+netcoreapp31-job:
   stage: test
   script:
-    - "dotnet test --framework netcoreapp2.1 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
+    - "dotnet test --framework netcoreapp3.1 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
