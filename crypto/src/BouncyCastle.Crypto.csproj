@@ -15,7 +15,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>	  
     <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
     <PackageId>BouncyCastle.Cryptography</PackageId>
-    <PackageLicenseFile>License.html</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
     <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
     <PackageTags>bouncycastle cryptography dtls encryption security tls</PackageTags>
@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\License.html">
+    <None Include="..\..\LICENSE.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
