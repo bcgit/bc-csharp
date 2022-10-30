@@ -1,7 +1,10 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
+    [Obsolete("Will be removed")]
     public abstract class SikeKeyParameters
         : AsymmetricKeyParameter
     {

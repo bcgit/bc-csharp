@@ -4,7 +4,7 @@ internal sealed class Sidh
 {
     private readonly SikeEngine engine;
 
-    public Sidh(SikeEngine engine)
+    internal Sidh(SikeEngine engine)
     {
         this.engine = engine;
     }

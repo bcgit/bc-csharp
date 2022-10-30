@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
+    [Obsolete("Will be removed")]
     public sealed class SikeKemExtractor
         : IEncapsulatedSecretExtractor
     {

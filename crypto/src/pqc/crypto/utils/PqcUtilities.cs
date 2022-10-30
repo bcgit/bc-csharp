@@ -15,7 +15,7 @@ using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public class PqcUtilities
+    internal class PqcUtilities
     {
         private readonly static Dictionary<CmceParameters, DerObjectIdentifier> mcElieceOids = new Dictionary<CmceParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, CmceParameters> mcElieceParams = new Dictionary<DerObjectIdentifier, CmceParameters>();
@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             hqcOids[HqcParameters.hqc256] = BCObjectIdentifiers.hqc256;
         }
 
-        public static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
+        internal static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
         {
             return mcElieceOids[parameters];
         }

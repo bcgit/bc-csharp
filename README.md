@@ -2,7 +2,7 @@
 
 The Bouncy Castle Crypto package is a C\# implementation of cryptographic algorithms and protocols, it was developed by the Legion of the Bouncy Castle, a registered Australian Charity, with a little help! The Legion, and the latest goings on with this package, can be found at [https://www.bouncycastle.org](https://www.bouncycastle.org).
 
-In addition to providing basic cryptography algorithms, the package also provides support for CMS, OpenPGP, (D)TLS, TSP, X.509 certificate generation and more. In particular, the package includes implementations of all the NIST Post-Quantum Cryptography Standardization Round 3 submissions. These should all be considered EXPERIMENTAL and subject to change or removal.
+In addition to providing basic cryptography algorithms, the package also provides support for CMS, OpenPGP, (D)TLS, TSP, X.509 certificate generation and more. The package also includes implementations of the following NIST Post-Quantum Cryptography Standardization algorithms: CRYSTALS-Dilithium, CRYSTALS-Kyber, Falcon, SPHINCS+, Classic McEliece, FrodoKEM, NTRU, NTRU Prime, Picnic, Saber, BIKE, and SIKE. These should all be considered EXPERIMENTAL and subject to change or removal. SIKE in particular is already slated for removal and should be used for research purposes only.
 
 The Legion also gratefully acknowledges the contributions made to this package by others (see [here](https://www.bouncycastle.org/csharp/contributors.html) for the current list). If you would like to contribute to our efforts please feel free to get in touch with us or visit our [donations page](https://www.bouncycastle.org/donate), sponsor some specific work, or purchase a [support contract](https://www.keyfactor.com/platform/bouncy-castle-support/).
 

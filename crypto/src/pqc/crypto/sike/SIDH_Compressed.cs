@@ -9,7 +9,7 @@ internal sealed class SidhCompressed
 {
     private readonly SikeEngine engine;
 
-    public SidhCompressed(SikeEngine engine)
+    internal SidhCompressed(SikeEngine engine)
     {
         this.engine = engine;
     }

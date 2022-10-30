@@ -1,5 +1,8 @@
+using System;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
+    [Obsolete("Will be removed")]
     public sealed class SikeParameters
     {
         public static readonly SikeParameters sikep434 = new SikeParameters(434, false, "sikep434");

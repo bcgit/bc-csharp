@@ -1,7 +1,10 @@
+using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
+    [Obsolete("Will be removed")]
     public sealed class SikePublicKeyParameters
         : SikeKeyParameters
     {
