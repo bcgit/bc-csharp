@@ -24,7 +24,7 @@
 	<Product>BouncyCastle.NET</Product>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/bcgit/bc-csharp</RepositoryUrl>
-    <Title>BouncyCastle.NET Cryptography</Title>
+    <Title>BouncyCastle.NET Cryptography ($(TargetFramework))</Title>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
