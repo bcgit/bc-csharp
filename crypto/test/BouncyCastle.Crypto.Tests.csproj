@@ -7,6 +7,7 @@
     <SignAssembly>true</SignAssembly>
     <EnableDefaultItems>false</EnableDefaultItems>
     <NoWarn>1591</NoWarn>
+    <RootNamespace>Org.BouncyCastle</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
