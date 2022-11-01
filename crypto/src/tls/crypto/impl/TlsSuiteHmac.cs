@@ -55,6 +55,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public virtual byte[] CalculateMac(long seqNo, short type, byte[] msg, int msgOff, int msgLen)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return CalculateMac(seqNo, type, msg.AsSpan(msgOff, msgLen));
+#else
             ProtocolVersion serverVersion = m_cryptoParams.ServerVersion;
             bool isSsl = serverVersion.IsSsl;
 
@@ -71,7 +74,30 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             m_mac.Update(msg, msgOff, msgLen);
 
             return Truncate(m_mac.CalculateMac());
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual byte[] CalculateMac(long seqNo, short type, ReadOnlySpan<byte> message)
+        {
+            ProtocolVersion serverVersion = m_cryptoParams.ServerVersion;
+            bool isSsl = serverVersion.IsSsl;
+
+            byte[] macHeader = new byte[isSsl ? 11 : 13];
+            TlsUtilities.WriteUint64(seqNo, macHeader, 0);
+            TlsUtilities.WriteUint8(type, macHeader, 8);
+            if (!isSsl)
+            {
+                TlsUtilities.WriteVersion(serverVersion, macHeader, 9);
+            }
+            TlsUtilities.WriteUint16(message.Length, macHeader, macHeader.Length - 2);
+
+            m_mac.Update(macHeader);
+            m_mac.Update(message);
+
+            return Truncate(m_mac.CalculateMac());
+        }
+#endif
 
         public virtual byte[] CalculateMacConstantTime(long seqNo, short type, byte[] msg, int msgOff, int msgLen,
             int fullLength, byte[] dummyData)

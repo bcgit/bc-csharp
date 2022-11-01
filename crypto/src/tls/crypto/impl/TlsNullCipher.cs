@@ -81,6 +81,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsEncodeResult(ciphertext, 0, ciphertext.Length, contentType);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+            int headerAllocation, ReadOnlySpan<byte> plaintext)
+        {
+            byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext);
+            byte[] ciphertext = new byte[headerAllocation + plaintext.Length + mac.Length];
+            plaintext.CopyTo(ciphertext.AsSpan(headerAllocation));
+            mac.CopyTo(ciphertext.AsSpan(headerAllocation + plaintext.Length));
+            return new TlsEncodeResult(ciphertext, 0, ciphertext.Length, contentType);
+        }
+#endif
+
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
         {
