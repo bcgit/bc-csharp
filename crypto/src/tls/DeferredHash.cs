@@ -176,6 +176,22 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Update(ReadOnlySpan<byte> input)
+        {
+            if (m_buf != null)
+            {
+                m_buf.Write(input);
+                return;
+            }
+
+            foreach (TlsHash hash in m_hashes.Values)
+            {
+                hash.Update(input);
+            }
+        }
+#endif
+
         public byte[] CalculateHash()
         {
             throw new InvalidOperationException("Use 'ForkPrfHash' to get a definite hash");

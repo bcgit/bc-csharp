@@ -57,6 +57,21 @@ namespace Org.BouncyCastle.Bcpg
             return 1;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+			if (!next)
+				return m_in.Read(buffer);
+
+			if (nextB < 0)
+				return 0;
+
+            buffer[0] = (byte)nextB;
+            next = false;
+            return 1;
+        }
+#endif
+
         public byte[] ReadAll()
         {
 			return Streams.ReadAll(this);
@@ -312,9 +327,8 @@ namespace Org.BouncyCastle.Bcpg
 						int readLen = (dataLength > count || dataLength < 0) ? count : dataLength;
 						int len = m_in.Read(buffer, offset, readLen);
 						if (len < 1)
-						{
 							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
-						}
+
 						dataLength -= len;
 						return len;
 					}
@@ -323,6 +337,29 @@ namespace Org.BouncyCastle.Bcpg
 
 				return 0;
 			}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override int Read(Span<byte> buffer)
+            {
+				do
+				{
+					if (dataLength != 0)
+					{
+                        int count = buffer.Length;
+						int readLen = (dataLength > count || dataLength < 0) ? count : dataLength;
+						int len = m_in.Read(buffer[..readLen]);
+						if (len < 1)
+							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
+
+						dataLength -= len;
+						return len;
+					}
+				}
+				while (partial && ReadPartialDataLength() >= 0);
+
+				return 0;
+            }
+#endif
 
             private int ReadPartialDataLength()
             {

@@ -66,6 +66,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_digest.BlockUpdate(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Update(ReadOnlySpan<byte> input)
+        {
+            m_digest.BlockUpdate(input);
+        }
+#endif
+
         public virtual byte[] CalculateMac()
         {
             byte[] result = new byte[m_digest.GetDigestSize()];

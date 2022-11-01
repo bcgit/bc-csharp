@@ -13,10 +13,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		internal WrappedGeneratorStream(IStreamGenerator generator, Stream s)
 			: base(s)
 		{
-			if (generator == null)
-				throw new ArgumentNullException(nameof(generator));
-
-			m_generator = generator;
+			m_generator = generator ?? throw new ArgumentNullException(nameof(generator));
 		}
 
         protected override void Dispose(bool disposing)

@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Utilities.IO
             set { throw new NotSupportedException(); }
         }
         public sealed override int Read(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public sealed override int Read(Span<byte> buffer) { throw new NotSupportedException(); }
+#endif
         public sealed override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
         public sealed override void SetLength(long value) { throw new NotSupportedException(); }
 
