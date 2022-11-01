@@ -252,11 +252,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Pack.UInt32_To_LE(x, output, 0);
 		}
 
-		internal static void SalsaCore(int rounds, uint[] input, uint[] x)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void SalsaCore(int rounds, ReadOnlySpan<uint> input, Span<uint> output)
 		{
-			if (input.Length != 16)
+			if (input.Length < 16)
 				throw new ArgumentException();
-			if (x.Length != 16)
+			if (output.Length < 16)
 				throw new ArgumentException();
 			if (rounds % 2 != 0)
 				throw new ArgumentException("Number of rounds must be even");
@@ -266,7 +267,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				Vector128<uint> b0, b1, b2, b3;
 				{
-                    var I = MemoryMarshal.AsBytes(input.AsSpan(0, 16));
+                    var I = MemoryMarshal.AsBytes(input[..16]);
 					var t0 = MemoryMarshal.Read<Vector128<short>>(I[0x00..0x10]);
                     var t1 = MemoryMarshal.Read<Vector128<short>>(I[0x10..0x20]);
                     var t2 = MemoryMarshal.Read<Vector128<short>>(I[0x20..0x30]);
@@ -315,7 +316,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     var v2 = Sse41.Blend(u0, u2, 0x0F);
                     var v3 = Sse41.Blend(u1, u3, 0x3C);
 
-                    var X = MemoryMarshal.AsBytes(x.AsSpan(0, 16));
+                    var X = MemoryMarshal.AsBytes(output[..16]);
                     MemoryMarshal.Write(X[0x00..0x10], ref v0);
                     MemoryMarshal.Write(X[0x10..0x20], ref v1);
                     MemoryMarshal.Write(X[0x20..0x30], ref v2);
@@ -355,23 +356,81 @@ namespace Org.BouncyCastle.Crypto.Engines
                 QuarterRound(ref x15, ref x12, ref x13, ref x14);
 			}
 
-			x[ 0] = x00 + input[ 0];
-			x[ 1] = x01 + input[ 1];
-			x[ 2] = x02 + input[ 2];
-			x[ 3] = x03 + input[ 3];
-			x[ 4] = x04 + input[ 4];
-			x[ 5] = x05 + input[ 5];
-			x[ 6] = x06 + input[ 6];
-			x[ 7] = x07 + input[ 7];
-			x[ 8] = x08 + input[ 8];
-			x[ 9] = x09 + input[ 9];
-			x[10] = x10 + input[10];
-			x[11] = x11 + input[11];
-			x[12] = x12 + input[12];
-			x[13] = x13 + input[13];
-			x[14] = x14 + input[14];
-			x[15] = x15 + input[15];
+			output[ 0] = x00 + input[ 0];
+			output[ 1] = x01 + input[ 1];
+			output[ 2] = x02 + input[ 2];
+			output[ 3] = x03 + input[ 3];
+			output[ 4] = x04 + input[ 4];
+			output[ 5] = x05 + input[ 5];
+			output[ 6] = x06 + input[ 6];
+			output[ 7] = x07 + input[ 7];
+			output[ 8] = x08 + input[ 8];
+			output[ 9] = x09 + input[ 9];
+			output[10] = x10 + input[10];
+			output[11] = x11 + input[11];
+			output[12] = x12 + input[12];
+			output[13] = x13 + input[13];
+			output[14] = x14 + input[14];
+			output[15] = x15 + input[15];
 		}
+#else
+		internal static void SalsaCore(int rounds, uint[] input, uint[] output)
+		{
+			if (input.Length < 16)
+				throw new ArgumentException();
+			if (output.Length < 16)
+				throw new ArgumentException();
+			if (rounds % 2 != 0)
+				throw new ArgumentException("Number of rounds must be even");
+
+			uint x00 = input[ 0];
+			uint x01 = input[ 1];
+			uint x02 = input[ 2];
+			uint x03 = input[ 3];
+			uint x04 = input[ 4];
+			uint x05 = input[ 5];
+			uint x06 = input[ 6];
+			uint x07 = input[ 7];
+			uint x08 = input[ 8];
+			uint x09 = input[ 9];
+			uint x10 = input[10];
+			uint x11 = input[11];
+			uint x12 = input[12];
+			uint x13 = input[13];
+			uint x14 = input[14];
+			uint x15 = input[15];
+
+			for (int i = rounds; i > 0; i -= 2)
+			{
+				QuarterRound(ref x00, ref x04, ref x08, ref x12);
+                QuarterRound(ref x05, ref x09, ref x13, ref x01);
+                QuarterRound(ref x10, ref x14, ref x02, ref x06);
+                QuarterRound(ref x15, ref x03, ref x07, ref x11);
+
+                QuarterRound(ref x00, ref x01, ref x02, ref x03);
+                QuarterRound(ref x05, ref x06, ref x07, ref x04);
+                QuarterRound(ref x10, ref x11, ref x08, ref x09);
+                QuarterRound(ref x15, ref x12, ref x13, ref x14);
+			}
+
+			output[ 0] = x00 + input[ 0];
+			output[ 1] = x01 + input[ 1];
+			output[ 2] = x02 + input[ 2];
+			output[ 3] = x03 + input[ 3];
+			output[ 4] = x04 + input[ 4];
+			output[ 5] = x05 + input[ 5];
+			output[ 6] = x06 + input[ 6];
+			output[ 7] = x07 + input[ 7];
+			output[ 8] = x08 + input[ 8];
+			output[ 9] = x09 + input[ 9];
+			output[10] = x10 + input[10];
+			output[11] = x11 + input[11];
+			output[12] = x12 + input[12];
+			output[13] = x13 + input[13];
+			output[14] = x14 + input[14];
+			output[15] = x15 + input[15];
+		}
+#endif
 
 		internal void ResetLimitCounter()
 		{
