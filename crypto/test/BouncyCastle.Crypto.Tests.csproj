@@ -3,8 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0;netcoreapp3.1;net472;net462</TargetFrameworks>
     <IsPackable>false</IsPackable>
-    <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <EnableDefaultItems>false</EnableDefaultItems>
     <NoWarn>1591</NoWarn>
     <RootNamespace>Org.BouncyCastle</RootNamespace>

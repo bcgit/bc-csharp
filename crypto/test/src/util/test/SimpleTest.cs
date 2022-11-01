@@ -168,12 +168,12 @@ namespace Org.BouncyCastle.Utilities.Test
 
         private static string GetFullName(string name)
 		{
-            return "BouncyCastle.Crypto.Tests.data." + name;
+            return "Org.BouncyCastle.data." + name;
         }
 
         private static string GetShortName(string fullName)
 		{
-            return fullName.Substring("BouncyCastle.Crypto.Tests.data.".Length);
+            return fullName.Substring("Org.BouncyCastle.data.".Length);
 		}
 
 		private static string GetNewLine()
