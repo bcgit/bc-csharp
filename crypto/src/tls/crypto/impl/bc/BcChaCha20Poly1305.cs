@@ -106,16 +106,23 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         public void SetKey(ReadOnlySpan<byte> key)
         {
             KeyParameter cipherKey = new KeyParameter(key);
-            m_cipher.Init(m_isEncrypting, new ParametersWithIV(cipherKey, Zeroes[..12]));
+            m_cipher.Init(m_isEncrypting, new ParametersWithIV(cipherKey, Zeroes.AsSpan(0, 12)));
         }
 #endif
 
         private void InitMac()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> firstBlock = stackalloc byte[64];
+            m_cipher.ProcessBytes(firstBlock, firstBlock);
+            m_mac.Init(new KeyParameter(firstBlock[..32]));
+            firstBlock.Fill(0x00);
+#else
             byte[] firstBlock = new byte[64];
             m_cipher.ProcessBytes(firstBlock, 0, 64, firstBlock, 0);
             m_mac.Init(new KeyParameter(firstBlock, 0, 32));
             Array.Clear(firstBlock, 0, firstBlock.Length);
+#endif
         }
 
         private void UpdateMac(byte[] buf, int off, int len)
