@@ -29,6 +29,25 @@
     <Title>BouncyCastle.NET Cryptography</Title>
   </PropertyGroup>
 
+  <!--Package Validation-->
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+
+    <!-- TODO: Enable this once there is a baseline version to compare to. -->
+    <!--<PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>-->
+
+	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
+    <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
+
+	<!--
+	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
+	  affected interfaces (or abstract classes) is limited to source compatibility b/w target frameworks.
+	  
+	  TODO: Use suppressions for each individual case of a Span-based method.
+    -->
+    <NoWarn>$(NoWarn);CP0005;CP0006</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
