@@ -9,7 +9,7 @@
 
     <AssemblyName>BouncyCastle.Cryptography</AssemblyName>
     <AssemblyTitle>BouncyCastle.NET Cryptography ($(TargetFramework))</AssemblyTitle>
-    <Authors />
+    <Authors>Legion of the Bouncy Castle</Authors>
     <Company>Legion of the Bouncy Castle Inc.</Company>
     <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2022</Copyright>
     <DebugType>embedded</DebugType>
