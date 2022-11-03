@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netcoreapp3.1;net472;net462</TargetFrameworks>
+    <TargetFrameworks>net6.0;netcoreapp3.1;net472;net461</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <SignAssembly>false</SignAssembly>
     <EnableDefaultItems>false</EnableDefaultItems>
