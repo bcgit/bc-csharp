@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             H.BlockUpdate(I, 0, I.Length);
             LmsUtilities.U32Str(node_num, H);
-            LmsUtilities.U16Str(D_LEAF, H);
+            LmsUtilities.U16Str((short)D_LEAF, H);
             H.BlockUpdate(Kc, 0, Kc.Length);
             H.DoFinal(tmp, 0);
 
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // is odd
                     H.BlockUpdate(I, 0, I.Length);
                     LmsUtilities.U32Str(node_num / 2, H);
-                    LmsUtilities.U16Str(D_INTR, H);
+                    LmsUtilities.U16Str((short)D_INTR, H);
                     H.BlockUpdate(path[i], 0, path[i].Length);
                     H.BlockUpdate(tmp, 0, tmp.Length);
                     H.DoFinal(tmp, 0);
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 {
                     H.BlockUpdate(I, 0, I.Length);
                     LmsUtilities.U32Str(node_num / 2, H);
-                    LmsUtilities.U16Str(D_INTR, H);
+                    LmsUtilities.U16Str((short)D_INTR, H);
                     H.BlockUpdate(tmp, 0, tmp.Length);
                     H.BlockUpdate(path[i], 0, path[i].Length);
                     H.DoFinal(tmp, 0);

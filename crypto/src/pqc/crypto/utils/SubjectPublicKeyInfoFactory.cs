@@ -89,6 +89,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.PicnicOidLookup(picnicPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (publicKey is SikePublicKeyParameters sikePublicKeyParameters)
             {
                 byte[] encoding = sikePublicKeyParameters.GetEncoded();
@@ -97,6 +98,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.SikeOidLookup(sikePublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (publicKey is FalconPublicKeyParameters falconPublicKeyParameters)
             {
                 byte[] encoding = falconPublicKeyParameters.GetEncoded();

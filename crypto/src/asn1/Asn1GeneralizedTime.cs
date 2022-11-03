@@ -11,8 +11,7 @@ namespace Org.BouncyCastle.Asn1
      * Base class representing the ASN.1 GeneralizedTime type.
      * <p>
      * The main difference between these and UTC time is a 4 digit year.
-     * </p>
-     * <p>
+     * </p><p>
      * One second resolution date+time on UTC timezone (Z)
      * with 4 digit year (valid from 0001 to 9999).
      * </p><p>
@@ -24,18 +23,18 @@ namespace Org.BouncyCastle.Asn1
      *
      * <h3>11: Restrictions on BER employed by both CER and DER</h3>
      * <h4>11.7 GeneralizedTime </h4>
-     * <p>
+     * </p><p>
      * <b>11.7.1</b> The encoding shall terminate with a "Z",
      * as described in the ITU-T Rec. X.680 | ISO/IEC 8824-1 clause on
      * GeneralizedTime.
      * </p><p>
      * <b>11.7.2</b> The seconds element shall always be present.
-     * </p>
-     * <p>
+     * </p><p>
      * <b>11.7.3</b> The fractional-seconds elements, if present,
      * shall omit all trailing zeros; if the elements correspond to 0,
      * they shall be wholly omitted, and the decimal point element also
      * shall be omitted.
+     * </p>
      */
     public class Asn1GeneralizedTime
         : Asn1Object

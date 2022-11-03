@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
-            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
             LmsUtilities.ByteArray(signature.C, ctx);
 
             return new LmsContext(this, signature, ctx);
@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
-            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
             LmsUtilities.ByteArray(signature.OtsSignature.C, ctx);
 
             return new LmsContext(this, signature, ctx);

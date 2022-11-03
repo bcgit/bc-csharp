@@ -62,9 +62,7 @@ namespace Org.BouncyCastle.Cms
 
 				Asn1Encodable asn1Params = GenerateAsn1Parameters(macOid, encKeyBytes);
 
-				ICipherParameters cipherParameters;
-				macAlgId = GetAlgorithmIdentifier(
-				macOid, encKey, asn1Params, out cipherParameters);
+				macAlgId = GetAlgorithmIdentifier(macOid, encKey, asn1Params, out var cipherParameters);
 
 				IMac mac = MacUtilities.GetMac(macOid);
 				// TODO Confirm no ParametersWithRandom needed
@@ -72,7 +70,7 @@ namespace Org.BouncyCastle.Cms
 //	            mac.Init(cipherParameters);
 				mac.Init(encKey);
 
-				MemoryStream bOut = new MemoryStream();
+				var bOut = new MemoryStream();
 				Stream mOut = new TeeOutputStream(bOut, new MacSink(mac));
 
 				content.Write(mOut);
@@ -97,7 +95,7 @@ namespace Org.BouncyCastle.Cms
 				throw new CmsException("exception decoding algorithm parameters.", e);
 			}
 
-			Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+			var recipientInfos = new Asn1EncodableVector();
 
 			foreach (RecipientInfoGenerator rig in recipientInfoGenerators) 
 			{
@@ -115,11 +113,11 @@ namespace Org.BouncyCastle.Cms
 				}
 			}
 			
-			ContentInfo eci = new ContentInfo(CmsObjectIdentifiers.Data, encContent);
-			
-			ContentInfo contentInfo = new ContentInfo(
-			CmsObjectIdentifiers.AuthenticatedData,
-			new AuthenticatedData(null, new DerSet(recipientInfos), macAlgId, null, eci, null, macResult, null));
+			var eci = new ContentInfo(CmsObjectIdentifiers.Data, encContent);
+
+			var contentInfo = new ContentInfo(
+				CmsObjectIdentifiers.AuthenticatedData,
+				new AuthenticatedData(null, new DerSet(recipientInfos), macAlgId, null, eci, null, macResult, null));
 			
 			return new CmsAuthenticatedData(contentInfo);
 		}

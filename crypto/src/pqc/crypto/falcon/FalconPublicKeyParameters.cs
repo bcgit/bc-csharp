@@ -2,10 +2,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    public class FalconPublicKeyParameters
+    public sealed class FalconPublicKeyParameters
         : FalconKeyParameters
     {
-        private byte[] publicKey;
+        private readonly byte[] publicKey;
 
         public FalconPublicKeyParameters(FalconParameters parameters, byte[] h)
             : base(false, parameters)

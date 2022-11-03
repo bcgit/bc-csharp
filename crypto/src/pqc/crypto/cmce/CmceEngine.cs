@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     {
                         buf[i] = perm[i];
                         buf[i] <<= 31;
-                        buf[i] |= i;
+                        buf[i] |= (uint)i;
                         buf[i] &= 0x7fffffffffffffffL; // getting rid of signed longs
                     }
                     Sort64(buf, 0, buf.Length);
@@ -1162,7 +1162,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 for (x = 0; x < n; ++x)
                 {
-                    temp[(int)x] = ((GetQShort(temp, (int)(qIndex + x)) ^ 1) << 16) | GetQShort(temp, (int)((qIndex) + (x ^ 1)));
+                    ushort t0 = (ushort)GetQShort(temp, (int)(qIndex + x));
+                    ushort t1 = (ushort)GetQShort(temp, (int)(qIndex + (x ^ 1)));
+                    temp[(int)x] = ((t0 ^ 1) << 16) | t1;
                 }
             }
             Sort32(temp, 0, (int)n); /* A = (id<<16)+pibar */
@@ -1181,7 +1183,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             for (x = 0; x < n; ++x)
             {
-                temp[(int)x] = (int)((temp[(int)x] << 16) | x); /* A = (pibar<<16)+id */
+                temp[(int)x] = (int)((uint)(temp[(int)x] << 16) | x); /* A = (pibar<<16)+id */
             }
             Sort32(temp, 0, (int)n); /* A = (id<<16)+pibar^-1 */
 
@@ -1204,7 +1206,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
                     for (x = 0; x < n; ++x)
                     {
-                        temp[(int)x] = (int)(((temp[(int)(n + x)] & ~0x3ff) << 6) | x); /* A = (p<<16)+id */
+                        temp[(int)x] = (int)(((uint)(temp[(int)(n + x)] & ~0x3ff) << 6) | x); /* A = (p<<16)+id */
                     }
                     Sort32(temp, 0, (int)n); /* A = (id<<16)+p^{-1} */
 
@@ -1241,7 +1243,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     /* B = (p<<16)+c */
                     for (x = 0; x < n; ++x)
                     {
-                        temp[(int)x] = (int)((temp[(int)(n + x)] & ~0xffff) | x);
+                        temp[(int)x] = (int)((uint)(temp[(int)(n + x)] & ~0xffff) | x);
                     }
                     Sort32(temp, 0, (int)n); /* A = (id<<16)+p^(-1) */
                     for (x = 0; x < n; ++x)
@@ -1375,7 +1377,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 buf[i] = perm[i];
                 buf[i] <<= 31;
-                buf[i] |= i;
+                buf[i] |= (uint)i;
                 // buf[i] &= 0x7fffffffffffffffL; // getting rid of signed longs
             }
             // Sort32 the buffer

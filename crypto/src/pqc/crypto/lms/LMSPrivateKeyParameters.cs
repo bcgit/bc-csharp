@@ -324,7 +324,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 LmsUtilities.ByteArray(this.GetI(), tDigest);
                 LmsUtilities.U32Str(r, tDigest);
-                LmsUtilities.U16Str(Lms.D_LEAF, tDigest);
+                LmsUtilities.U16Str((short)Lms.D_LEAF, tDigest);
                 //
                 // These can be pre generated at the time of key generation and held within the private key.
                 // However it will cost memory to have them stick around.
@@ -343,7 +343,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(this.GetI(), tDigest);
             LmsUtilities.U32Str(r, tDigest);
-            LmsUtilities.U16Str(Lms.D_INTR, tDigest);
+            LmsUtilities.U16Str((short)Lms.D_INTR, tDigest);
             LmsUtilities.ByteArray(t2r, tDigest);
             LmsUtilities.ByteArray(t2rPlus1, tDigest);
             T = new byte[tDigest.GetDigestSize()];

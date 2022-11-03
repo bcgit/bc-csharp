@@ -14,7 +14,7 @@ internal sealed class SidhCompressed
         this.engine = engine;
     }
 
-    protected void init_basis(ulong[] gen, ulong[][] XP, ulong[][] XQ, ulong[][] XR)
+    internal void init_basis(ulong[] gen, ulong[][] XP, ulong[][] XQ, ulong[][] XR)
     { // Initialization of basis points
 
         engine.fpx.fpcopy(gen, 0, XP[0]);
@@ -25,8 +25,7 @@ internal sealed class SidhCompressed
         engine.fpx.fpcopy(gen, 5*engine.param.NWORDS_FIELD, XR[1]);
     }
 
-
-    protected internal void FormatPrivKey_B(byte[] skB)
+    internal void FormatPrivKey_B(byte[] skB)
     {
         skB[engine.param.SECRETKEY_B_BYTES-2] &= (byte)engine.param.MASK3_BOB;
         skB[engine.param.SECRETKEY_B_BYTES-1] &= (byte)engine.param.MASK2_BOB;    // Clear necessary bits so that 3*ephemeralsk is still less than Bob_order
@@ -35,7 +34,7 @@ internal sealed class SidhCompressed
 
     // Generation of Alice's secret key
     // Outputs random value in [0, 2^eA - 1]
-    protected void random_mod_order_A(byte[] random_digits, SecureRandom random)
+    internal void random_mod_order_A(byte[] random_digits, SecureRandom random)
     {
         byte[] temp = new byte[engine.param.SECRETKEY_A_BYTES];
         random.NextBytes(temp);
@@ -46,7 +45,7 @@ internal sealed class SidhCompressed
 
     // Generation of Bob's secret key
     // Outputs random value in [0, 2^Floor(Log(2, oB)) - 1]
-    protected void random_mod_order_B(byte[] random_digits, SecureRandom random)
+    internal void random_mod_order_B(byte[] random_digits, SecureRandom random)
     {
         byte[] temp = new byte[engine.param.SECRETKEY_B_BYTES];
         random.NextBytes(temp);
@@ -55,7 +54,7 @@ internal sealed class SidhCompressed
     }
 
     // Project 3-pouint ladder
-    protected void Ladder3pt_dual(PointProj[] Rs, ulong[] m, uint AliceOrBob, PointProj R, ulong[][] A24)
+    internal void Ladder3pt_dual(PointProj[] Rs, ulong[] m, uint AliceOrBob, PointProj R, ulong[][] A24)
     {
         PointProj R0 = new PointProj(engine.param.NWORDS_FIELD),
                   R2 = new PointProj(engine.param.NWORDS_FIELD);
@@ -85,18 +84,16 @@ internal sealed class SidhCompressed
             prevbit = bit;
             mask = 0 - (ulong)swap;
 
-            engine.isogeny.swap_points(R, R2, mask);
-            engine.isogeny.xDBLADD(R0, R2, R.X, A24);
+            engine.isogeny.SwapPoints(R, R2, mask);
+            engine.isogeny.XDblAdd(R0, R2, R.X, A24);
             engine.fpx.fp2mul_mont(R2.X, R.Z, R2.X);
         }
         swap = 0 ^ prevbit;
         mask = 0 - (ulong)swap;
-        engine.isogeny.swap_points(R, R2, mask);
+        engine.isogeny.SwapPoints(R, R2, mask);
     }
 
-
-
-    protected void Elligator2(ulong[][] a24, uint[] r, uint rIndex, ulong[][] x, byte[] bit, uint bitOffset, uint COMPorDEC)
+    internal void Elligator2(ulong[][] a24, uint[] r, uint rIndex, ulong[][] x, byte[] bit, uint bitOffset, uint COMPorDEC)
     { // Generate an x-coordinate of a pouint on curve with (affine) coefficient a24 
         // Use the counter r
         uint i;
@@ -189,8 +186,7 @@ internal sealed class SidhCompressed
 //        {System.out.printf("%016x ", x[di][dj] );}System.out.Println();}
     }
 
-
-    protected void make_positive(ulong[][] x)
+    internal void make_positive(ulong[][] x)
     {
         uint nbytes = engine.param.NWORDS_FIELD;
         ulong[] zero = new ulong[engine.param.NWORDS_FIELD];
@@ -213,8 +209,7 @@ internal sealed class SidhCompressed
         engine.fpx.to_fp2mont(x, x);
     }
 
-
-    protected void BiQuad_affine(ulong[][] a24, ulong[][] x0, ulong[][] x1, PointProj R)
+    internal void BiQuad_affine(ulong[][] a24, ulong[][] x0, ulong[][] x1, PointProj R)
     {
         ulong[][] Ap2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             aa = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -259,8 +254,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2add(aa, aa, R.Z);
     }
 
-
-    protected void get_4_isog_dual(PointProj P, ulong[][] A24, ulong[][] C24, ulong[][][] coeff)
+    internal void get_4_isog_dual(PointProj P, ulong[][] A24, ulong[][] C24, ulong[][][] coeff)
     {
         engine.fpx.fp2sub(P.X, P.Z, coeff[1]);
         engine.fpx.fp2add(P.X, P.Z, coeff[2]);
@@ -275,7 +269,7 @@ internal sealed class SidhCompressed
 
 //    if (engine.param.OALICE_BITS % 2 == 1)
 
-    protected void eval_dual_2_isog(ulong[][] X2, ulong[][] Z2, PointProj P)
+    internal void eval_dual_2_isog(ulong[][] X2, ulong[][] Z2, PointProj P)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
@@ -288,7 +282,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2mul_mont(Z2, t0, P.X);
     }
 
-    protected void eval_final_dual_2_isog(PointProj P)
+    internal void eval_final_dual_2_isog(PointProj P)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
@@ -306,7 +300,7 @@ internal sealed class SidhCompressed
     }
 
 
-    protected void eval_dual_4_isog_shared(ulong[][] X4pZ4, ulong[][] X42, ulong[][] Z42, ulong[][][] coeff, uint coeffOffset)
+    internal void eval_dual_4_isog_shared(ulong[][] X4pZ4, ulong[][] X42, ulong[][] Z42, ulong[][][] coeff, uint coeffOffset)
     {
 //        System.out.print("coeff0: ");
 //        for (uint di = 0; di < 2; di++){
@@ -340,8 +334,7 @@ internal sealed class SidhCompressed
 //                System.out.printf("%016x ", coeff[2 + coeffOffset][di][dj]);}System.out.Println();}
     }
 
-
-    protected void eval_dual_4_isog(ulong[][] A24, ulong[][] C24, ulong[][][] coeff, uint coeffOffset, PointProj P)
+    internal void eval_dual_4_isog(ulong[][] A24, ulong[][] C24, ulong[][][] coeff, uint coeffOffset, PointProj P)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -365,8 +358,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2mul_mont(coeff[2 + coeffOffset], P.Z, P.Z);
     }
 
-
-    protected void eval_full_dual_4_isog(ulong[][][][] As, PointProj P)
+    internal void eval_full_dual_4_isog(ulong[][][][] As, PointProj P)
     {
         //todo : check
         // First all 4-isogenies
@@ -384,8 +376,7 @@ internal sealed class SidhCompressed
         eval_final_dual_2_isog(P);    // to A = 0
     }
 
-
-    protected void TripleAndParabola_proj(PointProjFull R, ulong[][] l1x, ulong[][] l1z)
+    internal void TripleAndParabola_proj(PointProjFull R, ulong[][] l1x, ulong[][] l1z)
     {
         engine.fpx.fp2sqr_mont(R.X, l1z);
         engine.fpx.fp2add(l1z, l1z, l1x);
@@ -394,8 +385,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2add(R.Y, R.Y, l1z);
     }
 
-
-    protected void Tate3_proj(PointProjFull P, PointProjFull Q, ulong[][] gX, ulong[][] gZ)
+    internal void Tate3_proj(PointProjFull P, PointProjFull Q, ulong[][] gX, ulong[][] gZ)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             l1x = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
@@ -408,8 +398,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2add(gX, t0, gX);
     }
 
-
-    protected void FinalExpo3(ulong[][] gX, ulong[][] gZ)
+    internal void FinalExpo3(ulong[][] gX, ulong[][] gZ)
     {
         uint i;
 
@@ -432,8 +421,7 @@ internal sealed class SidhCompressed
         }
     }
 
-
-    protected void FinalExpo3_2way(ulong[][][] gX, ulong[][][] gZ)
+    internal void FinalExpo3_2way(ulong[][][] gX, ulong[][][] gZ)
     {
         uint i, j;
 
@@ -462,7 +450,6 @@ internal sealed class SidhCompressed
             }
         }
     }
-
 
     private bool FirstPoint_dual(PointProj P, PointProjFull R, byte[] ind)
     {
@@ -580,7 +567,6 @@ internal sealed class SidhCompressed
         return true;
     }
 
-
     private bool SecondPoint_dual(PointProj P, PointProjFull R, byte[] ind)
     {
         PointProjFull RS3 = new PointProjFull(engine.param.NWORDS_FIELD);
@@ -612,8 +598,7 @@ internal sealed class SidhCompressed
         }
     }
 
-
-    protected void FirstPoint3n(ulong[][] a24, ulong[][][][] As, ulong[][] x, PointProjFull R, uint[] r, byte[] ind, byte[] bitEll)
+    internal void FirstPoint3n(ulong[][] a24, ulong[][][][] As, ulong[][] x, PointProjFull R, uint[] r, byte[] ind, byte[] bitEll)
     {
         bool b = false;
         PointProj P = new PointProj(engine.param.NWORDS_FIELD);
@@ -668,8 +653,7 @@ internal sealed class SidhCompressed
         }
     }
 
-
-    protected void SecondPoint3n(ulong[][] a24, ulong[][][][] As, ulong[][] x, PointProjFull R, uint[] r, byte[] ind, byte[] bitEll)
+    internal void SecondPoint3n(ulong[][] a24, ulong[][][][] As, ulong[][] x, PointProjFull R, uint[] r, byte[] ind, byte[] bitEll)
     {
         bool b = false;
         PointProj P = new PointProj(engine.param.NWORDS_FIELD);
@@ -724,8 +708,7 @@ internal sealed class SidhCompressed
         }
     }
 
-
-    protected void makeDiff(PointProjFull R, PointProjFull S, PointProj D)
+    internal void makeDiff(PointProjFull R, PointProjFull S, PointProj D)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -749,8 +732,7 @@ internal sealed class SidhCompressed
         }
     }
 
-
-    protected void BuildOrdinary3nBasis_dual(ulong[][] a24, ulong[][][][] As, PointProjFull[] R, uint[] r, uint[] bitsEll, uint bitsEllOffset)
+    internal void BuildOrdinary3nBasis_dual(ulong[][] a24, ulong[][][][] As, PointProjFull[] R, uint[] r, uint[] bitsEll, uint bitsEllOffset)
     {
         PointProj D = new PointProj(engine.param.NWORDS_FIELD);
 
@@ -809,8 +791,7 @@ internal sealed class SidhCompressed
         makeDiff(R[0], R[1], D);
     }
 
-
-    protected void FullIsogeny_A_dual(byte[] PrivateKeyA, ulong[][][][] As, ulong[][] a24, uint sike)
+    internal void FullIsogeny_A_dual(byte[] PrivateKeyA, ulong[][][][] As, ulong[][] a24, uint sike)
     {
         // Input:  a private key PrivateKeyA in the range [0, 2^eA - 1]. 
         // Output: the public key PublicKeyA consisting of 3 elements in GF(p^2) which are encoded by removing leading 0 bytes.
@@ -925,9 +906,9 @@ internal sealed class SidhCompressed
         {
             PointProj S = new PointProj(engine.param.NWORDS_FIELD);
 
-            engine.isogeny.xDBLe(R, S, A24, C24, engine.param.OALICE_BITS - 1);
-            engine.isogeny.get_2_isog(S, A24, C24);
-            engine.isogeny.eval_2_isog(R, S);
+            engine.isogeny.XDblE(R, S, A24, C24, engine.param.OALICE_BITS - 1);
+            engine.isogeny.Get2Isog(S, A24, C24);
+            engine.isogeny.Eval2Isog(R, S);
             engine.fpx.fp2copy(S.X, As[engine.param.MAX_Alice][2]);
             engine.fpx.fp2copy(S.Z, As[engine.param.MAX_Alice][3]);
         }
@@ -945,7 +926,7 @@ internal sealed class SidhCompressed
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Alice[ii++];
-                engine.isogeny.xDBLe(R, R, A24, C24, 2*m);
+                engine.isogeny.XDblE(R, R, A24, C24, 2*m);
                 index += m;
             }
 
@@ -976,7 +957,7 @@ internal sealed class SidhCompressed
             get_4_isog_dual(R, A24, C24, coeff);
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_4_isog(pts[i], coeff);
+                engine.isogeny.Eval4Isog(pts[i], coeff);
 
 //                System.out.print(i + "ptsX: ");
 //                for (uint di = 0; di < 2; di++){
@@ -1043,8 +1024,7 @@ internal sealed class SidhCompressed
 //                System.out.printf("%016x ", a24[di][dj]);}System.out.Println();}
     }
 
-
-    protected void Dlogs3_dual(ulong[][][] f, int[] D, ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1)
+    internal void Dlogs3_dual(ulong[][][] f, int[] D, ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1)
     {
         solve_dlog(f[0], D, d0, 3);
         solve_dlog(f[2], D, c0, 3);
@@ -1054,8 +1034,7 @@ internal sealed class SidhCompressed
         engine.fpx.mp_sub(engine.param.Bob_order, c1, c1, engine.param.NWORDS_ORDER);
     }
 
-
-    protected void BuildOrdinary3nBasis_Decomp_dual(ulong[][] A24, PointProj[] Rs, uint[] r, uint[] bitsEll, uint bitsEllIndex)
+    internal void BuildOrdinary3nBasis_Decomp_dual(ulong[][] A24, PointProj[] Rs, uint[] r, uint[] bitsEll, uint bitsEllIndex)
     {
         byte[] bitEll = new byte[2];
 
@@ -1071,8 +1050,7 @@ internal sealed class SidhCompressed
         BiQuad_affine(A24, Rs[0].X, Rs[1].X, Rs[2]);
     }
 
-
-    protected void PKADecompression_dual(byte[] SecretKeyB, byte[] CompressedPKA, PointProj R, ulong[][] A)
+    internal void PKADecompression_dual(byte[] SecretKeyB, byte[] CompressedPKA, PointProj R, ulong[][] A)
     {
         byte bit;
         uint[] rs = new uint[3];
@@ -1120,7 +1098,7 @@ internal sealed class SidhCompressed
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, Rs[0].Z[0]);
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, Rs[1].Z[0]);
 
-        engine.isogeny.swap_points(Rs[0], Rs[1], ((ulong) -bit));//todo check
+        engine.isogeny.SwapPoints(Rs[0], Rs[1], ((ulong) -bit));//todo check
         engine.fpx.decode_to_digits(SecretKeyB, 0, SKin, engine.param.SECRETKEY_B_BYTES, engine.param.NWORDS_ORDER);
         engine.fpx.to_Montgomery_mod_order(SKin, t1, engine.param.Bob_order, engine.param.Montgomery_RB2, engine.param.Montgomery_RB1);    // Converting to Montgomery representation
         engine.fpx.decode_to_digits(CompressedPKA, 0, temp, engine.param.ORDER_B_ENCODED_BYTES, engine.param.NWORDS_ORDER);
@@ -1155,8 +1133,7 @@ internal sealed class SidhCompressed
         engine.isogeny.Double(R, R, A24, engine.param.OALICE_BITS);    // x, z := Double(A24, x, 1, eA);
     }
 
-
-    protected void Compress_PKA_dual(ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1, ulong[][] a24, uint[] rs, byte[] CompressedPKA)
+    internal void Compress_PKA_dual(ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1, ulong[][] a24, uint[] rs, byte[] CompressedPKA)
     {
         uint bit;
         ulong[] temp = new ulong[engine.param.NWORDS_ORDER],
@@ -1231,7 +1208,7 @@ internal sealed class SidhCompressed
 
     // Alice's ephemeral public key generation using compression -- SIKE protocol
     // Output: PrivateKeyA[MSG_BYTES + engine.param.SECRETKEY_A_BYTES] <- x(K_A) where K_A = PA + sk_A*Q_A
-    protected internal uint EphemeralKeyGeneration_A_extended(byte[] PrivateKeyA, byte[] CompressedPKA)
+    internal uint EphemeralKeyGeneration_A_extended(byte[] PrivateKeyA, byte[] CompressedPKA)
     {
         uint[] rs = new uint[3];
         int[] D = new int[engine.param.DLEN_3];
@@ -1363,14 +1340,14 @@ internal sealed class SidhCompressed
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Bob[ii++];
-                engine.isogeny.xTPLe(R, R, A24minus, A24plus, m);
+                engine.isogeny.XTplE(R, R, A24minus, A24plus, m);
                 index += m;
             }
-            engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+            engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
 
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_3_isog(pts[i], coeff);
+                engine.isogeny.Eval3Isog(pts[i], coeff);
             }
 
             engine.fpx.fp2copy(pts[npts-1].X, R.X);
@@ -1379,18 +1356,17 @@ internal sealed class SidhCompressed
             npts -= 1;
         }
 
-        engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+        engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
         engine.fpx.fp2add(A24plus, A24minus, A);
         engine.fpx.fp2add(A, A, A);
         engine.fpx.fp2sub(A24plus, A24minus, A24plus);
-        engine.isogeny.j_inv(A, A24plus, jinv);
+        engine.isogeny.JInv(A, A24plus, jinv);
         engine.fpx.fp2_encode(jinv, SharedSecretB, 0);    // Format shared secret
 
         return 0;
     }
 
-
-    protected void BuildEntangledXonly(ulong[][] A, PointProj[] R, byte[] qnr, byte[] ind)
+    internal void BuildEntangledXonly(ulong[][] A, PointProj[] R, byte[] qnr, byte[] ind)
     {
         ulong[] s = new ulong[engine.param.NWORDS_FIELD];
         ulong[][] t_ptr,
@@ -1456,8 +1432,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2mul_mont(t, r, R[2].X);
     }
 
-
-    protected void RecoverY(ulong[][] A, PointProj[] xs, PointProjFull[] Rs)
+    internal void RecoverY(ulong[][] A, PointProj[] xs, PointProjFull[] Rs)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -1497,8 +1472,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2mul_mont(Rs[1].Y, Rs[1].Z, Rs[1].Y);
     }
 
-
-    protected void BuildOrdinary2nBasis_dual(ulong[][] A, ulong[][][][] Ds, PointProjFull[] Rs, byte[] qnr, byte[] ind)
+    internal void BuildOrdinary2nBasis_dual(ulong[][] A, ulong[][][][] Ds, PointProjFull[] Rs, byte[] qnr, byte[] ind)
     {
         uint i;
         ulong[] t0 = new ulong[engine.param.NWORDS_FIELD];
@@ -1545,9 +1519,9 @@ internal sealed class SidhCompressed
         // Move them back to A = 6 
         for(i = 0; i < engine.param.MAX_Bob; i++)
         {
-            engine.isogeny.eval_3_isog(xs[0], Ds[engine.param.MAX_Bob-1-i]);
-            engine.isogeny.eval_3_isog(xs[1], Ds[engine.param.MAX_Bob-1-i]);
-            engine.isogeny.eval_3_isog(xs[2], Ds[engine.param.MAX_Bob-1-i]);
+            engine.isogeny.Eval3Isog(xs[0], Ds[engine.param.MAX_Bob-1-i]);
+            engine.isogeny.Eval3Isog(xs[1], Ds[engine.param.MAX_Bob-1-i]);
+            engine.isogeny.Eval3Isog(xs[2], Ds[engine.param.MAX_Bob-1-i]);
         }
 
         // Recover y-coordinates with a single sqrt on A = 6
@@ -1563,7 +1537,7 @@ internal sealed class SidhCompressed
     // Bob's ephemeral public key generation
     // Input:  a private key PrivateKeyB in the range [0, 2^Floor(Log(2,oB)) - 1].
     // Output: the public key PublicKeyB consisting of 3 elements in GF(p^2) which are encoded by removing leading 0 bytes.
-    protected void FullIsogeny_B_dual(byte[] PrivateKeyB, ulong[][][][] Ds, ulong[][] A)
+    internal void FullIsogeny_B_dual(byte[] PrivateKeyB, ulong[][][][] Ds, ulong[][] A)
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD),
         Q3 = new PointProj(engine.param.NWORDS_FIELD);
@@ -1621,15 +1595,15 @@ internal sealed class SidhCompressed
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Bob[ii++];
-                engine.isogeny.xTPLe(R, R, A24minus, A24plus, m);
+                engine.isogeny.XTplE(R, R, A24minus, A24plus, m);
                 index += m;
             }
-            engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+            engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_3_isog(pts[i], coeff);
+                engine.isogeny.Eval3Isog(pts[i], coeff);
             }
-            engine.isogeny.eval_3_isog(Q3, coeff);    // Kernel of dual 
+            engine.isogeny.Eval3Isog(Q3, coeff);    // Kernel of dual 
             engine.fpx.fp2sub(Q3.X,Q3.Z,Ds[row-1][0]);
             engine.fpx.fp2add(Q3.X,Q3.Z,Ds[row-1][1]);
 
@@ -1638,8 +1612,8 @@ internal sealed class SidhCompressed
             index = pts_index[npts-1];
             npts -= 1;
         }
-        engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
-        engine.isogeny.eval_3_isog(Q3, coeff);    // Kernel of dual 
+        engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
+        engine.isogeny.Eval3Isog(Q3, coeff);    // Kernel of dual 
         engine.fpx.fp2sub(Q3.X, Q3.Z, Ds[engine.param.MAX_Bob-1][0]);
         engine.fpx.fp2add(Q3.X, Q3.Z, Ds[engine.param.MAX_Bob-1][1]);
 
@@ -1650,8 +1624,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2add(A, A, A);    // A = 2*(A24plus+A24mins)/(A24plus-A24minus) 
     }
 
-
-    protected void Dlogs2_dual(ulong[][][] f, int[] D, ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1)
+    internal void Dlogs2_dual(ulong[][][] f, int[] D, ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1)
     {
         solve_dlog(f[0], D, d0, 2);
         solve_dlog(f[2], D, c0, 2);
@@ -1661,8 +1634,7 @@ internal sealed class SidhCompressed
         engine.fpx.mp_sub(engine.param.Alice_order, c1, c1, engine.param.NWORDS_ORDER);
     }
 
-
-    protected void BuildEntangledXonly_Decomp(ulong[][] A, PointProj[] R, uint qnr, uint ind)
+    internal void BuildEntangledXonly_Decomp(ulong[][] A, PointProj[] R, uint qnr, uint ind)
     {
         ulong[][] t_ptr,
             r = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -1714,7 +1686,7 @@ internal sealed class SidhCompressed
     }
 
     // Bob's PK decompression -- SIKE protocol
-    protected void PKBDecompression_extended(byte[] SecretKeyA, uint SecretKeyAOffset, byte[] CompressedPKB, PointProj R, ulong[][] A, byte[] tphiBKA_t, uint tphiBKA_tOffset)
+    internal void PKBDecompression_extended(byte[] SecretKeyA, uint SecretKeyAOffset, byte[] CompressedPKB, PointProj R, ulong[][] A, byte[] tphiBKA_t, uint tphiBKA_tOffset)
     { 
         ulong mask = unchecked((ulong) -1L);
         uint qnr, ind;
@@ -1807,12 +1779,12 @@ internal sealed class SidhCompressed
             engine.fpx.inv_mod_orderA(tmp2, inv);
             engine.fpx.multiply(inv, tmp1, scal, engine.param.NWORDS_ORDER);
             scal[engine.param.NWORDS_ORDER-1] &= (ulong)mask;
-            engine.isogeny.swap_points(Rs[0], Rs[1], unchecked((ulong)-1L));//check
+            engine.isogeny.SwapPoints(Rs[0], Rs[1], unchecked((ulong)-1L));//check
             Ladder3pt_dual(Rs, scal, engine.param.ALICE, R, A24);
         }
 
         engine.fpx.fp2div2(A,Adiv2);
-        engine.isogeny.xTPLe_fast(R, R, Adiv2, engine.param.OBOB_EXPON);
+        engine.isogeny.XTplEFast(R, R, Adiv2, engine.param.OBOB_EXPON);
 
         engine.fpx.fp2_encode(R.X, tphiBKA_t, tphiBKA_tOffset);
         engine.fpx.fp2_encode(R.Z, tphiBKA_t, tphiBKA_tOffset + engine.param.FP2_ENCODED_BYTES);
@@ -1820,7 +1792,7 @@ internal sealed class SidhCompressed
     }
 
     // Bob's PK compression -- SIKE protocol
-    protected void Compress_PKB_dual_extended(ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1, ulong[][] A, byte[] qnr, byte[] ind, byte[] CompressedPKB)
+    internal void Compress_PKB_dual_extended(ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1, ulong[][] A, byte[] qnr, byte[] ind, byte[] CompressedPKB)
     {
         ulong mask = unchecked((ulong) -1L);
         ulong[] tmp = new ulong[2*engine.param.NWORDS_ORDER],
@@ -1876,7 +1848,7 @@ internal sealed class SidhCompressed
     }
 
     // Bob's PK decompression -- SIDH protocol
-    protected void PKBDecompression(byte[] SecretKeyA, uint SecretKeyAOffset, byte[] CompressedPKB, PointProj R, ulong[][] A)
+    internal void PKBDecompression(byte[] SecretKeyA, uint SecretKeyAOffset, byte[] CompressedPKB, PointProj R, ulong[][] A)
     {
         ulong mask = unchecked((ulong) -1L);
         uint bit,qnr,ind;
@@ -1909,7 +1881,7 @@ internal sealed class SidhCompressed
         engine.fpx.fp2div2(A24, A24);
 
         engine.fpx.decode_to_digits(SecretKeyA, SecretKeyAOffset, SKin, engine.param.SECRETKEY_A_BYTES, engine.param.NWORDS_ORDER);
-        engine.isogeny.swap_points(Rs[0], Rs[1], 0-(ulong)bit);
+        engine.isogeny.SwapPoints(Rs[0], Rs[1], 0-(ulong)bit);
         if (bit == 0)
         {
             engine.fpx.decode_to_digits(CompressedPKB, engine.param.ORDER_A_ENCODED_BYTES, comp_temp, engine.param.ORDER_A_ENCODED_BYTES, engine.param.NWORDS_ORDER);
@@ -1941,11 +1913,11 @@ internal sealed class SidhCompressed
             Ladder3pt_dual(Rs, vone, engine.param.ALICE, R, A24);
         }
         engine.fpx.fp2div2(A, A24);
-        engine.isogeny.xTPLe_fast(R, R, A24, engine.param.OBOB_EXPON);
+        engine.isogeny.XTplEFast(R, R, A24, engine.param.OBOB_EXPON);
     }
 
     // Bob's PK compression -- SIDH protocol
-    protected void Compress_PKB_dual(ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1, ulong[][] A, byte[] qnr, byte[] ind, byte[] CompressedPKB)
+    internal void Compress_PKB_dual(ulong[] d0, ulong[] c0, ulong[] d1, ulong[] c1, ulong[][] A, byte[] qnr, byte[] ind, byte[] CompressedPKB)
     {
         
         ulong[] tmp = new ulong[2*engine.param.NWORDS_ORDER],
@@ -1990,7 +1962,7 @@ internal sealed class SidhCompressed
     }
 
     // Bob's ephemeral public key generation using compression -- SIKE protocol
-    protected internal uint EphemeralKeyGeneration_B_extended(byte[] PrivateKeyB, byte[] CompressedPKB, uint sike)
+    internal uint EphemeralKeyGeneration_B_extended(byte[] PrivateKeyB, byte[] CompressedPKB, uint sike)
     {
         byte[] qnr = new byte[1], ind = new byte[1];
         int[] D = new int[engine.param.DLEN_2];
@@ -2114,13 +2086,13 @@ internal sealed class SidhCompressed
     }
 
     // Bob's ephemeral public key generation using compression -- SIDH protocol
-    protected uint EphemeralKeyGeneration_B(byte[] PrivateKeyB, byte[] CompressedPKB)
+    internal uint EphemeralKeyGeneration_B(byte[] PrivateKeyB, byte[] CompressedPKB)
     {
         return EphemeralKeyGeneration_B_extended(PrivateKeyB, CompressedPKB, 0);
     }
 
     // Alice's ephemeral shared secret computation using compression -- SIKE protocol
-    protected internal uint EphemeralSecretAgreement_A_extended(byte[] PrivateKeyA, uint PrivateKeyAOffset, byte[] PKB, byte[] SharedSecretA, uint sike)
+    internal uint EphemeralSecretAgreement_A_extended(byte[] PrivateKeyA, uint PrivateKeyAOffset, byte[] PKB, byte[] SharedSecretA, uint sike)
     {
         uint i, ii = 0, row, m, index = 0, npts = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
@@ -2153,9 +2125,9 @@ internal sealed class SidhCompressed
         {
             PointProj S = new PointProj(engine.param.NWORDS_FIELD);
 
-            engine.isogeny.xDBLe(R, S, A24plus, C24, (engine.param.OALICE_BITS - 1));
-            engine.isogeny.get_2_isog(S, A24plus, C24);
-            engine.isogeny.eval_2_isog(R, S);
+            engine.isogeny.XDblE(R, S, A24plus, C24, (engine.param.OALICE_BITS - 1));
+            engine.isogeny.Get2Isog(S, A24plus, C24);
+            engine.isogeny.Eval2Isog(R, S);
         }
 
         // Traverse tree
@@ -2169,14 +2141,14 @@ internal sealed class SidhCompressed
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Alice[ii++];
-                engine.isogeny.xDBLe(R, R, A24plus, C24, 2*m);
+                engine.isogeny.XDblE(R, R, A24plus, C24, 2*m);
                 index += m;
             }
-            engine.isogeny.get_4_isog(R, A24plus, C24, coeff);
+            engine.isogeny.Get4Isog(R, A24plus, C24, coeff);
 
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_4_isog(pts[i], coeff);
+                engine.isogeny.Eval4Isog(pts[i], coeff);
             }
 
             engine.fpx.fp2copy(pts[npts-1].X, R.X);
@@ -2185,11 +2157,11 @@ internal sealed class SidhCompressed
             npts -= 1;
         }
 
-        engine.isogeny.get_4_isog(R, A24plus, C24, coeff);
+        engine.isogeny.Get4Isog(R, A24plus, C24, coeff);
         engine.fpx.fp2add(A24plus, A24plus, A24plus);
         engine.fpx.fp2sub(A24plus, C24, A24plus);
         engine.fpx.fp2add(A24plus, A24plus, A24plus);
-        engine.isogeny.j_inv(A24plus, C24, jinv);
+        engine.isogeny.JInv(A24plus, C24, jinv);
         engine.fpx.fp2_encode(jinv, SharedSecretA, 0);    // Format shared secret
 
         return 0;
@@ -2200,13 +2172,12 @@ internal sealed class SidhCompressed
     // Inputs: Alice's PrivateKeyA is an even integer in the range [2, oA-2], where oA = 2^engine.param.OALICE_BITS.
     //         Bob's decompressed data consists of point_R in (X:Z) coordinates and the curve parameter param_A in GF(p^2).
     // Output: a shared secret SharedSecretA that consists of one element in GF(p^2).
-    uint EphemeralSecretAgreement_A(byte[] PrivateKeyA, uint PrivateKeyAOffset, byte[] PKB, byte[] SharedSecretA)
+    private uint EphemeralSecretAgreement_A(byte[] PrivateKeyA, uint PrivateKeyAOffset, byte[] PKB, byte[] SharedSecretA)
     {
         return EphemeralSecretAgreement_A_extended(PrivateKeyA, PrivateKeyAOffset, PKB, SharedSecretA, 0);
     }
 
-
-    protected internal byte validate_ciphertext(byte[] ephemeralsk_, byte[] CompressedPKB, byte[] xKA, uint xKAOffset, byte[] tphiBKA_t, uint tphiBKA_tOffset)
+    internal byte validate_ciphertext(byte[] ephemeralsk_, byte[] CompressedPKB, byte[] xKA, uint xKAOffset, byte[] tphiBKA_t, uint tphiBKA_tOffset)
     { // If ct validation passes returns 0, otherwise returns -1.
         PointProj[] phis = new PointProj[3],
                     pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
@@ -2264,23 +2235,23 @@ internal sealed class SidhCompressed
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Bob[ii++];
-                engine.isogeny.xTPLe(R, R, A24minus, A24plus, m);
+                engine.isogeny.XTplE(R, R, A24minus, A24plus, m);
                 index += m;
             }
-            engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+            engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_3_isog(pts[i], coeff);
+                engine.isogeny.Eval3Isog(pts[i], coeff);
             }
-            engine.isogeny.eval_3_isog(phis[0], coeff);
+            engine.isogeny.Eval3Isog(phis[0], coeff);
 
             engine.fpx.fp2copy(pts[npts-1].X, R.X);
             engine.fpx.fp2copy(pts[npts-1].Z, R.Z);
             index = pts_index[npts-1];
             npts -= 1;
         }
-        engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
-        engine.isogeny.eval_3_isog(phis[0], coeff);  // phis[0] <- phiB(PA + skA*QA)
+        engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
+        engine.isogeny.Eval3Isog(phis[0], coeff);  // phis[0] <- phiB(PA + skA*QA)
 
         engine.fpx.fp2_decode(CompressedPKB, A, 4*engine.param.ORDER_A_ENCODED_BYTES);
 
@@ -2296,13 +2267,11 @@ internal sealed class SidhCompressed
         return (engine.fpx.cmp_f2elm(comp1, comp2));
     }
 
-
-
     /// DLOG
 
     // Computes the discrete log of input r = g^d where g = e(P,Q)^ell^e, and P,Q are torsion generators in the initial curve
     // Return the integer d
-    void solve_dlog(ulong[][] r, int[] D, ulong[] d, uint ell)
+    internal void solve_dlog(ulong[][] r, int[] D, ulong[] d, uint ell)
     {
         if (ell == 2)
         {
@@ -2449,12 +2418,10 @@ internal sealed class SidhCompressed
         }
     }
 
-
-
     // Traverse a Pohlig-Hellman optimal strategy to solve a discrete log in a group of order ell^e
     // Leaves are used to recover the digits which are numbers from 0 to ell^w-1 except by the last leaf that gives a digit between 0 and ell^(e mod w)
     // Assume w does not divide the exponent e
-    void Traverse_w_notdiv_e_fullsigned(ulong[][] r, uint j, uint k, uint z, uint[] P, ulong[] CT1, ulong[] CT2,
+    internal void Traverse_w_notdiv_e_fullsigned(ulong[][] r, uint j, uint k, uint z, uint[] P, ulong[] CT1, ulong[] CT2,
                                         int[] D, uint Dlen, uint ell, uint ellw, uint ell_emodw, uint w, uint e)
     {
         ulong[][] rp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -2628,12 +2595,10 @@ internal sealed class SidhCompressed
         }
     }
 
-
-
     // Traverse a Pohlig-Hellman optimal strategy to solve a discrete log in a group of order ell^e
     // The leaves of the tree will be used to recover the signed digits which are numbers from +/-{0,1... Ceil((ell^w-1)/2)}
     // Assume the integer w divides the exponent e
-    void Traverse_w_div_e_fullsigned(ulong[][] r, uint j, uint k, uint z, uint[] P, ulong[] CT, int[] D, uint Dlen, uint ellw, uint w)
+    internal void Traverse_w_div_e_fullsigned(ulong[][] r, uint j, uint k, uint z, uint[] P, ulong[] CT, int[] D, uint Dlen, uint ellw, uint w)
     {
         ulong[][] rp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             alpha = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
@@ -3158,9 +3123,5 @@ internal sealed class SidhCompressed
         }
         engine.fpx.fp2copy(temp, fout);
     }
-
-
-
 }
-
 }

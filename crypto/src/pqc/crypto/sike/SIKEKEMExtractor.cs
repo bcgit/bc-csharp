@@ -27,10 +27,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            return ExtractSecret(encapsulation, engine.GetDefaultSessionKeySize());
+            return ExtractSecret(encapsulation, (int)engine.GetDefaultSessionKeySize());
         }
 
-        public byte[] ExtractSecret(byte[] encapsulation, uint sessionKeySizeInBits)
+        public byte[] ExtractSecret(byte[] encapsulation, int sessionKeySizeInBits)
         {
             Console.Error.WriteLine("WARNING: the SIKE algorithm is only for research purposes, insecure");
             byte[] session_key = new byte[sessionKeySizeInBits / 8];

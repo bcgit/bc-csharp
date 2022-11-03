@@ -12,7 +12,7 @@ internal sealed class Isogeny
     // Doubling of a Montgomery point in projective coordinates (X:Z) over affine curve coefficient A. 
     // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constants (A+2)/4.
     // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2). 
-    protected internal void Double(PointProj P, PointProj Q, ulong[][] A24, uint k)
+    internal void Double(PointProj P, PointProj Q, ulong[][] A24, uint k)
     {
         ulong[][] temp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             a = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -37,7 +37,7 @@ internal sealed class Isogeny
         }
     }
 
-    protected internal void CompleteMPoint(ulong[][] A, PointProj P, PointProjFull R)
+    internal void CompleteMPoint(ulong[][] A, PointProj P, PointProjFull R)
     { // Given an xz-only representation on a montgomery curve, compute its affine representation
         ulong[][] zero = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -81,10 +81,9 @@ internal sealed class Isogeny
 
     internal void Ladder(PointProj P, ulong[] m, ulong[][] A, uint order_bits, PointProj R)
     {
-        PointProj R0 = new PointProj(engine.param.NWORDS_FIELD),
-                  R1 = new PointProj(engine.param.NWORDS_FIELD);
+        var R0 = new PointProj(engine.param.NWORDS_FIELD);
+        var R1 = new PointProj(engine.param.NWORDS_FIELD);
         ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
-        uint bit = 0;
         ulong mask;
         int j, swap, prevbit = 0;
         
@@ -96,7 +95,7 @@ internal sealed class Isogeny
         engine.fpx.fp2div2(A24, A24);  // A24 = (A+2)/4          
 
         j = (int)order_bits - 1;
-        bit = (uint) ((m[j >> (int)Internal.LOG2RADIX] >> (int)(j & (Internal.RADIX-1))) & 1);
+        uint bit = (uint) ((m[j >> (int)Internal.LOG2RADIX] >> (int)(j & (Internal.RADIX-1))) & 1);
         while (bit == 0)
         {
             j--;
@@ -106,7 +105,7 @@ internal sealed class Isogeny
         // R0 <- P, R1 <- 2P
         engine.fpx.fp2copy(P.X, R0.X);
         engine.fpx.fp2copy(P.Z, R0.Z);
-        xDBL_e(P, R1, A24, 1);
+        XDblE(P, R1, A24, 1);
 
         // Main loop
         for (int i = (int)j - 1;  i >= 0; i--) 
@@ -116,12 +115,12 @@ internal sealed class Isogeny
             prevbit = (int) bit;
             mask = (ulong) (0 - swap);
 
-            swap_points(R0, R1, mask);
-            xDBLADD_proj(R0, R1, P.X, P.Z, A24);
+            SwapPoints(R0, R1, mask);
+            XDblAddProj(R0, R1, P.X, P.Z, A24);
         }
         swap = 0 ^ prevbit;
         mask = (ulong) (0 - swap);
-        swap_points(R0, R1, mask);
+        SwapPoints(R0, R1, mask);
 
         engine.fpx.fp2copy(R0.X, R.X);
         engine.fpx.fp2copy(R0.Z, R.Z);
@@ -130,7 +129,7 @@ internal sealed class Isogeny
     // Simultaneous doubling and differential addition.
     // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, affine difference xPQ=x(P-Q) and Montgomery curve constant A24=(A+2)/4.
     // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
-    private void xDBLADD_proj(PointProj P, PointProj Q, ulong[][] XPQ, ulong[][] ZPQ, ulong[][] A24)
+    private void XDblAddProj(PointProj P, PointProj Q, ulong[][] XPQ, ulong[][] ZPQ, ulong[][] A24)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -162,7 +161,7 @@ internal sealed class Isogeny
     // Doubling of a Montgomery point in projective coordinates (X:Z) over affine curve coefficient A.
     // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constants (A+2)/4.
     // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2).
-    private void xDBL_e(PointProj P, PointProj Q, ulong[][] A24, int e)
+    private void XDblE(PointProj P, PointProj Q, ulong[][] A24, int e)
     {
         ulong[][] temp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             a = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -192,14 +191,14 @@ internal sealed class Isogeny
     // Computes [3^e](X:Z) on Montgomery curve with projective constant via e repeated triplings. e triplings in E costs k*(5M + 6S + 9A)
     // Input: projective Montgomery x-coordinates P = (X:Z), where x=X/Z, Montgomery curve constant A2 = A/2 and the number of triplings e.
     // Output: projective Montgomery x-coordinates Q <- [3^e]P.
-    internal void xTPLe_fast(PointProj P, PointProj Q, ulong[][] A2, uint e)
+    internal void XTplEFast(PointProj P, PointProj Q, ulong[][] A2, uint e)
     {
-        PointProj T = new PointProj(engine.param.NWORDS_FIELD);
+        var T = new PointProj(engine.param.NWORDS_FIELD);
 
         engine.fpx.copy_words(P, T);
         for (int j = 0; j < e; j++)
         {
-            xTPL_fast(T, T, A2);
+            XTplFast(T, T, A2);
         }
         engine.fpx.copy_words(T, Q);
     }
@@ -207,7 +206,7 @@ internal sealed class Isogeny
     // Montgomery curve (E: y^2 = x^3 + A*x^2 + x) x-only tripling at a cost 5M + 6S + 9A = 27p + 61a.
     // Input : projective Montgomery x-coordinates P = (X:Z), where x=X/Z and Montgomery curve constant A/2.
     // Output: projective Montgomery x-coordinates Q = 3*P = (X3:Z3).
-    private void xTPL_fast(PointProj P, PointProj Q, ulong[][] A2)
+    private void XTplFast(PointProj P, PointProj Q, ulong[][] A2)
     {
         ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -238,10 +237,10 @@ internal sealed class Isogeny
     }
 
 
-    protected internal void LADDER3PT(ulong[][] xP, ulong[][] xQ, ulong[][] xPQ, ulong[] m, uint AliceOrBob, PointProj R, ulong[][] A)
+    internal void LADDER3PT(ulong[][] xP, ulong[][] xQ, ulong[][] xPQ, ulong[] m, uint AliceOrBob, PointProj R, ulong[][] A)
     {
-        PointProj R0 = new PointProj(engine.param.NWORDS_FIELD),
-                  R2 = new PointProj(engine.param.NWORDS_FIELD);
+        var R0 = new PointProj(engine.param.NWORDS_FIELD);
+        var R2 = new PointProj(engine.param.NWORDS_FIELD);
         ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         ulong mask;
         uint i, nbits, bit, swap, prevbit = 0;
@@ -277,17 +276,17 @@ internal sealed class Isogeny
             swap = bit ^ prevbit;
             prevbit = bit;
             mask = 0 - (ulong) swap;
-            swap_points(R, R2, mask);
-            xDBLADD(R0, R2, R.X, A24);
+            SwapPoints(R, R2, mask);
+            XDblAdd(R0, R2, R.X, A24);
             engine.fpx.fp2mul_mont(R2.X, R.Z, R2.X);
         }
         swap = 0 ^ prevbit;
         mask = 0 - (ulong)swap;
-        swap_points(R, R2, mask);
+        SwapPoints(R, R2, mask);
     }
 
     // Complete point on A = 0 curve
-    protected internal void CompletePoint(PointProj P, PointProjFull R)
+    internal void CompletePoint(PointProj P, PointProjFull R)
     {
         ulong[][] xz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             s2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -318,13 +317,11 @@ internal sealed class Isogeny
 
     // Swap points.
     // If option = 0 then P <- P and Q <- Q, else if option = 0xFF...FF then P <- Q and Q <- P
-    protected internal void swap_points(PointProj P, PointProj Q, ulong option)
+    internal void SwapPoints(PointProj P, PointProj Q, ulong option)
     {
         //todo/org : put this in the PointProj class
         ulong temp;
-        int i;
-
-        for (i = 0; i < engine.param.NWORDS_FIELD; i++)
+        for (int i = 0; i < engine.param.NWORDS_FIELD; i++)
         {
             temp = option & (P.X[0][i] ^ Q.X[0][i]);
             P.X[0][i] = temp ^ P.X[0][i];
@@ -344,7 +341,7 @@ internal sealed class Isogeny
     // Simultaneous doubling and differential addition.
     // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, affine difference xPQ=x(P-Q) and Montgomery curve constant A24=(A+2)/4.
     // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
-    protected internal void xDBLADD(PointProj P, PointProj Q, ulong[][] xPQ, ulong[][] A24)
+    internal void XDblAdd(PointProj P, PointProj Q, ulong[][] xPQ, ulong[][] A24)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -373,21 +370,21 @@ internal sealed class Isogeny
     // Computes [2^e](X:Z) on Montgomery curve with projective constant via e repeated doublings.
     // Input: projective Montgomery x-coordinates P = (XP:ZP), such that xP=XP/ZP and Montgomery curve constants A+2C and 4C.
     // Output: projective Montgomery x-coordinates Q <- (2^e)*P.
-    protected internal void xDBLe(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24, uint e)
+    internal void XDblE(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24, uint e)
     {
         int i;
         engine.fpx.copy_words(P, Q);
 
         for (i = 0; i < e; i++)
         {
-            xDBL(Q, Q, A24plus, C24);
+            XDbl(Q, Q, A24plus, C24);
         }
     }
 
     // Doubling of a Montgomery point in projective coordinates (X:Z).
     // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constants A+2C and 4C.
     // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2).
-    protected void xDBL(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24)
+    internal void XDbl(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
@@ -407,7 +404,7 @@ internal sealed class Isogeny
     // Tripling of a Montgomery point in projective coordinates (X:Z).
     // Input: projective Montgomery x-coordinates P = (X:Z), where x=X/Z and Montgomery curve constants A24plus = A+2C and A24minus = A-2C.
     // Output: projective Montgomery x-coordinates Q = 3*P = (X3:Z3).
-    private void xTPL(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus)
+    private void XTpl(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -444,20 +441,20 @@ internal sealed class Isogeny
     // Computes [3^e](X:Z) on Montgomery curve with projective constant via e repeated triplings.
     // Input: projective Montgomery x-coordinates P = (XP:ZP), such that xP=XP/ZP and Montgomery curve constants A24plus = A+2C and A24minus = A-2C.
     // Output: projective Montgomery x-coordinates Q <- (3^e)*P.
-    protected internal void xTPLe(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus, uint e)
+    internal void XTplE(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus, uint e)
     {
         int i;
         engine.fpx.copy_words(P, Q);
         for (i = 0; i < e; i++)
         {
-            xTPL(Q, Q, A24minus, A24plus);
+            XTpl(Q, Q, A24minus, A24plus);
         }
     }
 
     // Given the x-coordinates of P, Q, and R, returns the value A corresponding to the Montgomery curve E_A: y^2=x^3+A*x^2+x such that R=Q-P on E_A.
     // Input:  the x-coordinates xP, xQ, and xR of the points P, Q and R.
     // Output: the coefficient A corresponding to the curve E_A: y^2=x^3+A*x^2+x.
-    protected internal void get_A(ulong[][] xP, ulong[][] xQ, ulong[][] xR, ulong[][] A)
+    internal void GetA(ulong[][] xP, ulong[][] xQ, ulong[][] xR, ulong[][] A)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -482,7 +479,7 @@ internal sealed class Isogeny
     // Computes the j-invariant of a Montgomery curve with projective constant.
     // Input: A,C in GF(p^2).
     // Output: j=256*(A^2-3*C^2)^3/(C^4*(A^2-4*C^2)), which is the j-invariant of the Montgomery curve B*y^2=x^3+(A/C)*x^2+x or (equivalently) j-invariant of B'*y^2=C*x^3+A*x^2+C*x.
-    protected internal void j_inv(ulong[][] A, ulong[][] C, ulong[][] jinv)
+    internal void JInv(ulong[][] A, ulong[][] C, ulong[][] jinv)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
@@ -510,7 +507,7 @@ internal sealed class Isogeny
     // Computes the corresponding 3-isogeny of a projective Montgomery point (X3:Z3) of order 3.
     // Input:  projective point of order three P = (X3:Z3).
     // Output: the 3-isogenous Montgomery curve with projective coefficient A/C.
-    protected internal void get_3_isog(PointProj P, ulong[][] A24minus, ulong[][] A24plus, ulong[][][] coeff)
+    internal void Get3Isog(PointProj P, ulong[][] A24minus, ulong[][] A24plus, ulong[][][] coeff)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -540,7 +537,7 @@ internal sealed class Isogeny
     // a point P with 2 coefficients in coeff (computed in the function get_3_Isog()).
     // Inputs: projective points P = (X3:Z3) and Q = (X:Z).
     // Output: the projective point Q <- phi(Q) = (X3:Z3).
-    protected internal void eval_3_isog(PointProj Q, ulong[][][] coeff)
+    internal void Eval3Isog(PointProj Q, ulong[][][] coeff)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -561,7 +558,7 @@ internal sealed class Isogeny
     // 3-way simultaneous inversion
     // Input:  z1,z2,z3
     // Output: 1/z1,1/z2,1/z3 (override inputs).
-    protected internal void inv_3_way(ulong[][] z1, ulong[][] z2, ulong[][] z3)
+    internal void Inv3Way(ulong[][] z1, ulong[][] z2, ulong[][] z3)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -581,7 +578,7 @@ internal sealed class Isogeny
     // Computes the corresponding 2-isogeny of a projective Montgomery point (X2:Z2) of order 2.
     // Input:  projective point of order two P = (X2:Z2).
     // Output: the 2-isogenous Montgomery curve with projective coefficients A/C.
-    protected internal void get_2_isog(PointProj P, ulong[][] A, ulong[][] C)
+    internal void Get2Isog(PointProj P, ulong[][] A, ulong[][] C)
     {
         engine.fpx.fp2sqr_mont(P.X, A);                    // A = X2^2
         engine.fpx.fp2sqr_mont(P.Z, C);                    // C = Z2^2
@@ -591,7 +588,7 @@ internal sealed class Isogeny
     // Evaluates the isogeny at the point (X:Z) in the domain of the isogeny, given a 2-isogeny phi.
     // Inputs: the projective point P = (X:Z) and the 2-isogeny kernel projetive point Q = (X2:Z2).
     // Output: the projective point P = phi(P) = (X:Z) in the codomain. 
-    protected internal void eval_2_isog(PointProj P, PointProj Q)
+    internal void Eval2Isog(PointProj P, PointProj Q)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
@@ -614,7 +611,7 @@ internal sealed class Isogeny
     // Input:  projective point of order four P = (X4:Z4).
     // Output: the 4-isogenous Montgomery curve with projective coefficients A+2C/4C and the 3 coefficients
     //         that are used to evaluate the isogeny at a point in eval_4_Isog().
-    protected internal void get_4_isog(PointProj P, ulong[][] A24plus, ulong[][] C24, ulong[][][] coeff)
+    internal void Get4Isog(PointProj P, ulong[][] A24plus, ulong[][] C24, ulong[][][] coeff)
     {
         engine.fpx.mp2_sub_p2(P.X, P.Z, coeff[1]);         // coeff[1] = X4-Z4
         engine.fpx.mp2_add(P.X, P.Z, coeff[2]);            // coeff[2] = X4+Z4
@@ -631,7 +628,7 @@ internal sealed class Isogeny
     // by the 3 coefficients in coeff (computed in the function get_4_Isog()).
     // Inputs: the coefficients defining the isogeny, and the projective point P = (X:Z).
     // Output: the projective point P = phi(P) = (X:Z) in the codomain.
-    protected internal void eval_4_isog(PointProj P, ulong[][][] coeff)
+    internal void Eval4Isog(PointProj P, ulong[][][] coeff)
     {
         ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
             t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
@@ -651,9 +648,5 @@ internal sealed class Isogeny
         engine.fpx.fp2mul_mont(P.X, t1, P.X);              // Xfinal
         engine.fpx.fp2mul_mont(P.Z, t0, P.Z);              // Zfinal
     }
-    
-    
-
 }
-
 }

@@ -1,12 +1,11 @@
 using System;
+
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-
-    public class Tree
+    internal sealed class Tree
     {
         private static int MAX_SEED_SIZE_BYTES = 32;
         private uint MAX_AUX_BYTES;
@@ -22,17 +21,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private PicnicEngine engine;
 
-        protected internal byte[][] GetLeaves()
+        internal byte[][] GetLeaves()
         {
             return this.nodes;
         }
 
-        protected internal uint GetLeavesOffset()
+        internal uint GetLeavesOffset()
         {
             return this.numNodes - this.numLeaves;
         }
 
-        public Tree(PicnicEngine engine, uint numLeaves, int dataSize)
+        internal Tree(PicnicEngine engine, uint numLeaves, int dataSize)
         {
             this.engine = engine;
             MAX_AUX_BYTES = ((PicnicEngine.LOWMC_MAX_AND_GATES + PicnicEngine.LOWMC_MAX_KEY_BITS) / 8 + 1);
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         /* Create a Merkle tree by hashing up all nodes.
          * leafData must have Length this.numNodes, but some may be NULL. */
-        protected internal void BuildMerkleTree(byte[][] leafData, byte[] salt)
+        internal void BuildMerkleTree(byte[][] leafData, byte[] salt)
         {
             uint firstLeaf = this.numNodes - this.numLeaves;
 
@@ -92,7 +91,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
 
         /* verifyMerkleTree: verify for each leaf that is set */
-        protected internal int VerifyMerkleTree(byte[][] leafData, byte[] salt)
+        internal int VerifyMerkleTree(byte[][] leafData, byte[] salt)
         {
             uint firstLeaf = this.numNodes - this.numLeaves;
 
@@ -131,7 +130,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return 0;
         }
 
-        protected internal int ReconstructSeeds(uint[] hideList, uint hideListSize,
+        internal int ReconstructSeeds(uint[] hideList, uint hideListSize,
             byte[] input, uint inputLen, byte[] salt, uint repIndex)
         {
             int ret = 0;
@@ -163,7 +162,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
 
         /* Serialze the missing nodes that the verifier will require to check commitments for non-missing leaves */
-        protected internal byte[] OpenMerkleTree(uint[] missingLeaves, uint missingLeavesSize, int[] outputSizeBytes)
+        internal byte[] OpenMerkleTree(uint[] missingLeaves, uint missingLeavesSize, int[] outputSizeBytes)
         {
             uint[] revealedSize = new uint[1];
             uint[] revealed = this.GetRevealedMerkleNodes(missingLeaves, missingLeavesSize, revealedSize);
@@ -293,7 +292,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
 
 
-        protected internal uint RevealSeedsSize(uint[] hideList, uint hideListSize)
+        internal uint RevealSeedsSize(uint[] hideList, uint hideListSize)
         {
             uint[] numNodesRevealed = new uint[1];
             numNodesRevealed[0] = 0;
@@ -301,7 +300,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return numNodesRevealed[0] * (uint)engine.seedSizeBytes;
         }
 
-        protected internal int RevealSeeds(uint[] hideList, uint hideListSize, byte[] output, int outputSize)
+        internal int RevealSeeds(uint[] hideList, uint hideListSize, byte[] output, int outputSize)
         {
 //        byte[] outputBase = Arrays.clone(output);
             uint[] revealedSize = new uint[1];
@@ -330,7 +329,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return output.Length - outLen;
         }
 
-        protected internal uint OpenMerkleTreeSize(uint[] missingLeaves, uint missingLeavesSize)
+        internal uint OpenMerkleTreeSize(uint[] missingLeaves, uint missingLeavesSize)
         {
             uint[] revealedSize = new uint[1];
             uint[] revealed = this.GetRevealedMerkleNodes(missingLeaves, missingLeavesSize, revealedSize);
@@ -454,15 +453,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             this.haveNode[parent] = true;
         }
 
-
-        protected internal byte[] GetLeaf(uint leafIndex)
+        internal byte[] GetLeaf(uint leafIndex)
         {
             uint firstLeaf = this.numNodes - this.numLeaves;
             return this.nodes[firstLeaf + leafIndex];
         }
 
         /* addMerkleNodes: deserialize and add the data for nodes provided by the committer */
-        protected internal int AddMerkleNodes(uint[] missingLeaves, uint missingLeavesSize, byte[] input, uint inputSize)
+        internal int AddMerkleNodes(uint[] missingLeaves, uint missingLeavesSize, byte[] input, uint inputSize)
         {
 //        if (inputSize > INT_MAX) {
 //            return -1;
@@ -495,7 +493,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return 0;
         }
 
-        protected internal void GenerateSeeds(byte[] rootSeed, byte[] salt, uint repIndex)
+        internal void GenerateSeeds(byte[] rootSeed, byte[] salt, uint repIndex)
         {
             this.nodes[0] = rootSeed;
             this.haveNode[0] = true;
@@ -578,6 +576,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             return this.exists[i] == 1;
         }
-
     }
 }

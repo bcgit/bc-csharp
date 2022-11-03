@@ -138,7 +138,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void KemDecrypt(byte[] sharedSecret, byte[] cipherText, byte[] secretKey)
         {
-            int i;
             byte[] buf = new byte[2 * SymBytes], kr = new byte[2 * SymBytes], cmp = new byte[CipherTextBytes];
             byte[] pk = Arrays.CopyOfRange(secretKey, IndCpaSecretKeyBytes, secretKey.Length);
             m_indCpa.Decrypt(buf, cipherText, secretKey);
@@ -161,7 +160,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         private void CMov(byte[] r, byte[] x, int len, bool b)
         {
-            int i;
             if (b)
             {
                 Array.Copy(x, 0, r, 0, len);

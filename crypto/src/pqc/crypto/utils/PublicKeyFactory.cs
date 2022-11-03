@@ -82,7 +82,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.picnicl1full] = new PicnicConverter();
             Converters[BCObjectIdentifiers.picnicl3full] = new PicnicConverter();
             Converters[BCObjectIdentifiers.picnicl5full] = new PicnicConverter();
-            
+
+#pragma warning disable CS0618 // Type or member is obsolete
             Converters[BCObjectIdentifiers.sikep434] = new SikeConverter();
             Converters[BCObjectIdentifiers.sikep503] = new SikeConverter();
             Converters[BCObjectIdentifiers.sikep610] = new SikeConverter();
@@ -91,7 +92,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.sikep503_compressed] = new SikeConverter();
             Converters[BCObjectIdentifiers.sikep610_compressed] = new SikeConverter();
             Converters[BCObjectIdentifiers.sikep751_compressed] = new SikeConverter();
-            
+#pragma warning restore CS0618 // Type or member is obsolete
+
             Converters[BCObjectIdentifiers.dilithium2] = new DilithiumConverter();
             Converters[BCObjectIdentifiers.dilithium3] = new DilithiumConverter();
             Converters[BCObjectIdentifiers.dilithium5] = new DilithiumConverter();
@@ -197,11 +199,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-            byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-            SphincsPlusParameters spParams = SphincsPlusParameters.GetParams((uint)BigInteger.ValueOf(Pack.BE_To_UInt32(keyEnc, 0)).IntValue);
+                SphincsPlusParameters spParams = SphincsPlusParameters.GetParams((int)Pack.BE_To_UInt32(keyEnc, 0));
 
-            return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
             }
         }
         
@@ -223,7 +225,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                byte[] keyEnc = DerOctetString.GetInstance(
+                byte[] keyEnc = Asn1OctetString.GetInstance(
                     DerSequence.GetInstance(keyInfo.ParsePublicKey())[0]).GetOctets();
 
                 SaberParameters saberParams = PqcUtilities.SaberParamsLookup(keyInfo.AlgorithmID.Algorithm);
@@ -237,19 +239,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
                 PicnicParameters picnicParams = PqcUtilities.PicnicParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
                 return new PicnicPublicKeyParameters(picnicParams, keyEnc);
             }
         }
+        [Obsolete("Will be removed")]
         private class SikeConverter
             : SubjectPublicKeyInfoConverter
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
                 SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
 

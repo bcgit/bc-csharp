@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
@@ -53,7 +54,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public int Ls => m_ls;
 
-        public uint SigLen => m_sigLen;
+        public int SigLen => Convert.ToInt32(m_sigLen);
 
         public DerObjectIdentifier DigestOid => m_digestOid;
 

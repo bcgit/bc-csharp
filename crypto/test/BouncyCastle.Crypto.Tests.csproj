@@ -5,7 +5,7 @@
     <IsPackable>false</IsPackable>
     <SignAssembly>false</SignAssembly>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>618;1591</NoWarn>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
   </PropertyGroup>
 

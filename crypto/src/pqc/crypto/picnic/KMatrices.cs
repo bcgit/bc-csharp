@@ -1,5 +1,3 @@
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     internal class KMatrices
@@ -9,36 +7,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         private int columns;
         private uint[] data;
 
-        public KMatrices(int nmatrices, int rows, int columns, uint[] data)
+        internal KMatrices(int nmatrices, int rows, int columns, uint[] data)
         {
             this.nmatrices = nmatrices;
             this.rows = rows;
             this.columns = columns;
             this.data = data;
         }
-        
 
-        public int GetNmatrices()
+        internal int GetNmatrices()
         {
             return nmatrices;
         }
 
-        public int GetSize()
+        internal int GetSize()
         {
             return rows * columns;
         }
 
-        public int GetRows()
+        internal int GetRows()
         {
             return rows;
         }
 
-        public int GetColumns()
+        internal int GetColumns()
         {
             return columns;
         }
 
-        public uint[] GetData()
+        internal uint[] GetData()
         {
             return data;
         }
@@ -48,17 +45,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         : KMatrices
     {
         private int matrixPointer;
-        public int GetMatrixPointer()
+
+        internal int GetMatrixPointer()
         {
             return matrixPointer;
         }
 
-        public void SetMatrixPointer(int matrixPointer)
+        internal void SetMatrixPointer(int matrixPointer)
         {
             this.matrixPointer = matrixPointer;
         }
 
-        public KMatricesWithPointer(KMatrices m)
+        internal KMatricesWithPointer(KMatrices m)
             : base(m.GetNmatrices(), m.GetRows(), m.GetColumns(), m.GetData())
         {
             this.matrixPointer = 0;

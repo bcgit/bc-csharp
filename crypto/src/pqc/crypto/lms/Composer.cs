@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -38,7 +37,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
-        public Composer U16Str(uint n)
+        public Composer U16Str(int n)
         {
             n &= 0xFFFF;
             bos.WriteByte((byte)(n >> 8));
@@ -72,7 +71,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
-        public Composer Bytes(byte[][] arrays)
+        public Composer Bytes2(byte[][] arrays)
         {
             foreach (byte[] array in arrays)
             {
@@ -81,7 +80,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
-        public Composer Bytes(byte[][] arrays, int start, int end)
+        public Composer Bytes2(byte[][] arrays, int start, int end)
         {
             int j = start;
             while (j != end)

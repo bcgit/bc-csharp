@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * CRLSource ::= CHOICE {
      * dpn          [0] DistributionPointName,
      * issuer       [1] GeneralNames }
-     * <p>
+     * </p>
      */
     public class CrlSource
         : Asn1Encodable, IAsn1Choice

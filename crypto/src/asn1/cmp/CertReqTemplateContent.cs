@@ -9,12 +9,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * GenRep:    {id-it 19}, CertReqTemplateContent | &lt; absent &gt;
      * <p>
      * CertReqTemplateValue  ::= CertReqTemplateContent
-     * <p>
+     * </p><p>
      * CertReqTemplateContent ::= SEQUENCE {
      * certTemplate           CertTemplate,
      * keySpec                Controls OPTIONAL }
-     * <p>
+     * </p><p>
      * Controls  ::= SEQUENCE SIZE (1..MAX) OF AttributeTypeAndValue
+     * </p>
      */
     public class CertReqTemplateContent
         : Asn1Encodable

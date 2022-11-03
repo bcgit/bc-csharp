@@ -773,11 +773,13 @@ namespace Org.BouncyCastle.Math.Tests
                 BigInteger x = new BigInteger(128, random);
                 object y;
 
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
                 var formatter = new BinaryFormatter();
                 formatter.Serialize(buf, x);
 
                 buf.Position = 0;
                 y = formatter.Deserialize(buf);
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
 
                 Assert.AreEqual(buf.Length, buf.Position);
                 Assert.AreEqual(x, y);

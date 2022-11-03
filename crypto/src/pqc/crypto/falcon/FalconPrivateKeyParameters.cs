@@ -3,13 +3,13 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    public class FalconPrivateKeyParameters
+    public sealed class FalconPrivateKeyParameters
         : FalconKeyParameters
     {
-        private byte[] pk;
-        private byte[] f;
-        private byte[] g;
-        private byte[] F;
+        private readonly byte[] pk;
+        private readonly byte[] f;
+        private readonly byte[] g;
+        private readonly byte[] F;
 
         public FalconPrivateKeyParameters(FalconParameters parameters, byte[] f, byte[] g, byte[] F, byte[] pk_encoded)
             : base(true, parameters)
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return Arrays.Clone(pk);
         }
 
-        public byte[] GetSpolyf()
+        public byte[] GetSpolyLittleF()
         {
             return Arrays.Clone(f);
         }
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return Arrays.Clone(g);
         }
 
-        public byte[] GetSpolyF()
+        public byte[] GetSpolyBigF()
         {
             return Arrays.Clone(F);
         }

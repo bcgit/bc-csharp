@@ -1,10 +1,11 @@
 using System;
+
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconNIST
+    internal class FalconNist
     {
         private FalconCodec codec;
         private FalconVrfy vrfy;
@@ -26,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return this.CRYPTO_BYTES;
         }
 
-        internal FalconNIST(SecureRandom random, uint logn, uint noncelen) {
+        internal FalconNist(SecureRandom random, uint logn, uint noncelen) {
             this.logn = logn;
             this.codec = new FalconCodec();
             this.common = new FalconCommon();

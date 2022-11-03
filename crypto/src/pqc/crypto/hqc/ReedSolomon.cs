@@ -28,7 +28,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 for (int j = 0; j < paramG; j++)
                 {
                     tmp[j] = GFCalculator.mult(gateValue, rsPoly[j]);
-                    int n = 1;
                 }
 
                 for (int j = n1 - paramK - 1; j > 0; j--)

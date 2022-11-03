@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Engines
          */
         public void Init(bool forEncryption, ICipherParameters param)
         {
-            /**
+            /*
              * Grain encryption and decryption is completely symmetrical, so the
              * 'forEncryption' is irrelevant.
              */
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (keyBytes.Length != 16)
                 throw new ArgumentException("Grain-128AEAD key must be 128 bits long");
 
-            /**
+            /*
              * Initialize variables.
              */
             workingIV = new byte[keyBytes.Length];
@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             workingKey = keyBytes;
             workingIV = ivBytes;
 
-            /**
+            /*
              * Load NFSR and LFSR
              */
             Pack.LE_To_UInt32(workingKey, 0, nfsr);
