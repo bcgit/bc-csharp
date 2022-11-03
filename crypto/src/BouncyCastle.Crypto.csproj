@@ -12,9 +12,7 @@
     <Authors>Legion of the Bouncy Castle Inc.</Authors>
     <Company>Legion of the Bouncy Castle Inc.</Company>
     <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2022</Copyright>
-    <DebugType>embedded</DebugType>
     <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
     <PackageId>BouncyCastle.Cryptography</PackageId>
@@ -29,6 +27,12 @@
     <Title>BouncyCastle.NET Cryptography</Title>
   </PropertyGroup>
 
+  <!--Source-Level Debugging-->
+  <PropertyGroup>
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
   <!--Package Validation-->
   <PropertyGroup>
     <EnablePackageValidation>true</EnablePackageValidation>
@@ -41,8 +45,8 @@
 
 	<!--
 	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
-	  affected interfaces (or abstract classes) is limited to source compatibility b/w target frameworks.
-	  
+	  affected interfaces (or abstract classes) will not be backward compatible.
+
 	  TODO: Use suppressions for each individual case of a Span-based method.
     -->
     <NoWarn>$(NoWarn);CP0005;CP0006</NoWarn>
@@ -67,10 +71,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
