@@ -14,7 +14,7 @@
     <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2022</Copyright>
     <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
     <PackageIcon>packageIcon.png</PackageIcon>
-    <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
+    <PackageIconUrl>https://www.bouncycastle.org/images/nuget_packageIcon.png</PackageIconUrl>
     <PackageId>BouncyCastle.Cryptography</PackageId>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
