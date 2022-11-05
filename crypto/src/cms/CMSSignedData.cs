@@ -115,13 +115,20 @@ namespace Org.BouncyCastle.Cms
 			//
 			if (signedData.EncapContentInfo.Content != null)
 			{
-				this.signedContent = new CmsProcessableByteArray(
-					((Asn1OctetString)(signedData.EncapContentInfo.Content)).GetOctets());
+				var content = signedData.EncapContentInfo.Content;
+
+				if (content is Asn1OctetString)
+				{
+					this.signedContent = new CmsProcessableByteArray(
+						((Asn1OctetString)(content)).GetOctets());
+				}
+				else
+				{
+					this.signedContent = new CmsProcessableByteArray(
+						content.GetEncoded());
+				}
 			}
-//			else
-//			{
-//				this.signedContent = null;
-//			}
+			}
 		}
 
 		/// <summary>Return the version number for this object.</summary>
