@@ -10,6 +10,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
@@ -216,9 +217,7 @@ namespace Org.BouncyCastle.Security
             {
                 var aliases = new HashSet<string>(m_certificateEntries.Keys);
                 aliases.UnionWith(m_keyEntries.Keys);
-                // FIXME
-                //return CollectionUtilities.Proxy(aliases);
-                return aliases;
+                return CollectionUtilities.Proxy(aliases);
             }
         }
 

@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static bool VerifySignature(HssPublicKeyParameters publicKey, HssSignature signature, byte[] message)
         {
-            int Nspk = signature.GetlMinus1();
+            int Nspk = signature.GetLMinus1();
             if (Nspk + 1 != publicKey.L)
                 return false;
 

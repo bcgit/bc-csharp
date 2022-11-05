@@ -9,15 +9,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public sealed class HssSignature
         : IEncodable
     {
-        private int lMinus1;
-        private LmsSignedPubKey[] signedPubKey;
-        private LmsSignature signature;
+        private readonly int m_lMinus1;
+        private readonly LmsSignedPubKey[] m_signedPubKey;
+        private readonly LmsSignature m_signature;
 
         public HssSignature(int lMinus1, LmsSignedPubKey[] signedPubKey, LmsSignature signature)
         {
-            this.lMinus1 = lMinus1;
-            this.signedPubKey = signedPubKey;
-            this.signature = signature;
+            m_lMinus1 = lMinus1;
+            m_signedPubKey = signedPubKey;
+            m_signature = signature;
         }
 
         /**
@@ -73,81 +73,63 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             throw new ArgumentException($"cannot parse {src}");
         }
 
-        // FIXME
-        public int GetlMinus1()
+        public int GetLMinus1()
         {
-            return lMinus1;
+            return m_lMinus1;
         }
 
+        // FIXME
         public LmsSignedPubKey[] GetSignedPubKeys()
         {
-            return signedPubKey;
+            return m_signedPubKey;
         }
 
-        public LmsSignature Signature => signature;
+        public LmsSignature Signature => m_signature;
 
-        public override bool Equals(Object o)
+        public override bool Equals(object other)
         {
-            if (this == o)
-            {
+            if (this == other)
                 return true;
-            }
-
-            if (o == null || GetType() != o.GetType())
-            {
+            if (!(other is HssSignature that))
                 return false;
-            }
 
-            HssSignature signature1 = (HssSignature) o;
-
-            if (lMinus1 != signature1.lMinus1)
-            {
+            if (this.m_lMinus1 != that.m_lMinus1)
                 return false;
-            }
 
-            // FIXME
-            // Probably incorrect - comparing Object[] arrays with Arrays.equals
-
-            if (signedPubKey.Length != signature1.signedPubKey.Length)
-            {
+            if (this.m_signedPubKey.Length != that.m_signedPubKey.Length)
                 return false;
-            }
 
-            for (int t = 0; t < signedPubKey.Length; t++)
+            for (int t = 0; t < m_signedPubKey.Length; t++)
             {
-                if (!signedPubKey[t].Equals(signature1.signedPubKey[t]))
-                {
+                if (!this.m_signedPubKey[t].Equals(that.m_signedPubKey[t]))
                     return false;
-                }
             }
 
-            return signature != null ? signature.Equals(signature1.signature) : signature1.signature == null;
+            return Equals(this.m_signature, that.m_signature);
         }
 
         public override int GetHashCode()
         {
-            int result = lMinus1;
-            result = 31 * result + signedPubKey.GetHashCode();
-            result = 31 * result + (signature != null ? signature.GetHashCode() : 0);
+            int result = m_lMinus1;
+            result = 31 * result + m_signedPubKey.GetHashCode();
+            result = 31 * result + (m_signature != null ? m_signature.GetHashCode() : 0);
             return result;
         }
 
         public byte[] GetEncoded()
         {
             Composer composer = Composer.Compose();
-            composer.U32Str(lMinus1);
-            if (signedPubKey != null)
+            composer.U32Str(m_lMinus1);
+            if (m_signedPubKey != null)
             {
-                foreach (LmsSignedPubKey sigPub in signedPubKey)
+                foreach (LmsSignedPubKey sigPub in m_signedPubKey)
                 {
                     composer.Bytes(sigPub);
                 }
             }
 
-            composer.Bytes(signature);
+            composer.Bytes(m_signature);
             return composer.Build();
-
         }
-
     }
 }
