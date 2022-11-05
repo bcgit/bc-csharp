@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Bcpg
@@ -39,6 +40,21 @@ namespace Org.BouncyCastle.Bcpg
         public ECDHPublicBcpgKey(
             DerObjectIdentifier oid,
             ECPoint point,
+            HashAlgorithmTag hashAlgorithm,
+            SymmetricKeyAlgorithmTag symmetricKeyAlgorithm)
+            : base(oid, point)
+        {
+            reserved = 1;
+            hashFunctionId = hashAlgorithm;
+            symAlgorithmId = symmetricKeyAlgorithm;
+
+            VerifyHashAlgorithm();
+            VerifySymmetricKeyAlgorithm();
+        }
+
+        public ECDHPublicBcpgKey(
+            DerObjectIdentifier oid,
+            BigInteger point,
             HashAlgorithmTag hashAlgorithm,
             SymmetricKeyAlgorithmTag symmetricKeyAlgorithm)
             : base(oid, point)

@@ -884,6 +884,17 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        public static T[] Prepend<T>(T[] a, T b)
+        {
+            if (a == null)
+                return new T[1]{ b };
+
+            T[] result = new T[1 + a.Length];
+            result[0] = b;
+            a.CopyTo(result, 1);
+            return result;
+        }
+
         public static byte[] Reverse(byte[] a)
         {
             if (a == null)

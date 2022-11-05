@@ -73,40 +73,40 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		[Test]
 		public void TestGenerateK1024H224()
 		{
-			doSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha224);
+			DoSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha224);
 		}
 
 		[Test]
 		public void TestGenerateK1024H256()
 		{
-			doSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha256);
+			DoSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha256);
 		}
 
 		[Test]
 		public void TestGenerateK1024H384()
 		{
-			doSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha384);
+			DoSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha384);
 		}
 
 		[Test]
 		public void TestGenerateK1024H512()
 		{
-			doSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha512);
+			DoSigGenerateTest("DSA-1024-160.sec", "DSA-1024-160.pub", HashAlgorithmTag.Sha512);
 		}
 
 		[Test]
 		public void TestGenerateK2048H256()
 		{
-			doSigGenerateTest("DSA-2048-224.sec", "DSA-2048-224.pub", HashAlgorithmTag.Sha256);
+			DoSigGenerateTest("DSA-2048-224.sec", "DSA-2048-224.pub", HashAlgorithmTag.Sha256);
 		}
 
 		[Test]
 		public void TestGenerateK2048H512()
 		{
-			doSigGenerateTest("DSA-2048-224.sec", "DSA-2048-224.pub", HashAlgorithmTag.Sha512);
+			DoSigGenerateTest("DSA-2048-224.sec", "DSA-2048-224.pub", HashAlgorithmTag.Sha512);
 		}
 
-		private void doSigGenerateTest(
+		private void DoSigGenerateTest(
 			string				privateKeyFile,
 			string				publicKeyFile,
 			HashAlgorithmTag	digest)
