@@ -379,14 +379,18 @@ namespace Org.BouncyCastle.Security
 
             AlgorithmMap["GOST-3410-2012-256"] = "ECGOST3410-2012-256";
             AlgorithmMap["GOST3411WITHECGOST3410-2012-256"] = "ECGOST3410-2012-256";
+            AlgorithmMap["GOST3411-2012-256WITHECGOST3410"] = "ECGOST3410-2012-256";
             AlgorithmMap["GOST3411-2012-256WITHECGOST3410-2012-256"] = "ECGOST3410-2012-256";
+            AlgorithmMap["GOST3411-2012-256/ECGOST3410"] = "ECGOST3410-2012-256";
             AlgorithmMap["GOST3411-2012-256/ECGOST3410-2012-256"] = "ECGOST3410-2012-256";
             AlgorithmMap[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256.Id] =
                 "ECGOST3410-2012-256";
 
             AlgorithmMap["GOST-3410-2012-512"] = "ECGOST3410-2012-512";
             AlgorithmMap["GOST3411WITHECGOST3410-2012-512"] = "ECGOST3410-2012-512";
+            AlgorithmMap["GOST3411-2012-512WITHECGOST3410"] = "ECGOST3410-2012-512";
             AlgorithmMap["GOST3411-2012-512WITHECGOST3410-2012-512"] = "ECGOST3410-2012-512";
+            AlgorithmMap["GOST3411-2012-512/ECGOST3410"] = "ECGOST3410-2012-512";
             AlgorithmMap["GOST3411-2012-512/ECGOST3410-2012-512"] = "ECGOST3410-2012-512";
             AlgorithmMap[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512.Id] =
                 "ECGOST3410-2012-512";
