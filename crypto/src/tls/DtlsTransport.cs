@@ -8,10 +8,12 @@ namespace Org.BouncyCastle.Tls
         : DatagramTransport
     {
         private readonly DtlsRecordLayer m_recordLayer;
+        private readonly bool m_ignoreCorruptRecords;
 
-        internal DtlsTransport(DtlsRecordLayer recordLayer)
+        internal DtlsTransport(DtlsRecordLayer recordLayer, bool ignoreCorruptRecords)
         {
-            this.m_recordLayer = recordLayer;
+            m_recordLayer = recordLayer;
+            m_ignoreCorruptRecords = ignoreCorruptRecords;
         }
 
         /// <exception cref="IOException"/>
@@ -44,6 +46,9 @@ namespace Org.BouncyCastle.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
+                if (m_ignoreCorruptRecords && AlertDescription.bad_record_mac == fatalAlert.AlertDescription)
+                    return -1;
+
                 m_recordLayer.Fail(fatalAlert.AlertDescription);
                 throw fatalAlert;
             }

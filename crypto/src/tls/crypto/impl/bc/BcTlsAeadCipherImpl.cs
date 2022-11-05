@@ -57,5 +57,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             return len;
         }
+
+        public void Reset()
+        {
+            m_cipher.Reset();
+        }
     }
 }

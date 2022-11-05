@@ -351,12 +351,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 outputPos = m_decryptCipher.DoFinal(ciphertext, encryptionOffset, encryptionLength, ciphertext,
                     encryptionOffset);
             }
+            catch (TlsFatalAlert fatalAlert)
+            {
+                if (AlertDescription.bad_record_mac == fatalAlert.AlertDescription)
+                {
+                    m_decryptCipher.Reset();
+                }
+                throw fatalAlert;
+            }
             catch (IOException e)
             {
                 throw e;
             }
             catch (Exception e)
             {
+                m_decryptCipher.Reset();
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac, e);
             }
 

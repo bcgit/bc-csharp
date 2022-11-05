@@ -96,6 +96,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        public void Reset()
+        {
+            m_cipher.Reset();
+            m_mac.Reset();
+        }
+
         public void SetKey(byte[] key, int keyOff, int keyLen)
         {
             KeyParameter cipherKey = new KeyParameter(key, keyOff, keyLen);

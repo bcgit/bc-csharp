@@ -157,5 +157,7 @@ namespace Org.BouncyCastle.Tls
         {
             return HeartbeatMode.peer_not_allowed_to_send;
         }
+
+        public virtual bool IgnoreCorruptDtlsRecords => false;
     }
 }
