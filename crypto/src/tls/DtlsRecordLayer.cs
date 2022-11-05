@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-#if !PORTABLE || DOTNET
 using System.Net.Sockets;
-#endif
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
@@ -452,7 +450,6 @@ namespace Org.BouncyCastle.Tls
             {
                 return -1;
             }
-#if !PORTABLE || DOTNET
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
@@ -460,7 +457,6 @@ namespace Org.BouncyCastle.Tls
 
                 throw e;
             }
-#endif
             // TODO[tls-port] Can we support interrupted IO on .NET?
             //catch (InterruptedIOException e)
             //{

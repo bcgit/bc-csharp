@@ -1,5 +1,3 @@
-#if !PORTABLE || DOTNET
-using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -42,4 +40,3 @@ namespace Org.BouncyCastle.Cms
 		}
 	}
 }
-#endif
