@@ -275,7 +275,14 @@ namespace Org.BouncyCastle.Cms
 			return Helper.GetCrls(_crlSet);
 		}
 
-		private void PopulateCertCrlSets()
+        public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat)
+        {
+            PopulateCertCrlSets();
+
+            return Helper.GetOtherRevInfos(_crlSet, otherRevInfoFormat);
+        }
+
+        private void PopulateCertCrlSets()
 		{
 			if (_isCertCrlParsed)
 				return;

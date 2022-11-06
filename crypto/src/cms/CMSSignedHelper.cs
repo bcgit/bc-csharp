@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
+using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -348,5 +350,29 @@ namespace Org.BouncyCastle.Cms
 			}
 			return CollectionUtilities.CreateStore(contents);
 		}
+
+        internal IStore<Asn1Encodable> GetOtherRevInfos(Asn1Set crlSet, DerObjectIdentifier otherRevInfoFormat)
+        {
+            var contents = new List<Asn1Encodable>();
+            if (crlSet != null && otherRevInfoFormat != null)
+            {
+                foreach (Asn1Encodable ae in crlSet)
+                {
+                    if (ae != null && ae.ToAsn1Object() is Asn1TaggedObject taggedObject)
+                    {
+						if (taggedObject.HasContextTag(1))
+						{
+                            var otherRevocationInfo = OtherRevocationInfoFormat.GetInstance(taggedObject, false);
+
+							if (otherRevInfoFormat.Equals(otherRevocationInfo.InfoFormat))
+							{
+								contents.Add(otherRevocationInfo.Info);
+							}
+                        }
+                    }
+                }
+            }
+            return CollectionUtilities.CreateStore(contents);
+        }
     }
 }

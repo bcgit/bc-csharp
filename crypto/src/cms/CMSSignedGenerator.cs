@@ -588,6 +588,23 @@ namespace Org.BouncyCastle.Cms
             _crls.AddRange(CmsUtilities.GetCrlsFromStore(crlStore));
         }
 
+        public void AddOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
+        {
+            CmsUtilities.ValidateOtherRevocationInfo(otherRevocationInfo);
+            _crls.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
+        }
+
+        public void AddOtherRevocationInfos(IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
+        {
+            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfoStore));
+        }
+
+        public void AddOtherRevocationInfos(DerObjectIdentifier otherRevInfoFormat,
+            IStore<Asn1Encodable> otherRevInfoStore)
+        {
+            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevInfoStore, otherRevInfoFormat));
+        }
+
         /**
 		 * Add a store of precalculated signers to the generator.
 		 *
