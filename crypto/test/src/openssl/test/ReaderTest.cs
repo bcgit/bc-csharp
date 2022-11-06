@@ -3,6 +3,7 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -40,6 +41,23 @@ namespace Org.BouncyCastle.OpenSsl.Tests
         public override string Name
         {
             get { return "PEMReaderTest"; }
+        }
+
+        [Test]
+        public void TestGost3410_2012()
+        {
+            string data =
+                "-----BEGIN PRIVATE KEY-----" +
+                "MEMCAQAwHAYGKoUDAgITMBIGByqFAwICIwEGByqFAwICHgEEIIBidanaO5G6Go8A" +
+                "thlDjR9rk4hij/PpjAQvXJr+zTqz" +
+                "-----END PRIVATE KEY-----";
+
+            using (var textReader = new StringReader(data))
+            {
+                var pemReader = new PemReader(textReader);
+                var pemObj = pemReader.ReadPemObject();
+                PrivateKeyFactory.CreateKey(pemObj.Content);
+            }
         }
 
         public override void PerformTest()
