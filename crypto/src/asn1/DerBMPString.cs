@@ -31,21 +31,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerBmpString GetInstance(object obj)
         {
-            if (obj == null || obj is DerBmpString)
+            if (obj == null)
+                return null;
+
+            if (obj is DerBmpString derBmpString)
+                return derBmpString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerBmpString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerBmpString converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerBmpString)
-                    return (DerBmpString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerBmpString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerBmpString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

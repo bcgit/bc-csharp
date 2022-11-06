@@ -36,22 +36,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1OctetString GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1OctetString)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1OctetString asn1OctetString)
+                return asn1OctetString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1OctetString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1OctetString converted)
+                    return converted;
             }
-            //else if (obj is Asn1OctetStringParser)
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1OctetString)
-                    return (Asn1OctetString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1OctetString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1OctetString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

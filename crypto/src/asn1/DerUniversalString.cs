@@ -32,24 +32,25 @@ namespace Org.BouncyCastle.Asn1
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerUniversalString GetInstance(
-            object obj)
+        public static DerUniversalString GetInstance(object obj)
         {
-            if (obj == null || obj is DerUniversalString)
+            if (obj == null)
+                return null;
+
+            if (obj is DerUniversalString derUniversalString)
+                return derUniversalString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerUniversalString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerUniversalString converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerUniversalString)
-                    return (DerUniversalString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerUniversalString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerUniversalString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
