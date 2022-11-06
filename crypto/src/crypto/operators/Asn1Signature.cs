@@ -94,7 +94,9 @@ namespace Org.BouncyCastle.Crypto.Operators
 			m_algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 			m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
             m_algorithms.Add("GOST3411-2012-256WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
+            m_algorithms.Add("GOST3411-2012-256WITHECGOST3410-2012-256", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
             m_algorithms.Add("GOST3411-2012-512WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
+            m_algorithms.Add("GOST3411-2012-512WITHECGOST3410-2012-512", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
 
             //
             // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
@@ -191,6 +193,14 @@ namespace Org.BouncyCastle.Crypto.Operators
             else if (CryptoProObjectIdentifiers.GostR3411.Equals(digestAlgOID))
             {
                 return "GOST3411";
+            }
+            else if (RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Equals(digestAlgOID))
+            {
+                return "GOST3411-2012-256";
+            }
+            else if (RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Equals(digestAlgOID))
+            {
+                return "GOST3411-2012-512";
             }
             else
             {

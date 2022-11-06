@@ -129,12 +129,10 @@ namespace Org.BouncyCastle.Cms
             m_algorithms["GOST3411WITHGOST3410-2001"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
             m_algorithms["GOST3411WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
             m_algorithms["GOST3411WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            m_algorithms["GOST3411WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            m_algorithms["GOST3411WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
+            m_algorithms["GOST3411-2012-256WITHECGOST3410"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
             m_algorithms["GOST3411-2012-256WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
+            m_algorithms["GOST3411-2012-512WITHECGOST3410"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
             m_algorithms["GOST3411-2012-512WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            m_algorithms["GOST3411-2012-256WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            m_algorithms["GOST3411-2012-512WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
             m_algorithms["SHA1WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA1;
             m_algorithms["SHA224WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA224;
             m_algorithms["SHA256WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA256;
@@ -508,6 +506,8 @@ namespace Org.BouncyCastle.Cms
         public static readonly string EncryptionRsaPss = PkcsObjectIdentifiers.IdRsassaPss.Id;
         public static readonly string EncryptionGost3410 = CryptoProObjectIdentifiers.GostR3410x94.Id;
         public static readonly string EncryptionECGost3410 = CryptoProObjectIdentifiers.GostR3410x2001.Id;
+        public static readonly string EncryptionECGost3410_2012_256 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256.Id;
+        public static readonly string EncryptionECGost3410_2012_512 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512.Id;
 
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();

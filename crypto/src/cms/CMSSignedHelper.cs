@@ -261,6 +261,22 @@ namespace Org.BouncyCastle.Cms
                 {
                     encOID = CmsSignedGenerator.EncryptionECGost3410;
                 }
+                else if (ecPrivKey.Parameters is ECGost3410Parameters ecGost3410Parameters)
+                {
+					var digestParamSet = ecGost3410Parameters.DigestParamSet;
+                    if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256))
+					{
+                        encOID = CmsSignedGenerator.EncryptionECGost3410_2012_256;
+                    }
+                    else if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512))
+					{
+                        encOID = CmsSignedGenerator.EncryptionECGost3410_2012_512;
+                    }
+                    else
+					{
+                        throw new ArgumentException("can't determine GOST3410 algorithm");
+                    }
+                }
                 else
 				{
 					// TODO Should we insist on algName being one of "EC" or "ECDSA", as Java does?
