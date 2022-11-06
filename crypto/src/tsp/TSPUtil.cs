@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Tsp
 				ExtendedKeyUsage extKey = ExtendedKeyUsage.GetInstance(
 					Asn1Object.FromByteArray(ext.GetOctets()));
 
-				if (!extKey.HasKeyPurposeId(KeyPurposeID.IdKPTimeStamping) || extKey.Count != 1)
+				if (!extKey.HasKeyPurposeId(KeyPurposeID.id_kp_timeStamping) || extKey.Count != 1)
 					throw new TspValidationException("ExtendedKeyUsage not solely time stamping.");
 			}
 			catch (IOException)

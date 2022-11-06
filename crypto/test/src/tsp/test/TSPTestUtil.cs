@@ -347,7 +347,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			else
 			{
 				_v3CertGen.AddExtension(X509Extensions.ExtendedKeyUsage, true,
-					ExtendedKeyUsage.GetInstance(new DerSequence(KeyPurposeID.IdKPTimeStamping)));
+					ExtendedKeyUsage.GetInstance(new DerSequence(KeyPurposeID.id_kp_timeStamping)));
 			}
 
             X509Certificate _cert = _v3CertGen.Generate(
