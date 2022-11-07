@@ -87,8 +87,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             FrodoPublicKeyParameters pubParams = (FrodoPublicKeyParameters)kp.Public;
             FrodoPrivateKeyParameters privParams = (FrodoPrivateKeyParameters)kp.Private;
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), $"{name} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), $"{name} {count} : secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), $"{name} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), $"{name} {count} : secret key");
 
             // kem_enc
             FrodoKEMGenerator frodoEncCipher = new FrodoKEMGenerator(random);

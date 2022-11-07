@@ -7,9 +7,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
     public class FrodoPrivateKeyParameters
         : FrodoKeyParameters
     {
-        private byte[] privateKey;
+        internal byte[] privateKey;
 
-        public byte[] PrivateKey => Arrays.Clone(privateKey);
+        public byte[] GetPrivateKey()
+        {
+            return Arrays.Clone(privateKey);
+        }
 
         public FrodoPrivateKeyParameters(FrodoParameters parameters, byte[] privateKey)
             : base(true, parameters)

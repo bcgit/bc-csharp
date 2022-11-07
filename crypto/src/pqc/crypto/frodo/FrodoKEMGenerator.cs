@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             FrodoEngine engine = key.Parameters.Engine;
             byte[] cipher_text = new byte[engine.CipherTextSize];
             byte[] sessionKey = new byte[engine.SessionKeySize];
-            engine.kem_enc(cipher_text, sessionKey, key.PublicKey, sr);
+            engine.kem_enc(cipher_text, sessionKey, key.m_publicKey, sr);
             return new SecretWithEncapsulationImpl(sessionKey, cipher_text);
         }
 
