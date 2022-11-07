@@ -7,13 +7,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
     public class CmcePublicKeyParameters
         : CmceKeyParameters
     {
-        private byte[] publicKey;
+        internal byte[] publicKey;
 
-        public byte[] PublicKey => Arrays.Clone(publicKey);
+        public byte[] GetPublicKey()
+        { 
+            return Arrays.Clone(publicKey);
+        }
 
         public byte[] GetEncoded()
         {
-            return PublicKey;
+            return GetPublicKey();
         }
 
         public CmcePublicKeyParameters(CmceParameters parameters, byte[] publicKey)
