@@ -205,9 +205,9 @@ namespace Org.BouncyCastle.X509
             DateTime time)
         {
             if (time.CompareTo(NotAfter) > 0)
-                throw new CertificateExpiredException("certificate expired on " + c.EndDate.GetTime());
+                throw new CertificateExpiredException("certificate expired on " + c.EndDate);
             if (time.CompareTo(NotBefore) < 0)
-                throw new CertificateNotYetValidException("certificate not valid until " + c.StartDate.GetTime());
+                throw new CertificateNotYetValidException("certificate not valid until " + c.StartDate);
         }
 
         /// <summary>

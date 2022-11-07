@@ -1,4 +1,4 @@
-using System;
+using System.Globalization;
 
 using NUnit.Framework;
 
@@ -18,56 +18,39 @@ namespace Org.BouncyCastle.Asn1.Tests
 			"020122122220Z",
 			"020122122220-1000",
 			"020122122220+1000",
-			"020122122220+00",
 			"0201221222Z",
 			"0201221222-1000",
 			"0201221222+1000",
-			"0201221222+00",
 			"550122122220Z",
-			"5501221222Z"
-		};
+			"5501221222Z",
+            "4007270730Z",
+        };
 
-		private static readonly string[] output =
-		{
-			"20020122122220GMT+00:00",
-			"20020122122220GMT-10:00",
-			"20020122122220GMT+10:00",
-			"20020122122220GMT+00:00",
-			"20020122122200GMT+00:00",
-			"20020122122200GMT-10:00",
-			"20020122122200GMT+10:00",
-			"20020122122200GMT+00:00",
-			"19550122122220GMT+00:00",
-			"19550122122200GMT+00:00"
-		};
-
-		private static readonly string[] zOutput1 =
+		private static readonly string[] outputPre2040 =
 		{
 			"20020122122220Z",
 			"20020122222220Z",
 			"20020122022220Z",
-			"20020122122220Z",
 			"20020122122200Z",
 			"20020122222200Z",
 			"20020122022200Z",
-			"20020122122200Z",
 			"19550122122220Z",
-			"19550122122200Z"
-		};
+			"19550122122200Z",
+            "19400727073000Z",
+        };
 
-		private static readonly string[] zOutput2 =
+		private static readonly string[] outputPost2040 =
 		{
 			"20020122122220Z",
 			"20020122222220Z",
 			"20020122022220Z",
-			"20020122122220Z",
 			"20020122122200Z",
 			"20020122222200Z",
 			"20020122022200Z",
-			"20020122122200Z",
 			"19550122122220Z",
-			"19550122122200Z"
-		};
+			"19550122122200Z",
+            "20400727073000Z",
+        };
 
 		public override string Name
 		{
@@ -76,34 +59,29 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		public override void PerformTest()
 		{
-//			SimpleDateFormat yyyyF = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
-//			SimpleDateFormat yyF = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+			bool pre2040 = DateTimeFormatInfo.InvariantInfo.Calendar.TwoDigitYearMax < 2040;
+			string[] outputDefault = pre2040 ? outputPre2040 : outputPost2040;
 
-//			yyyyF.setTimeZone(new SimpleTimeZone(0,"Z"));
-//			yyF.setTimeZone(new SimpleTimeZone(0,"Z"));
-
-			for (int i = 0; i != input.Length; i++)
+            for (int i = 0; i != input.Length; i++)
 			{
 				DerUtcTime t = new DerUtcTime(input[i]);
 
-				if (!t.AdjustedTimeString.Equals(output[i]))
-				{
-					Fail("failed conversion test " + i);
-				}
-
-//				if (!yyyyF.format(t.getAdjustedDate()).Equals(zOutput1[i]))
-				if (!t.ToAdjustedDateTime().ToString(@"yyyyMMddHHmmss\Z").Equals(zOutput1[i]))
-				{
-					Fail("failed date conversion test " + i);
-				}
-
-//				if (!yyF.format(t.getDate()).Equals(zOutput2[i]))
-				if (!t.ToDateTime().ToString(@"yyyyMMddHHmmss\Z").Equals(zOutput2[i]))
+                if (!t.ToDateTime().ToString(@"yyyyMMddHHmmssK").Equals(outputDefault[i]))
 				{
 					Fail("failed date shortened conversion test " + i);
 				}
-			}
-		}
+
+                if (!t.ToDateTime(2029).ToString(@"yyyyMMddHHmmssK").Equals(outputPre2040[i]))
+                {
+                    Fail("failed date conversion test " + i);
+                }
+
+                if (!t.ToDateTime(2049).ToString(@"yyyyMMddHHmmssK").Equals(outputPost2040[i]))
+                {
+                    Fail("failed date conversion test " + i);
+                }
+            }
+        }
 
 		[Test]
 		public void TestFunction()
