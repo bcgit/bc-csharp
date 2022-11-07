@@ -7,14 +7,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * GenRep:    {id-it 18}, RootCaKeyUpdateContent | &lt; absent &gt;
      * <p>
      * RootCaCertValue ::= CMPCertificate
-     * <p>
+     * </p><p>
      * RootCaKeyUpdateValue ::= RootCaKeyUpdateContent
-     * <p>
+     * </p><p>
      * RootCaKeyUpdateContent ::= SEQUENCE {
      * newWithNew       CMPCertificate,
      * newWithOld   [0] CMPCertificate OPTIONAL,
      * oldWithNew   [1] CMPCertificate OPTIONAL
      * }
+     * </p>
      */
     public class RootCaKeyUpdateContent
         : Asn1Encodable

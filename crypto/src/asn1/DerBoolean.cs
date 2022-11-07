@@ -30,21 +30,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerBoolean GetInstance(object obj)
         {
-            if (obj == null || obj is DerBoolean)
+            if (obj == null)
+                return null;
+
+            if (obj is DerBoolean derBoolean)
+                return derBoolean;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerBoolean)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerBoolean converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerBoolean)
-                    return (DerBoolean)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerBoolean)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerBoolean)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

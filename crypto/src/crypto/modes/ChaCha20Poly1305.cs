@@ -763,6 +763,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void InitMac()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> firstBlock = stackalloc byte[64];
+            try
+            {
+                mChacha20.ProcessBytes(firstBlock, firstBlock);
+                mPoly1305.Init(new KeyParameter(firstBlock[..32]));
+            }
+            finally
+            {
+                firstBlock.Fill(0x00);
+            }
+#else
             byte[] firstBlock = new byte[64];
             try
             {
@@ -773,6 +785,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 Array.Clear(firstBlock, 0, 64);
             }
+#endif
         }
 
         private void PadMac(ulong count)

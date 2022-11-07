@@ -69,11 +69,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public static byte[] CreateKey(PublicKeyPacket pubKeyData, ECPoint s)
         {
+            return CreateKey(pubKeyData, s.AffineXCoord.GetEncoded());
+        }
+
+        public static byte[] CreateKey(PublicKeyPacket pubKeyData, byte[] secret)
+        {
             byte[] userKeyingMaterial = CreateUserKeyingMaterial(pubKeyData);
 
             ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)pubKeyData.Key;
 
-            return Kdf(ecKey.HashAlgorithm, s, GetKeyLength(ecKey.SymmetricKeyAlgorithm), userKeyingMaterial);
+            return Kdf(ecKey.HashAlgorithm, secret, GetKeyLength(ecKey.SymmetricKeyAlgorithm), userKeyingMaterial);
         }
 
         // RFC 6637 - Section 8
@@ -116,12 +121,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         //         ZB = x;
         //         MB = Hash ( 00 || 00 || 00 || 01 || ZB || Param );
         //   return oBits leftmost bits of MB.
-        private static byte[] Kdf(HashAlgorithmTag digestAlg, ECPoint s, int keyLen, byte[] parameters)
+        private static byte[] Kdf(HashAlgorithmTag digestAlg, byte[] ZB, int keyLen, byte[] parameters)
         {
-            byte[] ZB = s.XCoord.GetEncoded();
-
-            string digestName = PgpUtilities.GetDigestName(digestAlg);
-			IDigest digest = DigestUtilities.GetDigest(digestName);
+            IDigest digest = PgpUtilities.CreateDigest(digestAlg);
 
             digest.Update(0x00);
             digest.Update(0x00);

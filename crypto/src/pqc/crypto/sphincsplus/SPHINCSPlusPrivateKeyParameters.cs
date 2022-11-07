@@ -53,13 +53,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public byte[] GetEncoded()
         {
-            var id = Pack.UInt32_To_BE(SphincsPlusParameters.GetID(Parameters));
+            var id = Pack.UInt32_To_BE((uint)SphincsPlusParameters.GetID(Parameters));
             return Arrays.ConcatenateAll(id, m_sk.seed, m_sk.prf, m_pk.seed, m_pk.root);
         }
 
         public byte[] GetEncodedPublicKey()
         {
-            var id = Pack.UInt32_To_BE(SphincsPlusParameters.GetID(Parameters));
+            var id = Pack.UInt32_To_BE((uint)SphincsPlusParameters.GetID(Parameters));
             return Arrays.ConcatenateAll(id, m_pk.seed, m_pk.root);
         }
     }

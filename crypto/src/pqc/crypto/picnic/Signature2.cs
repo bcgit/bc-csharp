@@ -1,7 +1,7 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class Signature2
+    internal class Signature2
     {
         internal byte[] salt;
         internal byte[] iSeedInfo; // Info required to recompute the tree of all initial seeds
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         internal Proof2[] proofs; // One proof for each online execution the verifier checks
 
         //todo initialize in engine!
-        public Signature2(PicnicEngine engine)
+        internal Signature2(PicnicEngine engine)
         {
             challengeHash = new byte[engine.digestSizeBytes];
             salt = new byte[PicnicEngine.saltSizeBytes];
@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             proofs = new Proof2[engine.numMPCRounds];
         }
 
-        public class Proof2
+        internal class Proof2
         {
             internal byte[] seedInfo; // Information required to compute the tree with seeds of of all opened parties
             internal int seedInfoLen; // Length of seedInfo buffer
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             internal byte[] input; // Masked input used in online execution
             internal byte[] msgs; // Broadcast messages of unopened party P[t]
 
-            public Proof2(PicnicEngine engine)
+            internal Proof2(PicnicEngine engine)
             {
                 seedInfo = null;
                 seedInfoLen = 0;
@@ -45,6 +45,3 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
     }
 }
-
-
-

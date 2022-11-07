@@ -59,13 +59,6 @@ namespace Org.BouncyCastle.Cms
 			{
 			}
 
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            public override void CopyTo(Stream destination, int bufferSize)
-            {
-				s.CopyTo(destination, bufferSize);
-            }
-#endif
-
             public override int Read(byte[]	buf, int off, int len)
 			{
 				return Streams.ReadFully(s, buf, off, len);

@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// <para>https://mailarchive.ietf.org/arch/msg/cfrg/qLTveWOdTJcLn4HP3ev-vrj05Vg/</para>
     /// Text reproduced below:
     /// <para>
-    /// Phillip Rogaway&lt;rogaway@cs.ucdavis.edu&rt; Sat, 27 February 2021 02:46 UTC
+    /// Phillip Rogaway&lt;rogaway@cs.ucdavis.edu&gt; Sat, 27 February 2021 02:46 UTC
     ///
     /// I can confirm that I have abandoned all OCB patents and placed into the public domain all OCB-related IP of
     /// mine. While I have been telling people this for quite some time, I don't think I ever made a proper announcement

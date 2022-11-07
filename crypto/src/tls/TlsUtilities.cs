@@ -747,8 +747,15 @@ namespace Org.BouncyCastle.Tls
 
         public static short ReadUint8(byte[] buf, int offset)
         {
-            return (short)(buf[offset] & 0xff);
+            return (short)buf[offset];
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static short ReadUint8(ReadOnlySpan<byte> buffer)
+        {
+            return (short)buffer[0];
+        }
+#endif
 
         public static int ReadUint16(Stream input)
         {

@@ -39,17 +39,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                         0,
                         I,
                         1 << lms.LMSigParameters.H,
-                        rootSeed);
+                        rootSeed,
+                        isPlaceholder: false);
                 }
                 else
                 {
-                    keys[t] = new PlaceholderLMSPrivateKey(
+                    keys[t] = new LmsPrivateKeyParameters(
                         lms.LMSigParameters,
                         lms.LMOtsParameters,
                         -1,
                         zero,
                         1 << lms.LMSigParameters.H,
-                        zero);
+                        zero,
+                        isPlaceholder: true);
                 }
                 hssKeyMaxIndex <<= lms.LMSigParameters.H;
             }
@@ -161,7 +163,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static bool VerifySignature(HssPublicKeyParameters publicKey, HssSignature signature, byte[] message)
         {
-            int Nspk = signature.GetlMinus1();
+            int Nspk = signature.GetLMinus1();
             if (Nspk + 1 != publicKey.L)
                 return false;
 
@@ -195,26 +197,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 }
             }
             return Lms.VerifySignature(key, sigList[Nspk], message);
-        }
-
-        private class PlaceholderLMSPrivateKey
-            : LmsPrivateKeyParameters
-        {
-            internal PlaceholderLMSPrivateKey(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q,
-                byte[] I, int maxQ, byte[] masterSecret)
-                : base(lmsParameter, otsParameters, q, I, maxQ, masterSecret)
-            {
-            }
-
-            internal override LMOtsPrivateKey GetNextOtsPrivateKey()
-            {
-                throw new Exception("placeholder only");
-            }
-
-            public override LmsPublicKeyParameters GetPublicKey()
-            {
-                throw new Exception("placeholder only");
-            }
         }
     }
 }

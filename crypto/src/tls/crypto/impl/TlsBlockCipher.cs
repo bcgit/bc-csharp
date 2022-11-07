@@ -199,6 +199,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return EncodePlaintext(seqNo, contentType, recordVersion, headerAllocation, plaintext.AsSpan(offset, len));
+#else
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
 
@@ -264,7 +267,80 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             return new TlsEncodeResult(outBuf, 0, outBuf.Length, contentType);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+            int headerAllocation, ReadOnlySpan<byte> plaintext)
+        {
+            int blockSize = m_encryptCipher.GetBlockSize();
+            int macSize = m_writeMac.Size;
+
+            int enc_input_length = plaintext.Length;
+            if (!m_encryptThenMac)
+            {
+                enc_input_length += macSize;
+            }
+
+            int padding_length = blockSize - (enc_input_length % blockSize);
+            if (m_useExtraPadding)
+            {
+                // Add a random number of extra blocks worth of padding
+                int maxExtraPadBlocks = (256 - padding_length) / blockSize;
+                int actualExtraPadBlocks = ChooseExtraPadBlocks(maxExtraPadBlocks);
+                padding_length += actualExtraPadBlocks * blockSize;
+            }
+
+            int totalSize = plaintext.Length + macSize + padding_length;
+            if (m_useExplicitIV)
+            {
+                totalSize += blockSize;
+            }
+
+            byte[] outBuf = new byte[headerAllocation + totalSize];
+            int outOff = headerAllocation;
+
+            if (m_useExplicitIV)
+            {
+                // Technically the explicit IV will be the encryption of this nonce
+                byte[] explicitIV = m_cryptoParams.NonceGenerator.GenerateNonce(blockSize);
+                Array.Copy(explicitIV, 0, outBuf, outOff, blockSize);
+                outOff += blockSize;
+            }
+
+            plaintext.CopyTo(outBuf.AsSpan(outOff));
+            outOff += plaintext.Length;
+
+            if (!m_encryptThenMac)
+            {
+                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext);
+                mac.CopyTo(outBuf.AsSpan(outOff));
+                outOff += mac.Length;
+            }
+
+            byte padByte = (byte)(padding_length - 1);
+            for (int i = 0; i < padding_length; ++i)
+            {
+                outBuf[outOff++] = padByte;
+            }
+
+            m_encryptCipher.DoFinal(outBuf, headerAllocation, outOff - headerAllocation, outBuf, headerAllocation);
+
+            if (m_encryptThenMac)
+            {
+                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, outBuf, headerAllocation,
+                    outOff - headerAllocation);
+                Array.Copy(mac, 0, outBuf, outOff, mac.Length);
+                outOff += mac.Length;
+            }
+
+            if (outOff != outBuf.Length)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return new TlsEncodeResult(outBuf, 0, outBuf.Length, contentType);
+        }
+#endif
 
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)

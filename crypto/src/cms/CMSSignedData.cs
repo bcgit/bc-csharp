@@ -204,6 +204,11 @@ namespace Org.BouncyCastle.Cms
 			return Helper.GetCrls(signedData.CRLs);
 		}
 
+        public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat)
+		{
+			return Helper.GetOtherRevInfos(signedData.CRLs, otherRevInfoFormat);
+		}
+
 		/// <summary>
 		/// Return the <c>DerObjectIdentifier</c> associated with the encapsulated
 		/// content info structure carried in the signed data.
@@ -308,7 +313,7 @@ namespace Org.BouncyCastle.Cms
 			return cms;
 		}
 
-		/**
+        /**
 		* Replace the certificate and CRL information associated with this
 		* CmsSignedData object with the new one passed in.
 		*
@@ -318,48 +323,69 @@ namespace Org.BouncyCastle.Cms
 		* @return a new signed data object.
 		* @exception CmsException if there is an error processing the stores
 		*/
-		public static CmsSignedData ReplaceCertificatesAndCrls(CmsSignedData signedData, IStore<X509Certificate> x509Certs,
-			IStore<X509Crl> x509Crls, IStore<X509V2AttributeCertificate> x509AttrCerts)
+        public static CmsSignedData ReplaceCertificatesAndCrls(CmsSignedData signedData,
+            IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls)
 		{
-			//
-			// copy
-			//
-			CmsSignedData cms = new CmsSignedData(signedData);
+            return ReplaceCertificatesAndRevocations(signedData, x509Certs, x509Crls, null, null);
+		}
+
+        public static CmsSignedData ReplaceCertificatesAndCrls(CmsSignedData signedData,
+			IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls,
+			IStore<X509V2AttributeCertificate> x509AttrCerts)
+		{
+            return ReplaceCertificatesAndRevocations(signedData, x509Certs, x509Crls, x509AttrCerts, null);
+        }
+
+        public static CmsSignedData ReplaceCertificatesAndRevocations(CmsSignedData signedData,
+            IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls,
+            IStore<X509V2AttributeCertificate> x509AttrCerts, IStore<OtherRevocationInfoFormat> otherRevocationInfos)
+        {
+            //
+            // copy
+            //
+            CmsSignedData cms = new CmsSignedData(signedData);
 
 			//
 			// replace the certs and crls in the SignedData object
 			//
 			Asn1Set certSet = null;
-			Asn1Set crlSet = null;
+			Asn1Set revocationSet = null;
 
 			if (x509Certs != null || x509AttrCerts != null)
 			{
-				var certs = new List<Asn1Encodable>();
-
+				var certificates = new List<Asn1Encodable>();
 				if (x509Certs != null)
 				{
-					certs.AddRange(CmsUtilities.GetCertificatesFromStore(x509Certs));
+					certificates.AddRange(CmsUtilities.GetCertificatesFromStore(x509Certs));
 				}
 				if (x509AttrCerts != null)
 				{
-					certs.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(x509AttrCerts));
+					certificates.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(x509AttrCerts));
 				}
 
-				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(certs);
+				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(certificates);
 				if (berSet.Count > 0)
 				{
 					certSet = berSet;
 				}
 			}
 
-			if (x509Crls != null)
+			if (x509Crls != null || otherRevocationInfos != null)
 			{
-				var crls = CmsUtilities.GetCrlsFromStore(x509Crls);
+				var revocations = new List<Asn1Encodable>();
+				if (x509Crls != null)
+				{
+					revocations.AddRange(CmsUtilities.GetCrlsFromStore(x509Crls));
+				}
+				if (otherRevocationInfos != null)
+				{
+                    revocations.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfos));
+                }
 
-				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(crls);
+				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(revocations);
 				if (berSet.Count > 0)
 				{
-					crlSet = berSet;
+					revocationSet = berSet;
 				}
 			}
 
@@ -371,7 +397,7 @@ namespace Org.BouncyCastle.Cms
 				old.DigestAlgorithms,
 				old.EncapContentInfo,
 				certSet,
-				crlSet,
+				revocationSet,
 				old.SignerInfos);
 
 			//

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -98,7 +99,15 @@ namespace Org.BouncyCastle.Bcpg
         private static readonly string    footerStart = "-----END PGP ";
         private static readonly string    footerTail = "-----";
 
-        private static readonly string Version = "BCPG C# v" + typeof(ArmoredOutputStream).Assembly.GetName().Version;
+        private static string CreateVersion()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var title = assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
+            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            return title + " v" + version;
+        }
+
+        private static readonly string Version = CreateVersion();
 
         private readonly IDictionary<string, IList<string>> m_headers;
 

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
+using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -85,8 +87,8 @@ namespace Org.BouncyCastle.Cms
 			AddEntries(EacObjectIdentifiers.id_TA_RSA_PSS_SHA_256, "SHA256", "RSAandMGF1");
             AddEntries(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, "GOST3411", "GOST3410");
             AddEntries(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, "GOST3411", "ECGOST3410");
-            AddEntries(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256, "GOST3411_2012_256", "ECGOST3410");
-            AddEntries(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512, "GOST3411_2012_512", "ECGOST3410");
+            AddEntries(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256, "GOST3411-2012-256", "ECGOST3410");
+            AddEntries(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512, "GOST3411-2012-512", "ECGOST3410");
 
             m_encryptionAlgs.Add(X9ObjectIdentifiers.IdDsa.Id, "DSA");
 			m_encryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption.Id, "RSA");
@@ -119,8 +121,8 @@ namespace Org.BouncyCastle.Cms
 			m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256.Id, "RIPEMD256");
 			m_digestAlgs.Add(CryptoProObjectIdentifiers.GostR3411.Id,  "GOST3411");
 			m_digestAlgs.Add("1.3.6.1.4.1.5849.1.2.1",  "GOST3411");
-            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id, "GOST3411_2012_256");
-            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id, "GOST3411_2012_512");
+            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id, "GOST3411-2012-256");
+            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id, "GOST3411-2012-512");
 
             m_digestAliases.Add("SHA1", new string[]{ "SHA-1" });
 			m_digestAliases.Add("SHA224", new string[]{ "SHA-224" });
@@ -261,6 +263,22 @@ namespace Org.BouncyCastle.Cms
                 {
                     encOID = CmsSignedGenerator.EncryptionECGost3410;
                 }
+                else if (ecPrivKey.Parameters is ECGost3410Parameters ecGost3410Parameters)
+                {
+					var digestParamSet = ecGost3410Parameters.DigestParamSet;
+                    if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256))
+					{
+                        encOID = CmsSignedGenerator.EncryptionECGost3410_2012_256;
+                    }
+                    else if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512))
+					{
+                        encOID = CmsSignedGenerator.EncryptionECGost3410_2012_512;
+                    }
+                    else
+					{
+                        throw new ArgumentException("can't determine GOST3410 algorithm");
+                    }
+                }
                 else
 				{
 					// TODO Should we insist on algName being one of "EC" or "ECDSA", as Java does?
@@ -332,5 +350,29 @@ namespace Org.BouncyCastle.Cms
 			}
 			return CollectionUtilities.CreateStore(contents);
 		}
+
+        internal IStore<Asn1Encodable> GetOtherRevInfos(Asn1Set crlSet, DerObjectIdentifier otherRevInfoFormat)
+        {
+            var contents = new List<Asn1Encodable>();
+            if (crlSet != null && otherRevInfoFormat != null)
+            {
+                foreach (Asn1Encodable ae in crlSet)
+                {
+                    if (ae != null && ae.ToAsn1Object() is Asn1TaggedObject taggedObject)
+                    {
+						if (taggedObject.HasContextTag(1))
+						{
+                            var otherRevocationInfo = OtherRevocationInfoFormat.GetInstance(taggedObject, false);
+
+							if (otherRevInfoFormat.Equals(otherRevocationInfo.InfoFormat))
+							{
+								contents.Add(otherRevocationInfo.Info);
+							}
+                        }
+                    }
+                }
+            }
+            return CollectionUtilities.CreateStore(contents);
+        }
     }
 }

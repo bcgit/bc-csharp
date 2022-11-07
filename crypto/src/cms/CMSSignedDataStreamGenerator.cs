@@ -783,7 +783,14 @@ namespace Org.BouncyCastle.Cms
 				_out.Write(buffer, offset, count);
 			}
 
-			public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+            {
+                _out.Write(buffer);
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
 				_out.WriteByte(value);
 			}

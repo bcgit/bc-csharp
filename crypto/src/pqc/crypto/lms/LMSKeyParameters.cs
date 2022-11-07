@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public abstract class LmsKeyParameters
         : AsymmetricKeyParameter, IEncodable
     {
-        protected LmsKeyParameters(bool isPrivateKey)
+        internal LmsKeyParameters(bool isPrivateKey)
             : base(isPrivateKey)
         {
         }

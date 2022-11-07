@@ -161,6 +161,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int plaintextOffset, int plaintextLength)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return EncodePlaintext(seqNo, contentType, recordVersion, headerAllocation,
+                plaintext.AsSpan(plaintextOffset, plaintextLength));
+#else
             byte[] nonce = new byte[m_encryptNonce.Length + m_record_iv_length];
 
             switch (m_nonceMode)
@@ -229,7 +233,83 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
 
             return new TlsEncodeResult(output, 0, output.Length, recordType);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+            int headerAllocation, ReadOnlySpan<byte> plaintext)
+        {
+            byte[] nonce = new byte[m_encryptNonce.Length + m_record_iv_length];
+
+            switch (m_nonceMode)
+            {
+            case NONCE_RFC5288:
+                Array.Copy(m_encryptNonce, 0, nonce, 0, m_encryptNonce.Length);
+                // RFC 5288/6655: The nonce_explicit MAY be the 64-bit sequence number.
+                TlsUtilities.WriteUint64(seqNo, nonce, m_encryptNonce.Length);
+                break;
+            case NONCE_RFC7905:
+                TlsUtilities.WriteUint64(seqNo, nonce, nonce.Length - 8);
+                for (int i = 0; i < m_encryptNonce.Length; ++i)
+                {
+                    nonce[i] ^= m_encryptNonce[i];
+                }
+                break;
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+
+            int extraLength = m_isTlsV13 ? 1 : 0;
+
+            // TODO[tls13] If we support adding padding to TLSInnerPlaintext, this will need review
+            int encryptionLength = m_encryptCipher.GetOutputSize(plaintext.Length + extraLength);
+            int ciphertextLength = m_record_iv_length + encryptionLength;
+
+            byte[] output = new byte[headerAllocation + ciphertextLength];
+            int outputPos = headerAllocation;
+
+            if (m_record_iv_length != 0)
+            {
+                Array.Copy(nonce, nonce.Length - m_record_iv_length, output, outputPos, m_record_iv_length);
+                outputPos += m_record_iv_length;
+            }
+
+            short recordType = m_isTlsV13 ? ContentType.application_data : contentType;
+
+            byte[] additionalData = GetAdditionalData(seqNo, recordType, recordVersion, ciphertextLength,
+                plaintext.Length);
+
+            try
+            {
+                plaintext.CopyTo(output.AsSpan(outputPos));
+                if (m_isTlsV13)
+                {
+                    output[outputPos + plaintext.Length] = (byte)contentType;
+                }
+
+                m_encryptCipher.Init(nonce, m_macSize, additionalData);
+                outputPos += m_encryptCipher.DoFinal(output, outputPos, plaintext.Length + extraLength, output,
+                    outputPos);
+            }
+            catch (IOException e)
+            {
+                throw e;
+            }
+            catch (Exception e)
+            {
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+
+            if (outputPos != output.Length)
+            {
+                // NOTE: The additional data mechanism for AEAD ciphers requires exact output size prediction.
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+
+            return new TlsEncodeResult(output, 0, output.Length, recordType);
+        }
+#endif
 
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int ciphertextOffset, int ciphertextLength)
@@ -271,12 +351,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 outputPos = m_decryptCipher.DoFinal(ciphertext, encryptionOffset, encryptionLength, ciphertext,
                     encryptionOffset);
             }
+            catch (TlsFatalAlert fatalAlert)
+            {
+                if (AlertDescription.bad_record_mac == fatalAlert.AlertDescription)
+                {
+                    m_decryptCipher.Reset();
+                }
+                throw fatalAlert;
+            }
             catch (IOException e)
             {
                 throw e;
             }
             catch (Exception e)
             {
+                m_decryptCipher.Reset();
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac, e);
             }
 

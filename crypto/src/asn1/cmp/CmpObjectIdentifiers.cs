@@ -234,8 +234,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * 1.2.840.113549.1.9.16.1.21
          * <p>
          * id-ct   OBJECT IDENTIFIER ::= { id-smime  1 }  -- content types
-         * <p>
+         * </p><p>
          * id-ct-encKeyWithID OBJECT IDENTIFIER ::= {id-ct 21}
+         * </p>
          */
         public static readonly DerObjectIdentifier ct_encKeyWithID = new DerObjectIdentifier("1.2.840.113549.1.9.16.1.21");
 

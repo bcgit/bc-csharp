@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         : IMessageSigner
     {
         private byte[] encodedkey;
-        private FalconNIST nist;
+        private FalconNist nist;
 
         public void Init(bool forSigning, ICipherParameters param)
         {
@@ -19,29 +19,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 {
                     FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)withRandom.Parameters;
                     encodedkey = skparam.GetEncoded();
-                    nist = new FalconNIST(
+                    nist = new FalconNist(
                         withRandom.Random,
-                        skparam.Parameters.LogN,
-                        skparam.Parameters.NonceLength);
+                        (uint)skparam.Parameters.LogN,
+                        (uint)skparam.Parameters.NonceLength);
                 }
                 else
                 {
                     FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)param;
                     encodedkey = ((FalconPrivateKeyParameters)param).GetEncoded();
-                    nist = new FalconNIST(
+                    nist = new FalconNist(
                         CryptoServicesRegistrar.GetSecureRandom(),
-                        skparam.Parameters.LogN,
-                        skparam.Parameters.NonceLength);
+                        (uint)skparam.Parameters.LogN,
+                        (uint)skparam.Parameters.NonceLength);
                 }
             }
             else
             {
                 FalconPublicKeyParameters pkparam = (FalconPublicKeyParameters)param;
                 encodedkey = pkparam.GetEncoded();
-                nist = new FalconNIST(
+                nist = new FalconNist(
                     CryptoServicesRegistrar.GetSecureRandom(),
-                    pkparam.Parameters.LogN,
-                    pkparam.Parameters.NonceLength);
+                    (uint)pkparam.Parameters.LogN,
+                    (uint)pkparam.Parameters.NonceLength);
             }
         }
 

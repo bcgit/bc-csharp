@@ -43,6 +43,14 @@ namespace Org.BouncyCastle.Tls
             m_sha1.Update(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Update(ReadOnlySpan<byte> input)
+        {
+            m_md5.Update(input);
+            m_sha1.Update(input);
+        }
+#endif
+
         public virtual byte[] CalculateHash()
         {
             if (null != m_context && TlsUtilities.IsSsl(m_context))

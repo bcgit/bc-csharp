@@ -71,11 +71,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             // revocation and direct signatures
             var keySigs = ReadSignaturesAndTrust(bcpgInput);
 
-            IList<object> ids;
-            IList<TrustPacket> idTrusts;
-            IList<IList<PgpSignature>> idSigs;
-
-            ReadUserIDs(bcpgInput, out ids, out idTrusts, out idSigs);
+            ReadUserIDs(bcpgInput, out var ids, out var idTrusts, out var idSigs);
 
             keys.Add(new PgpSecretKey(secret,
                 new PgpPublicKey(secret.PublicKeyPacket, trust, keySigs, ids, idTrusts, idSigs)));
@@ -119,6 +115,43 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return keys[0].PublicKey;
         }
 
+        /**
+         * Return any keys carrying a signature issued by the key represented by keyID.
+         *
+         * @param keyID the key id to be matched against.
+         * @return an iterator (possibly empty) of PGPPublicKey objects carrying signatures from keyID.
+         */
+        public IEnumerable<PgpPublicKey> GetKeysWithSignaturesBy(long keyID)
+        {
+            var keysWithSigs = new List<PgpPublicKey>();
+
+            foreach (var k in GetPublicKeys())
+            {
+                var sigIt = k.GetSignaturesForKeyID(keyID).GetEnumerator();
+
+                if (sigIt.MoveNext())
+                {
+                    keysWithSigs.Add(k);
+                }
+            }
+
+            return CollectionUtilities.Proxy(keysWithSigs);
+        }
+
+        public IEnumerable<PgpPublicKey> GetPublicKeys()
+        {
+            var pubKeys = new List<PgpPublicKey>();
+
+            foreach (var secretKey in keys)
+            {
+                pubKeys.Add(secretKey.PublicKey);
+            }
+
+            pubKeys.AddRange(extraPubKeys);
+
+            return CollectionUtilities.Proxy(pubKeys);
+        }
+
         /// <summary>Return the master private key.</summary>
         public PgpSecretKey GetSecretKey()
         {
@@ -156,7 +189,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public byte[] GetEncoded()
         {
-            MemoryStream bOut = new MemoryStream();
+            var bOut = new MemoryStream();
             Encode(bOut);
             return bOut.ToArray();
         }
@@ -165,7 +198,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             Stream outStr)
         {
             if (outStr == null)
-                throw new ArgumentNullException("outStr");
+                throw new ArgumentNullException(nameof(outStr));
 
             foreach (PgpSecretKey key in keys)
             {

@@ -707,6 +707,9 @@ namespace Org.BouncyCastle.Tls
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ReadApplicationData(buffer.AsSpan(offset, count));
+#else
             if (!m_appDataReady)
                 throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
 
@@ -733,7 +736,41 @@ namespace Org.BouncyCastle.Tls
                 m_applicationDataQueue.RemoveData(buffer, offset, count, 0);
             }
             return count;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ReadApplicationData(Span<byte> buffer)
+        {
+            if (!m_appDataReady)
+                throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
+
+            while (m_applicationDataQueue.Available < 1)
+            {
+                if (this.m_closed)
+                {
+                    if (this.m_failedWithError)
+                        throw new IOException("Cannot read application data on failed TLS connection");
+
+                    return 0;
+                }
+
+                /*
+                 * NOTE: Only called more than once when empty records are received, so no special
+                 * InterruptedIOException handling is necessary.
+                 */
+                SafeReadRecord();
+            }
+
+            int count = buffer.Length;
+            if (count > 0)
+            {
+                count = System.Math.Min(count, m_applicationDataQueue.Available);
+                m_applicationDataQueue.RemoveData(buffer[..count], 0);
+            }
+            return count;
+        }
+#endif
 
         /// <exception cref="IOException"/>
         protected virtual RecordPreview SafePreviewRecordHeader(byte[] recordHeader)
@@ -850,6 +887,32 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        protected virtual void SafeWriteRecord(short type, ReadOnlySpan<byte> buffer)
+        {
+            try
+            {
+                m_recordStream.WriteRecord(type, buffer);
+            }
+            catch (TlsFatalAlert e)
+            {
+                HandleException(e.AlertDescription, "Failed to write record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to write record", e);
+                throw e;
+            }
+            catch (Exception e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to write record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+        }
+#endif
+
         /// <summary>Write some application data.</summary>
         /// <remarks>
         /// Fragmentation is handled internally. Usable in both blocking/non-blocking modes.<br/><br/>
@@ -869,6 +932,9 @@ namespace Org.BouncyCastle.Tls
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            WriteApplicationData(buffer.AsSpan(offset, count));
+#else
             if (!m_appDataReady)
                 throw new InvalidOperationException(
                     "Cannot write application data until initial handshake completed.");
@@ -938,7 +1004,82 @@ namespace Org.BouncyCastle.Tls
                     count -= toWrite;
                 }
             }
+#endif
         }
+
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void WriteApplicationData(ReadOnlySpan<byte> buffer)
+        {
+            if (!m_appDataReady)
+                throw new InvalidOperationException(
+                    "Cannot write application data until initial handshake completed.");
+
+            lock (m_recordWriteLock)
+            {
+                while (!buffer.IsEmpty)
+                {
+                    if (m_closed)
+                        throw new IOException("Cannot write application data on closed/failed TLS connection");
+
+                    /*
+                     * RFC 5246 6.2.1. Zero-length fragments of Application data MAY be sent as they are
+                     * potentially useful as a traffic analysis countermeasure.
+                     * 
+                     * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
+                     */
+                    if (m_appDataSplitEnabled)
+                    {
+                        /*
+                         * Protect against known IV attack!
+                         * 
+                         * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
+                         */
+                        switch (m_appDataSplitMode)
+                        {
+                        case ADS_MODE_0_N_FIRSTONLY:
+                        {
+                            this.m_appDataSplitEnabled = false;
+                            SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                            break;
+                        }
+                        case ADS_MODE_0_N:
+                        {
+                            SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                            break;
+                        }
+                        case ADS_MODE_1_Nsub1:
+                        default:
+                        {
+                            if (buffer.Length > 1)
+                            {
+                                SafeWriteRecord(ContentType.application_data, buffer[..1]);
+                                buffer = buffer[1..];
+                            }
+                            break;
+                        }
+                        }
+                    }
+                    else if (m_keyUpdateEnabled)
+                    {
+                        if (m_keyUpdatePendingSend)
+                        {
+                            Send13KeyUpdate(false);
+                        }
+                        else if (m_recordStream.NeedsKeyUpdate())
+                        {
+                            Send13KeyUpdate(true);
+                        }
+                    }
+
+                    // Fragment data according to the current fragment limit.
+                    int toWrite = System.Math.Min(buffer.Length, m_recordStream.PlaintextLimit);
+                    SafeWriteRecord(ContentType.application_data, buffer[..toWrite]);
+                    buffer = buffer[toWrite..];
+                }
+            }
+        }
+#endif
 
         public virtual int AppDataSplitMode
         {

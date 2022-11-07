@@ -2,10 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cryptlib;
+using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -13,6 +20,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
     /// <remarks>General class to handle a PGP secret key object.</remarks>
     public class PgpSecretKey
+        : PgpObject
     {
         private readonly SecretKeyPacket	secret;
         private readonly PgpPublicKey		pub;
@@ -52,10 +60,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     secKey = new DsaSecretBcpgKey(dsK.X);
                     break;
                 case PublicKeyAlgorithmTag.ECDH:
+                {
+                    if (privKey.Key is ECPrivateKeyParameters ecdhK)
+                    {
+                        secKey = new ECSecretBcpgKey(ecdhK.D);
+                    }
+                    else
+                    {
+                        // 'reverse' because the native format for X25519 private keys is little-endian
+                        X25519PrivateKeyParameters xK = (X25519PrivateKeyParameters)privKey.Key;
+                        secKey = new ECSecretBcpgKey(new BigInteger(1, Arrays.ReverseInPlace(xK.GetEncoded())));
+                    }
+                    break;
+                }
                 case PublicKeyAlgorithmTag.ECDsa:
                     ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
                     secKey = new ECSecretBcpgKey(ecK.D);
                     break;
+                case PublicKeyAlgorithmTag.EdDsa:
+                {
+                    if (privKey.Key is Ed25519PrivateKeyParameters ed25519K)
+                    {
+                        secKey = new EdSecretBcpgKey(new BigInteger(1, ed25519K.GetEncoded()));
+                    }
+                    else if (privKey.Key is Ed448PrivateKeyParameters ed448K)
+                    {
+                        secKey = new EdSecretBcpgKey(new BigInteger(1, ed448K.GetEncoded()));
+                    }
+                    else
+                    {
+                        throw new PgpException("unknown EdDSA key class");
+                    }
+                    break;
+                }
                 case PublicKeyAlgorithmTag.ElGamalEncrypt:
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     ElGamalPrivateKeyParameters esK = (ElGamalPrivateKeyParameters) privKey.Key;
@@ -625,6 +662,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 return null;
 
             PublicKeyPacket pubPk = secret.PublicKeyPacket;
+
             try
             {
                 byte[] data = ExtractKeyData(rawPassPhrase, clearPassPhrase);
@@ -655,11 +693,65 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     privateKey = new DsaPrivateKeyParameters(dsaPriv.X, dsaParams);
                     break;
                 case PublicKeyAlgorithmTag.ECDH:
-                    privateKey = GetECKey("ECDH", bcpgIn);
+                {
+                    ECDHPublicBcpgKey ecdhPub = (ECDHPublicBcpgKey)pubPk.Key;
+                    ECSecretBcpgKey ecdhPriv = new ECSecretBcpgKey(bcpgIn);
+                    var curveOid = ecdhPub.CurveOid;
+
+                    if (EdECObjectIdentifiers.id_X25519.Equals(curveOid) ||
+                        CryptlibObjectIdentifiers.curvey25519.Equals(curveOid))
+                    {
+                        // 'reverse' because the native format for X25519 private keys is little-endian
+                        privateKey = PrivateKeyFactory.CreateKey(new PrivateKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            new DerOctetString(Arrays.ReverseInPlace(BigIntegers.AsUnsignedByteArray(ecdhPriv.X)))));
+                    }
+                    else if (EdECObjectIdentifiers.id_X448.Equals(curveOid))
+                    {
+                        // 'reverse' because the native format for X448 private keys is little-endian
+                        privateKey = PrivateKeyFactory.CreateKey(new PrivateKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            new DerOctetString(Arrays.ReverseInPlace(BigIntegers.AsUnsignedByteArray(ecdhPriv.X)))));
+                    }
+                    else
+                    {
+                        privateKey = new ECPrivateKeyParameters("ECDH", ecdhPriv.X, ecdhPub.CurveOid);
+                    }
                     break;
+                }
                 case PublicKeyAlgorithmTag.ECDsa:
-                    privateKey = GetECKey("ECDSA", bcpgIn);
+                {
+                    ECPublicBcpgKey ecdsaPub = (ECPublicBcpgKey)pubPk.Key;
+                    ECSecretBcpgKey ecdsaPriv = new ECSecretBcpgKey(bcpgIn);
+
+                    privateKey = new ECPrivateKeyParameters("ECDSA", ecdsaPriv.X, ecdsaPub.CurveOid);
                     break;
+                }
+                case PublicKeyAlgorithmTag.EdDsa:
+                {
+                    EdDsaPublicBcpgKey eddsaPub = (EdDsaPublicBcpgKey)pubPk.Key;
+                    EdSecretBcpgKey ecdsaPriv = new EdSecretBcpgKey(bcpgIn);
+
+                    var curveOid = eddsaPub.CurveOid;
+                    if (EdECObjectIdentifiers.id_Ed25519.Equals(curveOid) ||
+                        GnuObjectIdentifiers.Ed25519.Equals(curveOid))
+                    {
+                        privateKey = PrivateKeyFactory.CreateKey(new PrivateKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            new DerOctetString(BigIntegers.AsUnsignedByteArray(Ed25519.SecretKeySize, ecdsaPriv.X))));
+                    }
+                    else if (EdECObjectIdentifiers.id_Ed448.Equals(curveOid))
+                    {
+                        privateKey = PrivateKeyFactory.CreateKey(new PrivateKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            new DerOctetString(BigIntegers.AsUnsignedByteArray(Ed448.SecretKeySize, ecdsaPriv.X))));
+                    }
+                    else 
+                    {
+                        throw new InvalidOperationException();
+                    }
+                    break;
+                }
                 case PublicKeyAlgorithmTag.ElGamalEncrypt:
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     ElGamalPublicBcpgKey elPub = (ElGamalPublicBcpgKey)pubPk.Key;
@@ -683,13 +775,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-        private ECPrivateKeyParameters GetECKey(string algorithm, BcpgInputStream bcpgIn)
-        {
-            ECPublicBcpgKey ecdsaPub = (ECPublicBcpgKey)secret.PublicKeyPacket.Key;
-            ECSecretBcpgKey ecdsaPriv = new ECSecretBcpgKey(bcpgIn);
-            return new ECPrivateKeyParameters(algorithm, ecdsaPriv.X, ecdsaPub.CurveOid);
-        }
-
         private static byte[] Checksum(
             bool	useSha1,
             byte[]	bytes,
@@ -699,7 +784,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 try
                 {
-                    IDigest dig = DigestUtilities.GetDigest("SHA1");
+                    IDigest dig = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
                     dig.BlockUpdate(bytes, 0, length);
                     return DigestUtilities.DoFinal(dig);
                 }

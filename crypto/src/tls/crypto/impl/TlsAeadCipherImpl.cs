@@ -41,5 +41,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <returns>the amount of data written to output.</returns>
         /// <exception cref="IOException">in case of failure.</exception>
         int DoFinal(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset);
+
+        void Reset();
     }
 }

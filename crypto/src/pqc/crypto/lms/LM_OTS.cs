@@ -220,7 +220,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             IDigest finalContext = DigestUtilities.GetDigest(parameter.DigestOid);
             LmsUtilities.ByteArray(I, finalContext);
             LmsUtilities.U32Str(q, finalContext);
-            LmsUtilities.U16Str(D_PBLC, finalContext);
+            LmsUtilities.U16Str((short)D_PBLC, finalContext);
 
             byte[] tmp = Composer.Compose()
                 .Bytes(I)

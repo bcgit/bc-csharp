@@ -237,7 +237,14 @@ namespace Org.BouncyCastle.Cms
                 macStream.Write(buffer, offset, count);
             }
 
-			public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+            {
+                macStream.Write(buffer);
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
 				macStream.WriteByte(value);
 			}

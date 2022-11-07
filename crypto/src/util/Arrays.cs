@@ -6,7 +6,7 @@ using Org.BouncyCastle.Math;
 namespace Org.BouncyCastle.Utilities
 {
     /// <summary> General array utilities.</summary>
-    public abstract class Arrays
+    public static class Arrays
     {
         public static readonly byte[] EmptyBytes = new byte[0];
         public static readonly int[] EmptyInts = new int[0];
@@ -881,6 +881,17 @@ namespace Org.BouncyCastle.Utilities
             int[] result = new int[length + 1];
             Array.Copy(a, 0, result, 1, length);
             result[0] = b;
+            return result;
+        }
+
+        public static T[] Prepend<T>(T[] a, T b)
+        {
+            if (a == null)
+                return new T[1]{ b };
+
+            T[] result = new T[1 + a.Length];
+            result[0] = b;
+            a.CopyTo(result, 1);
             return result;
         }
 

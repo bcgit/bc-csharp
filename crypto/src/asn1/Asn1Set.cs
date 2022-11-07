@@ -31,22 +31,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1Set GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1Set)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1Set asn1Set)
+                return asn1Set;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1Set)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1Set converted)
+                    return converted;
             }
-            //else if (obj is Asn1SetParser)
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1Set)
-                    return (Asn1Set)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1Set)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1Set)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

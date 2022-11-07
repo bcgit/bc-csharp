@@ -79,6 +79,27 @@ namespace Org.BouncyCastle.Asn1
             return numRead;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            if (_remaining == 0)
+                return 0;
+
+            int toRead = System.Math.Min(buffer.Length, _remaining);
+            int numRead = _in.Read(buffer[..toRead]);
+
+            if (numRead < 1)
+                throw new EndOfStreamException("DEF length " + _originalLength + " object truncated by " + _remaining);
+
+            if ((_remaining -= numRead) == 0)
+            {
+                SetParentEofDetect();
+            }
+
+            return numRead;
+        }
+#endif
+
         internal void ReadAllIntoByteArray(byte[] buf)
         {
             if (_remaining != buf.Length)

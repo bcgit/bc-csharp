@@ -15,7 +15,7 @@ using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public class PqcUtilities
+    internal class PqcUtilities
     {
         private readonly static Dictionary<CmceParameters, DerObjectIdentifier> mcElieceOids = new Dictionary<CmceParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, CmceParameters> mcElieceParams = new Dictionary<DerObjectIdentifier, CmceParameters>();
@@ -25,10 +25,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private readonly static Dictionary<PicnicParameters, DerObjectIdentifier> picnicOids = new Dictionary<PicnicParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, PicnicParameters> picnicParams = new Dictionary<DerObjectIdentifier, PicnicParameters>();
-        
+
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly static Dictionary<SikeParameters, DerObjectIdentifier> sikeOids = new Dictionary<SikeParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, SikeParameters> sikeParams = new Dictionary<DerObjectIdentifier, SikeParameters>();
-     
+#pragma warning restore CS0618 // Type or member is obsolete
+
         private readonly static Dictionary<KyberParameters, DerObjectIdentifier> kyberOids = new Dictionary<KyberParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, KyberParameters> kyberParams = new Dictionary<DerObjectIdentifier, KyberParameters>();
 
@@ -132,7 +134,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl1full] = PicnicParameters.picnicl1full;
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
-            
+
+#pragma warning disable CS0618 // Type or member is obsolete
             sikeParams[BCObjectIdentifiers.sikep434] = SikeParameters.sikep434;
             sikeParams[BCObjectIdentifiers.sikep503] = SikeParameters.sikep503;
             sikeParams[BCObjectIdentifiers.sikep610] = SikeParameters.sikep610;
@@ -141,7 +144,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sikeParams[BCObjectIdentifiers.sikep503_compressed] = SikeParameters.sikep503_compressed;
             sikeParams[BCObjectIdentifiers.sikep610_compressed] = SikeParameters.sikep610_compressed;
             sikeParams[BCObjectIdentifiers.sikep751_compressed] = SikeParameters.sikep751_compressed;
-            
+
             sikeOids[SikeParameters.sikep434] = BCObjectIdentifiers.sikep434;
             sikeOids[SikeParameters.sikep503] = BCObjectIdentifiers.sikep503;
             sikeOids[SikeParameters.sikep610] = BCObjectIdentifiers.sikep610;
@@ -150,7 +153,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sikeOids[SikeParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
             sikeOids[SikeParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
             sikeOids[SikeParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
-            
+#pragma warning restore CS0618 // Type or member is obsolete
+
             kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
             kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
             kyberOids[KyberParameters.kyber1024] = BCObjectIdentifiers.kyber1024;
@@ -203,7 +207,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             hqcOids[HqcParameters.hqc256] = BCObjectIdentifiers.hqc256;
         }
 
-        public static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
+        internal static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
         {
             return mcElieceOids[parameters];
         }
@@ -248,17 +252,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         internal static DerObjectIdentifier SphincsPlusOidLookup(SphincsPlusParameters parameters)
         {
-            uint pId = SphincsPlusParameters.GetID(parameters);
+            int pId = SphincsPlusParameters.GetID(parameters);
 
             if ((pId & 0x020000) == 0x020000)
-            {
                 return BCObjectIdentifiers.sphincsPlus_shake_256;
-            }
 
             if ((pId & 0x05) == 0x05 || (pId & 0x06) == 0x06)
-            {
                 return BCObjectIdentifiers.sphincsPlus_sha_512;
-            }
 
             return BCObjectIdentifiers.sphincsPlus_sha_256;
         }
@@ -272,6 +272,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return picnicParams[oid];
         }
+
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DerObjectIdentifier SikeOidLookup(SikeParameters parameters)
         {
             return sikeOids[parameters];
@@ -281,6 +283,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return sikeParams[oid];
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         internal static DerObjectIdentifier BikeOidLookup(BikeParameters parameters)
         {

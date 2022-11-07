@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .U32Str(q)
                 .Bytes(otsSignature.GetEncoded())
                 .U32Str(parameter.ID)
-                .Bytes(y)
+                .Bytes2(y)
                 .Build();
         }
 

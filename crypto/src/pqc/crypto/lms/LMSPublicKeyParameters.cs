@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LmsPublicKeyParameters
+    public sealed class LmsPublicKeyParameters
         : LmsKeyParameters, ILmsContextBasedVerifier
     {
         private LMSigParameters parameterSet;

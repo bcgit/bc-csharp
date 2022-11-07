@@ -8,17 +8,17 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class PicnicEngine
+    internal sealed class PicnicEngine
     {
         // same for all parameter sets
-        protected internal static readonly int saltSizeBytes = 32;
+        internal static readonly int saltSizeBytes = 32;
         private static readonly uint MAX_DIGEST_SIZE = 64;
 
         private static readonly int WORD_SIZE_BITS = 32; // the word size for the implementation. Not a LowMC parameter
         private static readonly uint LOWMC_MAX_STATE_SIZE = 64;
-        protected internal static readonly uint LOWMC_MAX_WORDS = (LOWMC_MAX_STATE_SIZE / 4);
-        protected internal static readonly uint LOWMC_MAX_KEY_BITS = 256;
-        protected internal static readonly uint LOWMC_MAX_AND_GATES = (3 * 38 * 10 + 4); /* Rounded to nearest byte */
+        internal static readonly uint LOWMC_MAX_WORDS = (LOWMC_MAX_STATE_SIZE / 4);
+        internal static readonly uint LOWMC_MAX_KEY_BITS = 256;
+        internal static readonly uint LOWMC_MAX_AND_GATES = (3 * 38 * 10 + 4); /* Rounded to nearest byte */
         private static readonly uint MAX_AUX_BYTES = ((LOWMC_MAX_AND_GATES + LOWMC_MAX_KEY_BITS) / 8 + 1);
 
         /* Maximum lengths in bytes */
@@ -28,8 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         /** Largest serialized public key size, in bytes */
         private static readonly uint PICNIC_MAX_PRIVATEKEY_SIZE = (3 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 2);
 
-        /** Largest serialized private key size, in bytes */
-        private static readonly uint PICNIC_MAX_SIGNATURE_SIZE = 209522;
+        //private static readonly uint PICNIC_MAX_SIGNATURE_SIZE = 209522;
 
         /** Largest signature size, in bytes */
 
@@ -47,45 +46,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
 
         // varies between parameter sets
-        protected internal int numRounds;
+        internal int numRounds;
         private int numSboxes;
-        protected internal int stateSizeBits;
-        protected internal int stateSizeBytes;
-        protected internal int stateSizeWords;
-        protected internal int andSizeBytes;
+        internal int stateSizeBits;
+        internal int stateSizeBytes;
+        internal int stateSizeWords;
+        internal int andSizeBytes;
         private int UnruhGWithoutInputBytes;
-        protected internal int UnruhGWithInputBytes;
-        protected internal int numMPCRounds; // T
-        protected internal int numOpenedRounds; // u
-        protected internal int numMPCParties; // N
-        protected internal int seedSizeBytes;
-        protected internal int digestSizeBytes;
-        protected internal int pqSecurityLevel;
+        internal int UnruhGWithInputBytes;
+        internal int numMPCRounds; // T
+        internal int numOpenedRounds; // u
+        internal int numMPCParties; // N
+        internal int seedSizeBytes;
+        internal int digestSizeBytes;
+        internal int pqSecurityLevel;
 
         ///
         private uint transform;
 
         private int parameters;
-        protected internal IXof digest;
+        internal IXof digest;
         private int signatureLength;
 
-        public int GetSecretKeySize()
+        internal int GetSecretKeySize()
         {
             return CRYPTO_SECRETKEYBYTES;
         }
 
-        public int GetPublicKeySize()
+        internal int GetPublicKeySize()
         {
             return CRYPTO_PUBLICKEYBYTES;
         }
 
-        public int GetSignatureSize(int messageLength)
+        internal int GetSignatureSize(int messageLength)
         {
             return CRYPTO_BYTES + messageLength;
         }
 
         //todo dont do this
-        public int GetTrueSignatureSize()
+        internal int GetTrueSignatureSize()
         {
             return signatureLength + 4;
         }
@@ -95,174 +94,174 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             parameters = picnicParams;
             switch (parameters)
             {
-                case 1:
-                case 2:
-                    /*Picnic_L1_FS
-                      Picnic_L1_UR*/
-                    pqSecurityLevel = 64;
-                    stateSizeBits = 128;
-                    numMPCRounds = 219;
-                    numMPCParties = 3;
-                    numSboxes = 10;
-                    numRounds = 20;
-                    digestSizeBytes = 32;
-                    break;
-                case 3:
-                case 4:
-                    /* Picnic_L3_FS
-                       Picnic_L3_UR*/
-                    pqSecurityLevel = 96;
-                    stateSizeBits = 192;
-                    numMPCRounds = 329;
-                    numMPCParties = 3;
-                    numSboxes = 10;
-                    numRounds = 30;
-                    digestSizeBytes = 48;
-                    break;
-                case 5:
-                case 6:
-                    /* Picnic_L5_FS
-                       Picnic_L5_UR*/
-                    pqSecurityLevel = 128;
-                    stateSizeBits = 256;
-                    numMPCRounds = 438;
-                    numMPCParties = 3;
-                    numSboxes = 10;
-                    numRounds = 38;
-                    digestSizeBytes = 64;
-                    break;
-                case 7:
-                    /*Picnic3_L1*/
-                    pqSecurityLevel = 64;
-                    stateSizeBits = 129;
-                    numMPCRounds = 250;
-                    numOpenedRounds = 36;
-                    numMPCParties = 16;
-                    numSboxes = 43;
-                    numRounds = 4;
-                    digestSizeBytes = 32;
-                    break;
-                case 8:
-                    /*Picnic3_L3*/
-                    pqSecurityLevel = 96;
-                    stateSizeBits = 192;
-                    numMPCRounds = 419;
-                    numOpenedRounds = 52;
-                    numMPCParties = 16;
-                    numSboxes = 64;
-                    numRounds = 4;
-                    digestSizeBytes = 48;
-                    break;
-                case 9:
-                    /*Picnic3_L5*/
-                    pqSecurityLevel = 128;
-                    stateSizeBits = 255;
-                    numMPCRounds = 601;
-                    numOpenedRounds = 68;
-                    numMPCParties = 16;
-                    numSboxes = 85;
-                    numRounds = 4;
-                    digestSizeBytes = 64;
-                    break;
-                case 10:
-                    /*Picnic_L1_full*/
-                    pqSecurityLevel = 64;
-                    stateSizeBits = 129;
-                    numMPCRounds = 219;
-                    numMPCParties = 3;
-                    numSboxes = 43;
-                    numRounds = 4;
-                    digestSizeBytes = 32;
-                    break;
-                case 11:
-                    /*Picnic_L3_full*/
-                    pqSecurityLevel = 96;
-                    stateSizeBits = 192;
-                    numMPCRounds = 329;
-                    numMPCParties = 3;
-                    numSboxes = 64;
-                    numRounds = 4;
-                    digestSizeBytes = 48;
-                    break;
-                case 12:
-                    /*Picnic_L5_full*/
-                    pqSecurityLevel = 128;
-                    stateSizeBits = 255;
-                    numMPCRounds = 438;
-                    numMPCParties = 3;
-                    numSboxes = 85;
-                    numRounds = 4;
-                    digestSizeBytes = 64;
-                    break;
+            case 1:
+            case 2:
+                /*Picnic_L1_FS
+                    Picnic_L1_UR*/
+                pqSecurityLevel = 64;
+                stateSizeBits = 128;
+                numMPCRounds = 219;
+                numMPCParties = 3;
+                numSboxes = 10;
+                numRounds = 20;
+                digestSizeBytes = 32;
+                break;
+            case 3:
+            case 4:
+                /* Picnic_L3_FS
+                    Picnic_L3_UR*/
+                pqSecurityLevel = 96;
+                stateSizeBits = 192;
+                numMPCRounds = 329;
+                numMPCParties = 3;
+                numSboxes = 10;
+                numRounds = 30;
+                digestSizeBytes = 48;
+                break;
+            case 5:
+            case 6:
+                /* Picnic_L5_FS
+                    Picnic_L5_UR*/
+                pqSecurityLevel = 128;
+                stateSizeBits = 256;
+                numMPCRounds = 438;
+                numMPCParties = 3;
+                numSboxes = 10;
+                numRounds = 38;
+                digestSizeBytes = 64;
+                break;
+            case 7:
+                /*Picnic3_L1*/
+                pqSecurityLevel = 64;
+                stateSizeBits = 129;
+                numMPCRounds = 250;
+                numOpenedRounds = 36;
+                numMPCParties = 16;
+                numSboxes = 43;
+                numRounds = 4;
+                digestSizeBytes = 32;
+                break;
+            case 8:
+                /*Picnic3_L3*/
+                pqSecurityLevel = 96;
+                stateSizeBits = 192;
+                numMPCRounds = 419;
+                numOpenedRounds = 52;
+                numMPCParties = 16;
+                numSboxes = 64;
+                numRounds = 4;
+                digestSizeBytes = 48;
+                break;
+            case 9:
+                /*Picnic3_L5*/
+                pqSecurityLevel = 128;
+                stateSizeBits = 255;
+                numMPCRounds = 601;
+                numOpenedRounds = 68;
+                numMPCParties = 16;
+                numSboxes = 85;
+                numRounds = 4;
+                digestSizeBytes = 64;
+                break;
+            case 10:
+                /*Picnic_L1_full*/
+                pqSecurityLevel = 64;
+                stateSizeBits = 129;
+                numMPCRounds = 219;
+                numMPCParties = 3;
+                numSboxes = 43;
+                numRounds = 4;
+                digestSizeBytes = 32;
+                break;
+            case 11:
+                /*Picnic_L3_full*/
+                pqSecurityLevel = 96;
+                stateSizeBits = 192;
+                numMPCRounds = 329;
+                numMPCParties = 3;
+                numSboxes = 64;
+                numRounds = 4;
+                digestSizeBytes = 48;
+                break;
+            case 12:
+                /*Picnic_L5_full*/
+                pqSecurityLevel = 128;
+                stateSizeBits = 255;
+                numMPCRounds = 438;
+                numMPCParties = 3;
+                numSboxes = 85;
+                numRounds = 4;
+                digestSizeBytes = 64;
+                break;
             }
 
             switch (parameters)
             {
-                case 1: /*Picnic_L1_FS*/
-                    CRYPTO_SECRETKEYBYTES = 49;
-                    CRYPTO_PUBLICKEYBYTES = 33;
-                    CRYPTO_BYTES = 34036;
-                    break;
-                case 2: /* Picnic_L1_UR*/
-                    CRYPTO_SECRETKEYBYTES = 49;
-                    CRYPTO_PUBLICKEYBYTES = 33;
-                    CRYPTO_BYTES = 53965;
-                    break;
-                case 3: /*Picnic_L3_FS*/
-                    CRYPTO_SECRETKEYBYTES = 73;
-                    CRYPTO_PUBLICKEYBYTES = 49;
-                    CRYPTO_BYTES = 76784;
-                    break;
-                case 4: /*Picnic_L3_UR*/
-                    CRYPTO_SECRETKEYBYTES = 73;
-                    CRYPTO_PUBLICKEYBYTES = 49;
-                    CRYPTO_BYTES = 121857;
-                    break;
-                case 5: /*Picnic_L5_FS*/
-                    CRYPTO_SECRETKEYBYTES = 97;
-                    CRYPTO_PUBLICKEYBYTES = 65;
-                    CRYPTO_BYTES = 132876;
-                    break;
-                case 6: /*Picnic_L5_UR*/
-                    CRYPTO_SECRETKEYBYTES = 97;
-                    CRYPTO_PUBLICKEYBYTES = 65;
-                    CRYPTO_BYTES = 209526;
-                    break;
-                case 7: /*Picnic3_L1*/
-                    CRYPTO_SECRETKEYBYTES = 52;
-                    CRYPTO_PUBLICKEYBYTES = 35;
-                    CRYPTO_BYTES = 14612;
-                    break;
-                case 8: /*Picnic3_L3*/
-                    CRYPTO_SECRETKEYBYTES = 73;
-                    CRYPTO_PUBLICKEYBYTES = 49;
-                    CRYPTO_BYTES = 35028;
-                    break;
-                case 9: /*Picnic3_L5*/
-                    CRYPTO_SECRETKEYBYTES = 97;
-                    CRYPTO_PUBLICKEYBYTES = 65;
-                    CRYPTO_BYTES = 61028;
-                    break;
-                case 10: /*Picnic_L1_full*/
-                    CRYPTO_SECRETKEYBYTES = 52;
-                    CRYPTO_PUBLICKEYBYTES = 35;
-                    CRYPTO_BYTES = 32061;
-                    break;
-                case 11: /*Picnic_L3_full*/
-                    CRYPTO_SECRETKEYBYTES = 73;
-                    CRYPTO_PUBLICKEYBYTES = 49;
-                    CRYPTO_BYTES = 71179;
-                    break;
-                case 12: /*Picnic_L5_full*/
-                    CRYPTO_SECRETKEYBYTES = 97;
-                    CRYPTO_PUBLICKEYBYTES = 65;
-                    CRYPTO_BYTES = 126286;
-                    break;
-                default:
-                    CRYPTO_SECRETKEYBYTES = -1;
-                    CRYPTO_PUBLICKEYBYTES = -1;
-                    CRYPTO_BYTES = -1;
-                    break;
+            case 1: /*Picnic_L1_FS*/
+                CRYPTO_SECRETKEYBYTES = 49;
+                CRYPTO_PUBLICKEYBYTES = 33;
+                CRYPTO_BYTES = 34036;
+                break;
+            case 2: /* Picnic_L1_UR*/
+                CRYPTO_SECRETKEYBYTES = 49;
+                CRYPTO_PUBLICKEYBYTES = 33;
+                CRYPTO_BYTES = 53965;
+                break;
+            case 3: /*Picnic_L3_FS*/
+                CRYPTO_SECRETKEYBYTES = 73;
+                CRYPTO_PUBLICKEYBYTES = 49;
+                CRYPTO_BYTES = 76784;
+                break;
+            case 4: /*Picnic_L3_UR*/
+                CRYPTO_SECRETKEYBYTES = 73;
+                CRYPTO_PUBLICKEYBYTES = 49;
+                CRYPTO_BYTES = 121857;
+                break;
+            case 5: /*Picnic_L5_FS*/
+                CRYPTO_SECRETKEYBYTES = 97;
+                CRYPTO_PUBLICKEYBYTES = 65;
+                CRYPTO_BYTES = 132876;
+                break;
+            case 6: /*Picnic_L5_UR*/
+                CRYPTO_SECRETKEYBYTES = 97;
+                CRYPTO_PUBLICKEYBYTES = 65;
+                CRYPTO_BYTES = 209526;
+                break;
+            case 7: /*Picnic3_L1*/
+                CRYPTO_SECRETKEYBYTES = 52;
+                CRYPTO_PUBLICKEYBYTES = 35;
+                CRYPTO_BYTES = 14612;
+                break;
+            case 8: /*Picnic3_L3*/
+                CRYPTO_SECRETKEYBYTES = 73;
+                CRYPTO_PUBLICKEYBYTES = 49;
+                CRYPTO_BYTES = 35028;
+                break;
+            case 9: /*Picnic3_L5*/
+                CRYPTO_SECRETKEYBYTES = 97;
+                CRYPTO_PUBLICKEYBYTES = 65;
+                CRYPTO_BYTES = 61028;
+                break;
+            case 10: /*Picnic_L1_full*/
+                CRYPTO_SECRETKEYBYTES = 52;
+                CRYPTO_PUBLICKEYBYTES = 35;
+                CRYPTO_BYTES = 32061;
+                break;
+            case 11: /*Picnic_L3_full*/
+                CRYPTO_SECRETKEYBYTES = 73;
+                CRYPTO_PUBLICKEYBYTES = 49;
+                CRYPTO_BYTES = 71179;
+                break;
+            case 12: /*Picnic_L5_full*/
+                CRYPTO_SECRETKEYBYTES = 97;
+                CRYPTO_PUBLICKEYBYTES = 65;
+                CRYPTO_BYTES = 126286;
+                break;
+            default:
+                CRYPTO_SECRETKEYBYTES = -1;
+                CRYPTO_PUBLICKEYBYTES = -1;
+                CRYPTO_BYTES = -1;
+                break;
             }
 
             // calculated depending on above parameters
@@ -304,7 +303,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest = new ShakeDigest(shakeSize);
         }
 
-        public bool crypto_sign_open(byte[] m, byte[] sm, byte[] pk)
+        internal bool crypto_sign_open(byte[] m, byte[] sm, byte[] pk)
         {
             uint sigLen = Pack.LE_To_UInt32(sm, 0);
             byte[] m_from_sm = Arrays.CopyOfRange(sm, 4, 4 + m.Length);
@@ -432,7 +431,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return status;
         }
 
-        void VerifyProof(Signature.Proof proof, View view1, View view2, int challenge, byte[] salt, 
+        private void VerifyProof(Signature.Proof proof, View view1, View view2, int challenge, byte[] salt, 
             uint roundNumber, byte[] tmp, uint[] plaintext, Tape tape)
         {
             Array.Copy(proof.communicatedBits, 0, view2.communicatedBits, 0, andSizeBytes);
@@ -534,7 +533,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             mpc_LowMC_verify(view1, view2, tape, tmp_ints, plaintext, challenge);
         }
 
-        void mpc_LowMC_verify(View view1, View view2, Tape tapes, uint[] tmp, uint[] plaintext,  int challenge)
+        private void mpc_LowMC_verify(View view1, View view2, Tape tapes, uint[] tmp, uint[] plaintext,  int challenge)
         {
             Utils.Fill(tmp, 0, tmp.Length, 0);
 
@@ -576,7 +575,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             Array.Copy(tmp, 3 * stateSizeWords, view2.outputShare, 0, stateSizeWords);
         }
 
-        void mpc_substitution_verify(uint[] state, Tape rand, View view1, View view2)
+        private void mpc_substitution_verify(uint[] state, Tape rand, View view1, View view2)
         {
             uint[] a = new uint[2];
             uint[] b = new uint[2];
@@ -611,7 +610,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        void mpc_AND_verify(uint[] in1, uint[] in2, uint[] output, Tape rand, View view1, View view2)
+        private void mpc_AND_verify(uint[] in1, uint[] in2, uint[] output, Tape rand, View view1, View view2)
         {
             uint[] r = {Utils.GetBit(rand.tapes[0], rand.pos), Utils.GetBit(rand.tapes[1], rand.pos)};
 
@@ -645,7 +644,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
 
         }
-
 
         private int DeserializeSignature(Signature sig, byte[] sigBytes, uint sigBytesLen, int sigBytesOffset)
         {
@@ -1086,7 +1084,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return true;
         }
 
-        public void crypto_sign(byte[] sm, byte[] m, byte[] sk)
+        internal void crypto_sign(byte[] sm, byte[] m, byte[] sk)
         {
             picnic_sign(sk, m, sm);
             Array.Copy(m, 0, sm, 4, m.Length);
@@ -1142,7 +1140,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         /*** Serialization functions ***/
 
-        int SerializeSignature(Signature sig, byte[] sigBytes, int sigOffset)
+        private int SerializeSignature(Signature sig, byte[] sigBytes, int sigOffset)
         {
             Signature.Proof[] proofs = sig.proofs;
             byte[] challengeBits = sig.challengeBits;
@@ -1204,7 +1202,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return sigByteIndex - sigOffset;
         }
 
-        int GetChallenge(byte[] challenge, int round)
+        private int GetChallenge(byte[] challenge, int round)
         {
             return (Utils.GetBit(challenge, 2 * round + 1) << 1) | Utils.GetBit(challenge, 2 * round);
         }
@@ -1418,7 +1416,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
 
         /* Caller must allocate the first parameter */
-        void Prove(Signature.Proof proof, int challenge, byte[] seeds, int seedsOffset,
+        private void Prove(Signature.Proof proof, int challenge, byte[] seeds, int seedsOffset,
             View[] views, byte[][] commitments, byte[][] gs)
         {
             if (challenge == 0)
@@ -1456,7 +1454,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        void H3(uint[] circuitOutput, uint[] plaintext, uint[][][] viewOutputs,
+        private void H3(uint[] circuitOutput, uint[] plaintext, uint[][][] viewOutputs,
             byte[][][] AS, byte[] challengeBits, byte[] salt,
             byte[] message, byte[][][] gs)
         {
@@ -1659,7 +1657,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             int stateOffset;
             for (int i = 0; i < numSboxes * 3; i += 3)
             {
-
                 for (int j = 0; j < 3; j++)
                 {
                     stateOffset = ((3 + j) * stateSizeWords) * 32;
@@ -1748,7 +1745,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.Update((byte) 2);
             digest.BlockUpdate(seed, seedOffset, seedSizeBytes);
             digest.OutputFinal(tape, 0, digestSizeBytes);
-//        Console.Error.Write("tape: " + Hex.toHexString(tape));
 
             /* Expand the hashed seed, salt, round and player indices, and output
              * length to create the tape. */
@@ -1949,7 +1945,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return missingLeaves;
         }
 
-
         private void HCP(byte[] challengeHash, uint[] challengeC, uint[] challengeP, byte[][] Ch,
             byte[] hCv, byte[] salt, uint[] pubKey, uint[] plaintext, byte[] message)
         {
@@ -1971,7 +1966,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        static int BitsToChunks(int chunkLenBits, byte[] input, int inputLen, uint[] chunks)
+        private static int BitsToChunks(int chunkLenBits, byte[] input, int inputLen, uint[] chunks)
         {
             if (chunkLenBits > inputLen * 8)
             {
@@ -1992,7 +1987,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return chunkCount;
         }
 
-        static uint AppendUnique(uint[] list,  uint value,  uint position)
+        private static uint AppendUnique(uint[] list,  uint value,  uint position)
         {
             if (position == 0)
             {
@@ -2171,7 +2166,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return true;
         }
 
-        static uint Extend(uint bit)
+        private static uint Extend(uint bit)
         {
             return ~(bit - 1);
         }
@@ -2233,7 +2228,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        protected internal void aux_mpc_sbox(uint[] input, uint[] output, Tape tape)
+        internal void aux_mpc_sbox(uint[] input, uint[] output, Tape tape)
         {
             for (int i = 0; i < numSboxes * 3; i += 3)
             {
@@ -2341,7 +2336,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.OutputFinal(saltAndRoot, 0, saltAndRoot.Length);
         }
 
-        static bool is_picnic3(int parameters)
+        private static bool is_picnic3(int parameters)
         {
             return parameters == 7 /*Picnic3_L1*/ ||
                    parameters == 8 /*Picnic3_L3*/ ||
@@ -2349,7 +2344,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
 
         //todo return int;
-        public void crypto_sign_keypair(byte[] pk, byte[] sk, SecureRandom random)
+        internal void crypto_sign_keypair(byte[] pk, byte[] sk, SecureRandom random)
         {
             // set array sizes
             byte[] plaintext_bytes = new byte[PICNIC_MAX_LOWMC_BLOCK_SIZE];
@@ -2474,7 +2469,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        protected internal void xor_array(uint[] output, uint[] in1, uint[] in2, int in2_offset, int length)
+        internal void xor_array(uint[] output, uint[] in1, uint[] in2, int in2_offset, int length)
         {
             for (int i = 0; i < length; i++)
             {
@@ -2482,12 +2477,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        protected internal void matrix_mul(uint[] output, uint[] state, uint[] matrix, int matrixOffset)
+        internal void matrix_mul(uint[] output, uint[] state, uint[] matrix, int matrixOffset)
         {
             matrix_mul_offset(output, 0, state, 0, matrix, matrixOffset);
         }
 
-        protected void matrix_mul_offset(uint[] output, int outputOffset, uint[] state, int stateOffset, uint[] matrix,
+        internal void matrix_mul_offset(uint[] output, int outputOffset, uint[] state, int stateOffset, uint[] matrix,
             int matrixOffset)
         {
             // Use temp to correctly handle the case when state = output

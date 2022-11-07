@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Utilities;
@@ -265,9 +266,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          * @param id the oid of interest.
          * @return the parameter set.
          */
-        public static SphincsPlusParameters GetParams(uint id)
+        public static SphincsPlusParameters GetParams(int id)
         {
-            return oidToParams[id];
+            return oidToParams[Convert.ToUInt32(id)];
         }
 
         /**
@@ -276,14 +277,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          * @param params the parameters of interest.
          * @return the OID for the parameter set.
          */
-        public static uint GetID(SphincsPlusParameters parameters)
+        public static int GetID(SphincsPlusParameters parameters)
         {
-            return paramsToOid[parameters];
+            return Convert.ToInt32(paramsToOid[parameters]);
         }
 
         public byte[] GetEncoded()
         {
-            return Pack.UInt32_To_BE(GetID(this));
+            return Pack.UInt32_To_BE((uint)GetID(this));
         }
     }
 

@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
-            LmsUtilities.U16Str(LMOts.D_MESG, ctx);
+            LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
             LmsUtilities.ByteArray(C, ctx);
 
             return new LmsContext(this, sigParams, ctx, C, path);

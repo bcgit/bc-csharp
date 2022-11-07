@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             d.Update((byte)(n));
         }
 
-        public static void U16Str(ushort n, IDigest d)
+        public static void U16Str(short n, IDigest d)
         {
             d.Update((byte)(n >> 8));
             d.Update((byte)(n));

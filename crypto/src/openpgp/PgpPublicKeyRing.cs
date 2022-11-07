@@ -68,19 +68,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Return the first public key in the ring.</summary>
         public virtual PgpPublicKey GetPublicKey()
         {
-            return (PgpPublicKey) keys[0];
+            return keys[0];
         }
 
         /// <summary>Return the public key referred to by the passed in key ID if it is present.</summary>
-        public virtual PgpPublicKey GetPublicKey(
-            long keyId)
+        public virtual PgpPublicKey GetPublicKey(long keyId)
         {
             foreach (PgpPublicKey k in keys)
             {
                 if (keyId == k.KeyId)
-                {
                     return k;
-                }
             }
 
             return null;
@@ -168,23 +165,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <returns>A new <c>PgpPublicKeyRing</c>, or null if pubKey is not found.</returns>
         public static PgpPublicKeyRing RemovePublicKey(PgpPublicKeyRing pubRing, PgpPublicKey pubKey)
         {
-            var keys = new List<PgpPublicKey>(pubRing.keys);
+            int count = pubRing.keys.Count;
+            long keyID = pubKey.KeyId;
+
+            var result = new List<PgpPublicKey>(count);
             bool found = false;
 
-            // TODO Is there supposed to be at most a single match?
-            int pos = keys.Count;
-            while (--pos >= 0)
+            foreach (var key in pubRing.keys)
             {
-                PgpPublicKey key = keys[pos];
-
-                if (key.KeyId == pubKey.KeyId)
+                if (key.KeyId == keyID)
                 {
                     found = true;
-                    keys.RemoveAt(pos);
+                    continue;
                 }
+
+                result.Add(key);
             }
 
-            return found ? new PgpPublicKeyRing(keys) : null;
+            return found ? new PgpPublicKeyRing(result) : null;
         }
 
         internal static PublicKeyPacket ReadPublicKeyPacket(BcpgInputStream bcpgInput)

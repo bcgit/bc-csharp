@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Prng
     /// Uses RandomNumberGenerator.Create() to get randomness generator
     /// </summary>
     public sealed class CryptoApiRandomGenerator
-        : IRandomGenerator
+        : IRandomGenerator, IDisposable
     {
         private readonly RandomNumberGenerator m_randomNumberGenerator;
 
@@ -18,7 +18,8 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         public CryptoApiRandomGenerator(RandomNumberGenerator randomNumberGenerator)
         {
-            m_randomNumberGenerator = randomNumberGenerator;
+            m_randomNumberGenerator = randomNumberGenerator ??
+                throw new ArgumentNullException(nameof(randomNumberGenerator));
         }
 
         #region IRandomGenerator Members
@@ -74,6 +75,15 @@ namespace Org.BouncyCastle.Crypto.Prng
             m_randomNumberGenerator.GetBytes(bytes);
         }
 #endif
+
+        #endregion
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            m_randomNumberGenerator.Dispose();
+        }
 
         #endregion
     }

@@ -29,21 +29,23 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1RelativeOid GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1RelativeOid)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1RelativeOid asn1RelativeOid)
+                return asn1RelativeOid;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1RelativeOid)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1RelativeOid converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1RelativeOid)
-                    return (Asn1RelativeOid)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1RelativeOid)FromByteArray((byte[])obj);
+                    return (Asn1RelativeOid)FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

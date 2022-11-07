@@ -138,7 +138,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         private void PackPublicKey(out byte[] pk, PolyVec pkpv, byte[] seed)
         {
-            int i;
             pk = new byte[m_engine.IndCpaPublicKeyBytes];
             pkpv.ToBytes(pk);
             Array.Copy(seed, 0, pk, m_engine.PolyVecBytes, KyberEngine.SymBytes);
@@ -146,7 +145,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         private void UnpackPublicKey(PolyVec pkpv, byte[] seed, byte[] pk)
         {
-            int i;
             pkpv.FromBytes(pk);
             Array.Copy(pk, m_engine.PolyVecBytes, seed, 0, KyberEngine.SymBytes);
         }

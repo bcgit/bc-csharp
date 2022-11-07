@@ -1,27 +1,32 @@
 ﻿using System;
 using System.Text;
-
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC
 {
-    internal sealed class LongArray
+    internal struct LongArray
     {
+        internal static bool AreAliased(ref LongArray a, ref LongArray b)
+        {
+            return a.m_data == b.m_data;
+        }
+
         // TODO make m fixed for the LongArray, and hence compute T once and for all
 
         private ulong[] m_data;
 
-        public LongArray(int intLen)
+        internal LongArray(int intLen)
         {
             m_data = new ulong[intLen];
         }
 
-        public LongArray(ulong[] data)
+        internal LongArray(ulong[] data)
         {
             m_data = data;
         }
 
-        public LongArray(ulong[] data, int off, int len)
+        internal LongArray(ulong[] data, int off, int len)
         {
             if (off == 0 && len == data.Length)
             {
@@ -34,16 +39,14 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        public LongArray(BigInteger bigInt)
+        internal LongArray(BigInteger bigInt)
         {
             if (bigInt == null || bigInt.SignValue < 0)
-            {
-                throw new ArgumentException("invalid F2m field value", "bigInt");
-            }
+                throw new ArgumentException("invalid F2m field value", nameof(bigInt));
 
             if (bigInt.SignValue == 0)
             {
-                m_data = new ulong[]{ 0UL };
+                m_data = new ulong[1]{ 0UL };
                 return;
             }
 
@@ -93,51 +96,44 @@ namespace Org.BouncyCastle.Math.EC
             Array.Copy(m_data, 0, z, zOff, m_data.Length);
         }
 
-        public bool IsOne()
+        internal bool IsOne()
         {
             ulong[] a = m_data;
             int aLen = a.Length;
             if (aLen < 1 || a[0] != 1UL)
-            {
                 return false;
-            }
+
             for (int i = 1; i < aLen; ++i)
             {
                 if (a[i] != 0UL)
-                {
                     return false;
-                }
             }
             return true;
         }
 
-        public bool IsZero()
+        internal bool IsZero()
         {
             ulong[] a = m_data;
             for (int i = 0; i < a.Length; ++i)
             {
                 if (a[i] != 0UL)
-                {
                     return false;
-                }
             }
             return true;
         }
 
-        public int GetUsedLength()
+        internal int GetUsedLength()
         {
             return GetUsedLengthFrom(m_data.Length);
         }
 
-        public int GetUsedLengthFrom(int from)
+        internal int GetUsedLengthFrom(int from)
         {
             ulong[] a = m_data;
             from = System.Math.Min(from, a.Length);
 
             if (from < 1)
-            {
                 return 0;
-            }
 
             // Check if first element will act as sentinel
             if (a[0] != 0UL)
@@ -160,16 +156,15 @@ namespace Org.BouncyCastle.Math.EC
             return 0;
         }
 
-        public int Degree()
+        internal int Degree()
         {
             int i = m_data.Length;
             ulong w;
             do
             {
                 if (i == 0)
-                {
                     return 0;
-                }
+
                 w = m_data[--i];
             }
             while (w == 0UL);
@@ -184,9 +179,8 @@ namespace Org.BouncyCastle.Math.EC
             do
             {
                 if (i == 0)
-                {
                     return 0;
-                }
+
                 w = m_data[--i];
             }
             while (w == 0);
@@ -206,13 +200,11 @@ namespace Org.BouncyCastle.Math.EC
             return newInts;
         }
 
-        public BigInteger ToBigInteger()
+        internal BigInteger ToBigInteger()
         {
             int usedLen = GetUsedLength();
             if (usedLen == 0)
-            {
                 return BigInteger.Zero;
-            }
 
             ulong highestInt = m_data[usedLen - 1];
             byte[] temp = new byte[8];
@@ -273,12 +265,10 @@ namespace Org.BouncyCastle.Math.EC
             return prev;
         }
 
-        public LongArray AddOne()
+        internal LongArray AddOne()
         {
             if (m_data.Length == 0)
-            {
-                return new LongArray(new ulong[]{ 1UL });
-            }
+                return new LongArray(new ulong[1]{ 1UL });
 
             int resultLen = System.Math.Max(1, GetUsedLength());
             ulong[] data = ResizedData(resultLen);
@@ -333,13 +323,11 @@ namespace Org.BouncyCastle.Math.EC
             return prev;
         }
 
-        public void AddShiftedByWords(LongArray other, int words)
+        internal void AddShiftedByWords(LongArray other, int words)
         {
             int otherUsedLen = other.GetUsedLength();
             if (otherUsedLen == 0)
-            {
                 return;
-            }
 
             int minLen = otherUsedLen + words;
             if (minLen > m_data.Length)
@@ -352,18 +340,12 @@ namespace Org.BouncyCastle.Math.EC
 
         private static void Add(ulong[] x, int xOff, ulong[] y, int yOff, int count)
         {
-            for (int i = 0; i < count; ++i)
-            {
-                x[xOff + i] ^= y[yOff + i];
-            }
+            Nat.XorTo64(count, y, yOff, x, xOff);
         }
 
         private static void Add(ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff, int count)
         {
-            for (int i = 0; i < count; ++i)
-            {
-                z[zOff + i] = x[xOff + i] ^ y[yOff + i];
-            }
+            Nat.Xor64(count, x, xOff, y, yOff, z, zOff);
         }
 
         private static void AddBoth(ulong[] x, int xOff, ulong[] y1, int y1Off, ulong[] y2, int y2Off, int count)
@@ -393,7 +375,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        public bool TestBitZero()
+        internal bool TestBitZero()
         {
             return m_data.Length > 0 && (m_data[0] & 1UL) != 0;
         }
@@ -439,21 +421,18 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        public LongArray ModMultiplyLD(LongArray other, int m, int[] ks)
+        internal LongArray ModMultiplyLD(LongArray other, int m, int[] ks)
         {
             /*
              * Find out the degree of each argument and handle the zero cases
              */
             int aDeg = Degree();
             if (aDeg == 0)
-            {
                 return this;
-            }
+
             int bDeg = other.Degree();
             if (bDeg == 0)
-            {
                 return other;
-            }
 
             /*
              * Swap if necessary so that A is the smaller argument
@@ -476,9 +455,7 @@ namespace Org.BouncyCastle.Math.EC
             {
                 ulong a0 = A.m_data[0];
                 if (a0 == 1UL)
-                {
                     return B;
-                }
 
                 /*
                  * Fast path for small A, with performance dependent only on the number of set bits
@@ -571,21 +548,18 @@ namespace Org.BouncyCastle.Math.EC
             return ReduceResult(c, 0, cLen, m, ks);
         }
 
-        public LongArray ModMultiply(LongArray other, int m, int[] ks)
+        internal LongArray ModMultiply(LongArray other, int m, int[] ks)
         {
             /*
              * Find out the degree of each argument and handle the zero cases
              */
             int aDeg = Degree();
             if (aDeg == 0)
-            {
                 return this;
-            }
+
             int bDeg = other.Degree();
             if (bDeg == 0)
-            {
                 return other;
-            }
 
             /*
              * Swap if necessary so that A is the smaller argument
@@ -608,9 +582,7 @@ namespace Org.BouncyCastle.Math.EC
             {
                 ulong a0 = A.m_data[0];
                 if (a0 == 1UL)
-                {
                     return B;
-                }
 
                 /*
                  * Fast path for small A, with performance dependent only on the number of set bits
@@ -681,9 +653,8 @@ namespace Org.BouncyCastle.Math.EC
                     uint v = (uint)aVal & MASK; aVal >>= 4;
                     AddBoth(c, cOff, T0, ti[u], T1, ti[v], bMax);
                     if (aVal == 0UL)
-                    {
                         break;
-                    }
+
                     cOff += cLen;
                 }
             }
@@ -702,28 +673,25 @@ namespace Org.BouncyCastle.Math.EC
             return ReduceResult(c, 0, cLen, m, ks);
         }
 
-        //public LongArray ModReduce(int m, int[] ks)
+        //internal LongArray ModReduce(int m, int[] ks)
         //{
         //    ulong[] buf = Arrays.Clone(m_data);
         //    int rLen = ReduceInPlace(buf, 0, buf.Length, m, ks);
         //    return new LongArray(buf, 0, rLen);
         //}
 
-        public LongArray Multiply(LongArray other, int m, int[] ks)
+        internal LongArray Multiply(LongArray other, int m, int[] ks)
         {
             /*
              * Find out the degree of each argument and handle the zero cases
              */
             int aDeg = Degree();
             if (aDeg == 0)
-            {
                 return this;
-            }
+
             int bDeg = other.Degree();
             if (bDeg == 0)
-            {
                 return other;
-            }
 
             /*
              * Swap if necessary so that A is the smaller argument
@@ -746,9 +714,7 @@ namespace Org.BouncyCastle.Math.EC
             {
                 ulong a0 = A.m_data[0];
                 if (a0 == 1UL)
-                {
                     return B;
-                }
 
                 /*
                  * Fast path for small A, with performance dependent only on the number of set bits
@@ -820,9 +786,8 @@ namespace Org.BouncyCastle.Math.EC
                     uint v = (uint)aVal & MASK; aVal >>= 4;
                     AddBoth(c, cOff, T0, ti[u], T1, ti[v], bMax);
                     if (aVal == 0UL)
-                    {
                         break;
-                    }
+
                     cOff += cLen;
                 }
             }
@@ -842,7 +807,7 @@ namespace Org.BouncyCastle.Math.EC
             return new LongArray(c, 0, cLen);
         }
 
-        public void Reduce(int m, int[] ks)
+        internal void Reduce(int m, int[] ks)
         {
             ulong[] buf = m_data;
             int rLen = ReduceInPlace(buf, 0, buf.Length, m, ks);
@@ -863,9 +828,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             int mLen = (m + 63) >> 6;
             if (len < mLen)
-            {
                 return len;
-            }
 
             int numBits = System.Math.Min(len << 6, (m << 1) - 1); // TODO use actual degree?
             int excessBits = (len << 6) - numBits;
@@ -994,19 +957,19 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        public LongArray ModSquare(int m, int[] ks)
+        internal LongArray ModSquare(int m, int[] ks)
         {
             int len = GetUsedLength();
             if (len == 0)
                 return this;
 
             ulong[] r = new ulong[len << 1];
-            Raw.Interleave.Expand64To128(m_data, 0, len, r, 0);
+            Interleave.Expand64To128(m_data, 0, len, r, 0);
 
             return new LongArray(r, 0, ReduceInPlace(r, 0, r.Length, m, ks));
         }
 
-        public LongArray ModSquareN(int n, int m, int[] ks)
+        internal LongArray ModSquareN(int n, int m, int[] ks)
         {
             int len = GetUsedLength();
             if (len == 0)
@@ -1018,21 +981,21 @@ namespace Org.BouncyCastle.Math.EC
 
             while (--n >= 0)
             {
-                Raw.Interleave.Expand64To128(r, 0, len, r, 0);
+                Interleave.Expand64To128(r, 0, len, r, 0);
                 len = ReduceInPlace(r, 0, r.Length, m, ks);
             }
 
             return new LongArray(r, 0, len);
         }
 
-        public LongArray Square(int m, int[] ks)
+        internal LongArray Square(int m, int[] ks)
         {
             int len = GetUsedLength();
             if (len == 0)
                 return this;
 
             ulong[] r = new ulong[len << 1];
-            Raw.Interleave.Expand64To128(m_data, 0, len, r, 0);
+            Interleave.Expand64To128(m_data, 0, len, r, 0);
 
             return new LongArray(r, 0, r.Length);
         }
@@ -1147,7 +1110,7 @@ namespace Org.BouncyCastle.Math.EC
     //        return t4.ModMultiply(t1, m, ks);
     //    }
 
-        public LongArray ModInverse(int m, int[] ks)
+        internal LongArray ModInverse(int m, int[] ks)
         {
             /*
              * Fermat's Little Theorem
@@ -1188,16 +1151,13 @@ namespace Org.BouncyCastle.Math.EC
              */
             int uzDegree = Degree();
             if (uzDegree == 0)
-            {
                 throw new InvalidOperationException();
-            }
+
             if (uzDegree == 1)
-            {
                 return this;
-            }
 
             // u(z) := a(z)
-            LongArray uz = (LongArray)Copy();
+            LongArray uz = Copy();
 
             int t = (m + 63) >> 6;
 
@@ -1237,9 +1197,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 int duv2 = uv[b].DegreeFrom(duv1);
                 if (duv2 == 0)
-                {
                     return gg[1 - b];
-                }
 
                 {
                     int dgg2 = ggDeg[1 - b];
@@ -1263,26 +1221,25 @@ namespace Org.BouncyCastle.Math.EC
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as LongArray);
+            if (obj is LongArray longArray)
+                return Equals(ref longArray);
+
+            return false;
         }
 
-        public bool Equals(LongArray other)
+        internal bool Equals(ref LongArray other)
         {
-            if (this == other)
+            if (AreAliased(ref this, ref other))
                 return true;
-            if (null == other)
-                return false;
+
             int usedLen = GetUsedLength();
             if (other.GetUsedLength() != usedLen)
-            {
                 return false;
-            }
+
             for (int i = 0; i < usedLen; i++)
             {
                 if (m_data[i] != other.m_data[i])
-                {
                     return false;
-                }
             }
             return true;
         }
@@ -1311,9 +1268,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             int i = GetUsedLength();
             if (i == 0)
-            {
                 return "0";
-            }
 
             StringBuilder sb = new StringBuilder(i * 64);
             sb.Append(Convert.ToString((long)m_data[--i], 2));
