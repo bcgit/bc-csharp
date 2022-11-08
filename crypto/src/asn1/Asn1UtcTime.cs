@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -69,10 +70,7 @@ namespace Org.BouncyCastle.Asn1
 
 		public Asn1UtcTime(string timeString)
 		{
-			if (timeString == null)
-				throw new ArgumentNullException(nameof(timeString));
-
-			m_timeString = timeString;
+			m_timeString = timeString ?? throw new ArgumentNullException(nameof(timeString));
 
 			try
 			{
@@ -88,8 +86,7 @@ namespace Org.BouncyCastle.Asn1
         [Obsolete("Use `Asn1UtcTime(DateTime, int)' instead")]
 		public Asn1UtcTime(DateTime dateTime)
 		{
-            DateTime utc = dateTime.ToUniversalTime();
-            dateTime = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, utc.Second, DateTimeKind.Utc);
+            dateTime = DateTimeUtilities.WithPrecisionSecond(dateTime.ToUniversalTime());
 
             m_dateTime = dateTime;
             m_dateTimeLocked = true;
@@ -98,8 +95,7 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1UtcTime(DateTime dateTime, int twoDigitYearMax)
         {
-            DateTime utc = dateTime.ToUniversalTime();
-            dateTime = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, utc.Second, DateTimeKind.Utc);
+            dateTime = DateTimeUtilities.WithPrecisionSecond(dateTime.ToUniversalTime());
 
             Validate(dateTime, twoDigitYearMax);
 
@@ -220,11 +216,9 @@ namespace Org.BouncyCastle.Asn1
                 return DateTime.ParseExact(s, @"yyMMddHHmmss\Z", provider,
                     DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
             case 15:
-                return DateTime.ParseExact(s, @"yyMMddHHmmzzz", provider,
-                    DateTimeStyles.AdjustToUniversal);
+                return DateTime.ParseExact(s, @"yyMMddHHmmzzz", provider, DateTimeStyles.AdjustToUniversal);
             case 17:
-                return DateTime.ParseExact(s, @"yyMMddHHmmsszzz", provider,
-                    DateTimeStyles.AdjustToUniversal);
+                return DateTime.ParseExact(s, @"yyMMddHHmmsszzz", provider, DateTimeStyles.AdjustToUniversal);
             default:
                 throw new FormatException();
             }

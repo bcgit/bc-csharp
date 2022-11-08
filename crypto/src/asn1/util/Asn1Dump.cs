@@ -214,7 +214,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
             else if (obj is Asn1GeneralizedTime generalizedTime)
             {
                 buf.Append(indent);
-                buf.AppendLine("GeneralizedTime(" + generalizedTime.GetTime() + ")");
+                buf.AppendLine("GeneralizedTime(" + generalizedTime.TimeString + ")");
             }
             else if (obj is DerEnumerated en)
             {

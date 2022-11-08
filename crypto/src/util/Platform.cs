@@ -31,9 +31,24 @@ namespace Org.BouncyCastle.Utilities
             d.Dispose();
         }
 
+        internal static int IndexOf(string source, char value)
+        {
+            return InvariantCompareInfo.IndexOf(source, value, CompareOptions.Ordinal);
+        }
+
         internal static int IndexOf(string source, string value)
         {
             return InvariantCompareInfo.IndexOf(source, value, CompareOptions.Ordinal);
+        }
+
+        internal static int IndexOf(string source, char value, int startIndex)
+        {
+            return InvariantCompareInfo.IndexOf(source, value, startIndex, CompareOptions.Ordinal);
+        }
+
+        internal static int IndexOf(string source, string value, int startIndex)
+        {
+            return InvariantCompareInfo.IndexOf(source, value, startIndex, CompareOptions.Ordinal);
         }
 
         internal static int LastIndexOf(string source, string value)

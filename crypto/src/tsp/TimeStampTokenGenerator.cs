@@ -16,6 +16,7 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
@@ -334,15 +335,7 @@ namespace Org.BouncyCastle.Tsp
                 respExtensions = extGen.Generate();
             }
 
-            Asn1GeneralizedTime timeStampTime;
-            if (resolution == Resolution.R_SECONDS)
-            {
-                timeStampTime = new Asn1GeneralizedTime(genTime);
-            }
-            else
-            {
-                timeStampTime = CreateGeneralizedTime(genTime);
-            } 
+            var timeStampTime = new Asn1GeneralizedTime(WithResolution(genTime, resolution));
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
                 new DerInteger(serialNumber), timeStampTime, accuracy,
@@ -385,53 +378,21 @@ namespace Org.BouncyCastle.Tsp
             //}
         }
 
-        private Asn1GeneralizedTime CreateGeneralizedTime(DateTime genTime)
+        private static DateTime WithResolution(DateTime dateTime, Resolution resolution)
         {
-            string format = "yyyyMMddHHmmss.fff";
-           
-            StringBuilder sBuild = new StringBuilder(genTime.ToString(format));
-            int dotIndex = sBuild.ToString().IndexOf(".");
-
-            if (dotIndex <0)
+            switch (resolution)
             {
-                sBuild.Append("Z");
-                return new Asn1GeneralizedTime(sBuild.ToString());
-            }
-
-            switch(resolution)
-            {
-            case Resolution.R_TENTHS_OF_SECONDS:
-                if (sBuild.Length > dotIndex + 2)
-                {
-                    sBuild.Remove(dotIndex + 2, sBuild.Length-(dotIndex+2));
-                }
-                break;
-            case Resolution.R_HUNDREDTHS_OF_SECONDS:
-                if (sBuild.Length > dotIndex + 3)
-                {
-                    sBuild.Remove(dotIndex + 3, sBuild.Length-(dotIndex+3));
-                }
-                break;
-
-
             case Resolution.R_SECONDS:
+                return DateTimeUtilities.WithPrecisionSecond(dateTime);
+            case Resolution.R_TENTHS_OF_SECONDS:
+                return DateTimeUtilities.WithPrecisionDecisecond(dateTime);
+            case Resolution.R_HUNDREDTHS_OF_SECONDS:
+                return DateTimeUtilities.WithPrecisionCentisecond(dateTime);
             case Resolution.R_MILLISECONDS:
-                // do nothing.
-                break;
+                return DateTimeUtilities.WithPrecisionMillisecond(dateTime);
+            default:
+                throw new InvalidOperationException();
             }
-
-            while (sBuild[sBuild.Length - 1] == '0')
-            {
-                sBuild.Remove(sBuild.Length - 1,1);
-            }
-
-            if (sBuild.Length - 1 == dotIndex)
-            {
-                sBuild.Remove(sBuild.Length - 1, 1);
-            }
-
-            sBuild.Append("Z");
-            return new Asn1GeneralizedTime(sBuild.ToString());
         }
 
         private class TableGen

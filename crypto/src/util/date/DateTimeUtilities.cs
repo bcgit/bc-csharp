@@ -53,5 +53,31 @@ namespace Org.BouncyCastle.Utilities.Date
 		{
 			return DateTimeToUnixMs(DateTime.UtcNow);
 		}
-	}
+
+        public static DateTime WithPrecisionCentisecond(DateTime dateTime)
+        {
+            int millisecond = dateTime.Millisecond - (dateTime.Millisecond % 10);
+            return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day,
+                dateTime.Hour, dateTime.Minute, dateTime.Second, millisecond, dateTime.Kind);
+        }
+
+        public static DateTime WithPrecisionDecisecond(DateTime dateTime)
+        {
+            int millisecond = dateTime.Millisecond - (dateTime.Millisecond % 100);
+            return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day,
+                dateTime.Hour, dateTime.Minute, dateTime.Second, millisecond, dateTime.Kind);
+        }
+
+        public static DateTime WithPrecisionMillisecond(DateTime dateTime)
+        {
+            return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day,
+                dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond, dateTime.Kind);
+        }
+
+        public static DateTime WithPrecisionSecond(DateTime dateTime)
+        {
+            return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day,
+                dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Kind);
+        }
+    }
 }

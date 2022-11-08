@@ -102,7 +102,10 @@ namespace Org.BouncyCastle.Asn1.X509
             if (m_timeObject is Asn1UtcTime utcTime)
                 return utcTime.ToDateTime(2049).ToString(@"yyyyMMddHHmmssK", DateTimeFormatInfo.InvariantInfo);
 
-            return ((Asn1GeneralizedTime)m_timeObject).GetTime();
+            if (m_timeObject is Asn1GeneralizedTime generalizedTime)
+                return generalizedTime.ToDateTime().ToString(@"yyyyMMddHHmmss.FFFFFFFK", DateTimeFormatInfo.InvariantInfo);
+
+            throw new InvalidOperationException();
         }
     }
 }

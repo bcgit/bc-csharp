@@ -40,56 +40,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             "20020122122220.0001+1000"
         };
 
-        private static readonly string[] output =
-        {
-            "20020122122220",
-            "20020122122220GMT+00:00",
-            "20020122122220GMT-10:00",
-            "20020122122220GMT+00:00",
-            "20020122122220.1",
-            "20020122122220.1GMT+00:00",
-            "20020122122220.1GMT-10:00",
-            "20020122122220.1GMT+00:00",
-            "20020122122220.01",
-            "20020122122220.01GMT+00:00",
-            "20020122122220.01GMT-10:00",
-            "20020122122220.01GMT+00:00",
-            "20020122122220.001",
-            "20020122122220.001GMT+00:00",
-            "20020122122220.001GMT-10:00",
-            "20020122122220.001GMT+00:00",
-            "20020122122220.0001",
-            "20020122122220.0001GMT+00:00",
-            "20020122122220.0001GMT-10:00",
-            "20020122122220.0001GMT+00:00",
-            "20020122122220.0001GMT+10:00"
-        };
-
-        private static readonly string[] zOutput =
-        {
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122222220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122222220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122222220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122222220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122122220Z",
-            "20020122222220Z",
-            "20020122122220Z",
-            "20020122022220Z"
-        };
-        
         private static readonly string[] mzOutput =
         {
             "20020122122220.000Z",
@@ -161,38 +111,6 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             for (int i = 0; i != input.Length; i++)
             {
-                string ii = input[i], oi = output[i];
-
-                Asn1GeneralizedTime t = new Asn1GeneralizedTime(ii);
-                DateTime dt = t.ToDateTime();
-                string st = t.GetTime();
-
-                if (oi.IndexOf('G') > 0)   // don't check local time the same way
-                {
-                    if (!st.Equals(oi))
-                    {
-                        Fail("failed GMT conversion test " + i);
-                    }
-
-                    string dts = dt.ToString(@"yyyyMMddHHmmss\Z");
-                    string zi = zOutput[i];
-                    if (!dts.Equals(zi))
-                    {
-                        Fail("failed date conversion test " + i);
-                    }
-                }
-                else
-                {
-                    string offset = CalculateGmtOffset(dt);
-                    if (!st.Equals(oi + offset))
-                    {
-                        Fail("failed conversion test " + i);
-                    }
-                }
-            }
-
-            for (int i = 0; i != input.Length; i++)
-            {
                 Asn1GeneralizedTime t = new Asn1GeneralizedTime(input[i]);
 
                 if (!t.ToDateTime().ToString(@"yyyyMMddHHmmss.fff\Z").Equals(mzOutput[i]))
@@ -209,7 +127,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
                 if (!AreEqual(t.GetEncoded(), new Asn1GeneralizedTime(derMzOutput[i]).GetEncoded()))
                 {
-                    Fail("der encoding wrong");
+                    Fail("DER encoding wrong");
                 }
             }
 
@@ -219,7 +137,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
                 if (!AreEqual(t.GetEncoded(), new Asn1GeneralizedTime(derTruncOutput[i]).GetEncoded()))
                 {
-                    Fail("trunc der encoding wrong");
+                    Fail("trunc DER encoding wrong");
                 }
             }
 
@@ -239,20 +157,14 @@ namespace Org.BouncyCastle.Asn1.Tests
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Der)));
             }
 
-            {
-                // check an actual GMT string comes back untampered
-                Asn1GeneralizedTime time = new Asn1GeneralizedTime("20190704031318GMT+00:00");
-
-                IsTrue("20190704031318GMT+00:00".Equals(time.GetTime()));
-            }
-
             try
             {
-                new DerGeneralizedTime(new byte[0]);
+                new DerGeneralizedTime(string.Empty);
+                Fail("Expected exception");
             }
             catch (ArgumentException e)
             {
-                IsTrue(e.Message.StartsWith("GeneralizedTime string too short"));
+                IsTrue(e.Message.StartsWith("invalid date string"));
             }
 
             /*
@@ -275,39 +187,6 @@ namespace Org.BouncyCastle.Asn1.Tests
                     Fail("failed UTC conversion test");
                 }
             }
-        }
-
-        private string CalculateGmtOffset(DateTime date)
-        {
-            TimeZoneInfo timeZone = TimeZoneInfo.Local;
-            TimeSpan offset = timeZone.BaseUtcOffset;
-
-            char sign = '+';
-            if (offset.CompareTo(TimeSpan.Zero) < 0)
-            {
-                sign = '-';
-                offset = offset.Duration();
-            }
-
-            int hours = offset.Hours;
-            int minutes = offset.Minutes;
-
-            if (timeZone.SupportsDaylightSavingTime && timeZone.IsDaylightSavingTime(date))
-            {
-                hours += sign.Equals("+") ? 1 : -1;
-            }
-
-            return "GMT" + sign + Convert(hours) + ":" + Convert(minutes);
-        }
-
-        private string Convert(int time)
-        {
-            if (time < 10)
-            {
-                return "0" + time;
-            }
-
-            return time.ToString();
         }
 
         [Test]

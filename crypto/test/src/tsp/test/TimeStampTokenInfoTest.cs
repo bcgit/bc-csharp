@@ -1,7 +1,5 @@
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
@@ -31,7 +29,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 		[Test]
 		public void TestTstInfo1()
 		{
-			TimeStampTokenInfo tstInfo = getTimeStampTokenInfo(tstInfo1);
+			TimeStampTokenInfo tstInfo = CreateTimeStampTokenInfo(tstInfo1);
 
 			//
 			// verify
@@ -60,7 +58,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 	    [Test]
 		public void TestTstInfo2()
 		{
-			TimeStampTokenInfo tstInfo = getTimeStampTokenInfo(tstInfo2);
+			TimeStampTokenInfo tstInfo = CreateTimeStampTokenInfo(tstInfo2);
 
 			//
 			// verify
@@ -81,7 +79,9 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			Assert.AreEqual(tstInfo.Nonce, BigInteger.ValueOf(100));
 
-			Assert.IsTrue(Arrays.AreEqual(Hex.Decode("ffffffffffffffffffffffffffffffffffffffff"), tstInfo.GetMessageImprintDigest()));
+			Assert.IsTrue(Arrays.AreEqual(
+				Hex.Decode("ffffffffffffffffffffffffffffffffffffffff"),
+				tstInfo.GetMessageImprintDigest()));
 
 			Assert.IsTrue(Arrays.AreEqual(tstInfo2, tstInfo.GetEncoded()));
 		}
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 	    [Test]
 		public void TestTstInfo3()
 		{
-			TimeStampTokenInfo tstInfo = getTimeStampTokenInfo(tstInfo3);
+			TimeStampTokenInfo tstInfo = CreateTimeStampTokenInfo(tstInfo3);
 
 			//
 			// verify
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 		{
 			try
 			{
-				getTimeStampTokenInfo(tstInfoDudDate);
+				CreateTimeStampTokenInfo(tstInfoDudDate);
 
 				Assert.Fail("dud date not detected.");
 			}
@@ -132,12 +132,9 @@ namespace Org.BouncyCastle.Tsp.Tests
 			}
 		}
 
-		private TimeStampTokenInfo getTimeStampTokenInfo(
-			byte[] tstInfo)
+		private TimeStampTokenInfo CreateTimeStampTokenInfo(byte[] tstInfo)
 		{
-			return new TimeStampTokenInfo(
-				TstInfo.GetInstance(
-					Asn1Object.FromByteArray(tstInfo)));
+			return new TimeStampTokenInfo(tstInfo);
 		}
 	}
 }

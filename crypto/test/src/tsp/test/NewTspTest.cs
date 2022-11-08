@@ -787,12 +787,12 @@ namespace Org.BouncyCastle.Tsp.Tests
 		}
 
 		private void resolutionTest(AsymmetricKeyParameter privateKey, X509Certificate cert,
-			IStore<X509Certificate> certs, Resolution resoution, string timeString)
+			IStore<X509Certificate> certs, Resolution resolution, string timeString)
 		{
 			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
-			 privateKey, cert, TspAlgorithms.Sha1, "1.2");
+				privateKey, cert, TspAlgorithms.Sha1, "1.2");
 
-			tsTokenGen.Resolution = resoution;
+			tsTokenGen.Resolution = resolution;
 			tsTokenGen.SetCertificates(certs);
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
@@ -813,14 +813,14 @@ namespace Org.BouncyCastle.Tsp.Tests
 			tsToken = tsResp.TimeStampToken;
 			Assert.AreEqual("19700101000009Z", tsToken.TimeStampInfo.TstInfo.GenTime.TimeString);
 
-			if ((int)resoution > (int)Resolution.R_HUNDREDTHS_OF_SECONDS)
+			if ((int)resolution > (int)Resolution.R_HUNDREDTHS_OF_SECONDS)
 			{
 				tsResp = tsRespGen.Generate(request, new BigInteger("23"), UnixEpoch.AddMilliseconds(9990));
 				tsToken = tsResp.TimeStampToken;
 				Assert.AreEqual("19700101000009.99Z", tsToken.TimeStampInfo.TstInfo.GenTime.TimeString);
 			}
 
-			if ((int)resoution > (int)Resolution.R_TENTHS_OF_SECONDS)
+			if ((int)resolution > (int)Resolution.R_TENTHS_OF_SECONDS)
 			{
 				tsResp = tsRespGen.Generate(request, new BigInteger("23"), UnixEpoch.AddMilliseconds(9900));
 				tsToken = tsResp.TimeStampToken;

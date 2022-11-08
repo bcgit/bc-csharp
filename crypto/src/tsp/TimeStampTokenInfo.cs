@@ -8,10 +8,27 @@ namespace Org.BouncyCastle.Tsp
 {
 	public class TimeStampTokenInfo
 	{
-		private TstInfo		tstInfo;
+		private static TstInfo ParseTstInfo(byte[] tstInfoEncoding)
+		{
+            try
+            {
+                return TstInfo.GetInstance(tstInfoEncoding);
+            }
+            catch (Exception e)
+            {
+                throw new TspException("unable to parse TstInfo encoding: " + e.Message);
+            }
+        }
+
+        private TstInfo		tstInfo;
 		private DateTime	genTime;
 
-		public TimeStampTokenInfo(
+        public TimeStampTokenInfo(byte[] tstInfoEncoding)
+			: this(ParseTstInfo(tstInfoEncoding))
+		{
+        }
+
+        public TimeStampTokenInfo(
 			TstInfo tstInfo)
 		{
 			this.tstInfo = tstInfo;
