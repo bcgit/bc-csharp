@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -75,8 +74,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricKeyParameter pubDec = PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
             AsymmetricKeyParameter privDec = PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
 
-            Console.Out.WriteLine(Base64.ToBase64String(((DilithiumPublicKeyParameters)pub).GetEncoded()));
-            Console.Out.WriteLine(Base64.ToBase64String(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub).GetEncoded()));
             Assert.AreEqual(((DilithiumPublicKeyParameters)pub).GetEncoded(), ((DilithiumPublicKeyParameters)pubDec).GetEncoded());
             Assert.AreEqual(((DilithiumPrivateKeyParameters)priv).GetEncoded(), ((DilithiumPrivateKeyParameters)privDec).GetEncoded());
         }
