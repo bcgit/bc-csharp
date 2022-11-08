@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return 0;
         }
 
-        internal byte[] crypto_sign(byte[] sm,
+        internal byte[] crypto_sign(bool attached, byte[] sm,
             byte[] msrc, int m, uint mlen,
             byte[] sksrc, int sk)
         {
@@ -214,19 +214,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             */
             signer.sign_dyn(sig, 0, sc, f, 0, g, 0, F, 0, G, 0, hm, 0, this.logn, new FalconFPR[10 * n], 0);
 
-            /*
-             * Encode the signature. Format is:
-             *   signature header     1 bytes
-             *   nonce                40 bytes
-             *   signature            slen bytes
-             */
-            esig[0] = (byte)(0x20 + logn);
-            sig_len = codec.comp_encode(esig, 1, esig.Length - 1, sig, 0, logn);
-            if (sig_len == 0)
+            if (attached)
             {
-                throw new InvalidOperationException("signature failed to generate");
+                /*
+                 * Encode the signature. Format is:
+                 *   signature header     1 bytes
+                 *   nonce                40 bytes
+                 *   signature            slen bytes
+                 */
+                esig[0] = (byte)(0x20 + logn);
+                sig_len = codec.comp_encode(esig, 1, esig.Length - 1, sig, 0, logn);
+                if (sig_len == 0)
+                {
+                    throw new InvalidOperationException("signature failed to generate");
+                }
+                sig_len++;
             }
-            sig_len++;
+            else
+            {
+                sig_len = codec.comp_encode(esig, 0, esig.Length, sig, 0, logn);
+                if (sig_len == 0)
+                {
+                    throw new InvalidOperationException("signature failed to generate");
+                }
+            }
 
             // header
             sm[0] = (byte)(0x30 + logn);
@@ -239,7 +250,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return Arrays.CopyOfRange(sm, 0, 1 + (int)noncelen + sig_len);
         }
 
-        internal int crypto_sign_open(byte[] sig_encoded, byte[] nonce, byte[] m,
+        internal int crypto_sign_open(bool attached, byte[] sig_encoded, byte[] nonce, byte[] m,
             byte[] pksrc, int pk)
         {
             int sig_len, msg_len;
@@ -280,14 +291,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Decode signature.
             */
             // esig = sm + 2 + this.noncelen + msg_len;
-            if (sig_len < 1 || sig_encoded[0] != (byte)(0x20 + this.logn)) {
-                return -1;
-            }
-            if (this.codec.comp_decode(sig, 0, this.logn, sig_encoded,
-                1, sig_len - 1) != sig_len - 1)
+            if (attached)
             {
-                return -1;
+                if (sig_len < 1 || sig_encoded[0] != (byte)(0x20 + this.logn))
+                {
+                    return -1;
+                }
+                if (this.codec.comp_decode(sig, 0, this.logn, sig_encoded,
+                    1, sig_len - 1) != sig_len - 1)
+                {
+                    return -1;
+                }
             }
+            else
+            {
+                if (sig_len < 1 || this.codec.comp_decode(sig, 0, this.logn, sig_encoded,
+    0, sig_len) != sig_len)
+                {
+                    return -1;
+                }
+            }
+        
 
             /*
             * Hash nonce + message into a vector.

@@ -101,11 +101,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 #pragma warning restore CS0618 // Type or member is obsolete
             if (publicKey is FalconPublicKeyParameters falconPublicKeyParameters)
             {
-                byte[] encoding = falconPublicKeyParameters.GetEncoded();
+                byte[] keyEnc = falconPublicKeyParameters.GetEncoded();
+
+                byte[] encoding = new byte[keyEnc.Length + 1];
+                encoding[0] = (byte)(0x00 + falconPublicKeyParameters.Parameters.LogN);
+                Array.Copy(keyEnc, 0, encoding, 1, keyEnc.Length);
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.FalconOidLookup(falconPublicKeyParameters.Parameters));
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(new DerOctetString(encoding)));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
             if (publicKey is KyberPublicKeyParameters kyberPublicKeyParameters)
             {
