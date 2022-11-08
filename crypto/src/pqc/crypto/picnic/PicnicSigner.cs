@@ -7,14 +7,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
     public sealed class PicnicSigner 
         : IMessageSigner
     {
-        private readonly SecureRandom random;
-
         private PicnicPrivateKeyParameters privKey;
         private PicnicPublicKeyParameters pubKey;
 
-        public PicnicSigner(SecureRandom random)
+        public PicnicSigner()
         {
-            this.random = random;
         }
 
         public void Init(bool forSigning, ICipherParameters param)
