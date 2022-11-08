@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Cms
 		public void Drain()
 		{
 			Streams.Drain(_in);
-            Platform.Dispose(_in);
+            _in.Dispose();
 		}
 
 		private class FullReaderStream : FilterStream

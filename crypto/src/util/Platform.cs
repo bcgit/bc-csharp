@@ -26,11 +26,6 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
-        internal static void Dispose(IDisposable d)
-        {
-            d.Dispose();
-        }
-
         internal static int IndexOf(string source, char value)
         {
             return InvariantCompareInfo.IndexOf(source, value, CompareOptions.Ordinal);

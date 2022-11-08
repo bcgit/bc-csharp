@@ -38,11 +38,13 @@ namespace Org.BouncyCastle.Crmf
         {
             IMacFactory fact = generator.Build(password);
 
-            IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
             byte[] d = _pubKeyInfo.GetDerEncoded();
-            calc.Stream.Write(d, 0, d.Length);
-            calc.Stream.Flush();
-            Platform.Dispose(calc.Stream);
+
+            IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
+            using (var stream = calc.Stream)
+            {
+                stream.Write(d, 0, d.Length);
+            }
 
             this._publicKeyMAC = new PKMacValue(
                 (AlgorithmIdentifier)fact.AlgorithmDetails,

@@ -441,7 +441,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                 {
                     Finish();
                     closed = true;
-                    Platform.Dispose(this.bsStream);
+                    this.bsStream.Dispose();
                 }
             }
             base.Dispose(disposing);

@@ -345,10 +345,10 @@ namespace Org.BouncyCastle.Pkcs
                 byte[] b = reqInfo.GetDerEncoded();
 
                 IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
-
-                streamCalculator.Stream.Write(b, 0, b.Length);
-
-                Platform.Dispose(streamCalculator.Stream);
+                using (var stream = streamCalculator.Stream)
+                {
+                    stream.Write(b, 0, b.Length);
+                }
 
                 return streamCalculator.GetResult().IsVerified(sigBits.GetOctets());
             }

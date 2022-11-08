@@ -258,7 +258,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             {
                 if (this.bsStream != null)
                 {
-                    Platform.Dispose(this.bsStream);
+                    this.bsStream.Dispose();
                     this.bsStream = null;
                 }
             }

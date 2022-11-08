@@ -71,11 +71,10 @@ namespace Org.BouncyCastle.Cms
 				mac.Init(encKey);
 
 				var bOut = new MemoryStream();
-				Stream mOut = new TeeOutputStream(bOut, new MacSink(mac));
-
-				content.Write(mOut);
-
-                Platform.Dispose(mOut);
+				using (var mOut = new TeeOutputStream(bOut, new MacSink(mac)))
+				{
+					content.Write(mOut);
+				}
 
                 encContent = new BerOctetString(bOut.ToArray());
 

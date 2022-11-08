@@ -621,12 +621,13 @@ namespace Org.BouncyCastle.Cms
 			Stream			dataOutputStream,
 			CmsProcessable	content)
 		{
-			Stream signedOut = Open(outStream, eContentType, encapsulate, dataOutputStream);
-			if (content != null)
+			using (var signedOut = Open(outStream, eContentType, encapsulate, dataOutputStream))
 			{
-				content.Write(signedOut);
-			}
-            Platform.Dispose(signedOut);
+                if (content != null)
+                {
+                    content.Write(signedOut);
+                }
+            }
 		}
 
 		// RFC3852, section 5.1:
@@ -806,7 +807,7 @@ namespace Org.BouncyCastle.Cms
 
             private void DoClose()
             {
-                Platform.Dispose(_out);
+                _out.Dispose();
 
                 // TODO Parent context(s) should really be be closed explicitly
 

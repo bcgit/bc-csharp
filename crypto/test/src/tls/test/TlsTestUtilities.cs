@@ -371,13 +371,12 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal static PemObject LoadPemResource(string resource)
-           
         {
             Stream s = SimpleTest.GetTestDataAsStream("tls." + resource);
-            PemReader p = new PemReader(new StreamReader(s));
-            PemObject o = p.ReadPemObject();
-            p.Reader.Close();
-            return o;
+            using (var p = new PemReader(new StreamReader(s)))
+            {
+                return p.ReadPemObject();
+            }
         }
 
         internal static bool AreSameCertificate(TlsCrypto crypto, TlsCertificate cert, string resource)

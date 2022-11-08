@@ -253,7 +253,7 @@ namespace Org.BouncyCastle.Cms
             {
                 if (disposing)
                 {
-                    Platform.Dispose(macStream);
+                    macStream.Dispose();
 
                     // TODO Parent context(s) should really be be closed explicitly
 

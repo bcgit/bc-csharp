@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 				outputStream.Write(buf, 0, i);
 
-                generator.Close();
+                generator.Dispose();
 
                 PgpObjectFactory fact = new PgpObjectFactory(bOut.ToArray());
 

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
@@ -163,18 +162,27 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return Open(outStr, format, file.Name, file.Length, file.LastWriteTime);
         }
 
-		/// <summary>
-		/// Close the literal data packet - this is equivalent to calling Close()
-		/// on the stream returned by the Open() method.
-		/// </summary>
-        public void Close()
+        #region IDisposable
+
+        public void Dispose()
         {
-			if (pkOut != null)
-			{
-				pkOut.Finish();
-				pkOut.Flush();
-				pkOut = null;
-			}
-		}
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (pkOut != null)
+                {
+                    pkOut.Finish();
+                    pkOut.Flush();
+                    pkOut = null;
+                }
+            }
+        }
+
+        #endregion
 	}
 }

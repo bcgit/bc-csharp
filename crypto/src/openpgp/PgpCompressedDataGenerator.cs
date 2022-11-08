@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO.Compression;
 using Org.BouncyCastle.Utilities.Zlib;
 
@@ -149,21 +148,33 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
 		}
 
-		/// <summary>Close the compressed object.</summary>summary>
-		public void Close()
-		{
-			if (dOut != null)
-			{
-				if (dOut != pkOut)
-				{
-                    Platform.Dispose(dOut);
-				}
-				dOut = null;
+        #region IDisposable
 
-				pkOut.Finish();
-				pkOut.Flush();
-				pkOut = null;
-			}
-		}
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (dOut != null)
+                {
+                    if (dOut != pkOut)
+                    {
+                        dOut.Dispose();
+                    }
+                    dOut = null;
+
+                    pkOut.Finish();
+                    pkOut.Flush();
+                    pkOut = null;
+                }
+            }
+        }
+
+        #endregion
 	}
 }

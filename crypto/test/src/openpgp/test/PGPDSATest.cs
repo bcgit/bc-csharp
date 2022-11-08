@@ -321,11 +321,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 sGen.Update((byte)ch);
             }
 
-            lGen.Close();
+            lGen.Dispose();
 
             sGen.Generate().Encode(bcOut);
 
-            cGen.Close();
+            cGen.Dispose();
 
             PgpObjectFactory pgpFact = new PgpObjectFactory(bOut.ToArray());
             PgpCompressedData c1 = (PgpCompressedData)pgpFact.NextPgpObject();
@@ -446,11 +446,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 sGen.Update((byte)ch);
             }
 
-			lGen.Close();
+			lGen.Dispose();
 
 			sGen.Generate().Encode(bcOut);
 
-            cGen.Close();
+            cGen.Dispose();
 
             //
             // verify Generated signature - canconical text

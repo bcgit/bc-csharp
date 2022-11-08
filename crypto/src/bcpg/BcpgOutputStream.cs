@@ -434,7 +434,7 @@ namespace Org.BouncyCastle.Bcpg
             {
 			    this.Finish();
 			    outStr.Flush();
-                Platform.Dispose(outStr);
+                outStr.Dispose();
             }
             base.Dispose(disposing);
         }

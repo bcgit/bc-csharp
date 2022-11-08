@@ -42,11 +42,11 @@ namespace Org.BouncyCastle.Cms
             try
             {
                 MemoryStream bOut = new MemoryStream();
-                Stream zOut = Utilities.IO.Compression.ZLib.CompressOutput(bOut, -1);
 
-				content.Write(zOut);
-
-                Platform.Dispose(zOut);
+                using (var zOut = Utilities.IO.Compression.ZLib.CompressOutput(bOut, -1))
+                {
+                    content.Write(zOut);
+                }
 
                 comAlgId = new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress);
 				comOcts = new BerOctetString(bOut.ToArray());

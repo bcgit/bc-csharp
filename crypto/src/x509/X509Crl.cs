@@ -130,17 +130,15 @@ namespace Org.BouncyCastle.X509
             if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
 
-            Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
+            byte[] b = GetTbsCertList();
 
             IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
+			using (var stream = streamCalculator.Stream)
+			{
+				stream.Write(b, 0, b.Length);
+            }
 
-            byte[] b = this.GetTbsCertList();
-
-            streamCalculator.Stream.Write(b, 0, b.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
+            if (!streamCalculator.GetResult().IsVerified(GetSignature()))
                 throw new InvalidKeyException("CRL does not verify with supplied public key.");
         }
 

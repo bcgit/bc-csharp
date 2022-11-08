@@ -53,8 +53,8 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 "-----END PRIVATE KEY-----";
 
             using (var textReader = new StringReader(data))
+            using (var pemReader = new PemReader(textReader))
             {
-                var pemReader = new PemReader(textReader);
                 var pemObj = pemReader.ReadPemObject();
                 PrivateKeyFactory.CreateKey(pemObj.Content);
             }
@@ -63,35 +63,37 @@ namespace Org.BouncyCastle.OpenSsl.Tests
         public override void PerformTest()
         {
             IPasswordFinder pGet = new Password("secret".ToCharArray());
-            PemReader pemRd = OpenPemResource("test.pem", pGet);
-            AsymmetricCipherKeyPair pair;
-
-            object o;
-            while ((o = pemRd.ReadObject()) != null)
+            using (var pemRd = OpenPemResource("test.pem", pGet))
             {
-//				if (o is AsymmetricCipherKeyPair)
-//				{
-//					ackp = (AsymmetricCipherKeyPair)o;
-//
-//					Console.WriteLine(ackp.Public);
-//					Console.WriteLine(ackp.Private);
-//				}
-//				else
-//				{
-//					Console.WriteLine(o.ToString());
-//				}
+                object o;
+                while ((o = pemRd.ReadObject()) != null)
+                {
+                    //if (o is AsymmetricCipherKeyPair)
+                    //{
+                    //    ackp = (AsymmetricCipherKeyPair)o;
+
+                    //    Console.WriteLine(ackp.Public);
+                    //    Console.WriteLine(ackp.Private);
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine(o.ToString());
+                    //}
+                }
             }
 
             //
             // pkcs 7 data
             //
-            pemRd = OpenPemResource("pkcs7.pem", null);
-
-            ContentInfo d = (ContentInfo)pemRd.ReadObject();    
-    
-            if (!d.ContentType.Equals(CmsObjectIdentifiers.EnvelopedData))
+            ContentInfo d;
+            using (var pemRd = OpenPemResource("pkcs7.pem", null))
             {
-                Fail("failed envelopedData check");
+                d = (ContentInfo)pemRd.ReadObject();
+
+                if (!d.ContentType.Equals(CmsObjectIdentifiers.EnvelopedData))
+                {
+                    Fail("failed envelopedData check");
+                }
             }
 
             /*
@@ -148,7 +150,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 768,
                 25));
 
-            pair = kpGen.GenerateKeyPair();
+            AsymmetricCipherKeyPair pair = kpGen.GenerateKeyPair();
 
             keyPairTest("RSA", pair);
 
@@ -171,19 +173,20 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             // PKCS7
             //
             MemoryStream bOut = new MemoryStream();
-            PemWriter pWrt = new PemWriter(new StreamWriter(bOut));
-
-            pWrt.WriteObject(d);
-            pWrt.Writer.Close();
-
-            pemRd = new PemReader(new StreamReader(new MemoryStream(bOut.ToArray(), false)));
-            d = (ContentInfo)pemRd.ReadObject();    
-
-            if (!d.ContentType.Equals(CmsObjectIdentifiers.EnvelopedData))
+            using (var pWrt = new PemWriter(new StreamWriter(bOut)))
             {
-                Fail("failed envelopedData recode check");
+                pWrt.WriteObject(d);
             }
 
+            using (var pemRd = new PemReader(new StreamReader(new MemoryStream(bOut.ToArray(), false))))
+            {
+                d = (ContentInfo)pemRd.ReadObject();
+
+                if (!d.ContentType.Equals(CmsObjectIdentifiers.EnvelopedData))
+                {
+                    Fail("failed envelopedData recode check");
+                }
+            }
 
             // OpenSSL test cases (as embedded resources)
             doOpenSslDsaTest("unencrypted");
@@ -224,24 +227,27 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 
             // encrypted private key test
             pGet = new Password("password".ToCharArray());
-            pemRd = OpenPemResource("enckey.pem", pGet);
-
-            RsaPrivateCrtKeyParameters privKey = (RsaPrivateCrtKeyParameters)pemRd.ReadObject();
-
-            if (!privKey.PublicExponent.Equals(new BigInteger("10001", 16)))
+            using (var pemRd = OpenPemResource("enckey.pem", pGet))
             {
-                Fail("decryption of private key data check failed");
+                var privKey = (RsaPrivateCrtKeyParameters)pemRd.ReadObject();
+
+                if (!privKey.PublicExponent.Equals(new BigInteger("10001", 16)))
+                {
+                    Fail("decryption of private key data check failed");
+                }
             }
 
             // general PKCS8 test
             pGet = new Password("password".ToCharArray());
-            pemRd = OpenPemResource("pkcs8test.pem", pGet);
-
-            while ((privKey = (RsaPrivateCrtKeyParameters)pemRd.ReadObject()) != null)
+            using (var pemRd = OpenPemResource("pkcs8test.pem", pGet))
             {
-                if (!privKey.PublicExponent.Equals(new BigInteger("10001", 16)))
+                RsaPrivateCrtKeyParameters privKey;
+                while ((privKey = (RsaPrivateCrtKeyParameters)pemRd.ReadObject()) != null)
                 {
-                    Fail("decryption of private key data check failed");
+                    if (!privKey.PublicExponent.Equals(new BigInteger("10001", 16)))
+                    {
+                        Fail("decryption of private key data check failed");
+                    }
                 }
             }
         }
@@ -251,36 +257,37 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             AsymmetricCipherKeyPair	pair) 
         {
             MemoryStream bOut = new MemoryStream();
-            PemWriter pWrt = new PemWriter(new StreamWriter(bOut));
-
-            pWrt.WriteObject(pair.Public);
-            pWrt.Writer.Close();
-
-            PemReader pemRd = new PemReader(new StreamReader(new MemoryStream(bOut.ToArray(), false)));
-
-            AsymmetricKeyParameter pubK = (AsymmetricKeyParameter) pemRd.ReadObject();
-            if (!pubK.Equals(pair.Public))
+            using (var pWrt = new PemWriter(new StreamWriter(bOut)))
             {
-                Fail("Failed public key read: " + name);
+                pWrt.WriteObject(pair.Public);
+            }
+
+            using (var pemRd = new PemReader(new StreamReader(new MemoryStream(bOut.ToArray(), false))))
+            {
+                AsymmetricKeyParameter pubK = (AsymmetricKeyParameter)pemRd.ReadObject();
+                if (!pubK.Equals(pair.Public))
+                {
+                    Fail("Failed public key read: " + name);
+                }
             }
 
             bOut = new MemoryStream();
-            pWrt = new PemWriter(new StreamWriter(bOut));
-
-            pWrt.WriteObject(pair.Private);
-            pWrt.Writer.Close();
-
-            pemRd = new PemReader(new StreamReader(new MemoryStream(bOut.ToArray(), false)));
-
-            AsymmetricCipherKeyPair kPair = (AsymmetricCipherKeyPair) pemRd.ReadObject();
-            if (!kPair.Private.Equals(pair.Private))
+            using (var pWrt = new PemWriter(new StreamWriter(bOut)))
             {
-                Fail("Failed private key read: " + name);
+                pWrt.WriteObject(pair.Private);
             }
-            
-            if (!kPair.Public.Equals(pair.Public))
+
+            using (var pemRd = new PemReader(new StreamReader(new MemoryStream(bOut.ToArray(), false))))
             {
-                Fail("Failed private key public read: " + name);
+                AsymmetricCipherKeyPair kPair = (AsymmetricCipherKeyPair)pemRd.ReadObject();
+                if (!kPair.Private.Equals(pair.Private))
+                {
+                    Fail("Failed private key read: " + name);
+                }
+                if (!kPair.Public.Equals(pair.Public))
+                {
+                    Fail("Failed private key public read: " + name);
+                }
             }
         }
 
@@ -329,18 +336,19 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             string	fileName,
             Type	expectedPrivKeyType)
         {
-            PemReader pr = OpenPemResource(fileName, new Password("changeit".ToCharArray()));
-            AsymmetricCipherKeyPair kp = pr.ReadObject() as AsymmetricCipherKeyPair;
-            pr.Reader.Close();
-
-            if (kp == null)
+            using (var pr = OpenPemResource(fileName, new Password("changeit".ToCharArray())))
             {
-                Fail("Didn't find OpenSSL key");
-            }
+                AsymmetricCipherKeyPair kp = pr.ReadObject() as AsymmetricCipherKeyPair;
 
-            if (!expectedPrivKeyType.IsInstanceOfType(kp.Private))
-            {
-                Fail("Returned key not of correct type");
+                if (kp == null)
+                {
+                    Fail("Didn't find OpenSSL key");
+                }
+
+                if (!expectedPrivKeyType.IsInstanceOfType(kp.Private))
+                {
+                    Fail("Returned key not of correct type");
+                }
             }
         }
 
@@ -351,13 +359,13 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             try
             {
                 IPasswordFinder pGet = new Password(password.ToCharArray());
-                PemReader pemRd = OpenPemResource("test.pem", pGet);
-
-                object o;
-                while ((o = pemRd.ReadObject()) != null)
+                using (var pemRd = OpenPemResource("test.pem", pGet))
                 {
+                    object o;
+                    while ((o = pemRd.ReadObject()) != null)
+                    {
+                    }
                 }
-
                 Fail("issue not detected: " + index);
             }
             catch (Exception e)

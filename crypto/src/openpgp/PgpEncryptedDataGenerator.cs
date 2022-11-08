@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Org.BouncyCastle.Asn1;
+
 using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Crypto;
@@ -600,52 +600,55 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return Open(outStr, 0, buffer);
         }
 
-		/// <summary>
-		/// <p>
-		/// Close off the encrypted object - this is equivalent to calling Close() on the stream
-		/// returned by the Open() method.
-		/// </p>
-		/// <p>
-		/// <b>Note</b>: This does not close the underlying output stream, only the stream on top of
-		/// it created by the Open() method.
-		/// </p>
-		/// </summary>
-        public void Close()
+        #region IDisposable
+
+        public void Dispose()
         {
-            if (cOut != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-				// TODO Should this all be under the try/catch block?
-                if (digestOut != null)
+                if (cOut != null)
                 {
-                    //
-                    // hand code a mod detection packet
-                    //
-                    BcpgOutputStream bOut = new BcpgOutputStream(
-						digestOut, PacketTag.ModificationDetectionCode, 20);
+				    // TODO Should this all be under the try/catch block?
+                    if (digestOut != null)
+                    {
+                        //
+                        // hand code a mod detection packet
+                        //
+                        BcpgOutputStream bOut = new BcpgOutputStream(
+						    digestOut, PacketTag.ModificationDetectionCode, 20);
 
-                    bOut.Flush();
-                    digestOut.Flush();
+                        bOut.Flush();
+                        digestOut.Flush();
 
-					// TODO
-					byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
-					cOut.Write(dig, 0, dig.Length);
+					    // TODO
+					    byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
+					    cOut.Write(dig, 0, dig.Length);
+                    }
+
+				    cOut.Flush();
+
+				    try
+                    {
+					    pOut.Write(c.DoFinal());
+                        pOut.Finish();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new IOException(e.Message, e);
+                    }
+
+				    cOut = null;
+				    pOut = null;
                 }
-
-				cOut.Flush();
-
-				try
-                {
-					pOut.Write(c.DoFinal());
-                    pOut.Finish();
-                }
-                catch (Exception e)
-                {
-                    throw new IOException(e.Message, e);
-                }
-
-				cOut = null;
-				pOut = null;
             }
-		}
+        }
+
+        #endregion
 	}
 }

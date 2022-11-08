@@ -67,11 +67,10 @@ namespace Org.BouncyCastle.Cms
 				cipher.Init(true, new ParametersWithRandom(cipherParameters, m_random));
 
 				MemoryStream bOut = new MemoryStream();
-				CipherStream cOut = new CipherStream(bOut, null, cipher);
-
-				content.Write(cOut);
-
-                Platform.Dispose(cOut);
+                using (var cOut = new CipherStream(bOut, null, cipher))
+                {
+                    content.Write(cOut);
+                }
 
                 encContent = new BerOctetString(bOut.ToArray());
 			}
@@ -159,9 +158,12 @@ namespace Org.BouncyCastle.Cms
                 encKey = (KeyParameter) cipherBuilder.Key;
 
                 MemoryStream collector = new MemoryStream();
-                Stream bOut = cipherBuilder.BuildCipher(collector).Stream;            
-                content.Write(bOut);  
-                Platform.Dispose(bOut);                            
+                var cipher = cipherBuilder.BuildCipher(collector);
+                using (var bOut = cipher.Stream)
+                {
+                    content.Write(bOut);
+                }
+
                 encContent = new BerOctetString(collector.ToArray());
             }
             catch (SecurityUtilityException e)

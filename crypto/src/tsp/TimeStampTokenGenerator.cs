@@ -81,12 +81,14 @@ namespace Org.BouncyCastle.Tsp
 
             try
             {
-                IStreamCalculator<IBlockResult> calculator = digestCalculator.CreateCalculator();
-                Stream stream = calculator.Stream;
                 byte[] certEnc = assocCert.GetEncoded();
-                stream.Write(certEnc, 0, certEnc.Length);
-                stream.Flush();
-                Platform.Dispose(stream);
+
+                IStreamCalculator<IBlockResult> calculator = digestCalculator.CreateCalculator();
+
+                using (var stream = calculator.Stream)
+                {
+                    stream.Write(certEnc, 0, certEnc.Length);
+                }
 
                 if (((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm.Equals(OiwObjectIdentifiers.IdSha1))
                 {

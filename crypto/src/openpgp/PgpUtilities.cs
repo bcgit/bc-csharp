@@ -449,8 +449,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 Array.Clear(buf, 0, buf.Length);
 
-                Platform.Dispose(pOut);
-                Platform.Dispose(inputStream);
+                pOut.Dispose();
+                inputStream.Dispose();
             }
         }
 

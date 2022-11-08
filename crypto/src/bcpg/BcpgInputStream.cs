@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (disposing)
             {
-                Platform.Dispose(m_in);
+                m_in.Dispose();
             }
             base.Dispose(disposing);
         }

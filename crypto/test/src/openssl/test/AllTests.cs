@@ -44,23 +44,24 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 
 		private void EncryptedTest(AsymmetricKeyParameter privKey, string algorithm)
 		{
-			StringWriter sw = new StringWriter();
-			PemWriter pWrt = new PemWriter(sw);
 			Pkcs8Generator pkcs8 = new Pkcs8Generator(privKey, algorithm);
 			pkcs8.Password = "hello".ToCharArray();
 
-			pWrt.WriteObject(pkcs8);
-			pWrt.Writer.Close();
+            StringWriter sw = new StringWriter();
+			using (var pWrt = new PemWriter(sw))
+			{
+                pWrt.WriteObject(pkcs8);
+            }
 
 			string result = sw.ToString();
 
-			PemReader pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray()));
+			using (var pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray())))
+			{
+                AsymmetricKeyParameter rdKey = (AsymmetricKeyParameter)pRd.ReadObject();
 
-			AsymmetricKeyParameter rdKey = (AsymmetricKeyParameter)pRd.ReadObject();
-			pRd.Reader.Close();
-
-			Assert.AreEqual(privKey, rdKey);
-		}
+                Assert.AreEqual(privKey, rdKey);
+            }
+        }
 
 		[Test]
 		public void TestPkcs8Plain()
@@ -69,22 +70,22 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			kpGen.Init(new KeyGenerationParameters(new SecureRandom(), 1024));
 
 			AsymmetricKeyParameter privKey = kpGen.GenerateKeyPair().Private;
+            Pkcs8Generator pkcs8 = new Pkcs8Generator(privKey);
 
-			StringWriter sw = new StringWriter();
-			PemWriter pWrt = new PemWriter(sw);
-
-			Pkcs8Generator pkcs8 = new Pkcs8Generator(privKey);
-			pWrt.WriteObject(pkcs8);
-			pWrt.Writer.Close();
+            StringWriter sw = new StringWriter();
+			using (var pWrt = new PemWriter(sw))
+			{
+                pWrt.WriteObject(pkcs8);
+            }
 
 			string result = sw.ToString();
 
-			PemReader pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray()));
+			using (var pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray())))
+			{
+                AsymmetricKeyParameter rdKey = (AsymmetricKeyParameter)pRd.ReadObject();
 
-			AsymmetricKeyParameter rdKey = (AsymmetricKeyParameter)pRd.ReadObject();
-			pRd.Reader.Close();
-
-			Assert.AreEqual(privKey, rdKey);
-		}
+                Assert.AreEqual(privKey, rdKey);
+            }
+        }
 	}
 }

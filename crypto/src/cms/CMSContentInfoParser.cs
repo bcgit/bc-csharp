@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public void Close()
 		{
-            Platform.Dispose(this.data);
+            data.Dispose();
 		}
 	}
 }

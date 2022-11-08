@@ -2158,7 +2158,7 @@ namespace Org.BouncyCastle.Tls
 
             buf.CopyInputTo(output);
 
-            Platform.Dispose(output);
+            output.Dispose();
         }
 
         internal static DigitallySigned GenerateCertificateVerifyClient(TlsClientContext clientContext,

@@ -192,9 +192,10 @@ namespace Org.BouncyCastle.X509
 			{
                 byte[] b = this.cert.ACInfo.GetEncoded();
 
-                streamCalculator.Stream.Write(b, 0, b.Length);
-
-                Platform.Dispose(streamCalculator.Stream);
+				using (var stream = streamCalculator.Stream)
+				{
+                    stream.Write(b, 0, b.Length);
+                }
             }
 			catch (IOException e)
 			{

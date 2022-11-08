@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 				sGen.Update((byte)ch);
 			}
 
-			lGen.Close();
+			lGen.Dispose();
 
 			sGen.Generate().Encode(bcOut);
 

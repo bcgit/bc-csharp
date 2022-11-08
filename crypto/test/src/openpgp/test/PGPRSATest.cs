@@ -363,7 +363,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             lOut.Write(text, 0, text.Length);
 
-            lGen.Close();
+            lGen.Dispose();
 
             byte[] bytes = bOut.ToArray();
 

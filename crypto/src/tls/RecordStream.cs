@@ -359,7 +359,7 @@ namespace Org.BouncyCastle.Tls
             IOException io = null;
             try
             {
-                Platform.Dispose(m_input);
+                m_input.Dispose();
             }
             catch (IOException e)
             {
@@ -368,7 +368,7 @@ namespace Org.BouncyCastle.Tls
 
             try
             {
-                Platform.Dispose(m_output);
+                m_output.Dispose();
             }
             catch (IOException e)
             {

@@ -507,7 +507,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (disposing)
             {
-                Platform.Dispose(input);
+                input.Dispose();
             }
             base.Dispose(disposing);
         }

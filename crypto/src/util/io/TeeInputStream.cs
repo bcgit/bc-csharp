@@ -22,8 +22,8 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             if (disposing)
             {
-                Platform.Dispose(input);
-                Platform.Dispose(tee);
+                input.Dispose();
+                tee.Dispose();
             }
             base.Dispose(disposing);
         }

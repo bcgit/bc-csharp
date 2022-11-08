@@ -6,8 +6,8 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
-
 	public class PemReader
+		: IDisposable
 	{		
 		private readonly TextReader reader;
 		private readonly MemoryStream buffer;
@@ -17,17 +17,30 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
 		public PemReader(TextReader reader)
 		{
-			if (reader == null)
-				throw new ArgumentNullException("reader");
-
-
-			buffer = new MemoryStream();
-			textBuffer = new StreamWriter(buffer);
-
-			this.reader = reader;
+			this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
+            this.buffer = new MemoryStream();
+            this.textBuffer = new StreamWriter(buffer);
 		}
 
-		public TextReader Reader
+        #region IDisposable
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                reader.Dispose();
+            }
+        }
+
+        #endregion
+
+        public TextReader Reader
 		{
 			get { return reader; }
 		}

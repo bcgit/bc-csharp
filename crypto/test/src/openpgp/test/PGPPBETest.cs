@@ -194,7 +194,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
 			cOut.Write(bOutData, 0, bOutData.Length);
 
-			cPk.Close();
+			cPk.Dispose();
 
 			data = DecryptMessage(cbOut.ToArray());
 
@@ -226,9 +226,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 new byte[16]);
 
             ldOut.Write(test, 0, test.Length);
-            lData.Close();
+            lData.Dispose();
 
-			comData.Close();
+			comData.Dispose();
             cbOut = new UncloseableMemoryStream();
             cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, rand);
@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 cOut.Write(tmp, 0, tmp.Length);
             }
 
-			cPk.Close();
+			cPk.Dispose();
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, test))
@@ -261,7 +261,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
             bOutData = bOut.ToArray();
             cOut.Write(bOutData, 0, bOutData.Length);
-            cPk.Close();
+            cPk.Dispose();
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, test))

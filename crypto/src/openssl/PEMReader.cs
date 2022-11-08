@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.OpenSsl
     * Certificates will be returned using the appropriate java.security type.</p>
     */
     public class PemReader
-        : Org.BouncyCastle.Utilities.IO.Pem.PemReader
+        : Utilities.IO.Pem.PemReader
     {
         //private static readonly Dictionary<string, PemObjectParser> Parsers = new Dictionary<string, PemObjectParser>();
 

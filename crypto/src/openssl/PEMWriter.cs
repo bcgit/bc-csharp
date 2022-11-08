@@ -23,8 +23,8 @@ namespace Org.BouncyCastle.OpenSsl
 			}
 			catch (PemGenerationException e)
 			{
-				if (e.InnerException is IOException)
-					throw (IOException)e.InnerException;
+				if (e.InnerException is IOException inner)
+					throw inner;
 
 				throw e;
 			}

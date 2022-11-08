@@ -157,11 +157,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 				sGen.Update((byte) ch);
 			}
 
-			lGen.Close();
+			lGen.Dispose();
 
 			sGen.Generate().Encode(bcOut);
 
-			cGen.Close();
+			cGen.Dispose();
 
 			//
 			// verify Generated signature

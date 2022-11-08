@@ -268,7 +268,7 @@ namespace Org.BouncyCastle.Crypto.IO
                     m_stream.Write(data, 0, data.Length);
 #endif
 			    }
-                Platform.Dispose(m_stream);
+                m_stream.Dispose();
             }
             base.Dispose(disposing);
         }

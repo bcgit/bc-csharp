@@ -126,9 +126,10 @@ namespace Org.BouncyCastle.Cmp
             avec.Add(m_pkiMessage.Body);
             byte[] enc = new DerSequence(avec).GetDerEncoded();
 
-            streamCalculator.Stream.Write(enc, 0, enc.Length);
-            streamCalculator.Stream.Flush();
-            Platform.Dispose(streamCalculator.Stream);
+            using (var stream = streamCalculator.Stream)
+            {
+                stream.Write(enc, 0, enc.Length);
+            }
 
             return streamCalculator.GetResult();
         }
