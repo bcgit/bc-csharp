@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             //
             // Signature test
             //
-            PicnicSigner signer = new PicnicSigner(random);
+            PicnicSigner signer = new PicnicSigner();
 
             signer.Init(true, privParams);
             byte[] sigGenerated = signer.GenerateSignature(msg);
