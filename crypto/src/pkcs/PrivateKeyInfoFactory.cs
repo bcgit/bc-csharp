@@ -21,12 +21,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkcs
 {
-    public sealed class PrivateKeyInfoFactory
+    public static class PrivateKeyInfoFactory
     {
-        private PrivateKeyInfoFactory()
-        {
-        }
-
         public static PrivateKeyInfo CreatePrivateKeyInfo(
             AsymmetricKeyParameter privateKey)
         {
