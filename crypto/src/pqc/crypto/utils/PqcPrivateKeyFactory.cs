@@ -24,7 +24,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public static class PrivateKeyFactory
+    public static class PqcPrivateKeyFactory
     {
         /// <summary> Create a private key parameter from a PKCS8 PrivateKeyInfo encoding.</summary>
         /// <param name="privateKeyInfoData"> the PrivateKeyInfo encoding</param>

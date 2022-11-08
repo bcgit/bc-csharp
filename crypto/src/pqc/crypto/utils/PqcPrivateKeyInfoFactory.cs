@@ -20,7 +20,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public static class PrivateKeyInfoFactory
+    public static class PqcPrivateKeyInfoFactory
     {
         /// <summary> Create a PrivateKeyInfo representation of a private key.</summary>
         /// <param name="privateKey"> the key to be encoded into the info object.</param>

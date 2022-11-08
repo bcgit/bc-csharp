@@ -8,7 +8,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
@@ -25,12 +24,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
-    public static class PublicKeyFactory
+    public static class PqcPublicKeyFactory
     {
         private static Dictionary<DerObjectIdentifier, SubjectPublicKeyInfoConverter> Converters =
             new Dictionary<DerObjectIdentifier, SubjectPublicKeyInfoConverter>();
 
-        static PublicKeyFactory()
+        static PqcPublicKeyFactory()
         {
             Converters[PkcsObjectIdentifiers.IdAlgHssLmsHashsig] = new LmsConverter();
 

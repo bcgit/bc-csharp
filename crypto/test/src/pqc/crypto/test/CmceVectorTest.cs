@@ -9,10 +9,10 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
-using PrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PrivateKeyFactory;
-using PrivateKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PrivateKeyInfoFactory;
-using PublicKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PublicKeyFactory;
-using SubjectPublicKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.SubjectPublicKeyInfoFactory;
+using PqcPrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyFactory;
+using PqcPrivateKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyInfoFactory;
+using PqcPublicKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPublicKeyFactory;
+using PqcSubjectPublicKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcSubjectPublicKeyInfoFactory;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -100,8 +100,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             kpGen.Init(genParam);
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            CmcePublicKeyParameters pubParams = (CmcePublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((CmcePublicKeyParameters)kp.Public));
-            CmcePrivateKeyParameters privParams = (CmcePrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo((CmcePrivateKeyParameters)kp.Private));
+            CmcePublicKeyParameters pubParams = (CmcePublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((CmcePublicKeyParameters)kp.Public));
+            CmcePrivateKeyParameters privParams = (CmcePrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((CmcePrivateKeyParameters)kp.Private));
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), name + " " + count + ": secret key");

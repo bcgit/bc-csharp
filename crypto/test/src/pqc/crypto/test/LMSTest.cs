@@ -8,8 +8,8 @@ using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
-using PrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PrivateKeyFactory;
-using PrivateKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PrivateKeyInfoFactory;
+using PqcPrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyFactory;
+using PqcPrivateKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyInfoFactory;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -102,8 +102,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             Assert.True(signer.VerifySignature(msg1, sig1));
 
-            PrivateKeyInfo pInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);//TODO
-            AsymmetricKeyParameter pKey = PrivateKeyFactory.CreateKey(pInfo.GetEncoded());
+            PrivateKeyInfo pInfo = PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);//TODO
+            AsymmetricKeyParameter pKey = PqcPrivateKeyFactory.CreateKey(pInfo.GetEncoded());
 
             signer.Init(false, ((LmsPrivateKeyParameters)pKey).GetPublicKey());
 

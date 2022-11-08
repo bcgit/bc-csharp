@@ -78,10 +78,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             kpGen.Init(genParam);
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            SaberPublicKeyParameters pubParams = (SaberPublicKeyParameters)PublicKeyFactory.CreateKey(
-                    SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((SaberPublicKeyParameters)kp.Public));
-            SaberPrivateKeyParameters privParams = (SaberPrivateKeyParameters)PrivateKeyFactory.CreateKey(
-                    PrivateKeyInfoFactory.CreatePrivateKeyInfo((SaberPrivateKeyParameters)kp.Private));
+            SaberPublicKeyParameters pubParams = (SaberPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                    PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((SaberPublicKeyParameters)kp.Public));
+            SaberPrivateKeyParameters privParams = (SaberPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                    PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((SaberPrivateKeyParameters)kp.Private));
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), name + " " + count + ": secret key");

@@ -62,8 +62,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             kpGen.Init(genParam);
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            HqcPublicKeyParameters pubParams = (HqcPublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((HqcPublicKeyParameters) kp.Public));
-            HqcPrivateKeyParameters privParams = (HqcPrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo((HqcPrivateKeyParameters) kp.Private));
+            HqcPublicKeyParameters pubParams = (HqcPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((HqcPublicKeyParameters) kp.Public));
+            HqcPrivateKeyParameters privParams = (HqcPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((HqcPrivateKeyParameters) kp.Private));
                            
             Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), name + " " + count + ": secret key");

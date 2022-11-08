@@ -16,8 +16,8 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
-using PrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PrivateKeyFactory;
-using PublicKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PublicKeyFactory;
+using PqcPrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyFactory;
+using PqcPublicKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPublicKeyFactory;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -122,11 +122,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.Parameters.GetEncoded(), Hex.Decode("3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.Parameters.GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4792f267aafa3f87ca60d01cb54f29202a3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), privParams.GetEncoded()));
 
-            SubjectPublicKeyInfo pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams);
-            PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams);
+            SubjectPublicKeyInfo pubInfo = PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams);
+            PrivateKeyInfo privInfo = PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams);
 
-            pubParams = (SphincsPlusPublicKeyParameters)PublicKeyFactory.CreateKey(pubInfo.GetEncoded());
-            privParams = (SphincsPlusPrivateKeyParameters)PrivateKeyFactory.CreateKey(privInfo.GetEncoded());
+            pubParams = (SphincsPlusPublicKeyParameters)PqcPublicKeyFactory.CreateKey(pubInfo.GetEncoded());
+            privParams = (SphincsPlusPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(privInfo.GetEncoded());
 
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.Parameters.GetEncoded(), Hex.Decode("3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.Parameters.GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4792f267aafa3f87ca60d01cb54f29202a3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), privParams.GetEncoded()));

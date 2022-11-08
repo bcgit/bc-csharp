@@ -65,8 +65,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
 
-            PicnicPublicKeyParameters pubParams = (PicnicPublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            PicnicPrivateKeyParameters privParams = (PicnicPrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
+            PicnicPublicKeyParameters pubParams = (PicnicPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            PicnicPrivateKeyParameters privParams = (PicnicPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");

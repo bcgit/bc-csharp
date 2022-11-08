@@ -80,10 +80,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
             // todo
-            SikePublicKeyParameters pubParams = (SikePublicKeyParameters)PublicKeyFactory.CreateKey(
-                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            SikePrivateKeyParameters privParams = (SikePrivateKeyParameters)PrivateKeyFactory.CreateKey(
-                PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
+            SikePublicKeyParameters pubParams = (SikePublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            SikePrivateKeyParameters privParams = (SikePrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
             // SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)kp.Public;
             // SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)kp.Private;

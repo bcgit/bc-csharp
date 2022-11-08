@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
     /// <summary>
     /// A factory to produce Public Key Info Objects.
     /// </summary>
-    public static class SubjectPublicKeyInfoFactory
+    public static class PqcSubjectPublicKeyInfoFactory
     {
         /// <summary>
         /// Create a Subject Public Key Info object for a given public key.
