@@ -1,5 +1,3 @@
-
-using System;
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic

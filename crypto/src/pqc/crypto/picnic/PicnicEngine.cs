@@ -265,9 +265,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
 
             // calculated depending on above parameters
-            andSizeBytes = Utils.NumBytes(numSboxes * 3 * numRounds);
-            stateSizeBytes = Utils.NumBytes(stateSizeBits);
-            seedSizeBytes = Utils.NumBytes(2 * pqSecurityLevel);
+            andSizeBytes = PicnicUtilities.NumBytes(numSboxes * 3 * numRounds);
+            stateSizeBytes = PicnicUtilities.NumBytes(stateSizeBits);
+            seedSizeBytes = PicnicUtilities.NumBytes(2 * pqSecurityLevel);
             stateSizeWords = (stateSizeBits + WORD_SIZE_BITS - 1) / WORD_SIZE_BITS;
 
             switch (parameters)
@@ -418,11 +418,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 viewOutputs[i][(challenge + 2) % 3] = view3Output;
             }
 
-            computed_challengebits = new byte[Utils.NumBytes(2 * numMPCRounds)];
+            computed_challengebits = new byte[PicnicUtilities.NumBytes(2 * numMPCRounds)];
 
             H3(pubKey, plaintext, viewOutputs, AS, computed_challengebits, sig.salt, message, gs);
 
-            if (!SubarrayEquals(received_challengebits, computed_challengebits, Utils.NumBytes(2 * numMPCRounds)))
+            if (!SubarrayEquals(received_challengebits, computed_challengebits, PicnicUtilities.NumBytes(2 * numMPCRounds)))
             {
                 Console.Error.Write(("Invalid signature. Did not verify\n"));
                 status = -1;
@@ -520,12 +520,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             Pack.UInt32_To_LE(view1.inputShare, view_bytes, 0);
             Arrays.Fill(view_bytes, stateSizeBytes, view_bytes.Length,
                 (byte) 0); //todo have correct size: reduce view.inputshare by /4
-            Utils.ZeroTrailingBits(view_bytes, stateSizeBits);
+            PicnicUtilities.ZeroTrailingBits(view_bytes, stateSizeBits);
             Pack.LE_To_UInt32(view_bytes, 0, view1.inputShare);
 
             Pack.UInt32_To_LE(view2.inputShare, view_bytes, 0);
             Arrays.Fill(view_bytes, stateSizeBytes, view_bytes.Length, (byte) 0);
-            Utils.ZeroTrailingBits(view_bytes, stateSizeBits);
+            PicnicUtilities.ZeroTrailingBits(view_bytes, stateSizeBits);
 
             Pack.LE_To_UInt32(view_bytes, 0, view2.inputShare);
 
@@ -535,7 +535,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private void mpc_LowMC_verify(View view1, View view2, Tape tapes, uint[] tmp, uint[] plaintext,  int challenge)
         {
-            Utils.Fill(tmp, 0, tmp.Length, 0);
+            PicnicUtilities.Fill(tmp, 0, tmp.Length, 0);
 
             mpc_xor_constant_verify(tmp, plaintext, 0, stateSizeWords, challenge);
 
@@ -591,9 +591,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = 0; j < 2; j++)
                 {
                     stateOffset = ((2 + j) * stateSizeWords) * 32;
-                    a[j] = Utils.GetBitFromWordArray(state, stateOffset + i + 2);
-                    b[j] = Utils.GetBitFromWordArray(state, stateOffset + i + 1);
-                    c[j] = Utils.GetBitFromWordArray(state, stateOffset + i);
+                    a[j] = PicnicUtilities.GetBitFromWordArray(state, stateOffset + i + 2);
+                    b[j] = PicnicUtilities.GetBitFromWordArray(state, stateOffset + i + 1);
+                    c[j] = PicnicUtilities.GetBitFromWordArray(state, stateOffset + i);
                 }
 
                 mpc_AND_verify(a, b, ab, rand, view1, view2);
@@ -603,20 +603,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = 0; j < 2; j++)
                 {
                     stateOffset = ((2 + j) * stateSizeWords) * 32;
-                    Utils.SetBitInWordArray(state, stateOffset + i + 2, a[j] ^ (bc[j]));
-                    Utils.SetBitInWordArray(state, stateOffset + i + 1, a[j] ^ b[j] ^ (ca[j]));
-                    Utils.SetBitInWordArray(state, stateOffset + i, a[j] ^ b[j] ^ c[j] ^ (ab[j]));
+                    PicnicUtilities.SetBitInWordArray(state, stateOffset + i + 2, a[j] ^ (bc[j]));
+                    PicnicUtilities.SetBitInWordArray(state, stateOffset + i + 1, a[j] ^ b[j] ^ (ca[j]));
+                    PicnicUtilities.SetBitInWordArray(state, stateOffset + i, a[j] ^ b[j] ^ c[j] ^ (ab[j]));
                 }
             }
         }
 
         private void mpc_AND_verify(uint[] in1, uint[] in2, uint[] output, Tape rand, View view1, View view2)
         {
-            uint[] r = {Utils.GetBit(rand.tapes[0], rand.pos), Utils.GetBit(rand.tapes[1], rand.pos)};
+            uint[] r = {PicnicUtilities.GetBit(rand.tapes[0], rand.pos), PicnicUtilities.GetBit(rand.tapes[1], rand.pos)};
 
             output[0] = (in1[0] & in2[1]) ^ (in1[1] & in2[0]) ^ (in1[0] & in2[0]) ^ r[0] ^ r[1];
-            Utils.SetBit(view1.communicatedBits, rand.pos, (byte) (output[0] & 0xff));
-            output[1] = Utils.GetBit(view2.communicatedBits, rand.pos);
+            PicnicUtilities.SetBit(view1.communicatedBits, rand.pos, (byte) (output[0] & 0xff));
+            output[1] = PicnicUtilities.GetBit(view2.communicatedBits, rand.pos);
 
             rand.pos++;
         }
@@ -651,14 +651,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             byte[] challengeBits = sig.challengeBits;
 
             /* Validate input buffer is large enough */
-            if (sigBytesLen < Utils.NumBytes(2 * numMPCRounds))
+            if (sigBytesLen < PicnicUtilities.NumBytes(2 * numMPCRounds))
             {
                 /* ensure the input has at least the challenge */
                 return -1;
             }
 
             int inputShareSize = ComputeInputShareSize(sigBytes, stateSizeBytes);
-            int bytesExpected = Utils.NumBytes(2 * numMPCRounds) + saltSizeBytes +
+            int bytesExpected = PicnicUtilities.NumBytes(2 * numMPCRounds) + saltSizeBytes +
                                 numMPCRounds * (2 * seedSizeBytes + andSizeBytes + digestSizeBytes) + inputShareSize;
 
             if (transform == TRANSFORM_UR)
@@ -671,8 +671,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 return -1;
             }
 
-            Array.Copy(sigBytes, sigBytesOffset, challengeBits, 0, Utils.NumBytes(2 * numMPCRounds));
-            sigBytesOffset += Utils.NumBytes(2 * numMPCRounds);
+            Array.Copy(sigBytes, sigBytesOffset, challengeBits, 0, PicnicUtilities.NumBytes(2 * numMPCRounds));
+            sigBytesOffset += PicnicUtilities.NumBytes(2 * numMPCRounds);
 
             if (!IsChallengeValid(challengeBits))
             {
@@ -1071,10 +1071,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private bool ArePaddingBitsZero(byte[] data, int bitLength)
         {
-            int byteLength = Utils.NumBytes(bitLength);
+            int byteLength = PicnicUtilities.NumBytes(bitLength);
             for (int i = bitLength; i < byteLength * 8; i++)
             {
-                 uint bit_i = Utils.GetBit(data, i);
+                 uint bit_i = PicnicUtilities.GetBit(data, i);
                 if (bit_i != 0)
                 {
                     return false;
@@ -1146,7 +1146,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             byte[] challengeBits = sig.challengeBits;
 
             /* Validate input buffer is large enough */
-            int bytesRequired = Utils.NumBytes(2 * numMPCRounds) + saltSizeBytes +
+            int bytesRequired = PicnicUtilities.NumBytes(2 * numMPCRounds) + saltSizeBytes +
                                 numMPCRounds * (2 * seedSizeBytes + stateSizeBytes + andSizeBytes + digestSizeBytes);
 
             if (transform == TRANSFORM_UR)
@@ -1161,8 +1161,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             int sigByteIndex = sigOffset;
 
-            Array.Copy(challengeBits, 0, sigBytes, sigByteIndex, Utils.NumBytes(2 * numMPCRounds));
-            sigByteIndex += Utils.NumBytes(2 * numMPCRounds);
+            Array.Copy(challengeBits, 0, sigBytes, sigByteIndex, PicnicUtilities.NumBytes(2 * numMPCRounds));
+            sigByteIndex += PicnicUtilities.NumBytes(2 * numMPCRounds);
 
             Array.Copy(sig.salt, 0, sigBytes, sigByteIndex, saltSizeBytes);
 
@@ -1204,7 +1204,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private int GetChallenge(byte[] challenge, int round)
         {
-            return (Utils.GetBit(challenge, 2 * round + 1) << 1) | Utils.GetBit(challenge, 2 * round);
+            return (PicnicUtilities.GetBit(challenge, 2 * round + 1) << 1) | PicnicUtilities.GetBit(challenge, 2 * round);
         }
 
         private int SerializeSignature2(Signature2 sig, byte[] sigBytes, int sigOffset)
@@ -1342,7 +1342,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                     }
 
                     Array.Copy(tmp, 0, view_byte, 0, stateSizeBytes);
-                    Utils.ZeroTrailingBits(view_byte, stateSizeBits);
+                    PicnicUtilities.ZeroTrailingBits(view_byte, stateSizeBits);
                     Pack.LE_To_UInt32(view_byte, 0, views[k][j].inputShare);
                     Array.Copy(tmp, stateSizeBytes, tape.tapes[j], 0, andSizeBytes);
                 }
@@ -1462,7 +1462,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             /* Depending on the number of rounds, we might not set part of the last
              * byte, make sure it's always zero. */
-            challengeBits[Utils.NumBytes(numMPCRounds * 2) - 1] = 0;
+            challengeBits[PicnicUtilities.NumBytes(numMPCRounds * 2) - 1] = 0;
 
             digest.Update((byte) 1);
 
@@ -1555,8 +1555,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             /* challenge must have length numBytes(numMPCRounds*2)
              * 0 <= index < numMPCRounds
              * trit must be in {0,1,2} */
-            Utils.SetBit(challenge, 2 * round, (byte) (trit & 1));
-            Utils.SetBit(challenge, 2 * round + 1, (byte) ((trit >> 1) & 1));
+            PicnicUtilities.SetBit(challenge, 2 * round, (byte) (trit & 1));
+            PicnicUtilities.SetBit(challenge, 2 * round + 1, (byte) ((trit >> 1) & 1));
         }
 
         /* This is the random "permuatation" function G for Unruh's transform */
@@ -1585,7 +1585,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private void mpc_LowMC(Tape tapes, View[] views, uint[] plaintext, uint[] slab)
         {
-            Utils.Fill(slab, 0, slab.Length, 0);
+            PicnicUtilities.Fill(slab, 0, slab.Length, 0);
 
             mpc_xor_constant(slab, 3 * stateSizeWords, plaintext, 0, stateSizeWords);
 
@@ -1660,9 +1660,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = 0; j < 3; j++)
                 {
                     stateOffset = ((3 + j) * stateSizeWords) * 32;
-                    a[j] = Utils.GetBitFromWordArray(state, stateOffset + i + 2);
-                    b[j] = Utils.GetBitFromWordArray(state, stateOffset + i + 1);
-                    c[j] = Utils.GetBitFromWordArray(state, stateOffset + i);
+                    a[j] = PicnicUtilities.GetBitFromWordArray(state, stateOffset + i + 2);
+                    b[j] = PicnicUtilities.GetBitFromWordArray(state, stateOffset + i + 1);
+                    c[j] = PicnicUtilities.GetBitFromWordArray(state, stateOffset + i);
                 }
 
                 mpc_AND(a, b, ab, rand, views);
@@ -1672,9 +1672,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = 0; j < 3; j++)
                 {
                     stateOffset = ((3 + j) * stateSizeWords) * 32;
-                    Utils.SetBitInWordArray(state, stateOffset + i + 2, a[j] ^ (bc[j]));
-                    Utils.SetBitInWordArray(state, stateOffset + i + 1, a[j] ^ b[j] ^ (ca[j]));
-                    Utils.SetBitInWordArray(state, stateOffset + i, a[j] ^ b[j] ^ c[j] ^ (ab[j]));
+                    PicnicUtilities.SetBitInWordArray(state, stateOffset + i + 2, a[j] ^ (bc[j]));
+                    PicnicUtilities.SetBitInWordArray(state, stateOffset + i + 1, a[j] ^ b[j] ^ (ca[j]));
+                    PicnicUtilities.SetBitInWordArray(state, stateOffset + i, a[j] ^ b[j] ^ c[j] ^ (ab[j]));
                 }
             }
         }
@@ -1684,9 +1684,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             uint[] r = new uint[]
             {
-                Utils.GetBit(rand.tapes[0], rand.pos),
-                Utils.GetBit(rand.tapes[1], rand.pos),
-                Utils.GetBit(rand.tapes[2], rand.pos)
+                PicnicUtilities.GetBit(rand.tapes[0], rand.pos),
+                PicnicUtilities.GetBit(rand.tapes[1], rand.pos),
+                PicnicUtilities.GetBit(rand.tapes[2], rand.pos)
             };
 
             for (int i = 0; i < 3; i++)
@@ -1695,7 +1695,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 (in1[i] & in2[(i + 1) % 3]) ^ (in1[(i + 1) % 3] & in2[i])
                                             ^ (in1[i] & in2[i]) ^ r[i] ^ r[(i + 1) % 3];
 
-                Utils.SetBit(views[i].communicatedBits, rand.pos, (byte) (output[i] & 0xff));
+                PicnicUtilities.SetBit(views[i].communicatedBits, rand.pos, (byte) (output[i] & 0xff));
             }
 
             rand.pos++;
@@ -1980,7 +1980,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 chunks[i] = 0;
                 for (int j = 0; j < chunkLenBits; j++)
                 {
-                    chunks[i] += (uint) (Utils.GetBit(input, i * chunkLenBits + j) << j);
+                    chunks[i] += (uint) (PicnicUtilities.GetBit(input, i * chunkLenBits + j) << j);
                 }
             }
 
@@ -2010,8 +2010,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         private void ExpandChallengeHash(byte[] challengeHash, uint[] challengeC, uint[] challengeP)
         {
             // Populate C
-            uint bitsPerChunkC = Utils.ceil_log2((uint)numMPCRounds);
-            uint bitsPerChunkP = Utils.ceil_log2((uint)numMPCParties);
+            uint bitsPerChunkC = PicnicUtilities.ceil_log2((uint)numMPCRounds);
+            uint bitsPerChunkP = PicnicUtilities.ceil_log2((uint)numMPCParties);
             uint[] chunks = new uint[digestSizeBytes * 8 / System.Math.Min(bitsPerChunkC, bitsPerChunkP)];
             byte[] h = new byte[MAX_DIGEST_SIZE];
 
@@ -2080,7 +2080,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.BlockUpdate(input, 0, stateSizeBytes);
             for (int i = 0; i < numMPCParties; i++)
             {
-                int msgs_size = Utils.NumBytes(msg.pos);
+                int msgs_size = PicnicUtilities.NumBytes(msg.pos);
                 digest.BlockUpdate(msg.msgs[i], 0, msgs_size);
             }
 
@@ -2175,8 +2175,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             for (int i = 0; i < numMPCParties; i++)
             {
-                 uint w_i = Utils.GetBit(Pack.UInt32_To_LE(w), i);
-                Utils.SetBit(msg.msgs[i], msg.pos, (byte) (w_i & 0xff));
+                 uint w_i = PicnicUtilities.GetBit(Pack.UInt32_To_LE(w), i);
+                PicnicUtilities.SetBit(msg.msgs[i], msg.pos, (byte) (w_i & 0xff));
             }
 
             msg.pos++;
@@ -2191,27 +2191,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             if (msg.unopened >= 0)
             {
-                 uint unopenedPartyBit = Utils.GetBit(msg.msgs[msg.unopened], msg.pos);
-                Utils.SetBit(temp, msg.unopened, (byte) (unopenedPartyBit & 0xff));
+                 uint unopenedPartyBit = PicnicUtilities.GetBit(msg.msgs[msg.unopened], msg.pos);
+                PicnicUtilities.SetBit(temp, msg.unopened, (byte) (unopenedPartyBit & 0xff));
                 s_shares = Pack.LE_To_UInt32(temp, 0);
             }
 
             // Broadcast each share of s
             WordToMsgs(s_shares, msg);
-            return Utils.Parity16(s_shares) ^ (a & b);
+            return PicnicUtilities.Parity16(s_shares) ^ (a & b);
         }
 
         private void mpc_sbox(uint[] state, uint[] state_masks, Tape tape, Msg msg)
         {
             for (int i = 0; i < numSboxes * 3; i += 3)
             {
-                uint a = Utils.GetBitFromWordArray(state, i + 2);
+                uint a = PicnicUtilities.GetBitFromWordArray(state, i + 2);
                 uint mask_a = state_masks[i + 2];
 
-                uint b = Utils.GetBitFromWordArray(state, i + 1);
+                uint b = PicnicUtilities.GetBitFromWordArray(state, i + 1);
                 uint mask_b = state_masks[i + 1];
 
-                uint c = Utils.GetBitFromWordArray(state, i);
+                uint c = PicnicUtilities.GetBitFromWordArray(state, i);
                 uint mask_c = state_masks[i];
 
                 uint ab = mpc_AND(a, b, mask_a, mask_b, tape, msg);
@@ -2222,9 +2222,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 uint e = a ^ b ^ ca;
                 uint f = a ^ b ^ c ^ ab;
 
-                Utils.SetBitInWordArray(state, i + 2, d);
-                Utils.SetBitInWordArray(state, i + 1, e);
-                Utils.SetBitInWordArray(state, i, f);
+                PicnicUtilities.SetBitInWordArray(state, i + 2, d);
+                PicnicUtilities.SetBitInWordArray(state, i + 1, e);
+                PicnicUtilities.SetBitInWordArray(state, i, f);
             }
         }
 
@@ -2232,13 +2232,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             for (int i = 0; i < numSboxes * 3; i += 3)
             {
-                uint a = Utils.GetBitFromWordArray(input, i + 2);
-                uint b = Utils.GetBitFromWordArray(input, i + 1);
-                uint c = Utils.GetBitFromWordArray(input, i);
+                uint a = PicnicUtilities.GetBitFromWordArray(input, i + 2);
+                uint b = PicnicUtilities.GetBitFromWordArray(input, i + 1);
+                uint c = PicnicUtilities.GetBitFromWordArray(input, i);
 
-                uint d = Utils.GetBitFromWordArray(output, i + 2);
-                uint e = Utils.GetBitFromWordArray(output, i + 1);
-                uint f = Utils.GetBitFromWordArray(output, i);
+                uint d = PicnicUtilities.GetBitFromWordArray(output, i + 2);
+                uint e = PicnicUtilities.GetBitFromWordArray(output, i + 1);
+                uint f = PicnicUtilities.GetBitFromWordArray(output, i);
 
                 uint fresh_output_mask_ab = f ^ a ^ b ^ c;
                 uint fresh_output_mask_bc = d ^ a;
@@ -2254,9 +2254,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             int lastParty = numMPCParties - 1;
             uint and_helper = tape.TapesToWord();
-            and_helper = Utils.Parity16(and_helper) ^ Utils.GetBit(tape.tapes[lastParty], tape.pos - 1);
+            and_helper = PicnicUtilities.Parity16(and_helper) ^ PicnicUtilities.GetBit(tape.tapes[lastParty], tape.pos - 1);
             uint aux_bit = (mask_a & mask_b) ^ and_helper ^ fresh_output_mask;
-            Utils.SetBit(tape.tapes[lastParty], tape.pos - 1, (byte) (aux_bit & 0xff));
+            PicnicUtilities.SetBit(tape.tapes[lastParty], tape.pos - 1, (byte) (aux_bit & 0xff));
         }
 
 
@@ -2292,7 +2292,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
                 for (int i = 0; i < n; i++)
                 {
-                    Utils.SetBit(output, pos++, Utils.GetBit(lastTape, tapePos++));
+                    PicnicUtilities.SetBit(output, pos++, PicnicUtilities.GetBit(lastTape, tapePos++));
                 }
             }
         }
@@ -2398,12 +2398,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             // generate a private key
             random.NextBytes(data_bytes, 0, stateSizeBytes);
-            Utils.ZeroTrailingBits(data_bytes, stateSizeBits);
+            PicnicUtilities.ZeroTrailingBits(data_bytes, stateSizeBits);
             Pack.LE_To_UInt32(data_bytes, 0, data);
 
             // generate a plaintext block
             random.NextBytes(plaintext_bytes, 0, stateSizeBytes);
-            Utils.ZeroTrailingBits(plaintext_bytes, stateSizeBits);
+            PicnicUtilities.ZeroTrailingBits(plaintext_bytes, stateSizeBits);
             Pack.LE_To_UInt32(plaintext_bytes, 0, plaintext);
 
             // compute ciphertext
@@ -2450,13 +2450,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             for (int i = 0; i < numSboxes * 3; i += 3)
             {
-                uint a = Utils.GetBitFromWordArray(state, i + 2);
-                uint b = Utils.GetBitFromWordArray(state, i + 1);
-                uint c = Utils.GetBitFromWordArray(state, i);
+                uint a = PicnicUtilities.GetBitFromWordArray(state, i + 2);
+                uint b = PicnicUtilities.GetBitFromWordArray(state, i + 1);
+                uint c = PicnicUtilities.GetBitFromWordArray(state, i);
 
-                Utils.SetBitInWordArray(state, i + 2, (a ^ (b & c)));
-                Utils.SetBitInWordArray(state, i + 1, (a ^ b ^ (a & c)));
-                Utils.SetBitInWordArray(state, i, (a ^ b ^ c ^ (a & b)));
+                PicnicUtilities.SetBitInWordArray(state, i + 2, (a ^ (b & c)));
+                PicnicUtilities.SetBitInWordArray(state, i + 1, (a ^ b ^ (a & c)));
+                PicnicUtilities.SetBitInWordArray(state, i, (a ^ b ^ c ^ (a & b)));
             }
         }
 
@@ -2502,12 +2502,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = wholeWords * WORD_SIZE_BITS; j < stateSizeBits; j++)
                 {
                     int index = i * stateSizeWords * WORD_SIZE_BITS + j;
-                    uint bit = Utils.GetBitFromWordArray(state, stateOffset * 32 + j)
-                             & Utils.GetBitFromWordArray(matrix, matrixOffset * 32 + index);
+                    uint bit = PicnicUtilities.GetBitFromWordArray(state, stateOffset * 32 + j)
+                             & PicnicUtilities.GetBitFromWordArray(matrix, matrixOffset * 32 + index);
                     prod ^= bit;
                 }
 
-                Utils.SetBit(temp, i, Utils.Parity32(prod));
+                PicnicUtilities.SetBit(temp, i, PicnicUtilities.Parity32(prod));
             }
 
             Array.Copy(temp, 0, output, outputOffset, stateSizeWords);

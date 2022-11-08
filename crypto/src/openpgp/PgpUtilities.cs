@@ -11,7 +11,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;

@@ -13,9 +13,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Pqc.Asn1;
-using Org.BouncyCastle.Pqc.Crypto.Cmce;
-using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -242,21 +239,6 @@ namespace Org.BouncyCastle.Pkcs
                 return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
                     new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
             }
-            
-            if (privateKey is CmcePrivateKeyParameters)
-            {
-                CmcePrivateKeyParameters parameters = (CmcePrivateKeyParameters)privateKey;
-
-                byte[] encoding = parameters.GetEncoded();
-
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.McElieceOidLookup(parameters.Parameters));
-
-                CmcePublicKey cmcePub = new CmcePublicKey(parameters.ReconstructPublicKey());
-                CmcePrivateKey cmcePriv = new CmcePrivateKey(0, parameters.Delta, parameters.C, parameters.G, parameters.Alpha, parameters.S, cmcePub);
-                return new PrivateKeyInfo(algorithmIdentifier, cmcePriv, attributes);
-            }
-            
-            
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }

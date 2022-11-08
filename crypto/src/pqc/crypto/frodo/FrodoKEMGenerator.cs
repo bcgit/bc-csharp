@@ -1,9 +1,6 @@
-
-using System;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
@@ -11,7 +8,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
-        private SecureRandom sr;
+        private readonly SecureRandom sr;
 
         public FrodoKEMGenerator(SecureRandom random)
         {
@@ -27,6 +24,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             engine.kem_enc(cipher_text, sessionKey, key.m_publicKey, sr);
             return new SecretWithEncapsulationImpl(sessionKey, cipher_text);
         }
-
     }
 }

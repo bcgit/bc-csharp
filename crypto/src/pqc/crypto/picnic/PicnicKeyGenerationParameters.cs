@@ -4,19 +4,16 @@ using Org.BouncyCastle.Security;
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     public class PicnicKeyGenerationParameters
-     : KeyGenerationParameters
+        : KeyGenerationParameters
     {
-        private PicnicParameters parameters;
+        private readonly PicnicParameters m_parameters;
 
         public PicnicKeyGenerationParameters(SecureRandom random, PicnicParameters parameters)
             : base(random, 255)
         {
-            this.parameters = parameters;
+            m_parameters = parameters;
         }
 
-        public PicnicParameters GetParameters()
-        {
-            return parameters;
-        }
+        public PicnicParameters Parameters => m_parameters;
     }
 }

@@ -1,9 +1,5 @@
 ﻿using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {

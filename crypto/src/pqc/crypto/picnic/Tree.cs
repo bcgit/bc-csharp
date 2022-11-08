@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             this.engine = engine;
             MAX_AUX_BYTES = ((PicnicEngine.LOWMC_MAX_AND_GATES + PicnicEngine.LOWMC_MAX_KEY_BITS) / 8 + 1);
 
-            this.depth = Utils.ceil_log2(numLeaves) + 1;
+            this.depth = PicnicUtilities.ceil_log2(numLeaves) + 1;
             this.numNodes = (uint)(
                 ((1 << ((int)this.depth)) - 1) -
                 ((1 << ((int)this.depth - 1)) - numLeaves)); /* Num nodes in complete - number of missing leaves */

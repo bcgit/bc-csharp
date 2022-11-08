@@ -1,8 +1,8 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa;
-using Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets;
 using Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials;
 using Org.BouncyCastle.Security;
 

@@ -1,18 +1,16 @@
-using System;
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class PicnicSigner 
+    public sealed class PicnicSigner 
         : IMessageSigner
     {
+        private readonly SecureRandom random;
+
         private PicnicPrivateKeyParameters privKey;
         private PicnicPublicKeyParameters pubKey;
-
-        private SecureRandom random;
 
         public PicnicSigner(SecureRandom random)
         {

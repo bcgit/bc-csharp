@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    internal static class Utils
+    internal static class PicnicUtilities
     {
         internal static void Fill(uint[] buf, int from, int to, uint b)
         {

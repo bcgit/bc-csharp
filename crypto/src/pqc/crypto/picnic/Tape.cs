@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         internal int pos;
         int nTapes;
 
-        private PicnicEngine engine;
+        private readonly PicnicEngine engine;
 
         internal Tape(PicnicEngine engine)
         {
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             {
                 for(int i = 0; i < n; i++)
                 {
-                    Utils.SetBit(this.tapes[last], n + n*2*j  + i, Utils.GetBit(input, pos++));
+                    PicnicUtilities.SetBit(this.tapes[last], n + n*2*j  + i, PicnicUtilities.GetBit(input, pos++));
                 }
             }
         }
@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             for (int i = 0; i < outputBitLen; i++)
             {
-                Utils.SetBitInWordArray(output, i, Utils.Parity16(TapesToWord()));
+                PicnicUtilities.SetBitInWordArray(output, i, PicnicUtilities.Parity16(TapesToWord()));
             }
         }
 
@@ -118,8 +118,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             for (int i = 0; i < 16; i++)
             {
-                byte bit = Utils.GetBit(this.tapes[i], this.pos);
-                Utils.SetBit(shares, i, bit);
+                byte bit = PicnicUtilities.GetBit(this.tapes[i], this.pos);
+                PicnicUtilities.SetBit(shares, i, bit);
             }
             this.pos++;
             return Pack.LE_To_UInt32(shares, 0);
