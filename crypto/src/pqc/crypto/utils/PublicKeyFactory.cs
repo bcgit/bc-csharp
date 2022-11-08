@@ -266,20 +266,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 DilithiumParameters dilithiumParams = PqcUtilities.DilithiumParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
-                Asn1Object obj = keyInfo.ParsePublicKey();
-                if (obj is Asn1Sequence)
+                try
                 {
-                    Asn1Sequence keySeq = Asn1Sequence.GetInstance(obj);
+                    Asn1Object obj = keyInfo.ParsePublicKey();
+                    if (obj is Asn1Sequence)
+                    {
+                        Asn1Sequence keySeq = Asn1Sequence.GetInstance(obj);
 
-                    return new DilithiumPublicKeyParameters(dilithiumParams,
-                        Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
-                        Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
+                        return new DilithiumPublicKeyParameters(dilithiumParams,
+                            Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
+                            Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
+                    }
+                    else
+                    {
+                        byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
+
+                        return new DilithiumPublicKeyParameters(dilithiumParams, encKey);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
-
-                    return new DilithiumPublicKeyParameters(dilithiumParams, encKey);
+                    // raw encoding
+                    return new DilithiumPublicKeyParameters(dilithiumParams, keyInfo.PublicKeyData.GetOctets());
                 }
             }
         }
@@ -316,17 +324,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 FalconParameters falconParams = PqcUtilities.FalconParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
-                Asn1Object obj = keyInfo.ParsePublicKey();
-                if (obj is Asn1Sequence)
+                try
                 {
-                    byte[] keyEnc = Asn1OctetString.GetInstance(Asn1Sequence.GetInstance(obj)[0]).GetOctets();
+                    Asn1Object obj = keyInfo.ParsePublicKey();
+                    if (obj is Asn1Sequence)
+                    {
+                        byte[] keyEnc = Asn1OctetString.GetInstance(Asn1Sequence.GetInstance(obj)[0]).GetOctets();
 
-                    return new FalconPublicKeyParameters(falconParams, keyEnc);
+                        return new FalconPublicKeyParameters(falconParams, keyEnc);
+                    }
+                    else
+                    {
+                        // header byte + h
+                        byte[] keyEnc = Asn1OctetString.GetInstance(obj).GetOctets();
+
+                        if (keyEnc[0] != (byte)(0x00 + falconParams.LogN))
+                        {
+                            throw new ArgumentException("byte[] enc of Falcon h value not tagged correctly");
+                        }
+                        return new FalconPublicKeyParameters(falconParams, Arrays.CopyOfRange(keyEnc, 1, keyEnc.Length));
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    // header byte + h
-                    byte[] keyEnc = Asn1OctetString.GetInstance(obj).GetOctets();
+                    // raw encoding
+                    byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();
 
                     if (keyEnc[0] != (byte)(0x00 + falconParams.LogN))
                     {

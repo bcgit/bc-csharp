@@ -125,8 +125,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.DilithiumOidLookup(dilithiumPublicKeyParameters.Parameters));
             
-                return new SubjectPublicKeyInfo(algorithmIdentifier,
-                    new DerOctetString(Arrays.Concatenate(dilithiumPublicKeyParameters.Rho, dilithiumPublicKeyParameters.T1)));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, Arrays.Concatenate(dilithiumPublicKeyParameters.Rho, dilithiumPublicKeyParameters.T1));
             }
             if (publicKey is BikePublicKeyParameters bikePublicKeyParameters)
             { 
