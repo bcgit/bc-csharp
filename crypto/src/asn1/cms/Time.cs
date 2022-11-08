@@ -8,24 +8,41 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class Time
         : Asn1Encodable, IAsn1Choice
     {
-        private readonly Asn1Object time;
-
-		public static Time GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static Time GetInstance(object obj)
         {
-            return GetInstance(obj.GetObject());
+            if (obj == null)
+                return null;
+            if (obj is Time time)
+                return time;
+            if (obj is Asn1UtcTime utcTime)
+                return new Time(utcTime);
+            if (obj is Asn1GeneralizedTime generalizedTime)
+                return new Time(generalizedTime);
+
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-		public Time(
-            Asn1Object time)
+        public static Time GetInstance(Asn1TaggedObject	taggedObject, bool declaredExplicit)
         {
-            if (time == null)
-                throw new ArgumentNullException("time");
-            if (!(time is Asn1UtcTime) && !(time is Asn1GeneralizedTime))
-                throw new ArgumentException("unknown object passed to Time");
+            return GetInstance(taggedObject.GetObject());
+        }
 
-            this.time = time;
+        private readonly Asn1Object m_timeObject;
+
+        public Time(Asn1GeneralizedTime generalizedTime)
+        {
+            this.m_timeObject = generalizedTime ?? throw new ArgumentNullException(nameof(generalizedTime));
+        }
+
+        public Time(Asn1UtcTime utcTime)
+        {
+            if (utcTime == null)
+                throw new ArgumentNullException(nameof(utcTime));
+
+            // Validate utcTime is in the appropriate year range
+            utcTime.ToDateTime(2049);
+
+            this.m_timeObject = utcTime;
         }
 
 		/**
@@ -35,61 +52,36 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public Time(DateTime date)
         {
-            DateTime d = date.ToUniversalTime();
+            DateTime utc = date.ToUniversalTime();
 
-			if (d.Year < 1950 || d.Year > 2049)
+			if (utc.Year < 1950 || utc.Year > 2049)
             {
-                time = new DerGeneralizedTime(d);
+                m_timeObject = new DerGeneralizedTime(utc);
             }
             else
             {
-                time = new DerUtcTime(d);
+                m_timeObject = new DerUtcTime(utc, 2049);
             }
         }
 
-		public static Time GetInstance(object obj)
+        public DateTime ToDateTime()
         {
-            if (obj == null)
-                return null;
-            if (obj is Time time)
-                return time;
-			if (obj is Asn1UtcTime utcTime)
-                return new Time(utcTime);
-			if (obj is Asn1GeneralizedTime generalizedTime)
-                return new Time(generalizedTime);
+            try
+            {
+                if (m_timeObject is Asn1UtcTime utcTime)
+                    return utcTime.ToDateTime(2049);
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+                return ((Asn1GeneralizedTime)m_timeObject).ToDateTime();
+            }
+            catch (FormatException e)
+            {
+                // this should never happen
+                throw new InvalidOperationException("invalid date string: " + e.Message);
+            }
         }
 
-		public string TimeString
-        {
-			get
-			{
-				if (time is Asn1UtcTime utcTime)
-					return utcTime.AdjustedTimeString;
-
-                return ((Asn1GeneralizedTime)time).GetTime();
-			}
-        }
-
-		public DateTime Date
-        {
-			get
-			{
-				try
-				{
-					if (time is Asn1UtcTime utcTime)
-						return utcTime.ToAdjustedDateTime();
-
-					return ((Asn1GeneralizedTime)time).ToDateTime();
-				}
-				catch (FormatException e)
-				{
-					// this should never happen
-					throw new InvalidOperationException("invalid date string: " + e.Message);
-				}
-			}
-        }
+        [Obsolete("Use 'ToDateTime' instead")]
+        public DateTime Date => ToDateTime();
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -101,7 +93,15 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            return time;
+            return m_timeObject;
+        }
+
+        public override string ToString()
+        {
+            if (m_timeObject is Asn1UtcTime utcTime)
+                return utcTime.ToDateTime(2049).ToString(@"yyyyMMddHHmmssK", DateTimeFormatInfo.InvariantInfo);
+
+            return ((Asn1GeneralizedTime)m_timeObject).GetTime();
         }
     }
 }

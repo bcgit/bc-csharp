@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Tests.Nist
 				new string[] { "BadnotBeforeDateCACert", "InvalidCAnotBeforeDateTest1EE" },
 				new string[] { TRUST_ANCHOR_ROOT_CRL, "BadnotBeforeDateCACRL" },
 				1,
-				"Could not validate certificate: certificate not valid until 20470101120100GMT+00:00");
+				"Could not validate certificate: certificate not valid until 20470101120100Z");
 		}
         
 		[Test]
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Tests.Nist
 				new string[] { GOOD_CA_CERT, "InvalidEEnotBeforeDateTest2EE" },
 				new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
 				0,
-				"Could not validate certificate: certificate not valid until 20470101120100GMT+00:00");
+				"Could not validate certificate: certificate not valid until 20470101120100Z");
 		}
 
 		[Test]
@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Tests.Nist
 				new string[] { "BadnotAfterDateCACert", "InvalidCAnotAfterDateTest5EE" },
 				new string[] { TRUST_ANCHOR_ROOT_CRL, "BadnotAfterDateCACRL" },
 				1,
-				"Could not validate certificate: certificate expired on 20020101120100GMT+00:00");
+				"Could not validate certificate: certificate expired on 20020101120100Z");
 		}
 
 		[Test]
@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Tests.Nist
 				new string[] { GOOD_CA_CERT, "InvalidEEnotAfterDateTest6EE" },
 				new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
 				0,
-				"Could not validate certificate: certificate expired on 20020101120100GMT+00:00");
+				"Could not validate certificate: certificate expired on 20020101120100Z");
 		}
 
 		[Test]
@@ -172,7 +172,7 @@ namespace Org.BouncyCastle.Tests.Nist
 				new string[] { GOOD_CA_CERT, "Invalidpre2000UTCEEnotAfterDateTest7EE" },
 				new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
 				0,
-				"Could not validate certificate: certificate expired on 19990101120100GMT+00:00");
+				"Could not validate certificate: certificate expired on 19990101120100Z");
 		}
 
 		[Test]

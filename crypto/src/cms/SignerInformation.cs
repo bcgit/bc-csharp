@@ -651,7 +651,7 @@ namespace Org.BouncyCastle.Cms
 			Asn1.Cms.Time signingTime = GetSigningTime();
 			if (signingTime != null)
 			{
-				cert.CheckValidity(signingTime.Date);
+				cert.CheckValidity(signingTime.ToDateTime());
 			}
 
 			return DoVerify(cert.GetPublicKey());
