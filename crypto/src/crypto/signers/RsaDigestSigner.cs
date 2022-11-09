@@ -139,6 +139,8 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        public virtual int GetMaxSignatureSize() => rsaEngine.GetOutputBlockSize();
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning)

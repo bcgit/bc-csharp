@@ -267,28 +267,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
-        /// <summary> reset the internal state</summary>
-        public virtual void Reset()
-        {
-            digest.Reset();
-            messageLength = 0;
-            ClearBlock(mBuf);
-
-            if (recoveredMessage != null)
-            {
-                ClearBlock(recoveredMessage);
-            }
-
-            recoveredMessage = null;
-            fullMessage = false;
-
-            if (preSig != null)
-            {
-                preSig = null;
-                ClearBlock(preBlock);
-                preBlock = null;
-            }
-        }
+        public virtual int GetMaxSignatureSize() => cipher.GetOutputBlockSize();
 
         /// <summary> Generate a signature for the loaded message using the key we were
         /// initialised with.
@@ -525,6 +504,29 @@ namespace Org.BouncyCastle.Crypto.Signers
             messageLength = 0;
 
             return true;
+        }
+
+        /// <summary> reset the internal state</summary>
+        public virtual void Reset()
+        {
+            digest.Reset();
+            messageLength = 0;
+            ClearBlock(mBuf);
+
+            if (recoveredMessage != null)
+            {
+                ClearBlock(recoveredMessage);
+            }
+
+            recoveredMessage = null;
+            fullMessage = false;
+
+            if (preSig != null)
+            {
+                preSig = null;
+                ClearBlock(preBlock);
+                preBlock = null;
+            }
         }
 
         private bool ReturnFalse(byte[] block)

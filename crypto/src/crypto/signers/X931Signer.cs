@@ -3,7 +3,6 @@
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Zlib;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -54,11 +53,6 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return digest.AlgorithmName + "with" + cipher.AlgorithmName + "/X9.31"; }
-        }
-
         /**
          * Constructor for a signer with an explicit digest trailer.
          *
@@ -68,6 +62,11 @@ namespace Org.BouncyCastle.Crypto.Signers
         public X931Signer(IAsymmetricBlockCipher cipher, IDigest digest)
             :   this(cipher, digest, false)
         {
+        }
+
+        public virtual string AlgorithmName
+        {
+            get { return digest.AlgorithmName + "with" + cipher.AlgorithmName + "/X9.31"; }
         }
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
@@ -100,10 +99,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
-        public virtual void Reset()
-        {
-            digest.Reset();
-        }
+        public virtual int GetMaxSignatureSize() => BigIntegers.GetUnsignedByteLength(kParam.Modulus);
 
         public virtual byte[] GenerateSignature()
         {
@@ -194,6 +190,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             Arrays.Fill<byte>(fBlock, 0x00);
 
             return rv;
+        }
+
+        public virtual void Reset()
+        {
+            digest.Reset();
         }
     }
 }

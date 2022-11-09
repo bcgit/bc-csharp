@@ -59,6 +59,8 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        public virtual int GetMaxSignatureSize() => Ed25519.SignatureSize;
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning || null == privateKey)
