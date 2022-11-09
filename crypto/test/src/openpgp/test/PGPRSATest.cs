@@ -1208,6 +1208,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 throw new Exception("Close() called on underlying stream");
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    throw new Exception("Dispose() called on underlying stream");
+            }
         }
 
         public override string Name
