@@ -7,8 +7,8 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AttCertValidityPeriod
         : Asn1Encodable
     {
-        private readonly DerGeneralizedTime	notBeforeTime;
-        private readonly DerGeneralizedTime	notAfterTime;
+        private readonly Asn1GeneralizedTime notBeforeTime;
+        private readonly Asn1GeneralizedTime notAfterTime;
 
 		public static AttCertValidityPeriod GetInstance(
             object obj)
@@ -39,24 +39,24 @@ namespace Org.BouncyCastle.Asn1.X509
 			if (seq.Count != 2)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			notBeforeTime = DerGeneralizedTime.GetInstance(seq[0]);
-			notAfterTime = DerGeneralizedTime.GetInstance(seq[1]);
+			notBeforeTime = Asn1GeneralizedTime.GetInstance(seq[0]);
+			notAfterTime = Asn1GeneralizedTime.GetInstance(seq[1]);
         }
 
 		public AttCertValidityPeriod(
-            DerGeneralizedTime	notBeforeTime,
-            DerGeneralizedTime	notAfterTime)
+            Asn1GeneralizedTime notBeforeTime,
+            Asn1GeneralizedTime notAfterTime)
         {
             this.notBeforeTime = notBeforeTime;
             this.notAfterTime = notAfterTime;
         }
 
-		public DerGeneralizedTime NotBeforeTime
+		public Asn1GeneralizedTime NotBeforeTime
 		{
 			get { return notBeforeTime; }
 		}
 
-		public DerGeneralizedTime NotAfterTime
+		public Asn1GeneralizedTime NotAfterTime
 		{
 			get { return notAfterTime; }
 		}

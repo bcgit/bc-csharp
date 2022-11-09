@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 
@@ -36,7 +35,7 @@ namespace Org.BouncyCastle.Pkix
 			// based on RFC 5280 6.3.3
 			foreach (X509Crl crl in initialSet)
 			{
-                DateTimeObject nextUpdate = crl.NextUpdate;
+                DateTime? nextUpdate = crl.NextUpdate;
 
                 if (null == nextUpdate || nextUpdate.Value.CompareTo(validityDate) > 0)
 				{

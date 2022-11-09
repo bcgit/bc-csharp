@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Cms
 					}
 				}
 
-				_sig.Init(true, new ParametersWithRandom(key, outer.rand));
+				_sig.Init(true, new ParametersWithRandom(key, outer.m_random));
 			}
 
 			public SignerInfo Generate(DerObjectIdentifier contentType, AlgorithmIdentifier digestAlgorithm,
@@ -234,10 +234,9 @@ namespace Org.BouncyCastle.Cms
         }
 
 		/// <summary>Constructor allowing specific source of randomness</summary>
-		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-		public CmsSignedDataStreamGenerator(
-			SecureRandom rand)
-			: base(rand)
+		/// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsSignedDataStreamGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 
@@ -622,12 +621,13 @@ namespace Org.BouncyCastle.Cms
 			Stream			dataOutputStream,
 			CmsProcessable	content)
 		{
-			Stream signedOut = Open(outStream, eContentType, encapsulate, dataOutputStream);
-			if (content != null)
+			using (var signedOut = Open(outStream, eContentType, encapsulate, dataOutputStream))
 			{
-				content.Write(signedOut);
-			}
-            Platform.Dispose(signedOut);
+                if (content != null)
+                {
+                    content.Write(signedOut);
+                }
+            }
 		}
 
 		// RFC3852, section 5.1:
@@ -660,10 +660,8 @@ namespace Org.BouncyCastle.Cms
 			{
 				foreach (object obj in _certs)
 				{
-					if (obj is Asn1TaggedObject)
+					if (obj is Asn1TaggedObject tagged)
 					{
-						Asn1TaggedObject tagged = (Asn1TaggedObject) obj;
-
 						if (tagged.TagNo == 1)
 						{
 							attrCertV1Found = true;
@@ -786,7 +784,14 @@ namespace Org.BouncyCastle.Cms
 				_out.Write(buffer, offset, count);
 			}
 
-			public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+            {
+                _out.Write(buffer);
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
 				_out.WriteByte(value);
 			}
@@ -802,7 +807,7 @@ namespace Org.BouncyCastle.Cms
 
             private void DoClose()
             {
-                Platform.Dispose(_out);
+                _out.Dispose();
 
                 // TODO Parent context(s) should really be be closed explicitly
 

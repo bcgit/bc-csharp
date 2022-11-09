@@ -59,47 +59,35 @@ namespace Org.BouncyCastle.Crypto.Modes
 			this.cipher = new SicBlockCipher(cipher);
 		}
 
-		public virtual string AlgorithmName
-		{
-			get { return cipher.GetUnderlyingCipher().AlgorithmName + "/EAX"; }
-		}
+		public virtual string AlgorithmName => cipher.UnderlyingCipher.AlgorithmName + "/EAX";
 
-		public virtual IBlockCipher GetUnderlyingCipher()
-		{
-			return cipher;
-		}
+		public virtual IBlockCipher UnderlyingCipher => cipher;
 
 		public virtual int GetBlockSize()
 		{
 			return cipher.GetBlockSize();
 		}
 
-		public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+		public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
 			this.forEncryption = forEncryption;
 
 			byte[] nonce;
 			ICipherParameters keyParam;
 
-			if (parameters is AeadParameters)
+			if (parameters is AeadParameters aeadParameters)
 			{
-				AeadParameters param = (AeadParameters) parameters;
-
-				nonce = param.GetNonce();
-                initialAssociatedText = param.GetAssociatedText();
-				macSize = param.MacSize / 8;
-				keyParam = param.Key;
+				nonce = aeadParameters.GetNonce();
+                initialAssociatedText = aeadParameters.GetAssociatedText();
+				macSize = aeadParameters.MacSize / 8;
+				keyParam = aeadParameters.Key;
 			}
-			else if (parameters is ParametersWithIV)
+			else if (parameters is ParametersWithIV parametersWithIV)
 			{
-				ParametersWithIV param = (ParametersWithIV) parameters;
-
-				nonce = param.GetIV();
+				nonce = parametersWithIV.GetIV();
                 initialAssociatedText = null;
 				macSize = mac.GetMacSize() / 2;
-				keyParam = param.Parameters;
+				keyParam = parametersWithIV.Parameters;
 			}
 			else
 			{
@@ -328,7 +316,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             InitCipher();
 
             int extra = bufOff;
-			Span<byte> tmp = stackalloc byte[bufBlock.Length];
+			int tmpLength = bufBlock.Length;
+
+            Span<byte> tmp = tmpLength <= 128
+				? stackalloc byte[tmpLength]
+				: new byte[tmpLength];
 
             bufOff = 0;
 

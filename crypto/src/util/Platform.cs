@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Org.BouncyCastle.Utilities
 {
-    internal abstract class Platform
+    internal static class Platform
     {
         private static readonly CompareInfo InvariantCompareInfo = CultureInfo.InvariantCulture.CompareInfo;
 
@@ -26,14 +26,24 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
-        internal static void Dispose(IDisposable d)
+        internal static int IndexOf(string source, char value)
         {
-            d.Dispose();
+            return InvariantCompareInfo.IndexOf(source, value, CompareOptions.Ordinal);
         }
 
         internal static int IndexOf(string source, string value)
         {
             return InvariantCompareInfo.IndexOf(source, value, CompareOptions.Ordinal);
+        }
+
+        internal static int IndexOf(string source, char value, int startIndex)
+        {
+            return InvariantCompareInfo.IndexOf(source, value, startIndex, CompareOptions.Ordinal);
+        }
+
+        internal static int IndexOf(string source, string value, int startIndex)
+        {
+            return InvariantCompareInfo.IndexOf(source, value, startIndex, CompareOptions.Ordinal);
         }
 
         internal static int LastIndexOf(string source, string value)

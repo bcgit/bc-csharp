@@ -1,12 +1,10 @@
-
-using System;
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class PicnicParameters
+    public sealed class PicnicParameters
         : ICipherParameters
-        {
+    {
         public static PicnicParameters picnicl1fs = new PicnicParameters("picnicl1fs", 1);
         public static PicnicParameters picnicl1ur = new PicnicParameters("picnicl1ur", 2);
         public static PicnicParameters picnicl3fs = new PicnicParameters("picnicl3fs", 3);
@@ -20,18 +18,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         public static PicnicParameters picnicl3full = new PicnicParameters("picnicl3full", 11);
         public static PicnicParameters picnicl5full = new PicnicParameters("picnicl5full", 12);
 
-        private String name;
+        private string name;
         private int param;
-        private PicnicParameters(String name, int param)
+
+        private PicnicParameters(string name, int param)
         {
             this.name = name;
             this.param = param;
         }
 
-        public String GetName()
-        {
-            return name;
-        }
+        public string Name => name;
 
         internal PicnicEngine GetEngine()
         {

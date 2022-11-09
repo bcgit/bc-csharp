@@ -28,22 +28,18 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @param forEncryption true if we are encrypting, false otherwise.
 		* @param param the necessary ElGamal key parameters.
 		*/
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				ParametersWithRandom p = (ParametersWithRandom) parameters;
-
-				this.key = (ElGamalKeyParameters) p.Parameters;
-				this.random = p.Random;
+				this.key = (ElGamalKeyParameters)withRandom.Parameters;
+				this.random = withRandom.Random;
 			}
 			else
 			{
-				this.key = (ElGamalKeyParameters) parameters;
-				this.random = new SecureRandom();
-			}
+				this.key = (ElGamalKeyParameters)parameters;
+				this.random = CryptoServicesRegistrar.GetSecureRandom();
+            }
 
 			this.forEncryption = forEncryption;
 			this.bitSize = key.Parameters.P.BitLength;
@@ -51,16 +47,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			if (forEncryption)
 			{
 				if (!(key is ElGamalPublicKeyParameters))
-				{
 					throw new ArgumentException("ElGamalPublicKeyParameters are required for encryption.");
-				}
 			}
 			else
 			{
 				if (!(key is ElGamalPrivateKeyParameters))
-				{
 					throw new ArgumentException("ElGamalPrivateKeyParameters are required for decryption.");
-				}
 			}
 		}
 

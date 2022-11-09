@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #endif
 #if NETCOREAPP3_0_OR_GREATER
+using System.Buffers.Binary;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -298,10 +300,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n2 = Avx2.Xor(n2, Load256_Byte(input[0x40..]));
 			n3 = Avx2.Xor(n3, Load256_Byte(input[0x60..]));
 
-			Store256_Byte(ref n0, output);
-			Store256_Byte(ref n1, output[0x20..]);
-			Store256_Byte(ref n2, output[0x40..]);
-			Store256_Byte(ref n3, output[0x60..]);
+			Store256_Byte(n0, output);
+			Store256_Byte(n1, output[0x20..]);
+			Store256_Byte(n2, output[0x40..]);
+			Store256_Byte(n3, output[0x60..]);
 		}
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -379,10 +381,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n2 = Sse2.Xor(n2, v2.AsByte());
 			n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(ref n0, output);
-			Store128_Byte(ref n1, output[0x10..]);
-			Store128_Byte(ref n2, output[0x20..]);
-			Store128_Byte(ref n3, output[0x30..]);
+			Store128_Byte(n0, output);
+			Store128_Byte(n1, output[0x10..]);
+			Store128_Byte(n2, output[0x20..]);
+			Store128_Byte(n3, output[0x30..]);
 
 			x3 = Load128_UInt32(state.AsSpan(12));
 			++state[12];
@@ -444,27 +446,29 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n2 = Sse2.Xor(n2, v2.AsByte());
 			n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(ref n0, output[0x40..]);
-			Store128_Byte(ref n1, output[0x50..]);
-			Store128_Byte(ref n2, output[0x60..]);
-			Store128_Byte(ref n3, output[0x70..]);
+			Store128_Byte(n0, output[0x40..]);
+			Store128_Byte(n1, output[0x50..]);
+			Store128_Byte(n2, output[0x60..]);
+			Store128_Byte(n3, output[0x70..]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector128<byte> Load128_Byte(ReadOnlySpan<byte> t)
 		{
-			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
-				return Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(t[0]));
+            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+                return MemoryMarshal.Read<Vector128<byte>>(t);
 
-			return Vector128.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12],
-				t[13], t[14], t[15]);
-		}
+            return Vector128.Create(
+                BinaryPrimitives.ReadUInt64LittleEndian(t[..8]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[8..])
+            ).AsByte();
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
-				return Unsafe.ReadUnaligned<Vector128<uint>>(ref Unsafe.As<uint, byte>(ref Unsafe.AsRef(t[0])));
+                return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.AsBytes(t));
 
 			return Vector128.Create(t[0], t[1], t[2], t[3]);
 		}
@@ -472,42 +476,45 @@ namespace Org.BouncyCastle.Crypto.Engines
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector256<byte> Load256_Byte(ReadOnlySpan<byte> t)
         {
-			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
-				return Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.AsRef(t[0]));
+            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
+                return MemoryMarshal.Read<Vector256<byte>>(t);
 
-			return Vector256.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12],
-				t[13], t[14], t[15], t[16], t[17], t[18], t[19], t[20], t[21], t[22], t[23], t[24], t[25], t[26], t[27],
-				t[28], t[29], t[30], t[31]);
+            return Vector256.Create(
+                BinaryPrimitives.ReadUInt64LittleEndian(t[ 0.. 8]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[ 8..16]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[16..24]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[24..32])
+            ).AsByte();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store128_Byte(ref Vector128<byte> s, Span<byte> t)
+		private static void Store128_Byte(Vector128<byte> s, Span<byte> t)
 		{
-			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            {
+                MemoryMarshal.Write(t, ref s);
+                return;
+            }
+
+            var u = s.AsUInt64();
+            BinaryPrimitives.WriteUInt64LittleEndian(t[..8], u.GetElement(0));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[8..], u.GetElement(1));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static void Store256_Byte(Vector256<byte> s, Span<byte> t)
+		{
+            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
 			{
-				Unsafe.WriteUnaligned(ref t[0], s);
+                MemoryMarshal.Write(t, ref s);
 				return;
 			}
 
 			var u = s.AsUInt64();
-			Pack.UInt64_To_LE(u.GetElement(0), t);
-			Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store256_Byte(ref Vector256<byte> s, Span<byte> t)
-		{
-			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
-			{
-				Unsafe.WriteUnaligned(ref t[0], s);
-				return;
-			}
-
-			var u = s.AsUInt64();
-			Pack.UInt64_To_LE(u.GetElement(0), t);
-			Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
-			Pack.UInt64_To_LE(u.GetElement(2), t[16..]);
-			Pack.UInt64_To_LE(u.GetElement(3), t[24..]);
+            BinaryPrimitives.WriteUInt64LittleEndian(t[ 0.. 8], u.GetElement(0));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[ 8..16], u.GetElement(1));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[16..24], u.GetElement(2));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[24..32], u.GetElement(3));
 		}
 #endif
 	}

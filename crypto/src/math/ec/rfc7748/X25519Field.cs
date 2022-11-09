@@ -103,6 +103,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void CMov(int cond, ReadOnlySpan<int> x, Span<int> z)
+        {
+            Debug.Assert(0 == cond || -1 == cond);
+
+            for (int i = 0; i < Size; ++i)
+            {
+                int z_i = z[i], diff = z_i ^ x[i];
+                z_i ^= (diff & cond);
+                z[i] = z_i;
+            }
+        }
+#endif
+
         public static void CNegate(int negate, int[] z)
         {
             Debug.Assert(negate >> 1 == 0);
@@ -121,6 +135,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 z[zOff + i] = x[xOff + i];
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Copy(ReadOnlySpan<int> x, Span<int> z)
+        {
+            x[..Size].CopyTo(z);
+        }
+#endif
 
         public static int[] Create()
         {
@@ -155,12 +176,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9] &= M24;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [CLSCompliant(false)]
+        public static void Decode(ReadOnlySpan<uint> x, Span<int> z)
+        {
+            Decode128(x, z);
+            Decode128(x[4..], z[5..]);
+            z[9] &= M24;
+        }
+#endif
+
         public static void Decode(byte[] x, int xOff, int[] z)
         {
             Decode128(x, xOff, z, 0);
             Decode128(x, xOff + 16, z, 5);
             z[9] &= M24;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Decode(ReadOnlySpan<byte> x, Span<int> z)
+        {
+            Decode128(x, z);
+            Decode128(x[16..], z[5..]);
+            z[9] &= M24;
+        }
+#endif
 
         private static void Decode128(uint[] x, int xOff, int[] z, int zOff)
         {
@@ -173,6 +213,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[zOff + 4] = (int)(t3 >> 7);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Decode128(ReadOnlySpan<uint> x, Span<int> z)
+        {
+            uint t0 = x[0], t1 = x[1], t2 = x[2], t3 = x[3];
+
+            z[0] = (int)t0 & M26;
+            z[1] = (int)((t1 <<  6) | (t0 >> 26)) & M26;
+            z[2] = (int)((t2 << 12) | (t1 >> 20)) & M25;
+            z[3] = (int)((t3 << 19) | (t2 >> 13)) & M26;
+            z[4] = (int)(t3 >> 7);
+        }
+#endif
+
         private static void Decode128(byte[] bs, int off, int[] z, int zOff)
         {
             uint t0 = Decode32(bs, off + 0);
@@ -181,11 +234,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             uint t3 = Decode32(bs, off + 12);
 
             z[zOff + 0] = (int)t0 & M26;
-            z[zOff + 1] = (int)((t1 << 6) | (t0 >> 26)) & M26;
+            z[zOff + 1] = (int)((t1 <<  6) | (t0 >> 26)) & M26;
             z[zOff + 2] = (int)((t2 << 12) | (t1 >> 20)) & M25;
             z[zOff + 3] = (int)((t3 << 19) | (t2 >> 13)) & M26;
             z[zOff + 4] = (int)(t3 >> 7);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Decode128(ReadOnlySpan<byte> bs, Span<int> z)
+        {
+            uint t0 = Decode32(bs);
+            uint t1 = Decode32(bs[4..]);
+            uint t2 = Decode32(bs[8..]);
+            uint t3 = Decode32(bs[12..]);
+
+            z[0] = (int)t0 & M26;
+            z[1] = (int)((t1 <<  6) | (t0 >> 26)) & M26;
+            z[2] = (int)((t2 << 12) | (t1 >> 20)) & M25;
+            z[3] = (int)((t3 << 19) | (t2 >> 13)) & M26;
+            z[4] = (int)(t3 >> 7);
+        }
+#endif
 
         private static uint Decode32(byte[] bs, int off)
         {
@@ -196,6 +265,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return n;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static uint Decode32(ReadOnlySpan<byte> bs)
+        {
+            uint n = bs[0];
+            n |= (uint)bs[1] << 8;
+            n |= (uint)bs[2] << 16;
+            n |= (uint)bs[3] << 24;
+            return n;
+        }
+#endif
+
         [CLSCompliant(false)]
         public static void Encode(int[] x, uint[] z, int zOff)
         {
@@ -203,11 +283,28 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode128(x, 5, z, zOff + 4);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [CLSCompliant(false)]
+        public static void Encode(ReadOnlySpan<int> x, Span<uint> z)
+        {
+            Encode128(x, z);
+            Encode128(x[5..], z[4..]);
+        }
+#endif
+
         public static void Encode(int[] x, byte[] z, int zOff)
         {
             Encode128(x, 0, z, zOff);
             Encode128(x, 5, z, zOff + 16);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Encode(ReadOnlySpan<int> x, Span<byte> z)
+        {
+            Encode128(x, z);
+            Encode128(x[5..], z[16..]);
+        }
+#endif
 
         private static void Encode128(int[] x, int xOff, uint[] z, int zOff)
         {
@@ -220,6 +317,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[zOff + 3] = (x3 >> 19) | (x4 <<  7);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Encode128(ReadOnlySpan<int> x, Span<uint> z)
+        {
+            uint x0 = (uint)x[0], x1 = (uint)x[1], x2 = (uint)x[2], x3 = (uint)x[3], x4 = (uint)x[4];
+
+            z[0] =  x0        | (x1 << 26);
+            z[1] = (x1 >>  6) | (x2 << 20);
+            z[2] = (x2 >> 12) | (x3 << 13);
+            z[3] = (x3 >> 19) | (x4 <<  7);
+        }
+#endif
+
         private static void Encode128(int[] x, int xOff, byte[] bs, int off)
         {
             uint x0 = (uint)x[xOff + 0], x1 = (uint)x[xOff + 1], x2 = (uint)x[xOff + 2];
@@ -231,6 +340,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             uint t3 = (x3 >> 19) | (x4 <<  7);  Encode32(t3, bs, off + 12);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Encode128(ReadOnlySpan<int> x, Span<byte> bs)
+        {
+            uint x0 = (uint)x[0], x1 = (uint)x[1], x2 = (uint)x[2];
+            uint x3 = (uint)x[3], x4 = (uint)x[4];
+
+            uint t0 =  x0        | (x1 << 26);  Encode32(t0, bs);
+            uint t1 = (x1 >>  6) | (x2 << 20);  Encode32(t1, bs[4..]);
+            uint t2 = (x2 >> 12) | (x3 << 13);  Encode32(t2, bs[8..]);
+            uint t3 = (x3 >> 19) | (x4 <<  7);  Encode32(t3, bs[12..]);
+        }
+#endif
+
         private static void Encode32(uint n, byte[] bs, int off)
         {
             bs[  off] = (byte)(n      );
@@ -239,8 +361,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             bs[++off] = (byte)(n >> 24);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Encode32(uint n, Span<byte> bs)
+        {
+            bs[0] = (byte)(n      );
+            bs[1] = (byte)(n >>  8);
+            bs[2] = (byte)(n >> 16);
+            bs[3] = (byte)(n >> 24);
+        }
+#endif
+
         public static void Inv(int[] x, int[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Inv(x.AsSpan(), z.AsSpan());
+#else
             //int[] x2 = Create();
             //int[] t = Create();
             //PowPm5d8(x, x2, t);
@@ -257,10 +392,30 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Mod.ModOddInverse(P32, u, u);
 
             Decode(u, 0, z);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Inv(ReadOnlySpan<int> x, Span<int> z)
+        {
+            Span<int> t = stackalloc int[Size];
+            Span<uint> u = stackalloc uint[8];
+
+            Copy(x, t);
+            Normalize(t);
+            Encode(t, u);
+
+            Mod.ModOddInverse(P32, u, u);
+
+            Decode(u, z);
+        }
+#endif
 
         public static void InvVar(int[] x, int[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            InvVar(x.AsSpan(), z.AsSpan());
+#else
             int[] t = Create();
             uint[] u = new uint[8];
 
@@ -271,7 +426,24 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Mod.ModOddInverseVar(P32, u, u);
 
             Decode(u, 0, z);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void InvVar(ReadOnlySpan<int> x, Span<int> z)
+        {
+            Span<int> t = stackalloc int[Size];
+            Span<uint> u = stackalloc uint[8];
+
+            Copy(x, t);
+            Normalize(t);
+            Encode(t, u);
+
+            Mod.ModOddInverseVar(P32, u, u);
+
+            Decode(u, z);
+        }
+#endif
 
         public static int IsOne(int[] x)
         {
@@ -507,6 +679,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Debug.Assert(z[9] >> 24 == 0);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Normalize(Span<int> z)
+        {
+            int x = (z[9] >> 23) & 1;
+            Reduce(z, x);
+            Reduce(z, -x);
+            Debug.Assert(z[9] >> 24 == 0);
+        }
+#endif
+
         public static void One(int[] z)
         {
             z[0] = 1;
@@ -555,6 +737,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             cc += z[8]; z[8] = (int)cc & M26; cc >>= 26;
             z[9] = z9 + (int)cc;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Reduce(Span<int> z, int x)
+        {
+            int t = z[9], z9 = t & M24;
+            t = (t >> 24) + x;
+
+            long cc = t * 19;
+            cc += z[0]; z[0] = (int)cc & M26; cc >>= 26;
+            cc += z[1]; z[1] = (int)cc & M26; cc >>= 26;
+            cc += z[2]; z[2] = (int)cc & M25; cc >>= 25;
+            cc += z[3]; z[3] = (int)cc & M26; cc >>= 26;
+            cc += z[4]; z[4] = (int)cc & M25; cc >>= 25;
+            cc += z[5]; z[5] = (int)cc & M26; cc >>= 26;
+            cc += z[6]; z[6] = (int)cc & M26; cc >>= 26;
+            cc += z[7]; z[7] = (int)cc & M25; cc >>= 25;
+            cc += z[8]; z[8] = (int)cc & M26; cc >>= 26;
+            z[9] = z9 + (int)cc;
+        }
+#endif
 
         public static void Sqr(int[] x, int[] z)
         {

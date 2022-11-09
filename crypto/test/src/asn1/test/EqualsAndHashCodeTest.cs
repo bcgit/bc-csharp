@@ -28,8 +28,8 @@ namespace Org.BouncyCastle.Asn1.Tests
                 DerBoolean.True,
                 DerBoolean.False,
                 new DerEnumerated(100),
-				new DerGeneralizedTime("20070315173729Z"),
-				new DerGeneralString("hello world"),
+                new DerGeneralizedTime("20070315173729Z"),
+                new DerGeneralString("hello world"),
                 new DerIA5String("hello"),
                 new DerInteger(1000),
                 DerNull.Instance,
@@ -43,7 +43,10 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerT61String("hello world"),
                 new DerTaggedObject(0, new DerPrintableString("hello world")),
                 new DerUniversalString(data),
-                new DerUtcTime(new DateTime()),
+#pragma warning disable CS0618 // Type or member is obsolete
+                new DerUtcTime(DateTime.Now),
+#pragma warning restore CS0618 // Type or member is obsolete
+                new DerUtcTime(DateTime.Now, 2049),
                 new DerUtf8String("hello world"),
                 new DerVisibleString("hello world"),
                 new DerGraphicString(Hex.Decode("deadbeef")),

@@ -72,9 +72,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
             case PacketTag.PublicKey:
                 return new PgpPublicKeyRing(bcpgIn);
-			// TODO Make PgpPublicKey a PgpObject or return a PgpPublicKeyRing
-			//case PacketTag.PublicSubkey:
-			//	return PgpPublicKeyRing.ReadSubkey(bcpgIn);
+			case PacketTag.PublicSubkey:
+				return PgpPublicKeyRing.ReadSubkey(bcpgIn);
             case PacketTag.CompressedData:
                 return new PgpCompressedData(bcpgIn);
             case PacketTag.LiteralData:

@@ -17,7 +17,6 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
@@ -86,7 +85,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			extensionsGenerator.AddExtension(X509Extensions.AuditIdentity, false, new DerUtf8String("Test"));
 
 
-			TimeStampResponse tsResp = tsRespGen.GenerateGrantedResponse(request, new BigInteger("23"), new DateTimeObject( DateTime.UtcNow), "Okay", extensionsGenerator.Generate());
+			TimeStampResponse tsResp = tsRespGen.GenerateGrantedResponse(request, new BigInteger("23"), DateTime.UtcNow, "Okay", extensionsGenerator.Generate());
 
 			tsResp = new TimeStampResponse(tsResp.GetEncoded());
 
@@ -473,7 +472,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			//
 
 			tsResp = tsRespGen.Generate(request, new BigInteger("23"), null);
-					
+
 			tsResp = new TimeStampResponse(tsResp.GetEncoded());
 
 			TimeStampToken tsToken = tsResp.TimeStampToken;
@@ -643,27 +642,27 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			{
 				Asn1DigestFactory digCalc = Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1);
-				IStreamCalculator calc = digCalc.CreateCalculator();
+				var calc = digCalc.CreateCalculator();
 				using (Stream s = calc.Stream)
 				{
 					byte[] crt = cert.GetEncoded();
 					s.Write(crt, 0, crt.Length);
 				}
 
-				certHash = ((SimpleBlockResult)calc.GetResult()).Collect();
+				certHash = calc.GetResult().Collect();
 			}
 
 
 			{
 				Asn1DigestFactory digCalc = Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256);
-				IStreamCalculator calc = digCalc.CreateCalculator();
+				var calc = digCalc.CreateCalculator();
 				using (Stream s = calc.Stream)
 				{
 					byte[] crt = cert.GetEncoded();
 					s.Write(crt, 0, crt.Length);
 				}
 
-				certHash256 = ((SimpleBlockResult)calc.GetResult()).Collect();
+				certHash256 = calc.GetResult().Collect();
 			}
 
 
@@ -773,14 +772,14 @@ namespace Org.BouncyCastle.Tsp.Tests
 			Assert.NotNull(table[PkcsObjectIdentifiers.IdAASigningCertificateV2]);
 
 			Asn1DigestFactory digCalc = Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256);
-			IStreamCalculator calc = digCalc.CreateCalculator();
+			var calc = digCalc.CreateCalculator();
 			using (Stream s = calc.Stream)
 			{
 				byte[] crt = cert.GetEncoded();
 				s.Write(crt, 0, crt.Length);
 			}
 
-			byte[] certHash = ((SimpleBlockResult)calc.GetResult()).Collect();
+			byte[] certHash = calc.GetResult().Collect();
 
 			SigningCertificateV2 sigCertV2 = SigningCertificateV2.GetInstance(table[PkcsObjectIdentifiers.IdAASigningCertificateV2].AttrValues[0]);
 
@@ -788,12 +787,12 @@ namespace Org.BouncyCastle.Tsp.Tests
 		}
 
 		private void resolutionTest(AsymmetricKeyParameter privateKey, X509Certificate cert,
-			IStore<X509Certificate> certs, Resolution resoution, string timeString)
+			IStore<X509Certificate> certs, Resolution resolution, string timeString)
 		{
 			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
-			 privateKey, cert, TspAlgorithms.Sha1, "1.2");
+				privateKey, cert, TspAlgorithms.Sha1, "1.2");
 
-			tsTokenGen.Resolution = resoution;
+			tsTokenGen.Resolution = resolution;
 			tsTokenGen.SetCertificates(certs);
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
@@ -814,14 +813,14 @@ namespace Org.BouncyCastle.Tsp.Tests
 			tsToken = tsResp.TimeStampToken;
 			Assert.AreEqual("19700101000009Z", tsToken.TimeStampInfo.TstInfo.GenTime.TimeString);
 
-			if ((int)resoution > (int)Resolution.R_HUNDREDTHS_OF_SECONDS)
+			if ((int)resolution > (int)Resolution.R_HUNDREDTHS_OF_SECONDS)
 			{
 				tsResp = tsRespGen.Generate(request, new BigInteger("23"), UnixEpoch.AddMilliseconds(9990));
 				tsToken = tsResp.TimeStampToken;
 				Assert.AreEqual("19700101000009.99Z", tsToken.TimeStampInfo.TstInfo.GenTime.TimeString);
 			}
 
-			if ((int)resoution > (int)Resolution.R_TENTHS_OF_SECONDS)
+			if ((int)resolution > (int)Resolution.R_TENTHS_OF_SECONDS)
 			{
 				tsResp = tsRespGen.Generate(request, new BigInteger("23"), UnixEpoch.AddMilliseconds(9900));
 				tsToken = tsResp.TimeStampToken;

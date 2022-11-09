@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     * implements a Output-FeedBack (OFB) mode on top of a simple cipher.
     */
     public class OfbBlockCipher
-		: IBlockCipher
+		: IBlockCipherMode
     {
         private byte[]	IV;
         private byte[]	ofbV;
@@ -41,10 +41,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
 
         /**
         * Initialise the cipher and, possibly, the initialisation vector (IV).
@@ -176,9 +173,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         public void Reset()
         {
             Array.Copy(IV, 0, ofbV, 0, IV.Length);
-
-            cipher.Reset();
         }
     }
-
 }

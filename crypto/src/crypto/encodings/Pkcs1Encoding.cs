@@ -96,29 +96,21 @@ namespace Org.BouncyCastle.Crypto.Encodings
             this.pLen = fallback.Length;
         }
 
-        public IAsymmetricBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public string AlgorithmName => engine.AlgorithmName + "/PKCS1Padding";
 
-        public string AlgorithmName
-        {
-            get { return engine.AlgorithmName + "/PKCS1Padding"; }
-        }
+        public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             AsymmetricKeyParameter kParam;
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
-                this.random = rParam.Random;
-                kParam = (AsymmetricKeyParameter)rParam.Parameters;
+                this.random = withRandom.Random;
+                kParam = (AsymmetricKeyParameter)withRandom.Parameters;
             }
             else
             {
-                this.random = new SecureRandom();
+                this.random = CryptoServicesRegistrar.GetSecureRandom();
                 kParam = (AsymmetricKeyParameter)parameters;
             }
 

@@ -38,22 +38,23 @@ namespace Org.BouncyCastle.Asn1
 		 */
 		public static DerBitString GetInstance(object obj)
 		{
-			if (obj == null || obj is DerBitString)
-			{
-				return (DerBitString)obj;
-			}
-            //else if (obj is Asn1BitStringParser)
-            else if (obj is IAsn1Convertible)
+            if (obj == null)
+                return null;
+
+			if (obj is DerBitString derBitString)
+				return derBitString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerBitString)
-                    return (DerBitString)asn1Object;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerBitString converted)
+                    return converted;
             }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return GetInstance(FromByteArray(bytes));
                 }
                 catch (IOException e)
                 {

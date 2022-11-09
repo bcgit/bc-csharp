@@ -7,7 +7,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
@@ -57,7 +56,7 @@ namespace Org.BouncyCastle.Tests
             PkixBuilderParameters parameters = new PkixBuilderParameters(trust, targetConstraints);
             parameters.AddStoreCert(x509CertStore);
             parameters.AddStoreCrl(x509CrlStore);
-            parameters.Date = new DateTimeObject(validDate);
+            parameters.Date = validDate;
             PkixCertPathBuilderResult result = cpb.Build(parameters);
             PkixCertPath path = result.CertPath;
 
@@ -108,7 +107,7 @@ namespace Org.BouncyCastle.Tests
             buildParams.AddStoreCert(x509CertStore);
             buildParams.AddStoreCrl(x509CrlStore);
 
-            buildParams.Date = new DateTimeObject(DateTime.UtcNow);
+            buildParams.Date = DateTime.UtcNow;
 
             PkixCertPathBuilderResult result = builder.Build(buildParams);
             PkixCertPath path = result.CertPath;

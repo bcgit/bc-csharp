@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 #if NETCOREAPP3_0_OR_GREATER
-using System.Runtime.Intrinsics.X86;
+using System.Numerics;
 #endif
 using System.Runtime.Serialization;
 using System.Text;
-
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math
 {
     [Serializable]
-    public class BigInteger
+    public sealed class BigInteger
+        : IComparable<BigInteger>, IEquatable<BigInteger>
     {
         // The first few odd primes
         /*
@@ -139,6 +140,7 @@ namespace Org.BouncyCastle.Math
         public static readonly BigInteger Four;
         public static readonly BigInteger Ten;
 
+#if !NETCOREAPP3_0_OR_GREATER
         private readonly static byte[] BitLengthTable =
         {
             0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -158,12 +160,11 @@ namespace Org.BouncyCastle.Math
             8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
             8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
         };
+#endif
 
         // TODO Parse radix-2 64 bits at a time and radix-8 63 bits at a time
         private const int chunk2 = 1, chunk8 = 1, chunk10 = 19, chunk16 = 16;
         private static readonly BigInteger radix2, radix2E, radix8, radix8E, radix10, radix10E, radix16, radix16E;
-
-        private static readonly SecureRandom RandomSource = new SecureRandom();
 
         /*
          * These are the threshold bit-lengths (of an exponent) where we increase the window size.
@@ -226,26 +227,22 @@ namespace Org.BouncyCastle.Math
         private int nBits = -1; // cache BitCount() value
         [NonSerialized]
         private int nBitLength = -1; // cache BitLength() value
-        [NonSerialized]
-        private int mQuote = 0; // -m^(-1) mod b, b = 2^32 (see Montgomery mult.), 0 when uninitialised
 
         [OnDeserialized]
         private void OnDeserialized(StreamingContext context)
         {
             this.nBits = -1;
             this.nBitLength = -1;
-            this.mQuote = 0;
         }
 
-        private static int GetByteLength(
-            int nBits)
+        private static int GetByteLength(int nBits)
         {
             return (nBits + BitsPerByte - 1) / BitsPerByte;
         }
 
         public static BigInteger Arbitrary(int sizeInBits)
         {
-            return new BigInteger(sizeInBits, RandomSource);
+            return new BigInteger(sizeInBits, SecureRandom.ArbitraryRandom);
         }
 
         private BigInteger(
@@ -510,7 +507,14 @@ namespace Org.BouncyCastle.Math
                 else
                 {
                     int numBytes = end - iBval;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    Span<byte> inverse = numBytes <= 512
+                        ? stackalloc byte[numBytes]
+                        : new byte[numBytes];
+#else
                     byte[] inverse = new byte[numBytes];
+#endif
 
                     int index = 0;
                     while (index < numBytes)
@@ -527,7 +531,7 @@ namespace Org.BouncyCastle.Math
 
                     inverse[index]++;
 
-                    this.magnitude = MakeMagnitude(inverse, 0, inverse.Length);
+                    this.magnitude = MakeMagnitude(inverse);
                 }
             }
             else
@@ -538,24 +542,26 @@ namespace Org.BouncyCastle.Math
             }
         }
 
-        private static int[] MakeMagnitude(
-            byte[]	bytes,
-            int		offset,
-            int		length)
+        private static int[] MakeMagnitude(byte[] bytes)
         {
+            return MakeMagnitude(bytes, 0, bytes.Length);
+        }
+
+        private static int[] MakeMagnitude(byte[] bytes, int offset, int length)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return MakeMagnitude(bytes.AsSpan(offset, length));
+#else
             int end = offset + length;
 
             // strip leading zeros
             int firstSignificant;
-            for (firstSignificant = offset; firstSignificant < end
-                && bytes[firstSignificant] == 0; firstSignificant++)
+            for (firstSignificant = offset; firstSignificant < end && bytes[firstSignificant] == 0; firstSignificant++)
             {
             }
 
             if (firstSignificant >= end)
-            {
                 return ZeroMagnitude;
-            }
 
             int nInts = (end - firstSignificant + 3) / BytesPerInt;
             int bCount = (end - firstSignificant) % BytesPerInt;
@@ -565,9 +571,58 @@ namespace Org.BouncyCastle.Math
             }
 
             if (nInts < 1)
-            {
                 return ZeroMagnitude;
+
+            int[] mag = new int[nInts];
+
+            int v = 0;
+            int magnitudeIndex = 0;
+            for (int i = firstSignificant; i < end; ++i)
+            {
+                v <<= 8;
+                v |= bytes[i] & 0xff;
+                bCount--;
+                if (bCount <= 0)
+                {
+                    mag[magnitudeIndex] = v;
+                    magnitudeIndex++;
+                    bCount = BytesPerInt;
+                    v = 0;
+                }
             }
+
+            if (magnitudeIndex < mag.Length)
+            {
+                mag[magnitudeIndex] = v;
+            }
+
+            return mag;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static int[] MakeMagnitude(ReadOnlySpan<byte> bytes)
+        {
+            int end = bytes.Length;
+
+            // strip leading zeros
+            int firstSignificant;
+            for (firstSignificant = 0; firstSignificant < end && bytes[firstSignificant] == 0; firstSignificant++)
+            {
+            }
+
+            if (firstSignificant >= end)
+                return ZeroMagnitude;
+
+            int nInts = (end - firstSignificant + 3) / BytesPerInt;
+            int bCount = (end - firstSignificant) % BytesPerInt;
+            if (bCount == 0)
+            {
+                bCount = BytesPerInt;
+            }
+
+            if (nInts < 1)
+                return ZeroMagnitude;
 
             int[] mag = new int[nInts];
 
@@ -594,19 +649,14 @@ namespace Org.BouncyCastle.Math
 
             return mag;
         }
+#endif
 
-        public BigInteger(
-            int		sign,
-            byte[]	bytes)
+        public BigInteger(int sign, byte[] bytes)
             : this(sign, bytes, 0, bytes.Length)
         {
         }
 
-        public BigInteger(
-            int		sign,
-            byte[]	bytes,
-            int		offset,
-            int		length)
+        public BigInteger(int sign, byte[] bytes, int offset, int length)
         {
             if (sign < -1 || sign > 1)
                 throw new FormatException("Invalid sign value");
@@ -623,6 +673,26 @@ namespace Org.BouncyCastle.Math
                 this.sign = this.magnitude.Length < 1 ? 0 : sign;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public BigInteger(int sign, ReadOnlySpan<byte> bytes)
+        {
+            if (sign < -1 || sign > 1)
+                throw new FormatException("Invalid sign value");
+
+            if (sign == 0)
+            {
+                this.sign = 0;
+                this.magnitude = ZeroMagnitude;
+            }
+            else
+            {
+                // copy bytes
+                this.magnitude = MakeMagnitude(bytes);
+                this.sign = this.magnitude.Length < 1 ? 0 : sign;
+            }
+        }
+#endif
 
         public BigInteger(
             int		sizeInBits,
@@ -642,14 +712,21 @@ namespace Org.BouncyCastle.Math
             }
 
             int nBytes = GetByteLength(sizeInBits);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> b = nBytes <= 512
+                ? stackalloc byte[nBytes]
+                : new byte[nBytes];
+#else
             byte[] b = new byte[nBytes];
+#endif
             random.NextBytes(b);
 
             // strip off any excess bits in the MSB
             int xBits = BitsPerByte * nBytes - sizeInBits;
             b[0] &= (byte)(255U >> xBits);
 
-            this.magnitude = MakeMagnitude(b, 0, b.Length);
+            this.magnitude = MakeMagnitude(b);
             this.sign = this.magnitude.Length < 1 ? 0 : 1;
         }
 
@@ -673,7 +750,14 @@ namespace Org.BouncyCastle.Math
             }
              
             int nBytes = GetByteLength(bitLength);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> b = nBytes <= 512
+                ? stackalloc byte[nBytes]
+                : new byte[nBytes];
+#else
             byte[] b = new byte[nBytes];
+#endif
 
             int xBits = BitsPerByte * nBytes - bitLength;
             byte mask = (byte)(255U >> xBits);
@@ -692,9 +776,8 @@ namespace Org.BouncyCastle.Math
                 // ensure the trailing bit is 1 (i.e. must be odd)
                 b[nBytes - 1] |= 1;
 
-                this.magnitude = MakeMagnitude(b, 0, b.Length);
+                this.magnitude = MakeMagnitude(b);
                 this.nBits = -1;
-                this.mQuote = 0;
 
                 if (certainty < 1)
                     break;
@@ -895,12 +978,8 @@ namespace Org.BouncyCastle.Math
         public static int BitCnt(int i)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Popcnt.IsSupported)
-            {
-                return (int)Popcnt.PopCount((uint)i);
-            }
-#endif
-
+            return BitOperations.PopCount((uint)i);
+#else
             uint u = (uint)i;
             u = u - ((u >> 1) & 0x55555555);
             u = (u & 0x33333333) + ((u >> 2) & 0x33333333);
@@ -909,6 +988,7 @@ namespace Org.BouncyCastle.Math
             u += (u >> 16);
             u &= 0x3f;
             return (int)u;
+#endif
         }
 
         private static int CalcBitLength(int sign, int indx, int[]	mag)
@@ -963,18 +1043,20 @@ namespace Org.BouncyCastle.Math
             }
         }
 
-        //
-        // BitLen(value) is the number of bits in value.
-        //
+        private static int BitLen(byte b)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return 32 - BitOperations.LeadingZeroCount((uint)b);
+#else
+            return BitLengthTable[b];
+#endif
+        }
+
         private static int BitLen(int w)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Lzcnt.IsSupported)
-            {
-                return 32 - (int)Lzcnt.LeadingZeroCount((uint)w);
-            }
-#endif
-
+            return 32 - BitOperations.LeadingZeroCount((uint)w);
+#else
             uint v = (uint)w;
             uint t = v >> 24;
             if (t != 0)
@@ -986,6 +1068,7 @@ namespace Org.BouncyCastle.Math
             if (t != 0)
                 return 8 + BitLengthTable[t];
             return BitLengthTable[v];
+#endif
         }
 
         private bool QuickPow2Check()
@@ -993,10 +1076,18 @@ namespace Org.BouncyCastle.Math
             return sign > 0 && nBits == 1;
         }
 
-        public int CompareTo(
-            object obj)
+        public int CompareTo(BigInteger other)
         {
-            return CompareTo((BigInteger)obj);
+            if (other == null)
+                return 1;
+
+            return sign < other.sign
+                ?  -1
+                :  sign > other.sign
+                ?  1
+                :  sign == 0
+                ?  0
+                :  sign * CompareNoLeadingZeroes(0, magnitude, 0, other.magnitude);
         }
 
         /**
@@ -1047,15 +1138,6 @@ namespace Org.BouncyCastle.Math
             }
 
             return 0;
-        }
-
-        public int CompareTo(
-            BigInteger value)
-        {
-            return sign < value.sign ? -1
-                : sign > value.sign ? 1
-                : sign == 0 ? 0
-                : sign * CompareNoLeadingZeroes(0, magnitude, 0, value.magnitude);
         }
 
         /**
@@ -1248,17 +1330,24 @@ namespace Org.BouncyCastle.Math
             return biggies;
         }
 
-        public override bool Equals(
-            object obj)
+        public override bool Equals(object obj)
         {
             if (obj == this)
                 return true;
-
-            BigInteger biggie = obj as BigInteger;
-            if (biggie == null)
+            if (!(obj is BigInteger biggie))
                 return false;
 
             return sign == biggie.sign && IsEqualMagnitude(biggie);
+        }
+
+        public bool Equals(BigInteger other)
+        {
+            if (other == this)
+                return true;
+            if (other == null)
+                return false;
+
+            return sign == other.sign && IsEqualMagnitude(other);
         }
 
         private bool IsEqualMagnitude(BigInteger x)
@@ -1374,7 +1463,7 @@ namespace Org.BouncyCastle.Math
             if (n.Equals(One))
                 return false;
 
-            return n.CheckProbablePrime(certainty, RandomSource, randomlySelected);
+            return n.CheckProbablePrime(certainty, SecureRandom.ArbitraryRandom, randomlySelected);
         }
 
         private bool CheckProbablePrime(int certainty, Random random, bool randomlySelected)
@@ -1670,7 +1759,7 @@ namespace Org.BouncyCastle.Math
 //					if (F.Equals(One))
 //					{
 //						BigInteger half = m.Add(One).ShiftRight(1);
-//						BigInteger halfK = half.ModPow(BigInteger.ValueOf(k), m);
+//						BigInteger halfK = half.ModPow(ValueOf(k), m);
 //						return B.Multiply(halfK).Mod(m);
 //					}
 //
@@ -1717,13 +1806,13 @@ namespace Org.BouncyCastle.Math
 
             int pow = m.BitLength - 1;
 
-            long inv64 = ModInverse64(LongValue);
+            long inv64 = (long)Raw.Mod.Inverse64((ulong)LongValue);
             if (pow < 64)
             {
                 inv64 &= ((1L << pow) - 1);
             }
 
-            BigInteger x = BigInteger.ValueOf(inv64);
+            BigInteger x = ValueOf(inv64);
 
             if (pow > 64)
             {
@@ -1744,33 +1833,6 @@ namespace Org.BouncyCastle.Math
                 x = x.Add(m);
             }
 
-            return x;
-        }
-
-        private static int ModInverse32(int d)
-        {
-            // Newton's method with initial estimate "correct to 4 bits"
-            Debug.Assert((d & 1) != 0);
-            int x = d + (((d + 1) & 4) << 1);   // d.x == 1 mod 2**4
-            Debug.Assert(((d * x) & 15) == 1);
-            x *= 2 - d * x;                     // d.x == 1 mod 2**8
-            x *= 2 - d * x;                     // d.x == 1 mod 2**16
-            x *= 2 - d * x;                     // d.x == 1 mod 2**32
-            Debug.Assert(d * x == 1);
-            return x;
-        }
-
-        private static long ModInverse64(long d)
-        {
-            // Newton's method with initial estimate "correct to 4 bits"
-            Debug.Assert((d & 1L) != 0);
-            long x = d + (((d + 1L) & 4L) << 1);    // d.x == 1 mod 2**4
-            Debug.Assert(((d * x) & 15L) == 1L);
-            x *= 2 - d * x;                         // d.x == 1 mod 2**8
-            x *= 2 - d * x;                         // d.x == 1 mod 2**16
-            x *= 2 - d * x;                         // d.x == 1 mod 2**32
-            x *= 2 - d * x;                         // d.x == 1 mod 2**64
-            Debug.Assert(d * x == 1L);
             return x;
         }
 
@@ -1907,7 +1969,7 @@ namespace Org.BouncyCastle.Math
             {
                 mult = window & 0xFF;
 
-                int bits = lastZeroes + BitLengthTable[mult];
+                int bits = lastZeroes + BitLen((byte)mult);
                 for (int j = 0; j < bits; ++j)
                 {
                     y = ReduceBarrett(y.Square(), m, mr, yu);
@@ -2032,7 +2094,7 @@ namespace Org.BouncyCastle.Math
             {
                 mult = window & 0xFF;
 
-                int bits = lastZeroes + BitLengthTable[mult];
+                int bits = lastZeroes + BitLen((byte)mult);
                 for (int j = 0; j < bits; ++j)
                 {
                     SquareMonty(yAccum, yVal, m.magnitude, mDash, smallMontyModulus);
@@ -2117,11 +2179,19 @@ namespace Org.BouncyCastle.Math
 
         private static int CreateWindowEntry(int mult, int zeroes)
         {
+            Debug.Assert(mult > 0);
+
+#if NETCOREAPP3_0_OR_GREATER
+            int tz = BitOperations.TrailingZeroCount(mult);
+            mult >>= tz;
+            zeroes += tz;
+#else
             while ((mult & 1) == 0)
             {
                 mult >>= 1;
                 ++zeroes;
             }
+#endif
 
             return mult | (zeroes << 8);
         }
@@ -2240,18 +2310,13 @@ namespace Org.BouncyCastle.Math
          */
         private int GetMQuote()
         {
-            if (mQuote != 0)
-            {
-                return mQuote; // already calculated
-            }
-
             Debug.Assert(this.sign > 0);
 
             int d = -magnitude[magnitude.Length - 1];
 
             Debug.Assert((d & 1) != 0);
 
-            return mQuote = ModInverse32(d);
+            return (int)Raw.Mod.Inverse32((uint)d);
         }
 
         private static void MontgomeryReduce(int[] x, int[] m, uint mDash) // mDash = -m^(-1) mod b
@@ -2547,7 +2612,7 @@ namespace Org.BouncyCastle.Math
 
             BigInteger n = Inc().SetBit(0);
 
-            while (!n.CheckProbablePrime(100, RandomSource, false))
+            while (!n.CheckProbablePrime(100, SecureRandom.ArbitraryRandom, false))
             {
                 n = n.Add(Two);
             }
@@ -3108,18 +3173,41 @@ namespace Org.BouncyCastle.Math
             return Subtract(0, res, 0, lilMag);
         }
 
+        public int GetLengthofByteArray()
+        {
+            return GetByteLength(BitLength + 1);
+        }
+
+        public int GetLengthofByteArrayUnsigned()
+        {
+            return GetByteLength(sign < 0 ? BitLength + 1 : BitLength);
+        }
+
         public byte[] ToByteArray()
         {
             return ToByteArray(false);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ToByteArray(Span<byte> output)
+        {
+            ToByteArray(false, output);
+        }
+#endif
 
         public byte[] ToByteArrayUnsigned()
         {
             return ToByteArray(true);
         }
 
-        private byte[] ToByteArray(
-            bool unsigned)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ToByteArrayUnsigned(Span<byte> output)
+        {
+            ToByteArray(true, output);
+        }
+#endif
+
+        private byte[] ToByteArray(bool unsigned)
         {
             if (sign == 0)
                 return unsigned ? ZeroEncoding : new byte[1];
@@ -3139,10 +3227,8 @@ namespace Org.BouncyCastle.Math
                 while (magIndex > 1)
                 {
                     uint mag = (uint) magnitude[--magIndex];
-                    bytes[--bytesIndex] = (byte) mag;
-                    bytes[--bytesIndex] = (byte)(mag >> 8);
-                    bytes[--bytesIndex] = (byte)(mag >> 16);
-                    bytes[--bytesIndex] = (byte)(mag >> 24);
+                    bytesIndex -= 4;
+                    Pack.UInt32_To_BE(mag, bytes, bytesIndex);
                 }
 
                 uint lastMag = (uint) magnitude[0];
@@ -3167,10 +3253,8 @@ namespace Org.BouncyCastle.Math
                         carry = (++mag == uint.MinValue);
                     }
 
-                    bytes[--bytesIndex] = (byte) mag;
-                    bytes[--bytesIndex] = (byte)(mag >> 8);
-                    bytes[--bytesIndex] = (byte)(mag >> 16);
-                    bytes[--bytesIndex] = (byte)(mag >> 24);
+                    bytesIndex -= 4;
+                    Pack.UInt32_To_BE(mag, bytes, bytesIndex);
                 }
 
                 uint lastMag = (uint) magnitude[0];
@@ -3197,6 +3281,86 @@ namespace Org.BouncyCastle.Math
 
             return bytes;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void ToByteArray(bool unsigned, Span<byte> output)
+        {
+            if (sign == 0)
+            {
+                if (!unsigned)
+                {
+                    output[0] = 0;
+                }
+                return;
+            }
+
+            int nBits = (unsigned && sign > 0) ? BitLength : BitLength + 1;
+
+            int nBytes = GetByteLength(nBits);
+            if (nBytes > output.Length)
+                throw new ArgumentException("insufficient space", nameof(output));
+
+            int magIndex = magnitude.Length;
+            int bytesIndex = nBytes;
+
+            if (sign > 0)
+            {
+                while (magIndex > 1)
+                {
+                    uint mag = (uint) magnitude[--magIndex];
+                    bytesIndex -= 4;
+                    Pack.UInt32_To_BE(mag, output[bytesIndex..]);
+                }
+
+                uint lastMag = (uint)magnitude[0];
+                while (lastMag > byte.MaxValue)
+                {
+                    output[--bytesIndex] = (byte)lastMag;
+                    lastMag >>= 8;
+                }
+
+                output[--bytesIndex] = (byte)lastMag;
+            }
+            else // sign < 0
+            {
+                bool carry = true;
+
+                while (magIndex > 1)
+                {
+                    uint mag = ~((uint)magnitude[--magIndex]);
+
+                    if (carry)
+                    {
+                        carry = (++mag == uint.MinValue);
+                    }
+
+                    bytesIndex -= 4;
+                    Pack.UInt32_To_BE(mag, output[bytesIndex..]);
+                }
+
+                uint lastMag = (uint)magnitude[0];
+
+                if (carry)
+                {
+                    // Never wraps because magnitude[0] != 0
+                    --lastMag;
+                }
+
+                while (lastMag > byte.MaxValue)
+                {
+                    output[--bytesIndex] = (byte)~lastMag;
+                    lastMag >>= 8;
+                }
+
+                output[--bytesIndex] = (byte)~lastMag;
+
+                if (bytesIndex > 0)
+                {
+                    output[--bytesIndex] = byte.MaxValue;
+                }
+            }
+        }
+#endif
 
         public override string ToString()
         {
@@ -3422,6 +3586,9 @@ namespace Org.BouncyCastle.Math
                 offset += 32;
             }
 
+#if NETCOREAPP3_0_OR_GREATER
+            offset += BitOperations.TrailingZeroCount(word);
+#else
             while ((word & 0xFF) == 0)
             {
                 word >>= 8;
@@ -3434,6 +3601,7 @@ namespace Org.BouncyCastle.Math
                 ++offset;
             }
 
+#endif
             return offset;
         }
 
@@ -3625,7 +3793,6 @@ namespace Org.BouncyCastle.Math
 
             int[] mag = (int[]) this.magnitude.Clone();
             mag[mag.Length - 1 - (n >> 5)] ^= (1 << (n & 31)); // Flip bit
-            //mag[mag.Length - 1 - (n / 32)] ^= (1 << (n % 32));
             return new BigInteger(this.sign, mag, false);
         }
     }

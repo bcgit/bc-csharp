@@ -6,19 +6,20 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    /**
-     * An implementation of <a href="http://tools.ietf.org/html/rfc7253">RFC 7253 on The OCB
-     * Authenticated-Encryption Algorithm</a>, licensed per:
-     * 
-     * <blockquote><p><a href="http://www.cs.ucdavis.edu/~rogaway/ocb/license1.pdf">License for
-     * Open-Source Software Implementations of OCB</a> (Jan 9, 2013) - 'License 1'<br/>
-     * Under this license, you are authorized to make, use, and distribute open-source software
-     * implementations of OCB. This license terminates for you if you sue someone over their open-source
-     * software implementation of OCB claiming that you have a patent covering their implementation.
-     * </p><p>
-     * This is a non-binding summary of a legal document (the link above). The parameters of the license
-     * are specified in the license document and that document is controlling.</p></blockquote>
-     */
+    /// <summary>An implementation of <a href="https://tools.ietf.org/html/rfc7253">RFC 7253 on The OCB
+    /// Authenticated-Encryption Algorithm</a>.</summary>
+    /// <remarks>
+    /// For those still concerned about the original patents around this, please see:
+    /// <para>https://mailarchive.ietf.org/arch/msg/cfrg/qLTveWOdTJcLn4HP3ev-vrj05Vg/</para>
+    /// Text reproduced below:
+    /// <para>
+    /// Phillip Rogaway&lt;rogaway@cs.ucdavis.edu&gt; Sat, 27 February 2021 02:46 UTC
+    ///
+    /// I can confirm that I have abandoned all OCB patents and placed into the public domain all OCB-related IP of
+    /// mine. While I have been telling people this for quite some time, I don't think I ever made a proper announcement
+    /// to the CFRG or on the OCB webpage. Consider that done.
+    /// </para>
+    /// </remarks>
     public class OcbBlockCipher
         : IAeadBlockCipher
     {
@@ -80,15 +81,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mainCipher = mainCipher;
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return mainCipher;
-        }
+        public virtual string AlgorithmName => mainCipher.AlgorithmName + "/OCB";
 
-        public virtual string AlgorithmName
-        {
-            get { return mainCipher.AlgorithmName + "/OCB"; }
-        }
+        public virtual IBlockCipher UnderlyingCipher => mainCipher;
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -99,10 +94,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             KeyParameter keyParameter;
 
             byte[] N;
-            if (parameters is AeadParameters)
+            if (parameters is AeadParameters aeadParameters)
             {
-                AeadParameters aeadParameters = (AeadParameters) parameters;
-
                 N = aeadParameters.GetNonce();
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
@@ -113,10 +106,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                 macSize = macSizeBits / 8;
                 keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV parametersWithIV)
             {
-                ParametersWithIV parametersWithIV = (ParametersWithIV) parameters;
-
                 N = parametersWithIV.GetIV();
                 initialAssociatedText = null;
                 macSize = 16;
@@ -643,9 +634,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         protected virtual void Reset(bool clearMac)
         {
-            hashCipher.Reset();
-            mainCipher.Reset();
-
             Clear(hashBlock);
             Clear(mainBlock);
 

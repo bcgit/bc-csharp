@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
             "JACOBIAN-MODIFIED", "LAMBDA-AFFINE", "LAMBDA-PROJECTIVE", "SKEWED" };
 
-        private void RandMult(string curveName)
+        private static void RandMult(string curveName)
         {
             X9ECParameters spec = ECNamedCurveTable.GetByName(curveName);
             if (spec != null)
@@ -44,13 +44,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
-        private void RandMult(string label, X9ECParameters spec)
+        private static void RandMult(string label, X9ECParameters spec)
         {
             ECCurve C = spec.Curve;
-            ECPoint G = (ECPoint)spec.G;
+            ECPoint G = spec.G;
             BigInteger n = spec.N;
 
-            SecureRandom random = new SecureRandom();
+            var random = new SecureRandom();
             random.SetSeed(DateTimeUtilities.CurrentUnixMs());
 
             Console.WriteLine(label);
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             Console.Out.Flush();
         }
 
-        private double RandMult(SecureRandom random, ECPoint g, BigInteger n)
+        private static double RandMult(SecureRandom random, ECPoint g, BigInteger n)
         {
             BigInteger[] ks = new BigInteger[128];
             for (int i = 0; i < ks.Length; ++i)
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
 
             int ki = 0;
-            ECPoint p = g;
+            ECPoint p;
 
             {
                 long startTime = DateTimeUtilities.CurrentUnixMs();
@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 while (DateTimeUtilities.CurrentUnixMs() < goalTime);
             }
 
-            double minRate = Double.MaxValue, maxRate = Double.MinValue, totalRate = 0.0;
+            double minRate = double.MaxValue, maxRate = double.MinValue, totalRate = 0.0;
 
             for (int i = 1; i <= NUM_ROUNDS; i++)
             {

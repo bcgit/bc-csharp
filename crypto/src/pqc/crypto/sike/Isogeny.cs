@@ -1,25 +1,25 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    internal class Isogeny
+internal sealed class Isogeny
 {
-     SIKEEngine engine;
+    private readonly SikeEngine engine;
 
-     internal Isogeny(SIKEEngine engine)
+    internal Isogeny(SikeEngine engine)
     {
         this.engine = engine;
     }
-    
+
     // Doubling of a Montgomery point in projective coordinates (X:Z) over affine curve coefficient A. 
     // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constants (A+2)/4.
     // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2). 
-    protected internal void Double(PointProj P, PointProj Q, ulong[][] A24, uint k)
+    internal void Double(PointProj P, PointProj Q, ulong[][] A24, uint k)
     {
-        ulong[][] temp = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            a = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            b = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            c = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            aa = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            bb = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] temp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            a = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            b = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            c = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            aa = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            bb = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         engine.fpx.fp2copy(P.X, Q.X);
         engine.fpx.fp2copy(P.Z, Q.Z);
 
@@ -37,17 +37,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
     }
 
-    protected internal void CompleteMPoint(ulong[][] A, PointProj P, PointProjFull R)
+    internal void CompleteMPoint(ulong[][] A, PointProj P, PointProjFull R)
     { // Given an xz-only representation on a montgomery curve, compute its affine representation
-        ulong[][] zero = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            one = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            xz = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            yz = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            s2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            r2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            invz = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            temp0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            temp1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] zero = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            xz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            yz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            s2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            r2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            invz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            temp0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            temp1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
 
             engine.fpx.fpcopy(engine.param.Montgomery_one,0, one[0]);
@@ -81,10 +81,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
     internal void Ladder(PointProj P, ulong[] m, ulong[][] A, uint order_bits, PointProj R)
     {
-        PointProj R0 = new PointProj(engine.param.NWORDS_FIELD),
-                  R1 = new PointProj(engine.param.NWORDS_FIELD);
-        ulong[][] A24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
-        uint bit = 0;
+        var R0 = new PointProj(engine.param.NWORDS_FIELD);
+        var R1 = new PointProj(engine.param.NWORDS_FIELD);
+        ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         ulong mask;
         int j, swap, prevbit = 0;
         
@@ -96,7 +95,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         engine.fpx.fp2div2(A24, A24);  // A24 = (A+2)/4          
 
         j = (int)order_bits - 1;
-        bit = (uint) ((m[j >> (int)Internal.LOG2RADIX] >> (int)(j & (Internal.RADIX-1))) & 1);
+        uint bit = (uint) ((m[j >> (int)Internal.LOG2RADIX] >> (int)(j & (Internal.RADIX-1))) & 1);
         while (bit == 0)
         {
             j--;
@@ -106,7 +105,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // R0 <- P, R1 <- 2P
         engine.fpx.fp2copy(P.X, R0.X);
         engine.fpx.fp2copy(P.Z, R0.Z);
-        xDBL_e(P, R1, A24, 1);
+        XDblE(P, R1, A24, 1);
 
         // Main loop
         for (int i = (int)j - 1;  i >= 0; i--) 
@@ -116,12 +115,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             prevbit = (int) bit;
             mask = (ulong) (0 - swap);
 
-            swap_points(R0, R1, mask);
-            xDBLADD_proj(R0, R1, P.X, P.Z, A24);
+            SwapPoints(R0, R1, mask);
+            XDblAddProj(R0, R1, P.X, P.Z, A24);
         }
         swap = 0 ^ prevbit;
         mask = (ulong) (0 - swap);
-        swap_points(R0, R1, mask);
+        SwapPoints(R0, R1, mask);
 
         engine.fpx.fp2copy(R0.X, R.X);
         engine.fpx.fp2copy(R0.Z, R.Z);
@@ -130,11 +129,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Simultaneous doubling and differential addition.
     // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, affine difference xPQ=x(P-Q) and Montgomery curve constant A24=(A+2)/4.
     // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
-    private void xDBLADD_proj(PointProj P, PointProj Q, ulong[][] XPQ, ulong[][] ZPQ, ulong[][] A24)
+    private void XDblAddProj(PointProj P, PointProj Q, ulong[][] XPQ, ulong[][] ZPQ, ulong[][] A24)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
 
         engine.fpx.fp2add(P.X, P.Z, t0);                         // t0 = XP+ZP
@@ -162,14 +161,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Doubling of a Montgomery point in projective coordinates (X:Z) over affine curve coefficient A.
     // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constants (A+2)/4.
     // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2).
-    private void xDBL_e(PointProj P, PointProj Q, ulong[][] A24, int e)
+    private void XDblE(PointProj P, PointProj Q, ulong[][] A24, int e)
     {
-        ulong[][] temp = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            a = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            b = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            c = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            aa = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            bb = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] temp = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            a = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            b = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            c = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            aa = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            bb = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
 
         engine.fpx.fp2copy(P.X,Q.X);
@@ -192,14 +191,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Computes [3^e](X:Z) on Montgomery curve with projective constant via e repeated triplings. e triplings in E costs k*(5M + 6S + 9A)
     // Input: projective Montgomery x-coordinates P = (X:Z), where x=X/Z, Montgomery curve constant A2 = A/2 and the number of triplings e.
     // Output: projective Montgomery x-coordinates Q <- [3^e]P.
-    internal void xTPLe_fast(PointProj P, PointProj Q, ulong[][] A2, uint e)
+    internal void XTplEFast(PointProj P, PointProj Q, ulong[][] A2, uint e)
     {
-        PointProj T = new PointProj(engine.param.NWORDS_FIELD);
+        var T = new PointProj(engine.param.NWORDS_FIELD);
 
         engine.fpx.copy_words(P, T);
         for (int j = 0; j < e; j++)
         {
-            xTPL_fast(T, T, A2);
+            XTplFast(T, T, A2);
         }
         engine.fpx.copy_words(T, Q);
     }
@@ -207,12 +206,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Montgomery curve (E: y^2 = x^3 + A*x^2 + x) x-only tripling at a cost 5M + 6S + 9A = 27p + 61a.
     // Input : projective Montgomery x-coordinates P = (X:Z), where x=X/Z and Montgomery curve constant A/2.
     // Output: projective Montgomery x-coordinates Q = 3*P = (X3:Z3).
-    private void xTPL_fast(PointProj P, PointProj Q, ulong[][] A2)
+    private void XTplFast(PointProj P, PointProj Q, ulong[][] A2)
     {
-        ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t4 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t4 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
 
         engine.fpx.fp2sqr_mont(P.X, t1);        // t1 = x^2
@@ -238,11 +237,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     }
 
 
-    protected internal void LADDER3PT(ulong[][] xP, ulong[][] xQ, ulong[][] xPQ, ulong[] m, uint AliceOrBob, PointProj R, ulong[][] A)
+    internal void LADDER3PT(ulong[][] xP, ulong[][] xQ, ulong[][] xPQ, ulong[] m, uint AliceOrBob, PointProj R, ulong[][] A)
     {
-        PointProj R0 = new PointProj(engine.param.NWORDS_FIELD),
-                  R2 = new PointProj(engine.param.NWORDS_FIELD);
-        ulong[][] A24 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        var R0 = new PointProj(engine.param.NWORDS_FIELD);
+        var R2 = new PointProj(engine.param.NWORDS_FIELD);
+        ulong[][] A24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         ulong mask;
         uint i, nbits, bit, swap, prevbit = 0;
 
@@ -277,26 +276,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             swap = bit ^ prevbit;
             prevbit = bit;
             mask = 0 - (ulong) swap;
-            swap_points(R, R2, mask);
-            xDBLADD(R0, R2, R.X, A24);
+            SwapPoints(R, R2, mask);
+            XDblAdd(R0, R2, R.X, A24);
             engine.fpx.fp2mul_mont(R2.X, R.Z, R2.X);
         }
         swap = 0 ^ prevbit;
         mask = 0 - (ulong)swap;
-        swap_points(R, R2, mask);
+        SwapPoints(R, R2, mask);
     }
 
     // Complete point on A = 0 curve
-    protected internal void CompletePoint(PointProj P, PointProjFull R)
+    internal void CompletePoint(PointProj P, PointProjFull R)
     {
-        ulong[][] xz = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            s2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            r2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            yz = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            invz = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            one = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] xz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            s2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            r2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            yz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            invz = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, one[0]);
         engine.fpx.fp2mul_mont(P.X, P.Z, xz);
@@ -318,13 +317,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
     // Swap points.
     // If option = 0 then P <- P and Q <- Q, else if option = 0xFF...FF then P <- Q and Q <- P
-    protected internal void swap_points(PointProj P, PointProj Q, ulong option)
+    internal void SwapPoints(PointProj P, PointProj Q, ulong option)
     {
         //todo/org : put this in the PointProj class
         ulong temp;
-        int i;
-
-        for (i = 0; i < engine.param.NWORDS_FIELD; i++)
+        for (int i = 0; i < engine.param.NWORDS_FIELD; i++)
         {
             temp = option & (P.X[0][i] ^ Q.X[0][i]);
             P.X[0][i] = temp ^ P.X[0][i];
@@ -344,11 +341,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Simultaneous doubling and differential addition.
     // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, affine difference xPQ=x(P-Q) and Montgomery curve constant A24=(A+2)/4.
     // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
-    protected internal void xDBLADD(PointProj P, PointProj Q, ulong[][] xPQ, ulong[][] A24)
+    internal void XDblAdd(PointProj P, PointProj Q, ulong[][] xPQ, ulong[][] A24)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_add(P.X, P.Z, t0);                  // t0 = XP+ZP
         engine.fpx.mp2_sub_p2(P.X, P.Z, t1);               // t1 = XP-ZP
@@ -373,24 +370,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Computes [2^e](X:Z) on Montgomery curve with projective constant via e repeated doublings.
     // Input: projective Montgomery x-coordinates P = (XP:ZP), such that xP=XP/ZP and Montgomery curve constants A+2C and 4C.
     // Output: projective Montgomery x-coordinates Q <- (2^e)*P.
-    protected internal void xDBLe(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24, uint e)
+    internal void XDblE(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24, uint e)
     {
         int i;
         engine.fpx.copy_words(P, Q);
 
         for (i = 0; i < e; i++)
         {
-            xDBL(Q, Q, A24plus, C24);
+            XDbl(Q, Q, A24plus, C24);
         }
     }
 
     // Doubling of a Montgomery point in projective coordinates (X:Z).
     // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constants A+2C and 4C.
     // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2).
-    protected void xDBL(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24)
+    internal void XDbl(PointProj P, PointProj Q, ulong[][] A24plus, ulong[][] C24)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_sub_p2(P.X, P.Z, t0);                // t0 = X1-Z1
         engine.fpx.mp2_add(P.X, P.Z, t1);                   // t1 = X1+Z1
@@ -407,15 +404,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Tripling of a Montgomery point in projective coordinates (X:Z).
     // Input: projective Montgomery x-coordinates P = (X:Z), where x=X/Z and Montgomery curve constants A24plus = A+2C and A24minus = A-2C.
     // Output: projective Montgomery x-coordinates Q = 3*P = (X3:Z3).
-    private void xTPL(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus)
+    private void XTpl(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t4 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t5 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t6 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t4 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t5 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t6 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_sub_p2(P.X, P.Z, t0);               // t0 = X-Z
         engine.fpx.fp2sqr_mont(t0, t2);                    // t2 = (X-Z)^2
@@ -444,24 +441,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Computes [3^e](X:Z) on Montgomery curve with projective constant via e repeated triplings.
     // Input: projective Montgomery x-coordinates P = (XP:ZP), such that xP=XP/ZP and Montgomery curve constants A24plus = A+2C and A24minus = A-2C.
     // Output: projective Montgomery x-coordinates Q <- (3^e)*P.
-    protected internal void xTPLe(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus, uint e)
+    internal void XTplE(PointProj P, PointProj Q, ulong[][] A24minus, ulong[][] A24plus, uint e)
     {
         int i;
         engine.fpx.copy_words(P, Q);
         for (i = 0; i < e; i++)
         {
-            xTPL(Q, Q, A24minus, A24plus);
+            XTpl(Q, Q, A24minus, A24plus);
         }
     }
 
     // Given the x-coordinates of P, Q, and R, returns the value A corresponding to the Montgomery curve E_A: y^2=x^3+A*x^2+x such that R=Q-P on E_A.
     // Input:  the x-coordinates xP, xQ, and xR of the points P, Q and R.
     // Output: the coefficient A corresponding to the curve E_A: y^2=x^3+A*x^2+x.
-    protected internal void get_A(ulong[][] xP, ulong[][] xQ, ulong[][] xR, ulong[][] A)
+    internal void GetA(ulong[][] xP, ulong[][] xQ, ulong[][] xR, ulong[][] A)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            one = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            one = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fpcopy(engine.param.Montgomery_one, 0, one[0]);
         engine.fpx.fp2add(xP, xQ, t1);                     // t1 = xP+xQ
@@ -482,10 +479,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Computes the j-invariant of a Montgomery curve with projective constant.
     // Input: A,C in GF(p^2).
     // Output: j=256*(A^2-3*C^2)^3/(C^4*(A^2-4*C^2)), which is the j-invariant of the Montgomery curve B*y^2=x^3+(A/C)*x^2+x or (equivalently) j-invariant of B'*y^2=C*x^3+A*x^2+C*x.
-    protected internal void j_inv(ulong[][] A, ulong[][] C, ulong[][] jinv)
+    internal void JInv(ulong[][] A, ulong[][] C, ulong[][] jinv)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         
         engine.fpx.fp2sqr_mont(A, jinv);                   // jinv = A^2
         engine.fpx.fp2sqr_mont(C, t1);                     // t1 = C^2
@@ -510,13 +507,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Computes the corresponding 3-isogeny of a projective Montgomery point (X3:Z3) of order 3.
     // Input:  projective point of order three P = (X3:Z3).
     // Output: the 3-isogenous Montgomery curve with projective coefficient A/C.
-    protected internal void get_3_isog(PointProj P, ulong[][] A24minus, ulong[][] A24plus, ulong[][][] coeff)
+    internal void Get3Isog(PointProj P, ulong[][] A24minus, ulong[][] A24plus, ulong[][][] coeff)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t4 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t4 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_sub_p2(P.X, P.Z, coeff[0]);         // coeff0 = X-Z
         engine.fpx.fp2sqr_mont(coeff[0], t0);              // t0 = (X-Z)^2
@@ -540,11 +537,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // a point P with 2 coefficients in coeff (computed in the function get_3_Isog()).
     // Inputs: projective points P = (X3:Z3) and Q = (X:Z).
     // Output: the projective point Q <- phi(Q) = (X3:Z3).
-    protected internal void eval_3_isog(PointProj Q, ulong[][][] coeff)
+    internal void Eval3Isog(PointProj Q, ulong[][][] coeff)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_add(Q.X, Q.Z, t0);                  // t0 = X+Z
         engine.fpx.mp2_sub_p2(Q.X, Q.Z, t1);               // t1 = X-Z
@@ -561,12 +558,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // 3-way simultaneous inversion
     // Input:  z1,z2,z3
     // Output: 1/z1,1/z2,1/z3 (override inputs).
-    protected internal void inv_3_way(ulong[][] z1, ulong[][] z2, ulong[][] z3)
+    internal void Inv3Way(ulong[][] z1, ulong[][] z2, ulong[][] z3)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.fp2mul_mont(z1, z2, t0);                // t0 = z1*z2
         engine.fpx.fp2mul_mont(z3, t0, t1);                // t1 = z1*z2*z3
@@ -581,7 +578,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Computes the corresponding 2-isogeny of a projective Montgomery point (X2:Z2) of order 2.
     // Input:  projective point of order two P = (X2:Z2).
     // Output: the 2-isogenous Montgomery curve with projective coefficients A/C.
-    protected internal void get_2_isog(PointProj P, ulong[][] A, ulong[][] C)
+    internal void Get2Isog(PointProj P, ulong[][] A, ulong[][] C)
     {
         engine.fpx.fp2sqr_mont(P.X, A);                    // A = X2^2
         engine.fpx.fp2sqr_mont(P.Z, C);                    // C = Z2^2
@@ -591,12 +588,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Evaluates the isogeny at the point (X:Z) in the domain of the isogeny, given a 2-isogeny phi.
     // Inputs: the projective point P = (X:Z) and the 2-isogeny kernel projetive point Q = (X2:Z2).
     // Output: the projective point P = phi(P) = (X:Z) in the codomain. 
-    protected internal void eval_2_isog(PointProj P, PointProj Q)
+    internal void Eval2Isog(PointProj P, PointProj Q)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t2 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t3 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t2 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t3 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_add(Q.X, Q.Z, t0);                  // t0 = X2+Z2
         engine.fpx.mp2_sub_p2(Q.X, Q.Z, t1);               // t1 = X2-Z2
@@ -614,7 +611,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // Input:  projective point of order four P = (X4:Z4).
     // Output: the 4-isogenous Montgomery curve with projective coefficients A+2C/4C and the 3 coefficients
     //         that are used to evaluate the isogeny at a point in eval_4_Isog().
-    protected internal void get_4_isog(PointProj P, ulong[][] A24plus, ulong[][] C24, ulong[][][] coeff)
+    internal void Get4Isog(PointProj P, ulong[][] A24plus, ulong[][] C24, ulong[][][] coeff)
     {
         engine.fpx.mp2_sub_p2(P.X, P.Z, coeff[1]);         // coeff[1] = X4-Z4
         engine.fpx.mp2_add(P.X, P.Z, coeff[2]);            // coeff[2] = X4+Z4
@@ -631,10 +628,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     // by the 3 coefficients in coeff (computed in the function get_4_Isog()).
     // Inputs: the coefficients defining the isogeny, and the projective point P = (X:Z).
     // Output: the projective point P = phi(P) = (X:Z) in the codomain.
-    protected internal void eval_4_isog(PointProj P, ulong[][][] coeff)
+    internal void Eval4Isog(PointProj P, ulong[][][] coeff)
     {
-        ulong[][] t0 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] t0 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         engine.fpx.mp2_add(P.X, P.Z, t0);                  // t0 = X+Z
         engine.fpx.mp2_sub_p2(P.X, P.Z, t1);               // t1 = X-Z
@@ -651,9 +648,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         engine.fpx.fp2mul_mont(P.X, t1, P.X);              // Xfinal
         engine.fpx.fp2mul_mont(P.Z, t0, P.Z);              // Zfinal
     }
-    
-    
-
 }
-
 }

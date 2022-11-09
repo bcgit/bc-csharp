@@ -21,9 +21,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         {
             engine = param.Engine;
             CmcePrivateKeyParameters privateParams = (CmcePrivateKeyParameters)key;
-            if (privateParams.PrivateKey.Length < engine.PrivateKeySize)
+            if (privateParams.privateKey.Length < engine.PrivateKeySize)
             {
-                key = new CmcePrivateKeyParameters(privateParams.Parameters, engine.decompress_private_key(privateParams.PrivateKey));
+                key = new CmcePrivateKeyParameters(privateParams.Parameters, engine.decompress_private_key(privateParams.privateKey));
             }
         }
 
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         private byte[] ExtractSecret(byte[] encapsulation, int sessionKeySizeInBits)
         {
             byte[] session_key = new byte[sessionKeySizeInBits / 8];
-            engine.kem_dec(session_key, encapsulation, ((CmcePrivateKeyParameters)key).PrivateKey);
+            engine.kem_dec(session_key, encapsulation, ((CmcePrivateKeyParameters)key).privateKey);
             return session_key;
         }
 

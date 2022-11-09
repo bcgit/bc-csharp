@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 		/// <remarks>
 		/// Poly1305 keys are always 256 bits, so the key length in the provided parameters is ignored.
 		/// </remarks>
-		protected override void engineInit(KeyGenerationParameters param)
+		protected override void EngineInit(KeyGenerationParameters param)
 		{
 			// Poly1305 keys are always 256 bits
 			this.random = param.Random;
@@ -43,9 +43,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 		/// <code>k[0] ... k[15], r[0] ... r[15]</code> with the required bits in <code>r</code> cleared
 		/// as per <see cref="Clamp(byte[])"/>.
 		/// </summary>
-		protected override byte[] engineGenerateKey()
+		protected override byte[] EngineGenerateKey()
 		{
-			byte[] key = base.engineGenerateKey();
+			byte[] key = base.EngineGenerateKey();
 			Clamp(key);
 			return key;
 		}

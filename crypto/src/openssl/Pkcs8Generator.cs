@@ -83,10 +83,7 @@ namespace Org.BouncyCastle.OpenSsl
 
 			// TODO Theoretically, the amount of salt needed depends on the algorithm
 			byte[] salt = new byte[20];
-			if (random == null)
-			{
-				random = new SecureRandom();
-			}
+			random = CryptoServicesRegistrar.GetSecureRandom(random);
 			random.NextBytes(salt);
 
 			try

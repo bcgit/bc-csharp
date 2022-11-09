@@ -3,6 +3,7 @@ using System;
 using System.Runtime.CompilerServices;
 #endif
 #if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -15,17 +16,16 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Modes
 {
     /// <summary>
-    /// Implements the Galois/Counter mode (GCM) detailed in
-    /// NIST Special Publication 800-38D.
+    /// Implements the Galois/Counter mode (GCM) detailed in NIST Special Publication 800-38D.
     /// </summary>
-    public class GcmBlockCipher
+    public sealed class GcmBlockCipher
         : IAeadBlockCipher
     {
         private static IGcmMultiplier CreateGcmMultiplier()
         {
 #if NETCOREAPP3_0_OR_GREATER
             // TODO Prefer more tightly coupled test
-            if (System.Runtime.Intrinsics.X86.Pclmulqdq.IsSupported)
+            if (Pclmulqdq.IsSupported)
             {
                 return new BasicGcmMultiplier();
             }
@@ -86,17 +86,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.multiplier = m;
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return cipher.AlgorithmName + "/GCM"; }
-        }
+        public string AlgorithmName => cipher.AlgorithmName + "/GCM";
 
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
 
-        public virtual int GetBlockSize()
+        public int GetBlockSize()
         {
             return BlockSize;
         }
@@ -105,16 +99,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// MAC sizes from 32 bits to 128 bits (must be a multiple of 8) are supported. The default is 128 bits.
         /// Sizes less than 96 are not recommended, but are supported for specialized applications.
         /// </remarks>
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
             this.macBlock = null;
             this.initialised = true;
 
             KeyParameter keyParam;
-            byte[] newNonce = null;
+            byte[] newNonce;
 
             if (parameters is AeadParameters)
             {
@@ -229,15 +221,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual byte[] GetMac()
+        public byte[] GetMac()
         {
             return macBlock == null
                 ?   new byte[macSize]
                 :   Arrays.Clone(macBlock);
         }
 
-        public virtual int GetOutputSize(
-            int len)
+        public int GetOutputSize(int len)
         {
             int totalData = len + bufOff;
 
@@ -249,8 +240,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
-        public virtual int GetUpdateOutputSize(
-            int len)
+        public int GetUpdateOutputSize(int len)
         {
             int totalData = len + bufOff;
             if (!forEncryption)
@@ -264,7 +254,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData - totalData % BlockSize;
         }
 
-        public virtual void ProcessAadByte(byte input)
+        public void ProcessAadByte(byte input)
         {
             CheckStatus();
 
@@ -278,7 +268,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
+        public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ProcessAadBytes(inBytes.AsSpan(inOff, len));
@@ -318,7 +308,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             CheckStatus();
 
@@ -372,7 +362,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual int ProcessByte(byte	input, byte[] output, int outOff)
+        public int ProcessByte(byte	input, byte[] output, int outOff)
         {
             CheckStatus();
 
@@ -404,7 +394,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessByte(byte input, Span<byte> output)
+        public int ProcessByte(byte input, Span<byte> output)
         {
             CheckStatus();
 
@@ -428,7 +418,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
+        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             CheckStatus();
 
@@ -537,7 +527,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             CheckStatus();
 
@@ -751,7 +741,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int DoFinal(Span<byte> output)
+        public int DoFinal(Span<byte> output)
         {
             CheckStatus();
 
@@ -862,16 +852,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        public virtual void Reset()
+        public void Reset()
         {
             Reset(true);
         }
 
-        private void Reset(
-            bool clearMac)
+        private void Reset(bool clearMac)
         {
-            cipher.Reset();
-
             // note: we do not reset the nonce.
 
             S = new byte[BlockSize];
@@ -911,7 +898,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize, "output buffer too short");
@@ -927,15 +913,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(input[0]));
-                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
-                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+                var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t0);
 
-                Unsafe.WriteUnaligned(ref output[0], t1);
-                Unsafe.WriteUnaligned(ref S[0], t2);
+                MemoryMarshal.Write(output, ref t1);
+                MemoryMarshal.Write(S.AsSpan(), ref t2);
             }
             else
 #endif
@@ -963,7 +949,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void DecryptBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize * 2, "output buffer too short");
@@ -979,15 +964,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(input[0]));
-                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
-                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+                var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t0);
 
-                Unsafe.WriteUnaligned(ref output[0], t1);
-                Unsafe.WriteUnaligned(ref S[0], t2);
+                MemoryMarshal.Write(output, ref t1);
+                MemoryMarshal.Write(S.AsSpan(), ref t2);
             }
             else
 #endif
@@ -1019,15 +1004,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(input[0]));
-                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
-                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+                var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t0);
 
-                Unsafe.WriteUnaligned(ref output[0], t1);
-                Unsafe.WriteUnaligned(ref S[0], t2);
+                MemoryMarshal.Write(output, ref t1);
+                MemoryMarshal.Write(S.AsSpan(), ref t2);
             }
             else
 #endif
@@ -1055,7 +1040,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize * 2;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize, "output buffer too short");
@@ -1071,15 +1055,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(input[0]));
-                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
-                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+                var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t1);
 
-                Unsafe.WriteUnaligned(ref output[0], t1);
-                Unsafe.WriteUnaligned(ref S[0], t2);
+                MemoryMarshal.Write(output, ref t1);
+                MemoryMarshal.Write(S.AsSpan(), ref t2);
             }
             else
 #endif
@@ -1107,7 +1091,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void EncryptBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize * 2, "Output buffer too short");
@@ -1123,15 +1106,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(input[0]));
-                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
-                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+                var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t1);
 
-                Unsafe.WriteUnaligned(ref output[0], t1);
-                Unsafe.WriteUnaligned(ref S[0], t2);
+                MemoryMarshal.Write(output, ref t1);
+                MemoryMarshal.Write(S.AsSpan(), ref t2);
             }
             else
 #endif
@@ -1163,15 +1146,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(input[0]));
-                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
-                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+                var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t1);
 
-                Unsafe.WriteUnaligned(ref output[0], t1);
-                Unsafe.WriteUnaligned(ref S[0], t2);
+                MemoryMarshal.Write(output, ref t1);
+                MemoryMarshal.Write(S.AsSpan(), ref t2);
             }
             else
 #endif

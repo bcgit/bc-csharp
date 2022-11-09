@@ -3,17 +3,17 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    public class SPHINCSPlusKeyGenerationParameters
+    public sealed class SphincsPlusKeyGenerationParameters
         : KeyGenerationParameters
     {
-        private SPHINCSPlusParameters parameters;
+        private readonly SphincsPlusParameters m_parameters;
 
-        public SPHINCSPlusKeyGenerationParameters(SecureRandom random, SPHINCSPlusParameters parameters)
+        public SphincsPlusKeyGenerationParameters(SecureRandom random, SphincsPlusParameters parameters)
             : base(random, 256)
         {
-            this.parameters = parameters;
+            m_parameters = parameters;
         }
 
-        internal SPHINCSPlusParameters Parameters => parameters;
+        public SphincsPlusParameters Parameters => m_parameters;
     }
 }

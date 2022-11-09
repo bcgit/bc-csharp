@@ -103,10 +103,11 @@ namespace Org.BouncyCastle.Tests.Rsa3
 		{
 			Stream s = SimpleTest.GetTestDataAsStream("rsa3." + certName);
 			TextReader tr = new StreamReader(s);
-			PemReader rd = new PemReader(tr);
-
-			return (X509Certificate) rd.ReadObject();
-		}
+			using (var rd = new PemReader(tr))
+			{
+                return (X509Certificate)rd.ReadObject();
+            }
+        }
 
 //		public static void main (string[] args) 
 //			throws Exception

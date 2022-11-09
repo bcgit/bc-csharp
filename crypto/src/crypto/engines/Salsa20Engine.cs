@@ -1,5 +1,12 @@
 using System;
-using System.Text;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -245,16 +252,81 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Pack.UInt32_To_LE(x, output, 0);
 		}
 
-		internal static void SalsaCore(int rounds, uint[] input, uint[] x)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void SalsaCore(int rounds, ReadOnlySpan<uint> input, Span<uint> output)
 		{
-			if (input.Length != 16)
+			if (input.Length < 16)
 				throw new ArgumentException();
-			if (x.Length != 16)
+			if (output.Length < 16)
 				throw new ArgumentException();
 			if (rounds % 2 != 0)
 				throw new ArgumentException("Number of rounds must be even");
 
-            uint x00 = input[ 0];
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse41.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<short>>() == 16)
+			{
+				Vector128<uint> b0, b1, b2, b3;
+				{
+                    var I = MemoryMarshal.AsBytes(input[..16]);
+					var t0 = MemoryMarshal.Read<Vector128<short>>(I[0x00..0x10]);
+                    var t1 = MemoryMarshal.Read<Vector128<short>>(I[0x10..0x20]);
+                    var t2 = MemoryMarshal.Read<Vector128<short>>(I[0x20..0x30]);
+                    var t3 = MemoryMarshal.Read<Vector128<short>>(I[0x30..0x40]);
+
+                    var u0 = Sse41.Blend(t0, t2, 0xF0);
+					var u1 = Sse41.Blend(t1, t3, 0xC3);
+					var u2 = Sse41.Blend(t0, t2, 0x0F);
+					var u3 = Sse41.Blend(t1, t3, 0x3C);
+
+					b0 = Sse41.Blend(u0, u1, 0xCC).AsUInt32();
+					b1 = Sse41.Blend(u0, u1, 0x33).AsUInt32();
+					b2 = Sse41.Blend(u2, u3, 0xCC).AsUInt32();
+					b3 = Sse41.Blend(u2, u3, 0x33).AsUInt32();
+				}
+
+                var c0 = b0;
+                var c1 = b1;
+                var c2 = b2;
+                var c3 = b3;
+
+                for (int i = rounds; i > 0; i -= 2)
+				{
+                    QuarterRound_Sse2(ref c0, ref c3, ref c2, ref c1);
+                    QuarterRound_Sse2(ref c0, ref c1, ref c2, ref c3);
+                }
+
+                b0 = Sse2.Add(b0, c0);
+                b1 = Sse2.Add(b1, c1);
+                b2 = Sse2.Add(b2, c2);
+                b3 = Sse2.Add(b3, c3);
+
+                {
+					var t0 = b0.AsUInt16();
+                    var t1 = b1.AsUInt16();
+                    var t2 = b2.AsUInt16();
+                    var t3 = b3.AsUInt16();
+
+					var u0 = Sse41.Blend(t0, t1, 0xCC);
+					var u1 = Sse41.Blend(t0, t1, 0x33);
+					var u2 = Sse41.Blend(t2, t3, 0xCC);
+					var u3 = Sse41.Blend(t2, t3, 0x33);
+
+					var v0 = Sse41.Blend(u0, u2, 0xF0);
+                    var v1 = Sse41.Blend(u1, u3, 0xC3);
+                    var v2 = Sse41.Blend(u0, u2, 0x0F);
+                    var v3 = Sse41.Blend(u1, u3, 0x3C);
+
+                    var X = MemoryMarshal.AsBytes(output[..16]);
+                    MemoryMarshal.Write(X[0x00..0x10], ref v0);
+                    MemoryMarshal.Write(X[0x10..0x20], ref v1);
+                    MemoryMarshal.Write(X[0x20..0x30], ref v2);
+                    MemoryMarshal.Write(X[0x30..0x40], ref v3);
+                }
+                return;
+			}
+#endif
+
+			uint x00 = input[ 0];
 			uint x01 = input[ 1];
 			uint x02 = input[ 2];
 			uint x03 = input[ 3];
@@ -273,58 +345,92 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			for (int i = rounds; i > 0; i -= 2)
 			{
-				x04 ^= Integers.RotateLeft((x00+x12), 7);
-				x08 ^= Integers.RotateLeft((x04+x00), 9);
-				x12 ^= Integers.RotateLeft((x08+x04),13);
-				x00 ^= Integers.RotateLeft((x12+x08),18);
-				x09 ^= Integers.RotateLeft((x05+x01), 7);
-				x13 ^= Integers.RotateLeft((x09+x05), 9);
-				x01 ^= Integers.RotateLeft((x13+x09),13);
-				x05 ^= Integers.RotateLeft((x01+x13),18);
-				x14 ^= Integers.RotateLeft((x10+x06), 7);
-				x02 ^= Integers.RotateLeft((x14+x10), 9);
-				x06 ^= Integers.RotateLeft((x02+x14),13);
-				x10 ^= Integers.RotateLeft((x06+x02),18);
-				x03 ^= Integers.RotateLeft((x15+x11), 7);
-				x07 ^= Integers.RotateLeft((x03+x15), 9);
-				x11 ^= Integers.RotateLeft((x07+x03),13);
-				x15 ^= Integers.RotateLeft((x11+x07),18);
+				QuarterRound(ref x00, ref x04, ref x08, ref x12);
+                QuarterRound(ref x05, ref x09, ref x13, ref x01);
+                QuarterRound(ref x10, ref x14, ref x02, ref x06);
+                QuarterRound(ref x15, ref x03, ref x07, ref x11);
 
-				x01 ^= Integers.RotateLeft((x00+x03), 7);
-				x02 ^= Integers.RotateLeft((x01+x00), 9);
-				x03 ^= Integers.RotateLeft((x02+x01),13);
-				x00 ^= Integers.RotateLeft((x03+x02),18);
-				x06 ^= Integers.RotateLeft((x05+x04), 7);
-				x07 ^= Integers.RotateLeft((x06+x05), 9);
-				x04 ^= Integers.RotateLeft((x07+x06),13);
-				x05 ^= Integers.RotateLeft((x04+x07),18);
-				x11 ^= Integers.RotateLeft((x10+x09), 7);
-				x08 ^= Integers.RotateLeft((x11+x10), 9);
-				x09 ^= Integers.RotateLeft((x08+x11),13);
-				x10 ^= Integers.RotateLeft((x09+x08),18);
-				x12 ^= Integers.RotateLeft((x15+x14), 7);
-				x13 ^= Integers.RotateLeft((x12+x15), 9);
-				x14 ^= Integers.RotateLeft((x13+x12),13);
-				x15 ^= Integers.RotateLeft((x14+x13),18);
+                QuarterRound(ref x00, ref x01, ref x02, ref x03);
+                QuarterRound(ref x05, ref x06, ref x07, ref x04);
+                QuarterRound(ref x10, ref x11, ref x08, ref x09);
+                QuarterRound(ref x15, ref x12, ref x13, ref x14);
 			}
 
-			x[ 0] = x00 + input[ 0];
-			x[ 1] = x01 + input[ 1];
-			x[ 2] = x02 + input[ 2];
-			x[ 3] = x03 + input[ 3];
-			x[ 4] = x04 + input[ 4];
-			x[ 5] = x05 + input[ 5];
-			x[ 6] = x06 + input[ 6];
-			x[ 7] = x07 + input[ 7];
-			x[ 8] = x08 + input[ 8];
-			x[ 9] = x09 + input[ 9];
-			x[10] = x10 + input[10];
-			x[11] = x11 + input[11];
-			x[12] = x12 + input[12];
-			x[13] = x13 + input[13];
-			x[14] = x14 + input[14];
-			x[15] = x15 + input[15];
+			output[ 0] = x00 + input[ 0];
+			output[ 1] = x01 + input[ 1];
+			output[ 2] = x02 + input[ 2];
+			output[ 3] = x03 + input[ 3];
+			output[ 4] = x04 + input[ 4];
+			output[ 5] = x05 + input[ 5];
+			output[ 6] = x06 + input[ 6];
+			output[ 7] = x07 + input[ 7];
+			output[ 8] = x08 + input[ 8];
+			output[ 9] = x09 + input[ 9];
+			output[10] = x10 + input[10];
+			output[11] = x11 + input[11];
+			output[12] = x12 + input[12];
+			output[13] = x13 + input[13];
+			output[14] = x14 + input[14];
+			output[15] = x15 + input[15];
 		}
+#else
+		internal static void SalsaCore(int rounds, uint[] input, uint[] output)
+		{
+			if (input.Length < 16)
+				throw new ArgumentException();
+			if (output.Length < 16)
+				throw new ArgumentException();
+			if (rounds % 2 != 0)
+				throw new ArgumentException("Number of rounds must be even");
+
+			uint x00 = input[ 0];
+			uint x01 = input[ 1];
+			uint x02 = input[ 2];
+			uint x03 = input[ 3];
+			uint x04 = input[ 4];
+			uint x05 = input[ 5];
+			uint x06 = input[ 6];
+			uint x07 = input[ 7];
+			uint x08 = input[ 8];
+			uint x09 = input[ 9];
+			uint x10 = input[10];
+			uint x11 = input[11];
+			uint x12 = input[12];
+			uint x13 = input[13];
+			uint x14 = input[14];
+			uint x15 = input[15];
+
+			for (int i = rounds; i > 0; i -= 2)
+			{
+				QuarterRound(ref x00, ref x04, ref x08, ref x12);
+                QuarterRound(ref x05, ref x09, ref x13, ref x01);
+                QuarterRound(ref x10, ref x14, ref x02, ref x06);
+                QuarterRound(ref x15, ref x03, ref x07, ref x11);
+
+                QuarterRound(ref x00, ref x01, ref x02, ref x03);
+                QuarterRound(ref x05, ref x06, ref x07, ref x04);
+                QuarterRound(ref x10, ref x11, ref x08, ref x09);
+                QuarterRound(ref x15, ref x12, ref x13, ref x14);
+			}
+
+			output[ 0] = x00 + input[ 0];
+			output[ 1] = x01 + input[ 1];
+			output[ 2] = x02 + input[ 2];
+			output[ 3] = x03 + input[ 3];
+			output[ 4] = x04 + input[ 4];
+			output[ 5] = x05 + input[ 5];
+			output[ 6] = x06 + input[ 6];
+			output[ 7] = x07 + input[ 7];
+			output[ 8] = x08 + input[ 8];
+			output[ 9] = x09 + input[ 9];
+			output[10] = x10 + input[10];
+			output[11] = x11 + input[11];
+			output[12] = x12 + input[12];
+			output[13] = x13 + input[13];
+			output[14] = x14 + input[14];
+			output[15] = x15 + input[15];
+		}
+#endif
 
 		internal void ResetLimitCounter()
 		{
@@ -364,5 +470,39 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			return false;
 		}
-	}
+
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private static void QuarterRound(ref uint a, ref uint b, ref uint c, ref uint d)
+		{
+            b ^= Integers.RotateLeft(a + d,  7);
+            c ^= Integers.RotateLeft(b + a,  9);
+            d ^= Integers.RotateLeft(c + b, 13);
+            a ^= Integers.RotateLeft(d + c, 18);
+        }
+
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void QuarterRound_Sse2(ref Vector128<uint> a, ref Vector128<uint> b, ref Vector128<uint> c,
+			ref Vector128<uint> d)
+        {
+			b = Sse2.Xor(b, Rotate_Sse2(Sse2.Add(a, d), 7));
+			c = Sse2.Xor(c, Rotate_Sse2(Sse2.Add(b, a), 9));
+			d = Sse2.Xor(d, Rotate_Sse2(Sse2.Add(c, b), 13));
+			a = Sse2.Xor(a, Rotate_Sse2(Sse2.Add(d, c), 18));
+
+            b = Sse2.Shuffle(b, 0x93);
+			c = Sse2.Shuffle(c, 0x4E);
+			d = Sse2.Shuffle(d, 0x39);
+		}
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<uint> Rotate_Sse2(Vector128<uint> x, byte sl)
+        {
+			byte sr = (byte)(32 - sl);
+            return Sse2.Xor(Sse2.ShiftLeftLogical(x, sl), Sse2.ShiftRightLogical(x, sr));
+        }
+#endif
+    }
 }

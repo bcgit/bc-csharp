@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     * implements a Cipher-FeedBack (CFB) mode on top of a simple cipher.
     */
     public class CfbBlockCipher
-		: IBlockCipher
+		: IBlockCipherMode
     {
         private byte[]	IV;
         private byte[]	cfbV;
@@ -43,10 +43,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
+
         /**
         * Initialise the cipher and, possibly, the initialisation vector (IV).
         * If an IV isn't passed as part of the parameter, the IV will be all zeros.
@@ -131,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        private int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, blockSize, "input buffer too short");
             Check.OutputLength(output, blockSize, "output buffer too short");
@@ -152,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 
-        public int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        private int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, blockSize, "input buffer too short");
             Check.OutputLength(output, blockSize, "output buffer too short");
@@ -173,7 +171,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 #else
-        public int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
+        private int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
             Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
@@ -194,7 +192,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 
-        public int DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
+        private int DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
             Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
@@ -223,7 +221,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         public void Reset()
         {
             Array.Copy(IV, 0, cfbV, 0, IV.Length);
-            cipher.Reset();
         }
     }
 }

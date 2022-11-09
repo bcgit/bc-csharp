@@ -1,20 +1,19 @@
-using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class HT
+    internal class HT
     {
         private byte[] skSeed;
         private byte[] pkSeed;
-        SPHINCSPlusEngine engine;
+        SphincsPlusEngine engine;
         WotsPlus wots;
 
         internal byte[] HTPubKey;
 
-        public HT(SPHINCSPlusEngine engine, byte[] skSeed, byte[] pkSeed)
+        internal HT(SphincsPlusEngine engine, byte[] skSeed, byte[] pkSeed)
         {
             this.skSeed = skSeed;
             this.pkSeed = pkSeed;
@@ -75,28 +74,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return Arrays.ConcatenateAll(totSigs);
         }
 
-        byte[] xmss_PKgen(byte[] skSeed, byte[] pkSeed, Adrs adrs)
+        private byte[] xmss_PKgen(byte[] skSeed, byte[] pkSeed, Adrs adrs)
         {
             return TreeHash(skSeed, 0, engine.H_PRIME, pkSeed, adrs);
         }
 
         // Input: index idx, XMSS signature SIG_XMSS = (sig || AUTH), n-byte message M, public seed PK.seed, address Adrs
         // Output: n-byte root value node[0]
-        byte[] xmss_pkFromSig(uint idx, SIG_XMSS sig_xmss, byte[] M, byte[] pkSeed, Adrs paramAdrs)
+        private byte[] xmss_pkFromSig(uint idx, SIG_XMSS sig_xmss, byte[] M, byte[] pkSeed, Adrs paramAdrs)
         {
             Adrs adrs = new Adrs(paramAdrs);
 
             // compute WOTS+ pk from WOTS+ sig
-            adrs.SetType(Adrs.WOTS_HASH);
+            adrs.SetAdrsType(Adrs.WOTS_HASH);
             adrs.SetKeyPairAddress(idx);
-            byte[] sig = sig_xmss.GetWOTSSig();
-            byte[][] AUTH = sig_xmss.GetXMSSAUTH();
+            byte[] sig = sig_xmss.WotsSig;
+            byte[][] AUTH = sig_xmss.XmssAuth;
 
-            byte[] node0 = wots.PKFromSig(sig, M, pkSeed, adrs);
-            byte[] node1 = null;
+            byte[] node = new byte[engine.N];
+            wots.PKFromSig(sig, M, pkSeed, adrs, node);
 
             // compute root from WOTS+ pk and AUTH
-            adrs.SetType(Adrs.TREE);
+            adrs.SetAdrsType(Adrs.TREE);
             adrs.SetTreeIndex(idx);
             for (uint k = 0; k < engine.H_PRIME; k++)
             {
@@ -104,30 +103,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 if (((idx / (1 << (int)k)) % 2) == 0)
                 {
                     adrs.SetTreeIndex(adrs.GetTreeIndex() / 2);
-                    node1 = engine.H(pkSeed, adrs, node0, AUTH[k]);
+                    engine.H(pkSeed, adrs, node, AUTH[k], node);
                 }
                 else
                 {
                     adrs.SetTreeIndex((adrs.GetTreeIndex() - 1) / 2);
-                    node1 = engine.H(pkSeed, adrs, AUTH[k], node0);
+                    engine.H(pkSeed, adrs, AUTH[k], node, node);
                 }
-
-                node0 = node1;
             }
 
-            return node0;
+            return node;
         }
 
         //    # Input: n-byte message M, secret seed SK.seed, index idx, public seed PK.seed,
         //    address Adrs
         //    # Output: XMSS signature SIG_XMSS = (sig || AUTH)
-        SIG_XMSS xmss_sign(byte[] M, byte[] skSeed, uint idx, byte[] pkSeed, Adrs paramAdrs)
+        private SIG_XMSS xmss_sign(byte[] M, byte[] skSeed, uint idx, byte[] pkSeed, Adrs paramAdrs)
         {
             byte[][] AUTH = new byte[engine.H_PRIME][];
             
             Adrs adrs = new Adrs(paramAdrs);
 
-            adrs.SetType(Adrs.TREE);
+            adrs.SetAdrsType(Adrs.TREE);
             adrs.SetLayerAddress(paramAdrs.GetLayerAddress());
             adrs.SetTreeAddress(paramAdrs.GetTreeAddress());
 
@@ -140,7 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 
             adrs = new Adrs(paramAdrs);
-            adrs.SetType(Adrs.WOTS_PK);
+            adrs.SetAdrsType(Adrs.WOTS_PK);
             adrs.SetKeyPairAddress(idx);
 
             byte[] sig = wots.Sign(M, skSeed, pkSeed, adrs);
@@ -151,49 +148,51 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         // Input: Secret seed SK.seed, start index s, target node height z, public seed
         //PK.seed, address Adrs
         // Output: n-byte root node - top node on Stack
-        byte[] TreeHash(byte[] skSeed, uint s, uint z, byte[] pkSeed, Adrs adrsParam)
+        private byte[] TreeHash(byte[] skSeed, uint s, uint z, byte[] pkSeed, Adrs adrsParam)
         {
-            Adrs adrs = new Adrs(adrsParam);
-
-            var stack = new List<NodeEntry>();
-
             if (s % (1 << (int)z) != 0)
-            {
                 return null;
-            }
+
+            var stack = new Stack<NodeEntry>();
+            Adrs adrs = new Adrs(adrsParam);
 
             for (uint idx = 0; idx < (1 << (int)z); idx++)
             {
-                adrs.SetType(Adrs.WOTS_HASH);
+                adrs.SetAdrsType(Adrs.WOTS_HASH);
                 adrs.SetKeyPairAddress(s + idx);
-                byte[] node = wots.PKGen(skSeed, pkSeed, adrs);
 
-                adrs.SetType(Adrs.TREE);
+                byte[] node = new byte[engine.N];
+                wots.PKGen(skSeed, pkSeed, adrs, node);
+
+                adrs.SetAdrsType(Adrs.TREE);
                 adrs.SetTreeHeight(1);
                 adrs.SetTreeIndex(s + idx);
 
+                uint adrsTreeHeight = 1;
+                uint adrsTreeIndex = s + idx;
+
                 // while ( Top node on Stack has same height as node )
-                while (stack.Count != 0
-                       && ((NodeEntry) stack[0]).nodeHeight == adrs.GetTreeHeight())
+                while (stack.Count > 0 && stack.Peek().nodeHeight == adrsTreeHeight)
                 {
-                    adrs.SetTreeIndex((adrs.GetTreeIndex() - 1) / 2);
-                    NodeEntry current = ((NodeEntry) stack[0]);
-                    stack.RemoveAt(0);
-                    node = engine.H(pkSeed, adrs, current.nodeValue, node);
+                    adrsTreeIndex = (adrsTreeIndex - 1) / 2;
+                    adrs.SetTreeIndex(adrsTreeIndex);
+
+                    engine.H(pkSeed, adrs, stack.Pop().nodeValue, node, node);
+
                     //topmost node is now one layer higher
-                    adrs.SetTreeHeight(adrs.GetTreeHeight() + 1);
+                    adrs.SetTreeHeight(++adrsTreeHeight);
                 }
 
-                stack.Insert(0, new NodeEntry(node, adrs.GetTreeHeight()));
+                stack.Push(new NodeEntry(node, adrsTreeHeight));
             }
 
-            return ((NodeEntry) stack[0]).nodeValue;
+            return stack.Peek().nodeValue;
         }
 
         //    # Input: Message M, signature SIG_HT, public seed PK.seed, tree index idx_tree,
         //    leaf index idx_leaf, HT public key PK_HT.
         //    # Output: bool
-        public bool Verify(byte[] M, SIG_XMSS[] sig_ht, byte[] pkSeed, ulong idx_tree, uint idx_leaf, byte[] PK_HT)
+        internal bool Verify(byte[] M, SIG_XMSS[] sig_ht, byte[] pkSeed, ulong idx_tree, uint idx_leaf, byte[] PK_HT)
         {
             // init
             Adrs adrs = new Adrs();

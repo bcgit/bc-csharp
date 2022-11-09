@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
 {
     internal class Hps4096Polynomial : HpsPolynomial
     {
-        public Hps4096Polynomial(NtruParameterSet parameterSet) : base(parameterSet)
+        internal Hps4096Polynomial(NtruParameterSet parameterSet) : base(parameterSet)
         {
         }
 

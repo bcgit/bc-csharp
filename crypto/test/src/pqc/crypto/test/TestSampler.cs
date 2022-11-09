@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -19,8 +15,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         internal bool SkipTest(string count)
         {
+            if (isFull)
+                return false;
+
             int c = int.Parse(count);
-            return !isFull && c != 0 && ((c + offSet) % 9 != 0);
+            return c != 0 && ((c + offSet) % 9 != 0);
         }
     }
 }

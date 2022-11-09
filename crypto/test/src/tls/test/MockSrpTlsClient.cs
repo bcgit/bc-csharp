@@ -5,7 +5,6 @@ using System.IO;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -17,7 +16,7 @@ namespace Org.BouncyCastle.Tls.Tests
         internal TlsSession m_session;
 
         internal MockSrpTlsClient(TlsSession session, TlsSrpIdentity srpIdentity)
-            : base(new BcTlsCrypto(new SecureRandom()), srpIdentity)
+            : base(new BcTlsCrypto(), srpIdentity)
         {
             this.m_session = session;
         }

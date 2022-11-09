@@ -1,16 +1,16 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-internal class SIDH
+internal sealed class Sidh
 {
-    private SIKEEngine engine;
+    private readonly SikeEngine engine;
 
-    public SIDH(SIKEEngine engine)
+    internal Sidh(SikeEngine engine)
     {
         this.engine = engine;
     }
 
     // Initialization of basis points
-    protected void init_basis(ulong[] gen, ulong[][] XP, ulong[][] XQ, ulong[][] XR)
+    internal void init_basis(ulong[] gen, ulong[][] XP, ulong[][] XQ, ulong[][] XR)
     {
        engine.fpx.fpcopy(gen, 0, XP[0]);
        engine.fpx.fpcopy(gen, engine.param.NWORDS_FIELD, XP[1]);
@@ -23,7 +23,7 @@ internal class SIDH
     // Bob's ephemeral public key generation
     // Input:  a private key PrivateKeyB in the range [0, 2^Floor(Log(2,oB)) - 1].
     // Output: the public key PublicKeyB consisting of 3 elements in GF(p^2) which are encoded by removing leading 0 bytes.
-    protected internal void EphemeralKeyGeneration_B(byte[] sk, byte[] pk)
+    internal void EphemeralKeyGeneration_B(byte[] sk, byte[] pk)
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD),
                 phiP = new PointProj(engine.param.NWORDS_FIELD),
@@ -32,14 +32,14 @@ internal class SIDH
 
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
 
-        ulong[][] XPB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRB = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] XPB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRB = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
         ulong[] SecretKeyB = new ulong[engine.param.NWORDS_ORDER];
@@ -71,29 +71,29 @@ internal class SIDH
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Bob[ii++];
-                engine.isogeny.xTPLe(R, R, A24minus, A24plus, m);
+                engine.isogeny.XTplE(R, R, A24minus, A24plus, m);
                 index += m;
             }
-            engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+            engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
 
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_3_isog(pts[i], coeff);
+                engine.isogeny.Eval3Isog(pts[i], coeff);
             }
-            engine.isogeny.eval_3_isog(phiP, coeff);
-            engine.isogeny.eval_3_isog(phiQ, coeff);
-            engine.isogeny.eval_3_isog(phiR, coeff);
+            engine.isogeny.Eval3Isog(phiP, coeff);
+            engine.isogeny.Eval3Isog(phiQ, coeff);
+            engine.isogeny.Eval3Isog(phiR, coeff);
 
             engine.fpx.fp2copy(pts[npts - 1].X, R.X);
             engine.fpx.fp2copy(pts[npts - 1].Z, R.Z);
             index = pts_index[npts - 1];
             npts -= 1;
         }
-        engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
-        engine.isogeny.eval_3_isog(phiP, coeff);
-        engine.isogeny.eval_3_isog(phiQ, coeff);
-        engine.isogeny.eval_3_isog(phiR, coeff);
-        engine.isogeny.inv_3_way(phiP.Z, phiQ.Z, phiR.Z);
+        engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
+        engine.isogeny.Eval3Isog(phiP, coeff);
+        engine.isogeny.Eval3Isog(phiQ, coeff);
+        engine.isogeny.Eval3Isog(phiR, coeff);
+        engine.isogeny.Inv3Way(phiP.Z, phiQ.Z, phiR.Z);
 
         engine.fpx.fp2mul_mont(phiP.X, phiP.Z, phiP.X);
         engine.fpx.fp2mul_mont(phiQ.X, phiQ.Z, phiQ.X);
@@ -108,7 +108,7 @@ internal class SIDH
     // Alice's ephemeral public key generation
     // Input:  a private key PrivateKeyA in the range [0, 2^eA - 1].
     // Output: the public key PublicKeyA consisting of 3 elements in GF(p^2) which are encoded by removing leading 0 bytes.
-    protected internal void EphemeralKeyGeneration_A(byte[] ephemeralsk, byte[] ct)
+    internal void EphemeralKeyGeneration_A(byte[] ephemeralsk, byte[] ct)
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD),
                 phiP = new PointProj(engine.param.NWORDS_FIELD),
@@ -116,14 +116,14 @@ internal class SIDH
                 phiR = new PointProj(engine.param.NWORDS_FIELD);
 
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_ALICE];
-        ulong[][] XPA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XQA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            XRA = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            C24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] XPA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XQA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            XRA = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            C24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
         uint index = 0, npts = 0, ii = 0, m, i, row;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
         ulong[] SecretKeyA = new ulong[engine.param.NWORDS_ORDER];
@@ -149,12 +149,12 @@ internal class SIDH
         if (engine.param.OALICE_BITS % 2 == 1)
         {
             PointProj S = new PointProj(engine.param.NWORDS_FIELD);
-            engine.isogeny.xDBLe(R, S, A24plus, C24, (engine.param.OALICE_BITS - 1));
-            engine.isogeny.get_2_isog(S, A24plus, C24);
-            engine.isogeny.eval_2_isog(phiP, S);
-            engine.isogeny.eval_2_isog(phiQ, S);
-            engine.isogeny.eval_2_isog(phiR, S);
-            engine.isogeny.eval_2_isog(R, S);
+            engine.isogeny.XDblE(R, S, A24plus, C24, (engine.param.OALICE_BITS - 1));
+            engine.isogeny.Get2Isog(S, A24plus, C24);
+            engine.isogeny.Eval2Isog(phiP, S);
+            engine.isogeny.Eval2Isog(phiQ, S);
+            engine.isogeny.Eval2Isog(phiR, S);
+            engine.isogeny.Eval2Isog(R, S);
         }
 
         // Traverse tree
@@ -168,18 +168,18 @@ internal class SIDH
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Alice[ii++];
-                engine.isogeny.xDBLe(R, R, A24plus, C24, 2*m);
+                engine.isogeny.XDblE(R, R, A24plus, C24, 2*m);
                 index += m;
             }
-            engine.isogeny.get_4_isog(R, A24plus, C24, coeff);
+            engine.isogeny.Get4Isog(R, A24plus, C24, coeff);
 
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_4_isog(pts[i], coeff);
+                engine.isogeny.Eval4Isog(pts[i], coeff);
             }
-            engine.isogeny.eval_4_isog(phiP, coeff);
-            engine.isogeny.eval_4_isog(phiQ, coeff);
-            engine.isogeny.eval_4_isog(phiR, coeff);
+            engine.isogeny.Eval4Isog(phiP, coeff);
+            engine.isogeny.Eval4Isog(phiQ, coeff);
+            engine.isogeny.Eval4Isog(phiR, coeff);
 
             engine.fpx.fp2copy(pts[npts-1].X, R.X);
             engine.fpx.fp2copy(pts[npts-1].Z, R.Z);
@@ -187,12 +187,12 @@ internal class SIDH
             npts -= 1;
         }
 
-        engine.isogeny.get_4_isog(R, A24plus, C24, coeff);
-        engine.isogeny.eval_4_isog(phiP, coeff);
-        engine.isogeny.eval_4_isog(phiQ, coeff);
-        engine.isogeny.eval_4_isog(phiR, coeff);
+        engine.isogeny.Get4Isog(R, A24plus, C24, coeff);
+        engine.isogeny.Eval4Isog(phiP, coeff);
+        engine.isogeny.Eval4Isog(phiQ, coeff);
+        engine.isogeny.Eval4Isog(phiR, coeff);
 
-        engine.isogeny.inv_3_way(phiP.Z, phiQ.Z, phiR.Z);
+        engine.isogeny.Inv3Way(phiP.Z, phiQ.Z, phiR.Z);
         engine.fpx.fp2mul_mont(phiP.X, phiP.Z, phiP.X);
         engine.fpx.fp2mul_mont(phiQ.X, phiQ.Z, phiQ.X);
         engine.fpx.fp2mul_mont(phiR.X, phiR.Z, phiR.X);
@@ -209,16 +209,16 @@ internal class SIDH
     // Inputs: Alice's PrivateKeyA is an integer in the range [0, oA-1].
     //         Bob's PublicKeyB consists of 3 elements in GF(p^2) encoded by removing leading 0 bytes.
     // Output: a shared secret SharedSecretA that consists of one element in GF(p^2) encoded by removing leading 0 bytes.
-    protected internal void EphemeralSecretAgreement_A(byte[] ephemeralsk, byte[] pk, byte[] jinvariant)
+    internal void EphemeralSecretAgreement_A(byte[] ephemeralsk, byte[] pk, byte[] jinvariant)
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_ALICE];
-        ulong[][][] PKB = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD),
-            coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
-        ulong[][] jinv = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            C24 = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][][] PKB = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD),
+            coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][] jinv = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            C24 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
         uint i = 0, row = 0, m = 0, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_ALICE];
@@ -230,7 +230,7 @@ internal class SIDH
         engine.fpx.fp2_decode(pk, PKB[2], 2*engine.param.FP2_ENCODED_BYTES);
 
         // Initialize constants: A24plus = A+2C, C24 = 4C, where C=1
-        engine.isogeny.get_A(PKB[0], PKB[1], PKB[2], A);
+        engine.isogeny.GetA(PKB[0], PKB[1], PKB[2], A);
         engine.fpx.mp_add(engine.param.Montgomery_one, engine.param.Montgomery_one, C24[0], engine.param.NWORDS_FIELD);
         engine.fpx.mp2_add(A, C24, A24plus);
         engine.fpx.mp_add(C24[0], C24[0], C24[0], engine.param.NWORDS_FIELD);
@@ -243,9 +243,9 @@ internal class SIDH
         {
             PointProj S = new PointProj(engine.param.NWORDS_FIELD);
 
-            engine.isogeny.xDBLe(R, S, A24plus, C24, engine.param.OALICE_BITS - 1);
-            engine.isogeny.get_2_isog(S, A24plus, C24);
-            engine.isogeny.eval_2_isog(R, S);
+            engine.isogeny.XDblE(R, S, A24plus, C24, engine.param.OALICE_BITS - 1);
+            engine.isogeny.Get2Isog(S, A24plus, C24);
+            engine.isogeny.Eval2Isog(R, S);
         }
 
         // Traverse tree
@@ -259,14 +259,14 @@ internal class SIDH
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Alice[ii++];
-                engine.isogeny.xDBLe(R, R, A24plus, C24, 2*m);
+                engine.isogeny.XDblE(R, R, A24plus, C24, 2*m);
                 index += m;
             }
-            engine.isogeny.get_4_isog(R, A24plus, C24, coeff);
+            engine.isogeny.Get4Isog(R, A24plus, C24, coeff);
 
             for (i = 0; i < npts; i++)
             {
-                engine.isogeny.eval_4_isog(pts[i], coeff);
+                engine.isogeny.Eval4Isog(pts[i], coeff);
             }
 
             engine.fpx.fp2copy(pts[npts-1].X, R.X);
@@ -275,11 +275,11 @@ internal class SIDH
             npts -= 1;
         }
 
-        engine.isogeny.get_4_isog(R, A24plus, C24, coeff);
+        engine.isogeny.Get4Isog(R, A24plus, C24, coeff);
         engine.fpx.mp2_add(A24plus, A24plus, A24plus);
         engine.fpx.fp2sub(A24plus, C24, A24plus);
         engine.fpx.fp2add(A24plus, A24plus, A24plus);
-        engine.isogeny.j_inv(A24plus, C24, jinv);
+        engine.isogeny.JInv(A24plus, C24, jinv);
         engine.fpx.fp2_encode(jinv, jinvariant, 0);    // Format shared secret
     }
 
@@ -288,17 +288,17 @@ internal class SIDH
     // Inputs: Bob's PrivateKeyB is an integer in the range [0, 2^Floor(Log(2,oB)) - 1].
     //         Alice's PublicKeyA consists of 3 elements in GF(p^2) encoded by removing leading 0 bytes.
     // Output: a shared secret SharedSecretB that consists of one element in GF(p^2) encoded by removing leading 0 bytes.
-    protected internal void EphemeralSecretAgreement_B(byte[] sk, byte[] ct, byte[] jinvariant_)
+    internal void EphemeralSecretAgreement_B(byte[] sk, byte[] ct, byte[] jinvariant_)
     {
         PointProj R = new PointProj(engine.param.NWORDS_FIELD);
         PointProj[] pts = new PointProj[engine.param.MAX_INT_POINTS_BOB];
-        ulong[][][] coeff = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD),
-            PKB = Utils.InitArray(3, 2, engine.param.NWORDS_FIELD);
+        ulong[][][] coeff = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD),
+            PKB = SikeUtilities.InitArray(3, 2, engine.param.NWORDS_FIELD);
 
-        ulong[][] jinv = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24plus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A24minus = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-            A = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+        ulong[][] jinv = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24plus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A24minus = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+            A = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
         uint i, row, m, index = 0, npts = 0, ii = 0;
         uint[] pts_index = new uint[engine.param.MAX_INT_POINTS_BOB];
         ulong[] SecretKeyB = new ulong[engine.param.NWORDS_ORDER];
@@ -309,7 +309,7 @@ internal class SIDH
         engine.fpx.fp2_decode(ct, PKB[2], 2*engine.param.FP2_ENCODED_BYTES);
 
         // Initialize constants: A24plus = A+2C, A24minus = A-2C, where C=1
-        engine.isogeny.get_A(PKB[0], PKB[1], PKB[2], A);
+        engine.isogeny.GetA(PKB[0], PKB[1], PKB[2], A);
         engine.fpx.mp_add(engine.param.Montgomery_one, engine.param.Montgomery_one, A24minus[0], engine.param.NWORDS_FIELD);
         engine.fpx.mp2_add(A, A24minus, A24plus);
         engine.fpx.mp2_sub_p2(A, A24minus, A24minus);
@@ -329,13 +329,13 @@ internal class SIDH
                 engine.fpx.fp2copy(R.Z, pts[npts].Z);
                 pts_index[npts++] = index;
                 m = engine.param.strat_Bob[ii++];
-                engine.isogeny.xTPLe(R, R, A24minus, A24plus, m);
+                engine.isogeny.XTplE(R, R, A24minus, A24plus, m);
                 index += m;
             }
-            engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+            engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
 
             for (i = 0; i < npts; i++) {
-                engine.isogeny.eval_3_isog(pts[i], coeff);
+                engine.isogeny.Eval3Isog(pts[i], coeff);
             }
 
             engine.fpx.fp2copy(pts[npts-1].X, R.X);
@@ -344,14 +344,12 @@ internal class SIDH
             npts -= 1;
         }
 
-        engine.isogeny.get_3_isog(R, A24minus, A24plus, coeff);
+        engine.isogeny.Get3Isog(R, A24minus, A24plus, coeff);
         engine.fpx.fp2add(A24plus, A24minus, A);
         engine.fpx.fp2add(A, A, A);
         engine.fpx.fp2sub(A24plus, A24minus, A24plus);
-        engine.isogeny.j_inv(A, A24plus, jinv);
+        engine.isogeny.JInv(A, A24plus, jinv);
         engine.fpx.fp2_encode(jinv, jinvariant_, 0);    // Format shared secret
     }
-
 }
-
 }

@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Tls
 
             clientProtocol.WriteHandshakeMessage(buf, 0, count);
 
-            Platform.Dispose(this);
+            Dispose();
         }
     }
 }

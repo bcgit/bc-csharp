@@ -54,13 +54,13 @@ namespace Org.BouncyCastle.X509
 		public void SetNotBefore(
 			DateTime date)
 		{
-			acInfoGen.SetStartDate(new DerGeneralizedTime(date));
+			acInfoGen.SetStartDate(new Asn1GeneralizedTime(date));
 		}
 
 		public void SetNotAfter(
 			DateTime date)
 		{
-			acInfoGen.SetEndDate(new DerGeneralizedTime(date));
+			acInfoGen.SetEndDate(new Asn1GeneralizedTime(date));
 		}
 
 		/// <summary>Add an attribute.</summary>
@@ -119,13 +119,13 @@ namespace Org.BouncyCastle.X509
 
             AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
 
-			IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+			IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
 			using (Stream sigStream = streamCalculator.Stream)
 			{
 				acInfo.EncodeTo(sigStream, Asn1Encodable.Der);
 			}
 
-			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
+			var signature = streamCalculator.GetResult().Collect();
 
 			return new X509V2AttributeCertificate(
 				new AttributeCertificate(acInfo, sigAlgID, new DerBitString(signature)));

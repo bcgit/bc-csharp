@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class PicnicVectorTest
     {
-        private static readonly Dictionary<string, PicnicParameters> parameters = new Dictionary<string, PicnicParameters>()
+        private static readonly Dictionary<string, PicnicParameters> Parameters = new Dictionary<string, PicnicParameters>()
         {
             { "picnicl1fs.rsp", PicnicParameters.picnicl1fs },
             { "picnicl1ur.rsp", PicnicParameters.picnicl1ur },
@@ -32,36 +32,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "picnicl5full.rsp", PicnicParameters.picnicl5full },
         };
 
-        private static readonly string[] TestVectorFilesBasic =
-        {
-            "picnicl1fs.rsp",
-            "picnicl3ur.rsp",
-            "picnic3l1.rsp",
-            "picnicl1full.rsp",
-        };
+        private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
-        private static readonly string[] TestVectorFilesExtra =
-        {
-            "picnicl1ur.rsp",
-            "picnicl3fs.rsp",
-            "picnicl5fs.rsp",
-            "picnicl5ur.rsp",
-            "picnic3l3.rsp",
-            "picnic3l5.rsp",
-            "picnicl3full.rsp",
-            "picnicl5full.rsp",
-        };
-
-        [TestCaseSource(nameof(TestVectorFilesBasic))]
+        [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TestVectorsBasic(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
-
-        [Explicit, TestCaseSource(nameof(TestVectorFilesExtra))]
-        [Parallelizable(ParallelScope.All)]
-        public void TestVectorsExtra(string testVectorFile)
+        public void TV(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
@@ -69,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);      // seed for picnic secure random
+            byte[] seed = Hex.Decode(buf["seed"]);      // seed for SecureRandom
             int mlen = int.Parse(buf["mlen"]);          // message length
             byte[] msg = Hex.Decode(buf["msg"]);        // message
             byte[] pk = Hex.Decode(buf["pk"]);          // public key
@@ -78,7 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] sigExpected = Hex.Decode(buf["sm"]); // signature
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            PicnicParameters picnicParameters = parameters[name];
+            PicnicParameters picnicParameters = Parameters[name];
 
             PicnicKeyPairGenerator kpGen = new PicnicKeyPairGenerator();
             PicnicKeyGenerationParameters genParams = new PicnicKeyGenerationParameters(random, picnicParameters);
@@ -90,8 +65,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
 
-            PicnicPublicKeyParameters pubParams = (PicnicPublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            PicnicPrivateKeyParameters privParams = (PicnicPrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
+            PicnicPublicKeyParameters pubParams = (PicnicPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            PicnicPrivateKeyParameters privParams = (PicnicPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
@@ -99,7 +74,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             //
             // Signature test
             //
-            PicnicSigner signer = new PicnicSigner(random);
+            PicnicSigner signer = new PicnicSigner();
 
             signer.Init(true, privParams);
             byte[] sigGenerated = signer.GenerateSignature(msg);
@@ -145,16 +120,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                    if (buf.Count > 0)
                     {
-                        RunTestVector(name, buf);
+                        if (!sampler.SkipTest(buf["count"]))
+                        {
+                            RunTestVector(name, buf);
+                        }
                         buf.Clear();
                     }
                 }
 
                 if (buf.Count > 0)
                 {
-                    RunTestVector(name, buf);
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
                 }
             }
         }

@@ -3,7 +3,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    public class FalconKeyParameters 
+    public abstract class FalconKeyParameters 
         : AsymmetricKeyParameter
     {
         private FalconParameters parameters;

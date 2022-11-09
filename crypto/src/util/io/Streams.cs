@@ -3,13 +3,9 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-	public sealed class Streams
+	public static class Streams
 	{
 		private const int BufferSize = 4096;
-
-		private Streams()
-		{
-		}
 
 		public static void Drain(Stream inStr)
 		{
@@ -64,7 +60,12 @@ namespace Org.BouncyCastle.Utilities.IO
 			return buf.ToArray();
 		}
 
-		public static byte[] ReadAllLimited(Stream inStr, int limit)
+        public static byte[] ReadAll(MemoryStream inStr)
+        {
+			return inStr.ToArray();
+        }
+
+        public static byte[] ReadAllLimited(Stream inStr, int limit)
 		{
 			MemoryStream buf = new MemoryStream();
 			PipeAllLimited(inStr, limit, buf);

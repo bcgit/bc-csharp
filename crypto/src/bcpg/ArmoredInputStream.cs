@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -330,6 +331,26 @@ namespace Org.BouncyCastle.Bcpg
             return pos;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            /*
+             * TODO Currently can't return partial data when exception thrown (breaking test case), so we don't inherit
+             * the base class implementation. Probably the reason is that throws don't mark this instance as 'failed'.
+             */
+            int pos = 0;
+            while (pos < buffer.Length)
+            {
+                int b = ReadByte();
+                if (b < 0)
+                    break;
+
+                buffer[pos++] = (byte)b;
+            }
+            return pos;
+        }
+#endif
+
         public override int ReadByte()
         {
             if (start)
@@ -486,7 +507,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (disposing)
             {
-                Platform.Dispose(input);
+                input.Dispose();
             }
             base.Dispose(disposing);
         }

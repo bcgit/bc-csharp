@@ -309,6 +309,13 @@ namespace Org.BouncyCastle.Tls
             buf[offset] = (byte)i;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void WriteUint8(int i, Span<byte> buf)
+        {
+            buf[0] = (byte)i;
+        }
+#endif
+
         public static void WriteUint16(int i, Stream output)
         {
             output.WriteByte((byte)(i >> 8));
@@ -320,6 +327,14 @@ namespace Org.BouncyCastle.Tls
             buf[offset    ] = (byte)(i >> 8);
             buf[offset + 1] = (byte)i;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void WriteUint16(int i, Span<byte> buf)
+        {
+            buf[0] = (byte)(i >> 8);
+            buf[1] = (byte)i;
+        }
+#endif
 
         public static void WriteUint24(int i, Stream output)
         {
@@ -408,6 +423,15 @@ namespace Org.BouncyCastle.Tls
             WriteUint8(data.Length, buf, off);
             Array.Copy(data, 0, buf, off + 1, data.Length);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void WriteOpaque8(ReadOnlySpan<byte> data, Span<byte> buf)
+        {
+            CheckUint8(data.Length);
+            WriteUint8(data.Length, buf);
+            data.CopyTo(buf[1..]);
+        }
+#endif
 
         public static void WriteOpaque16(byte[] buf, Stream output)
         {
@@ -723,8 +747,15 @@ namespace Org.BouncyCastle.Tls
 
         public static short ReadUint8(byte[] buf, int offset)
         {
-            return (short)(buf[offset] & 0xff);
+            return (short)buf[offset];
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static short ReadUint8(ReadOnlySpan<byte> buffer)
+        {
+            return (short)buffer[0];
+        }
+#endif
 
         public static int ReadUint16(Stream input)
         {
@@ -825,6 +856,15 @@ namespace Org.BouncyCastle.Tls
             if (length > 0 && length != Streams.ReadFully(input, buf))
                 throw new EndOfStreamException();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void ReadFully(Span<byte> buf, Stream input)
+        {
+            int length = buf.Length;
+            if (length > 0 && length != Streams.ReadFully(input, buf))
+                throw new EndOfStreamException();
+        }
+#endif
 
         public static byte[] ReadOpaque8(Stream input)
         {
@@ -1381,6 +1421,14 @@ namespace Org.BouncyCastle.Tls
         {
             return secret.DeriveUsingPrf(securityParameters.PrfAlgorithm, asciiLabel, seed, length);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static TlsSecret Prf(SecurityParameters securityParameters, TlsSecret secret,
+            ReadOnlySpan<char> asciiLabel, ReadOnlySpan<byte> seed, int length)
+        {
+            return secret.DeriveUsingPrf(securityParameters.PrfAlgorithm, asciiLabel, seed, length);
+        }
+#endif
 
         public static byte[] Clone(byte[] data)
         {
@@ -2110,7 +2158,7 @@ namespace Org.BouncyCastle.Tls
 
             buf.CopyInputTo(output);
 
-            Platform.Dispose(output);
+            output.Dispose();
         }
 
         internal static DigitallySigned GenerateCertificateVerifyClient(TlsClientContext clientContext,
@@ -4756,7 +4804,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication ReceiveServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf)
+            MemoryStream buf, IDictionary<int, byte[]> serverExtensions)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm)
@@ -4768,7 +4816,11 @@ namespace Org.BouncyCastle.Tls
             MemoryStream endPointHash = new MemoryStream();
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(client.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions,
+                    CertificateType.X509),
+                MaxChainLength = client.GetMaxCertificateChainLength(),
+            };
 
             Certificate serverCertificate = Certificate.Parse(options, clientContext, buf, endPointHash);
 
@@ -4788,14 +4840,18 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication Receive13ServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf)
+            MemoryStream buf, IDictionary<int, byte[]> serverExtensions)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (null != securityParameters.PeerCertificate)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(client.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions,
+                    CertificateType.X509),
+                MaxChainLength = client.GetMaxCertificateChainLength(),
+            };
 
             Certificate serverCertificate = Certificate.Parse(options, clientContext, buf, null);
 

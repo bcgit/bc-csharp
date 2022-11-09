@@ -182,30 +182,28 @@ namespace Org.BouncyCastle.X509
         protected virtual void CheckSignature(
             IVerifierFactory verifier)
         {
+            // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
             if (!cert.SignatureAlgorithm.Equals(cert.ACInfo.Signature))
-			{
 				throw new CertificateException("Signature algorithm in certificate info not same as outer certificate");
-			}
 
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
+            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
 
 			try
 			{
                 byte[] b = this.cert.ACInfo.GetEncoded();
 
-                streamCalculator.Stream.Write(b, 0, b.Length);
-
-                Platform.Dispose(streamCalculator.Stream);
+				using (var stream = streamCalculator.Stream)
+				{
+                    stream.Write(b, 0, b.Length);
+                }
             }
 			catch (IOException e)
 			{
 				throw new SignatureException("Exception encoding certificate info object", e);
 			}
 
-			if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
-			{
+			if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
 				throw new InvalidKeyException("Public key presented not for certificate signature");
-			}
 		}
 
 		public virtual byte[] GetEncoded()

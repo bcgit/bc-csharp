@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-#if !PORTABLE || DOTNET
 using System.Net.Sockets;
-#endif
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
@@ -244,6 +242,9 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Receive(buf.AsSpan(off, len), waitMillis);
+#else
             long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
 
             Timeout timeout = Timeout.ForWaitMillis(waitMillis, currentTimeMillis);
@@ -307,11 +308,85 @@ namespace Org.BouncyCastle.Tls
             }
 
             return -1;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public virtual int Receive(Span<byte> buffer, int waitMillis)
+        {
+            long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+
+            Timeout timeout = Timeout.ForWaitMillis(waitMillis, currentTimeMillis);
+            byte[] record = null;
+
+            while (waitMillis >= 0)
+            {
+                if (null != m_retransmitTimeout && m_retransmitTimeout.RemainingMillis(currentTimeMillis) < 1)
+                {
+                    m_retransmit = null;
+                    m_retransmitEpoch = null;
+                    m_retransmitTimeout = null;
+                }
+
+                if (Timeout.HasExpired(m_heartbeatTimeout, currentTimeMillis))
+                {
+                    if (null != m_heartbeatInFlight)
+                        throw new TlsTimeoutException("Heartbeat timed out");
+
+                    this.m_heartbeatInFlight = HeartbeatMessage.Create(m_context,
+                        HeartbeatMessageType.heartbeat_request, m_heartbeat.GeneratePayload());
+                    this.m_heartbeatTimeout = new Timeout(m_heartbeat.TimeoutMillis, currentTimeMillis);
+
+                    this.m_heartbeatResendMillis = DtlsReliableHandshake.INITIAL_RESEND_MILLIS;
+                    this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
+
+                    SendHeartbeatMessage(m_heartbeatInFlight);
+                }
+                else if (Timeout.HasExpired(m_heartbeatResendTimeout, currentTimeMillis))
+                {
+                    this.m_heartbeatResendMillis = DtlsReliableHandshake.BackOff(m_heartbeatResendMillis);
+                    this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
+
+                    SendHeartbeatMessage(m_heartbeatInFlight);
+                }
+
+                waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatTimeout, currentTimeMillis);
+                waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatResendTimeout, currentTimeMillis);
+
+                // NOTE: Guard against bad logic giving a negative value
+                if (waitMillis < 0)
+                {
+                    waitMillis = 1;
+                }
+
+                int receiveLimit = System.Math.Min(buffer.Length, GetReceiveLimit()) + RECORD_HEADER_LENGTH;
+                if (null == record || record.Length < receiveLimit)
+                {
+                    record = new byte[receiveLimit];
+                }
+
+                int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
+                int processed = ProcessRecord(received, record, buffer);
+                if (processed >= 0)
+                {
+                    return processed;
+                }
+
+                currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+                waitMillis = Timeout.GetWaitMillis(timeout, currentTimeMillis);
+            }
+
+            return -1;
+        }
+#endif
 
         /// <exception cref="IOException"/>
         public virtual void Send(byte[] buf, int off, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Send(buf.AsSpan(off, len));
+#else
             short contentType = ContentType.application_data;
 
             if (m_inHandshake || m_writeEpoch == m_retransmitEpoch)
@@ -340,7 +415,7 @@ namespace Org.BouncyCastle.Tls
                     // Implicitly send change_cipher_spec and change to pending cipher state
 
                     // TODO Send change_cipher_spec and finished records in single datagram?
-                    byte[] data = new byte[] { 1 };
+                    byte[] data = new byte[1]{ 1 };
                     SendRecord(ContentType.change_cipher_spec, data, 0, data.Length);
 
                     this.m_writeEpoch = nextEpoch;
@@ -348,7 +423,51 @@ namespace Org.BouncyCastle.Tls
             }
 
             SendRecord(contentType, buf, off, len);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public virtual void Send(ReadOnlySpan<byte> buffer)
+        {
+            short contentType = ContentType.application_data;
+
+            if (m_inHandshake || m_writeEpoch == m_retransmitEpoch)
+            {
+                contentType = ContentType.handshake;
+
+                short handshakeType = TlsUtilities.ReadUint8(buffer);
+                if (handshakeType == HandshakeType.finished)
+                {
+                    DtlsEpoch nextEpoch = null;
+                    if (m_inHandshake)
+                    {
+                        nextEpoch = m_pendingEpoch;
+                    }
+                    else if (m_writeEpoch == m_retransmitEpoch)
+                    {
+                        nextEpoch = m_currentEpoch;
+                    }
+
+                    if (nextEpoch == null)
+                    {
+                        // TODO
+                        throw new InvalidOperationException();
+                    }
+
+                    // Implicitly send change_cipher_spec and change to pending cipher state
+
+                    // TODO Send change_cipher_spec and finished records in single datagram?
+                    ReadOnlySpan<byte> data = stackalloc byte[1]{ 1 };
+                    SendRecord(ContentType.change_cipher_spec, data);
+
+                    this.m_writeEpoch = nextEpoch;
+                }
+            }
+
+            SendRecord(contentType, buffer);
+        }
+#endif
 
         /// <exception cref="IOException"/>
         public virtual void Close()
@@ -434,11 +553,13 @@ namespace Org.BouncyCastle.Tls
         {
             m_peer.NotifyAlertRaised(alertLevel, alertDescription, message, cause);
 
-            byte[] error = new byte[2];
-            error[0] = (byte)alertLevel;
-            error[1] = (byte)alertDescription;
-
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> error = stackalloc byte[2]{ (byte)alertLevel, (byte)alertDescription };
+            SendRecord(ContentType.alert, error);
+#else
+            byte[] error = new byte[2]{ (byte)alertLevel, (byte)alertDescription };
             SendRecord(ContentType.alert, error, 0, 2);
+#endif
         }
 
         /// <exception cref="IOException"/>
@@ -452,7 +573,6 @@ namespace Org.BouncyCastle.Tls
             {
                 return -1;
             }
-#if !PORTABLE || DOTNET
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
@@ -460,7 +580,6 @@ namespace Org.BouncyCastle.Tls
 
                 throw e;
             }
-#endif
             // TODO[tls-port] Can we support interrupted IO on .NET?
             //catch (InterruptedIOException e)
             //{
@@ -471,7 +590,11 @@ namespace Org.BouncyCastle.Tls
 
         // TODO Include 'currentTimeMillis' as an argument, use with Timeout, resetHeartbeat
         /// <exception cref="IOException"/>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int ProcessRecord(int received, byte[] record, Span<byte> buffer)
+#else
         private int ProcessRecord(int received, byte[] record, byte[] buf, int off)
+#endif
         {
             if (received < 1)
                 return -1;
@@ -722,7 +845,11 @@ namespace Org.BouncyCastle.Tls
                 this.m_retransmitTimeout = null;
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            decoded.buf.AsSpan(decoded.off, decoded.len).CopyTo(buffer);
+#else
             Array.Copy(decoded.buf, decoded.off, buf, off, decoded.len);
+#endif
             return decoded.len;
         }
 
@@ -815,9 +942,16 @@ namespace Org.BouncyCastle.Tls
         {
             MemoryStream output = new MemoryStream();
             heartbeatMessage.Encode(output);
-            byte[] buf = output.ToArray();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (!output.TryGetBuffer(out var buffer))
+                throw new InvalidOperationException();
+
+            SendRecord(ContentType.heartbeat, buffer);
+#else
+            byte[] buf = output.ToArray();
             SendRecord(ContentType.heartbeat, buf, 0, buf.Length);
+#endif
         }
 
         /*
@@ -827,11 +961,19 @@ namespace Org.BouncyCastle.Tls
          * be possible reordering of records (which might surprise a reliable transport implementation).
          */
         /// <exception cref="IOException"/>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void SendRecord(short contentType, ReadOnlySpan<byte> buffer)
+#else
         private void SendRecord(short contentType, byte[] buf, int off, int len)
+#endif
         {
             // Never send anything until a valid ClientHello has been received
             if (m_writeVersion == null)
                 return;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int len = buffer.Length;
+#endif
 
             if (len > m_plaintextLimit)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -861,9 +1003,13 @@ namespace Org.BouncyCastle.Tls
                     headerLength = RECORD_HEADER_LENGTH + connectionIdLocal.Length;
                 }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                TlsEncodeResult encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
+                    recordVersion, headerLength, buffer);
+#else
                 TlsEncodeResult encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
                     recordVersion, headerLength, buf, off, len);
-
+#endif
                 int ciphertextLength = encoded.len - headerLength;
                 TlsUtilities.CheckUint16(ciphertextLength);
 

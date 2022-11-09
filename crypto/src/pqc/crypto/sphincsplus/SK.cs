@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class SK
+    internal class SK
     {
         internal byte[] seed;
         internal byte[] prf;

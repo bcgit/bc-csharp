@@ -60,15 +60,14 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.engine = new CbcBlockCipher(new DesEdeEngine());
 
 			SecureRandom sr;
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom pr)
 			{
-				ParametersWithRandom pr = (ParametersWithRandom) parameters;
 				parameters = pr.Parameters;
 				sr = pr.Random;
 			}
 			else
 			{
-				sr = new SecureRandom();
+				sr = CryptoServicesRegistrar.GetSecureRandom();
 			}
 
 			if (parameters is KeyParameter)

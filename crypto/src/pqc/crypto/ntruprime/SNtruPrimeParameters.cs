@@ -1,15 +1,17 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    public class SNtruPrimeParameters : ICipherParameters
+    public sealed class SNtruPrimeParameters
+        : ICipherParameters
     {
-        private String name;
+        private string name;
         private int p;
         private int q;
         private int _roundedBytes;
-        private bool LPR;
+        private bool m_LPR;
         private int _w;
         private int _rqBytes;
         private int _tau0;
@@ -21,13 +23,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private int _ctBytes;
         private int _defaultKeySize;
         private NtruPrimeEngine _primeEngine;
-        private SNtruPrimeParameters(String name, int p, int q, bool LPR, int w, int tau0,
-            int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes, int defaultKeySize)
+        private SNtruPrimeParameters(string name, int p, int q, bool LPR, int w, int tau0, int tau1, int tau2, int tau3,
+            int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes, int defaultKeySize)
         {
             this.name = name;
             this.p = p;
             this.q = q;
-            this.LPR = LPR;
+            m_LPR = LPR;
             this._w = w;
             this._tau0 = tau0;
             this._tau1 = tau1;
@@ -50,14 +52,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         public static SNtruPrimeParameters sntrup953 = new SNtruPrimeParameters("SNTRU_Prime_953", 953, 6343, false, 396, -1,-1,-1,-1,2254,1505,1349, 1317, 1505, 192);
         public static SNtruPrimeParameters sntrup1013 = new SNtruPrimeParameters("SNTRU_Prime_1013", 1013, 7177, false, 448, -1,-1,-1,-1,2417,1623,1455, 1423, 1623, 192);
         public static SNtruPrimeParameters sntrup1277 = new SNtruPrimeParameters("SNTRU_Prime_1277", 1277, 7879, false, 492, -1,-1,-1,-1,3059,2067,1847, 1815, 2067, 256);
-        
+
         public int P => p;
-        public bool lpr => LPR;
-        
+
+        public bool LPR => m_LPR;
+
         public int Q => q;
 
         public int DefaultKeySize => _defaultKeySize;
-        internal NtruPrimeEngine PrimeEngine => _primeEngine;
 
+        internal NtruPrimeEngine PrimeEngine => _primeEngine;
     }
 }

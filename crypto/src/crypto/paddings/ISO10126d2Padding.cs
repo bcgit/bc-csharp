@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
 			SecureRandom random)
             //throws ArgumentException
         {
-			this.random = (random != null) ? random : new SecureRandom();
+            this.random = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
 		/**

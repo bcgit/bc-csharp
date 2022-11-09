@@ -30,21 +30,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerPrintableString GetInstance(object obj)
         {
-            if (obj == null || obj is DerPrintableString)
+            if (obj == null)
+                return null;
+
+            if (obj is DerPrintableString derPrintableString)
+                return derPrintableString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerPrintableString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerPrintableString converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerPrintableString)
-                    return (DerPrintableString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerPrintableString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerPrintableString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Crypto;
 using System;
 using System.IO;
 
@@ -41,6 +42,9 @@ namespace Org.BouncyCastle.Utilities.Encoders
 
         public int Encode(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Encode(inBuf.AsSpan(inOff, inLen), outBuf.AsSpan(outOff));
+#else
             int inPos = inOff;
             int inEnd = inOff + inLen;
             int outPos = outOff;
@@ -54,7 +58,27 @@ namespace Org.BouncyCastle.Utilities.Encoders
             }
 
             return outPos - outOff;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Encode(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int inPos = 0;
+            int inEnd = input.Length;
+            int outPos = 0;
+
+            while (inPos < inEnd)
+            {
+                uint b = input[inPos++];
+
+                output[outPos++] = encodingTable[b >> 4];
+                output[outPos++] = encodingTable[b & 0xF];
+            }
+
+            return outPos;
+        }
+#endif
 
         /**
         * encode the input data producing a Hex output stream.
@@ -63,6 +87,9 @@ namespace Org.BouncyCastle.Utilities.Encoders
         */
         public int Encode(byte[] buf, int off, int len, Stream outStream)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Encode(buf.AsSpan(off, len), outStream);
+#else
             if (len < 0)
                 return 0;
 
@@ -77,7 +104,24 @@ namespace Org.BouncyCastle.Utilities.Encoders
                 remaining -= inLen;
             }
             return len * 2;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Encode(ReadOnlySpan<byte> data, Stream outStream)
+        {
+            Span<byte> tmp = stackalloc byte[72];
+            int result = data.Length * 2;
+            while (!data.IsEmpty)
+            {
+                int inLen = System.Math.Min(36, data.Length);
+                int outLen = Encode(data[..inLen], tmp);
+                outStream.Write(tmp[..outLen]);
+                data = data[inLen..];
+            }
+            return result;
+        }
+#endif
 
         private static bool Ignore(char c)
         {
@@ -90,12 +134,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int Decode(
-            byte[]	data,
-            int		off,
-            int		length,
-            Stream	outStream)
+        public int Decode(byte[] data, int off, int length, Stream outStream)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Decode(data.AsSpan(off, length), outStream);
+#else
             byte b1, b2;
             int outLen = 0;
             byte[] buf = new byte[36];
@@ -147,7 +190,65 @@ namespace Org.BouncyCastle.Utilities.Encoders
             }
 
             return outLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Decode(ReadOnlySpan<byte> data, Stream outStream)
+        {
+            byte b1, b2;
+            int outLen = 0;
+            Span<byte> buf = stackalloc byte[36];
+            int bufOff = 0;
+            int end = data.Length;
+
+            while (end > 0)
+            {
+                if (!Ignore((char)data[end - 1]))
+                    break;
+
+                end--;
+            }
+
+            int i = 0;
+            while (i < end)
+            {
+                while (i < end && Ignore((char)data[i]))
+                {
+                    i++;
+                }
+
+                b1 = decodingTable[data[i++]];
+
+                while (i < end && Ignore((char)data[i]))
+                {
+                    i++;
+                }
+
+                b2 = decodingTable[data[i++]];
+
+                if ((b1 | b2) >= 0x80)
+                    throw new IOException("invalid characters encountered in Hex data");
+
+                buf[bufOff++] = (byte)((b1 << 4) | b2);
+
+                if (bufOff == buf.Length)
+                {
+                    outStream.Write(buf);
+                    bufOff = 0;
+                }
+
+                outLen++;
+            }
+
+            if (bufOff > 0)
+            {
+                outStream.Write(buf[..bufOff]);
+            }
+
+            return outLen;
+        }
+#endif
 
         /**
         * decode the Hex encoded string data writing it to the given output stream,
@@ -155,13 +256,15 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int DecodeString(
-            string	data,
-            Stream	outStream)
+        public int DecodeString(string data, Stream outStream)
         {
             byte b1, b2;
             int length = 0;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = stackalloc byte[36];
+#else
             byte[] buf = new byte[36];
+#endif
             int bufOff = 0;
             int end = data.Length;
 
@@ -197,7 +300,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
 
                 if (bufOff == buf.Length)
                 {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    outStream.Write(buf);
+#else
                     outStream.Write(buf, 0, bufOff);
+#endif
                     bufOff = 0;
                 }
 
@@ -206,7 +313,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
 
             if (bufOff > 0)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                outStream.Write(buf[..bufOff]);
+#else
                 outStream.Write(buf, 0, bufOff);
+#endif
             }
 
             return length;

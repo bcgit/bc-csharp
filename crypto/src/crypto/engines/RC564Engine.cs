@@ -55,11 +55,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "RC5-64"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
         {
             return 16;
@@ -106,10 +101,6 @@ namespace Org.BouncyCastle.Crypto.Engines
                 : DecryptBlock(input, output);
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         /**
         * Re-key the cipher.

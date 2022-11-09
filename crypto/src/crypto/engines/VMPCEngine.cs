@@ -97,16 +97,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int i = 0; i < len; i++)
             {
-                s = P[(s + P[n & 0xff]) & 0xff];
-                byte z = P[(P[(P[s & 0xff]) & 0xff] + 1) & 0xff];
+                byte pn = P[n];
+                s = P[(s + pn) & 0xff];
+                byte ps = P[s];
+                byte z = P[(P[ps] + 1) & 0xff];
                 // encryption
-                byte temp = P[n & 0xff];
-                P[n & 0xff] = P[s & 0xff];
-                P[s & 0xff] = temp;
-                n = (byte) ((n + 1) & 0xff);
+                P[n] = ps;
+                P[s] = pn;
+                n = (byte)(n + 1);
 
                 // xor
-                output[i + outOff] = (byte) (input[i + inOff] ^ z);
+                output[i + outOff] = (byte)(input[i + inOff] ^ z);
             }
         }
 
@@ -117,13 +118,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int i = 0; i < input.Length; i++)
             {
-                s = P[(s + P[n & 0xff]) & 0xff];
-                byte z = P[(P[(P[s & 0xff]) & 0xff] + 1) & 0xff];
+                byte pn = P[n];
+                s = P[(s + pn) & 0xff];
+                byte ps = P[s];
+                byte z = P[(P[ps] + 1) & 0xff];
                 // encryption
-                byte temp = P[n & 0xff];
-                P[n & 0xff] = P[s & 0xff];
-                P[s & 0xff] = temp;
-                n = (byte)((n + 1) & 0xff);
+                P[n] = ps;
+                P[s] = pn;
+                n = (byte)(n + 1);
 
                 // xor
                 output[i] = (byte)(input[i] ^ z);

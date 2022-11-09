@@ -275,7 +275,14 @@ namespace Org.BouncyCastle.Cms
 			return Helper.GetCrls(_crlSet);
 		}
 
-		private void PopulateCertCrlSets()
+        public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat)
+        {
+            PopulateCertCrlSets();
+
+            return Helper.GetOtherRevInfos(_crlSet, otherRevInfoFormat);
+        }
+
+        private void PopulateCertCrlSets()
 		{
 			if (_isCertCrlParsed)
 				return;
@@ -359,7 +366,7 @@ namespace Org.BouncyCastle.Cms
 
 //			gen.AddSigners(parser.GetSignerInfos());
 
-            Platform.Dispose(contentOut);
+            contentOut.Dispose();
 
 			return outStr;
 		}
@@ -408,7 +415,7 @@ namespace Org.BouncyCastle.Cms
 
 			gen.AddSigners(parser.GetSignerInfos());
 
-            Platform.Dispose(contentOut);
+            contentOut.Dispose();
 
             return outStr;
 		}

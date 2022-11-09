@@ -112,12 +112,14 @@ namespace Org.BouncyCastle.Crmf
         private EncryptedValue EncryptData(byte[] data)
         {
             MemoryOutputStream bOut = new MemoryOutputStream();
-            Stream eOut = encryptor.BuildCipher(bOut).Stream;
+            var cipher = encryptor.BuildCipher(bOut);
 
             try
             {
-                eOut.Write(data, 0, data.Length);
-                Platform.Dispose(eOut);
+                using (var eOut = cipher.Stream)
+                {
+                    eOut.Write(data, 0, data.Length);
+                }
             }
             catch (IOException e)
             {

@@ -1,17 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0;net461</TargetFrameworks>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
-    <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\BouncyCastle.NET.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+	<NoWarn>1591</NoWarn>
+
+    <AssemblyName>BouncyCastle.Cryptography</AssemblyName>
+    <AssemblyTitle>BouncyCastle.NET Cryptography ($(TargetFramework))</AssemblyTitle>
+    <Authors>Legion of the Bouncy Castle Inc.</Authors>
+    <Company>Legion of the Bouncy Castle Inc.</Company>
+    <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2022</Copyright>
+    <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
+    <PackageIcon>packageIcon.png</PackageIcon>
+    <PackageIconUrl>https://www.bouncycastle.org/images/nuget_packageIcon.png</PackageIconUrl>
+    <PackageId>BouncyCastle.Cryptography</PackageId>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
+    <PackageTags>bouncycastle cryptography dtls encryption open-source post-quantum security tls</PackageTags>
+	<Product>BouncyCastle.NET</Product>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/bcgit/bc-csharp</RepositoryUrl>
+    <Title>BouncyCastle.NET Cryptography</Title>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <!--Source-Level Debugging-->
+  <PropertyGroup>
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <!--Package Validation-->
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+
+    <!-- TODO: Enable this once there is a baseline version to compare to. -->
+    <!--<PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>-->
+
+	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
+    <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
+
+	<!--
+	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
+	  affected interfaces (or abstract classes) will not be backward compatible.
+
+	  TODO: Use suppressions for each individual case of a Span-based method.
+    -->
+    <NoWarn>$(NoWarn);CP0005;CP0006</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DefineConstants />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -19,16 +64,25 @@
   <ItemGroup>
     <None Remove="**\*.properties" />
     <EmbeddedResource Include="**\*.properties" />
+    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\packageIcon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.109">
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
+  <Target Name="FixAssemblyAttributes" AfterTargets="GetBuildVersion">
+    <PropertyGroup>
+		<!-- Here we can override/use any MSBuild properties set by Nerdbank.GitVersioning -->
+    </PropertyGroup>
+  </Target>
 </Project>

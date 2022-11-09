@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Cms
 			CheckSingleUsage();
 
 			Streams.PipeAll(input, output);
-            Platform.Dispose(input);
+            input.Dispose();
 		}
 
         protected virtual void CheckSingleUsage()

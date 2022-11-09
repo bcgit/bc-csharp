@@ -2,8 +2,10 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -18,12 +20,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
-    public sealed class PublicKeyFactory
+    public static class PublicKeyFactory
     {
-        private PublicKeyFactory()
-        {
-        }
-
         public static AsymmetricKeyParameter CreateKey(
             byte[] keyInfoData)
         {
@@ -211,7 +209,8 @@ namespace Org.BouncyCastle.Security
 
                 return new Gost3410PublicKeyParameters(y, algParams.PublicKeyParamSet);
             }
-            else if (algOid.Equals(EdECObjectIdentifiers.id_X25519))
+            else if (algOid.Equals(EdECObjectIdentifiers.id_X25519)
+                || algOid.Equals(CryptlibObjectIdentifiers.curvey25519))
             {
                 return new X25519PublicKeyParameters(GetRawKey(keyInfo));
             }
@@ -219,7 +218,8 @@ namespace Org.BouncyCastle.Security
             {
                 return new X448PublicKeyParameters(GetRawKey(keyInfo));
             }
-            else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519))
+            else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519)
+                || algOid.Equals(GnuObjectIdentifiers.Ed25519))
             {
                 return new Ed25519PublicKeyParameters(GetRawKey(keyInfo));
             }
@@ -228,7 +228,9 @@ namespace Org.BouncyCastle.Security
                 return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
-                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512))
             {
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;

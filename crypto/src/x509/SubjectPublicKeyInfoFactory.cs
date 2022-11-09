@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
@@ -10,6 +9,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
@@ -19,12 +19,8 @@ namespace Org.BouncyCastle.X509
     /// <summary>
     /// A factory to produce Public Key Info Objects.
     /// </summary>
-    public sealed class SubjectPublicKeyInfoFactory
+    public static class SubjectPublicKeyInfoFactory
     {
-        private SubjectPublicKeyInfoFactory()
-        {
-        }
-
         /// <summary>
         /// Create a Subject Public Key Info object for a given public key.
         /// </summary>

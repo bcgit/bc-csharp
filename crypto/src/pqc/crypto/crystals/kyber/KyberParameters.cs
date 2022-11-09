@@ -1,38 +1,34 @@
-
-using System;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberParameters
+    public sealed class KyberParameters
         : ICipherParameters
     {
+        public static KyberParameters kyber512 = new KyberParameters("kyber512", 2, 128, false);
+        public static KyberParameters kyber768 = new KyberParameters("kyber768", 3, 192, false);
+        public static KyberParameters kyber1024 = new KyberParameters("kyber1024", 4, 256, false);
+        public static KyberParameters kyber512_aes = new KyberParameters("kyber512-aes", 2, 128, true);
+        public static KyberParameters kyber768_aes = new KyberParameters("kyber768-aes", 3, 192, true);
+        public static KyberParameters kyber1024_aes = new KyberParameters("kyber1024-aes", 4, 256, true);
 
-        public static KyberParameters kyber512 = new KyberParameters("kyber512", 2);
-        public static KyberParameters kyber768 = new KyberParameters("kyber768", 3);
-        public static KyberParameters kyber1024 = new KyberParameters("kyber1024", 4);
+        private string m_name;
+        private int m_sessionKeySize;
+        private KyberEngine m_engine;
 
-        private String name;
-        private int k;
-        private KyberEngine engine;
-
-        public KyberParameters(String name, int k)
+        public KyberParameters(string name, int k, int sessionKeySize, bool usingAes)
         {
-            this.name = name;
-            this.k = k;
-            this.engine = new KyberEngine(k);
+            m_name = name;
+            this.m_sessionKeySize = sessionKeySize;
+            m_engine = new KyberEngine(k, usingAes);
         }
 
-        public String Name => name;
+        public string Name => m_name;
 
-        public int K => k;
+        public int K => m_engine.K;
 
-        public int DefaultKeySize => 64 * k;
+        public int SessionKeySize => m_sessionKeySize;
 
-        internal KyberEngine GetEngine()
-        {
-            return engine;
-        }
+        internal KyberEngine Engine => m_engine;
     }
 }

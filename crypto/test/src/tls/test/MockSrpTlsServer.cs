@@ -5,7 +5,6 @@ using System.IO;
 using Org.BouncyCastle.Crypto.Agreement.Srp;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
@@ -25,7 +24,7 @@ namespace Org.BouncyCastle.Tls.Tests
         internal static readonly byte[] TEST_SEED_KEY = Strings.ToUtf8ByteArray("seed_key");
 
         internal MockSrpTlsServer()
-            : base(new BcTlsCrypto(new SecureRandom()), new MyIdentityManager(new BcTlsCrypto(new SecureRandom())))
+            : base(new BcTlsCrypto(), new MyIdentityManager(new BcTlsCrypto()))
         {
         }
 

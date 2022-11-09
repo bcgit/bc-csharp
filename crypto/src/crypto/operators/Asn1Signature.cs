@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -92,12 +93,16 @@ namespace Org.BouncyCastle.Crypto.Operators
 			m_algorithms.Add("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 			m_algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 			m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+            m_algorithms.Add("GOST3411-2012-256WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
+            m_algorithms.Add("GOST3411-2012-256WITHECGOST3410-2012-256", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
+            m_algorithms.Add("GOST3411-2012-512WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
+            m_algorithms.Add("GOST3411-2012-512WITHECGOST3410-2012-512", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
 
-			//
-			// According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
-			// The parameters field SHALL be NULL for RSA based signature algorithms.
-			//
-			noParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
+            //
+            // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
+            // The parameters field SHALL be NULL for RSA based signature algorithms.
+            //
+            noParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
 			noParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
 			noParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
 			noParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
@@ -188,6 +193,14 @@ namespace Org.BouncyCastle.Crypto.Operators
             else if (CryptoProObjectIdentifiers.GostR3411.Equals(digestAlgOID))
             {
                 return "GOST3411";
+            }
+            else if (RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Equals(digestAlgOID))
+            {
+                return "GOST3411-2012-256";
+            }
+            else if (RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Equals(digestAlgOID))
+            {
+                return "GOST3411-2012-512";
             }
             else
             {
@@ -306,7 +319,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			get { return this.algID; }
 		}
 
-        public IStreamCalculator CreateCalculator()
+        public IStreamCalculator<IBlockResult> CreateCalculator()
         {
             ISigner signer = SignerUtilities.InitSigner(algorithm, true, privateKey, random);
 
@@ -363,9 +376,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 			get { return this.algID; }
 		}
 
-        public IStreamCalculator CreateCalculator()
+        public IStreamCalculator<IVerifier> CreateCalculator()
         {       
-           
             ISigner verifier = SignerUtilities.InitSigner(X509Utilities.GetSignatureName(algID), false, publicKey, null);
 
             return new DefaultVerifierCalculator(verifier);

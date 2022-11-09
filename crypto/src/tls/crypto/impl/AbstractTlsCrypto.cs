@@ -48,7 +48,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public abstract SecureRandom SecureRandom { get; }
 
-        public abstract TlsCertificate CreateCertificate(byte[] encoding);
+        public virtual TlsCertificate CreateCertificate(byte[] encoding)
+        {
+            return CreateCertificate(CertificateType.X509, encoding);
+        }
+
+        public abstract TlsCertificate CreateCertificate(short type, byte[] encoding);
 
         public abstract TlsCipher CreateCipher(TlsCryptoParameters cryptoParams, int encryptionAlgorithm, int macAlgorithm);
 
@@ -76,6 +81,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public abstract TlsHmac CreateHmacForHash(int cryptoHashAlgorithm);
 
         public abstract TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial);
+#endif
 
         public abstract TlsSrp6Client CreateSrp6Client(TlsSrpConfig srpConfig);
 

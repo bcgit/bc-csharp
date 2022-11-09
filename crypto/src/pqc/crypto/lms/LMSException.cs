@@ -4,25 +4,25 @@ using System.Runtime.Serialization;
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     [Serializable]
-    public class LMSException
+    public class LmsException
         : Exception
     {
-		public LMSException()
+		public LmsException()
 			: base()
 		{
 		}
 
-		public LMSException(string message)
+		public LmsException(string message)
 			: base(message)
 		{
 		}
 
-		public LMSException(string message, Exception innerException)
+		public LmsException(string message, Exception innerException)
 			: base(message, innerException)
 		{
 		}
 
-		protected LMSException(SerializationInfo info, StreamingContext context)
+		protected LmsException(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
 		}

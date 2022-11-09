@@ -1,25 +1,19 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABERKeyGenerationParameters
+    public sealed class SaberKeyGenerationParameters
         : KeyGenerationParameters
     {
-        private SABERParameters parameters;
+        private SaberParameters parameters;
 
-        public SABERKeyGenerationParameters(
-            SecureRandom random,
-            SABERParameters saberParameters)
+        public SaberKeyGenerationParameters(SecureRandom random, SaberParameters saberParameters)
             : base(random, 256)
         {
             this.parameters = saberParameters;
         }
 
-        public SABERParameters GetParameters()
-        {
-            return parameters;
-        }
+        public SaberParameters Parameters => parameters;
     }
 }

@@ -42,11 +42,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "DES"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
 		public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
@@ -91,10 +86,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         /**
         * what follows is mainly taken from "Applied Cryptography", by

@@ -8,7 +8,6 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -84,14 +83,6 @@ namespace Org.BouncyCastle.Tsp
             return new PkiStatusInfo(new DerSequence(v));
         }
 
-        public TimeStampResponse Generate(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTime genTime)
-        {
-            return Generate(request, serialNumber, new DateTimeObject(genTime));
-        }
-
         /**
          * Return an appropriate TimeStampResponse.
          * <p>
@@ -107,10 +98,7 @@ namespace Org.BouncyCastle.Tsp
          * @throws TSPException
          * </p>
          */
-        public TimeStampResponse Generate(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTimeObject genTime)
+        public TimeStampResponse Generate(TimeStampRequest request, BigInteger serialNumber, DateTime? genTime)
         {
             TimeStampResp resp;
 
@@ -164,13 +152,8 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-
-        public TimeStampResponse GenerateGrantedResponse(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTimeObject genTime, 
-            string statusString, 
-            X509Extensions additionalExtensions)
+        public TimeStampResponse GenerateGrantedResponse(TimeStampRequest request, BigInteger serialNumber,
+            DateTime? genTime, string statusString, X509Extensions additionalExtensions)
         {
             TimeStampResp resp;
 

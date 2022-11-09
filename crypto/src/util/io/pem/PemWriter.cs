@@ -9,13 +9,14 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 	* A generic PEM writer, based on RFC 1421
 	*/
 	public class PemWriter
+		: IDisposable
 	{
 		private const int LineLength = 64;
 
 		private readonly TextWriter	writer;
 		private readonly int		nlLength;
 		private char[]				buf = new char[LineLength];
-		
+
 		/**
 		 * Base constructor.
 		 *
@@ -23,14 +24,29 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		 */
 		public PemWriter(TextWriter writer)
 		{
-			if (writer == null)
-				throw new ArgumentNullException("writer");
-
-			this.writer = writer;
-			this.nlLength = Environment.NewLine.Length;
+			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            this.nlLength = Environment.NewLine.Length;
 		}
 
-		public TextWriter Writer
+        #region IDisposable
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                writer.Dispose();
+            }
+        }
+
+        #endregion
+
+        public TextWriter Writer
 		{
 			get { return writer; }
 		}
@@ -115,5 +131,5 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		{
 			writer.WriteLine("-----END " + type + "-----");
 		}
-	}
+    }
 }

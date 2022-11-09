@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -114,7 +115,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             if (NameToHashID.TryGetValue(name, out var hashAlgorithmTag))
                 return (int)hashAlgorithmTag;
 
-            throw new ArgumentException("unable to map " + name + " to a hash id", "name");
+            throw new ArgumentException("unable to map " + name + " to a hash id", nameof(name));
         }
 
         /**
@@ -152,6 +153,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.ECDsa:
                     encAlg = "ECDSA";
                     break;
+                case PublicKeyAlgorithmTag.EdDsa:
+                    encAlg = "EdDSA";
+                    break;
                 case PublicKeyAlgorithmTag.ElGamalEncrypt: // in some malformed cases.
 				case PublicKeyAlgorithmTag.ElGamalGeneral:
 					encAlg = "ElGamal";
@@ -163,7 +167,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return GetDigestName(hashAlgorithm) + "with" + encAlg;
         }
 
-	public static string GetSymmetricCipherName(
+	    public static string GetSymmetricCipherName(
             SymmetricKeyAlgorithmTag algorithm)
         {
             switch (algorithm)
@@ -301,11 +305,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				IDigest digest;
 				if (s2k != null)
                 {
-					string digestName = GetDigestName(s2k.HashAlgorithm);
-
                     try
                     {
-						digest = DigestUtilities.GetDigest(digestName);
+                        digest = CreateDigest(s2k.HashAlgorithm);
                     }
                     catch (Exception e)
                     {
@@ -368,7 +370,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     try
                     {
-                        digest = DigestUtilities.GetDigest("MD5");
+                        digest = CreateDigest(HashAlgorithmTag.MD5);
 
 						for (int i = 0; i != loopCount; i++)
                         {
@@ -407,7 +409,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return MakeKey(algorithm, keyBytes);
         }
 
-#if !PORTABLE || DOTNET
         /// <summary>Write out the passed in file as a literal data packet.</summary>
         public static void WriteFileToLiteralData(
             Stream		output,
@@ -448,16 +449,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 Array.Clear(buf, 0, buf.Length);
 
-                Platform.Dispose(pOut);
-                Platform.Dispose(inputStream);
+                pOut.Dispose();
+                inputStream.Dispose();
             }
         }
-#endif
 
 		private const int ReadAhead = 60;
 
-		private static bool IsPossiblyBase64(
-            int ch)
+		private static bool IsPossiblyBase64(int ch)
         {
             return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
                     || (ch >= '0' && ch <= '9') || (ch == '+') || (ch == '/')
@@ -473,7 +472,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
 			// TODO Remove this restriction?
 			if (!inputStream.CanSeek)
-				throw new ArgumentException("inputStream must be seek-able", "inputStream");
+				throw new ArgumentException("inputStream must be seek-able", nameof(inputStream));
 
 			long markedPos = inputStream.Position;
 
@@ -549,6 +548,41 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             catch (Exception e)
             {
                 throw new IOException(e.Message);
+            }
+        }
+
+        internal static IDigest CreateDigest(HashAlgorithmTag hashAlgorithm)
+        {
+            return DigestUtilities.GetDigest(GetDigestName(hashAlgorithm));
+        }
+
+        internal static ISigner CreateSigner(PublicKeyAlgorithmTag publicKeyAlgorithm, HashAlgorithmTag hashAlgorithm,
+            AsymmetricKeyParameter key)
+        {
+            switch (publicKeyAlgorithm)
+            {
+            case PublicKeyAlgorithmTag.EdDsa:
+            {
+                ISigner signer;
+                if (key is Ed25519PrivateKeyParameters || key is Ed25519PublicKeyParameters)
+                {
+                    signer = new Ed25519Signer();
+                }
+                else if (key is Ed448PrivateKeyParameters || key is Ed448PublicKeyParameters)
+                {
+                    signer = new Ed448Signer(Arrays.EmptyBytes);
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return new EdDsaSigner(signer, CreateDigest(hashAlgorithm));
+            }
+            default:
+            {
+                return SignerUtilities.GetSigner(GetSignatureName(publicKeyAlgorithm, hashAlgorithm));
+            }
             }
         }
 

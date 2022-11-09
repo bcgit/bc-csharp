@@ -1,9 +1,7 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
@@ -11,44 +9,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         : IMessageSigner
     {
         private byte[] encodedkey;
-        private FalconNIST nist;
+        private FalconNist nist;
 
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
             {
-                if (param is ParametersWithRandom)
+                if (param is ParametersWithRandom withRandom)
                 {
-                    FalconPrivateKeyParameters skparam = ((FalconPrivateKeyParameters)((ParametersWithRandom)param).Parameters);
+                    FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)withRandom.Parameters;
                     encodedkey = skparam.GetEncoded();
-                    nist = new FalconNIST(
-                        ((ParametersWithRandom)param).Random, 
-                        skparam.Parameters.LogN,
-                        skparam.Parameters.NonceLength);
+                    nist = new FalconNist(
+                        withRandom.Random,
+                        (uint)skparam.Parameters.LogN,
+                        (uint)skparam.Parameters.NonceLength);
                 }
                 else
                 {
                     FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)param;
                     encodedkey = ((FalconPrivateKeyParameters)param).GetEncoded();
-                    nist = new FalconNIST(
-                        new SecureRandom(),
-                        // CryptoServicesRegistrar.GetSecureRandom(),
-                        skparam.Parameters.LogN,
-                        skparam.Parameters.NonceLength
-                        ); 
-                        // TODO when CryptoServicesRegistrar has been implemented, use that instead
-
+                    nist = new FalconNist(
+                        CryptoServicesRegistrar.GetSecureRandom(),
+                        (uint)skparam.Parameters.LogN,
+                        (uint)skparam.Parameters.NonceLength);
                 }
             }
             else
             {
                 FalconPublicKeyParameters pkparam = (FalconPublicKeyParameters)param;
                 encodedkey = pkparam.GetEncoded();
-                nist = new FalconNIST(
-                    new SecureRandom(),
-                    // CryptoServicesRegistrar.GetSecureRandom()
-                    pkparam.Parameters.LogN,
-                    pkparam.Parameters.NonceLength);
+                nist = new FalconNist(
+                    CryptoServicesRegistrar.GetSecureRandom(),
+                    (uint)pkparam.Parameters.LogN,
+                    (uint)pkparam.Parameters.NonceLength);
             }
         }
 
@@ -56,7 +49,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         {
             byte[] sm = new byte[nist.GetCryptoBytes()];
 
-            return nist.crypto_sign(sm, message, 0, (uint)message.Length, encodedkey, 0);
+            return nist.crypto_sign(false, sm, message, 0, (uint)message.Length, encodedkey, 0);
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
@@ -69,7 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             byte[] sig = new byte[signature.Length - nist.GetNonceLength() - 1];
             Array.Copy(signature, 1, nonce, 0, nist.GetNonceLength());
             Array.Copy(signature, nist.GetNonceLength() + 1, sig, 0, signature.Length - nist.GetNonceLength() - 1);
-            bool res = nist.crypto_sign_open(sig,nonce,message,encodedkey,0) == 0;
+            bool res = nist.crypto_sign_open(false, sig,nonce,message,encodedkey,0) == 0;
             return res;
         }
     }

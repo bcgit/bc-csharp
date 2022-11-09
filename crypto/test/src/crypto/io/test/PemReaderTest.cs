@@ -19,14 +19,17 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
         {
             string raw = "-----BEGIN CERTIFICATE REQUEST----- MIIBkTCB+wIBADAUMRIwEAYDVQQDDAlUZXN0MlNBTnMwgZ8wDQYJKoZIhvcNAQEB BQADgY0AMIGJAoGBAPPPH7W8LqBMCwSu/MsmCeSCfBzMEp4k+aZmeKw8EQD1R3FK WtPy/LcaUyQhyIeNPFAH8JEz0dJRJjleFL8G5pv7c2YXjBmIfbF/W2eETBIohMDP pWOqKYiT1mqzw25rP1VuXGXaSfN22RReomUd9O2GuEkaqz5x5iTRD6aLmDoJAgMB AAGgPjA8BgkqhkiG9w0BCQ4xLzAtMCsGA1UdEQQkMCKCD3NhbjEudGVzdC5sb2Nh bIIPc2FuMi50ZXN0LmxvY2FsMA0GCSqGSIb3DQEBCwUAA4GBAOacp+9s7/jpmSTA ORvx4nsDwBsY4VLeuPUc2gYmHqfVgrCCSHKPQtQge0P5atudbo+q8Fn+/5JnJR6/ JaooICY3M+/QVrvzvV30i5W8aEIERfXsEIcFyVxv24p6SbrGAcSjwpqvgAf0z82F D3f1qdFATb9HAFsuD/J0HexTFDvB -----END CERTIFICATE REQUEST-----";
 
-            PemReader pemReader = new PemReader(new StringReader(raw));
-            PemObject item = pemReader.ReadPemObject();
+            using (var pemReader = new PemReader(new StringReader(raw)))
+            {
+                PemObject item = pemReader.ReadPemObject();
 
-            Asn1.Pkcs.CertificationRequest pkcs10 = Pkcs10CertificationRequest.GetInstance(Asn1Sequence.GetInstance(item.Content));
-            string subject = pkcs10.GetCertificationRequestInfo().Subject.ToString();
+                Asn1.Pkcs.CertificationRequest pkcs10 = Asn1.Pkcs.CertificationRequest.GetInstance(
+                    Asn1Sequence.GetInstance(item.Content));
+                string subject = pkcs10.GetCertificationRequestInfo().Subject.ToString();
 
-            Assert.AreEqual("CERTIFICATE REQUEST", item.Type);
-            Assert.AreEqual("CN=Test2SANs", subject);
+                Assert.AreEqual("CERTIFICATE REQUEST", item.Type);
+                Assert.AreEqual("CN=Test2SANs", subject);
+            }
         }
 
         [Test]
@@ -77,11 +80,13 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
                 "tj3BYd+M1x+f59Nk1gIgZDiPbzI3K33PKJPl5udwxakSBLBLpSl7I9+F8hhEi9I=\n" +
                 "-----END CERTIFICATE-----\n";
 
-            PemReader pemReader = new PemReader(new StringReader(test));
-            PemObject item = pemReader.ReadPemObject();
-            Assert.AreEqual("CERTIFICATE", item.Type);
-            X509CertificateStructure cert = X509CertificateStructure.GetInstance(Asn1Sequence.GetInstance(item.Content));
-            Assert.AreEqual("CN=estExampleCA", cert.Issuer.ToString());
+            using (var pemReader = new PemReader(new StringReader(test)))
+            {
+                PemObject item = pemReader.ReadPemObject();
+                Assert.AreEqual("CERTIFICATE", item.Type);
+                X509CertificateStructure cert = X509CertificateStructure.GetInstance(Asn1Sequence.GetInstance(item.Content));
+                Assert.AreEqual("CN=estExampleCA", cert.Issuer.ToString());
+            }
         }
 
         [Test]
@@ -104,8 +109,12 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
                 "tj3BYd+M1x+f59Nk1gIgZDiPbzI3K33PKJPl5udwxakSBLBLpSl7I9+F8hhEi9I=\n" +
                 "-----END CERTIFICATE-----\n";
 
-            PemReader pemReader = new PemReader(new StringReader(test));
-            PemObject item = pemReader.ReadPemObject();
+            PemObject item;
+            using (var pemReader = new PemReader(new StringReader(test)))
+            {
+                item = pemReader.ReadPemObject();
+            }
+
             Assert.AreEqual("CERTIFICATE", item.Type);
             X509CertificateStructure cert = X509CertificateStructure.GetInstance(Asn1Sequence.GetInstance(item.Content));
             Assert.AreEqual("CN=estExampleCA", cert.Issuer.ToString());
@@ -120,8 +129,8 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 
             })
             {
-                Assert.AreEqual(items[0], ((PemHeader)item.Headers[t]).Name);
-                Assert.AreEqual(items[1], ((PemHeader)item.Headers[t]).Value);
+                Assert.AreEqual(items[0], item.Headers[t].Name);
+                Assert.AreEqual(items[1], item.Headers[t].Value);
                 t++;
             }
 
@@ -141,11 +150,13 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
                 "tj3BYd+M1x+f59Nk1gIgZDiPbzI3K33PKJPl5udwxakSBLBLpSl7I9+F8hhEi9I=" +
                 "-----END CERTIFICATE-----";
 
-            PemReader pemReader = new PemReader(new StringReader(test));
-            PemObject item = pemReader.ReadPemObject();
-            Assert.AreEqual("CERTIFICATE", item.Type);
-            X509CertificateStructure cert = X509CertificateStructure.GetInstance(Asn1Sequence.GetInstance(item.Content));
-            Assert.AreEqual("CN=estExampleCA", cert.Issuer.ToString());
+            using (var pemReader = new PemReader(new StringReader(test)))
+            {
+                PemObject item = pemReader.ReadPemObject();
+                Assert.AreEqual("CERTIFICATE", item.Type);
+                X509CertificateStructure cert = X509CertificateStructure.GetInstance(Asn1Sequence.GetInstance(item.Content));
+                Assert.AreEqual("CN=estExampleCA", cert.Issuer.ToString());
+            }
         }
     }
 }

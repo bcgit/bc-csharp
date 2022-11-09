@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
 			    if (!closed)
                 {
                     closed = true;
-                    Platform.Dispose(input);
+                    input.Dispose();
                 }
             }
             base.Dispose(disposing);

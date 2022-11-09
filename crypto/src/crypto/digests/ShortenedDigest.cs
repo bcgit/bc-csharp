@@ -78,7 +78,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-            Span<byte> tmp = stackalloc byte[baseDigest.GetDigestSize()];
+			int baseDigestSize = baseDigest.GetDigestSize();
+            Span<byte> tmp = baseDigestSize <= 128
+				? stackalloc byte[baseDigestSize]
+				: new byte[baseDigestSize];
 
             baseDigest.DoFinal(tmp);
 

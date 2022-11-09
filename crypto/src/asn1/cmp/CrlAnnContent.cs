@@ -1,39 +1,36 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class CrlAnnContent
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence content;
+        public static CrlAnnContent GetInstance(object obj)
+        {
+			if (obj is CrlAnnContent crlAnnContent)
+				return crlAnnContent;
+
+			if (obj != null)
+				return new CrlAnnContent(Asn1Sequence.GetInstance(obj));
+
+			return null;
+        }
+
+        private readonly Asn1Sequence m_content;
 
 		private CrlAnnContent(Asn1Sequence seq)
 		{
-			content = seq;
+			m_content = seq;
 		}
 
-		public static CrlAnnContent GetInstance(object obj)
+        public CrlAnnContent(CertificateList crl)
+        {
+            m_content = new DerSequence(crl);
+        }
+
+        public virtual CertificateList[] ToCertificateListArray()
 		{
-			if (obj is CrlAnnContent)
-				return (CrlAnnContent)obj;
-
-			if (obj is Asn1Sequence)
-				return new CrlAnnContent((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public virtual CertificateList[] ToCertificateListArray()
-		{
-			CertificateList[] result = new CertificateList[content.Count];
-			for (int i = 0; i != result.Length; ++ i)
-			{
-				result[i] = CertificateList.GetInstance(content[i]);
-			}
-			return result;
+			return m_content.MapElements(CertificateList.GetInstance);
 		}
 
 		/**
@@ -44,7 +41,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return content;
+			return m_content;
 		}
 	}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -396,7 +397,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
 
-			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null));
+			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
 		}
 
         /*
@@ -453,6 +454,15 @@ namespace Org.BouncyCastle.Cms.Tests
             }
 
 			return CollectionUtilities.CreateStore(crlList);
+        }
+
+        internal static IStore<Asn1Encodable> MakeOtherRevocationInfoStore(byte[] ocspResponseBytes)
+        {
+            var otherRevocationInfoList = new List<Asn1Encodable>
+            {
+                Asn1Object.FromByteArray(ocspResponseBytes)
+            };
+            return CollectionUtilities.CreateStore(otherRevocationInfoList);
         }
 
         private static AuthorityKeyIdentifier CreateAuthorityKeyId(

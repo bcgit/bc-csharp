@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Bcpg
 
             if (partialBuffer != null)
             {
-                PartialFlush(true);
+                PartialFlushLast();
                 partialBuffer = null;
             }
 
@@ -215,19 +215,26 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        private void PartialFlush(bool isLast)
+        private void PartialFlush()
         {
-            if (isLast)
-            {
-                WriteNewPacketLength(partialOffset);
-                outStr.Write(partialBuffer, 0, partialOffset);
-            }
-            else
-            {
-                outStr.WriteByte((byte)(0xE0 | partialPower));
-                outStr.Write(partialBuffer, 0, partialBufferLength);
-            }
+            outStr.WriteByte((byte)(0xE0 | partialPower));
+            outStr.Write(partialBuffer, 0, partialBufferLength);
+            partialOffset = 0;
+        }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void PartialFlush(ref ReadOnlySpan<byte> buffer)
+        {
+            outStr.WriteByte((byte)(0xE0 | partialPower));
+            outStr.Write(buffer[..partialBufferLength]);
+            buffer = buffer[partialBufferLength..];
+        }
+#endif
+
+        private void PartialFlushLast()
+        {
+            WriteNewPacketLength(partialOffset);
+            outStr.Write(partialBuffer, 0, partialOffset);
             partialOffset = 0;
         }
 
@@ -235,40 +242,71 @@ namespace Org.BouncyCastle.Bcpg
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            PartialWrite(buffer.AsSpan(offset, count));
+#else
             if (partialOffset == partialBufferLength)
             {
-                PartialFlush(false);
+                PartialFlush();
             }
 
             if (count <= (partialBufferLength - partialOffset))
             {
                 Array.Copy(buffer, offset, partialBuffer, partialOffset, count);
                 partialOffset += count;
+                return;
             }
-            else
+
+            int diff = partialBufferLength - partialOffset;
+            Array.Copy(buffer, offset, partialBuffer, partialOffset, diff);
+            offset += diff;
+            count -= diff;
+            PartialFlush();
+            while (count > partialBufferLength)
             {
-                int diff = partialBufferLength - partialOffset;
-                Array.Copy(buffer, offset, partialBuffer, partialOffset, diff);
-                offset += diff;
-                count -= diff;
-                PartialFlush(false);
-                while (count > partialBufferLength)
-                {
-                    Array.Copy(buffer, offset, partialBuffer, 0, partialBufferLength);
-                    offset += partialBufferLength;
-                    count -= partialBufferLength;
-                    PartialFlush(false);
-                }
-                Array.Copy(buffer, offset, partialBuffer, 0, count);
-                partialOffset += count;
+                Array.Copy(buffer, offset, partialBuffer, 0, partialBufferLength);
+                offset += partialBufferLength;
+                count -= partialBufferLength;
+                PartialFlush();
             }
+            Array.Copy(buffer, offset, partialBuffer, 0, count);
+            partialOffset = count;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void PartialWrite(ReadOnlySpan<byte> buffer)
+        {
+            if (partialOffset == partialBufferLength)
+            {
+                PartialFlush();
+            }
+
+            if (buffer.Length <= (partialBufferLength - partialOffset))
+            {
+                buffer.CopyTo(partialBuffer.AsSpan(partialOffset));
+                partialOffset += buffer.Length;
+                return;
+            }
+
+            int diff = partialBufferLength - partialOffset;
+            buffer[..diff].CopyTo(partialBuffer.AsSpan(partialOffset));
+            buffer = buffer[diff..];
+            PartialFlush();
+            while (buffer.Length > partialBufferLength)
+            {
+                PartialFlush(ref buffer);
+            }
+            buffer.CopyTo(partialBuffer);
+            partialOffset = buffer.Length;
+        }
+#endif
 
         private void PartialWriteByte(byte value)
         {
             if (partialOffset == partialBufferLength)
             {
-                PartialFlush(false);
+                PartialFlush();
             }
 
             partialBuffer[partialOffset++] = value;
@@ -285,6 +323,20 @@ namespace Org.BouncyCastle.Bcpg
                 outStr.Write(buffer, offset, count);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (partialBuffer != null)
+            {
+                PartialWrite(buffer);
+            }
+            else
+            {
+                outStr.Write(buffer);
+            }
+        }
+#endif
 
         public override void WriteByte(byte value)
         {
@@ -370,7 +422,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (partialBuffer != null)
             {
-                PartialFlush(true);
+                PartialFlushLast();
                 Array.Clear(partialBuffer, 0, partialBuffer.Length);
                 partialBuffer = null;
             }
@@ -382,7 +434,7 @@ namespace Org.BouncyCastle.Bcpg
             {
 			    this.Finish();
 			    outStr.Flush();
-                Platform.Dispose(outStr);
+                outStr.Dispose();
             }
             base.Dispose(disposing);
         }

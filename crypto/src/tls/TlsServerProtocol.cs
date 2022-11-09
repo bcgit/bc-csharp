@@ -1290,7 +1290,11 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(m_tlsServer.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
+                    CertificateType.X509),
+                MaxChainLength = m_tlsServer.GetMaxCertificateChainLength(),
+            };
 
             Certificate clientCertificate = Certificate.Parse(options, m_tlsServerContext, buf, null);
 
@@ -1326,7 +1330,11 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(m_tlsServer.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
+                    CertificateType.X509),
+                MaxChainLength = m_tlsServer.GetMaxCertificateChainLength(),
+            };
 
             Certificate clientCertificate = Certificate.Parse(options, m_tlsServerContext, buf, null);
 

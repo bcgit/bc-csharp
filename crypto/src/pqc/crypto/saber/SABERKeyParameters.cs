@@ -1,24 +1,18 @@
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABERKeyParameters
+    public abstract class SaberKeyParameters
         : AsymmetricKeyParameter
     {
-        private SABERParameters parameters;
+        private readonly SaberParameters parameters;
 
-        public SABERKeyParameters(
-            bool isPrivate,
-            SABERParameters parameters)
+        public SaberKeyParameters(bool isPrivate, SaberParameters parameters)
             : base(isPrivate)
         {
             this.parameters = parameters;
         }
 
-        public SABERParameters GetParameters()
-        {
-            return parameters;
-        }
+        public SaberParameters Parameters => parameters;
     }
 }

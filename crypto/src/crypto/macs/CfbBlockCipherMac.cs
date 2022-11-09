@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Macs
     * implements a Cipher-FeedBack (CFB) mode on top of a simple cipher.
     */
     internal class MacCfbBlockCipher
-		: IBlockCipher
+		: IBlockCipherMode
     {
         private byte[] IV;
         private byte[] cfbV;
@@ -81,7 +81,9 @@ namespace Org.BouncyCastle.Crypto.Macs
 			get { return cipher.AlgorithmName + "/CFB" + (blockSize * 8); }
         }
 
-		public bool IsPartialBlockOkay
+        public IBlockCipher UnderlyingCipher => cipher;
+
+        public bool IsPartialBlockOkay
 		{
 			get { return true; }
 		}
@@ -153,8 +155,6 @@ namespace Org.BouncyCastle.Crypto.Macs
         public void Reset()
         {
 			IV.CopyTo(cfbV, 0);
-
-			cipher.Reset();
         }
 
 		public void GetMacBlock(

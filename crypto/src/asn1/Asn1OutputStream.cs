@@ -1,5 +1,10 @@
 using System;
 using System.IO;
+using System.Diagnostics;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers.Binary;
+using System.Numerics;
+#endif
 
 using Org.BouncyCastle.Utilities.IO;
 
@@ -73,15 +78,19 @@ namespace Org.BouncyCastle.Asn1
         {
             if (dl < 128)
             {
+                Debug.Assert(dl >= 0);
                 WriteByte((byte)dl);
                 return;
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> stack = stackalloc byte[5];
+            Span<byte> encoding = stackalloc byte[5];
+            BinaryPrimitives.WriteUInt32BigEndian(encoding[1..], (uint)dl);
+            int leadingZeroBytes = BitOperations.LeadingZeroCount((uint)dl) / 8;
+            encoding[leadingZeroBytes] = (byte)(0x84 - leadingZeroBytes);
+            Write(encoding[leadingZeroBytes..]);
 #else
             byte[] stack = new byte[5];
-#endif
             int pos = stack.Length;
 
             do
@@ -94,9 +103,6 @@ namespace Org.BouncyCastle.Asn1
             int count = stack.Length - pos;
             stack[--pos] = (byte)(0x80 | count);
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Write(stack[pos..]);
-#else
             Write(stack, pos, count + 1);
 #endif
         }

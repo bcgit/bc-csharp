@@ -1,65 +1,70 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-
-    class Poly
+    internal class Poly
     {
-        private static int KARATSUBA_N = 64;
+        private const int KARATSUBA_N = 64;
 
-        private static int SCHB_N = 16;
+        //private readonly int N_RES;
+        private readonly int N_SB;
+        private readonly int N_SB_RES;
+        private readonly int SABER_N;
+        private readonly int SABER_L;
 
-        private int N_RES;
-        private int N_SB;
-        private int N_SB_RES;
-        private int SABER_N;
-        private int SABER_L;
+        private readonly SaberEngine engine;
+        private readonly SaberUtilities utils;
 
-        private SABEREngine engine;
-        private Utils utils;
-
-
-        public Poly(SABEREngine engine)
+        public Poly(SaberEngine engine)
         {
             this.engine = engine;
-            this.SABER_L = engine.getSABER_L();
-            this.SABER_N = engine.getSABER_N();
-            this.N_RES = (SABER_N << 1);
-            this.N_SB = (SABER_N >> 2);
-            this.N_SB_RES = (2 * N_SB - 1);
-            this.utils = engine.GetUtils();
+            this.SABER_L = engine.L;
+            this.SABER_N = engine.N;
+            //this.N_RES = SABER_N << 1;
+            this.N_SB = SABER_N >> 2;
+            this.N_SB_RES = 2 * N_SB - 1;
+            this.utils = engine.Utilities;
         }
 
         public void GenMatrix(short[][][] A, byte[] seed)
         {
-            byte[] buf = new byte[SABER_L * engine.getSABER_POLYVECBYTES()];
+            byte[] buf = new byte[SABER_L * engine.PolyVecBytes];
             int i;
 
-            IXof digest = new ShakeDigest(128);
-            digest.BlockUpdate(seed, 0, engine.getSABER_SEEDBYTES());
-            digest.DoFinal(buf, 0, buf.Length);
+            engine.Symmetric.Prf(buf, seed, engine.SeedBytes, buf.Length);
+
 
             for (i = 0; i < SABER_L; i++)
             {
-                utils.BS2POLVECq(buf, i * engine.getSABER_POLYVECBYTES(), A[i]);
+                utils.BS2POLVECq(buf, i * engine.PolyVecBytes, A[i]);
             }
         }
 
         public void GenSecret(short[][] s, byte[] seed)
         {
-            byte[] buf = new byte[SABER_L * engine.getSABER_POLYCOINBYTES()];
-            int i;
-            IXof digest = new ShakeDigest(128);
-            digest.BlockUpdate(seed, 0, engine.getSABER_NOISE_SEEDBYTES());
-            digest.DoFinal(buf, 0, buf.Length);
+            byte[] buf = new byte[SABER_L * engine.PolyCoinBytes];
 
-            for (i = 0; i < SABER_L; i++)
+            engine.Symmetric.Prf(buf, seed, engine.NoiseSeedBytes, buf.Length);
+
+
+            for (int i = 0; i < SABER_L; i++)
             {
-                Cbd(s[i], buf, i * engine.getSABER_POLYCOINBYTES());
+                if (!engine.UsingEffectiveMasking)
+                {
+                    Cbd(s[i], buf, i * engine.PolyCoinBytes);
+                }
+                else
+                {
+                    for(int j = 0; j<SABER_N/4; j++)
+                    {
+                        s[i][4*j] = (short) ((((buf[j + i * engine.PolyCoinBytes]) & 0x03) ^ 2) - 2);
+                        s[i][4*j+1] = (short) ((((buf[j + i * engine.PolyCoinBytes] >> 2) & 0x03)  ^ 2) - 2);
+                        s[i][4*j+2] = (short) ((((buf[j + i * engine.PolyCoinBytes] >> 4) & 0x03)  ^ 2) - 2);
+                        s[i][4*j+3] = (short) ((((buf[j + i * engine.PolyCoinBytes] >> 6) & 0x03)  ^ 2) - 2);
+                    }
+                }
             }
-
         }
 
         private long LoadLittleEndian(byte[] x, int offset, int bytes)
@@ -78,7 +83,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         {
             int[] a = new int[4], b = new int[4];
             int i, j;
-            if (engine.getSABER_MU() == 6)
+            if (engine.MU == 6)
             {
                 int t, d;
                 for (i = 0; i < SABER_N / 4; i++)
@@ -103,7 +108,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
                     s[4 * i + 3] = (short) (a[3] - b[3]);
                 }
             }
-            else if (engine.getSABER_MU() == 8)
+            else if (engine.MU == 8)
             {
                 int t, d;
                 for (i = 0; i < SABER_N / 4; i++)
@@ -129,7 +134,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
                     s[4 * i + 3] = (short) (a[3] - b[3]);
                 }
             }
-            else if (engine.getSABER_MU() == 10)
+            else if (engine.MU == 10)
             {
                 long t, d;
                 for (i = 0; i < SABER_N / 4; i++)

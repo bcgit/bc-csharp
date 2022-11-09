@@ -10,6 +10,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         int GetBlockSize();
 
         /// <summary>The block cipher underlying this algorithm.</summary>
-		IBlockCipher GetUnderlyingCipher();
+		IBlockCipher UnderlyingCipher { get; }
 	}
 }

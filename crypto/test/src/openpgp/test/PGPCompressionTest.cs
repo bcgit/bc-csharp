@@ -74,19 +74,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			if (streamClose)
 			{
-				os.Close();
+				os.Dispose();
 			}
 			else
 			{
-				cPacket.Close();
+				cPacket.Dispose();
 			}
 
 			ValidateData(data, bOut.ToArray());
 
 			try
 			{
-				os.Close();
-				cPacket.Close();
+				os.Dispose();
+				cPacket.Dispose();
 			}
 			catch (Exception)
 			{

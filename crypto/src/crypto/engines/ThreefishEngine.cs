@@ -269,18 +269,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Threefish-" + (blocksizeBytes * 8); }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return blocksizeBytes;
-		}
-
-        public virtual void Reset()
-		{
 		}
 
         public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)

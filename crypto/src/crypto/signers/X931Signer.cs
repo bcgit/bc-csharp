@@ -3,6 +3,7 @@
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Zlib;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -82,12 +83,6 @@ namespace Org.BouncyCastle.Crypto.Signers
             Reset();
         }
 
-        /// <summary> clear possible sensitive data</summary>
-        private void ClearBlock(byte[] block)
-        {
-            Array.Clear(block, 0, block.Length);
-        }
-
         public virtual void Update(byte b)
         {
             digest.Update(b);
@@ -115,7 +110,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             CreateSignatureBlock();
 
             BigInteger t = new BigInteger(1, cipher.ProcessBlock(block, 0, block.Length));
-            ClearBlock(block);
+            Arrays.Fill(block, 0x00);
 
             t = t.Min(kParam.Modulus.Subtract(t));
 
@@ -183,12 +178,20 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             CreateSignatureBlock();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int fBlockSize = block.Length;
+            Span<byte> fBlock = fBlockSize <= 512
+                ? stackalloc byte[fBlockSize]
+                : new byte[fBlockSize];
+            BigIntegers.AsUnsignedByteArray(f, fBlock);
+#else
             byte[] fBlock = BigIntegers.AsUnsignedByteArray(block.Length, f);
+#endif
 
             bool rv = Arrays.ConstantTimeAreEqual(block, fBlock);
 
-            ClearBlock(block);
-            ClearBlock(fBlock);
+            Arrays.Fill(block, 0x00);
+            Arrays.Fill<byte>(fBlock, 0x00);
 
             return rv;
         }

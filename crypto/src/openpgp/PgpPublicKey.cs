@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cryptlib;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Rfc7748;
+using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -18,7 +23,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
     /// <remarks>General class to handle a PGP public key object.</remarks>
     public class PgpPublicKey
+        : PgpObject
     {
+        // We default to these as they are specified as mandatory in RFC 6631.
+        private static readonly PgpKdfParameters DefaultKdfParameters = new PgpKdfParameters(HashAlgorithmTag.Sha256,
+            SymmetricKeyAlgorithmTag.Aes128);
+
         public static byte[] CalculateFingerprint(PublicKeyPacket publicPk)
         {
             IBcpgKey key = publicPk.Key;
@@ -30,7 +40,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 try
                 {
-                    digest = DigestUtilities.GetDigest("MD5");
+                    digest = PgpUtilities.CreateDigest(HashAlgorithmTag.MD5);
+
                     UpdateDigest(digest, rK.Modulus);
                     UpdateDigest(digest, rK.PublicExponent);
                 }
@@ -45,7 +56,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     byte[] kBytes = publicPk.GetEncodedContents();
 
-                    digest = DigestUtilities.GetDigest("SHA1");
+                    digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
 
                     digest.Update(0x99);
                     digest.Update((byte)(kBytes.Length >> 8));
@@ -124,27 +135,38 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     this.keyStrength = ((ElGamalPublicBcpgKey)key).P.BitLength;
                 }
-                else if (key is ECPublicBcpgKey)
+                else if (key is EdDsaPublicBcpgKey eddsaK)
                 {
-                    DerObjectIdentifier curveOid = ((ECPublicBcpgKey)key).CurveOid;
-                    if (GnuObjectIdentifiers.Ed25519.Equals(curveOid)
-                        //|| CryptlibObjectIdentifiers.curvey25519.Equals(curveOid)
-                        )
+                    var curveOid = eddsaK.CurveOid;
+                    if (EdECObjectIdentifiers.id_Ed25519.Equals(curveOid) ||
+                        GnuObjectIdentifiers.Ed25519.Equals(curveOid) ||
+                        EdECObjectIdentifiers.id_X25519.Equals(curveOid) ||
+                        CryptlibObjectIdentifiers.curvey25519.Equals(curveOid))
                     {
                         this.keyStrength = 256;
                     }
+                    else if (EdECObjectIdentifiers.id_Ed448.Equals(curveOid) ||
+                        EdECObjectIdentifiers.id_X448.Equals(curveOid))
+                    {
+                        this.keyStrength = 448;
+                    }
                     else
                     {
-                        X9ECParametersHolder ecParameters = ECKeyPairGenerator.FindECCurveByOidLazy(curveOid);
+                        this.keyStrength = -1; // unknown
+                    }
+                }
+                else if (key is ECPublicBcpgKey ecK)
+                {
+                    var curveOid = ecK.CurveOid;
+                    X9ECParametersHolder ecParameters = ECKeyPairGenerator.FindECCurveByOidLazy(curveOid);
 
-                        if (ecParameters != null)
-                        {
-                            this.keyStrength = ecParameters.Curve.FieldSize;
-                        }
-                        else
-                        {
-                            this.keyStrength = -1; // unknown
-                        }
+                    if (ecParameters != null)
+                    {
+                        this.keyStrength = ecParameters.Curve.FieldSize;
+                    }
+                    else
+                    {
+                        this.keyStrength = -1; // unknown
                     }
                 }
             }
@@ -165,7 +187,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public PgpPublicKey(PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey, DateTime time)
         {
             if (pubKey.IsPrivate)
-                throw new ArgumentException("Expected a public key", "pubKey");
+                throw new ArgumentException("Expected a public key", nameof(pubKey));
 
             IBcpgKey bcpgKey;
             if (pubKey is RsaKeyParameters rK)
@@ -177,6 +199,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 DsaParameters dP = dK.Parameters;
 
                 bcpgKey = new DsaPublicBcpgKey(dP.P, dP.Q, dP.G, dK.Y);
+            }
+            else if (pubKey is ElGamalPublicKeyParameters eK)
+            {
+                ElGamalParameters eS = eK.Parameters;
+
+                bcpgKey = new ElGamalPublicBcpgKey(eS.P, eS.G, eK.Y);
             }
             else if (pubKey is ECPublicKeyParameters ecK)
             {
@@ -194,11 +222,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new PgpException("unknown EC algorithm");
                 }
             }
-            else if (pubKey is ElGamalPublicKeyParameters eK)
+            else if (pubKey is Ed25519PublicKeyParameters ed25519PubKey)
             {
-                ElGamalParameters eS = eK.Parameters;
+                byte[] pointEnc = new byte[1 + Ed25519PublicKeyParameters.KeySize];
+                pointEnc[0] = 0x40;
+                ed25519PubKey.Encode(pointEnc, 1);
+                bcpgKey = new EdDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, pointEnc));
+            }
+            else if (pubKey is Ed448PublicKeyParameters ed448PubKey)
+            {
+                byte[] pointEnc = new byte[Ed448PublicKeyParameters.KeySize];
+                ed448PubKey.Encode(pointEnc, 0);
+                bcpgKey = new EdDsaPublicBcpgKey(EdECObjectIdentifiers.id_Ed448, new BigInteger(1, pointEnc));
+            }
+            else if (pubKey is X25519PublicKeyParameters x25519PubKey)
+            {
+                byte[] pointEnc = new byte[1 + X25519PublicKeyParameters.KeySize];
+                pointEnc[0] = 0x40;
+                x25519PubKey.Encode(pointEnc, 1);
 
-                bcpgKey = new ElGamalPublicBcpgKey(eS.P, eS.G, eK.Y);
+                PgpKdfParameters kdfParams = DefaultKdfParameters;
+
+                bcpgKey = new ECDHPublicBcpgKey(CryptlibObjectIdentifiers.curvey25519, new BigInteger(1, pointEnc),
+                    kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+            }
+            else if (pubKey is X448PublicKeyParameters x448PubKey)
+            {
+                byte[] pointEnc = new byte[X448PublicKeyParameters.KeySize];
+                x448PubKey.Encode(pointEnc, 0);
+
+                PgpKdfParameters kdfParams = DefaultKdfParameters;
+
+                bcpgKey = new ECDHPublicBcpgKey(EdECObjectIdentifiers.id_X448, new BigInteger(1, pointEnc),
+                    kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
             }
             else
             {
@@ -473,24 +529,89 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 switch (publicPk.Algorithm)
                 {
-                    case PublicKeyAlgorithmTag.RsaEncrypt:
-                    case PublicKeyAlgorithmTag.RsaGeneral:
-                    case PublicKeyAlgorithmTag.RsaSign:
-                        RsaPublicBcpgKey rsaK = (RsaPublicBcpgKey)publicPk.Key;
-                        return new RsaKeyParameters(false, rsaK.Modulus, rsaK.PublicExponent);
-                    case PublicKeyAlgorithmTag.Dsa:
-                        DsaPublicBcpgKey dsaK = (DsaPublicBcpgKey)publicPk.Key;
-                        return new DsaPublicKeyParameters(dsaK.Y, new DsaParameters(dsaK.P, dsaK.Q, dsaK.G));
-                    case PublicKeyAlgorithmTag.ECDsa:
-                        return GetECKey("ECDSA");
-                    case PublicKeyAlgorithmTag.ECDH:
-                        return GetECKey("ECDH");
-                    case PublicKeyAlgorithmTag.ElGamalEncrypt:
-                    case PublicKeyAlgorithmTag.ElGamalGeneral:
-                        ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
-                        return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
-                    default:
-                        throw new PgpException("unknown public key algorithm encountered");
+                case PublicKeyAlgorithmTag.RsaEncrypt:
+                case PublicKeyAlgorithmTag.RsaGeneral:
+                case PublicKeyAlgorithmTag.RsaSign:
+                    RsaPublicBcpgKey rsaK = (RsaPublicBcpgKey)publicPk.Key;
+                    return new RsaKeyParameters(false, rsaK.Modulus, rsaK.PublicExponent);
+                case PublicKeyAlgorithmTag.Dsa:
+                    DsaPublicBcpgKey dsaK = (DsaPublicBcpgKey)publicPk.Key;
+                    return new DsaPublicKeyParameters(dsaK.Y, new DsaParameters(dsaK.P, dsaK.Q, dsaK.G));
+                case PublicKeyAlgorithmTag.ECDsa:
+                    ECDsaPublicBcpgKey ecdsaK = (ECDsaPublicBcpgKey)publicPk.Key;
+                    return GetECKey("ECDSA", ecdsaK);
+                case PublicKeyAlgorithmTag.ECDH:
+                {
+                    ECDHPublicBcpgKey ecdhK = (ECDHPublicBcpgKey)publicPk.Key;
+                    var curveOid = ecdhK.CurveOid;
+
+                    if (EdECObjectIdentifiers.id_X25519.Equals(curveOid) ||
+                        CryptlibObjectIdentifiers.curvey25519.Equals(curveOid))
+                    {
+                        byte[] pEnc = BigIntegers.AsUnsignedByteArray(1 + X25519.PointSize, ecdhK.EncodedPoint);
+                        if (pEnc[0] != 0x40)
+                            throw new ArgumentException("Invalid X25519 public key");
+
+                        return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            // TODO Span variant
+                            Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+                    }
+                    else if (EdECObjectIdentifiers.id_X448.Equals(curveOid))
+                    {
+                        byte[] pEnc = BigIntegers.AsUnsignedByteArray(1 + X448.PointSize, ecdhK.EncodedPoint);
+                        if (pEnc[0] != 0x40)
+                            throw new ArgumentException("Invalid X448 public key");
+
+                        return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            // TODO Span variant
+                            Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+                    }
+                    else
+                    {
+                        return GetECKey("ECDH", ecdhK);
+                    }
+                }
+                case PublicKeyAlgorithmTag.EdDsa:
+                {
+                    EdDsaPublicBcpgKey eddsaK = (EdDsaPublicBcpgKey)publicPk.Key;
+                    var curveOid = eddsaK.CurveOid;
+
+                    if (EdECObjectIdentifiers.id_Ed25519.Equals(curveOid) ||
+                        GnuObjectIdentifiers.Ed25519.Equals(curveOid))
+                    {
+                        byte[] pEnc = BigIntegers.AsUnsignedByteArray(1 + Ed25519.PublicKeySize, eddsaK.EncodedPoint);
+                        if (pEnc[0] != 0x40)
+                            throw new ArgumentException("Invalid Ed25519 public key");
+
+                        return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            // TODO Span variant
+                            Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+                    }
+                    else if (EdECObjectIdentifiers.id_Ed448.Equals(curveOid))
+                    {
+                        byte[] pEnc = BigIntegers.AsUnsignedByteArray(1 + Ed448.PublicKeySize, eddsaK.EncodedPoint);
+                        if (pEnc[0] != 0x40)
+                            throw new ArgumentException("Invalid Ed448 public key");
+
+                        return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
+                            new AlgorithmIdentifier(curveOid),
+                            // TODO Span variant
+                            Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+                    }
+                    else 
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                case PublicKeyAlgorithmTag.ElGamalEncrypt:
+                case PublicKeyAlgorithmTag.ElGamalGeneral:
+                    ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
+                    return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
+                default:
+                    throw new PgpException("unknown public key algorithm encountered");
                 }
             }
             catch (PgpException e)
@@ -503,11 +624,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-        private ECPublicKeyParameters GetECKey(string algorithm)
+        private ECPublicKeyParameters GetECKey(string algorithm, ECPublicBcpgKey ecK)
         {
-            ECPublicBcpgKey ecK = (ECPublicBcpgKey)publicPk.Key;
             X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(ecK.CurveOid);
-            ECPoint q = x9.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(ecK.EncodedPoint));
+            BigInteger encodedPoint = ecK.EncodedPoint;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int encodedLength = BigIntegers.GetUnsignedByteLength(encodedPoint);
+            Span<byte> encoding = encodedLength <= 512
+                ? stackalloc byte[encodedLength]
+                : new byte[encodedLength];
+            BigIntegers.AsUnsignedByteArray(encodedPoint, encoding);
+            ECPoint q = x9.Curve.DecodePoint(encoding);
+#else
+            ECPoint q = x9.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(encodedPoint));
+#endif
+
             return new ECPublicKeyParameters(algorithm, q, ecK.CurveOid);
         }
 
@@ -551,7 +683,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public IEnumerable<PgpSignature> GetSignaturesForId(string id)
         {
             if (id == null)
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
 
             var result = new List<PgpSignature>();
             bool userIdFound = false;
@@ -568,13 +700,48 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return userIdFound ? CollectionUtilities.Proxy(result) : null;
         }
 
+        private IEnumerable<PgpSignature> GetSignaturesForID(UserIdPacket id)
+        {
+            var signatures = new List<PgpSignature>();
+            bool userIdFound = false;
+
+            for (int i = 0; i != ids.Count; i++)
+            {
+                if (id.Equals(ids[i]))
+                {
+                    userIdFound = true;
+                    signatures.AddRange(idSigs[i]);
+                }
+            }
+
+            return userIdFound ? signatures : null;
+        }
+
+        /// <summary>Return any signatures associated with the passed in key identifier keyID.</summary>
+        /// <param name="keyID">the key id to be matched.</param>
+        /// <returns>An <c>IEnumerable</c> of <c>PgpSignature</c> objects issued by the key with keyID.</returns>
+        public IEnumerable<PgpSignature> GetSignaturesForKeyID(long keyID)
+        {
+            var sigs = new List<PgpSignature>();
+
+            foreach (var sig in GetSignatures())
+            {
+                if (sig.KeyId == keyID)
+                {
+                    sigs.Add(sig);
+                }
+            }
+
+            return CollectionUtilities.Proxy(sigs);
+        }
+
         /// <summary>Allows enumeration of signatures associated with the passed in user attributes.</summary>
         /// <param name="userAttributes">The vector of user attributes to be matched.</param>
         /// <returns>An <c>IEnumerable</c> of <c>PgpSignature</c> objects.</returns>
         public IEnumerable<PgpSignature> GetSignaturesForUserAttribute(PgpUserAttributeSubpacketVector userAttributes)
         {
             if (userAttributes == null)
-                throw new ArgumentNullException("userAttributes");
+                throw new ArgumentNullException(nameof(userAttributes));
 
             var result = new List<PgpSignature>();
             bool attributeFound = false;
@@ -636,11 +803,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
          */
         public IEnumerable<PgpSignature> GetKeySignatures()
         {
-            var result = subSigs;
-            if (result == null)
-            {
-                result = new List<PgpSignature>(keySigs);
-            }
+            var result = subSigs ?? new List<PgpSignature>(keySigs);
 
             return CollectionUtilities.Proxy(result);
         }
@@ -935,56 +1098,38 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="key">The key the certifications are to be removed from.</param>
         /// <param name="certification">The certfication to be removed.</param>
         /// <returns>The modified key, null if the certification was not found.</returns>
-        public static PgpPublicKey RemoveCertification(
-            PgpPublicKey	key,
-            PgpSignature	certification)
+        public static PgpPublicKey RemoveCertification(PgpPublicKey	key, PgpSignature certification)
         {
-            PgpPublicKey returnKey = new PgpPublicKey(key);
-            var sigs = returnKey.subSigs != null
-                ?	returnKey.subSigs
-                :	returnKey.keySigs;
+            var returnKey = new PgpPublicKey(key);
+            var sigs = returnKey.subSigs ?? returnKey.keySigs;
 
-//			bool found = sigs.Remove(certification);
-            int pos = sigs.IndexOf(certification);
-            bool found = pos >= 0;
+            if (sigs.Remove(certification))
+                return returnKey;
 
-            if (found)
+            // TODO Java uses getRawUserIDs
+            foreach (string id in key.GetUserIds())
             {
-                sigs.RemoveAt(pos);
+                if (ContainsSignature(key.GetSignaturesForId(id), certification))
+                    return RemoveCertification(returnKey, id, certification);
             }
-            else
-            {
-                foreach (string id in key.GetUserIds())
-                {
-                    foreach (object sig in key.GetSignaturesForId(id))
-                    {
-                        // TODO Is this the right type of equality test?
-                        if (certification == sig)
-                        {
-                            found = true;
-                            returnKey = PgpPublicKey.RemoveCertification(returnKey, id, certification);
-                        }
-                    }
-                }
 
-                if (!found)
-                {
-                    foreach (PgpUserAttributeSubpacketVector id in key.GetUserAttributes())
-                    {
-                        foreach (object sig in key.GetSignaturesForUserAttribute(id))
-                        {
-                            // TODO Is this the right type of equality test?
-                            if (certification == sig)
-                            {
-                                found = true;
-                                returnKey = PgpPublicKey.RemoveCertification(returnKey, id, certification);
-                            }
-                        }
-                    }
-                }
+            foreach (PgpUserAttributeSubpacketVector id in key.GetUserAttributes())
+            {
+                if (ContainsSignature(key.GetSignaturesForUserAttribute(id), certification))
+                    return RemoveCertification(returnKey, id, certification);
             }
 
             return returnKey;
+        }
+
+        private static bool ContainsSignature(IEnumerable<PgpSignature> signatures, PgpSignature signature)
+        {
+            foreach (PgpSignature candidate in signatures)
+            {
+                if (signature == candidate)
+                    return true;
+            }
+            return false;
         }
     }
 }

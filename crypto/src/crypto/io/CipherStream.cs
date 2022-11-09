@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Crypto.IO
             byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
             try
             {
-                int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output, 0));
+                int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output));
                 if (length > 0)
                 {
                     m_stream.Write(output[..length]);
@@ -258,7 +258,9 @@ namespace Org.BouncyCastle.Crypto.IO
 			    {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     int outputSize = m_writeCipher.GetOutputSize(0);
-                    Span<byte> output = stackalloc byte[outputSize];
+                    Span<byte> output = outputSize <= 256
+                        ? stackalloc byte[outputSize]
+                        : new byte[outputSize];
                     int len = m_writeCipher.DoFinal(output);
                     m_stream.Write(output[..len]);
 #else
@@ -266,7 +268,7 @@ namespace Org.BouncyCastle.Crypto.IO
                     m_stream.Write(data, 0, data.Length);
 #endif
 			    }
-                Platform.Dispose(m_stream);
+                m_stream.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -6,7 +6,7 @@ using Org.BouncyCastle.Math;
 namespace Org.BouncyCastle.Utilities
 {
     /// <summary> General array utilities.</summary>
-    public abstract class Arrays
+    public static class Arrays
     {
         public static readonly byte[] EmptyBytes = new byte[0];
         public static readonly int[] EmptyInts = new int[0];
@@ -20,6 +20,18 @@ namespace Org.BouncyCastle.Utilities
             }
             return bits == 0;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool AreAllZeroes(ReadOnlySpan<byte> buf)
+        {
+            uint bits = 0;
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                bits |= buf[i];
+            }
+            return bits == 0;
+        }
+#endif
 
         public static bool AreEqual(
             bool[]  a,
@@ -608,6 +620,21 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        public static void Fill<T>(T[] ts, T t)
+        {
+            for (int i = 0; i < ts.Length; ++i)
+            {
+                ts[i] = t;
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Fill<T>(Span<T> ts, T t)
+        {
+            ts.Fill(t);
+        }
+#endif
+
         public static byte[] CopyOf(byte[] data, int newLength)
         {
             byte[] tmp = new byte[newLength];
@@ -857,6 +884,17 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        public static T[] Prepend<T>(T[] a, T b)
+        {
+            if (a == null)
+                return new T[1]{ b };
+
+            T[] result = new T[1 + a.Length];
+            result[0] = b;
+            a.CopyTo(result, 1);
+            return result;
+        }
+
         public static byte[] Reverse(byte[] a)
         {
             if (a == null)
@@ -889,36 +927,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
-        public static byte[] ReverseInPlace(byte[] a)
+        public static T[] ReverseInPlace<T>(T[] array)
         {
-            if (null == a)
+            if (null == array)
                 return null;
 
-            int p1 = 0, p2 = a.Length - 1;
-            while (p1 < p2)
-            {
-                byte t1 = a[p1], t2 = a[p2];
-                a[p1++] = t2;
-                a[p2--] = t1;
-            }
-
-            return a;
-        }
-
-        public static int[] ReverseInPlace(int[] a)
-        {
-            if (null == a)
-                return null;
-
-            int p1 = 0, p2 = a.Length - 1;
-            while (p1 < p2)
-            {
-                int t1 = a[p1], t2 = a[p2];
-                a[p1++] = t2;
-                a[p2--] = t1;
-            }
-
-            return a;
+            Array.Reverse(array);
+            return array;
         }
 
         public static void Clear(byte[] data)

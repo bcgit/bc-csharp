@@ -3,7 +3,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
     internal static class Ntt
     {
-        public static readonly short[] Zetas = {
+        internal static readonly short[] Zetas = {
             2285, 2571, 2970, 1812, 1493, 1422, 287, 202, 3158, 622, 1577, 182, 962,
             2127, 1855, 1468, 573, 2004, 264, 383, 2500, 1458, 1727, 3199, 2648, 1017,
             732, 608, 1787, 411, 3124, 1758, 1223, 652, 2777, 1015, 2036, 1491, 3047,
@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             478, 3221, 3021, 996, 991, 958, 1869, 1522, 1628
         };
 
-        public static readonly short[] ZetasInv = {
+        internal static readonly short[] ZetasInv = {
             1701, 1807, 1460, 2371, 2338, 2333, 308, 108, 2851, 870, 854, 1510, 2535,
             1278, 1530, 1185, 1659, 1187, 3109, 874, 1335, 2111, 136, 1215, 2945, 1465,
             1285, 2007, 2719, 2726, 2232, 2512, 75, 156, 3000, 2911, 2980, 872, 2685,
@@ -34,20 +34,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             return Reduce.MontgomeryReduce(a * b);
         }
 
-        public static void NTT(short[] r)
+        internal static void NTT(short[] r)
         {
-            int len, start, j, k;
-            short t, zeta;
-
-            k = 1;
-            for (len = 128; len >= 2; len >>= 1)
+            int j = 0, k = 1;
+            for (int len = 128; len >= 2; len >>= 1)
             {
-                for (start = 0; start < 256; start = j + len)
+                for (int start = 0; start < 256; start = j + len)
                 {
-                    zeta = Zetas[k++];
+                    short zeta = Zetas[k++];
                     for (j = start; j < start + len; ++j)
                     {
-                        t = FactorQMulMont(zeta, r[j + len]);
+                        short t = FactorQMulMont(zeta, r[j + len]);
                         r[j + len] = (short)(r[j] - t);
                         r[j] = (short)(r[j] + t);
                     }
@@ -55,20 +52,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
         }
 
-        public static void InvNTT(short[] r)
+        internal static void InvNTT(short[] r)
         {
-            int len, start, j, k;
-            short t, zeta;
-
-            k = 0;
-            for (len = 2; len <= 128; len <<= 1)
+            int j = 0, k = 0;
+            for (int len = 2; len <= 128; len <<= 1)
             {
-                for (start = 0; start < 256; start = j + len)
+                for (int start = 0; start < 256; start = j + len)
                 {
-                    zeta = ZetasInv[k++];
+                    short zeta = ZetasInv[k++];
                     for (j = start; j < start + len; ++j)
                     {
-                        t = r[j];
+                        short t = r[j];
                         r[j] = Reduce.BarrettReduce((short)(t + r[j + len]));
                         r[j + len] = (short)(t - r[j + len]);
                         r[j + len] = FactorQMulMont(zeta, r[j + len]);
@@ -76,22 +70,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                     }
                 }
             }
-            for (j = 0; j < 256; ++j)
+            for (int i = 0; i < 256; ++i)
             {
-                r[j] = FactorQMulMont(r[j], Ntt.ZetasInv[127]);
+                r[i] = FactorQMulMont(r[i], ZetasInv[127]);
             }
         }
 
-        public static void BaseMult(short[] r, int off, short a0, short a1, short b0, short b1, short zeta)
+        internal static void BaseMult(short[] r, int off, short a0, short a1, short b0, short b1, short zeta)
         {
-            short OutVal0 = FactorQMulMont(a1, b1);
-            OutVal0 = FactorQMulMont(OutVal0, zeta);
-            OutVal0 += FactorQMulMont(a0, b0);
-            r[off] = OutVal0;
+            short outVal0 = FactorQMulMont(a1, b1);
+            outVal0 = FactorQMulMont(outVal0, zeta);
+            outVal0 += FactorQMulMont(a0, b0);
+            r[off] = outVal0;
 
-            short OutVal1 = FactorQMulMont(a0, b1);
-            OutVal1 += FactorQMulMont(a1, b0);
-            r[off + 1] = OutVal1;
+            short outVal1 = FactorQMulMont(a0, b1);
+            outVal1 += FactorQMulMont(a1, b0);
+            r[off + 1] = outVal1;
         }
     }
 }

@@ -347,11 +347,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "CAST5"; }
         }
 
-		public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
 		public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (_workingKey == null)
@@ -402,10 +397,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         public virtual int GetBlockSize()
         {

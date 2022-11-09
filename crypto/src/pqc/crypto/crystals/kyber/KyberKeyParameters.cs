@@ -1,21 +1,18 @@
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberKeyParameters
+    public abstract class KyberKeyParameters
         : AsymmetricKeyParameter
     {
-        private KyberParameters parameters;
+        private readonly KyberParameters m_parameters;
 
-        public KyberKeyParameters(
-            bool isPrivate,
-            KyberParameters parameters)
+        public KyberKeyParameters(bool isPrivate, KyberParameters parameters)
             : base(isPrivate)
         {
-            this.parameters = parameters;
+            m_parameters = parameters;
         }
 
-        public KyberParameters Parameters => parameters;
+        public KyberParameters Parameters => m_parameters;
     }
 }

@@ -31,22 +31,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1Set GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1Set)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1Set asn1Set)
+                return asn1Set;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1Set)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1Set converted)
+                    return converted;
             }
-            //else if (obj is Asn1SetParser)
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1Set)
-                    return (Asn1Set)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1Set)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1Set)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
@@ -160,6 +161,18 @@ namespace Org.BouncyCastle.Asn1
         public virtual int Count
         {
             get { return elements.Length; }
+        }
+
+        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSet
+            int count = Count;
+            T[] result = new T[count];
+            for (int i = 0; i < count; ++i)
+            {
+                result[i] = func(elements[i]);
+            }
+            return result;
         }
 
         public virtual Asn1Encodable[] ToArray()
@@ -294,6 +307,10 @@ namespace Org.BouncyCastle.Asn1
                 if (a0 != b0)
                     return a0 < b0 ? -1 : 1;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                int compareLength = System.Math.Min(a.Length, b.Length) - 1;
+                return a.AsSpan(1, compareLength).SequenceCompareTo(b.AsSpan(1, compareLength));
+#else
                 int len = System.Math.Min(a.Length, b.Length);
                 for (int i = 1; i < len; ++i)
                 {
@@ -303,6 +320,7 @@ namespace Org.BouncyCastle.Asn1
                 }
                 Debug.Assert(a.Length == b.Length);
                 return 0;
+#endif
             }
         }
     }

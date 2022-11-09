@@ -898,7 +898,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			certGen.SetSubjectDN(new X509Name(order, subjectAttrs));
 			certGen.SetPublicKey(pubKey);
 
-			ISignatureFactory signatureFactory = new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, null);
+			ISignatureFactory signatureFactory = new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, Random);
 			X509Certificate cert = certGen.Generate(signatureFactory);
 			return new X509CertificateEntry(cert);
 		}

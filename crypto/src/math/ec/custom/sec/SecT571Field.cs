@@ -19,18 +19,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Add(ulong[] x, ulong[] y, ulong[] z)
         {
-            for (int i = 0; i < 9; ++i)
-            {
-                z[i] = x[i] ^ y[i]; 
-            }
+            Nat.Xor64(9, x, y, z);
         }
 
         private static void Add(ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
         {
-            for (int i = 0; i < 9; ++i)
-            {
-                z[zOff + i] = x[xOff + i] ^ y[yOff + i];
-            }
+            Nat.Xor64(9, x, xOff, y, yOff, z, zOff);
         }
 
         public static void AddBothTo(ulong[] x, ulong[] y, ulong[] z)
@@ -51,10 +45,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddExt(ulong[] xx, ulong[] yy, ulong[] zz)
         {
-            for (int i = 0; i < 18; ++i)
-            {
-                zz[i] = xx[i] ^ yy[i]; 
-            }
+            Nat.Xor64(18, xx, yy, zz);
         }
 
         public static void AddOne(ulong[] x, ulong[] z)
@@ -68,10 +59,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         private static void AddTo(ulong[] x, ulong[] z)
         {
-            for (int i = 0; i < 9; ++i)
-            {
-                z[i] ^= x[i];
-            }
+            Nat.XorTo64(9, x, z);
         }
 
         public static ulong[] FromBigInteger(BigInteger x)

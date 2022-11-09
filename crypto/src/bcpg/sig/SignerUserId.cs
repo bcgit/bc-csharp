@@ -1,7 +1,3 @@
-using System;
-
-
-
 namespace Org.BouncyCastle.Bcpg.Sig
 {
     /**

@@ -114,21 +114,21 @@ namespace Org.BouncyCastle.Cms
 			CmsSecureReadable secureReadable)
 		{
 			Asn1Encodable recipInfo = info.Info;
-			if (recipInfo is KeyTransRecipientInfo)
+			if (recipInfo is KeyTransRecipientInfo keyTransRecipientInfo)
 			{
-				infos.Add(new KeyTransRecipientInformation((KeyTransRecipientInfo)recipInfo, secureReadable));
+				infos.Add(new KeyTransRecipientInformation(keyTransRecipientInfo, secureReadable));
 			}
-			else if (recipInfo is KekRecipientInfo)
+			else if (recipInfo is KekRecipientInfo kekRecipientInfo)
 			{
-				infos.Add(new KekRecipientInformation((KekRecipientInfo)recipInfo, secureReadable));
+				infos.Add(new KekRecipientInformation(kekRecipientInfo, secureReadable));
 			}
-			else if (recipInfo is KeyAgreeRecipientInfo)
+			else if (recipInfo is KeyAgreeRecipientInfo keyAgreeRecipientInfo)
 			{
-				KeyAgreeRecipientInformation.ReadRecipientInfo(infos, (KeyAgreeRecipientInfo)recipInfo, secureReadable);
+				KeyAgreeRecipientInformation.ReadRecipientInfo(infos, keyAgreeRecipientInfo, secureReadable);
 			}
-			else if (recipInfo is PasswordRecipientInfo)
+			else if (recipInfo is PasswordRecipientInfo passwordRecipientInfo)
 			{
-				infos.Add(new PasswordRecipientInformation((PasswordRecipientInfo)recipInfo, secureReadable));
+				infos.Add(new PasswordRecipientInformation(passwordRecipientInfo, secureReadable));
 			}
 		}
 

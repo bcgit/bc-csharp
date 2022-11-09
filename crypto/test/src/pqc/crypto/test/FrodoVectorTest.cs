@@ -15,19 +15,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class FrodoVectorTest
     {
+        private static readonly Dictionary<string, FrodoParameters> Parameters = new Dictionary<string, FrodoParameters>()
+        {
+            { "PQCkemKAT_19888.rsp", FrodoParameters.frodokem19888r3 },
+            { "PQCkemKAT_31296.rsp", FrodoParameters.frodokem31296r3 },
+            { "PQCkemKAT_43088.rsp", FrodoParameters.frodokem43088r3 },
+            { "PQCkemKAT_19888_shake.rsp", FrodoParameters.frodokem19888shaker3 },
+            { "PQCkemKAT_31296_shake.rsp", FrodoParameters.frodokem31296shaker3 },
+            { "PQCkemKAT_43088_shake.rsp", FrodoParameters.frodokem43088shaker3 },
+        };
+
+        private static readonly string[] TestVectorFilesAes =
+        {
+            "PQCkemKAT_19888.rsp",
+            "PQCkemKAT_31296.rsp",
+            "PQCkemKAT_43088.rsp",
+        };
+
+        private static readonly string[] TestVectorFilesShake =
+        {
+            "PQCkemKAT_19888_shake.rsp",
+            "PQCkemKAT_31296_shake.rsp",
+            "PQCkemKAT_43088_shake.rsp",
+        };
+
         [Test]
         public void TestParameters()
         {
-            
-            FrodoParameters[] parameters = {
-                    FrodoParameters.frodokem19888r3,
-                    FrodoParameters.frodokem19888shaker3,
-                    FrodoParameters.frodokem31296r3,
-                    FrodoParameters.frodokem31296shaker3,
-                    FrodoParameters.frodokem43088r3,
-                    FrodoParameters.frodokem43088shaker3
-            };
-
             Assert.AreEqual(128, FrodoParameters.frodokem19888r3.DefaultKeySize);
             Assert.AreEqual(128, FrodoParameters.frodokem19888shaker3.DefaultKeySize);
             Assert.AreEqual(192, FrodoParameters.frodokem31296r3.DefaultKeySize);
@@ -35,132 +49,106 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(256, FrodoParameters.frodokem43088r3.DefaultKeySize);
             Assert.AreEqual(256, FrodoParameters.frodokem43088shaker3.DefaultKeySize);
         }
-        
-        [Test]
-        public void TestVectors()
+
+        [TestCaseSource(nameof(TestVectorFilesAes))]
+        [Parallelizable(ParallelScope.All)]
+        public void TVAes(string testVectorFile)
         {
-            // bool full = System.getProperty("test.full", "false").equals("true");
-            bool full = false;
+            RunTestVectorFile(testVectorFile);
+        }
 
-            string[] files;
-            FrodoParameters[] parameters;
-            if (full)
-            {
-                files = new []{
-                    "PQCkemKAT_19888.rsp",
-                    "PQCkemKAT_31296.rsp",
-                    "PQCkemKAT_43088.rsp",
-                    "PQCkemKAT_19888_shake.rsp",
-                    "PQCkemKAT_31296_shake.rsp",
-                    "PQCkemKAT_43088_shake.rsp"
-                };
+        [TestCaseSource(nameof(TestVectorFilesShake))]
+        [Parallelizable(ParallelScope.All)]
+        public void TVShake(string testVectorFile)
+        {
+            RunTestVectorFile(testVectorFile);
+        }
 
-                parameters = new []{
-                    FrodoParameters.frodokem19888r3,
-                    FrodoParameters.frodokem31296r3,
-                    FrodoParameters.frodokem43088r3,
-                    FrodoParameters.frodokem19888shaker3,
-                    FrodoParameters.frodokem31296shaker3,
-                    FrodoParameters.frodokem43088shaker3
-                };
-            }
-            else
-            {
-                files = new[]{
-                    "PQCkemKAT_19888.rsp",
-                    "PQCkemKAT_19888_shake.rsp",
-                };
+        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        {
+            string count = buf["count"];
+            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
+            byte[] pk = Hex.Decode(buf["pk"]);     // public key
+            byte[] sk = Hex.Decode(buf["sk"]);     // private key
+            byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
+            byte[] ss = Hex.Decode(buf["ss"]);     // session key
 
-                parameters = new[]{
-                    FrodoParameters.frodokem19888r3,
-                    FrodoParameters.frodokem19888shaker3,
-                };
-            }
+            NistSecureRandom random = new NistSecureRandom(seed, null);
+            FrodoParameters frodoParameters = Parameters[name];
+
+            FrodoKeyPairGenerator kpGen = new FrodoKeyPairGenerator();
+            FrodoKeyGenerationParameters genParams = new FrodoKeyGenerationParameters(random, frodoParameters);
+            //
+            // Generate keys and test.
+            //
+            kpGen.Init(genParams);
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+
+            FrodoPublicKeyParameters pubParams = (FrodoPublicKeyParameters)kp.Public;
+            FrodoPrivateKeyParameters privParams = (FrodoPrivateKeyParameters)kp.Private;
+
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), $"{name} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), $"{name} {count} : secret key");
+
+            // kem_enc
+            FrodoKEMGenerator frodoEncCipher = new FrodoKEMGenerator(random);
+            ISecretWithEncapsulation secWenc = frodoEncCipher.GenerateEncapsulated(pubParams);
+            byte[] generated_cipher_text = secWenc.GetEncapsulation();
+            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
+            byte[] secret = secWenc.GetSecret();
+            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
+
+            // kem_dec
+            FrodoKEMExtractor frodoDecCipher = new FrodoKEMExtractor(privParams);
+
+            byte[] dec_key = frodoDecCipher.ExtractSecret(generated_cipher_text);
+
+            Assert.True(frodoParameters.DefaultKeySize == dec_key.Length * 8);
+            Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
+            Assert.True(Arrays.AreEqual(dec_key, secret), $"{name} {count}: kem_dec key");
+        }
+
+        private static void RunTestVectorFile(string name)
+        {
+            var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
+            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.frodo." + name)))
             {
-                String name = files[fileIndex];
-                Console.Write($"testing: {name}\n");
-                StreamReader src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.frodo." + name));
-
-                String line = null;
-                Dictionary<String, String> buf = new Dictionary<string, string>();
-                // Random rnd = new Random(System.currentTimeMillis());
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
                     line = line.Trim();
-
                     if (line.StartsWith("#"))
+                        continue;
+
+                    if (line.Length > 0)
                     {
+                        int a = line.IndexOf("=");
+                        if (a > -1)
+                        {
+                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
+                        }
                         continue;
                     }
-                    if (line.Length == 0)
+
+                    if (buf.Count > 0)
                     {
-                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
+                        if (!sampler.SkipTest(buf["count"]))
                         {
-                            String count = buf["count"];
-                            if (!"0".Equals(count))
-                            {
-                                // randomly skip tests after zero.
-                                // if (rnd.nextBoolean())
-                                // {
-                                //     continue;
-                                // }
-                            }
-                            Console.Write($"test case: {count}");
-
-                            byte[] seed = Hex.Decode(buf["seed"]); // seed for nist secure random
-                            byte[] pk = Hex.Decode(buf["pk"]);     // public key
-                            byte[] sk = Hex.Decode(buf["sk"]);     // private key
-                            byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
-                            byte[] ss = Hex.Decode(buf["ss"]);     // session key
-
-                            NistSecureRandom random = new NistSecureRandom(seed, null);
-                            FrodoParameters frodoParameters = parameters[fileIndex];
-
-                            FrodoKeyPairGenerator kpGen = new FrodoKeyPairGenerator();
-                            FrodoKeyGenerationParameters genParams = new FrodoKeyGenerationParameters(random, frodoParameters);
-                            //
-                            // Generate keys and test.
-                            //
-                            kpGen.Init(genParams);
-                            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
-
-                            FrodoPublicKeyParameters pubParams = (FrodoPublicKeyParameters) kp.Public;
-                            FrodoPrivateKeyParameters privParams = (FrodoPrivateKeyParameters) kp.Private;
-
-                            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), $"{name} {count} : public key");
-                            Assert.True( Arrays.AreEqual(sk, privParams.PrivateKey),$"{name} {count} : secret key");
-
-                            // kem_enc
-                            FrodoKEMGenerator frodoEncCipher = new FrodoKEMGenerator(random);
-                            ISecretWithEncapsulation secWenc = frodoEncCipher.GenerateEncapsulated(pubParams);
-                            byte[] generated_cipher_text = secWenc.GetEncapsulation();
-                            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
-                            byte[] secret = secWenc.GetSecret();
-                            Assert.True( Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
-
-                            // kem_dec
-                            FrodoKEMExtractor frodoDecCipher = new FrodoKEMExtractor(privParams);
-
-                            byte[] dec_key = frodoDecCipher.ExtractSecret(generated_cipher_text);
-
-                            Assert.True(frodoParameters.DefaultKeySize == dec_key.Length * 8);
-                            Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
-                            Assert.True(Arrays.AreEqual(dec_key, secret),$"{name} {count}: kem_dec key");
+                            RunTestVector(name, buf);
                         }
                         buf.Clear();
-
-                        continue;
-                    }
-
-                    int a = line.IndexOf("=");
-                    if (a > -1)
-                    {
-                        buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
                     }
                 }
-                Console.Write("testing successful!");
+
+                if (buf.Count > 0)
+                {
+                    if (!sampler.SkipTest(buf["count"]))
+                    {
+                        RunTestVector(name, buf);
+                    }
+                    buf.Clear();
+                }
             }
         }
     }

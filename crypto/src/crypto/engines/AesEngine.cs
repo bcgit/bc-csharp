@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * This file contains the middle performance version with 2Kbytes of static tables for round precomputation.
     * </p>
     */
-    public class AesEngine
+    public sealed class AesEngine
         : IBlockCipher
     {
         // The S box
@@ -447,13 +447,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            KeyParameter keyParameter = parameters as KeyParameter;
-
-            if (keyParameter == null)
+            if (!(parameters is KeyParameter keyParameter))
                 throw new ArgumentException("invalid parameter passed to AES init - "
                     + Platform.GetTypeName(parameters));
 
@@ -463,22 +459,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.s = Arrays.Clone(forEncryption ? S : Si);
         }
 
-        public virtual string AlgorithmName
+        public string AlgorithmName
         {
             get { return "AES"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
-        }
-
-        public virtual int GetBlockSize()
+        public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (WorkingKey == null)
                 throw new InvalidOperationException("AES engine not initialised");
@@ -510,7 +501,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (WorkingKey == null)
                 throw new InvalidOperationException("AES engine not initialised");
@@ -530,10 +521,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output, uint[][] KW)

@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             hashedGen = new PgpSignatureSubpacketGenerator();
 
-            DateTime creationTime = new DateTime(1973, 7, 27);
+            DateTime creationTime = new DateTime(1973, 7, 27, 0, 0, 0, DateTimeKind.Utc);
             hashedGen.SetSignatureCreationTime(false, creationTime);
 
             sGen.SetHashedSubpackets(hashedGen.Generate());
@@ -857,7 +857,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             lOut.Write(TEST_DATA, 0, TEST_DATA.Length);
             sGen.Update(TEST_DATA);
 
-            lGen.Close();
+            lGen.Dispose();
 
             sGen.Generate().Encode(bOut);
 
@@ -898,7 +898,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             lOut.Write(data, 0, data.Length);
             sGen.Update(data);
 
-            lGen.Close();
+            lGen.Dispose();
 
             PgpSignature sig = sGen.Generate();
 
@@ -953,7 +953,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             lOut.Write(TEST_DATA, 0, TEST_DATA.Length);
             sGen.Update(TEST_DATA);
 
-            lGen.Close();
+            lGen.Dispose();
 
             sGen.Generate().Encode(bOut);
 
@@ -993,11 +993,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             lOut.Write(data, 0, data.Length);
             sGen.Update(data);
 
-            lGen.Close();
+            lGen.Dispose();
 
             PgpSignature sig = sGen.Generate();
 
-            if (sig.CreationTime == DateTimeUtilities.UnixMsToDateTime(0))
+            if (DateTimeUtilities.DateTimeToUnixMs(sig.CreationTime) == 0)
             {
                 Fail("creation time not set in v3 signature");
             }

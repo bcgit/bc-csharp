@@ -30,22 +30,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1Sequence GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1Sequence)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1Sequence asn1Sequence)
+                return asn1Sequence;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1Sequence)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1Sequence converted)
+                    return converted;
             }
-            //else if (obj is Asn1SequenceParser)
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1Sequence)
-                    return (Asn1Sequence)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1Sequence)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1Sequence)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
@@ -195,6 +196,18 @@ namespace Org.BouncyCastle.Asn1
             get { return elements.Length; }
         }
 
+        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int count = Count;
+            T[] result = new T[count];
+            for (int i = 0; i < count; ++i)
+            {
+                result[i] = func(elements[i]);
+            }
+            return result;
+        }
+
         public virtual Asn1Encodable[] ToArray()
         {
             return Asn1EncodableVector.CloneElements(elements);
@@ -246,26 +259,12 @@ namespace Org.BouncyCastle.Asn1
         // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)
         internal DerBitString[] GetConstructedBitStrings()
         {
-            // NOTE: Call Count here to 'force' a LazyDerSequence
-            int count = Count;
-            DerBitString[] bitStrings = new DerBitString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                bitStrings[i] = DerBitString.GetInstance(elements[i]);
-            }
-            return bitStrings;
+            return MapElements(DerBitString.GetInstance);
         }
 
         internal Asn1OctetString[] GetConstructedOctetStrings()
         {
-            // NOTE: Call Count here to 'force' a LazyDerSequence
-            int count = Count;
-            Asn1OctetString[] octetStrings = new Asn1OctetString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                octetStrings[i] = Asn1OctetString.GetInstance(elements[i]);
-            }
-            return octetStrings;
+            return MapElements(Asn1OctetString.GetInstance);
         }
 
         // TODO[asn1] Preferably return an Asn1BitString (doesn't exist yet)

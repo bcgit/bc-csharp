@@ -1,32 +1,34 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    public class SIKEKeyPairGenerator
+    [Obsolete("Will be removed")]
+    public sealed class SikeKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private SIKEKeyGenerationParameters sikeParams;
+        private SikeKeyGenerationParameters sikeParams;
 
         private SecureRandom random;
 
         private void Initialize(KeyGenerationParameters param)
         {
-            this.sikeParams = (SIKEKeyGenerationParameters) param;
+            this.sikeParams = (SikeKeyGenerationParameters) param;
             this.random = param.Random;
         }
 
         private AsymmetricCipherKeyPair GenKeyPair()
         {
-            SIKEEngine engine = sikeParams.GetParameters().GetEngine();
+            SikeEngine engine = sikeParams.Parameters.Engine;
             byte[] sk = new byte[engine.GetPrivateKeySize()];
             byte[] pk = new byte[engine.GetPublicKeySize()];
 
             engine.crypto_kem_keypair(pk, sk, random);
 
-
-            SIKEPublicKeyParameters pubKey = new SIKEPublicKeyParameters(sikeParams.GetParameters(), pk);
-            SIKEPrivateKeyParameters privKey = new SIKEPrivateKeyParameters(sikeParams.GetParameters(), sk);
+            SikePublicKeyParameters pubKey = new SikePublicKeyParameters(sikeParams.Parameters, pk);
+            SikePrivateKeyParameters privKey = new SikePrivateKeyParameters(sikeParams.Parameters, sk);
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
@@ -40,5 +42,4 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return GenKeyPair();
         }
     }
-
 }

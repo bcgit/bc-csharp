@@ -5,21 +5,21 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class HSSSigner 
+    public sealed class HssSigner 
         : IMessageSigner
     {
-        private HSSPrivateKeyParameters privKey;
-        private HSSPublicKeyParameters pubKey;
+        private HssPrivateKeyParameters privKey;
+        private HssPublicKeyParameters pubKey;
 
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
             {
-                this.privKey = (HSSPrivateKeyParameters) param;
+                this.privKey = (HssPrivateKeyParameters) param;
             }
             else
             {
-                this.pubKey = (HSSPublicKeyParameters) param;
+                this.pubKey = (HssPublicKeyParameters) param;
             }
         }
 
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return HSS.GenerateSignature(privKey, message).GetEncoded();
+                return Hss.GenerateSignature(privKey, message).GetEncoded();
             }
             catch (IOException e)
             {
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return HSS.VerifySignature(pubKey, HSSSignature.GetInstance(signature, pubKey.GetL()), message);
+                return Hss.VerifySignature(pubKey, HssSignature.GetInstance(signature, pubKey.L), message);
             }
             catch (IOException e)
             {

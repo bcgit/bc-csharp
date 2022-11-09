@@ -119,5 +119,12 @@ namespace Org.BouncyCastle.Tls
         /// </remarks>
         /// <returns>the <see cref="HeartbeatMode"/> value.</returns>
         short GetHeartbeatPolicy();
+
+        /// <summary>Indicates whether a DTLS connection should ignore corrupt records (bad_record_mac) instead of
+        /// failing the connection.</summary>
+        /// <remarks>Called only once at the start of a connection and applies throughout.</remarks>
+        /// <returns>The value <c>true</c> to ignore corrupt DTLS records, or <c>false</c> to fail the connection.
+        /// </returns>
+        bool IgnoreCorruptDtlsRecords { get; }
     }
 }

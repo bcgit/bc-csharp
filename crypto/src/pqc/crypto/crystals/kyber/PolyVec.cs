@@ -1,98 +1,88 @@
-﻿using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
-using System;
+﻿using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    class PolyVec
+    internal class PolyVec
     {
-        private KyberEngine Engine;
-        private int K;
-        private int PolyVecBytes;
-        public Poly[] Vec;
+        private KyberEngine m_engine;
+        internal Poly[] m_vec;
 
-
-
-
-        public PolyVec(KyberEngine engine)
+        internal PolyVec(KyberEngine engine)
         {
-            Engine = engine;
-            K = engine.K;
-            PolyVecBytes = engine.PolyVecBytes;
-            Vec = new Poly[engine.K];
-            for (int i = 0; i < K; i++)
+            m_engine = engine;
+            m_vec = new Poly[engine.K];
+            for (int i = 0; i < engine.K; i++)
             {
-                Vec[i] = new Poly(engine);
+                m_vec[i] = new Poly(engine);
             }
         }
 
-        public void Ntt()
+        internal void Ntt()
         {
-            int i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].PolyNtt();
+                m_vec[i].PolyNtt();
             }
         }
 
-        public void InverseNttToMont()
+        internal void InverseNttToMont()
         {
-            int i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].PolyInverseNttToMont();
+                m_vec[i].PolyInverseNttToMont();
             }
         }
-        
-        public static void PointwiseAccountMontgomery(Poly r, PolyVec a, PolyVec b, KyberEngine engine)
+
+        internal static void PointwiseAccountMontgomery(Poly r, PolyVec a, PolyVec b, KyberEngine engine)
         {
-            int i;
             Poly t = new Poly(engine);
-            Poly.BaseMultMontgomery(r, a.Vec[0], b.Vec[0]);
-            for (i = 1; i < engine.K; i++)
+            Poly.BaseMultMontgomery(r, a.m_vec[0], b.m_vec[0]);
+            for (int i = 1; i < engine.K; i++)
             {
-                Poly.BaseMultMontgomery(t, a.Vec[i], b.Vec[i]);
+                Poly.BaseMultMontgomery(t, a.m_vec[i], b.m_vec[i]);
                 r.Add(t);
             }
             r.PolyReduce();
         }
 
-        public void Add(PolyVec a)
+        internal void Add(PolyVec a)
         {
-            uint i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].Add(a.Vec[i]);
+                m_vec[i].Add(a.m_vec[i]);
             }
         }
 
-        public void Reduce()
+        internal void Reduce()
         {
-            int i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].PolyReduce();
+                m_vec[i].PolyReduce();
             }
         }
 
-        public void CompressPolyVec(byte[] r)
+        internal void CompressPolyVec(byte[] r)
         {
-            int i, j, k;
             ConditionalSubQ();
-            short[] t;
             int count = 0;
-            if (Engine.PolyVecCompressedBytes == K * 320)
+            if (m_engine.PolyVecCompressedBytes == m_engine.K * 320)
             {
-                t = new short[4];
-                for (i = 0; i < K; i++)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<short> t = stackalloc short[4];
+#else
+                short[] t = new short[4];
+#endif
+
+                for (int i = 0; i < m_engine.K; i++)
                 {
-                    for (j = 0; j < KyberEngine.N / 4; j++)
+                    for (int j = 0; j < KyberEngine.N / 4; j++)
                     {
-                        for (k = 0; k < 4; k++)
+                        for (int k = 0; k < 4; k++)
                         {
                             t[k] = (short)
                                 (
                                     (
-                                        (((uint) Vec[i].Coeffs[4 * j + k] << 10)
+                                        (((uint) m_vec[i].m_coeffs[4 * j + k] << 10)
                                             + (KyberEngine.Q / 2))
                                             / KyberEngine.Q)
                                         & 0x3ff);
@@ -106,19 +96,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                     }
                 }
             }
-            else if (Engine.PolyVecCompressedBytes == K * 352)
+            else if (m_engine.PolyVecCompressedBytes == m_engine.K * 352)
             {
-                t = new short[8];
-                for (i = 0; i < K; i++)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<short> t = stackalloc short[8];
+#else
+                short[] t = new short[8];
+#endif
+
+                for (int i = 0; i < m_engine.K; i++)
                 {
-                    for (j = 0; j < KyberEngine.N / 8; j++)
+                    for (int j = 0; j < KyberEngine.N / 8; j++)
                     {
-                        for (k = 0; k < 8; k++)
+                        for (int k = 0; k < 8; k++)
                         {
                             t[k] = (short)
                                 (
                                     (
-                                        (((uint) Vec[i].Coeffs[8 * j + k] << 11)
+                                        (((uint) m_vec[i].m_coeffs[8 * j + k] << 11)
                                             + (KyberEngine.Q / 2))
                                             / KyberEngine.Q)
                                         & 0x7ff);
@@ -144,50 +139,58 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
         }
 
-        public void DecompressPolyVec(byte[] CompressedCipherText)
+        internal void DecompressPolyVec(byte[] compressedCipherText)
         {
-            int i, j, k, count = 0;
+            int count = 0;
 
-            if (Engine.PolyVecCompressedBytes == (K * 320))
+            if (m_engine.PolyVecCompressedBytes == (m_engine.K * 320))
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<short> t = stackalloc short[4];
+#else
                 short[] t = new short[4];
-                for (i = 0; i < K; i++)
+#endif
+
+                for (int i = 0; i < m_engine.K; i++)
                 {
-                    for (j = 0; j < KyberEngine.N / 4; j++)
+                    for (int j = 0; j < KyberEngine.N / 4; j++)
                     {
-                        t[0] = (short)(((CompressedCipherText[count] & 0xFF) >> 0) | ((ushort)(CompressedCipherText[count + 1] & 0xFF) << 8));
-                        t[1] = (short)(((CompressedCipherText[count + 1] & 0xFF) >> 2) | ((ushort)(CompressedCipherText[count + 2] & 0xFF) << 6));
-                        t[2] = (short)(((CompressedCipherText[count + 2] & 0xFF) >> 4) | ((ushort)(CompressedCipherText[count + 3] & 0xFF) << 4));
-                        t[3] = (short)(((CompressedCipherText[count + 3] & 0xFF) >> 6) | ((ushort)(CompressedCipherText[count + 4] & 0xFF) << 2));
+                        t[0] = (short)(((compressedCipherText[count] & 0xFF) >> 0) | ((ushort)(compressedCipherText[count + 1] & 0xFF) << 8));
+                        t[1] = (short)(((compressedCipherText[count + 1] & 0xFF) >> 2) | ((ushort)(compressedCipherText[count + 2] & 0xFF) << 6));
+                        t[2] = (short)(((compressedCipherText[count + 2] & 0xFF) >> 4) | ((ushort)(compressedCipherText[count + 3] & 0xFF) << 4));
+                        t[3] = (short)(((compressedCipherText[count + 3] & 0xFF) >> 6) | ((ushort)(compressedCipherText[count + 4] & 0xFF) << 2));
                         count += 5;
-                        for (k = 0; k < 4; k++)
+                        for (int k = 0; k < 4; k++)
                         {
-                            Vec[i].Coeffs[4 * j + k] = (short)(((t[k] & 0x3FF) * KyberEngine.Q + 512) >> 10);
+                            m_vec[i].m_coeffs[4 * j + k] = (short)(((t[k] & 0x3FF) * KyberEngine.Q + 512) >> 10);
                         }
                     }
-
                 }
-
             }
-            else if (Engine.PolyVecCompressedBytes == (K * 352))
+            else if (m_engine.PolyVecCompressedBytes == (m_engine.K * 352))
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<short> t = stackalloc short[8];
+#else
                 short[] t = new short[8];
-                for (i = 0; i < K; i++)
+#endif
+
+                for (int i = 0; i < m_engine.K; i++)
                 {
-                    for (j = 0; j < KyberEngine.N / 8; j++)
+                    for (int j = 0; j < KyberEngine.N / 8; j++)
                     {
-                        t[0] = (short)(((CompressedCipherText[count] & 0xFF) >> 0) | ((ushort)(CompressedCipherText[count + 1] & 0xFF) << 8));
-                        t[1] = (short)(((CompressedCipherText[count + 1] & 0xFF) >> 3) | ((ushort)(CompressedCipherText[count + 2] & 0xFF) << 5));
-                        t[2] = (short)(((CompressedCipherText[count + 2] & 0xFF) >> 6) | ((ushort)(CompressedCipherText[count + 3] & 0xFF) << 2) | ((ushort)((CompressedCipherText[count + 4] & 0xFF) << 10)));
-                        t[3] = (short)(((CompressedCipherText[count + 4] & 0xFF) >> 1) | ((ushort)(CompressedCipherText[count + 5] & 0xFF) << 7));
-                        t[4] = (short)(((CompressedCipherText[count + 5] & 0xFF) >> 4) | ((ushort)(CompressedCipherText[count + 6] & 0xFF) << 4));
-                        t[5] = (short)(((CompressedCipherText[count + 6] & 0xFF) >> 7) | ((ushort)(CompressedCipherText[count + 7] & 0xFF) << 1) | ((ushort)((CompressedCipherText[count + 8] & 0xFF) << 9)));
-                        t[6] = (short)(((CompressedCipherText[count + 8] & 0xFF) >> 2) | ((ushort)(CompressedCipherText[count + 9] & 0xFF) << 6));
-                        t[7] = (short)(((CompressedCipherText[count + 9] & 0xFF) >> 5) | ((ushort)(CompressedCipherText[count + 10] & 0xFF) << 3));
+                        t[0] = (short)(((compressedCipherText[count] & 0xFF) >> 0) | ((ushort)(compressedCipherText[count + 1] & 0xFF) << 8));
+                        t[1] = (short)(((compressedCipherText[count + 1] & 0xFF) >> 3) | ((ushort)(compressedCipherText[count + 2] & 0xFF) << 5));
+                        t[2] = (short)(((compressedCipherText[count + 2] & 0xFF) >> 6) | ((ushort)(compressedCipherText[count + 3] & 0xFF) << 2) | ((ushort)((compressedCipherText[count + 4] & 0xFF) << 10)));
+                        t[3] = (short)(((compressedCipherText[count + 4] & 0xFF) >> 1) | ((ushort)(compressedCipherText[count + 5] & 0xFF) << 7));
+                        t[4] = (short)(((compressedCipherText[count + 5] & 0xFF) >> 4) | ((ushort)(compressedCipherText[count + 6] & 0xFF) << 4));
+                        t[5] = (short)(((compressedCipherText[count + 6] & 0xFF) >> 7) | ((ushort)(compressedCipherText[count + 7] & 0xFF) << 1) | ((ushort)((compressedCipherText[count + 8] & 0xFF) << 9)));
+                        t[6] = (short)(((compressedCipherText[count + 8] & 0xFF) >> 2) | ((ushort)(compressedCipherText[count + 9] & 0xFF) << 6));
+                        t[7] = (short)(((compressedCipherText[count + 9] & 0xFF) >> 5) | ((ushort)(compressedCipherText[count + 10] & 0xFF) << 3));
                         count += 11;
-                        for (k = 0; k < 8; k++)
+                        for (int k = 0; k < 8; k++)
                         {
-                            Vec[i].Coeffs[8 * j + k] = (short)(((t[k] & 0x7FF) * KyberEngine.Q + 1024) >> 11);
+                            m_vec[i].m_coeffs[8 * j + k] = (short)(((t[k] & 0x7FF) * KyberEngine.Q + 1024) >> 11);
                         }
                     }
                 }
@@ -198,32 +201,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
         }
 
-        public void ToBytes(byte[] r)
+        internal void ToBytes(byte[] r)
         {
-            int i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].ToBytes(r, i * KyberEngine.PolyBytes);
+                m_vec[i].ToBytes(r, i * KyberEngine.PolyBytes);
             }
         }
 
-        public void FromBytes(byte[] pk)
+        internal void FromBytes(byte[] pk)
         {
-            int i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].FromBytes(pk, i * KyberEngine.PolyBytes);
+                m_vec[i].FromBytes(pk, i * KyberEngine.PolyBytes);
             }
         }
 
         private void ConditionalSubQ()
         {
-            int i;
-            for (i = 0; i < K; i++)
+            for (int i = 0; i < m_engine.K; i++)
             {
-                Vec[i].CondSubQ();
+                m_vec[i].CondSubQ();
             }
         }
-
     }
 }

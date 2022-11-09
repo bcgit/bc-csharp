@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         protected int X0, X1, X2, X3;    // registers
 
-        protected SerpentEngineBase()
+        internal SerpentEngineBase()
         {
         }
 
@@ -42,11 +42,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual string AlgorithmName
         {
             get { return "Serpent"; }
-        }
-
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
         }
 
         public virtual int GetBlockSize()
@@ -119,10 +114,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BlockSize;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         /*
          * The sboxes below are based on the work of Brian Gladman and
@@ -483,14 +474,14 @@ namespace Org.BouncyCastle.Crypto.Engines
             X0 = Integers.RotateRight(x0, 13);
         }
 
-        protected abstract int[] MakeWorkingKey(byte[] key);
+        internal abstract int[] MakeWorkingKey(byte[] key);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        protected abstract void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
-        protected abstract void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
+        internal abstract void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
+        internal abstract void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
 #else
-        protected abstract void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff);
-        protected abstract void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff);
+        internal abstract void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff);
+        internal abstract void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff);
 #endif
     }
 }

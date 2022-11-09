@@ -2,20 +2,17 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    public class SPHINCSPlusKeyParameters
+    public abstract class SphincsPlusKeyParameters
         : AsymmetricKeyParameter
     {
-        SPHINCSPlusParameters parameters;
+        protected readonly SphincsPlusParameters m_parameters;
 
-        protected SPHINCSPlusKeyParameters(bool isPrivate, SPHINCSPlusParameters parameters)
+        protected SphincsPlusKeyParameters(bool isPrivate, SphincsPlusParameters parameters)
             : base(isPrivate)
         {
-            this.parameters = parameters;
+            m_parameters = parameters;
         }
 
-        public SPHINCSPlusParameters GetParameters()
-        {
-            return parameters;
-        }
+        public SphincsPlusParameters Parameters => m_parameters;
     }
 }

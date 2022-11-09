@@ -591,11 +591,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Rijndael"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return BC / 2;
@@ -658,10 +653,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BC / 2;
 		}
 #endif
-
-		public virtual void Reset()
-		{
-		}
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 		private void UnPackBlock(ReadOnlySpan<byte> input)

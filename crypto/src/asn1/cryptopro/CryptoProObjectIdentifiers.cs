@@ -13,7 +13,9 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 		public static readonly DerObjectIdentifier GostR3411 = new DerObjectIdentifier(GostID + ".9");
         public static readonly DerObjectIdentifier GostR3411Hmac = new DerObjectIdentifier(GostID + ".10");
 
-        public static readonly DerObjectIdentifier GostR28147Cbc = new DerObjectIdentifier(GostID + ".21");
+        public static readonly DerObjectIdentifier GostR28147Gcfb = new DerObjectIdentifier(GostID + ".21");
+        [Obsolete("Use 'GostR28147Gcfb' instead")]
+        public static readonly DerObjectIdentifier GostR28147Cbc = GostR28147Gcfb;
 
         public static readonly DerObjectIdentifier ID_Gost28147_89_CryptoPro_A_ParamSet = new DerObjectIdentifier(GostID + ".31.1");
 
@@ -47,5 +49,9 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
 		public static readonly DerObjectIdentifier GostElSgDH3410Default = new DerObjectIdentifier(GostID + ".36.0");
         public static readonly DerObjectIdentifier GostElSgDH3410x1 = new DerObjectIdentifier(GostID + ".36.1");
+
+        public static readonly DerObjectIdentifier GostR3410x2001CryptoProESDH = new DerObjectIdentifier(GostID + ".96");
+
+        public static readonly DerObjectIdentifier GostR3410x2001DH = new DerObjectIdentifier(GostID + ".98");
     }
 }

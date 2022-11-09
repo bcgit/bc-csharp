@@ -20,15 +20,46 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Security.Tests
 {
 	[TestFixture]
-#if NET5_0_OR_GREATER
-    [SupportedOSPlatform("windows")]
-#endif
     public class TestDotNetUtilities
 	{
-		[Test]
+//#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD1_6_OR_GREATER
+#if NET6_0_OR_GREATER
+        [Test]
+		public void TestECDsaInterop()
+		{
+			byte[] data = new byte[1024];
+
+            for (int i = 0; i < 10; ++i)
+			{
+                var ecDsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+				byte[] sig1 = ecDsa.SignData(data, HashAlgorithmName.SHA256);
+
+                AsymmetricCipherKeyPair kp = DotNetUtilities.GetECDsaKeyPair(ecDsa);
+                Assert.IsNotNull(kp.Private);
+                Assert.IsNotNull(kp.Public);
+                ISigner signer = SignerUtilities.GetSigner("SHA256withPLAIN-ECDSA");
+
+                signer.Init(false, kp.Public);
+                signer.BlockUpdate(data, 0, data.Length);
+                Assert.IsTrue(signer.VerifySignature(sig1));
+
+				signer.Init(true, kp.Private);
+				signer.BlockUpdate(data, 0, data.Length);
+				byte[] sig2 = signer.GenerateSignature();
+
+                Assert.IsTrue(ecDsa.VerifyData(data, sig2, HashAlgorithmName.SHA256));
+            }
+        }
+#endif
+
+//#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
+        [SupportedOSPlatform("windows")]
+#endif
+        [Test]
 		public void TestRsaInterop()
 		{
-			for (int i = 0; i < 100; ++i)
+			for (int i = 0; i < 10; ++i)
 			{
 				RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(512);
 				RSAParameters rp = rsa.ExportParameters(true);

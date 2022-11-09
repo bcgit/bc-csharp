@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[engine.SessionKeySize];
-            engine.kem_dec(session_key, encapsulation, ((FrodoPrivateKeyParameters)key).PrivateKey);
+            engine.kem_dec(session_key, encapsulation, ((FrodoPrivateKeyParameters)key).privateKey);
             return session_key;
         }
 

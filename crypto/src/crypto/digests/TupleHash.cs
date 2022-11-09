@@ -89,31 +89,31 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int DoFinal(byte[] outBuf, int outOff)
         {
-            return DoFinal(outBuf, outOff, GetDigestSize());
+            return OutputFinal(outBuf, outOff, GetDigestSize());
         }
 
-        public virtual int DoFinal(byte[] outBuf, int outOff, int outLen)
+        public virtual int OutputFinal(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
             {
                 WrapUp(GetDigestSize());
             }
 
-            int rv = cshake.DoFinal(outBuf, outOff, outLen);
+            int rv = cshake.OutputFinal(outBuf, outOff, outLen);
 
             Reset();
 
             return rv;
         }
 
-        public virtual int DoOutput(byte[] outBuf, int outOff, int outLen)
+        public virtual int Output(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
             {
                 WrapUp(0);
             }
 
-            return cshake.DoOutput(outBuf, outOff, outLen);
+            return cshake.Output(outBuf, outOff, outLen);
         }
 
         public virtual void Reset()

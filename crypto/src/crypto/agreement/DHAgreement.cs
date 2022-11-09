@@ -26,30 +26,25 @@ namespace Org.BouncyCastle.Crypto.Agreement
 		private BigInteger				privateValue;
 		private SecureRandom			random;
 
-		public void Init(
-			ICipherParameters parameters)
+		public void Init(ICipherParameters parameters)
 		{
 			AsymmetricKeyParameter kParam;
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom rParam)
 			{
-				ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
 				this.random = rParam.Random;
 				kParam = (AsymmetricKeyParameter)rParam.Parameters;
 			}
 			else
 			{
-				this.random = new SecureRandom();
+				this.random = CryptoServicesRegistrar.GetSecureRandom();
 				kParam = (AsymmetricKeyParameter)parameters;
 			}
 
-			if (!(kParam is DHPrivateKeyParameters))
-			{
+			if (!(kParam is DHPrivateKeyParameters dhPrivateKeyParameters))
 				throw new ArgumentException("DHEngine expects DHPrivateKeyParameters");
-			}
 
-			this.key = (DHPrivateKeyParameters)kParam;
-			this.dhParams = key.Parameters;
+			this.key = dhPrivateKeyParameters;
+			this.dhParams = dhPrivateKeyParameters.Parameters;
 		}
 
 		/**

@@ -1,4 +1,7 @@
 ﻿using System;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -39,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Digests
      * BLAKE2b is optimized for 64-bit platforms and produces digests of any size
      * between 1 and 64 bytes.
      */
-    public class Blake2bDigest
+    public sealed class Blake2bDigest
         : IDigest
     {
         // Blake2b Initialization Vector:
@@ -276,12 +279,10 @@ namespace Org.BouncyCastle.Crypto.Digests
          *
          * @param b the input byte to be entered.
          */
-        public virtual void Update(byte b)
+        public void Update(byte b)
         {
-            int remainingLength = 0; // left bytes of buffer
-
             // process the buffer if full else add to buffer:
-            remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
+            int remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
             if (remainingLength == 0)
             { // full buffer
                 t0 += BLOCK_LENGTH_BYTES;
@@ -289,7 +290,11 @@ namespace Org.BouncyCastle.Crypto.Digests
                 { // if message > 2^64
                     t1++;
                 }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Compress(buffer);
+#else
                 Compress(buffer, 0);
+#endif
                 Array.Clear(buffer, 0, buffer.Length);// clear buffer
                 buffer[0] = b;
                 bufferPos = 1;
@@ -298,7 +303,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 buffer[bufferPos] = b;
                 bufferPos++;
-                return;
             }
         }
 
@@ -309,11 +313,14 @@ namespace Org.BouncyCastle.Crypto.Digests
          * @param offset  the offset into the byte array where the data starts.
          * @param len     the length of the data.
          */
-        public virtual void BlockUpdate(byte[] message, int offset, int len)
+        public void BlockUpdate(byte[] message, int offset, int len)
         {
             if (message == null || len == 0)
                 return;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(message.AsSpan(offset, len));
+#else
             int remainingLength = 0; // left bytes of buffer
 
             if (bufferPos != 0)
@@ -323,8 +330,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
                 if (remainingLength < len)
                 { // full buffer + at least 1 byte
-                    Array.Copy(message, offset, buffer, bufferPos,
-                        remainingLength);
+                    Array.Copy(message, offset, buffer, bufferPos, remainingLength);
                     t0 += BLOCK_LENGTH_BYTES;
                     if (t0 == 0)
                     { // if message > 2^64
@@ -359,10 +365,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             // fill the buffer with left bytes, this might be a full block
             Array.Copy(message, messagePos, buffer, 0, offset + len - messagePos);
             bufferPos += offset + len - messagePos;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (input.IsEmpty)
                 return;
@@ -382,7 +389,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                     { // if message > 2^64
                         t1++;
                     }
-                    Compress(buffer, 0);
+                    Compress(buffer);
                     bufferPos = 0;
                     Array.Clear(buffer, 0, buffer.Length);// clear buffer
                 }
@@ -422,8 +429,11 @@ namespace Org.BouncyCastle.Crypto.Digests
          * @param out       the array the digest is to be copied into.
          * @param outOffset the offset into the out array the digest is to start at.
          */
-        public virtual int DoFinal(byte[] output, int outOffset)
+        public int DoFinal(byte[] output, int outOffset)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOffset));
+#else
             f0 = 0xFFFFFFFFFFFFFFFFUL;
             t0 += (ulong)bufferPos;
             if (bufferPos > 0 && t0 == 0)
@@ -448,10 +458,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset();
 
             return digestLength;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int DoFinal(Span<byte> output)
+        public int DoFinal(Span<byte> output)
         {
             f0 = 0xFFFFFFFFFFFFFFFFUL;
             t0 += (ulong)bufferPos;
@@ -459,7 +470,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 t1++;
             }
-            Compress(buffer, 0);
+            Compress(buffer);
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
             Array.Clear(internalState, 0, internalState.Length);
 
@@ -485,7 +496,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          * The key, the salt and the personal string will
          * remain for further computations.
          */
-        public virtual void Reset()
+        public void Reset()
         {
             bufferPos = 0;
             f0 = 0L;
@@ -499,34 +510,6 @@ namespace Org.BouncyCastle.Crypto.Digests
                 bufferPos = BLOCK_LENGTH_BYTES; // zero padding
             }
             Init();
-        }
-
-        private void Compress(byte[] message, int messagePos)
-        {
-            InitializeInternalState();
-
-            ulong[] m = new ulong[16];
-            Pack.LE_To_UInt64(message, messagePos, m);
-
-            for (int round = 0; round < ROUNDS; round++)
-            {
-                // G apply to columns of internalState:m[blake2b_sigma[round][2 * blockPos]] /+1
-                G(m[blake2b_sigma[round,0]], m[blake2b_sigma[round,1]], 0, 4, 8, 12);
-                G(m[blake2b_sigma[round,2]], m[blake2b_sigma[round,3]], 1, 5, 9, 13);
-                G(m[blake2b_sigma[round,4]], m[blake2b_sigma[round,5]], 2, 6, 10, 14);
-                G(m[blake2b_sigma[round,6]], m[blake2b_sigma[round,7]], 3, 7, 11, 15);
-                // G apply to diagonals of internalState:
-                G(m[blake2b_sigma[round,8]], m[blake2b_sigma[round,9]], 0, 5, 10, 15);
-                G(m[blake2b_sigma[round,10]], m[blake2b_sigma[round,11]], 1, 6, 11, 12);
-                G(m[blake2b_sigma[round,12]], m[blake2b_sigma[round,13]], 2, 7, 8, 13);
-                G(m[blake2b_sigma[round,14]], m[blake2b_sigma[round,15]], 3, 4, 9, 14);
-            }
-
-            // update chain values:
-            for (int offset = 0; offset < chainValue.Length; offset++)
-            {
-                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
-            }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -557,8 +540,39 @@ namespace Org.BouncyCastle.Crypto.Digests
                 chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
             }
         }
+#else
+        private void Compress(byte[] message, int messagePos)
+        {
+            InitializeInternalState();
+
+            ulong[] m = new ulong[16];
+            Pack.LE_To_UInt64(message, messagePos, m);
+
+            for (int round = 0; round < ROUNDS; round++)
+            {
+                // G apply to columns of internalState:m[blake2b_sigma[round][2 * blockPos]] /+1
+                G(m[blake2b_sigma[round,0]], m[blake2b_sigma[round,1]], 0, 4, 8, 12);
+                G(m[blake2b_sigma[round,2]], m[blake2b_sigma[round,3]], 1, 5, 9, 13);
+                G(m[blake2b_sigma[round,4]], m[blake2b_sigma[round,5]], 2, 6, 10, 14);
+                G(m[blake2b_sigma[round,6]], m[blake2b_sigma[round,7]], 3, 7, 11, 15);
+                // G apply to diagonals of internalState:
+                G(m[blake2b_sigma[round,8]], m[blake2b_sigma[round,9]], 0, 5, 10, 15);
+                G(m[blake2b_sigma[round,10]], m[blake2b_sigma[round,11]], 1, 6, 11, 12);
+                G(m[blake2b_sigma[round,12]], m[blake2b_sigma[round,13]], 2, 7, 8, 13);
+                G(m[blake2b_sigma[round,14]], m[blake2b_sigma[round,15]], 3, 4, 9, 14);
+            }
+
+            // update chain values:
+            for (int offset = 0; offset < chainValue.Length; offset++)
+            {
+                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
+            }
+        }
 #endif
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private void G(ulong m1, ulong m2, int posA, int posB, int posC, int posD)
         {
             internalState[posA] = internalState[posA] + internalState[posB] + m1;
@@ -581,17 +595,14 @@ namespace Org.BouncyCastle.Crypto.Digests
          *
          * @return the algorithm name
          */
-        public virtual string AlgorithmName
-        {
-            get { return "BLAKE2b"; }
-        }
+        public string AlgorithmName => "BLAKE2b";
 
         /**
          * return the size, in bytes, of the digest produced by this message digest.
          *
          * @return the size, in bytes, of the digest produced by this message digest.
          */
-        public virtual int GetDigestSize()
+        public int GetDigestSize()
         {
             return digestLength;
         }
@@ -602,7 +613,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          *
          * @return byte length of the digests internal buffer.
          */
-        public virtual int GetByteLength()
+        public int GetByteLength()
         {
             return BLOCK_LENGTH_BYTES;
         }
@@ -611,7 +622,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          * Overwrite the key
          * if it is no longer used (zeroization)
          */
-        public virtual void ClearKey()
+        public void ClearKey()
         {
             if (key != null)
             {
@@ -624,7 +635,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          * Overwrite the salt (pepper) if it
          * is secret and no longer used (zeroization)
          */
-        public virtual void ClearSalt()
+        public void ClearSalt()
         {
             if (salt != null)
             {

@@ -127,24 +127,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return res;
         }
 
-        private short[] MatrixMul(short[] X, int Xrow, int Xcol, short[] Y, int Yrow, int Ycol)
+        private short[] MatrixMul(short[] X, int Xrow, int Xcol, short[] Y, int Ycol)
         {
+            int qMask = q - 1;
             short[] res = new short[Xrow * Ycol];
             for (int i = 0; i < Xrow; i++)
             {
                 for (int j = 0; j < Ycol; j++)
                 {
+                    int accum = 0;
                     for (int k = 0; k < Xcol; k++)
                     {
-                        short a_test =  (short) (res[i * Ycol + j] & 0xffff);
-                        short b_test =  (short) (X[i * Xcol + k] & 0xffff);
-                        short c_test =  (short) (Y[k * Ycol + j] & 0xffff);
-                        short bc_test = (short) (((X[i * Xcol + k] & 0xffff) * (Y[k * Ycol + j] & 0xffff)) & 0xffff);
-                        short abc_test = (short) (((res[i * Ycol + j] & 0xffff) + ((X[i * Xcol + k] & 0xffff) * (Y[k * Ycol + j] & 0xffff)) & 0xffff));
-                        res[i * Ycol + j] = (short) ((res[i * Ycol + j] & 0xffff) +
-                            ((X[i * Xcol + k] & 0xffff) * (Y[k * Ycol + j] & 0xffff)) & 0xffff);
+                        accum += X[i * Xcol + k] * Y[k * Ycol + j];
                     }
-                    res[i * Ycol + j] = (short) (((res[i * Ycol + j] & 0xffff) % q) & 0xffff);
+                    res[i * Ycol + j] = (short)(accum & qMask);
                 }
             }
 
@@ -153,11 +149,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
         private short[] MatrixAdd(short[] X, short[] Y, int n1, int m1)
         {
+            int qMask = q - 1;
             short[] res = new short[n1 * m1];
             for (int i = 0; i < n1; i++)
-            for (int j = 0; j < m1; j++)
-                res[i * m1 + j] = (short) (((X[i * m1 + j] & 0xffff) + (Y[i * m1 + j] & 0xffff)) % q);
-
+            {
+                for (int j = 0; j < m1; j++)
+                {
+                    res[i * m1 + j] = (short)((X[i * m1 + j] + Y[i * m1 + j]) & qMask);
+                }
+            }
             return res;
         }
 
@@ -223,7 +223,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             // 2. Generate pseudorandom seed seedA = SHAKE(z, len_seedA) (length in bits)
             byte[] seedA = new byte[len_seedA_bytes];
             digest.BlockUpdate(z, 0, z.Length);
-            ((IXof) digest).DoFinal(seedA, 0, seedA.Length);
+            ((IXof) digest).OutputFinal(seedA, 0, seedA.Length);
 
             // 3. A = Frodo.Gen(seedA)
             short[] A = gen.GenMatrix(seedA);
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
             digest.Update((byte) 0x5f);
             digest.BlockUpdate(seedSE, 0, seedSE.Length);
-            ((IXof) digest).DoFinal(rbytes, 0, rbytes.Length);
+            ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
 
             short[] r = new short[2 * n * nbar];
             for (int i = 0; i < r.Length; i++)
@@ -247,7 +247,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] E = SampleMatrix(r, n * nbar, n, nbar);
 
             // 7. B = A * S + E
-            short[] B = MatrixAdd(MatrixMul(A, n, n, S, n, nbar), E, n, nbar);
+            short[] B = MatrixAdd(MatrixMul(A, n, n, S, nbar), E, n, nbar);
 
             // 8. b = Pack(B)
             byte[] b = FrodoPack(B);
@@ -258,7 +258,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
             byte[] pkh = new byte[len_pkh_bytes];
             digest.BlockUpdate(pk, 0, pk.Length);
-            ((IXof) digest).DoFinal(pkh, 0, pkh.Length);
+            ((IXof) digest).OutputFinal(pkh, 0, pkh.Length);
 
             //10. sk = (s || seedA || b, S^T, pkh)
             Array.Copy(Arrays.Concatenate(s, pk), 0,
@@ -377,13 +377,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             // 2. pkh = SHAKE(pk, len_pkh)
             byte[] pkh = new byte[len_pkh_bytes];
             digest.BlockUpdate(pk, 0, len_pk_bytes);
-            ((IXof) digest).DoFinal(pkh, 0, len_pkh_bytes);
+            ((IXof) digest).OutputFinal(pkh, 0, len_pkh_bytes);
 
             // 3. seedSE || k = SHAKE(pkh || mu, len_seedSE + len_k) (length in bits)
             byte[] seedSE_k = new byte[len_seedSE + len_k];
             digest.BlockUpdate(pkh, 0, len_pkh_bytes);
             digest.BlockUpdate(mu, 0, len_mu_bytes);
-            ((IXof) digest).DoFinal(seedSE_k, 0, len_seedSE_bytes + len_k_bytes);
+            ((IXof) digest).OutputFinal(seedSE_k, 0, len_seedSE_bytes + len_k_bytes);
 
             byte[] seedSE = Arrays.CopyOfRange(seedSE_k, 0, len_seedSE_bytes);
             byte[] k = Arrays.CopyOfRange(seedSE_k, len_seedSE_bytes, len_seedSE_bytes + len_k_bytes);
@@ -392,7 +392,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] rbytes = new byte[(2 * mbar * n + mbar * nbar) * len_chi_bytes];
             digest.Update((byte) 0x96);
             digest.BlockUpdate(seedSE, 0, seedSE.Length);
-            ((IXof) digest).DoFinal(rbytes, 0, rbytes.Length);
+            ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
 
             short[] r = new short[rbytes.Length / 2];
             for (int i = 0; i < r.Length; i++)
@@ -408,7 +408,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] A = gen.GenMatrix(seedA);
 
             // 8. B' = S' A + E'
-            short[] Bprime = MatrixAdd(MatrixMul(Sprime, mbar, n, A, n, n), Eprime, mbar, n);
+            short[] Bprime = MatrixAdd(MatrixMul(Sprime, mbar, n, A, n), Eprime, mbar, n);
 
             // 9. c1 = Frodo.Pack(B')
             byte[] c1 = FrodoPack(Bprime);
@@ -421,7 +421,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
 
             // 12. V = S' B + E''
-            short[] V = MatrixAdd(MatrixMul(Sprime, mbar, n, B, n, nbar), Eprimeprime, mbar, nbar);
+            short[] V = MatrixAdd(MatrixMul(Sprime, mbar, n, B, nbar), Eprimeprime, mbar, nbar);
 
             // 13. C = V + Frodo.Encode(mu)
             short[] EncodedMU = Encode(mu);
@@ -436,16 +436,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             digest.BlockUpdate(c1, 0, c1.Length);
             digest.BlockUpdate(c2, 0, c2.Length);
             digest.BlockUpdate(k, 0, len_k_bytes);
-            ((IXof) digest).DoFinal(ss, 0, len_s_bytes);
+            ((IXof) digest).OutputFinal(ss, 0, len_s_bytes);
         }
 
         private short[] MatrixSub(short[] X, short[] Y, int n1, int n2)
         {
+            int qMask = q - 1;
             short[] res = new short[n1 * n2];
             for (int i = 0; i < n1; i++)
-            for (int j = 0; j < n2; j++)
-                res[i * n2 + j] = (short) ((((X[i * n2 + j]) - (Y[i * n2 + j])) & 0xffff) % q);
-
+            {
+                for (int j = 0; j < n2; j++)
+                {
+                    res[i * n2 + j] = (short)((X[i * n2 + j] - Y[i * n2 + j]) & qMask);
+                }
+            }
             return res;
         }
 
@@ -556,7 +560,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] C = FrodoUnpack(c2, mbar, nbar);
 
             // 3. M = C - B' S
-            short[] BprimeS = MatrixMul(Bprime, mbar, n, S, n, nbar);
+            short[] BprimeS = MatrixMul(Bprime, mbar, n, S, nbar);
             short[] M = MatrixSub(C, BprimeS, mbar, nbar);
 
             // 4. mu' = Frodo.Decode(M)
@@ -568,7 +572,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] seedSEprime_kprime = new byte[len_seedSE_bytes + len_k_bytes];
             digest.BlockUpdate(pkh, 0, len_pkh_bytes);
             digest.BlockUpdate(muprime, 0, len_mu_bytes);
-            ((IXof) digest).DoFinal(seedSEprime_kprime, 0, len_seedSE_bytes + len_k_bytes);
+            ((IXof) digest).OutputFinal(seedSEprime_kprime, 0, len_seedSE_bytes + len_k_bytes);
 
             byte[] kprime = Arrays.CopyOfRange(seedSEprime_kprime, len_seedSE_bytes, len_seedSE_bytes + len_k_bytes);
 
@@ -576,7 +580,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] rbytes = new byte[(2 * mbar * n + mbar * mbar) * len_chi_bytes];
             digest.Update((byte) 0x96);
             digest.BlockUpdate(seedSEprime_kprime, 0, len_seedSE_bytes);
-            ((IXof) digest).DoFinal(rbytes, 0, rbytes.Length);
+            ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
 
             short[] r = new short[2 * mbar * n + mbar * nbar];
             for (int i = 0; i < r.Length; i++)
@@ -594,7 +598,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] A = gen.GenMatrix(seedA);
 
             // 11. B'' = S' A + E'
-            short[] Bprimeprime = MatrixAdd(MatrixMul(Sprime, mbar, n, A, n, n), Eprime, mbar, n);
+            short[] Bprimeprime = MatrixAdd(MatrixMul(Sprime, mbar, n, A, n), Eprime, mbar, n);
 
             // 12. E'' = Frodo.SampleMatrix(r[2*mbar*n .. 2*mbar*n + mbar*nbar-1], mbar, n)
             short[] Eprimeprime = SampleMatrix(r, 2 * mbar * n, mbar, nbar);
@@ -603,7 +607,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] B = FrodoUnpack(b, n, nbar);
 
             // 14. V = S' B + E''
-            short[] V = MatrixAdd(MatrixMul(Sprime, mbar, n, B, n, nbar), Eprimeprime, mbar, nbar);
+            short[] V = MatrixAdd(MatrixMul(Sprime, mbar, n, B, nbar), Eprimeprime, mbar, nbar);
 
             // 15. C' = V + Frodo.Encode(muprime)
             short[] Cprime = MatrixAdd(V, Encode(muprime), mbar, nbar);
@@ -620,7 +624,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             digest.BlockUpdate(c1, 0, c1.Length);
             digest.BlockUpdate(c2, 0, c2.Length);
             digest.BlockUpdate(kbar, 0, kbar.Length);
-            ((IXof) digest).DoFinal(ss, 0, len_ss_bytes);
+            ((IXof) digest).OutputFinal(ss, 0, len_ss_bytes);
         }
 
     }

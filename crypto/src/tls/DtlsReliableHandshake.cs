@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tls

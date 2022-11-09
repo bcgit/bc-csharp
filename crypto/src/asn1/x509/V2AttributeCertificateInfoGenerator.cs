@@ -26,11 +26,13 @@ namespace Org.BouncyCastle.Asn1.X509
         internal AttCertIssuer			issuer;
         internal AlgorithmIdentifier	signature;
         internal DerInteger				serialNumber;
-//        internal AttCertValidityPeriod	attrCertValidityPeriod;
         internal Asn1EncodableVector	attributes;
         internal DerBitString			issuerUniqueID;
         internal X509Extensions			extensions;
-        internal DerGeneralizedTime		startDate, endDate;
+
+        // Note: validity period start/end dates stored directly
+        //internal AttCertValidityPeriod attrCertValidityPeriod;
+        internal Asn1GeneralizedTime    startDate, endDate;
 
 		public V2AttributeCertificateInfoGenerator()
         {
@@ -78,13 +80,13 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
 		public void SetStartDate(
-            DerGeneralizedTime startDate)
+            Asn1GeneralizedTime startDate)
         {
             this.startDate = startDate;
         }
 
 		public void SetEndDate(
-            DerGeneralizedTime endDate)
+            Asn1GeneralizedTime endDate)
         {
             this.endDate = endDate;
         }

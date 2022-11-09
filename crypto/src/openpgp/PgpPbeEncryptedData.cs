@@ -97,10 +97,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				{
 					truncStream = new TruncatedStream(encStream);
 
-					string digestName = PgpUtilities.GetDigestName(HashAlgorithmTag.Sha1);
-					IDigest digest = DigestUtilities.GetDigest(digestName);
+                    IDigest digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
 
-					encStream = new DigestStream(truncStream, digest, null);
+                    encStream = new DigestStream(truncStream, digest, null);
 				}
 
 				if (Streams.ReadFully(encStream, iv, 0, iv.Length) < iv.Length)

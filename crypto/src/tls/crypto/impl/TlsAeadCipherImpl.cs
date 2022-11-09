@@ -13,6 +13,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <exception cref="IOException"/>
         void SetKey(byte[] key, int keyOff, int keyLen);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void SetKey(ReadOnlySpan<byte> key);
+#endif
+
         /// <summary>Initialise the parameters for the AEAD operator.</summary>
         /// <param name="nonce">the nonce.</param>
         /// <param name="macSize">MAC size in bytes.</param>
@@ -37,5 +41,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <returns>the amount of data written to output.</returns>
         /// <exception cref="IOException">in case of failure.</exception>
         int DoFinal(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset);
+
+        void Reset();
     }
 }

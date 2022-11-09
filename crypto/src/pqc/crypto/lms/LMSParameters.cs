@@ -1,24 +1,18 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSParameters
+    public sealed class LmsParameters
     {
-        private LMSigParameters lmSigParam;
-        private LMOtsParameters lmOTSParam;
+        private readonly LMSigParameters m_lmSigParameters;
+        private readonly LMOtsParameters m_lmOtsParameters;
 
-        public LMSParameters(LMSigParameters lmSigParam, LMOtsParameters lmOTSParam)
+        public LmsParameters(LMSigParameters lmSigParameters, LMOtsParameters lmOtsParameters)
         {
-            this.lmSigParam = lmSigParam;
-            this.lmOTSParam = lmOTSParam;
+            m_lmSigParameters = lmSigParameters;
+            m_lmOtsParameters = lmOtsParameters;
         }
 
-        public LMSigParameters GetLmSigParam()
-        {
-            return lmSigParam;
-        }
+        public LMSigParameters LMSigParameters => m_lmSigParameters;
 
-        public LMOtsParameters GetLmotsParam()
-        {
-            return lmOTSParam;
-        }
+        public LMOtsParameters LMOtsParameters => m_lmOtsParameters;
     }
 }

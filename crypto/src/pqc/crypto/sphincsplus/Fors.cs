@@ -1,94 +1,93 @@
-using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class Fors
+    internal class Fors
     {
-        SPHINCSPlusEngine engine;
+        private readonly SphincsPlusEngine engine;
 
-        public Fors(SPHINCSPlusEngine engine)
+        internal Fors(SphincsPlusEngine engine)
         {
             this.engine = engine;
         }
 
         // Input: Secret seed SK.seed, start index s, target node height z, public seed PK.seed, address Adrs
         // Output: n-byte root node - top node on Stack
-        byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
+        internal byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
         {
-            var stack = new List<NodeEntry>();
-
             if (s % (1 << z) != 0)
-            {
                 return null;
-            }
 
+            var stack = new Stack<NodeEntry>();
             Adrs adrs = new Adrs(adrsParam);
+            byte[] sk = new byte[engine.N];
 
             for (uint idx = 0; idx < (1 << z); idx++)
             {
-                adrs.SetType(Adrs.FORS_PRF);
+                adrs.SetAdrsType(Adrs.FORS_PRF);
                 adrs.SetKeyPairAddress(adrsParam.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex(s + idx);
 
-                byte[] sk = engine.PRF(pkSeed, skSeed, adrs);
+                engine.PRF(pkSeed, skSeed, adrs, sk, 0);
                 
-                adrs.ChangeType(Adrs.FORS_TREE);
+                adrs.ChangeAdrsType(Adrs.FORS_TREE);
 
                 byte[] node = engine.F(pkSeed, adrs, sk);
-                
+
                 adrs.SetTreeHeight(1);
 
-                // while ( Top node on Stack has same height as node )
-                while (stack.Count != 0
-                       && ((NodeEntry) stack[0]).nodeHeight == adrs.GetTreeHeight())
-                {
-                    adrs.SetTreeIndex((adrs.GetTreeIndex() - 1) / 2);
-                    NodeEntry current = (NodeEntry) stack[0];
-                    stack.RemoveAt(0);
+                uint adrsTreeHeight = 1;
+                uint adrsTreeIndex = s + idx;
 
-                    node = engine.H(pkSeed, adrs, current.nodeValue, node);
+                // while ( Top node on Stack has same height as node )
+                while (stack.Count > 0 && stack.Peek().nodeHeight == adrsTreeHeight)
+                {
+                    adrsTreeIndex = (adrsTreeIndex - 1) / 2;
+                    adrs.SetTreeIndex(adrsTreeIndex);
+
+                    engine.H(pkSeed, adrs, stack.Pop().nodeValue, node, node);
+
                     //topmost node is now one layer higher
-                    adrs.SetTreeHeight(adrs.GetTreeHeight() + 1);
+                    adrs.SetTreeHeight(++adrsTreeHeight);
                 }
 
-                stack.Insert(0, new NodeEntry(node, adrs.GetTreeHeight()));
+                stack.Push(new NodeEntry(node, adrsTreeHeight));
             }
 
-            return ((NodeEntry) stack[0]).nodeValue;
+            return stack.Peek().nodeValue;
         }
 
-        public SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs paramAdrs)
+        internal SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs paramAdrs)
         {
             Adrs adrs = new Adrs(paramAdrs);
-            uint[] idxs = MessageToIdxs(md, engine.K, engine.A);
             SIG_FORS[] sig_fors = new SIG_FORS[engine.K];
             // compute signature elements
             uint t = engine.T;
             for (uint i = 0; i < engine.K; i++)
             {
                 // get next index
-                uint idx = idxs[i];
+                uint idx = GetMessageIdx(md, (int)i, engine.A);
+
                 // pick private key element
-                
-                adrs.SetType(Adrs.FORS_PRF);
+                adrs.SetAdrsType(Adrs.FORS_PRF);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex((uint) (i * t + idx));
-                
-                byte[] sk = engine.PRF(pkSeed, skSeed, adrs);
-                
-                adrs.ChangeType(Adrs.FORS_TREE);
-                
+
+                byte[] sk = new byte[engine.N];
+                engine.PRF(pkSeed, skSeed, adrs, sk, 0);
+
+                adrs.ChangeAdrsType(Adrs.FORS_TREE);
+
                 byte[][] authPath = new byte[engine.A][];
                 // compute auth path
                 for (int j = 0; j < engine.A; j++)
                 {
-                    uint s = (uint) (idx / (1 << j)) ^ 1;
-                    authPath[j] = TreeHash(skSeed, (uint) (i * t + s * (1 << j)), j, pkSeed, adrs);
+                    uint s = (idx >> j) ^ 1U;
+                    authPath[j] = TreeHash(skSeed, (uint) (i * t + (s << j)), j, pkSeed, adrs);
                 }
 
                 sig_fors[i] = new SIG_FORS(sk, authPath);
@@ -97,51 +96,53 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return sig_fors;
         }
 
-        public byte[] PKFromSig(SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed, Adrs adrs)
+        internal byte[] PKFromSig(SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed, Adrs adrs)
         {
-            byte[][] node = new byte[2][];
             byte[][] root = new byte[engine.K][];
             uint t = engine.T;
 
-            uint[] idxs = MessageToIdxs(message, engine.K, engine.A);
             // compute roots
             for (uint i = 0; i < engine.K; i++)
             {
                 // get next index
-                uint idx = idxs[i];
+                uint idx = GetMessageIdx(message, (int)i, engine.A);
+
                 // compute leaf
                 byte[] sk = sig_fors[i].SK;
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex(i * t + idx);
-                node[0] = engine.F(pkSeed, adrs, sk);
+                byte[] node = engine.F(pkSeed, adrs, sk);
+
                 // compute root from leaf and AUTH
                 byte[][] authPath = sig_fors[i].AuthPath;
-
-                adrs.SetTreeIndex(i * t + idx);
+                uint adrsTreeIndex = i * t + idx;
                 for (int j = 0; j < engine.A; j++)
                 {
                     adrs.SetTreeHeight((uint)j + 1);
-                    if (((idx / (1 << j)) % 2) == 0)
+                    if (((idx >> j) % 2) == 0U)
                     {
-                        adrs.SetTreeIndex(adrs.GetTreeIndex() / 2);
-                        node[1] = engine.H(pkSeed, adrs, node[0], authPath[j]);
+                        adrsTreeIndex = adrsTreeIndex / 2;
+                        adrs.SetTreeIndex(adrsTreeIndex);
+                        engine.H(pkSeed, adrs, node, authPath[j], node);
                     }
                     else
                     {
-                        adrs.SetTreeIndex((adrs.GetTreeIndex() - 1) / 2);
-                        node[1] = engine.H(pkSeed, adrs, authPath[j], node[0]);
+                        adrsTreeIndex = (adrsTreeIndex - 1) / 2;
+                        adrs.SetTreeIndex(adrsTreeIndex);
+                        engine.H(pkSeed, adrs, authPath[j], node, node);
                     }
-
-                    node[0] = node[1];
                 }
 
-                root[i] = node[0];
+                root[i] = node;
             }
 
             Adrs forspkAdrs = new Adrs(adrs); // copy address to create FTS public key address
-            forspkAdrs.SetType(Adrs.FORS_PK);
+            forspkAdrs.SetAdrsType(Adrs.FORS_PK);
             forspkAdrs.SetKeyPairAddress(adrs.GetKeyPairAddress());
-            return engine.T_l(pkSeed, forspkAdrs, Arrays.ConcatenateAll(root));
+
+            byte[] result = new byte[engine.N];
+            engine.T_l(pkSeed, forspkAdrs, Arrays.ConcatenateAll(root), result);
+            return result;
         }
 
         /**
@@ -149,21 +150,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          * Assumes m contains at least SPX_FORS_HEIGHT * SPX_FORS_TREES bits.
          * Assumes indices has space for SPX_FORS_TREES integers.
          */
-        static uint[] MessageToIdxs(byte[] msg, int fors_trees, int fors_height)
+        private static uint GetMessageIdx(byte[] msg, int fors_tree, int fors_height)
         {
-            uint offset = 0;
-            uint[] idxs = new uint[fors_trees];
-            for (int i = 0; i < fors_trees; i++)
+            int offset = fors_tree * fors_height;
+            uint idx = 0;
+            for (int bit = 0; bit < fors_height; bit++)
             {
-                idxs[i] = 0;
-                for (int j = 0; j < fors_height; j++)
-                {
-                    idxs[i] ^= (uint) (((msg[offset >> 3] >> (int)(offset & 0x7)) & 0x1) << j);
-                    offset++;
-                }
+                idx ^= (((uint)msg[offset >> 3] >> (offset & 0x7)) & 1U) << bit;
+                offset++;
             }
-
-            return idxs;
+            return idx;
         }
     }
 }

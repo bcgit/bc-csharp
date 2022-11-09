@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
@@ -84,9 +84,10 @@ namespace Org.BouncyCastle.Cms
 			var result = new List<Asn1TaggedObject>();
 			if (attrCertStore != null)
             {
-				result.AddRange(
-					attrCertStore.EnumerateMatches(null)
-								 .Select(c => new DerTaggedObject(false, 2, c.AttributeCertificate)));
+				foreach (var attrCert in attrCertStore.EnumerateMatches(null))
+				{
+					result.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
+				}
             }
 			return result;
 		}
@@ -96,9 +97,10 @@ namespace Org.BouncyCastle.Cms
 			var result = new List<X509CertificateStructure>();
 			if (certStore != null)
             {
-				result.AddRange(
-					certStore.EnumerateMatches(null)
-					         .Select(c => c.CertificateStructure));
+                foreach (var cert in certStore.EnumerateMatches(null))
+                {
+                    result.Add(cert.CertificateStructure);
+                }
 			}
 			return result;
 		}
@@ -108,14 +110,49 @@ namespace Org.BouncyCastle.Cms
 			var result = new List<CertificateList>();
 			if (crlStore != null)
 			{
-				result.AddRange(
-					crlStore.EnumerateMatches(null)
-					        .Select(c => c.CertificateList));
+                foreach (var crl in crlStore.EnumerateMatches(null))
+                {
+                    result.Add(crl.CertificateList);
+				}
 			}
 			return result;
 		}
 
-		internal static Asn1Set CreateBerSetFromList(IEnumerable<Asn1Encodable> elements)
+        internal static List<Asn1TaggedObject> GetOtherRevocationInfosFromStore(
+			IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
+        {
+            var result = new List<Asn1TaggedObject>();
+            if (otherRevocationInfoStore != null)
+            {
+                foreach (var otherRevocationInfo in otherRevocationInfoStore.EnumerateMatches(null))
+                {
+                    ValidateOtherRevocationInfo(otherRevocationInfo);
+
+                    result.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
+                }
+            }
+            return result;
+        }
+
+        internal static List<DerTaggedObject> GetOtherRevocationInfosFromStore(IStore<Asn1Encodable> otherRevInfoStore,
+            DerObjectIdentifier otherRevInfoFormat)
+        {
+			var result = new List<DerTaggedObject>();
+			if (otherRevInfoStore != null && otherRevInfoFormat != null)
+			{
+				foreach (var otherRevInfo in otherRevInfoStore.EnumerateMatches(null))
+				{
+                    var otherRevocationInfo = new OtherRevocationInfoFormat(otherRevInfoFormat, otherRevInfo);
+
+                    ValidateOtherRevocationInfo(otherRevocationInfo);
+
+                    result.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
+				}
+			}
+			return result;
+        }
+
+        internal static Asn1Set CreateBerSetFromList(IEnumerable<Asn1Encodable> elements)
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector();
 
@@ -155,5 +192,16 @@ namespace Org.BouncyCastle.Cms
 			TbsCertificateStructure tbsCert = GetTbsCertificateStructure(cert);
 			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber.Value);
 		}
-	}
+
+        internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
+        {
+            if (CmsObjectIdentifiers.id_ri_ocsp_response.Equals(otherRevocationInfo.InfoFormat))
+			{
+				OcspResponse ocspResponse = OcspResponse.GetInstance(otherRevocationInfo.Info);
+
+                if (OcspResponseStatus.Successful != ocspResponse.ResponseStatus.IntValueExact)
+                    throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
+            }
+        }
+    }
 }

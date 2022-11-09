@@ -8,7 +8,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
@@ -177,7 +176,7 @@ namespace Org.BouncyCastle.Tests
 				Fail("Selector does not match attribute certificate serial number.");
 			}
 
-			sel.AttributeCertificateValid = new DateTimeObject(DateTime.UtcNow);
+			sel.AttributeCertificateValid = DateTime.UtcNow;
 			match = sel.Match(aCert);
 			if (!match)
 			{

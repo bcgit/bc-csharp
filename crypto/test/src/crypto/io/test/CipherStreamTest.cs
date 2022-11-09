@@ -144,8 +144,8 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 
 			IBlockCipher blockCipher = AesUtilities.CreateEngine();
 			int bits = 8 * blockCipher.GetBlockSize(); // TODO Is this right?
-			blockCipher = new CfbBlockCipher(blockCipher, bits);
-			IBufferedCipher cipher = new BufferedBlockCipher(blockCipher);
+			IBlockCipherMode blockCipherMode = new CfbBlockCipher(blockCipher, bits);
+			IBufferedCipher cipher = new BufferedBlockCipher(blockCipherMode);
 
 //			SecureRandom random = new SecureRandom();
 			byte[] keyBytes = new byte[32];

@@ -140,19 +140,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        public virtual void Reset()
-        {
-        }
-
         public virtual string AlgorithmName
         {
             get { return "RC2"; }
         }
-
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
 
         public virtual int GetBlockSize()
         {

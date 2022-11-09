@@ -1,9 +1,9 @@
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class NodeEntry
+    internal class NodeEntry
     {
-        internal byte[] nodeValue;
-        internal uint nodeHeight;
+        internal readonly byte[] nodeValue;
+        internal readonly uint nodeHeight;
 
         internal NodeEntry(byte[] nodeValue, uint nodeHeight)
         {

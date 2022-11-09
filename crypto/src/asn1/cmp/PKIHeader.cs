@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly DerInteger pvno;
         private readonly GeneralName sender;
         private readonly GeneralName recipient;
-        private readonly DerGeneralizedTime messageTime;
+        private readonly Asn1GeneralizedTime messageTime;
         private readonly AlgorithmIdentifier protectionAlg;
         private readonly Asn1OctetString senderKID;       // KeyIdentifier
         private readonly Asn1OctetString recipKID;        // KeyIdentifier
@@ -41,35 +41,35 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
                 switch (tObj.TagNo)
                 {
-                    case 0:
-                        messageTime = DerGeneralizedTime.GetInstance(tObj, true);
-                        break;
-                    case 1:
-                        protectionAlg = AlgorithmIdentifier.GetInstance(tObj, true);
-                        break;
-                    case 2:
-                        senderKID = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 3:
-                        recipKID = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 4:
-                        transactionID = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 5:
-                        senderNonce = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 6:
-                        recipNonce = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 7:
-                        freeText = PkiFreeText.GetInstance(tObj, true);
-                        break;
-                    case 8:
-                        generalInfo = Asn1Sequence.GetInstance(tObj, true);
-                        break;
-                    default:
-                        throw new ArgumentException("unknown tag number: " + tObj.TagNo, "seq");
+                case 0:
+                    messageTime = Asn1GeneralizedTime.GetInstance(tObj, true);
+                    break;
+                case 1:
+                    protectionAlg = AlgorithmIdentifier.GetInstance(tObj, true);
+                    break;
+                case 2:
+                    senderKID = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 3:
+                    recipKID = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 4:
+                    transactionID = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 5:
+                    senderNonce = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 6:
+                    recipNonce = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 7:
+                    freeText = PkiFreeText.GetInstance(tObj, true);
+                    break;
+                case 8:
+                    generalInfo = Asn1Sequence.GetInstance(tObj, true);
+                    break;
+                default:
+                    throw new ArgumentException("unknown tag number: " + tObj.TagNo, nameof(seq));
                 }
             }
         }
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             get { return recipient; }
         }
 
-        public virtual DerGeneralizedTime MessageTime
+        public virtual Asn1GeneralizedTime MessageTime
         {
             get { return messageTime; }
         }

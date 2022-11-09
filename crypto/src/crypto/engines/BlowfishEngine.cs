@@ -342,11 +342,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "Blowfish"; }
         }
 
-		public bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
 		public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
@@ -399,10 +394,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BLOCK_SIZE;
 		}
 #endif
-
-		public void Reset()
-        {
-        }
 
         public int GetBlockSize()
         {

@@ -18,23 +18,36 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             var securityParameters = cryptoParams.SecurityParameters;
-            this.m_decryptConnectionId = securityParameters.ConnectionIdPeer;
-            this.m_encryptConnectionId = securityParameters.ConnectionIdLocal;
+            m_decryptConnectionId = securityParameters.ConnectionIdPeer;
+            m_encryptConnectionId = securityParameters.ConnectionIdLocal;
 
-            this.m_cryptoParams = cryptoParams;
+            m_cryptoParams = cryptoParams;
 
-            int key_block_size = clientMac.MacLength + serverMac.MacLength;
-            byte[] key_block = TlsImplUtilities.CalculateKeyBlock(cryptoParams, key_block_size);
+            int keyBlockSize = clientMac.MacLength + serverMac.MacLength;
 
-            int offset = 0;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> keyBlock = keyBlockSize <= 512
+                ? stackalloc byte[keyBlockSize]
+                : new byte[keyBlockSize];
+            TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
 
-            clientMac.SetKey(key_block, offset, clientMac.MacLength);
-            offset += clientMac.MacLength;
-            serverMac.SetKey(key_block, offset, serverMac.MacLength);
-            offset += serverMac.MacLength;
+            clientMac.SetKey(keyBlock[..clientMac.MacLength]); keyBlock = keyBlock[clientMac.MacLength..];
+            serverMac.SetKey(keyBlock[..serverMac.MacLength]); keyBlock = keyBlock[serverMac.MacLength..];
 
-            if (offset != key_block_size)
+            if (!keyBlock.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
+#else
+            byte[] keyBlock = TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlockSize);
+            int pos = 0;
+
+            clientMac.SetKey(keyBlock, pos, clientMac.MacLength);
+            pos += clientMac.MacLength;
+            serverMac.SetKey(keyBlock, pos, serverMac.MacLength);
+            pos += serverMac.MacLength;
+
+            if (pos != keyBlockSize)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+#endif
 
             if (cryptoParams.IsServer)
             {
@@ -77,6 +90,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             Array.Copy(mac, 0, ciphertext, headerAllocation + len, mac.Length);
             return new TlsEncodeResult(ciphertext, 0, ciphertext.Length, contentType);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+            int headerAllocation, ReadOnlySpan<byte> plaintext)
+        {
+            byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, m_encryptConnectionId, plaintext);
+            byte[] ciphertext = new byte[headerAllocation + plaintext.Length + mac.Length];
+            plaintext.CopyTo(ciphertext.AsSpan(headerAllocation));
+            mac.CopyTo(ciphertext.AsSpan(headerAllocation + plaintext.Length));
+            return new TlsEncodeResult(ciphertext, 0, ciphertext.Length, contentType);
+        }
+#endif
 
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)

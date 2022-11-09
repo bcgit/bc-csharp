@@ -12,7 +12,6 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
 
@@ -127,25 +126,20 @@ namespace Org.BouncyCastle.X509
         protected virtual void CheckSignature(
             IVerifierFactory verifier)
         {
+            // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
             if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
-            {
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
+
+            byte[] b = GetTbsCertList();
+
+            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
+			using (var stream = streamCalculator.Stream)
+			{
+				stream.Write(b, 0, b.Length);
             }
 
-            Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
-
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
-
-            byte[] b = this.GetTbsCertList();
-
-            streamCalculator.Stream.Write(b, 0, b.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
-            {
+            if (!streamCalculator.GetResult().IsVerified(GetSignature()))
                 throw new InvalidKeyException("CRL does not verify with supplied public key.");
-            }
         }
 
         public virtual int Version
@@ -163,15 +157,7 @@ namespace Org.BouncyCastle.X509
 			get { return c.ThisUpdate.ToDateTime(); }
 		}
 
-		public virtual DateTimeObject NextUpdate
-		{
-			get
-			{
-				return c.NextUpdate == null
-					?	null
-					:	new DateTimeObject(c.NextUpdate.ToDateTime());
-			}
-		}
+		public virtual DateTime? NextUpdate => c.NextUpdate?.ToDateTime();
 
 		private ISet<X509CrlEntry> LoadCrlEntries()
 		{

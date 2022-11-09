@@ -3,19 +3,19 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSKeyPairGenerator
+    public sealed class LmsKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private LMSKeyGenerationParameters param;
+        private LmsKeyGenerationParameters m_parameters;
 
-        public void Init(KeyGenerationParameters param)
+        public void Init(KeyGenerationParameters parameters)
         {
-            this.param = (LMSKeyGenerationParameters) param;
+            m_parameters = (LmsKeyGenerationParameters)parameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            SecureRandom source = param.Random;
+            SecureRandom source = m_parameters.Random;
 
             byte[] I = new byte[16];
             source.NextBytes(I);
@@ -23,11 +23,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] rootSecret = new byte[32];
             source.NextBytes(rootSecret);
 
-            LMSPrivateKeyParameters privKey = LMS.GenerateKeys(param.GetParameters().GetLmSigParam(),
-                param.GetParameters().GetLmotsParam(), 0, I, rootSecret);
+            LmsPrivateKeyParameters privKey = Lms.GenerateKeys(m_parameters.LmsParameters.LMSigParameters,
+                m_parameters.LmsParameters.LMOtsParameters, 0, I, rootSecret);
 
             return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);
         }
     }
-    
 }

@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+using Org.BouncyCastle.Asn1.Cryptlib;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Agreement;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>Generator for encrypted objects.</remarks>
+    /// <remarks>Generator for encrypted objects.</remarks>
     public class PgpEncryptedDataGenerator
 		: IStreamGenerator
     {
@@ -99,54 +103,108 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             private byte[] EncryptSessionInfo(byte[] sessionInfo, SecureRandom random)
             {
+                var cryptoPublicKey = pubKey.GetKey();
+
                 if (pubKey.Algorithm != PublicKeyAlgorithmTag.ECDH)
                 {
                     IBufferedCipher c;
 				    switch (pubKey.Algorithm)
                     {
-                        case PublicKeyAlgorithmTag.RsaEncrypt:
-                        case PublicKeyAlgorithmTag.RsaGeneral:
-                            c = CipherUtilities.GetCipher("RSA//PKCS1Padding");
-                            break;
-                        case PublicKeyAlgorithmTag.ElGamalEncrypt:
-                        case PublicKeyAlgorithmTag.ElGamalGeneral:
-                            c = CipherUtilities.GetCipher("ElGamal/ECB/PKCS1Padding");
-                            break;
-                        case PublicKeyAlgorithmTag.Dsa:
-                            throw new PgpException("Can't use DSA for encryption.");
-                        case PublicKeyAlgorithmTag.ECDsa:
-                            throw new PgpException("Can't use ECDSA for encryption.");
-                        default:
-                            throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
+                    case PublicKeyAlgorithmTag.RsaEncrypt:
+                    case PublicKeyAlgorithmTag.RsaGeneral:
+                        c = CipherUtilities.GetCipher("RSA//PKCS1Padding");
+                        break;
+                    case PublicKeyAlgorithmTag.ElGamalEncrypt:
+                    case PublicKeyAlgorithmTag.ElGamalGeneral:
+                        c = CipherUtilities.GetCipher("ElGamal/ECB/PKCS1Padding");
+                        break;
+                    case PublicKeyAlgorithmTag.Dsa:
+                        throw new PgpException("Can't use DSA for encryption.");
+                    case PublicKeyAlgorithmTag.ECDsa:
+                        throw new PgpException("Can't use ECDSA for encryption.");
+                    case PublicKeyAlgorithmTag.EdDsa:
+                        throw new PgpException("Can't use EdDSA for encryption.");
+                    default:
+                        throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
                     }
 
-                    AsymmetricKeyParameter akp = pubKey.GetKey();
-				    c.Init(true, new ParametersWithRandom(akp, random));
+				    c.Init(true, new ParametersWithRandom(cryptoPublicKey, random));
                     return c.DoFinal(sessionInfo);
                 }
 
-                ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)pubKey.PublicKeyPacket.Key;
+                ECDHPublicBcpgKey ecPubKey = (ECDHPublicBcpgKey)pubKey.PublicKeyPacket.Key;
+                var curveOid = ecPubKey.CurveOid;
 
-                // Generate the ephemeral key pair
-                IAsymmetricCipherKeyPairGenerator gen = GeneratorUtilities.GetKeyPairGenerator("ECDH");
-                gen.Init(new ECKeyGenerationParameters(ecKey.CurveOid, random));
+                if (EdECObjectIdentifiers.id_X25519.Equals(curveOid) ||
+                    CryptlibObjectIdentifiers.curvey25519.Equals(curveOid))
+                {
+                    X25519KeyPairGenerator gen = new X25519KeyPairGenerator();
+                    gen.Init(new X25519KeyGenerationParameters(random));
 
-                AsymmetricCipherKeyPair ephKp = gen.GenerateKeyPair();
-                ECPrivateKeyParameters ephPriv = (ECPrivateKeyParameters)ephKp.Private;
-                ECPublicKeyParameters ephPub = (ECPublicKeyParameters)ephKp.Public;
+                    AsymmetricCipherKeyPair ephKp = gen.GenerateKeyPair();
 
-                ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey.GetKey();
-                ECPoint S = pub.Q.Multiply(ephPriv.D).Normalize();
+                    X25519Agreement agreement = new X25519Agreement();
+                    agreement.Init(ephKp.Private);
 
-                KeyParameter key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, S));
+                    byte[] secret = new byte[agreement.AgreementSize];
+                    agreement.CalculateAgreement(cryptoPublicKey, secret, 0);
 
-                IWrapper w = PgpUtilities.CreateWrapper(ecKey.SymmetricKeyAlgorithm);
+                    byte[] ephPubEncoding = new byte[1 + X25519PublicKeyParameters.KeySize];
+                    ephPubEncoding[0] = 0x40;
+                    ((X25519PublicKeyParameters)ephKp.Public).Encode(ephPubEncoding, 1);
+
+                    return EncryptSessionInfo(ecPubKey, sessionInfo, secret, ephPubEncoding, random);
+                }
+                else if (EdECObjectIdentifiers.id_X448.Equals(curveOid))
+                {
+                    X448KeyPairGenerator gen = new X448KeyPairGenerator();
+                    gen.Init(new X448KeyGenerationParameters(random));
+
+                    AsymmetricCipherKeyPair ephKp = gen.GenerateKeyPair();
+
+                    X448Agreement agreement = new X448Agreement();
+                    agreement.Init(ephKp.Private);
+
+                    byte[] secret = new byte[agreement.AgreementSize];
+                    agreement.CalculateAgreement(cryptoPublicKey, secret, 0);
+
+                    byte[] ephPubEncoding = new byte[1 + X448PublicKeyParameters.KeySize];
+                    ephPubEncoding[0] = 0x40;
+                    ((X448PublicKeyParameters)ephKp.Public).Encode(ephPubEncoding, 1);
+
+                    return EncryptSessionInfo(ecPubKey, sessionInfo, secret, ephPubEncoding, random);
+                }
+                else
+                {
+                    // Generate the ephemeral key pair
+                    ECDomainParameters ecParams = ((ECPublicKeyParameters)cryptoPublicKey).Parameters;
+                    ECKeyPairGenerator gen = new ECKeyPairGenerator();
+                    gen.Init(new ECKeyGenerationParameters(ecParams, random));
+
+                    AsymmetricCipherKeyPair ephKp = gen.GenerateKeyPair();
+
+                    ECDHBasicAgreement agreement = new ECDHBasicAgreement();
+                    agreement.Init(ephKp.Private);
+                    BigInteger S = agreement.CalculateAgreement(cryptoPublicKey);
+                    byte[] secret = BigIntegers.AsUnsignedByteArray(agreement.GetFieldSize(), S);
+
+                    byte[] ephPubEncoding = ((ECPublicKeyParameters)ephKp.Public).Q.GetEncoded(false);
+                    return EncryptSessionInfo(ecPubKey, sessionInfo, secret, ephPubEncoding, random);
+                }
+            }
+
+            private byte[] EncryptSessionInfo(ECDHPublicBcpgKey ecPubKey, byte[] sessionInfo, byte[] secret,
+                byte[] ephPubEncoding, SecureRandom random)
+            {
+                var key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, secret));
+
+                IWrapper w = PgpUtilities.CreateWrapper(ecPubKey.SymmetricKeyAlgorithm);
                 w.Init(true, new ParametersWithRandom(key, random));
 
                 byte[] paddedSessionData = PgpPad.PadSessionData(sessionInfo, sessionKeyObfuscation);
 
                 byte[] C = w.Wrap(paddedSessionData, 0, paddedSessionData.Length);
-                byte[] VB = new MPInteger(new BigInteger(1, ephPub.Q.GetEncoded(false))).GetEncoded();
+                byte[] VB = new MPInteger(new BigInteger(1, ephPubEncoding)).GetEncoded();
 
                 byte[] rv = new byte[VB.Length + 1 + C.Length];
 
@@ -165,7 +223,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                 case PublicKeyAlgorithmTag.RsaEncrypt:
                 case PublicKeyAlgorithmTag.RsaGeneral:
-                    data = new byte[][] { ConvertToEncodedMpi(encryptedSessionInfo) };
+                    data = new byte[1][] { ConvertToEncodedMpi(encryptedSessionInfo) };
                     break;
                 case PublicKeyAlgorithmTag.ElGamalEncrypt:
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
@@ -176,13 +234,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     Array.Copy(encryptedSessionInfo, 0, b1, 0, halfLength);
                     Array.Copy(encryptedSessionInfo, halfLength, b2, 0, halfLength);
 
-                    data = new byte[][] {
+                    data = new byte[2][] {
                         ConvertToEncodedMpi(b1),
                         ConvertToEncodedMpi(b2),
                     };
                     break;
                 case PublicKeyAlgorithmTag.ECDH:
-                    data = new byte[][]{ encryptedSessionInfo };
+                    data = new byte[1][]{ encryptedSessionInfo };
                     break;
                 default:
                     throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
@@ -219,7 +277,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			SymmetricKeyAlgorithmTag encAlgorithm)
 		{
 			this.defAlgorithm = encAlgorithm;
-			this.rand = new SecureRandom();
+            this.rand = CryptoServicesRegistrar.GetSecureRandom();
 		}
 
 		public PgpEncryptedDataGenerator(
@@ -228,42 +286,51 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 			this.defAlgorithm = encAlgorithm;
 			this.withIntegrityPacket = withIntegrityPacket;
-			this.rand = new SecureRandom();
-		}
+            this.rand = CryptoServicesRegistrar.GetSecureRandom();
+        }
 
-		/// <summary>Existing SecureRandom constructor.</summary>
-		/// <param name="encAlgorithm">The symmetric algorithm to use.</param>
-		/// <param name="rand">Source of randomness.</param>
+        /// <summary>Existing SecureRandom constructor.</summary>
+        /// <param name="encAlgorithm">The symmetric algorithm to use.</param>
+        /// <param name="random">Source of randomness.</param>
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
-            SecureRandom				rand)
+            SecureRandom				random)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             this.defAlgorithm = encAlgorithm;
-            this.rand = rand;
+            this.rand = random;
         }
 
 		/// <summary>Creates a cipher stream which will have an integrity packet associated with it.</summary>
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
             bool						withIntegrityPacket,
-            SecureRandom				rand)
+            SecureRandom				random)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             this.defAlgorithm = encAlgorithm;
-            this.rand = rand;
+            this.rand = random;
             this.withIntegrityPacket = withIntegrityPacket;
         }
 
-		/// <summary>Base constructor.</summary>
-		/// <param name="encAlgorithm">The symmetric algorithm to use.</param>
-		/// <param name="rand">Source of randomness.</param>
-		/// <param name="oldFormat">PGP 2.6.x compatibility required.</param>
+        /// <summary>Base constructor.</summary>
+        /// <param name="encAlgorithm">The symmetric algorithm to use.</param>
+        /// <param name="random">Source of randomness.</param>
+        /// <param name="oldFormat">PGP 2.6.x compatibility required.</param>
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
-            SecureRandom				rand,
+            SecureRandom				random,
             bool						oldFormat)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             this.defAlgorithm = encAlgorithm;
-            this.rand = rand;
+            this.rand = random;
             this.oldFormat = oldFormat;
         }
 
@@ -480,8 +547,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				if (withIntegrityPacket)
                 {
-					string digestName = PgpUtilities.GetDigestName(HashAlgorithmTag.Sha1);
-					IDigest digest = DigestUtilities.GetDigest(digestName);
+                    IDigest digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
 					myOut = digestOut = new DigestStream(myOut, null, digest);
                 }
 
@@ -534,52 +600,55 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return Open(outStr, 0, buffer);
         }
 
-		/// <summary>
-		/// <p>
-		/// Close off the encrypted object - this is equivalent to calling Close() on the stream
-		/// returned by the Open() method.
-		/// </p>
-		/// <p>
-		/// <b>Note</b>: This does not close the underlying output stream, only the stream on top of
-		/// it created by the Open() method.
-		/// </p>
-		/// </summary>
-        public void Close()
+        #region IDisposable
+
+        public void Dispose()
         {
-            if (cOut != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-				// TODO Should this all be under the try/catch block?
-                if (digestOut != null)
+                if (cOut != null)
                 {
-                    //
-                    // hand code a mod detection packet
-                    //
-                    BcpgOutputStream bOut = new BcpgOutputStream(
-						digestOut, PacketTag.ModificationDetectionCode, 20);
+				    // TODO Should this all be under the try/catch block?
+                    if (digestOut != null)
+                    {
+                        //
+                        // hand code a mod detection packet
+                        //
+                        BcpgOutputStream bOut = new BcpgOutputStream(
+						    digestOut, PacketTag.ModificationDetectionCode, 20);
 
-                    bOut.Flush();
-                    digestOut.Flush();
+                        bOut.Flush();
+                        digestOut.Flush();
 
-					// TODO
-					byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
-					cOut.Write(dig, 0, dig.Length);
+					    // TODO
+					    byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
+					    cOut.Write(dig, 0, dig.Length);
+                    }
+
+				    cOut.Flush();
+
+				    try
+                    {
+					    pOut.Write(c.DoFinal());
+                        pOut.Finish();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new IOException(e.Message, e);
+                    }
+
+				    cOut = null;
+				    pOut = null;
                 }
-
-				cOut.Flush();
-
-				try
-                {
-					pOut.Write(c.DoFinal());
-                    pOut.Finish();
-                }
-                catch (Exception e)
-                {
-                    throw new IOException(e.Message, e);
-                }
-
-				cOut = null;
-				pOut = null;
             }
-		}
+        }
+
+        #endregion
 	}
 }

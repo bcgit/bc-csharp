@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Security.Tests
                     return false;
             }
 
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             {
@@ -226,12 +226,14 @@ namespace Org.BouncyCastle.Security.Tests
             return chi2;
         }
 
-        // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+        // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static double MeasureChiSquaredSpan(SecureRandom random, int rounds)
         {
-            byte[] opts = random.GenerateSeed(2);
+            Span<byte> opts = stackalloc byte[2];
+            random.GenerateSeed(opts);
+
             Span<int> counts = stackalloc int[256];
 
             Span<byte> bs = stackalloc byte[256];
@@ -295,6 +297,12 @@ namespace Org.BouncyCastle.Security.Tests
             {
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public void AddSeedMaterial(ReadOnlySpan<byte> inSeed)
+            {
+            }
+#endif
+
             public virtual void AddSeedMaterial(long seed)
             {
             }
@@ -306,7 +314,7 @@ namespace Org.BouncyCastle.Security.Tests
 
             public abstract void NextBytes(byte[] bytes, int start, int len);
 
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public abstract void NextBytes(Span<byte> bytes);
@@ -328,7 +336,7 @@ namespace Org.BouncyCastle.Security.Tests
                 Arrays.Fill(bytes, start, start + len, b);
             }
 
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void NextBytes(Span<byte> bytes)

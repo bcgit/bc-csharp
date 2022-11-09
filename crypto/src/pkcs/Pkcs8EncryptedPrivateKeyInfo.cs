@@ -91,9 +91,11 @@ namespace Org.BouncyCastle.Pkcs
 
                 ICipher encIn = decryptorBuilder.BuildCipher(new MemoryInputStream(encryptedPrivateKeyInfo.GetEncryptedData()));
 
-                Stream strm = encIn.Stream;
-                byte[] data = Streams.ReadAll(encIn.Stream);
-                Platform.Dispose(strm);
+                byte[] data;
+                using (var strm = encIn.Stream)
+                {
+                    data = Streams.ReadAll(encIn.Stream);
+                }
 
                 return PrivateKeyInfo.GetInstance(data);
             }

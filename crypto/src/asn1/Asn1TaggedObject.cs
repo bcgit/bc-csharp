@@ -21,22 +21,23 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1TaggedObject GetInstance(object obj)
 		{
-            if (obj == null || obj is Asn1TaggedObject) 
-            {
-                return (Asn1TaggedObject)obj;
-            }
-            //else if (obj is Asn1TaggedObjectParser)
-            else if (obj is IAsn1Convertible asn1Convertible)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1TaggedObject asn1TaggedObject)
+                return asn1TaggedObject;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
                 Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1TaggedObject taggedObject)
-                    return taggedObject;
+                if (asn1Object is Asn1TaggedObject converted)
+                    return converted;
             }
-            else if (obj is byte[] byteArray)
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return CheckedCast(FromByteArray(byteArray));
+                    return CheckedCast(FromByteArray(bytes));
                 }
                 catch (IOException e)
                 {

@@ -1,5 +1,4 @@
 ﻿using System;
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl
@@ -57,6 +56,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public virtual byte[] CalculateMac(long seqNo, short recordType, byte[] connectionId, byte[] msg, int msgOff, int msgLen)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return CalculateMac(seqNo, recordType, connectionId, msg.AsSpan(msgOff, msgLen));
+#else
             ProtocolVersion serverVersion = m_cryptoParams.ServerVersion;
             bool isSsl = serverVersion.IsSsl;
 
@@ -98,10 +100,57 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             m_mac.Update(msg, msgOff, msgLen);
 
             return Truncate(m_mac.CalculateMac());
+#endif
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual byte[] CalculateMac(long seqNo, short recordType, byte[] connectionId, ReadOnlySpan<byte> message)
+        {
+            ProtocolVersion serverVersion = m_cryptoParams.ServerVersion;
+            bool isSsl = serverVersion.IsSsl;
+
+            if (isSsl)
+            {
+                byte[] macHeader = new byte[11];
+                TlsUtilities.WriteUint64(seqNo, macHeader, 0);
+                TlsUtilities.WriteUint8(recordType, macHeader, 8);
+                TlsUtilities.WriteUint16(message.Length, macHeader, 9);
+
+                m_mac.Update(macHeader, 0, macHeader.Length);
+            }
+            else if (recordType == ContentType.tls12_cid && connectionId != null)
+            {
+                int cidLength = connectionId.Length;
+                byte[] macHeader = new byte[23 + cidLength];
+                TlsUtilities.WriteUint64(SEQUENCE_NUMBER_PLACEHOLDER, macHeader, 0);
+                TlsUtilities.WriteUint8(ContentType.tls12_cid, macHeader, 8);
+                TlsUtilities.WriteUint8(cidLength, macHeader, 9);
+                TlsUtilities.WriteUint8(ContentType.tls12_cid, macHeader, 10);
+                TlsUtilities.WriteVersion(serverVersion, macHeader, 11);
+                TlsUtilities.WriteUint64(seqNo, macHeader, 13);
+                Array.Copy(connectionId, 0, macHeader, 21, cidLength);
+                TlsUtilities.WriteUint16(message.Length, macHeader, 21 + cidLength);
+
+                m_mac.Update(macHeader, 0, macHeader.Length);
+            }
+            else
+            {
+                byte[] macHeader = new byte[13];
+                TlsUtilities.WriteUint64(seqNo, macHeader, 0);
+                TlsUtilities.WriteUint8(recordType, macHeader, 8);
+                TlsUtilities.WriteVersion(serverVersion, macHeader, 9);
+                TlsUtilities.WriteUint16(message.Length, macHeader, 11);
+
+                m_mac.Update(macHeader, 0, macHeader.Length);
+            }
+            m_mac.Update(message);
+
+            return Truncate(m_mac.CalculateMac());
+        }
+#endif
+
         public virtual byte[] CalculateMacConstantTime(long seqNo, short recordType, byte[] connectionId, byte[] msg, int msgOff, int msgLen,
-            int fullLength, byte[] dummyData)
+        int fullLength, byte[] dummyData)
         {
             /*
              * Actual MAC only calculated on 'length' bytes...

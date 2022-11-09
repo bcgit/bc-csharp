@@ -1,14 +1,13 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-internal class PointProj
-{
-    internal PointProj(uint nwords_field)
+    internal sealed class PointProj
     {
-        X = Utils.InitArray(2, nwords_field);
-        Z = Utils.InitArray(2, nwords_field);
+        internal PointProj(uint nwords_field)
+        {
+            X = SikeUtilities.InitArray(2, nwords_field);
+            Z = SikeUtilities.InitArray(2, nwords_field);
+        }
+        internal ulong[][] X;
+        internal ulong[][] Z;
     }
-    public ulong[][] X;
-    public ulong[][] Z;
-}
-
 }

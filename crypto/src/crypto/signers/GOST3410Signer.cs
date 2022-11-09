@@ -21,22 +21,18 @@ namespace Org.BouncyCastle.Crypto.Signers
 			get { return "GOST3410"; }
 		}
 
-        public virtual void Init(
-			bool				forSigning,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
 		{
 			if (forSigning)
 			{
-				if (parameters is ParametersWithRandom)
+				if (parameters is ParametersWithRandom rParam)
 				{
-					ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
 					this.random = rParam.Random;
 					parameters = rParam.Parameters;
 				}
 				else
 				{
-					this.random = new SecureRandom();
+					this.random = CryptoServicesRegistrar.GetSecureRandom();
 				}
 
 				if (!(parameters is Gost3410PrivateKeyParameters))

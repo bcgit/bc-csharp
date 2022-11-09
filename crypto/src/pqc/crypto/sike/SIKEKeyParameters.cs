@@ -1,25 +1,21 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class SIKEKeyParameters
-    : AsymmetricKeyParameter
-{
-    private SIKEParameters param;
-
-    public SIKEKeyParameters(
-            bool isPrivate,
-            SIKEParameters param
-    )
-    	:base(isPrivate)
+    [Obsolete("Will be removed")]
+    public abstract class SikeKeyParameters
+        : AsymmetricKeyParameter
     {
-        this.param = param;
-    }
+        private readonly SikeParameters m_parameters;
 
-    public SIKEParameters GetParameters()
-    {
-        return param;
-    }
-}
+        public SikeKeyParameters(bool isPrivate, SikeParameters param)
+            : base(isPrivate)
+        {
+            this.m_parameters = param;
+        }
 
+        public SikeParameters Parameters => m_parameters;
+    }
 }

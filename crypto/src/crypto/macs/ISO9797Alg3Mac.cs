@@ -13,7 +13,8 @@ namespace Org.BouncyCastle.Crypto.Macs
 	* This could as well be derived from CBCBlockCipherMac, but then the property mac in the base
 	* class must be changed to protected
 	*/
-	public class ISO9797Alg3Mac : IMac
+	public class ISO9797Alg3Mac
+		: IMac
 	{
 		private byte[] mac;
 		private byte[] buf;
@@ -343,9 +344,6 @@ namespace Org.BouncyCastle.Crypto.Macs
 		{
 			Array.Clear(buf, 0, buf.Length);
 			bufOff = 0;
-
-			// reset the underlying cipher.
-			cipher.Reset();
 		}
 	}
 }

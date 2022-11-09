@@ -96,8 +96,25 @@ namespace Org.BouncyCastle.Math.EC
 
         public virtual byte[] GetEncoded()
         {
-            return BigIntegers.AsUnsignedByteArray((FieldSize + 7) / 8, ToBigInteger());
+            return BigIntegers.AsUnsignedByteArray(GetEncodedLength(), ToBigInteger());
         }
+
+        public virtual int GetEncodedLength()
+        {
+            return (FieldSize + 7) / 8;
+        }
+
+        public virtual void EncodeTo(byte[] buf, int off)
+        {
+            BigIntegers.AsUnsignedByteArray(ToBigInteger(), buf, off, GetEncodedLength());
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void EncodeTo(Span<byte> buf)
+        {
+            BigIntegers.AsUnsignedByteArray(ToBigInteger(), buf[..GetEncodedLength()]);
+        }
+#endif
     }
 
     public abstract class AbstractFpFieldElement
@@ -768,9 +785,9 @@ namespace Org.BouncyCastle.Math.EC
             LongArray ab = ax.Multiply(bx, m, ks);
             LongArray xy = xx.Multiply(yx, m, ks);
 
-            if (ab == ax || ab == bx)
+            if (LongArray.AreAliased(ref ab, ref ax) || LongArray.AreAliased(ref ab, ref bx))
             {
-                ab = (LongArray)ab.Copy();
+                ab = ab.Copy();
             }
 
             ab.AddShiftedByWords(xy, 0);
@@ -810,9 +827,9 @@ namespace Org.BouncyCastle.Math.EC
             LongArray aa = ax.Square(m, ks);
             LongArray xy = xx.Multiply(yx, m, ks);
 
-            if (aa == ax)
+            if (LongArray.AreAliased(ref aa, ref ax))
             {
-                aa = (LongArray)aa.Copy();
+                aa = aa.Copy();
             }
 
             aa.AddShiftedByWords(xy, 0);

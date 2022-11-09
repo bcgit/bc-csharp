@@ -1,54 +1,48 @@
 using System;
 using System.IO;
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMOtsSignature
+    public sealed class LMOtsSignature
         : IEncodable
     {
-        private LMOtsParameters ParamType;
-        private byte[] C;
-        private byte[] y;
+        private readonly LMOtsParameters m_paramType;
+        private readonly byte[] m_C;
+        private readonly byte[] m_y;
 
-        public LMOtsSignature(LMOtsParameters ParamType, byte[] c, byte[] y)
+        public LMOtsSignature(LMOtsParameters paramType, byte[] c, byte[] y)
         {
-            this.ParamType = ParamType;
-            C = c;
-            this.y = y;
+            m_paramType = paramType;
+            m_C = c;
+            m_y = y;
         }
 
-        public static LMOtsSignature GetInstance(Object src)
+        public static LMOtsSignature GetInstance(object src)
         {
-            if (src is LMOtsSignature)
+            if (src is LMOtsSignature lmOtsSignature)
             {
-                return (LMOtsSignature)src;
+                return lmOtsSignature;
             }
-            //TODO replace inputstreams with something
-            
-            else if (src is BinaryReader)
+            else if (src is BinaryReader binaryReader)
             {
-                byte[] data = ((BinaryReader) src).ReadBytes(4);
-                Array.Reverse(data);
-                int index = BitConverter.ToInt32(data, 0);
-                LMOtsParameters type = LMOtsParameters.GetParametersForType(index);
-                byte[] C = new byte[type.GetN()];
-            
-                ((BinaryReader)src).Read(C, 0, C.Length);
-            
-                byte[] sig = new byte[type.GetP()*type.GetN()];
-                ((BinaryReader)src).Read(sig, 0, sig.Length);
-            
-            
-                return new LMOtsSignature(type, C, sig);
+                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+                LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
+
+                byte[] C = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+
+                byte[] sig = BinaryReaders.ReadBytesFully(binaryReader, parameter.P * parameter.N);
+
+                return new LMOtsSignature(parameter, C, sig);
             }
-            else if (src is byte[])
+            else if (src is byte[] bytes)
             {
                 BinaryReader input = null;
                 try // 1.5 / 1.4 compatibility
                 {
-                    input = new BinaryReader(new MemoryStream((byte[])src, false));
+                    input = new BinaryReader(new MemoryStream(bytes, false));
                     return GetInstance(input);
                 }
                 finally
@@ -56,65 +50,47 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (input != null) input.Close();
                 }
             }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream)src));
+                return GetInstance(Streams.ReadAll(memoryStream));
             }
             throw new Exception ($"cannot parse {src}");
         }
-        public LMOtsParameters GetParamType()
-        {
-            return ParamType;
-        }
 
-        public byte[] GetC()
-        {
-            return C;
-        }
+        public LMOtsParameters ParamType => m_paramType;
 
-        public byte[] GetY()
-        {
-            return y;
-        }
+        // FIXME
+        public byte[] C => m_C;
 
-        public override bool Equals(object o)
+        // FIXME
+        public byte[] Y => m_y;
+
+        public override bool Equals(object obj)
         {
-            if (this == o)
-            {
+            if (this == obj)
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
+            if (!(obj is LMOtsSignature that))
                 return false;
-            }
 
-            LMOtsSignature that = (LMOtsSignature)o;
-
-            if (ParamType != null ? !ParamType.Equals(that.ParamType) : that.ParamType != null)
-            {
-                return false;
-            }
-            if (!Arrays.AreEqual(C, that.C))
-            {
-                return false;
-            }
-            return Arrays.AreEqual(y, that.y);
+            return Objects.Equals(m_paramType, that.m_paramType)
+                && Arrays.AreEqual(m_C, that.m_C)
+                && Arrays.AreEqual(m_y, that.m_y);
         }
 
         public override int GetHashCode()
         {
-            int result = ParamType != null ? ParamType.GetHashCode() : 0;
-            result = 31 * result + Arrays.GetHashCode(C);
-            result = 31 * result + Arrays.GetHashCode(y);
+            int result = Objects.GetHashCode(m_paramType);
+            result = 31 * result + Arrays.GetHashCode(m_C);
+            result = 31 * result + Arrays.GetHashCode(m_y);
             return result;
         }
 
         public byte[] GetEncoded()
         {
             return Composer.Compose()
-                .U32Str(ParamType.GetType())
-                .Bytes(C)
-                .Bytes(y)
+                .U32Str(m_paramType.ID)
+                .Bytes(m_C)
+                .Bytes(m_y)
                 .Build();
         }
     }

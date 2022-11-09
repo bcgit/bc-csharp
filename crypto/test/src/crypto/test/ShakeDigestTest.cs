@@ -26,9 +26,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
             }
 
-            internal int MyDoFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
+            internal int MyOutputFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
             {
-                return DoFinal(output, outOff, outLen, partialByte, partialBits);
+                return OutputFinal(output, outOff, outLen, partialByte, partialBits);
             }
         }
 
@@ -187,12 +187,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             if (partialBits == 0)
             {
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoFinal(output, 0, outLen);
+                d.OutputFinal(output, 0, outLen);
             }
             else
             {
                 d.BlockUpdate(m, 0, m.Length - 1);
-                d.MyDoFinal(output, 0, outLen, m[m.Length - 1], partialBits);
+                d.MyOutputFinal(output, 0, outLen, m[m.Length - 1], partialBits);
             }
 
             if (!Arrays.AreEqual(expected, output))
@@ -209,8 +209,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 m = v.Message;
 
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoOutput(output, 0, outLen / 2);
-                d.DoOutput(output, outLen / 2, output.Length - outLen / 2);
+                d.Output(output, 0, outLen / 2);
+                d.Output(output, outLen / 2, output.Length - outLen / 2);
 
                 if (!Arrays.AreEqual(expected, output))
                 {
@@ -235,8 +235,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 m = v.Message;
 
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoOutput(output, 0, outLen / 2);
-                d.DoFinal(output, outLen / 2, output.Length - outLen / 2);
+                d.Output(output, 0, outLen / 2);
+                d.OutputFinal(output, outLen / 2, output.Length - outLen / 2);
 
                 if (!Arrays.AreEqual(expected, output))
                 {

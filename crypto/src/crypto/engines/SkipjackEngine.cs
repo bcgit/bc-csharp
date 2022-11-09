@@ -8,12 +8,12 @@ namespace Org.BouncyCastle.Crypto.Engines
     /**
     * a class that provides a basic SKIPJACK engine.
     */
-    public class SkipjackEngine
+    public sealed class SkipjackEngine
 		: IBlockCipher
     {
-        const int BLOCK_SIZE = 8;
+        private const int BLOCK_SIZE = 8;
 
-        static readonly short [] ftable =
+        private static readonly short[] ftable =
         {
             0xa3, 0xd7, 0x09, 0x83, 0xf8, 0x48, 0xf6, 0xf4, 0xb3, 0x21, 0x15, 0x78, 0x99, 0xb1, 0xaf, 0xf9,
             0xe7, 0x2d, 0x4d, 0x8a, 0xce, 0x4c, 0xca, 0x2e, 0x52, 0x95, 0xd9, 0x1e, 0x4e, 0x38, 0x44, 0x28,
@@ -44,14 +44,12 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (!(parameters is KeyParameter))
+            if (!(parameters is KeyParameter keyParameter))
 	            throw new ArgumentException("invalid parameter passed to SKIPJACK init - " + Platform.GetTypeName(parameters));
 
-			byte[] keyBytes = ((KeyParameter)parameters).GetKey();
+			byte[] keyBytes = keyParameter.GetKey();
 
             this.encrypting = forEncryption;
             this.key0 = new int[32];
@@ -63,31 +61,26 @@ namespace Org.BouncyCastle.Crypto.Engines
             // expand the key to 128 bytes in 4 parts (saving us a modulo, multiply
             // and an addition).
             //
-            for (int i = 0; i < 32; i ++)
+            for (int i = 0; i < 32; i++)
             {
-                key0[i] = keyBytes[(i * 4) % 10] & 0xff;
-                key1[i] = keyBytes[(i * 4 + 1) % 10] & 0xff;
-                key2[i] = keyBytes[(i * 4 + 2) % 10] & 0xff;
-                key3[i] = keyBytes[(i * 4 + 3) % 10] & 0xff;
+                key0[i] = keyBytes[(i * 4 + 0) % 10];
+                key1[i] = keyBytes[(i * 4 + 1) % 10];
+                key2[i] = keyBytes[(i * 4 + 2) % 10];
+                key3[i] = keyBytes[(i * 4 + 3) % 10];
             }
         }
 
-        public virtual string AlgorithmName
+        public string AlgorithmName
         {
             get { return "SKIPJACK"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
-        public virtual int GetBlockSize()
+        public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
+        public int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
         {
             if (key1 == null)
                 throw new InvalidOperationException("SKIPJACK engine not initialised");
@@ -119,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (key1 == null)
                 throw new InvalidOperationException("SKIPJACK engine not initialised");
@@ -139,10 +132,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         /**
         * The G permutation
@@ -165,7 +154,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        private int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int w1 = (input[0] << 8) + (input[1] & 0xff);
             int w2 = (input[2] << 8) + (input[3] & 0xff);
@@ -209,7 +198,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        public virtual int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        private int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int w2 = (input[0] << 8) + (input[1] & 0xff);
             int w1 = (input[2] << 8) + (input[3] & 0xff);
@@ -254,7 +243,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #else
-        public virtual int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
+        private int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             int w1 = (input[inOff + 0] << 8) + (input[inOff + 1] & 0xff);
             int w2 = (input[inOff + 2] << 8) + (input[inOff + 3] & 0xff);
@@ -298,7 +287,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        public virtual int DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
+        private int DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             int w2 = (input[inOff + 0] << 8) + (input[inOff + 1] & 0xff);
             int w1 = (input[inOff + 2] << 8) + (input[inOff + 3] & 0xff);

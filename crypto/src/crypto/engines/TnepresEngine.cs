@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param key  The user-key bytes (multiples of 4) to use.
         * @exception ArgumentException
         */
-        protected override int[] MakeWorkingKey(byte[] key)
+        internal override int[] MakeWorkingKey(byte[] key)
         {
             //
             // pad key to 256 bits
@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        protected override void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        internal override void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             X3 = (int)Pack.BE_To_UInt32(input);
             X2 = (int)Pack.BE_To_UInt32(input[4..]);
@@ -204,7 +204,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE((uint)(wKey[128] ^ X0), output[12..]);
         }
 
-        protected override void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        internal override void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             X3 = wKey[131] ^ (int)Pack.BE_To_UInt32(input);
             X2 = wKey[130] ^ (int)Pack.BE_To_UInt32(input[4..]);
@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE((uint)(X0 ^ wKey[0]), output[12..]);
         }
 #else
-        protected override void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff)
+        internal override void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             X3 = (int)Pack.BE_To_UInt32(input, inOff);
             X2 = (int)Pack.BE_To_UInt32(input, inOff + 4);
@@ -327,7 +327,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE((uint)(wKey[128] ^ X0), output, outOff + 12);
         }
 
-        protected override void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff)
+        internal override void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             X3 = wKey[131] ^ (int)Pack.BE_To_UInt32(input, inOff);
             X2 = wKey[130] ^ (int)Pack.BE_To_UInt32(input, inOff + 4);

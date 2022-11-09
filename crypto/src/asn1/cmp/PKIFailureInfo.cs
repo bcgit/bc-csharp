@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * certRevoked         (10),
      * certConfirmed       (11),
      * wrongIntegrity      (12),
-     * badRecipientNonce   (13), 
+     * badRecipientNonce   (13),
      * timeNotAvailable    (14),
      *   -- the TSA's time source is not available
      * unacceptedPolicy    (15),
@@ -37,13 +37,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * transactionIdInUse  (21),
      * unsupportedVersion  (22),
      * notAuthorized       (23),
-     * systemUnavail       (24),    
+     * systemUnavail       (24),
      * systemFailure       (25),
      *   -- the request cannot be handled due to system failure
-     * duplicateCertReq    (26) 
+     * duplicateCertReq    (26)
      * </pre>
      */
-	public class PkiFailureInfo
+    public class PkiFailureInfo
 		: DerBitString
 	{
         public const int BadAlg               = (1 << 7); // unrecognized or unsupported Algorithm Identifier

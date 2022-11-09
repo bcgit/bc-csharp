@@ -15,6 +15,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -128,12 +129,10 @@ namespace Org.BouncyCastle.Cms
             m_algorithms["GOST3411WITHGOST3410-2001"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
             m_algorithms["GOST3411WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
             m_algorithms["GOST3411WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            m_algorithms["GOST3411WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            m_algorithms["GOST3411WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
+            m_algorithms["GOST3411-2012-256WITHECGOST3410"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
             m_algorithms["GOST3411-2012-256WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
+            m_algorithms["GOST3411-2012-512WITHECGOST3410"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
             m_algorithms["GOST3411-2012-512WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            m_algorithms["GOST3411-2012-256WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            m_algorithms["GOST3411-2012-512WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
             m_algorithms["SHA1WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA1;
             m_algorithms["SHA224WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA224;
             m_algorithms["SHA256WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA256;
@@ -481,7 +480,7 @@ namespace Org.BouncyCastle.Cms
         }
     }
 
-    public class CmsSignedGenerator
+    public abstract class CmsSignedGenerator
     {
         /**
         * Default type for the signed data.
@@ -507,6 +506,8 @@ namespace Org.BouncyCastle.Cms
         public static readonly string EncryptionRsaPss = PkcsObjectIdentifiers.IdRsassaPss.Id;
         public static readonly string EncryptionGost3410 = CryptoProObjectIdentifiers.GostR3410x94.Id;
         public static readonly string EncryptionECGost3410 = CryptoProObjectIdentifiers.GostR3410x2001.Id;
+        public static readonly string EncryptionECGost3410_2012_256 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256.Id;
+        public static readonly string EncryptionECGost3410_2012_512 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512.Id;
 
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
@@ -516,19 +517,21 @@ namespace Org.BouncyCastle.Cms
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
-        protected readonly SecureRandom rand;
+        protected readonly SecureRandom m_random;
 
         protected CmsSignedGenerator()
-            : this(new SecureRandom())
+            : this(CryptoServicesRegistrar.GetSecureRandom())
         {
         }
 
         /// <summary>Constructor allowing specific source of randomness</summary>
-        /// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-        protected CmsSignedGenerator(
-            SecureRandom rand)
+        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        protected CmsSignedGenerator(SecureRandom random)
         {
-            this.rand = rand;
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            m_random = random;
         }
 
         internal protected virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
@@ -583,6 +586,23 @@ namespace Org.BouncyCastle.Cms
         public void AddCrls(IStore<X509Crl> crlStore)
         {
             _crls.AddRange(CmsUtilities.GetCrlsFromStore(crlStore));
+        }
+
+        public void AddOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
+        {
+            CmsUtilities.ValidateOtherRevocationInfo(otherRevocationInfo);
+            _crls.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
+        }
+
+        public void AddOtherRevocationInfos(IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
+        {
+            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfoStore));
+        }
+
+        public void AddOtherRevocationInfos(DerObjectIdentifier otherRevInfoFormat,
+            IStore<Asn1Encodable> otherRevInfoStore)
+        {
+            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevInfoStore, otherRevInfoFormat));
         }
 
         /**

@@ -43,6 +43,11 @@ namespace Org.BouncyCastle.Tls.Crypto
         TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+            int headerAllocation, ReadOnlySpan<byte> plaintext);
+#endif
+
         /// <summary>Decode the passed in ciphertext using the current bulk cipher.</summary>
         /// <param name="seqNo">sequence number of the message represented by ciphertext.</param>
         /// <param name="recordType">content type used in the record for this message.</param>

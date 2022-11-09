@@ -9,7 +9,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
@@ -28,8 +27,8 @@ namespace Org.BouncyCastle.Ocsp
 		{
 			internal CertificateID         certId;
 			internal CertStatus            certStatus;
-			internal DerGeneralizedTime    thisUpdate;
-			internal DerGeneralizedTime    nextUpdate;
+			internal Asn1GeneralizedTime   thisUpdate;
+			internal Asn1GeneralizedTime   nextUpdate;
 			internal X509Extensions        extensions;
 
 			internal ResponseObject(
@@ -57,7 +56,7 @@ namespace Org.BouncyCastle.Ocsp
 						:	null;
 
 					this.certStatus = new CertStatus(
-						new RevokedInfo(new DerGeneralizedTime(rs.RevocationTime), revocationReason));
+						new RevokedInfo(new Asn1GeneralizedTime(rs.RevocationTime), revocationReason));
 				}
 
 				this.thisUpdate = new DerGeneralizedTime(thisUpdate);
@@ -187,19 +186,19 @@ namespace Org.BouncyCastle.Ocsp
 				}
 			}
 
-			ResponseData tbsResp = new ResponseData(responderID.ToAsn1Object(), new DerGeneralizedTime(producedAt),
+			ResponseData tbsResp = new ResponseData(responderID.ToAsn1Object(), new Asn1GeneralizedTime(producedAt),
 				new DerSequence(responses), responseExtensions);
 			DerBitString bitSig;
 
 			try
 			{
-                IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+                IStreamCalculator<IBlockResult> streamCalculator = signatureCalculator.CreateCalculator();
 				using (Stream sigStream = streamCalculator.Stream)
 				{
 					tbsResp.EncodeTo(sigStream, Asn1Encodable.Der);
 				}
 
-				bitSig = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
+				bitSig = new DerBitString(streamCalculator.GetResult().Collect());
 			}
 			catch (Exception e)
 			{

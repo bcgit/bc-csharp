@@ -292,6 +292,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                     AddRoundKey(roundsAmount);
                     Pack.UInt64_To_LE(internalState, output, outOff);
+                    Array.Clear(internalState, 0, internalState.Length);
                     break;
                 }
                 }
@@ -327,6 +328,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                     SubRoundKey(0);
                     Pack.UInt64_To_LE(internalState, output, outOff);
+                    Array.Clear(internalState, 0, internalState.Length);
                     break;
                 }
                 }
@@ -371,6 +373,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                     AddRoundKey(roundsAmount);
                     Pack.UInt64_To_LE(internalState, output);
+                    Array.Clear(internalState, 0, internalState.Length);
                     break;
                 }
                 }
@@ -402,6 +405,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                     SubRoundKey(0);
                     Pack.UInt64_To_LE(internalState, output);
+                    Array.Clear(internalState, 0, internalState.Length);
                     break;
                 }
                 }
@@ -1279,16 +1283,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual int GetBlockSize()
         {
             return wordsInBlock << 3;
-        }
-
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
-        }
-
-        public virtual void Reset()
-        {
-            Array.Clear(internalState, 0, internalState.Length);
         }
     }
 }

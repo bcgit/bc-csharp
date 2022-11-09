@@ -1,6 +1,9 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
@@ -10,8 +13,63 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
      * Haraka512-256 with reference to Python Reference Impl from: https://github.com/sphincs/sphincsplus
      * </p>
      */
-    internal class HarakaSBase
+    internal abstract class HarakaSBase
     {
+        private static readonly byte[] RC0  = Hex.DecodeStrict("0684704ce620c00ab2c5fef075817b9d");
+        private static readonly byte[] RC1  = Hex.DecodeStrict("8b66b4e188f3a06b640f6ba42f08f717");
+        private static readonly byte[] RC2  = Hex.DecodeStrict("3402de2d53f28498cf029d609f029114");
+        private static readonly byte[] RC3  = Hex.DecodeStrict("0ed6eae62e7b4f08bbf3bcaffd5b4f79");
+        private static readonly byte[] RC4  = Hex.DecodeStrict("cbcfb0cb4872448b79eecd1cbe397044");
+        private static readonly byte[] RC5  = Hex.DecodeStrict("7eeacdee6e9032b78d5335ed2b8a057b");
+        private static readonly byte[] RC6  = Hex.DecodeStrict("67c28f435e2e7cd0e2412761da4fef1b");
+        private static readonly byte[] RC7  = Hex.DecodeStrict("2924d9b0afcacc07675ffde21fc70b3b");
+        private static readonly byte[] RC8  = Hex.DecodeStrict("ab4d63f1e6867fe9ecdb8fcab9d465ee");
+        private static readonly byte[] RC9  = Hex.DecodeStrict("1c30bf84d4b7cd645b2a404fad037e33");
+        private static readonly byte[] RC10 = Hex.DecodeStrict("b2cc0bb9941723bf69028b2e8df69800");
+        private static readonly byte[] RC11 = Hex.DecodeStrict("fa0478a6de6f55724aaa9ec85c9d2d8a");
+        private static readonly byte[] RC12 = Hex.DecodeStrict("dfb49f2b6b772a120efa4f2e29129fd4");
+        private static readonly byte[] RC13 = Hex.DecodeStrict("1ea10344f449a23632d611aebb6a12ee");
+        private static readonly byte[] RC14 = Hex.DecodeStrict("af0449884b0500845f9600c99ca8eca6");
+        private static readonly byte[] RC15 = Hex.DecodeStrict("21025ed89d199c4f78a2c7e327e593ec");
+        private static readonly byte[] RC16 = Hex.DecodeStrict("bf3aaaf8a759c9b7b9282ecd82d40173");
+        private static readonly byte[] RC17 = Hex.DecodeStrict("6260700d6186b01737f2efd910307d6b");
+        private static readonly byte[] RC18 = Hex.DecodeStrict("5aca45c22130044381c29153f6fc9ac6");
+        private static readonly byte[] RC19 = Hex.DecodeStrict("9223973c226b68bb2caf92e836d1943a");
+        private static readonly byte[] RC20 = Hex.DecodeStrict("d3bf9238225886eb6cbab958e51071b4");
+        private static readonly byte[] RC21 = Hex.DecodeStrict("db863ce5aef0c677933dfddd24e1128d");
+        private static readonly byte[] RC22 = Hex.DecodeStrict("bb606268ffeba09c83e48de3cb2212b1");
+        private static readonly byte[] RC23 = Hex.DecodeStrict("734bd3dce2e4d19c2db91a4ec72bf77d");
+        private static readonly byte[] RC24 = Hex.DecodeStrict("43bb47c361301b434b1415c42cb3924e");
+        private static readonly byte[] RC25 = Hex.DecodeStrict("dba775a8e707eff603b231dd16eb6899");
+        private static readonly byte[] RC26 = Hex.DecodeStrict("6df3614b3c7559778e5e23027eca472c");
+        private static readonly byte[] RC27 = Hex.DecodeStrict("cda75a17d6de7d776d1be5b9b88617f9");
+        private static readonly byte[] RC28 = Hex.DecodeStrict("ec6b43f06ba8e9aa9d6c069da946ee5d");
+        private static readonly byte[] RC29 = Hex.DecodeStrict("cb1e6950f957332ba25311593bf327c1");
+        private static readonly byte[] RC30 = Hex.DecodeStrict("2cee0c7500da619ce4ed0353600ed0d9");
+        private static readonly byte[] RC31 = Hex.DecodeStrict("f0b1a5a196e90cab80bbbabc63a4a350");
+        private static readonly byte[] RC32 = Hex.DecodeStrict("ae3db1025e962988ab0dde30938dca39");
+        private static readonly byte[] RC33 = Hex.DecodeStrict("17bb8f38d554a40b8814f3a82e75b442");
+        private static readonly byte[] RC34 = Hex.DecodeStrict("34bb8a5b5f427fd7aeb6b779360a16f6");
+        private static readonly byte[] RC35 = Hex.DecodeStrict("26f65241cbe5543843ce5918ffbaafde");
+        private static readonly byte[] RC36 = Hex.DecodeStrict("4ce99a54b9f3026aa2ca9cf7839ec978");
+        private static readonly byte[] RC37 = Hex.DecodeStrict("ae51a51a1bdff7be40c06e2822901235");
+        private static readonly byte[] RC38 = Hex.DecodeStrict("a0c1613cba7ed22bc173bc0f48a659cf");
+        private static readonly byte[] RC39 = Hex.DecodeStrict("756acc03022882884ad6bdfde9c59da1");
+
+        private static readonly byte[][] RoundConstants =
+        {
+            RC0 , RC1 , RC2 , RC3 ,
+            RC4 , RC5 , RC6 , RC7 ,
+            RC8 , RC9 , RC10, RC11,
+            RC12, RC13, RC14, RC15,
+            RC16, RC17, RC18, RC19,
+            RC20, RC21, RC22, RC23,
+            RC24, RC25, RC26, RC27,
+            RC28, RC29, RC30, RC31,
+            RC32, RC33, RC34, RC35,
+            RC36, RC37, RC38, RC39,
+        };
+
         internal ulong[][] haraka512_rc = new ulong[][]{
             new ulong[]{0x24cf0ab9086f628bL, 0xbdd6eeecc83b8382L, 0xd96fb0306cdad0a7L, 0xaace082ac8f95f89L, 0x449d8e8870d7041fL, 0x49bb2f80b2b3e2f8L, 0x0569ae98d93bb258L, 0x23dc9691e7d6a4b1L},
             new ulong[]{0xd8ba10ede0fe5b6eL, 0x7ecf7dbe424c7b8eL, 0x6ea9949c6df62a31L, 0xbf3f3c97ec9c313eL, 0x241d03a196a1861eL, 0xead3a51116e5a2eaL, 0x77d479fcad9574e3L, 0x18657a1af894b7a0L},
@@ -34,6 +92,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             this.buffer = new byte[64];
             off = 0;
+
+            byte[] buf = new byte[640];
+            byte[] tmp = new byte[16];
+            for (int rc = 0; rc < 40; ++rc)
+            {
+                Arrays.Reverse(RoundConstants[rc]).CopyTo(buf, rc << 4);
+            }
+            for (int round = 0; round < 10; ++round)
+            {
+                InterleaveConstant(haraka512_rc[round], buf, round << 6);
+                //for (int j = 0; j < 8; ++j)
+                //{
+                //    Console.Write(haraka512_rc[round][j].ToString("X") + ", ");
+                //}
+                //Console.WriteLine();
+            }
+            //Console.WriteLine("-----");
         }
 
         protected void Reset()
@@ -42,20 +117,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             Arrays.Clear(buffer);
         }
 
-        private void BrRangeDec32Le(byte[] input, uint[] output, int inputPos)
-        {
-            int tmp;
-            for (int i = 0; i < output.Length; ++i)
-            {
-                tmp = inputPos + (i << 2);
-                output[i] = (uint)(input[tmp] & 0xFF) | (uint)((input[tmp + 1] << 8) & 0xFF00) | (uint)((input[tmp + 2] << 16) & 0xFF0000) | (uint)(input[tmp + 3] << 24);
-            }
-        }
-
-        protected void InterleaveConstant(ulong[] output, byte[] input, int startPos)
+        protected static void InterleaveConstant(ulong[] output, byte[] input, int startPos)
         {
             uint[] tmp_32_constant = new uint[16];
-            BrRangeDec32Le(input, tmp_32_constant, startPos);
+            Pack.LE_To_UInt32(input, startPos, tmp_32_constant);
             for (int i = 0; i < 4; ++i)
             {
                 BrAesCt64InterleaveIn(output, i, tmp_32_constant, i << 2);
@@ -63,124 +128,108 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             BrAesCt64Ortho(output);
         }
 
-        protected void InterleaveConstant32(uint[] output, byte[] input, int startPos)
+        protected static void InterleaveConstant32(uint[] output, byte[] input, int startPos)
         {
             for (int i = 0; i < 4; ++i)
             {
-                output[i << 1] = BrDec32Le(input, startPos + (i << 2));
-                output[(i << 1) + 1] = BrDec32Le(input, startPos + (i << 2) + 16);
+                output[i << 1] = Pack.LE_To_UInt32(input, startPos + (i << 2));
+                output[(i << 1) + 1] = Pack.LE_To_UInt32(input, startPos + (i << 2) + 16);
             }
             BrAesCtOrtho(output);
         }
 
-        private uint BrDec32Le(byte[] input, int startPos)
-        {
-            return (uint)(input[startPos] & 0xFF) | (uint)((input[startPos + 1] << 8) & 0xFF00)
-                | (((uint)input[startPos + 2] << 16) & 0xFF0000) | ((uint)input[startPos + 3] << 24);
-        }
-
-        protected void Haraka512Perm(byte[] output)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void Haraka512Perm(Span<byte> output)
+#else
+        internal void Haraka512Perm(byte[] output)
+#endif
         {
             uint[] w = new uint[16];
             ulong[] q = new ulong[8];
-            ulong tmp_q;
-            int i, j;
-            BrRangeDec32Le(buffer, w, 0);
-            for (i = 0; i < 4; ++i)
+            Pack.LE_To_UInt32(buffer, 0, w);
+            for (int i = 0; i < 4; ++i)
             {
                 BrAesCt64InterleaveIn(q, i, w, i << 2);
             }
             BrAesCt64Ortho(q);
-            for (i = 0; i < 5; ++i)
+            for (int i = 0; i < 5; ++i)
             {
-                for (j = 0; j < 2; ++j)
+                for (int j = 0; j < 2; ++j)
                 {
                     BrAesCt64BitsliceSbox(q);
                     ShiftRows(q);
                     MixColumns(q);
                     AddRoundKey(q, haraka512_rc[(i << 1) + j]);
                 }
-                for (j = 0; j < 8; j++)
+                for (int j = 0; j < 8; j++)
                 {
-                    tmp_q = q[j];
-                    q[j] = (tmp_q & 0x0001000100010001L) << 5 |
-                        (tmp_q & 0x0002000200020002L) << 12 |
-                        (tmp_q & 0x0004000400040004L) >> 1 |
-                        (tmp_q & 0x0008000800080008L) << 6 |
-                        (tmp_q & 0x0020002000200020L) << 9 |
-                        (tmp_q & 0x0040004000400040L) >> 4 |
-                        (tmp_q & 0x0080008000800080L) << 3 |
-                        (tmp_q & 0x2100210021002100L) >> 5 |
-                        (tmp_q & 0x0210021002100210L) << 2 |
-                        (tmp_q & 0x0800080008000800L) << 4 |
-                        (tmp_q & 0x1000100010001000L) >> 12 |
-                        (tmp_q & 0x4000400040004000L) >> 10 |
-                        (tmp_q & 0x8400840084008400L) >> 3;
+                    ulong t = q[j];
+                    q[j] = (t & 0x0001_0001_0001_0001L) <<  5 |
+                           (t & 0x0002_0002_0002_0002L) << 12 |
+                           (t & 0x0004_0004_0004_0004L) >>  1 |
+                           (t & 0x0008_0008_0008_0008L) <<  6 |
+                           (t & 0x0020_0020_0020_0020L) <<  9 |
+                           (t & 0x0040_0040_0040_0040L) >>  4 |
+                           (t & 0x0080_0080_0080_0080L) <<  3 |
+                           (t & 0x2100_2100_2100_2100L) >>  5 |
+                           (t & 0x0210_0210_0210_0210L) <<  2 |
+                           (t & 0x0800_0800_0800_0800L) <<  4 |
+                           (t & 0x1000_1000_1000_1000L) >> 12 |
+                           (t & 0x4000_4000_4000_4000L) >> 10 |
+                           (t & 0x8400_8400_8400_8400L) >>  3;
                 }
             }
             BrAesCt64Ortho(q);
-            for (i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 BrAesCt64InterleaveOut(w, q, i);
             }
-            for (i = 0; i < 16; ++i)
+            for (int i = 0; i < 16; ++i)
             {
-                for (j = 0; j < 4; ++j)
+                for (int j = 0; j < 4; ++j)
                 {
-                    output[(i << 2) + j] = (byte)((w[i] >> (j << 3)) & 0xFF);
+                    output[(i << 2) + j] = (byte)(w[i] >> (j << 3));
                 }
             }
         }
 
-        protected void Haraka256Perm(byte[] output)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void Haraka256Perm(Span<byte> output)
+#else
+        internal void Haraka256Perm(byte[] output)
+#endif
         {
             uint[] q = new uint[8];
-            int i, j;
-            uint tmp_q;
             InterleaveConstant32(q, buffer, 0);
-            for (i = 0; i < 5; ++i)
+            for (int i = 0; i < 5; ++i)
             {
-                for (j = 0; j < 2; ++j)
+                for (int j = 0; j < 2; ++j)
                 {
                     BrAesCtBitsliceSbox(q);
                     ShiftRows32(q);
                     MixColumns32(q);
                     AddRoundKey32(q, haraka256_rc[(i << 1) + j]);
                 }
-                for (j = 0; j < 8; j++)
+                for (int j = 0; j < 8; j++)
                 {
-                    tmp_q = q[j];
-                    q[j] = (tmp_q & 0x81818181) |
-                        (tmp_q & 0x02020202) << 1 |
-                        (tmp_q & 0x04040404) << 2 |
-                        (tmp_q & 0x08080808) << 3 |
-                        (tmp_q & 0x10101010) >> 3 |
-                        (tmp_q & 0x20202020) >> 2 |
-                        (tmp_q & 0x40404040) >> 1;
+                    uint t = Bits.BitPermuteStep(q[j], 0x0C_0C_0C_0CU, 2);
+                    q[j]   = Bits.BitPermuteStep(t   , 0x22_22_22_22U, 1);
                 }
             }
             BrAesCtOrtho(q);
-            for (i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
-                BrEnc32Le(output, q[i << 1], i << 2);
-                BrEnc32Le(output, q[(i << 1) + 1], (i << 2) + 16);
-            }
-
-            for (i = 0; i < 32; i++)
-            {
-                output[i] ^= buffer[i];
-            }
-        }
-
-        private void BrEnc32Le(byte[] dst, uint x, int startPos)
-        {
-            for (int i = 0; i < 4; ++i)
-            {
-                dst[startPos + i] = (byte)(x >> (i << 3));
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Pack.UInt32_To_LE(q[i << 1], output[(i << 2)..]);
+                Pack.UInt32_To_LE(q[(i << 1) + 1], output[((i << 2) + 16)..]);
+#else
+                Pack.UInt32_To_LE(q[i << 1], output, i << 2);
+                Pack.UInt32_To_LE(q[(i << 1) + 1], output, (i << 2) + 16);
+#endif
             }
         }
 
-        private void BrAesCt64InterleaveIn(ulong[] q, int qPos, uint[] w, int startPos)
+        private static void BrAesCt64InterleaveIn(ulong[] q, int qPos, uint[] w, int startPos)
         {
             ulong x0, x1, x2, x3;
             x0 = (ulong)w[startPos] & 0x00000000FFFFFFFFL;
@@ -382,52 +431,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             q[0] = s7;
         }
 
-        private void ShiftRows32(uint[] q)
+        private static void ShiftRows32(uint[] q)
         {
-            uint x;
             for (int i = 0; i < 8; i++)
             {
-                x = q[i];
-                q[i] = (x & 0x000000FF)
-                    | ((x & 0x0000FC00) >> 2) | ((x & 0x00000300) << 6)
-                    | ((x & 0x00F00000) >> 4) | ((x & 0x000F0000) << 4)
-                    | ((x & 0xC0000000) >> 6) | ((x & 0x3F000000) << 2);
+                uint t = Bits.BitPermuteStep(q[i], 0x0C_0F_03_00U, 4);
+                q[i]   = Bits.BitPermuteStep(t   , 0x33_00_33_00U, 2);
             }
         }
 
-        private void MixColumns32(uint[] q)
+        private static void MixColumns32(uint[] q)
         {
-            uint q0, q1, q2, q3, q4, q5, q6, q7;
-            uint r0, r1, r2, r3, r4, r5, r6, r7;
+            uint q0 = q[0], r0 = Integers.RotateRight(q0, 8), s0 = q0 ^ r0;
+            uint q1 = q[1], r1 = Integers.RotateRight(q1, 8), s1 = q1 ^ r1;
+            uint q2 = q[2], r2 = Integers.RotateRight(q2, 8), s2 = q2 ^ r2;
+            uint q3 = q[3], r3 = Integers.RotateRight(q3, 8), s3 = q3 ^ r3;
+            uint q4 = q[4], r4 = Integers.RotateRight(q4, 8), s4 = q4 ^ r4;
+            uint q5 = q[5], r5 = Integers.RotateRight(q5, 8), s5 = q5 ^ r5;
+            uint q6 = q[6], r6 = Integers.RotateRight(q6, 8), s6 = q6 ^ r6;
+            uint q7 = q[7], r7 = Integers.RotateRight(q7, 8), s7 = q7 ^ r7;
 
-            q0 = q[0];
-            q1 = q[1];
-            q2 = q[2];
-            q3 = q[3];
-            q4 = q[4];
-            q5 = q[5];
-            q6 = q[6];
-            q7 = q[7];
-            r0 = (q0 >> 8) | (q0 << 24);
-            r1 = (q1 >> 8) | (q1 << 24);
-            r2 = (q2 >> 8) | (q2 << 24);
-            r3 = (q3 >> 8) | (q3 << 24);
-            r4 = (q4 >> 8) | (q4 << 24);
-            r5 = (q5 >> 8) | (q5 << 24);
-            r6 = (q6 >> 8) | (q6 << 24);
-            r7 = (q7 >> 8) | (q7 << 24);
-
-            q[0] = q7 ^ r7 ^ r0 ^ Rotr16(q0 ^ r0);
-            q[1] = q0 ^ r0 ^ q7 ^ r7 ^ r1 ^ Rotr16(q1 ^ r1);
-            q[2] = q1 ^ r1 ^ r2 ^ Rotr16(q2 ^ r2);
-            q[3] = q2 ^ r2 ^ q7 ^ r7 ^ r3 ^ Rotr16(q3 ^ r3);
-            q[4] = q3 ^ r3 ^ q7 ^ r7 ^ r4 ^ Rotr16(q4 ^ r4);
-            q[5] = q4 ^ r4 ^ r5 ^ Rotr16(q5 ^ r5);
-            q[6] = q5 ^ r5 ^ r6 ^ Rotr16(q6 ^ r6);
-            q[7] = q6 ^ r6 ^ r7 ^ Rotr16(q7 ^ r7);
+            q[0] = r0       ^ s7 ^ Integers.RotateRight(s0, 16); 
+            q[1] = r1 ^ s0  ^ s7 ^ Integers.RotateRight(s1, 16); 
+            q[2] = r2 ^ s1       ^ Integers.RotateRight(s2, 16);
+            q[3] = r3 ^ s2  ^ s7 ^ Integers.RotateRight(s3, 16);
+            q[4] = r4 ^ s3  ^ s7 ^ Integers.RotateRight(s4, 16);
+            q[5] = r5 ^ s4       ^ Integers.RotateRight(s5, 16);
+            q[6] = r6 ^ s5       ^ Integers.RotateRight(s6, 16);
+            q[7] = r7 ^ s6       ^ Integers.RotateRight(s7, 16);
         }
 
-        private void AddRoundKey32(uint[] q, uint[] sk)
+        private static void AddRoundKey32(uint[] q, uint[] sk)
         {
             q[0] ^= sk[0];
             q[1] ^= sk[1];
@@ -439,96 +473,51 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             q[7] ^= sk[7];
         }
 
-        private uint Rotr16(uint x)
+        private static void BrAesCt64Ortho(ulong[] q)
         {
-            return (x << 16) | (x >> 16);
+            ulong q0 = q[0], q1 = q[1], q2 = q[2], q3 = q[3], q4 = q[4], q5 = q[5], q6 = q[6], q7 = q[7];
+
+            Bits.BitPermuteStep2(ref q1, ref q0, 0x5555555555555555UL, 1);
+            Bits.BitPermuteStep2(ref q3, ref q2, 0x5555555555555555UL, 1);
+            Bits.BitPermuteStep2(ref q5, ref q4, 0x5555555555555555UL, 1);
+            Bits.BitPermuteStep2(ref q7, ref q6, 0x5555555555555555UL, 1);
+
+            Bits.BitPermuteStep2(ref q2, ref q0, 0x3333333333333333UL, 2);
+            Bits.BitPermuteStep2(ref q3, ref q1, 0x3333333333333333UL, 2);
+            Bits.BitPermuteStep2(ref q6, ref q4, 0x3333333333333333UL, 2);
+            Bits.BitPermuteStep2(ref q7, ref q5, 0x3333333333333333UL, 2);
+
+            Bits.BitPermuteStep2(ref q4, ref q0, 0x0F0F0F0F0F0F0F0FUL, 4);
+            Bits.BitPermuteStep2(ref q5, ref q1, 0x0F0F0F0F0F0F0F0FUL, 4);
+            Bits.BitPermuteStep2(ref q6, ref q2, 0x0F0F0F0F0F0F0F0FUL, 4);
+            Bits.BitPermuteStep2(ref q7, ref q3, 0x0F0F0F0F0F0F0F0FUL, 4);
+
+            q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; q[4] = q4; q[5] = q5; q[6] = q6; q[7] = q7;
         }
 
-        private void BrAesCt64Ortho(ulong[] q)
+        private static void BrAesCtOrtho(uint[] q)
         {
-            Swapn(q, 1, 0, 1);
-            Swapn(q, 1, 2, 3);
-            Swapn(q, 1, 4, 5);
-            Swapn(q, 1, 6, 7);
+            uint q0 = q[0], q1 = q[1], q2 = q[2], q3 = q[3], q4 = q[4], q5 = q[5], q6 = q[6], q7 = q[7];
 
-            Swapn(q, 2, 0, 2);
-            Swapn(q, 2, 1, 3);
-            Swapn(q, 2, 4, 6);
-            Swapn(q, 2, 5, 7);
+            Bits.BitPermuteStep2(ref q1, ref q0, 0x55555555U, 1);
+            Bits.BitPermuteStep2(ref q3, ref q2, 0x55555555U, 1);
+            Bits.BitPermuteStep2(ref q5, ref q4, 0x55555555U, 1);
+            Bits.BitPermuteStep2(ref q7, ref q6, 0x55555555U, 1);
 
-            Swapn(q, 4, 0, 4);
-            Swapn(q, 4, 1, 5);
-            Swapn(q, 4, 2, 6);
-            Swapn(q, 4, 3, 7);
+            Bits.BitPermuteStep2(ref q2, ref q0, 0x33333333U, 2);
+            Bits.BitPermuteStep2(ref q3, ref q1, 0x33333333U, 2);
+            Bits.BitPermuteStep2(ref q6, ref q4, 0x33333333U, 2);
+            Bits.BitPermuteStep2(ref q7, ref q5, 0x33333333U, 2);
+
+            Bits.BitPermuteStep2(ref q4, ref q0, 0x0F0F0F0FU, 4);
+            Bits.BitPermuteStep2(ref q5, ref q1, 0x0F0F0F0FU, 4);
+            Bits.BitPermuteStep2(ref q6, ref q2, 0x0F0F0F0FU, 4);
+            Bits.BitPermuteStep2(ref q7, ref q3, 0x0F0F0F0FU, 4);
+
+            q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; q[4] = q4; q[5] = q5; q[6] = q6; q[7] = q7;
         }
 
-        private void BrAesCtOrtho(uint[] q)
-        {
-            Swapn32(q, 1, 0, 1);
-            Swapn32(q, 1, 2, 3);
-            Swapn32(q, 1, 4, 5);
-            Swapn32(q, 1, 6, 7);
-
-            Swapn32(q, 2, 0, 2);
-            Swapn32(q, 2, 1, 3);
-            Swapn32(q, 2, 4, 6);
-            Swapn32(q, 2, 5, 7);
-
-            Swapn32(q, 4, 0, 4);
-            Swapn32(q, 4, 1, 5);
-            Swapn32(q, 4, 2, 6);
-            Swapn32(q, 4, 3, 7);
-        }
-
-        private void Swapn32(uint[] q, int s, int pos1, int pos2)
-        {
-            uint cl = 0, ch = 0;
-            switch (s)
-            {
-                case 1:
-                    cl = 0x55555555;
-                    ch = 0xAAAAAAAA;
-                    break;
-                case 2:
-                    cl = 0x33333333;
-                    ch = 0xCCCCCCCC;
-                    break;
-                case 4:
-                    cl = 0x0F0F0F0F;
-                    ch = 0xF0F0F0F0;
-                    break;
-            }
-            uint a = q[pos1], b = q[pos2];
-            q[pos1] = (a & cl) | ((b & cl) << s);
-            q[pos2] = ((a & ch) >> s) | (b & ch);
-        }
-
-        private void Swapn(ulong[] q, int s, int pos1, int pos2)
-        {
-            ulong cl = 0, ch = 0;
-            switch (s)
-            {
-                case 1:
-                    cl = 0x5555555555555555L;
-                    ch = 0xAAAAAAAAAAAAAAAAL;
-                    break;
-                case 2:
-                    cl = 0x3333333333333333L;
-                    ch = 0xCCCCCCCCCCCCCCCCL;
-                    break;
-                case 4:
-                    cl = 0x0F0F0F0F0F0F0F0FL;
-                    ch = 0xF0F0F0F0F0F0F0F0L;
-                    break;
-                default:
-                    return;
-            }
-            ulong a = q[pos1], b = q[pos2];
-            q[pos1] = (a & cl) | ((b & cl) << s);
-            q[pos2] = ((a & ch) >> s) | (b & ch);
-        }
-
-        private void BrAesCt64BitsliceSbox(ulong[] q)
+        private static void BrAesCt64BitsliceSbox(ulong[] q)
         {
             /*
              * This S-box implementation is a straightforward translation of
@@ -703,60 +692,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             q[0] = s7;
         }
 
-        private void ShiftRows(ulong[] q)
+        private static void ShiftRows(ulong[] q)
         {
-            ulong x;
-            for (int i = 0; i < q.Length; i++)
+            for (int i = 0; i < 8; i++)
             {
-                x = q[i];
-                q[i] = (x & 0x000000000000FFFFL)
-                    | ((x & 0x00000000FFF00000L) >> 4)
-                    | ((x & 0x00000000000F0000L) << 12)
-                    | ((x & 0x0000FF0000000000L) >> 8)
-                    | ((x & 0x000000FF00000000L) << 8)
-                    | ((x & 0xF000000000000000L) >> 12)
-                    | ((x & 0x0FFF000000000000L) << 4);
+                ulong x = Bits.BitPermuteStep(q[i], 0x00F0_00FF_000F_0000UL, 8);
+                q[i]    = Bits.BitPermuteStep(x   , 0x0F0F_0000_0F0F_0000UL, 4);
             }
         }
 
-        private void MixColumns(ulong[] q)
+        private static void MixColumns(ulong[] q)
         {
-            ulong q0, q1, q2, q3, q4, q5, q6, q7;
-            ulong r0, r1, r2, r3, r4, r5, r6, r7;
+            ulong q0 = q[0], r0 = Longs.RotateRight(q0, 16), s0 = q0 ^ r0;
+            ulong q1 = q[1], r1 = Longs.RotateRight(q1, 16), s1 = q1 ^ r1;
+            ulong q2 = q[2], r2 = Longs.RotateRight(q2, 16), s2 = q2 ^ r2;
+            ulong q3 = q[3], r3 = Longs.RotateRight(q3, 16), s3 = q3 ^ r3;
+            ulong q4 = q[4], r4 = Longs.RotateRight(q4, 16), s4 = q4 ^ r4;
+            ulong q5 = q[5], r5 = Longs.RotateRight(q5, 16), s5 = q5 ^ r5;
+            ulong q6 = q[6], r6 = Longs.RotateRight(q6, 16), s6 = q6 ^ r6;
+            ulong q7 = q[7], r7 = Longs.RotateRight(q7, 16), s7 = q7 ^ r7;
 
-            q0 = q[0];
-            q1 = q[1];
-            q2 = q[2];
-            q3 = q[3];
-            q4 = q[4];
-            q5 = q[5];
-            q6 = q[6];
-            q7 = q[7];
-            r0 = (q0 >> 16) | (q0 << 48);
-            r1 = (q1 >> 16) | (q1 << 48);
-            r2 = (q2 >> 16) | (q2 << 48);
-            r3 = (q3 >> 16) | (q3 << 48);
-            r4 = (q4 >> 16) | (q4 << 48);
-            r5 = (q5 >> 16) | (q5 << 48);
-            r6 = (q6 >> 16) | (q6 << 48);
-            r7 = (q7 >> 16) | (q7 << 48);
-
-            q[0] = q7 ^ r7 ^ r0 ^ Rotr32(q0 ^ r0);
-            q[1] = q0 ^ r0 ^ q7 ^ r7 ^ r1 ^ Rotr32(q1 ^ r1);
-            q[2] = q1 ^ r1 ^ r2 ^ Rotr32(q2 ^ r2);
-            q[3] = q2 ^ r2 ^ q7 ^ r7 ^ r3 ^ Rotr32(q3 ^ r3);
-            q[4] = q3 ^ r3 ^ q7 ^ r7 ^ r4 ^ Rotr32(q4 ^ r4);
-            q[5] = q4 ^ r4 ^ r5 ^ Rotr32(q5 ^ r5);
-            q[6] = q5 ^ r5 ^ r6 ^ Rotr32(q6 ^ r6);
-            q[7] = q6 ^ r6 ^ r7 ^ Rotr32(q7 ^ r7);
+            q[0] = r0       ^ s7 ^ Longs.RotateRight(s0, 32); 
+            q[1] = r1 ^ s0  ^ s7 ^ Longs.RotateRight(s1, 32); 
+            q[2] = r2 ^ s1       ^ Longs.RotateRight(s2, 32);
+            q[3] = r3 ^ s2  ^ s7 ^ Longs.RotateRight(s3, 32);
+            q[4] = r4 ^ s3  ^ s7 ^ Longs.RotateRight(s4, 32);
+            q[5] = r5 ^ s4       ^ Longs.RotateRight(s5, 32);
+            q[6] = r6 ^ s5       ^ Longs.RotateRight(s6, 32);
+            q[7] = r7 ^ s6       ^ Longs.RotateRight(s7, 32);
         }
 
-        private ulong Rotr32(ulong x)
-        {
-            return (x << 32) | (x >> 32);
-        }
-
-        private void AddRoundKey(ulong[] q, ulong[] sk)
+        private static void AddRoundKey(ulong[] q, ulong[] sk)
         {
             q[0] ^= sk[0];
             q[1] ^= sk[1];
@@ -768,7 +734,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             q[7] ^= sk[7];
         }
 
-        private void BrAesCt64InterleaveOut(uint[] w, ulong[] q, int pos)
+        private static void BrAesCt64InterleaveOut(uint[] w, ulong[] q, int pos)
         {
             ulong x0, x1, x2, x3;
 
@@ -790,5 +756,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             w[pos + 2] = (uint)(x2 | (x2 >> 16));
             w[pos + 3] = (uint)(x3 | (x3 >> 16));
         }
+
+        protected static void Xor(byte[] x, int xOff, byte[] y, int yOff, byte[] z, int zOff, int zLen)
+        {
+            for (int i = 0; i < zLen; i++)
+            {
+                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]);
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected static void Xor(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> z)
+        {
+            for (int i = 0; i < z.Length; i++)
+            {
+                z[i] = (byte)(x[i] ^ y[i]);
+            }
+        }
+#endif
     }
 }

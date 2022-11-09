@@ -7,33 +7,33 @@ namespace Org.BouncyCastle.Cmp
 {
     public class CertificateConfirmationContent
     {
-        private readonly DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
-        private readonly CertConfirmContent content;
+        private readonly DefaultDigestAlgorithmIdentifierFinder m_digestAlgFinder;
+        private readonly CertConfirmContent m_content;
 
         public CertificateConfirmationContent(CertConfirmContent content)
         {
-            this.content = content;
+            this.m_content = content;
         }
 
         public CertificateConfirmationContent(CertConfirmContent content,
             DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
         {
-            this.content = content;
-            this.digestAlgFinder = digestAlgFinder;
+            this.m_content = content;
+            this.m_digestAlgFinder = digestAlgFinder;
         }
 
         public CertConfirmContent ToAsn1Structure()
         {
-            return content;
+            return m_content;
         }
 
         public CertificateStatus[] GetStatusMessages()
         {
-            CertStatus[] statusArray = content.ToCertStatusArray();
+            CertStatus[] statusArray = m_content.ToCertStatusArray();
             CertificateStatus[] ret = new CertificateStatus[statusArray.Length];
             for (int i = 0; i != ret.Length; i++)
             {
-                ret[i] = new CertificateStatus(digestAlgFinder, statusArray[i]);
+                ret[i] = new CertificateStatus(m_digestAlgFinder, statusArray[i]);
             }
 
             return ret;

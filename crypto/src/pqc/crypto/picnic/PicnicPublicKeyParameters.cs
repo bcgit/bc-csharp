@@ -1,24 +1,21 @@
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class PicnicPublicKeyParameters
+    public sealed class PicnicPublicKeyParameters
         : PicnicKeyParameters
     {
+        private readonly byte[] m_publicKey;
 
-    private byte[] publicKey;
+        public PicnicPublicKeyParameters(PicnicParameters parameters, byte[] pkEncoded)
+            : base(false, parameters)
+        {
+            m_publicKey = Arrays.Clone(pkEncoded);
+        }
 
-    public PicnicPublicKeyParameters(PicnicParameters parameters, byte[] pkEncoded)
-        : base(false, parameters)
-    {
-        publicKey = Arrays.Clone(pkEncoded);
-    }
-
-    public byte[] GetEncoded()
-    {
-        return Arrays.Clone(publicKey);
-    }
-
+        public byte[] GetEncoded()
+        {
+            return Arrays.Clone(m_publicKey);
+        }
     }
 }

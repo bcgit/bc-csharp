@@ -1,30 +1,29 @@
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABERKEMExtractor
+    public sealed class SaberKemExtractor
         : IEncapsulatedSecretExtractor
     {
-        private SABEREngine engine;
+        private readonly SaberKeyParameters key;
 
-        private SABERKeyParameters key;
+        private SaberEngine engine;
 
-        public SABERKEMExtractor(SABERKeyParameters privParams)
+        public SaberKemExtractor(SaberKeyParameters privParams)
         {
             this.key = privParams;
-            InitCipher(key.GetParameters());
+            InitCipher(key.Parameters);
         }
 
-        private void InitCipher(SABERParameters param)
+        private void InitCipher(SaberParameters param)
         {
-            engine = param.GetEngine();
+            engine = param.Engine;
         }
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[engine.GetSessionKeySize()];
-            engine.crypto_kem_dec(session_key, encapsulation, ((SABERPrivateKeyParameters) key).GetPrivateKey());
+            engine.crypto_kem_dec(session_key, encapsulation, ((SaberPrivateKeyParameters) key).GetPrivateKey());
             return session_key;
         }
 

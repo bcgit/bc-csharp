@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class PK
+    internal class PK
     {
         internal byte[] seed;
         internal byte[] root;

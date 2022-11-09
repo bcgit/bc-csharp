@@ -1,16 +1,29 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
-  "version": "2.0-beta",
+
+  // Don't increment build number during prerelease
+  "version": "2.0.0-beta.{height}",
+
+  // Maintain assembly binding compatibility on .NET Framework
+  "assemblyVersion": {
+    "precision": "major"
+  },
+
+  // Start our build number from 0
   "versionHeightOffset": -1,
+
   "nugetPackageVersion": {
     "semVer": 2
   },
+
   "publicReleaseRefSpec": [
     "^refs/heads/master$",
     "^refs/heads/release/v\\d+\\.\\d+$"
   ],
+
   "release": {
     "branchName": "release/v{version}",
+    "versionIncrement": "minor",
     "firstUnstableTag": "beta"
   }
 }

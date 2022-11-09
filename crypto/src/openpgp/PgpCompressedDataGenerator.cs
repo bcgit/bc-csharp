@@ -1,8 +1,7 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Bzip2;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO.Compression;
 using Org.BouncyCastle.Utilities.Zlib;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
@@ -131,65 +130,51 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			switch (algorithm)
 			{
-				case CompressionAlgorithmTag.Uncompressed:
-					dOut = pkOut;
-					break;
-				case CompressionAlgorithmTag.Zip:
-					dOut = new SafeZOutputStream(pkOut, compression, true);
-					break;
-				case CompressionAlgorithmTag.ZLib:
-					dOut = new SafeZOutputStream(pkOut, compression, false);
-					break;
-				case CompressionAlgorithmTag.BZip2:
-					dOut = new SafeCBZip2OutputStream(pkOut);
-					break;
-				default:
-					// Constructor should guard against this possibility
-					throw new InvalidOperationException();
+			case CompressionAlgorithmTag.Uncompressed:
+				dOut = pkOut;
+				break;
+			case CompressionAlgorithmTag.Zip:
+                dOut = Zip.CompressOutput(pkOut, compression, true);
+                break;
+			case CompressionAlgorithmTag.ZLib:
+				dOut = ZLib.CompressOutput(pkOut, compression, true);
+				break;
+			case CompressionAlgorithmTag.BZip2:
+				dOut = Bzip2.CompressOutput(pkOut, true);
+				break;
+			default:
+				// Constructor should guard against this possibility
+				throw new InvalidOperationException();
 			}
 		}
 
-		/// <summary>Close the compressed object.</summary>summary>
-		public void Close()
-		{
-			if (dOut != null)
-			{
-				if (dOut != pkOut)
-				{
-                    Platform.Dispose(dOut);
-				}
-				dOut = null;
+        #region IDisposable
 
-				pkOut.Finish();
-				pkOut.Flush();
-				pkOut = null;
-			}
-		}
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-		private class SafeCBZip2OutputStream : CBZip2OutputStream
-		{
-			public SafeCBZip2OutputStream(Stream output)
-				: base(output)
-			{
-			}
-
-            protected override void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                Detach(disposing);
-            }
-		}
+                if (dOut != null)
+                {
+                    if (dOut != pkOut)
+                    {
+                        dOut.Dispose();
+                    }
+                    dOut = null;
 
-		private class SafeZOutputStream : ZOutputStream
-		{
-			public SafeZOutputStream(Stream output, int level, bool nowrap)
-				: base(output, level, nowrap)
-			{
-			}
-
-            protected override void Dispose(bool disposing)
-            {
-				Detach(disposing);
+                    pkOut.Finish();
+                    pkOut.Flush();
+                    pkOut = null;
+                }
             }
-		}
+        }
+
+        #endregion
 	}
 }

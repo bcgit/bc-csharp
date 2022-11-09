@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
@@ -8,11 +7,11 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    internal class Fpx
+    internal sealed class Fpx
     {
-        private SIKEEngine engine;
+        private readonly SikeEngine engine;
 
-        internal Fpx(SIKEEngine engine)
+        internal Fpx(SikeEngine engine)
         {
             this.engine = engine;
         }
@@ -30,7 +29,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Cyclotomic squaring on elements of norm 1, using a^(p+1) = 1.
-        protected internal void sqr_Fp2_cycl(ulong[][] a, ulong[] one)
+        internal void sqr_Fp2_cycl(ulong[][] a, ulong[] one)
         {
             ulong[] t0 = new ulong[engine.param.NWORDS_FIELD];
 
@@ -45,9 +44,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // n-way simultaneous inversion using Montgomery's trick.
         // SECURITY NOTE: This function does not run in constant time.
         // Also, vec and out CANNOT be the same variable!
-        protected internal void mont_n_way_inv(ulong[][][] vec, uint n, ulong[][][] output)
+        internal void mont_n_way_inv(ulong[][][] vec, uint n, ulong[][][] output)
         {
-            ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
             int i;
 
             fp2copy(vec[0], output[0]);                      // output[0] = vec[0]
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
 
         // Copy a field element, c = a.
-        protected internal void fpcopy(ulong[] a, long aOffset, ulong[] c)
+        internal void fpcopy(ulong[] a, long aOffset, ulong[] c)
         {
             for (uint i = 0; i < engine.param.NWORDS_FIELD; i++)
             {
@@ -78,21 +77,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // GF(p^2) addition without correction, c = a+b in GF(p^2).
-        protected internal void mp2_add(ulong[][] a, ulong[][] b, ulong[][] c)
+        internal void mp2_add(ulong[][] a, ulong[][] b, ulong[][] c)
         {
             mp_add(a[0], b[0], c[0], engine.param.NWORDS_FIELD);
             mp_add(a[1], b[1], c[1], engine.param.NWORDS_FIELD);
         }
 
         // Modular correction, a = a in GF(p^2).
-        protected internal void fp2correction(ulong[][] a)
+        internal void fp2correction(ulong[][] a)
         {
             fpcorrectionPRIME(a[0]);
             fpcorrectionPRIME(a[1]);
         }
 
         // Multiprecision addition, c = a+b, where lng(a) = lng(b) = nwords. Returns the carry bit.
-        protected internal ulong mp_add(ulong[] a, ulong[] b, ulong[] c, uint nwords)
+        internal ulong mp_add(ulong[] a, ulong[] b, ulong[] c, uint nwords)
         {
             ulong carry = 0;
 
@@ -170,7 +169,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Is x = 0? return 1 (TRUE) if condition is true, 0 (FALSE) otherwise.
         // SECURITY NOTE: This function does not run in constant-time.
-        protected internal bool is_felm_zero(ulong[] x)
+        internal bool is_felm_zero(ulong[] x)
         {
             for (uint i = 0; i < engine.param.NWORDS_FIELD; i++)
             {
@@ -206,7 +205,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Test if a is a square in GF(p^2) and return 1 if true, 0 otherwise
         // If a is a quadratic residue, s will be assigned with a partially computed square root of a
-        protected internal bool is_sqr_fp2(ulong[][] a, ulong[] s)
+        internal bool is_sqr_fp2(ulong[][] a, ulong[] s)
         {
             uint i;
             ulong[] a0 = new ulong[engine.param.NWORDS_FIELD],
@@ -366,9 +365,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // GF(p^2) inversion using Montgomery arithmetic, a = (a0-i*a1)/(a0^2+a1^2)
         // This uses the binary GCD for inversion in fp and is NOT constant time!!!
-        protected internal void fp2inv_mont_bingcd(ulong[][] a)
+        internal void fp2inv_mont_bingcd(ulong[][] a)
         {
-            ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
             fpsqr_mont(a[0], t1[0]);             // t10 = a0^2
             fpsqr_mont(a[1], t1[1]);             // t11 = a1^2
@@ -382,7 +381,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // GF(p^2) division by two, c = a/2  in GF(p^2).
-        protected internal void fp2div2(ulong[][] a, ulong[][] c)
+        internal void fp2div2(ulong[][] a, ulong[][] c)
         {
             //todo/org : make fp class and change this to generic fpdiv2
             fpdiv2_PRIME(a[0], c[0]);
@@ -607,7 +606,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             Debug.Assert(t == 0);
         }
 
-        protected internal static bool subarrayEquals(ulong[] a, ulong[] b, uint length)
+        internal static bool subarrayEquals(ulong[] a, ulong[] b, uint length)
         {
     //        if(a.Length < length || b.Length < length)
     //            return false;
@@ -620,7 +619,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return true;
         }
 
-        protected internal static bool subarrayEquals(ulong[][] a, ulong[][] b, uint length)
+        internal static bool subarrayEquals(ulong[][] a, ulong[][] b, uint length)
         {
             int nwords_feild = b[0].Length;
     //        if(a[0].Length < length || b[0].Length < length)
@@ -634,7 +633,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return true;
         }
 
-        protected internal static bool subarrayEquals(ulong[][] a, ulong[][] b, uint bOffset, uint length)
+        internal static bool subarrayEquals(ulong[][] a, ulong[][] b, uint bOffset, uint length)
         {
             int nwords_feild = b[0].Length;
     //        if(a[0].Length*2 < length || b[0].Length*2 < length)
@@ -648,7 +647,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return true;
         }
 
-        protected internal static bool subarrayEquals(ulong[][] a, ulong[] b, uint bOffset, uint length)
+        internal static bool subarrayEquals(ulong[][] a, ulong[] b, uint bOffset, uint length)
         {
             int nwords_field = a[0].Length;
     //        if(a[0].Length < length || b.Length < length)
@@ -663,9 +662,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Computes square roots of elements in (Fp2)^2 using Hamburg's trick.
-        protected internal void sqrt_Fp2(ulong[][] u, ulong[][] y)
+        internal void sqrt_Fp2(ulong[][] u, ulong[][] y)
         {
-
             ulong[] t0 = new ulong[engine.param.NWORDS_FIELD],
                    t1 = new ulong[engine.param.NWORDS_FIELD],
                    t2 = new ulong[engine.param.NWORDS_FIELD],
@@ -715,7 +713,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // GF(p^2) squaring using Montgomery arithmetic, c = a^2 in GF(p^2).
         // Inputs: a = a0+a1*i, where a0, a1 are in [0, 2*p-1]
         // Output: c = c0+c1*i, where c0, c1 are in [0, 2*p-1]
-        protected internal void fp2sqr_mont(ulong[][] a, ulong[][] c)
+        internal void fp2sqr_mont(ulong[][] a, ulong[][] c)
         {
             ulong[] t1 = new ulong[engine.param.NWORDS_FIELD],
                     t2 = new ulong[engine.param.NWORDS_FIELD],
@@ -732,7 +730,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Modular addition, c = a+b mod PRIME.
         // Inputs: a, b in [0, 2*PRIME-1]
         // Output: c in [0, 2*PRIME-1]
-        protected internal void fpaddPRIME(ulong[] a, ulong[] b, ulong[] c)
+        internal void fpaddPRIME(ulong[] a, ulong[] b, ulong[] c)
         {
             ulong i, carry = 0;
             ulong mask;
@@ -770,7 +768,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Cyclotomic cubing on elements of norm 1, using a^(p+1) = 1.
-        protected internal void cube_Fp2_cycl(ulong[][] a, ulong[] one)
+        internal void cube_Fp2_cycl(ulong[][] a, ulong[] one)
         {
             ulong[] t0 = new ulong[engine.param.NWORDS_FIELD];
 
@@ -787,7 +785,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Modular subtraction, c = a-b mod PRIME.
         // Inputs: a, b in [0, 2*PRIME-1]
         // Output: c in [0, 2*PRIME-1]
-        protected internal void fpsubPRIME(ulong[] a, ulong[] b, uint bOffset, ulong[] c)
+        internal void fpsubPRIME(ulong[] a, ulong[] b, uint bOffset, ulong[] c)
         {
             ulong i, borrow = 0;
             ulong mask;
@@ -812,7 +810,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             }
         }
 
-        protected internal void fpsubPRIME(ulong[] a, uint aOffset, ulong[] b, ulong[] c)
+        internal void fpsubPRIME(ulong[] a, uint aOffset, ulong[] b, ulong[] c)
         {
             ulong i, borrow = 0;
             ulong mask;
@@ -837,7 +835,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             }
         }
 
-        protected internal void fpsubPRIME(ulong[] a, ulong[] b, ulong[] c)
+        internal void fpsubPRIME(ulong[] a, ulong[] b, ulong[] c)
         {
             ulong i, borrow = 0;
             ulong mask;
@@ -865,7 +863,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // todo/org : move to fp_generic
         // Modular negation, a = -a mod PRIME.
         // Input/output: a in [0, 2*PRIME-1]
-        protected internal void fpnegPRIME(ulong[] a)
+        internal void fpnegPRIME(ulong[] a)
         {
             ulong i, borrow = 0;
 
@@ -882,7 +880,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // todo/org : move to fp_generic
         // Conversion of a GF(p^2) element from Montgomery representation to standard representation,
         // c_i = ma_i*R^(-1) = a_i in GF(p^2).
-        protected internal void from_fp2mont(ulong[][] ma, ulong[][] c)
+        internal void from_fp2mont(ulong[][] ma, ulong[][] c)
         {
             from_mont(ma[0], c[0]);
             from_mont(ma[1], c[1]);
@@ -890,9 +888,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // todo/org : move to fp_generic
         // Conversion of GF(p^2) element from Montgomery to standard representation, and encoding by removing leading 0 bytes
-        protected internal void fp2_encode(ulong[][] x, byte[] enc, uint encOffset)
+        internal void fp2_encode(ulong[][] x, byte[] enc, uint encOffset)
         {
-            ulong[][] t = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
             from_fp2mont(x, t);
             encode_to_bytes(t[0], enc, encOffset,engine.param.FP2_ENCODED_BYTES / 2);
@@ -900,7 +898,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Parse byte sequence back uinto GF(p^2) element, and conversion to Montgomery representation
-        protected internal void fp2_decode(byte[] x, ulong[][] dec, uint xOffset)
+        internal void fp2_decode(byte[] x, ulong[][] dec, uint xOffset)
         {
             decode_to_digits(x, xOffset, dec[0], engine.param.FP2_ENCODED_BYTES / 2, engine.param.NWORDS_FIELD);
             decode_to_digits(x,xOffset + (engine.param.FP2_ENCODED_BYTES/2), dec[1], engine.param.FP2_ENCODED_BYTES / 2, engine.param.NWORDS_FIELD);
@@ -908,7 +906,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Conversion of elements in Z_r to Montgomery representation, where the order r is up to NBITS_ORDER bits.
-        protected internal void to_Montgomery_mod_order(ulong[] a, ulong[] mc, ulong[] order, ulong[] Montgomery_rprime, ulong[] Montgomery_Rprime)
+        internal void to_Montgomery_mod_order(ulong[] a, ulong[] mc, ulong[] order, ulong[] Montgomery_rprime, ulong[] Montgomery_Rprime)
         {
             Montgomery_multiply_mod_order(a, Montgomery_Rprime, mc, order, Montgomery_rprime);
         }
@@ -917,7 +915,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // ma, mb and mc are assumed to be in Montgomery representation.
         // The Montgomery constant r' = -r^(-1) mod 2^(log_2(r)) is the value "Montgomery_rprime", where r is the order.
         // Assume log_2(r) is a multiple of RADIX bits
-        protected internal void Montgomery_multiply_mod_order(ulong[] ma, ulong[] mb, ulong[] mc, ulong[] order, ulong[] Montgomery_rprime)
+        internal void Montgomery_multiply_mod_order(ulong[] ma, ulong[] mb, ulong[] mc, ulong[] order, ulong[] Montgomery_rprime)
         {
             ulong i, cout = 0, bout = 0;
             ulong mask;
@@ -950,7 +948,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Inversion of an odd uinteger modulo an even uinteger of the form 2^m.
         // Algorithm 3: Explicit Quadratic Modular inverse modulo 2^m from Dumas'12: http://arxiv.org/pdf/1209.6626.pdf
         // If the input is invalid (even), the function outputs c = a.
-        protected internal void inv_mod_orderA(ulong[] a, ulong[] c)
+        internal void inv_mod_orderA(ulong[] a, ulong[] c)
         { 
             uint i, f, s = 0;
             ulong[] am1 = new ulong[engine.param.NWORDS_ORDER],
@@ -1000,7 +998,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Multiprecision comba multiply, c = a*b, where lng(a) = lng(b) = nwords.
         // NOTE: a and c CANNOT be the same variable!
-        protected internal void multiply(ulong[] a, ulong[] b, ulong[] c, uint nwords)
+        internal void multiply(ulong[] a, ulong[] b, ulong[] c, uint nwords)
         {
             ulong i, j;
             ulong t = 0, u = 0, v = 0;
@@ -1188,7 +1186,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Montgomery inversion modulo order, c = a^(-1)*R mod order.
-        protected internal void Montgomery_inversion_mod_order_bingcd(ulong[] a, ulong[] c, ulong[] order, ulong[] Montgomery_rprime, ulong[] Montgomery_Rprime)
+        internal void Montgomery_inversion_mod_order_bingcd(ulong[] a, ulong[] c, ulong[] order, ulong[] Montgomery_rprime, ulong[] Montgomery_Rprime)
         {
             ulong[] x = new ulong[engine.param.NWORDS_ORDER],
                    t = new ulong[engine.param.NWORDS_ORDER];
@@ -1212,7 +1210,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Conversion of elements in Z_r from Montgomery to standard representation, where the order is up to NBITS_ORDER bits.
-        protected internal void from_Montgomery_mod_order(ulong[] ma, ulong[] c, ulong[] order, ulong[] Montgomery_rprime)
+        internal void from_Montgomery_mod_order(ulong[] ma, ulong[] c, ulong[] order, ulong[] Montgomery_rprime)
         {
             ulong[] one = new ulong[engine.param.NWORDS_ORDER];
             one[0] = 1;
@@ -1222,7 +1220,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Computes the input modulo 3
         // The input is assumed to be NWORDS_ORDER ulong
-        protected internal uint mod3(ulong[] a)
+        internal uint mod3(ulong[] a)
         {
             ulong result = 0;
             for (int i = 0; i < engine.param.NWORDS_ORDER; ++i)
@@ -1235,7 +1233,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Conversion of a GF(p^2) element to Montgomery representation,
         // mc_i = a_i*R^2*R^(-1) = a_i*R in GF(p^2).
-        protected internal void to_fp2mont(ulong[][] a, ulong[][] mc)
+        internal void to_fp2mont(ulong[][] a, ulong[][] mc)
         {
             to_mont(a[0], mc[0]);
             to_mont(a[1], mc[1]);
@@ -1252,7 +1250,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // todo/org : move to fp_generic
         // Modular correction to reduce field element a in [0, 2*PRIME-1] to [0, PRIME-1].
-        protected internal void fpcorrectionPRIME(ulong[] a)
+        internal void fpcorrectionPRIME(ulong[] a)
         {
             ulong i, borrow = 0;
             ulong mask;
@@ -1277,11 +1275,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             }
         }
 
-        protected internal byte cmp_f2elm(ulong[][] x, ulong[][] y)
+        internal byte cmp_f2elm(ulong[][] x, ulong[][] y)
         { // Comparison of two GF(p^2) elements in constant time. 
             // Is x != y? return -1 if condition is true, 0 otherwise.
-            ulong[][] a = Utils.InitArray(2, engine.param.NWORDS_FIELD),
-                b = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] a = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD),
+                b = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
             byte r = 0;
 
             fp2copy(x, a);
@@ -1299,7 +1297,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
 
         // Encoding digits to bytes according to endianness
-        protected internal void encode_to_bytes(ulong[] x, byte[] enc, uint encOffset, uint nbytes)
+        internal void encode_to_bytes(ulong[] x, byte[] enc, uint encOffset, uint nbytes)
         {
             byte[] test = new byte[((nbytes*4+7)&~7)];
             Pack.UInt64_To_LE(x, test, 0);
@@ -1307,7 +1305,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Decoding bytes to digits according to endianness
-        protected internal void decode_to_digits(byte[] x, uint xOffset, ulong[] dec, uint nbytes, uint ndigits)
+        internal void decode_to_digits(byte[] x, uint xOffset, ulong[] dec, uint nbytes, uint ndigits)
         {
             // x -> dec
             dec[ndigits - 1] = 0;
@@ -1318,7 +1316,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // r = a - b*i where v = a + b*i
-        protected internal void fp2_conj(ulong[][] v, ulong[][] r)
+        internal void fp2_conj(ulong[][] v, ulong[][] r)
         {
             fpcopy(v[0], 0, r[0]);
             fpcopy(v[1], 0, r[1]);
@@ -1369,28 +1367,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Copy a GF(p^2) element, c = a.
-        protected internal void fp2copy(ulong[][] a, ulong[][] c)
+        internal void fp2copy(ulong[][] a, ulong[][] c)
         {
             fpcopy(a[0], 0, c[0]);
             fpcopy(a[1], 0, c[1]);
         }
 
         // Copy a GF(p^2) element, c = a.
-        protected internal void fp2copy(ulong[][] a, uint aOffset, ulong[][] c)
+        internal void fp2copy(ulong[][] a, uint aOffset, ulong[][] c)
         {
             fpcopy(a[0 + aOffset], 0, c[0]);
             fpcopy(a[1 + aOffset], 0, c[1]);
         }
 
         // Copy a GF(p^2) element, c = a.
-        protected internal void fp2copy(ulong[] a, uint aOffset, ulong[][] c)
+        internal void fp2copy(ulong[] a, uint aOffset, ulong[][] c)
         {
             fpcopy(a, aOffset, c[0]);
             fpcopy(a, aOffset + engine.param.NWORDS_FIELD, c[1]);
         }
 
         // Zero a field element, a = 0.
-        protected internal void fpzero(ulong[] a)
+        internal void fpzero(ulong[] a)
         {
             uint i;
 
@@ -1401,7 +1399,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // GF(p^2) subtraction with correction with 2*p, c = a-b+2p in GF(p^2).
-        protected internal void mp2_sub_p2(ulong[][] a, ulong[][] b, ulong[][] c)
+        internal void mp2_sub_p2(ulong[][] a, ulong[][] b, ulong[][] c)
         {
             //todo/org : make fp class and change this to generic mp_sub_p2
             mp_subPRIME_p2(a[0], b[0], c[0]);
@@ -1409,7 +1407,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Multiprecision comba multiply, c = a*b, where lng(a) = lng(b) = nwords.
-        protected internal void mp_mul(ulong[] a, ulong[] b, ulong[] c, uint nwords)
+        internal void mp_mul(ulong[] a, ulong[] b, ulong[] c, uint nwords)
         {
             ulong i, j;
             ulong t = 0, u = 0, v = 0;
@@ -1462,7 +1460,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Multiprecision comba multiply, c = a*b, where lng(a) = lng(b) = nwords.
-        protected internal void mp_mul(ulong[] a, uint aOffset, ulong[] b, ulong[] c, uint nwords)
+        internal void mp_mul(ulong[] a, uint aOffset, ulong[] b, ulong[] c, uint nwords)
         {
             ulong i, j;
             ulong t = 0, u = 0, v = 0;
@@ -1517,7 +1515,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // GF(p^2) multiplication using Montgomery arithmetic, c = a*b in GF(p^2).
         // Inputs: a = a0+a1*i and b = b0+b1*i, where a0, a1, b0, b1 are in [0, 2*p-1]
         // Output: c = c0+c1*i, where c0, c1 are in [0, 2*p-1]
-        protected internal void fp2mul_mont(ulong[][] a, ulong[][] b, ulong[][] c)
+        internal void fp2mul_mont(ulong[][] a, ulong[][] b, ulong[][] c)
         {
             ulong[] t1 = new ulong[engine.param.NWORDS_FIELD],
                    t2 = new ulong[engine.param.NWORDS_FIELD];
@@ -1536,7 +1534,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             rdc_mont(tt1, c[0]);                             // c[0] = a0*b0 - a1*b1
         }
 
-        protected internal void fp2mul_mont(ulong[][] a, ulong[][] b, uint bOffset, ulong[][] c)
+        internal void fp2mul_mont(ulong[][] a, ulong[][] b, uint bOffset, ulong[][] c)
         {
 
     //        System.out.pruint("b: ");
@@ -1560,7 +1558,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             rdc_mont(tt1, c[0]);                             // c[0] = a0*b0 - a1*b1
         }
 
-        protected internal void fp2mul_mont(ulong[][] a, ulong[] b, uint bOffset, ulong[][] c)
+        internal void fp2mul_mont(ulong[][] a, ulong[] b, uint bOffset, ulong[][] c)
         {
             ulong[] t1 = new ulong[engine.param.NWORDS_FIELD],
                     t2 = new ulong[engine.param.NWORDS_FIELD];
@@ -1588,7 +1586,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Multiprecision subtraction, c = a-b, where lng(a) = lng(b) = nwords. Returns the borrow bit.
-        protected internal ulong mp_sub(ulong[] a, ulong[] b, ulong[] c, uint nwords)
+        internal ulong mp_sub(ulong[] a, ulong[] b, ulong[] c, uint nwords)
         {
             ulong i, borrow = 0;
         
@@ -1607,7 +1605,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Is x < y? return 1 (TRUE) if condition is true, 0 (FALSE) otherwise.
         // SECURITY NOTE: This function does not run in constant-time.
-        protected internal bool is_orderelm_lt(ulong[] x, ulong[] y)
+        internal bool is_orderelm_lt(ulong[] x, ulong[] y)
         {
             for (int i = (int)engine.param.NWORDS_ORDER-1; i >= 0; i--)
             {
@@ -1638,7 +1636,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Multiprecision squaring, c = a^2 mod p.
-        protected internal void fpsqr_mont(ulong[] ma, ulong[] mc)
+        internal void fpsqr_mont(ulong[] ma, ulong[] mc)
         {
             ulong[] temp = new ulong[2*engine.param.NWORDS_FIELD];
 
@@ -1659,9 +1657,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // GF(p^2) inversion using Montgomery arithmetic, a = (a0-i*a1)/(a0^2+a1^2).
-        protected internal void fp2inv_mont(ulong[][] a)
+        internal void fp2inv_mont(ulong[][] a)
         {
-            ulong[][] t1 = Utils.InitArray(2, engine.param.NWORDS_FIELD);
+            ulong[][] t1 = SikeUtilities.InitArray(2, engine.param.NWORDS_FIELD);
 
             fpsqr_mont(a[0], t1[0]);                 // t10 = a0^2
             fpsqr_mont(a[1], t1[1]);                 // t11 = a1^2
@@ -1674,7 +1672,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Computes a = 3*a
         // The input is assumed to be OBOB_BITS-2 bits ulong and stored in SECRETKEY_B_BYTES
-        protected internal void mul3(byte[] a)
+        internal void mul3(byte[] a)
         {
             ulong[] temp1 = new ulong[engine.param.NWORDS_ORDER],
                    temp2 = new ulong[engine.param.NWORDS_ORDER];
@@ -1687,7 +1685,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Compare two byte arrays in constant time.
         // Returns 0 if the byte arrays are equal, -1 otherwise.
-        protected internal byte ct_compare(byte[] a, byte[] b, uint len)
+        internal byte ct_compare(byte[] a, byte[] b, uint len)
         {
             byte r = 0;
 
@@ -1700,7 +1698,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // Conditional move in constant time.
         // If selector = -1 then load r with a, else if selector = 0 then keep r.
-        protected internal void ct_cmov(byte[] r, byte[] a, uint len, byte selector)
+        internal void ct_cmov(byte[] r, byte[] a, uint len, byte selector)
         {
             for (uint i = 0; i < len; i++)
             {
@@ -1709,7 +1707,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Copy wordsize digits, c = a, where lng(a) = nwords.
-        protected internal void copy_words(ulong[] a, ulong[] c, uint nwords)
+        internal void copy_words(ulong[] a, ulong[] c, uint nwords)
         {
             uint i;
             for (i = 0; i < nwords; i++)
@@ -1719,7 +1717,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // c = (2^k)*a
-        protected internal void fp2shl(ulong[][] a, uint k, ulong[][] c)
+        internal void fp2shl(ulong[][] a, uint k, ulong[][] c)
         {
             fp2copy(a, c);
             for (uint j = 0; j < k; j++)
@@ -1729,7 +1727,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Copy wordsize digits, c = a, where lng(a) = nwords.
-        protected internal void copy_words(PointProj a, PointProj c)
+        internal void copy_words(PointProj a, PointProj c)
         {
             uint i;
             for (i = 0; i < engine.param.NWORDS_FIELD; i++)
@@ -1760,7 +1758,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
 
         // GF(p^2) addition, c = a+b in GF(p^2).
-        protected internal void fp2add(ulong[][] a, ulong[][] b, ulong[][] c)
+        internal void fp2add(ulong[][] a, ulong[][] b, ulong[][] c)
         {
             //todo/org : make fp class and change this to generic function
             fpaddPRIME(a[0], b[0], c[0]);
@@ -1768,7 +1766,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // GF(p^2) subtraction, c = a-b in GF(p^2).
-        protected internal void fp2sub(ulong[][] a, ulong[][] b, ulong[][] c)
+        internal void fp2sub(ulong[][] a, ulong[][] b, ulong[][] c)
         {
             //todo/org : make fp class and change this to generic function
             fpsubPRIME(a[0], b[0], c[0]);
@@ -1784,7 +1782,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Multiprecision multiplication, c = a*b mod p.
-        protected internal void fpmul_mont(ulong[] ma, ulong[] mb, ulong[] mc)
+        internal void fpmul_mont(ulong[] ma, ulong[] mb, ulong[] mc)
         {
             ulong[] temp = new ulong[2*engine.param.NWORDS_FIELD];
 
@@ -1793,7 +1791,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Multiprecision multiplication, c = a*b mod p.
-        protected internal void fpmul_mont(ulong[] ma, uint maOffset, ulong[] mb, ulong[] mc)
+        internal void fpmul_mont(ulong[] ma, uint maOffset, ulong[] mb, ulong[] mc)
         {
             ulong[] temp = new ulong[2*engine.param.NWORDS_FIELD];
 
@@ -1808,7 +1806,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             if (engine.param.NBITS_FIELD == 434)
             {
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
-                ulong[][] t =  Utils.InitArray(31, engine.param.NWORDS_FIELD);
+                ulong[][] t =  SikeUtilities.InitArray(31, engine.param.NWORDS_FIELD);
 
                 // Precomputed table
                 fpsqr_mont(a, tt);
@@ -1888,7 +1886,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             if (engine.param.NBITS_FIELD == 503)
             {
-                ulong[][] t = Utils.InitArray(15, engine.param.NWORDS_FIELD);
+                ulong[][] t = SikeUtilities.InitArray(15, engine.param.NWORDS_FIELD);
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
 
                 // Precomputed table
@@ -1991,7 +1989,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             if (engine.param.NBITS_FIELD == 610)
             {   
-                ulong[][] t = Utils.InitArray(31, engine.param.NWORDS_FIELD); 
+                ulong[][] t = SikeUtilities.InitArray(31, engine.param.NWORDS_FIELD); 
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
 
                 // Precomputed table
@@ -2096,7 +2094,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
             if (engine.param.NBITS_FIELD == 751)
             {
-                ulong[][] t = Utils.InitArray(27, engine.param.NWORDS_FIELD);
+                ulong[][] t = SikeUtilities.InitArray(27, engine.param.NWORDS_FIELD);
                 ulong[] tt = new ulong[engine.param.NWORDS_FIELD];
 
                 // Precomputed table
@@ -2234,5 +2232,4 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             }
         }
     }
-
-    }
+}

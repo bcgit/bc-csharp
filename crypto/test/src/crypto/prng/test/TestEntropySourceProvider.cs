@@ -48,6 +48,18 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 return rv;
             }
 
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int IEntropySource.GetEntropy(Span<byte> output)
+            {
+                int length = bitsRequired / 8;
+                data.AsSpan(index, length).CopyTo(output);
+                index += length;
+                return length;
+            }
+#endif
+
             public int EntropySize
             {
                 get { return bitsRequired; }

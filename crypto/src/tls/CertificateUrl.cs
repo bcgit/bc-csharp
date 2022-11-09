@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Tls
 
                 WriteTo(output);
 
-                Platform.Dispose(this);
+                Dispose();
             }
         }
     }

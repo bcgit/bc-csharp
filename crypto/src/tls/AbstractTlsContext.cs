@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Tls
     internal abstract class AbstractTlsContext
         : TlsContext
     {
-        private static long counter = Times.NanoTime();
+        private static long counter = DateTime.UtcNow.Ticks;
 
         private static long NextCounterValue()
         {
@@ -20,9 +20,15 @@ namespace Org.BouncyCastle.Tls
 
         private static TlsNonceGenerator CreateNonceGenerator(TlsCrypto crypto, int connectionEnd)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> additionalSeedMaterial = stackalloc byte[16];
+            Pack.UInt64_To_BE((ulong)NextCounterValue(), additionalSeedMaterial);
+            Pack.UInt64_To_BE((ulong)DateTime.UtcNow.Ticks, additionalSeedMaterial[8..]);
+#else
             byte[] additionalSeedMaterial = new byte[16];
             Pack.UInt64_To_BE((ulong)NextCounterValue(), additionalSeedMaterial, 0);
-            Pack.UInt64_To_BE((ulong)Times.NanoTime(), additionalSeedMaterial, 8);
+            Pack.UInt64_To_BE((ulong)DateTime.UtcNow.Ticks, additionalSeedMaterial, 8);
+#endif
             additionalSeedMaterial[0] &= 0x7F;
             additionalSeedMaterial[0] |= (byte)(connectionEnd << 7);
 

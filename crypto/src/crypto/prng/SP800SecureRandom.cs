@@ -36,6 +36,19 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void SetSeed(Span<byte> seed)
+        {
+            lock (this)
+            {
+                if (mRandomSource != null)
+                {
+                    this.mRandomSource.SetSeed(seed);
+                }
+            }
+        }
+#endif
+
         public override void SetSeed(long seed)
         {
             lock (this)
@@ -55,6 +68,9 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         public override void NextBytes(byte[] buf, int off, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            NextBytes(buf.AsSpan(off, len));
+#else
             lock (this)
             {
                 if (mDrbg == null)
@@ -69,6 +85,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                     mDrbg.Generate(buf, off, len, null, mPredictionResistant);
                 }
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -82,10 +99,10 @@ namespace Org.BouncyCastle.Crypto.Prng
                 }
 
                 // check if a reseed is required...
-                if (mDrbg.Generate(buffer, null, mPredictionResistant) < 0)
+                if (mDrbg.Generate(buffer, mPredictionResistant) < 0)
                 {
-                    mDrbg.Reseed(null);
-                    mDrbg.Generate(buffer, null, mPredictionResistant);
+                    mDrbg.Reseed(ReadOnlySpan<byte>.Empty);
+                    mDrbg.Generate(buffer, mPredictionResistant);
                 }
             }
         }

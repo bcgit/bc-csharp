@@ -4,7 +4,6 @@ using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -13,7 +12,7 @@ namespace Org.BouncyCastle.Tls.Tests
         : AbstractTlsServer
     {
         internal MockPskTls13Server()
-            : base(new BcTlsCrypto(new SecureRandom()))
+            : base(new BcTlsCrypto())
         {
         }
 

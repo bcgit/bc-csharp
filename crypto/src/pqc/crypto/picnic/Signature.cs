@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class Signature
+    internal class Signature
     {
         internal byte[] challengeBits;
         internal byte[] salt;
@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         internal Signature(PicnicEngine engine)
         {
             salt = new byte[PicnicEngine.saltSizeBytes];
-            challengeBits = new byte[Utils.NumBytes(engine.numMPCRounds * 2)];
+            challengeBits = new byte[PicnicUtilities.NumBytes(engine.numMPCRounds * 2)];
             proofs = new Proof[engine.numMPCRounds];
             for (int i = 0; i < proofs.Length; i++)
             {
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
         }
 
-        public class Proof
+        internal class Proof
         {
             internal byte[] seed1;
             internal byte[] seed2;

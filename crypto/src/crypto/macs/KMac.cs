@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
             }
 
-            int rv = cshake.DoFinal(output, outOff, GetMacSize());
+            int rv = cshake.OutputFinal(output, outOff, GetMacSize());
 
             Reset();
 
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
-        public int DoFinal(byte[] output, int outOff, int outLen)
+        public int OutputFinal(byte[] output, int outOff, int outLen)
         {
             if (firstOutput)
             {
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
             }
 
-            int rv = cshake.DoFinal(output, outOff, outLen);
+            int rv = cshake.OutputFinal(output, outOff, outLen);
 
             Reset();
 
@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
-        public int DoOutput(byte[] output, int outOff, int outLen)
+        public int Output(byte[] output, int outOff, int outLen)
         {
             if (firstOutput)
             {
@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                 firstOutput = false;
             }
 
-            return cshake.DoOutput(output, outOff, outLen);
+            return cshake.Output(output, outOff, outLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

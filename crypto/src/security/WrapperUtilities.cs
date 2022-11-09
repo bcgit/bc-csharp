@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Security
         static WrapperUtilities()
         {
             // Signal to obfuscation tools not to change enum constants
-            ((WrapAlgorithm)Enums.GetArbitraryValue(typeof(WrapAlgorithm))).ToString();
+            Enums.GetArbitraryValue<WrapAlgorithm>().ToString();
 
             Algorithms[NistObjectIdentifiers.IdAes128Wrap.Id] = "AESWRAP";
             Algorithms[NistObjectIdentifiers.IdAes192Wrap.Id] = "AESWRAP";
@@ -56,8 +56,7 @@ namespace Org.BouncyCastle.Security
 
             try
             {
-                WrapAlgorithm wrapAlgorithm = (WrapAlgorithm)Enums.GetEnumValue(
-                    typeof(WrapAlgorithm), mechanism);
+                WrapAlgorithm wrapAlgorithm = Enums.GetEnumValue<WrapAlgorithm>(mechanism);
 
                 switch (wrapAlgorithm)
                 {

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     public class PgpPbeTest
 		: SimpleTest
     {
-		private static readonly DateTime TestDateTime = new DateTime(2003, 8, 29, 23, 35, 11, 0);
+		private static readonly DateTime ModificationTime = new DateTime(2003, 8, 29, 23, 35, 11, DateTimeKind.Utc);
 
 		private static readonly byte[] enc1 = Base64.Decode(
             "jA0EAwMC5M5wWBP2HBZgySvUwWFAmMRLn7dWiZN6AkQMvpE3b6qwN3SSun7zInw2"
@@ -66,9 +66,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 Fail("wrong filename in packet");
             }
 
-			if (!ld.ModificationTime.Equals(TestDateTime))
+			if (!ld.ModificationTime.Equals(ModificationTime))
 			{
-				Fail("wrong modification time in packet: " + ld.ModificationTime + " vs " + TestDateTime);
+				Fail("wrong modification time in packet: " + ld.ModificationTime + " vs " + ModificationTime);
 			}
 
 			Stream unc = ld.GetInputStream();
@@ -104,9 +104,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			{
 				Fail("wrong filename in packet");
 			}
-			if (!ld.ModificationTime.Equals(TestDateTime))
+			if (!ld.ModificationTime.Equals(ModificationTime))
 			{
-				Fail("wrong modification time in packet: " + ld.ModificationTime.Ticks + " " + TestDateTime.Ticks);
+				Fail("wrong modification time in packet: " + ld.ModificationTime.Ticks + " " + ModificationTime.Ticks);
 			}
 
 			Stream unc = ld.GetInputStream();
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 PgpLiteralData.Binary,
                 PgpLiteralData.Console,
                 text.Length,
-                TestDateTime);
+                ModificationTime);
 
 			ldOut.Write(text, 0, text.Length);
 			ldOut.Close();
@@ -194,7 +194,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
 			cOut.Write(bOutData, 0, bOutData.Length);
 
-			cPk.Close();
+			cPk.Dispose();
 
 			data = DecryptMessage(cbOut.ToArray());
 
@@ -222,13 +222,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 				new UncloseableStream(comOut),
                 PgpLiteralData.Binary,
                 PgpLiteralData.Console,
-                TestDateTime,
+                ModificationTime,
                 new byte[16]);
 
             ldOut.Write(test, 0, test.Length);
-            lData.Close();
+            lData.Dispose();
 
-			comData.Close();
+			comData.Dispose();
             cbOut = new UncloseableMemoryStream();
             cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, rand);
@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 cOut.Write(tmp, 0, tmp.Length);
             }
 
-			cPk.Close();
+			cPk.Dispose();
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, test))
@@ -261,7 +261,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
             bOutData = bOut.ToArray();
             cOut.Write(bOutData, 0, bOutData.Length);
-            cPk.Close();
+            cPk.Dispose();
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, test))
@@ -317,7 +317,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 				PgpLiteralData.Binary,
 				PgpLiteralData.Console,
 				msg.Length,
-				TestDateTime);
+                ModificationTime);
 
 			ldOut.Write(msg, 0, msg.Length);
 

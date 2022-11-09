@@ -25,21 +25,23 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerExternal GetInstance(object obj)
         {
-            if (obj == null || obj is DerExternal)
+            if (obj == null)
+                return null;
+
+            if (obj is DerExternal derExternal)
+                return derExternal;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerExternal)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerExternal converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerExternal)
-                    return (DerExternal)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerExternal)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerExternal)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

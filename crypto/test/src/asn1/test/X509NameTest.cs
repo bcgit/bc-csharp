@@ -100,12 +100,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             string				val)
         {
             IAsn1Convertible converted = createEntryValue(oid, val);
-            if (!(converted is DerGeneralizedTime))
+            if (!(converted is Asn1GeneralizedTime))
             {
                 Fail("encoding for " + oid + " not GeneralizedTime");
             }
             converted = createEntryValueFromString(oid, val);
-            if (!(converted is DerGeneralizedTime))
+            if (!(converted is Asn1GeneralizedTime))
             {
                 Fail("encoding for " + oid + " not GeneralizedTime");
             }

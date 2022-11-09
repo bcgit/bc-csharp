@@ -7,42 +7,33 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	public class CAKeyUpdAnnContent
 		: Asn1Encodable
 	{
-		private readonly CmpCertificate oldWithNew;
-		private readonly CmpCertificate newWithOld;
-		private readonly CmpCertificate newWithNew;
+        public static CAKeyUpdAnnContent GetInstance(object obj)
+        {
+            if (obj is CAKeyUpdAnnContent content)
+                return content;
+
+            if (obj is Asn1Sequence seq)
+                return new CAKeyUpdAnnContent(seq);
+
+            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+        }
+
+        private readonly CmpCertificate m_oldWithNew;
+		private readonly CmpCertificate m_newWithOld;
+		private readonly CmpCertificate m_newWithNew;
 
 		private CAKeyUpdAnnContent(Asn1Sequence seq)
 		{
-			oldWithNew = CmpCertificate.GetInstance(seq[0]);
-			newWithOld = CmpCertificate.GetInstance(seq[1]);
-			newWithNew = CmpCertificate.GetInstance(seq[2]);
+			m_oldWithNew = CmpCertificate.GetInstance(seq[0]);
+			m_newWithOld = CmpCertificate.GetInstance(seq[1]);
+			m_newWithNew = CmpCertificate.GetInstance(seq[2]);
 		}
 
-		public static CAKeyUpdAnnContent GetInstance(object obj)
-		{
-			if (obj is CAKeyUpdAnnContent)
-				return (CAKeyUpdAnnContent)obj;
+		public virtual CmpCertificate OldWithNew => m_oldWithNew;
 
-			if (obj is Asn1Sequence)
-				return new CAKeyUpdAnnContent((Asn1Sequence)obj);
+		public virtual CmpCertificate NewWithOld => m_newWithOld;
 
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public virtual CmpCertificate OldWithNew
-		{
-			get { return oldWithNew; }
-		}
-		
-		public virtual CmpCertificate NewWithOld
-		{
-			get { return newWithOld; }
-		}
-
-		public virtual CmpCertificate NewWithNew
-		{
-			get { return newWithNew; }
-		}
+		public virtual CmpCertificate NewWithNew => m_newWithNew;
 
 		/**
 		 * <pre>
@@ -56,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return new DerSequence(oldWithNew, newWithOld, newWithNew);
+			return new DerSequence(m_oldWithNew, m_newWithOld, m_newWithNew);
 		}
 	}
 }

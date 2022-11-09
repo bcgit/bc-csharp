@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities.Date;
-
 namespace Org.BouncyCastle.Pkix
 {
     public class CertStatus
@@ -12,12 +10,12 @@ namespace Org.BouncyCastle.Pkix
 
         private int status = Unrevoked;
 
-        DateTimeObject revocationDate = null;
+        DateTime? revocationDate = null;
 
         /// <summary>
         /// Returns the revocationDate.
         /// </summary>
-         public DateTimeObject RevocationDate
+         public DateTime? RevocationDate
         {
             get { return revocationDate; }
             set { this.revocationDate = value; }

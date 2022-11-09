@@ -46,10 +46,9 @@ namespace Org.BouncyCastle.Cms
 		}
 
 		/// <summary>Constructor allowing specific source of randomness</summary>
-		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-		public CmsEnvelopedDataStreamGenerator(
-			SecureRandom rand)
-			: base(rand)
+		/// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsEnvelopedDataStreamGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 
@@ -104,7 +103,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				try
 				{
-					recipientInfos.Add(rig.Generate(encKey, rand));
+					recipientInfos.Add(rig.Generate(encKey, m_random));
 				}
 				catch (InvalidKeyException e)
 				{
@@ -162,7 +161,7 @@ namespace Org.BouncyCastle.Cms
 					eiGen.GetRawOutputStream(), 0, false, _bufferSize);
 
                 IBufferedCipher cipher = CipherUtilities.GetCipher(encAlgID.Algorithm);
-				cipher.Init(true, new ParametersWithRandom(cipherParameters, rand));
+				cipher.Init(true, new ParametersWithRandom(cipherParameters, m_random));
 				CipherStream cOut = new CipherStream(octetOutputStream, null, cipher);
 
 				return new CmsEnvelopedDataOutputStream(this, cOut, cGen, envGen, eiGen);
@@ -191,7 +190,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-			keyGen.Init(new KeyGenerationParameters(rand, keyGen.DefaultStrength));
+			keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
 			return Open(outStream, encryptionOid, keyGen);
 		}
@@ -207,7 +206,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-			keyGen.Init(new KeyGenerationParameters(rand, keySize));
+			keyGen.Init(new KeyGenerationParameters(m_random, keySize));
 
 			return Open(outStream, encryptionOid, keyGen);
 		}
@@ -241,7 +240,14 @@ namespace Org.BouncyCastle.Cms
 				_out.Write(buffer, offset, count);
 			}
 
-			public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+            {
+                _out.Write(buffer);
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
 				_out.WriteByte(value);
 			}
@@ -250,7 +256,7 @@ namespace Org.BouncyCastle.Cms
             {
                 if (disposing)
  				{
-                    Platform.Dispose(_out);
+                    _out.Dispose();
 
                     // TODO Parent context(s) should really be closed explicitly
 

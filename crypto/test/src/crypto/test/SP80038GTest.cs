@@ -1,10 +1,7 @@
+using System;
 
 using NUnit.Framework;
 
-using System;
-
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Crypto.Fpe;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -15,7 +12,8 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-	public class SP80038GTest
+    [NonParallelizable] // Environment.SetEnvironmentVariable
+    public class SP80038GTest
 	    : SimpleTest
     {
         private class FFSample

@@ -28,18 +28,25 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             int width = info.Width;
 
             int d = (size + width - 1) / width;
+            int fullComb = d * width;
 
             ECPoint R = c.Infinity;
 
-            int fullComb = d * width;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int KLen = Nat.GetLengthForBits(fullComb);
+            Span<uint> K = KLen <= 32
+                ? stackalloc uint[KLen]
+                : new uint[KLen];
+            Nat.FromBigInteger(fullComb, k, K);
+#else
             uint[] K = Nat.FromBigInteger(fullComb, k);
+#endif
 
-            int top = fullComb - 1;
-            for (int i = 0; i < d; ++i)
+            for (int i = 1; i <= d; ++i)
             {
                 uint secretIndex = 0;
 
-                for (int j = top - i; j >= 0; j -= d)
+                for (int j = fullComb - i; j >= 0; j -= d)
                 {
                     uint secretBit = K[j >> 5] >> (j & 0x1F);
                     secretIndex ^= secretBit >> 1;

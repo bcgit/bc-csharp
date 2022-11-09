@@ -131,23 +131,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual string AlgorithmName
-        {
-            get
-            {
-                return engine.AlgorithmName + "/KCCM";
-            }
-        }
+        public virtual string AlgorithmName => engine.AlgorithmName + "/KCCM";
 
         public virtual int GetBlockSize()
         {
             return engine.GetBlockSize();
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public virtual IBlockCipher UnderlyingCipher => engine;
 
         public virtual void ProcessAadByte(byte input)
         {
@@ -468,9 +459,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Copy(macBlock, 0, mac, 0, macSize);
 
-                Span<byte> calculatedMac = stackalloc byte[macSize];
+                Span<byte> calculatedMac = macSize <= 64
+                    ? stackalloc byte[macSize]
+                    : new byte[macSize];
 
-                buffer.AsSpan(0, macSize).CopyTo(calculatedMac);
+                calculatedMac.CopyFrom(buffer);
 
                 if (!Arrays.ConstantTimeAreEqual(mac.AsSpan(0, macSize), calculatedMac))
                     throw new InvalidCipherTextException("mac check failed");

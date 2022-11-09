@@ -1,11 +1,12 @@
 ﻿using System;
+
 using Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
 {
     internal class HpsPolynomial : Polynomial
     {
-        public HpsPolynomial(NtruParameterSet parameterSet) : base(parameterSet)
+        internal HpsPolynomial(NtruParameterSet parameterSet) : base(parameterSet)
         {
         }
 

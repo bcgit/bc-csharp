@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -353,16 +352,16 @@ namespace Org.BouncyCastle.Pkix
             else if (Platform.EqualsIgnoreCase(encoding, "PEM"))
 			{
 				MemoryStream bOut = new MemoryStream();
-				PemWriter pWrt = new PemWriter(new StreamWriter(bOut));
 
 				try
 				{
-					foreach (var cert in m_certificates)
+					using (var pWrt = new PemWriter(new StreamWriter(bOut)))
 					{
-						pWrt.WriteObject(cert);
-					}
-
-                    Platform.Dispose(pWrt.Writer);
+                        foreach (var cert in m_certificates)
+                        {
+                            pWrt.WriteObject(cert);
+                        }
+                    }
 				}
 				catch (Exception)
 				{

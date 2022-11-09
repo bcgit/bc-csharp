@@ -16,8 +16,8 @@ namespace Org.BouncyCastle.OpenSsl
 		static PemUtilities()
 		{
 			// Signal to obfuscation tools not to change enum constants
-			((PemBaseAlg)Enums.GetArbitraryValue(typeof(PemBaseAlg))).ToString();
-			((PemMode)Enums.GetArbitraryValue(typeof(PemMode))).ToString();
+			Enums.GetArbitraryValue<PemBaseAlg>().ToString();
+            Enums.GetArbitraryValue<PemMode>().ToString();
 		}
 
 		private static void ParseDekAlgName(
@@ -31,16 +31,16 @@ namespace Org.BouncyCastle.OpenSsl
 
 				if (dekAlgName == "DES-EDE" || dekAlgName == "DES-EDE3")
 				{
-					baseAlg = (PemBaseAlg)Enums.GetEnumValue(typeof(PemBaseAlg), dekAlgName);
+					baseAlg = Enums.GetEnumValue<PemBaseAlg>(dekAlgName);
 					return;
 				}
 
 				int pos = dekAlgName.LastIndexOf('-');
 				if (pos >= 0)
 				{
-					baseAlg = (PemBaseAlg)Enums.GetEnumValue(typeof(PemBaseAlg), dekAlgName.Substring(0, pos));
-					mode = (PemMode)Enums.GetEnumValue(typeof(PemMode), dekAlgName.Substring(pos + 1));
-					return;
+					baseAlg = Enums.GetEnumValue<PemBaseAlg>(dekAlgName.Substring(0, pos));
+                    mode = Enums.GetEnumValue<PemMode>(dekAlgName.Substring(pos + 1));
+                    return;
 				}
 			}
 			catch (ArgumentException)

@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Cms
 		public void Drain()
 		{
 			Streams.Drain(_in);
-            Platform.Dispose(_in);
+            _in.Dispose();
 		}
 
 		private class FullReaderStream : FilterStream
@@ -58,13 +58,6 @@ namespace Org.BouncyCastle.Cms
 				: base(input)
 			{
 			}
-
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            public override void CopyTo(Stream destination, int bufferSize)
-            {
-				s.CopyTo(destination, bufferSize);
-            }
-#endif
 
             public override int Read(byte[]	buf, int off, int len)
 			{

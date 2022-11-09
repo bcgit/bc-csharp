@@ -11,6 +11,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <param name="length">the length of the input data.</param>
         void Update(byte[] input, int inOff, int length);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void Update(ReadOnlySpan<byte> input);
+#endif
+
         /// <summary>Return calculated hash for any input passed in.</summary>
         /// <returns>the hash value.</returns>
         byte[] CalculateHash();

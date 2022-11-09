@@ -205,9 +205,9 @@ namespace Org.BouncyCastle.X509
             DateTime time)
         {
             if (time.CompareTo(NotAfter) > 0)
-                throw new CertificateExpiredException("certificate expired on " + c.EndDate.GetTime());
+                throw new CertificateExpiredException("certificate expired on " + c.EndDate);
             if (time.CompareTo(NotBefore) < 0)
-                throw new CertificateNotYetValidException("certificate not valid until " + c.StartDate.GetTime());
+                throw new CertificateNotYetValidException("certificate not valid until " + c.StartDate);
         }
 
         /// <summary>
@@ -680,20 +680,16 @@ namespace Org.BouncyCastle.X509
             if (!IsAlgIDEqual(c.SignatureAlgorithm, c.TbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
-            Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
+            byte[] b = GetTbsCertificate();
 
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
-
-            byte[] b = this.GetTbsCertificate();
-
-            streamCalculator.Stream.Write(b, 0, b.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
+            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
+            using (var stream = streamCalculator.Stream)
             {
-                throw new InvalidKeyException("Public key presented not for certificate signature");
+                stream.Write(b, 0, b.Length);
             }
+
+            if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
+                throw new InvalidKeyException("Public key presented not for certificate signature");
         }
 
         private CachedEncoding GetCachedEncoding()

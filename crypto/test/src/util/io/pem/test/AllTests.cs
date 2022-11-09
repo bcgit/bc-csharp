@@ -38,9 +38,11 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
         {
 			try
 			{
-				PemReader rd = new PemReader(new StringReader("-----BEGIN \n"));
-				rd.ReadPemObject();
-				Assert.Fail("must fail on malformed");
+				using (var rd = new PemReader(new StringReader("-----BEGIN \n")))
+				{
+                    rd.ReadPemObject();
+                }
+                Assert.Fail("must fail on malformed");
 			}
 			catch (IOException ioex)
             {
@@ -50,14 +52,15 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
 
 		private void LengthTest(string type, IList<PemHeader> headers, byte[] data)
 		{
-			StringWriter sw = new StringWriter();
-			PemWriter pWrt = new PemWriter(sw);
+            PemObject pemObj = new PemObject(type, headers, data);
 
-			PemObject pemObj = new PemObject(type, headers, data);
-			pWrt.WriteObject(pemObj);
-			pWrt.Writer.Close();
+            StringWriter sw = new StringWriter();
 
-			Assert.AreEqual(sw.ToString().Length, pWrt.GetOutputSize(pemObj));
-		}
+			using (var pWrt = new PemWriter(sw))
+			{
+                pWrt.WriteObject(pemObj);
+                Assert.AreEqual(sw.ToString().Length, pWrt.GetOutputSize(pemObj));
+            }
+        }
 	}
 }

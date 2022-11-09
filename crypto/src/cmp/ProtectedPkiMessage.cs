@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Cmp
     /// </summary>
     public class ProtectedPkiMessage
     {
-        private readonly PkiMessage pkiMessage;
+        private readonly PkiMessage m_pkiMessage;
 
         /// <summary>
         /// Wrap a general message.
@@ -25,11 +25,12 @@ namespace Org.BouncyCastle.Cmp
         public ProtectedPkiMessage(GeneralPkiMessage pkiMessage)
         {
             if (!pkiMessage.HasProtection)
-                throw new ArgumentException("pki message not protected");
+                throw new ArgumentException("GeneralPkiMessage not protected");
 
-            this.pkiMessage = pkiMessage.ToAsn1Structure();
+            this.m_pkiMessage = pkiMessage.ToAsn1Structure();
         }
 
+        // TODO[cmp] Make internal? (Has test that uses it)
         /// <summary>
         /// Wrap a PKI message.
         /// </summary>
@@ -38,63 +39,49 @@ namespace Org.BouncyCastle.Cmp
         public ProtectedPkiMessage(PkiMessage pkiMessage)
         {
             if (null == pkiMessage.Header.ProtectionAlg)
-                throw new ArgumentException("pki message not protected");
+                throw new ArgumentException("PkiMessage not protected");
 
-            this.pkiMessage = pkiMessage;
+            this.m_pkiMessage = pkiMessage;
         }
 
-        /// <summary>
-        /// Message header
-        /// </summary>
-        public PkiHeader Header
-        {
-            get { return pkiMessage.Header; }
-        }
+        /// <summary>Message header</summary>
+        public virtual PkiHeader Header => m_pkiMessage.Header;
 
-        /// <summary>
-        /// Message Body
-        /// </summary>
-        public PkiBody Body
-        {
-            get { return pkiMessage.Body; }
-        }
+        /// <summary>Message body</summary>
+        public virtual PkiBody Body => m_pkiMessage.Body;
 
         /// <summary>
         /// Return the underlying ASN.1 structure contained in this object.
         /// </summary>
-        /// <returns>PKI Message structure</returns>
-        public PkiMessage ToAsn1Message()
-        {
-            return pkiMessage;
-        }
+        /// <returns>PkiMessage structure</returns>
+        public virtual PkiMessage ToAsn1Message() => m_pkiMessage;
 
         /// <summary>
         /// Determine whether the message is protected by a password based MAC. Use verify(PKMACBuilder, char[])
         /// to verify the message if this method returns true.
         /// </summary>
         /// <returns>true if protection MAC PBE based, false otherwise.</returns>
-        public bool HasPasswordBasedMacProtected
+        public virtual bool HasPasswordBasedMacProtected
         {
-            get { return Header.ProtectionAlg.Algorithm.Equals(CmpObjectIdentifiers.passwordBasedMac); }
+            get { return CmpObjectIdentifiers.passwordBasedMac.Equals(Header.ProtectionAlg.Algorithm); }
         }
 
         /// <summary>
         /// Return the extra certificates associated with this message.
         /// </summary>
         /// <returns>an array of extra certificates, zero length if none present.</returns>
-        public X509Certificate[] GetCertificates()
+        public virtual X509Certificate[] GetCertificates()
         {
-            CmpCertificate[] certs = pkiMessage.GetExtraCerts();
+            CmpCertificate[] certs = m_pkiMessage.GetExtraCerts();
             if (null == certs)
                 return new X509Certificate[0];
 
-            X509Certificate[] res = new X509Certificate[certs.Length];
+            X509Certificate[] result = new X509Certificate[certs.Length];
             for (int t = 0; t < certs.Length; t++)
             {
-                res[t] = new X509Certificate(X509CertificateStructure.GetInstance(certs[t].GetEncoded()));
+                result[t] = new X509Certificate(certs[t].X509v3PKCert);
             }
-
-            return res;
+            return result;
         }
 
         /// <summary>
@@ -102,27 +89,13 @@ namespace Org.BouncyCastle.Cmp
         /// </summary>
         /// <param name="verifierFactory">a factory of signature verifiers.</param>
         /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>      
-        public bool Verify(IVerifierFactory verifierFactory)
+        public virtual bool Verify(IVerifierFactory verifierFactory)
         {
-            IStreamCalculator streamCalculator = verifierFactory.CreateCalculator();
+            IStreamCalculator<IVerifier> streamCalculator = verifierFactory.CreateCalculator();
 
-            IVerifier result = (IVerifier)Process(streamCalculator);
+            IVerifier result = Process(streamCalculator);
 
-            return result.IsVerified(pkiMessage.Protection.GetBytes());
-        }
-
-        private object Process(IStreamCalculator streamCalculator)
-        {
-            Asn1EncodableVector avec = new Asn1EncodableVector();
-            avec.Add(pkiMessage.Header);
-            avec.Add(pkiMessage.Body);
-            byte[] enc = new DerSequence(avec).GetDerEncoded();
-
-            streamCalculator.Stream.Write(enc, 0, enc.Length);
-            streamCalculator.Stream.Flush();
-            Platform.Dispose(streamCalculator.Stream);
-
-            return streamCalculator.GetResult();
+            return result.IsVerified(m_pkiMessage.Protection.GetBytes());
         }
 
         /// <summary>
@@ -132,18 +105,33 @@ namespace Org.BouncyCastle.Cmp
         /// <param name="password">the MAC password</param>
         /// <returns>true if the passed in password and MAC builder verify the message, false otherwise.</returns>
         /// <exception cref="InvalidOperationException">if algorithm not MAC based, or an exception is thrown verifying the MAC.</exception>
-        public bool Verify(PKMacBuilder pkMacBuilder, char[] password)
+        public virtual bool Verify(PKMacBuilder pkMacBuilder, char[] password)
         {
-            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(pkiMessage.Header.ProtectionAlg.Algorithm))
+            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(m_pkiMessage.Header.ProtectionAlg.Algorithm))
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
-            PbmParameter parameter = PbmParameter.GetInstance(pkiMessage.Header.ProtectionAlg.Parameters);
+            PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
 
             pkMacBuilder.SetParameters(parameter);
 
-            IBlockResult result = (IBlockResult)Process(pkMacBuilder.Build(password).CreateCalculator());
+            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
 
-            return Arrays.ConstantTimeAreEqual(result.Collect(), this.pkiMessage.Protection.GetBytes());
+            return Arrays.ConstantTimeAreEqual(result.Collect(), m_pkiMessage.Protection.GetBytes());
+        }
+
+        private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)
+        {
+            Asn1EncodableVector avec = new Asn1EncodableVector();
+            avec.Add(m_pkiMessage.Header);
+            avec.Add(m_pkiMessage.Body);
+            byte[] enc = new DerSequence(avec).GetDerEncoded();
+
+            using (var stream = streamCalculator.Stream)
+            {
+                stream.Write(enc, 0, enc.Length);
+            }
+
+            return streamCalculator.GetResult();
         }
     }
 }

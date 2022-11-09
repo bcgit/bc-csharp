@@ -5,7 +5,6 @@ using System.IO;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -22,7 +21,7 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal MockPskTlsClient(TlsSession session, TlsPskIdentity pskIdentity)
-            : base(new BcTlsCrypto(new SecureRandom()), pskIdentity)
+            : base(new BcTlsCrypto(), pskIdentity)
         {
             this.m_session = session;
         }

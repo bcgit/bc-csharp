@@ -7,8 +7,8 @@ namespace Org.BouncyCastle.Crypto.Modes
     /**
     * implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.
     */
-    public class CbcBlockCipher
-		: IBlockCipher
+    public sealed class CbcBlockCipher
+		: IBlockCipherMode
     {
         private byte[]			IV, cbcV, cbcNextV;
 		private int				blockSize;
@@ -36,10 +36,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
 
         /**
         * Initialise the cipher and, possibly, the initialisation vector (IV).
@@ -51,9 +48,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
-            bool forEncryption,
-            ICipherParameters parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
             bool oldEncrypting = this.encrypting;
 
@@ -139,8 +134,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             Array.Copy(IV, 0, cbcV, 0, IV.Length);
 			Array.Clear(cbcNextV, 0, cbcNextV.Length);
-
-            cipher.Reset();
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

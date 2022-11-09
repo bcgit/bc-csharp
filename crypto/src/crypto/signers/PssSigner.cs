@@ -152,22 +152,18 @@ namespace Org.BouncyCastle.Crypto.Signers
 			get { return mgfDigest.AlgorithmName + "withRSAandMGF1"; }
 		}
 
-		public virtual void Init(
-			bool				forSigning,
-			ICipherParameters	parameters)
+		public virtual void Init(bool forSigning, ICipherParameters parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				ParametersWithRandom p = (ParametersWithRandom) parameters;
-
-				parameters = p.Parameters;
-				random = p.Random;
+				parameters = withRandom.Parameters;
+				random = withRandom.Random;
 			}
 			else
 			{
 				if (forSigning)
 				{
-					random = new SecureRandom();
+					random = CryptoServicesRegistrar.GetSecureRandom();
 				}
 			}
 
@@ -176,11 +172,11 @@ namespace Org.BouncyCastle.Crypto.Signers
 			RsaKeyParameters kParam;
 			if (parameters is RsaBlindingParameters)
 			{
-				kParam = ((RsaBlindingParameters) parameters).PublicKey;
+				kParam = ((RsaBlindingParameters)parameters).PublicKey;
 			}
 			else
 			{
-				kParam = (RsaKeyParameters) parameters;
+				kParam = (RsaKeyParameters)parameters;
 			}
 
 			emBits = kParam.Modulus.BitLength - 1;
@@ -358,7 +354,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 			{
 				byte[] mask = new byte[length];
 				mgfDigest.BlockUpdate(Z, zOff, zLen);
-				((IXof)mgfDigest).DoFinal(mask, 0, mask.Length);
+				((IXof)mgfDigest).OutputFinal(mask, 0, mask.Length);
 
 				return mask;
 			}

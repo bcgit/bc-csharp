@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Crypto.IO
         {
             if (disposing)
             {
-                Platform.Dispose(stream);
+                stream.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -916,7 +916,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             uint[] L_uint = new uint[_p];
 
             // AES256 CTR
-            BufferedBlockCipher cipher = new BufferedBlockCipher(new SicBlockCipher(new AesEngine()));
+            BufferedBlockCipher cipher = new BufferedBlockCipher(new SicBlockCipher(AesUtilities.CreateEngine()));
             KeyParameter kp = new KeyParameter(k);
             cipher.Init(true, new ParametersWithIV(kp, new byte[16]));
             int len = cipher.ProcessBytes(cipherInput, 0, 4 * _p, L, 0);

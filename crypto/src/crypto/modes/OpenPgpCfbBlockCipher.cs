@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 	* </p>
     */
     public class OpenPgpCfbBlockCipher
-        : IBlockCipher
+        : IBlockCipherMode
     {
         private byte[] IV;
         private byte[] FR;
@@ -43,15 +43,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.FRE = new byte[blockSize];
         }
 
-		/**
+        /**
         * return the underlying block cipher that we are wrapping.
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
 
 		/**
         * return the algorithm name and mode.
@@ -110,8 +107,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             count = 0;
 
 			Array.Copy(IV, 0, FR, 0, FR.Length);
-
-			cipher.Reset();
         }
 
         /**

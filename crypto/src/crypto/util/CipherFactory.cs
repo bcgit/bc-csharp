@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         private static BufferedBlockCipher CreateCipher(DerObjectIdentifier algorithm)
         {
-            IBlockCipher cipher;
+            IBlockCipherMode cipher;
 
             if (NistObjectIdentifiers.IdAes128Cbc.Equals(algorithm)
                 || NistObjectIdentifiers.IdAes192Cbc.Equals(algorithm)

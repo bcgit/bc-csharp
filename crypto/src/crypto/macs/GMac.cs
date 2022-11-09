@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public string AlgorithmName
         {
-            get { return cipher.GetUnderlyingCipher().AlgorithmName + "-GMAC"; }
+            get { return cipher.UnderlyingCipher.AlgorithmName + "-GMAC"; }
         }
 
         public int GetMacSize()

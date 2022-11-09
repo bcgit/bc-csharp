@@ -1,7 +1,3 @@
-using System;
-
-using Org.BouncyCastle.Security;
-
 namespace Org.BouncyCastle.Crypto
 {
     public interface IWrapper

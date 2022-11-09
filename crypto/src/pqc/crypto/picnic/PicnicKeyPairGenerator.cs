@@ -1,4 +1,3 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
@@ -6,7 +5,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     public class PicnicKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
-
     {
         private SecureRandom random;
         private PicnicParameters parameters;
@@ -14,7 +12,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         public void Init(KeyGenerationParameters param)
         {
             random = param.Random;
-            parameters = ((PicnicKeyGenerationParameters) param).GetParameters();
+            parameters = ((PicnicKeyGenerationParameters) param).Parameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()

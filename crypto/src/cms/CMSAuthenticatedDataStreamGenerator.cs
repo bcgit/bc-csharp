@@ -42,20 +42,14 @@ namespace Org.BouncyCastle.Cms
 		private int                 _bufferSize;
 		private bool                _berEncodeRecipientSet;
 
-		/**
-		* base constructor
-		*/
 		public CmsAuthenticatedDataStreamGenerator()
 		{
 		}
 
-		/**
-		* constructor allowing specific source of randomness
-		* @param rand instance of SecureRandom to use
-		*/
-		public CmsAuthenticatedDataStreamGenerator(
-			SecureRandom rand)
-			: base(rand)
+        /// <summary>Constructor allowing specific source of randomness</summary>
+        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsAuthenticatedDataStreamGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 
@@ -105,7 +99,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				try
 				{
-					recipientInfos.Add(rig.Generate(encKey, rand));
+					recipientInfos.Add(rig.Generate(encKey, m_random));
 				}
 				catch (InvalidKeyException e)
 				{
@@ -195,7 +189,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-			keyGen.Init(new KeyGenerationParameters(rand, keyGen.DefaultStrength));
+			keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
 			return Open(outStr, encryptionOid, keyGen);
 		}
@@ -210,7 +204,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-			keyGen.Init(new KeyGenerationParameters(rand, keySize));
+			keyGen.Init(new KeyGenerationParameters(m_random, keySize));
 
 			return Open(outStr, encryptionOid, keyGen);
 		}
@@ -243,7 +237,14 @@ namespace Org.BouncyCastle.Cms
                 macStream.Write(buffer, offset, count);
             }
 
-			public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+            {
+                macStream.Write(buffer);
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
 				macStream.WriteByte(value);
 			}
@@ -252,7 +253,7 @@ namespace Org.BouncyCastle.Cms
             {
                 if (disposing)
                 {
-                    Platform.Dispose(macStream);
+                    macStream.Dispose();
 
                     // TODO Parent context(s) should really be be closed explicitly
 

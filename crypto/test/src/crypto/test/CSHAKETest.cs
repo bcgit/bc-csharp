@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] res = new byte[32];
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[32];
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("C5221D50E4F822D96A2E8881A961420F294B7B24FE3D2094BAED2C6524CC166B "), res));
 
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[64];
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode(
        "D008828E2B80AC9D2218FFEE1D070C48" +
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[64];
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode(
                     "07DC27B11E51FBAC75BC7B3C1D983E8B" +
@@ -113,15 +113,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] buf = new byte[20];
 
             CShakeDigest cshake1 = new CShakeDigest(256, new byte[0], new byte[265]);
-            cshake1.DoOutput(buf, 0, buf.Length);
+            cshake1.Output(buf, 0, buf.Length);
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("6e393540387004f087c4180db008acf6825190cf"), buf));
 
             CShakeDigest cshake2 = new CShakeDigest(128, new byte[0], new byte[329]);
-            cshake2.DoOutput(buf, 0, buf.Length);
+            cshake2.Output(buf, 0, buf.Length);
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("309bd7c285fcf8b839c9686b2cc00bd578947bee"), buf));
 
             cshake2 = new CShakeDigest(128, new byte[29], new byte[300]);
-            cshake2.DoOutput(buf, 0, buf.Length);
+            cshake2.Output(buf, 0, buf.Length);
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("ff6aafd83b8d22fc3e2e9b9948b581967ed9c5e7"), buf));
         }
 
@@ -133,19 +133,19 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] res = new byte[32];
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(!Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 
-            cshake.DoFinal(res, 0, res.Length);
+            cshake.OutputFinal(res, 0, res.Length);
 
             cshake.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
-            cshake.DoFinal(res, 0, res.Length);
+            cshake.OutputFinal(res, 0, res.Length);
 
             string s = Hex.ToHexString(res);
 
@@ -155,11 +155,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             cshake.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
-            cshake.DoOutput(res, 0, res.Length);
+            cshake.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 
-            cshake.DoFinal(res, 0, res.Length);
+            cshake.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("9cbce830079c452abdeb875366a49ebfe75b89ef17396e34898e904830b0e136"), res));
         }
@@ -181,14 +181,14 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 cshake_.BlockUpdate(hex0123, 0, 4);
 
-                cshake_.DoFinal(res, 0, 16);
+                cshake_.OutputFinal(res, 0, 16);
             }
 
             CShakeDigest cshake = new CShakeDigest(256, new byte[0], new byte[200]);
 
             cshake.BlockUpdate(data, 0, 200);
 
-            cshake.DoFinal(res, 0, 32);
+            cshake.OutputFinal(res, 0, 32);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("4a899b5be460d85a9789215bc17f88b8f8ac049bd3b519f561e7b5d3870dafa3"), res));
         }
@@ -204,8 +204,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] res1 = new byte[32];
             byte[] res2 = new byte[32];
 
-            ref_.DoFinal(res1, 0, res1.Length);
-            cshake.DoFinal(res2, 0, res2.Length);
+            ref_.OutputFinal(res1, 0, res1.Length);
+            cshake.OutputFinal(res2, 0, res2.Length);
 
             Assert.IsTrue(Arrays.AreEqual(res1, res2));
         }

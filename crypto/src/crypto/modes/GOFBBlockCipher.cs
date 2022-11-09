@@ -9,8 +9,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 	* implements the GOST 28147 OFB counter mode (GCTR).
 	*/
 	public class GOfbBlockCipher
-		: IBlockCipher
-	{
+		: IBlockCipherMode
+    {
 		private byte[]	IV;
 		private byte[]	ofbV;
 		private byte[]	ofbOutV;
@@ -46,15 +46,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 			this.ofbOutV = new byte[cipher.GetBlockSize()];
 		}
 
-		/**
+        /**
 		* return the underlying block cipher that we are wrapping.
 		*
 		* @return the underlying block cipher that we are wrapping.
 		*/
-		public IBlockCipher GetUnderlyingCipher()
-		{
-			return cipher;
-		}
+        public IBlockCipher UnderlyingCipher => cipher;
 
 		/**
 		* Initialise the cipher and, possibly, the initialisation vector (IV).
@@ -228,8 +225,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 		public void Reset()
 		{
 			Array.Copy(IV, 0, ofbV, 0, IV.Length);
-
-			cipher.Reset();
 		}
 	}
 }

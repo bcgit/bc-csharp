@@ -16,6 +16,7 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
@@ -80,17 +81,19 @@ namespace Org.BouncyCastle.Tsp
 
             try
             {
-                IStreamCalculator calculator = digestCalculator.CreateCalculator();
-                Stream stream = calculator.Stream;
                 byte[] certEnc = assocCert.GetEncoded();
-                stream.Write(certEnc, 0, certEnc.Length);
-                stream.Flush();
-                Platform.Dispose(stream);
+
+                IStreamCalculator<IBlockResult> calculator = digestCalculator.CreateCalculator();
+
+                using (var stream = calculator.Stream)
+                {
+                    stream.Write(certEnc, 0, certEnc.Length);
+                }
 
                 if (((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm.Equals(OiwObjectIdentifiers.IdSha1))
                 {
                     EssCertID essCertID = new EssCertID(
-                       ((IBlockResult)calculator.GetResult()).Collect(),
+                       calculator.GetResult().Collect(),
                        isIssuerSerialIncluded ?
                            new IssuerSerial(
                                new GeneralNames(
@@ -107,7 +110,7 @@ namespace Org.BouncyCastle.Tsp
                         ((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm);
 
                     EssCertIDv2 essCertID = new EssCertIDv2(
-                        ((IBlockResult)calculator.GetResult()).Collect(),
+                        calculator.GetResult().Collect(),
                         isIssuerSerialIncluded ?
                             new IssuerSerial(
                                 new GeneralNames(
@@ -334,21 +337,10 @@ namespace Org.BouncyCastle.Tsp
                 respExtensions = extGen.Generate();
             }
 
-
-
-            DerGeneralizedTime generalizedTime;
-            if (resolution != Resolution.R_SECONDS)
-            {
-                generalizedTime = new DerGeneralizedTime(createGeneralizedTime(genTime));
-            } 
-            else
-            {
-                generalizedTime = new DerGeneralizedTime(genTime);
-            }
-
+            var timeStampTime = new Asn1GeneralizedTime(WithResolution(genTime, resolution));
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
-                new DerInteger(serialNumber), generalizedTime, accuracy,
+                new DerInteger(serialNumber), timeStampTime, accuracy,
                 derOrdering, nonce, tsa, respExtensions);
 
             try
@@ -382,61 +374,27 @@ namespace Org.BouncyCastle.Tsp
             {
                 throw new TspException("Exception encoding info", e);
             }
-            //			catch (InvalidAlgorithmParameterException e)
-            //			{
-            //				throw new TspException("Exception handling CertStore CRLs", e);
-            //			}
+            //catch (InvalidAlgorithmParameterException e)
+            //{
+            //    throw new TspException("Exception handling CertStore CRLs", e);
+            //}
         }
 
-        private string createGeneralizedTime(DateTime genTime)
+        private static DateTime WithResolution(DateTime dateTime, Resolution resolution)
         {
-            string format = "yyyyMMddHHmmss.fff";
-           
-            StringBuilder sBuild = new StringBuilder(genTime.ToString(format));
-            int dotIndex = sBuild.ToString().IndexOf(".");
-
-            if (dotIndex <0)
+            switch (resolution)
             {
-                sBuild.Append("Z");
-                return sBuild.ToString();
+            case Resolution.R_SECONDS:
+                return DateTimeUtilities.WithPrecisionSecond(dateTime);
+            case Resolution.R_TENTHS_OF_SECONDS:
+                return DateTimeUtilities.WithPrecisionDecisecond(dateTime);
+            case Resolution.R_HUNDREDTHS_OF_SECONDS:
+                return DateTimeUtilities.WithPrecisionCentisecond(dateTime);
+            case Resolution.R_MILLISECONDS:
+                return DateTimeUtilities.WithPrecisionMillisecond(dateTime);
+            default:
+                throw new InvalidOperationException();
             }
-
-            switch(resolution)
-            {
-                case Resolution.R_TENTHS_OF_SECONDS:
-                    if (sBuild.Length > dotIndex + 2)
-                    {
-                        sBuild.Remove(dotIndex + 2, sBuild.Length-(dotIndex+2));
-                    }
-                    break;
-                case Resolution.R_HUNDREDTHS_OF_SECONDS:
-                    if (sBuild.Length > dotIndex + 3)
-                    {
-                        sBuild.Remove(dotIndex + 3, sBuild.Length-(dotIndex+3));
-                    }
-                    break;
-
-
-                case Resolution.R_SECONDS:
-                case Resolution.R_MILLISECONDS:
-                    // do nothing.
-                    break;
-             
-            }
-
-           
-            while (sBuild[sBuild.Length - 1] == '0')
-            {
-                sBuild.Remove(sBuild.Length - 1,1);
-            }
-
-            if (sBuild.Length - 1 == dotIndex)
-            {
-                sBuild.Remove(sBuild.Length - 1, 1);
-            }
-
-            sBuild.Append("Z");
-            return sBuild.ToString();
         }
 
         private class TableGen

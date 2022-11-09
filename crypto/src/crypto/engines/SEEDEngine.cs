@@ -181,11 +181,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "SEED"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return BlockSize;
@@ -268,10 +263,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BlockSize;
 		}
 #endif
-
-		public virtual void Reset()
-		{
-		}
 
 		private int[] CreateWorkingKey(byte[] inKey)
 		{

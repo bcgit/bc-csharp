@@ -301,14 +301,13 @@ namespace Org.BouncyCastle.Crypto.Fpe
             int t = T.Length;
 
             // i.
-            BigInteger numAB = num(bigRadix, AB);
-            byte[] bytesAB = BigIntegers.AsUnsignedByteArray(numAB);
-
             int zeroes = -(t + b + 1) & 15;
             byte[] Q = new byte[t + zeroes + 1 + b];
             Array.Copy(T, 0, Q, 0, t);
             Q[t + zeroes] = (byte)round;
-            Array.Copy(bytesAB, 0, Q, Q.Length - bytesAB.Length, bytesAB.Length);
+
+            BigInteger numAB = num(bigRadix, AB);
+            BigIntegers.AsUnsignedByteArray(numAB, Q, Q.Length - b, b);
 
             // ii.
             byte[] R = prf(cipher, Arrays.Concatenate(P, Q));
@@ -319,47 +318,43 @@ namespace Org.BouncyCastle.Crypto.Fpe
             {
                 int sBlocksLen = (d + BLOCK_SIZE - 1) / BLOCK_SIZE;
                 sBlocks = new byte[sBlocksLen * BLOCK_SIZE];
+
+                uint j0 = Pack.BE_To_UInt32(R, BLOCK_SIZE - 4);
                 Array.Copy(R, 0, sBlocks, 0, BLOCK_SIZE);
 
-                byte[] uint32 = new byte[4];
                 for (uint j = 1; j < sBlocksLen; ++j)
                 {
                     int sOff = (int)(j * BLOCK_SIZE);
-                    Array.Copy(R, 0, sBlocks, sOff, BLOCK_SIZE);
-                    Pack.UInt32_To_BE(j, uint32, 0);
-                    xor(uint32, 0, sBlocks, sOff + BLOCK_SIZE - 4, 4);
+
+                    Array.Copy(R, 0, sBlocks, sOff, BLOCK_SIZE - 4);
+                    Pack.UInt32_To_BE(j0 ^ j, sBlocks, sOff + BLOCK_SIZE - 4);
+
                     cipher.ProcessBlock(sBlocks, sOff, sBlocks, sOff);
                 }
             }
 
             // iv.
-            return num(sBlocks, 0, d);
+            return new BigInteger(1, sBlocks, 0, d);
         }
 
-        protected static BigInteger calculateY_FF3(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int wOff, uint round, ushort[] AB)
+        protected static BigInteger calculateY_FF3(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int wOff,
+            uint round, ushort[] AB)
         {
             // ii.
             byte[] P = new byte[BLOCK_SIZE];
-            Pack.UInt32_To_BE(round, P, 0);
-            xor(T, wOff, P, 0, 4);
+            Pack.UInt32_To_BE(Pack.BE_To_UInt32(T, wOff) ^ round, P, 0);
+
             BigInteger numAB = num(bigRadix, AB);
-
-            byte[] bytesAB = BigIntegers.AsUnsignedByteArray(numAB);
-
-            if ((P.Length - bytesAB.Length) < 4)  // to be sure...
-            {
-                throw new InvalidOperationException("input out of range");
-            }
-            Array.Copy(bytesAB, 0, P, P.Length - bytesAB.Length, bytesAB.Length);
+            BigIntegers.AsUnsignedByteArray(numAB, P, 4, BLOCK_SIZE - 4);
 
             // iii.
-            rev(P);
+            Array.Reverse(P);
             cipher.ProcessBlock(P, 0, P, 0);
-            rev(P);
+            Array.Reverse(P);
             byte[] S = P;
 
             // iv.
-            return num(S, 0, S.Length);
+            return new BigInteger(1, S);
         }
 
         protected static void checkArgs(IBlockCipher cipher, bool isFF1, int radix, ushort[] buf, int off, int len)
@@ -471,8 +466,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
             int m = u;
 
             // Note we keep A, B in reverse order throughout
-            rev(A);
-            rev(B);
+            Array.Reverse(A);
+            Array.Reverse(B);
 
             for (int i = 7; i >= 0; --i)
             {
@@ -494,8 +489,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 str(bigRadix, c, m, C, 0);
             }
 
-            rev(A);
-            rev(B);
+            Array.Reverse(A);
+            Array.Reverse(B);
 
             return Arrays.Concatenate(A, B);
         }
@@ -539,8 +534,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
             int m = v;
 
             // Note we keep A, B in reverse order throughout
-            rev(a);
-            rev(b);
+            Array.Reverse(a);
+            Array.Reverse(b);
 
             for (uint i = 0; i < 8; ++i)
             {
@@ -562,15 +557,10 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 str(bigRadix, c, m, C, 0);
             }
 
-            rev(a);
-            rev(b);
+            Array.Reverse(a);
+            Array.Reverse(b);
 
             return Arrays.Concatenate(a, b);
-        }
-
-        protected static BigInteger num(byte[] buf, int off, int len)
-        {
-            return new BigInteger(1, Arrays.CopyOfRange(buf, off, off + len));
         }
 
         protected static BigInteger num(BigInteger R, ushort[] x)
@@ -586,9 +576,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
         protected static byte[] prf(IBlockCipher c, byte[] x)
         {
             if ((x.Length % BLOCK_SIZE) != 0)
-            {
                 throw new ArgumentException();
-            }
 
             int m = x.Length / BLOCK_SIZE;
             byte[] y = new byte[BLOCK_SIZE];
@@ -602,42 +590,11 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return y;
         }
 
-        //    protected static void rev(byte[] x, int xOff, byte[] y, int yOff, int len)
-        //    {
-        //        for (int i = 1; i <= len; ++i)
-        //        {
-        //            y[yOff + len - i] = x[xOff + i - 1];
-        //        }
-        //    }
-
-        protected static void rev(byte[] x)
-        {
-            int half = x.Length / 2, end = x.Length - 1;
-            for (int i = 0; i < half; ++i)
-            {
-                byte tmp = x[i];
-                x[i] = x[end - i];
-                x[end - i] = tmp;
-            }
-        }
-
-        protected static void rev(ushort[] x)
-        {
-            int half = x.Length / 2, end = x.Length - 1;
-            for (int i = 0; i < half; ++i)
-            {
-                ushort tmp = x[i];
-                x[i] = x[end - i];
-                x[end - i] = tmp;
-            }
-        }
-
         protected static void str(BigInteger R, BigInteger x, int m, ushort[] output, int off)
         {
             if (x.SignValue < 0)
-            {
                 throw new ArgumentException();
-            }
+
             for (int i = 1; i <= m; ++i)
             {
                 BigInteger[] qr = x.DivideAndRemainder(R);
@@ -645,9 +602,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 x = qr[0];
             }
             if (x.SignValue != 0)
-            {
                 throw new ArgumentException();
-            }
         }
 
         protected static void xor(byte[] x, int xOff, byte[] y, int yOff, int len)

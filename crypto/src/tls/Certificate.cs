@@ -25,18 +25,8 @@ namespace Org.BouncyCastle.Tls
 
         public sealed class ParseOptions
         {
-            private int m_maxChainLength = int.MaxValue;
-
-            public int MaxChainLength
-            {
-                get { return m_maxChainLength; }
-            }
-
-            public ParseOptions SetMaxChainLength(int maxChainLength)
-            {
-                this.m_maxChainLength = maxChainLength;
-                return this;
-            }
+            public short CertificateType { get; set; } = Tls.CertificateType.X509;
+            public int MaxChainLength { get; set; } = int.MaxValue;
         }
 
         private static CertificateEntry[] Convert(TlsCertificate[] certificateList)
@@ -55,22 +45,29 @@ namespace Org.BouncyCastle.Tls
 
         private readonly byte[] m_certificateRequestContext;
         private readonly CertificateEntry[] m_certificateEntryList;
+        private readonly short m_certificateType;
 
         public Certificate(TlsCertificate[] certificateList)
             : this(null, Convert(certificateList))
         {
         }
 
-        // TODO[tls13] Prefer to manage the certificateRequestContext internally only? 
         public Certificate(byte[] certificateRequestContext, CertificateEntry[] certificateEntryList)
+            : this(Tls.CertificateType.X509, certificateRequestContext, certificateEntryList)
+        {
+        }
+
+        // TODO[tls13] Prefer to manage the certificateRequestContext internally only?
+        public Certificate(short certificateType, byte[] certificateRequestContext, CertificateEntry[] certificateEntryList)
         {
             if (null != certificateRequestContext && !TlsUtilities.IsValidUint8(certificateRequestContext.Length))
                 throw new ArgumentException("cannot be longer than 255", "certificateRequestContext");
             if (TlsUtilities.IsNullOrContainsNull(certificateEntryList))
                 throw new ArgumentException("cannot be null or contain any nulls", "certificateEntryList");
 
-            this.m_certificateRequestContext = TlsUtilities.Clone(certificateRequestContext);
-            this.m_certificateEntryList = certificateEntryList;
+            m_certificateRequestContext = TlsUtilities.Clone(certificateRequestContext);
+            m_certificateEntryList = certificateEntryList;
+            m_certificateType = certificateType;
         }
 
         public byte[] GetCertificateRequestContext()
@@ -99,22 +96,13 @@ namespace Org.BouncyCastle.Tls
             return CloneCertificateEntryList();
         }
 
-        public short CertificateType
-        {
-            get { return Tls.CertificateType.X509; }
-        }
+        public short CertificateType => m_certificateType;
 
-        public int Length
-        {
-            get { return m_certificateEntryList.Length; }
-        }
+        public int Length => m_certificateEntryList.Length;
 
         /// <returns><c>true</c> if this certificate chain contains no certificates, or <c>false</c> otherwise.
         /// </returns>
-        public bool IsEmpty
-        {
-            get { return m_certificateEntryList.Length == 0; }
-        }
+        public bool IsEmpty => m_certificateEntryList.Length == 0;
 
         /// <summary>Encode this <see cref="Certificate"/> to a <see cref="Stream"/>, and optionally calculate the
         /// "end point hash" (per RFC 5929's tls-server-end-point binding).</summary>
@@ -168,8 +156,13 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            TlsUtilities.CheckUint24(totalLength);
-            TlsUtilities.WriteUint24((int)totalLength, messageOutput);
+            // RFC 7250 indicates the raw key is not wrapped in a cert list like X509 is
+            // but RFC 8446 wraps it in a CertificateEntry, which is inside certificate_list
+            if (isTlsV13 || m_certificateType != Tls.CertificateType.RawPublicKey)
+            {
+                TlsUtilities.CheckUint24(totalLength);
+                TlsUtilities.WriteUint24((int)totalLength, messageOutput);
+            }
 
             for (int i = 0; i < count; ++i)
             {
@@ -195,6 +188,7 @@ namespace Org.BouncyCastle.Tls
         {
             SecurityParameters securityParameters = context.SecurityParameters;
             bool isTlsV13 = TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion);
+            short certType = options.CertificateType;
 
             byte[] certificateRequestContext = null;
             if (isTlsV13)
@@ -207,7 +201,7 @@ namespace Org.BouncyCastle.Tls
             {
                 return !isTlsV13 ? EmptyChain
                     :  certificateRequestContext.Length < 1 ? EmptyChainTls13
-                    :  new Certificate(certificateRequestContext, EmptyCertEntries);
+                    :  new Certificate(certType, certificateRequestContext, EmptyCertEntries);
             }
 
             byte[] certListData = TlsUtilities.ReadFully(totalLength, messageInput);
@@ -225,8 +219,20 @@ namespace Org.BouncyCastle.Tls
                         "Certificate chain longer than maximum (" + maxChainLength + ")");
                 }
 
-                byte[] derEncoding = TlsUtilities.ReadOpaque24(buf, 1);
-                TlsCertificate cert = crypto.CreateCertificate(derEncoding);
+                // RFC 7250 indicates the raw key is not wrapped in a cert list like X509 is
+                // but RFC 8446 wraps it in a CertificateEntry, which is inside certificate_list
+                byte[] derEncoding;
+                if (isTlsV13 || certType != Tls.CertificateType.RawPublicKey)
+                {
+                    derEncoding = TlsUtilities.ReadOpaque24(buf, 1);
+                }
+                else
+                {
+                    derEncoding = certListData;
+                    buf.Seek(totalLength, SeekOrigin.Current);
+                }
+
+                TlsCertificate cert = crypto.CreateCertificate(certType, derEncoding);
 
                 if (certificate_list.Count < 1 && endPointHashOutput != null)
                 {
@@ -250,7 +256,7 @@ namespace Org.BouncyCastle.Tls
                 certificateList[i] = (CertificateEntry)certificate_list[i];
             }
 
-            return new Certificate(certificateRequestContext, certificateList);
+            return new Certificate(certType, certificateRequestContext, certificateList);
         }
 
         private static void CalculateEndPointHash(TlsContext context, TlsCertificate cert, byte[] encoding,

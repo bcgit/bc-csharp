@@ -12,8 +12,6 @@ namespace Org.BouncyCastle.Math.EC
      */
     public abstract class ECPoint
     {
-        private static readonly SecureRandom Random = new SecureRandom();
-
         protected static ECFieldElement[] EMPTY_ZS = new ECFieldElement[0];
 
         protected static ECFieldElement[] GetInitialZCoords(ECCurve curve)
@@ -246,10 +244,7 @@ namespace Org.BouncyCastle.Math.EC
                      * Any side-channel in the implementation of 'inverse' now only leaks information about
                      * the value (z * b), and no longer reveals information about 'z' itself.
                      */
-                    // TODO Add CryptoServicesRegistrar class and use here
-                    //SecureRandom r = CryptoServicesRegistrar.GetSecureRandom();
-                    SecureRandom r = Random;
-                    ECFieldElement b = m_curve.RandomFieldElementMult(r);
+                    ECFieldElement b = m_curve.RandomFieldElementMult(SecureRandom.ArbitraryRandom);
                     ECFieldElement zInv = z.Multiply(b).Invert().Multiply(b);
                     return Normalize(zInv);
                 }
@@ -437,6 +432,14 @@ namespace Org.BouncyCastle.Math.EC
 
         public abstract byte[] GetEncoded(bool compressed);
 
+        public abstract int GetEncodedLength(bool compressed);
+
+        public abstract void EncodeTo(bool compressed, byte[] buf, int off);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract void EncodeTo(bool compressed, Span<byte> buf);
+#endif
+
         protected internal abstract bool CompressionYTilde { get; }
 
         public abstract ECPoint Add(ECPoint b);
@@ -559,6 +562,69 @@ namespace Org.BouncyCastle.Math.EC
                 return PO;
             }
         }
+
+        public override int GetEncodedLength(bool compressed)
+        {
+            if (IsInfinity)
+                return 1;
+
+            if (compressed)
+                return 1 + XCoord.GetEncodedLength();
+
+            return 1 + XCoord.GetEncodedLength() + YCoord.GetEncodedLength();
+        }
+
+        public override void EncodeTo(bool compressed, byte[] buf, int off)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            EncodeTo(compressed, buf.AsSpan(off));
+#else
+            if (IsInfinity)
+            {
+                buf[off] = 0x00;
+                return;
+            }
+
+            ECPoint normed = Normalize();
+            ECFieldElement X = normed.XCoord, Y = normed.YCoord;
+
+            if (compressed)
+            {
+                buf[off] = (byte)(normed.CompressionYTilde ? 0x03 : 0x02);
+                X.EncodeTo(buf, off + 1);
+                return;
+            }
+
+            buf[off] = 0x04;
+            X.EncodeTo(buf, off + 1);
+            Y.EncodeTo(buf, off + 1 + X.GetEncodedLength());
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void EncodeTo(bool compressed, Span<byte> buf)
+        {
+            if (IsInfinity)
+            {
+                buf[0] = 0x00;
+                return;
+            }
+
+            ECPoint normed = Normalize();
+            ECFieldElement X = normed.XCoord, Y = normed.YCoord;
+
+            if (compressed)
+            {
+                buf[0] = (byte)(normed.CompressionYTilde ? 0x03 : 0x02);
+                X.EncodeTo(buf[1..]);
+                return;
+            }
+
+            buf[0] = 0x04;
+            X.EncodeTo(buf[1..]);
+            Y.EncodeTo(buf[(1 + X.GetEncodedLength())..]);
+        }
+#endif
 
         /**
          * Multiplies this <code>ECPoint</code> by the given number.

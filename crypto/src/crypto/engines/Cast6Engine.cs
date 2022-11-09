@@ -46,10 +46,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "CAST6"; }
         }
 
-		public override void Reset()
-        {
-        }
-
 		public override int GetBlockSize()
         {
             return BLOCK_SIZE;

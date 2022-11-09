@@ -155,10 +155,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             theDataHasher = new GcmSivHasher(this);
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return theCipher;
-        }
+        public virtual IBlockCipher UnderlyingCipher => theCipher;
 
         public virtual int GetBlockSize()
         {
@@ -169,8 +166,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             /* Set defaults */
             byte[] myInitialAEAD = null;
-            byte[] myNonce = null;
-            KeyParameter myKey = null;
+            byte[] myNonce;
+            KeyParameter myKey;
 
             /* Access parameters */
             if (cipherParameters is AeadParameters)
@@ -205,8 +202,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             byte[] k = myKey.GetKey();
 
-            if (k.Length != BUFLEN
-            && k.Length != (BUFLEN << 1))
+            if (k.Length != BUFLEN && k.Length != (BUFLEN << 1))
             {
                 throw new ArgumentException("Invalid key");
             }
@@ -217,14 +213,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             theNonce = myNonce;
 
             /* Initialise the keys */
-            deriveKeys(myKey);
+            DeriveKeys(myKey);
             ResetStreams();
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return theCipher.AlgorithmName + "-GCM-SIV"; }
-        }
+        public virtual string AlgorithmName => theCipher.AlgorithmName + "-GCM-SIV";
 
         /**
         * check AEAD status.
@@ -842,7 +835,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * Derive Keys.
         * @param pKey the keyGeneration key
         */
-        private void deriveKeys(KeyParameter pKey)
+        private void DeriveKeys(KeyParameter pKey)
         {
             /* Create the buffers */
             byte[] myIn = new byte[BUFLEN];

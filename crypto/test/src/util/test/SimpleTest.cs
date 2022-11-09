@@ -168,12 +168,12 @@ namespace Org.BouncyCastle.Utilities.Test
 
         private static string GetFullName(string name)
 		{
-            return "BouncyCastle.Crypto.Tests.data." + name;
+            return "Org.BouncyCastle.data." + name;
         }
 
         private static string GetShortName(string fullName)
 		{
-            return fullName.Substring("BouncyCastle.Crypto.Tests.data.".Length);
+            return fullName.Substring("Org.BouncyCastle.data.".Length);
 		}
 
 		private static string GetNewLine()
@@ -193,6 +193,13 @@ namespace Org.BouncyCastle.Utilities.Test
         public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
             return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
+        }
+
+        public static void TestBitStringConstant(int bitNo, int value)
+        {
+            int expectedValue = 1 << ((bitNo | 7) - (bitNo & 7));
+            if (expectedValue != value)
+                throw new ArgumentException("bit value " + bitNo + " wrong");
         }
     }
 }

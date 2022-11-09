@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Crypto.Prng
          */
         public BasicEntropySourceProvider(SecureRandom secureRandom, bool isPredictionResistant)
         {
+            if (secureRandom == null)
+                throw new ArgumentNullException(nameof(secureRandom));
+
             mSecureRandom = secureRandom;
             mPredictionResistant = isPredictionResistant;
         }
@@ -46,6 +49,9 @@ namespace Org.BouncyCastle.Crypto.Prng
 
             internal BasicEntropySource(SecureRandom secureRandom, bool predictionResistant, int entropySize)
             {
+                if (secureRandom == null)
+                    throw new ArgumentNullException(nameof(secureRandom));
+
                 this.mSecureRandom = secureRandom;
                 this.mPredictionResistant = predictionResistant;
                 this.mEntropySize = entropySize;
@@ -61,6 +67,15 @@ namespace Org.BouncyCastle.Crypto.Prng
                 // TODO[FIPS] Not all SecureRandom implementations are considered valid entropy sources
                 return SecureRandom.GetNextBytes(mSecureRandom, (mEntropySize + 7) / 8);
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int IEntropySource.GetEntropy(Span<byte> output)
+            {
+                int length = (mEntropySize + 7) / 8;
+                mSecureRandom.NextBytes(output[..length]);
+                return length;
+            }
+#endif
 
             int IEntropySource.EntropySize
             {
