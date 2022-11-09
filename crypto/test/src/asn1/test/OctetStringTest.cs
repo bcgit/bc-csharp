@@ -14,16 +14,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 		public void TestReadingWriting()
 		{
 			MemoryStream bOut = new MemoryStream();
-			BerOctetStringGenerator octGen = new BerOctetStringGenerator(bOut);
+            using (var octGen = new BerOctetStringGenerator(bOut))
+            {
+                using (var outStream = octGen.GetOctetOutputStream())
+                {
+                    outStream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
+                    outStream.Write(new byte[4], 0, 4);
+                }
+            }
 
-			Stream outStream = octGen.GetOctetOutputStream();
-
-			outStream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
-			outStream.Write(new byte[4], 0, 4);
-
-			outStream.Close();
-
-			Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
+            Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
 
 			BerOctetStringParser s = (BerOctetStringParser)aIn.ReadObject();
 
@@ -42,16 +42,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 		public void TestReadingWritingZeroInLength()
 		{
 			MemoryStream bOut = new MemoryStream();
-			BerOctetStringGenerator octGen = new BerOctetStringGenerator(bOut);
+            using (var octGen = new BerOctetStringGenerator(bOut))
+            {
+                using (var outStream = octGen.GetOctetOutputStream())
+                {
+                    outStream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
+                    outStream.Write(new byte[512], 0, 512);  // forces a zero to appear in length
+                }
+            }
 
-			Stream outStream = octGen.GetOctetOutputStream();
-
-			outStream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
-			outStream.Write(new byte[512], 0, 512);  // forces a zero to appear in length
-
-			outStream.Close();
-
-			Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
+            Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
 
 			BerOctetStringParser s = (BerOctetStringParser)aIn.ReadObject();
 
@@ -70,29 +70,28 @@ namespace Org.BouncyCastle.Asn1.Tests
 		public void TestReadingWritingNested()
 		{
 			MemoryStream bOut = new MemoryStream();
-			BerSequenceGenerator sGen = new BerSequenceGenerator(bOut);
-			BerOctetStringGenerator octGen = new BerOctetStringGenerator(sGen.GetRawOutputStream());
+			using (var sGen = new BerSequenceGenerator(bOut))
+			{
+				using (var octGen = new BerOctetStringGenerator(sGen.GetRawOutputStream()))
+				{
+					using (var outStream = octGen.GetOctetOutputStream())
+					{
+						using (var inSGen = new BerSequenceGenerator(outStream))
+						{
+							using (var inOctGen = new BerOctetStringGenerator(inSGen.GetRawOutputStream()))
+							{
+								using (var inOut = inOctGen.GetOctetOutputStream())
+								{
+									inOut.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
+									inOut.Write(new byte[10], 0, 10);
+								}
+							}
+						}
+                    }
+                }
+            }
 
-			Stream outStream = octGen.GetOctetOutputStream();
-
-			BerSequenceGenerator inSGen = new BerSequenceGenerator(outStream);
-
-			BerOctetStringGenerator inOctGen = new BerOctetStringGenerator(inSGen.GetRawOutputStream());
-
-			Stream inOut = inOctGen.GetOctetOutputStream();
-
-			inOut.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
-			inOut.Write(new byte[10], 0, 10);
-
-			inOut.Close();
-
-			inSGen.Close();
-
-			outStream.Close();
-
-			sGen.Close();
-
-			Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
+            Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
 
 			BerSequenceParser sq = (BerSequenceParser)aIn.ReadObject();
 
@@ -120,50 +119,49 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			MemoryStream bOut = new MemoryStream();
 
-			BerSequenceGenerator sGen = new BerSequenceGenerator(bOut);
+			using (var sGen = new BerSequenceGenerator(bOut))
+			{
+				sGen.AddObject(new DerObjectIdentifier(CmsObjectIdentifiers.CompressedData.Id));
 
-			sGen.AddObject(new DerObjectIdentifier(CmsObjectIdentifiers.CompressedData.Id));
+				using (var cGen = new BerSequenceGenerator(sGen.GetRawOutputStream(), 0, true))
+				{
+					cGen.AddObject(new DerInteger(0));
 
-			BerSequenceGenerator cGen = new BerSequenceGenerator(sGen.GetRawOutputStream(), 0, true);
+					//
+					// AlgorithmIdentifier
+					//
+					using (var algGen = new DerSequenceGenerator(cGen.GetRawOutputStream()))
+					{
+						algGen.AddObject(new DerObjectIdentifier("1.2"));
+					}
 
-			cGen.AddObject(new DerInteger(0));
+					//
+					// Encapsulated ContentInfo
+					//
+					using (var eiGen = new BerSequenceGenerator(cGen.GetRawOutputStream()))
+					{
+						eiGen.AddObject(new DerObjectIdentifier("1.1"));
 
-			//
-			// AlgorithmIdentifier
-			//
-			DerSequenceGenerator algGen = new DerSequenceGenerator(cGen.GetRawOutputStream());
+						using (var octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true))
+						{
+							//
+							// output containing zeroes
+							//
+							using (var outStream = octGen.GetOctetOutputStream())
+							{
+								outStream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
+								outStream.Write(new byte[4], 0, 4);
+								outStream.Write(new byte[20], 0, 20);
+							}
+						}
+					}
+				}
+            }
 
-			algGen.AddObject(new DerObjectIdentifier("1.2"));
-
-			algGen.Close();
-
-			//
-			// Encapsulated ContentInfo
-			//
-			BerSequenceGenerator eiGen = new BerSequenceGenerator(cGen.GetRawOutputStream());
-
-			eiGen.AddObject(new DerObjectIdentifier("1.1"));
-
-			BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true);
-
-			//
-			// output containing zeroes
-			//
-			Stream outStream = octGen.GetOctetOutputStream();
-
-			outStream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
-			outStream.Write(new byte[4], 0, 4);
-			outStream.Write(new byte[20], 0, 20);
-
-			outStream.Close();
-			eiGen.Close();
-			cGen.Close();
-			sGen.Close();
-
-			//
-			// reading back
-			//
-			Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
+            //
+            // reading back
+            //
+            Asn1StreamParser aIn = new Asn1StreamParser(bOut.ToArray());
 
 			ContentInfoParser cp = new ContentInfoParser((Asn1SequenceParser)aIn.ReadObject());
 

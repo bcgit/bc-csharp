@@ -570,18 +570,23 @@ namespace Org.BouncyCastle.Cms
 			BerSequenceGenerator eiGen = new BerSequenceGenerator(sigGen.GetRawOutputStream());
             eiGen.AddObject(contentTypeOid);
 
-        	// If encapsulating, add the data as an octet string in the sequence
-			Stream encapStream = encapsulate
-				?	CmsUtilities.CreateBerOctetOutputStream(eiGen.GetRawOutputStream(), 0, true, _bufferSize)
-				:	null;
+			BerOctetStringGenerator octGen = null;
+			Stream encapStream = null;
 
-        	// Also send the data to 'dataOutputStream' if necessary
-			Stream teeStream = GetSafeTeeOutputStream(dataOutputStream, encapStream);
+            // If encapsulating, add the data as an octet string in the sequence
+            if (encapsulate)
+			{
+                octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true);
+                encapStream = octGen.GetOctetOutputStream(_bufferSize);
+            }
+
+            // Also send the data to 'dataOutputStream' if necessary
+            Stream teeStream = GetSafeTeeOutputStream(dataOutputStream, encapStream);
 
         	// Let all the digests see the data as it is written
 			Stream digStream = AttachDigestsToOutputStream(m_messageDigests.Values, teeStream);
 
-			return new CmsSignedDataOutputStream(this, digStream, signedContentType, sGen, sigGen, eiGen);
+			return new CmsSignedDataOutputStream(this, digStream, signedContentType, sGen, sigGen, eiGen, octGen);
         }
 
 		private void RegisterDigestOid(
@@ -761,14 +766,16 @@ namespace Org.BouncyCastle.Cms
             private BerSequenceGenerator	_sGen;
             private BerSequenceGenerator	_sigGen;
             private BerSequenceGenerator	_eiGen;
+			private BerOctetStringGenerator _octGen;
 
-			public CmsSignedDataOutputStream(
+            public CmsSignedDataOutputStream(
 				CmsSignedDataStreamGenerator	outer,
 				Stream							outStream,
                 string							contentOID,
                 BerSequenceGenerator			sGen,
                 BerSequenceGenerator			sigGen,
-                BerSequenceGenerator			eiGen)
+                BerSequenceGenerator			eiGen,
+                BerOctetStringGenerator			octGen)
             {
 				this.outer = outer;
 
@@ -777,6 +784,7 @@ namespace Org.BouncyCastle.Cms
                 _sGen = sGen;
                 _sigGen = sigGen;
                 _eiGen = eiGen;
+				_octGen = octGen;
             }
 
 			public override void Write(byte[] buffer, int offset, int count)
@@ -811,7 +819,10 @@ namespace Org.BouncyCastle.Cms
 
                 // TODO Parent context(s) should really be be closed explicitly
 
-                _eiGen.Close();
+				// Only for encapsulation
+				_octGen?.Dispose();
+
+                _eiGen.Dispose();
 
                 outer.m_digests.Clear();    // clear the current preserved digest state
 
@@ -896,8 +907,8 @@ namespace Org.BouncyCastle.Cms
 
                 WriteToGenerator(_sigGen, new DerSet(signerInfos));
 
-				_sigGen.Close();
-                _sGen.Close();
+				_sigGen.Dispose();
+                _sGen.Dispose();
             }
 
 			private static void WriteToGenerator(Asn1Generator ag, Asn1Encodable ae)

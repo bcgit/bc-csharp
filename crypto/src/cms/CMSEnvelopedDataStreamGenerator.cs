@@ -142,29 +142,28 @@ namespace Org.BouncyCastle.Cms
 				envGen.AddObject(this.Version);
 
 				Stream envRaw = envGen.GetRawOutputStream();
-				Asn1Generator recipGen = _berEncodeRecipientSet
-					?	(Asn1Generator) new BerSetGenerator(envRaw)
-					:	new DerSetGenerator(envRaw);
-
-				foreach (Asn1Encodable ae in recipientInfos)
+				using (var recipGen = _berEncodeRecipientSet
+					? (Asn1Generator)new BerSetGenerator(envRaw)
+					: new DerSetGenerator(envRaw))
 				{
-					recipGen.AddObject(ae);
-				}
-
-				recipGen.Close();
+                    foreach (Asn1Encodable ae in recipientInfos)
+                    {
+                        recipGen.AddObject(ae);
+                    }
+                }
 
 				BerSequenceGenerator eiGen = new BerSequenceGenerator(envRaw);
 				eiGen.AddObject(CmsObjectIdentifiers.Data);
 				eiGen.AddObject(encAlgID);
 
-				Stream octetOutputStream = CmsUtilities.CreateBerOctetOutputStream(
-					eiGen.GetRawOutputStream(), 0, false, _bufferSize);
+                BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, false);
+                Stream octetOutputStream = octGen.GetOctetOutputStream(_bufferSize);
 
                 IBufferedCipher cipher = CipherUtilities.GetCipher(encAlgID.Algorithm);
 				cipher.Init(true, new ParametersWithRandom(cipherParameters, m_random));
 				CipherStream cOut = new CipherStream(octetOutputStream, null, cipher);
 
-				return new CmsEnvelopedDataOutputStream(this, cOut, cGen, envGen, eiGen);
+				return new CmsEnvelopedDataOutputStream(this, cOut, cGen, envGen, eiGen, octGen);
 			}
 			catch (SecurityUtilityException e)
 			{
@@ -220,19 +219,22 @@ namespace Org.BouncyCastle.Cms
 			private readonly BerSequenceGenerator	_cGen;
 			private readonly BerSequenceGenerator	_envGen;
 			private readonly BerSequenceGenerator	_eiGen;
+			private readonly BerOctetStringGenerator _octGen;
 
-			public CmsEnvelopedDataOutputStream(
+            public CmsEnvelopedDataOutputStream(
 				CmsEnvelopedGenerator	outer,
 				CipherStream			outStream,
 				BerSequenceGenerator	cGen,
 				BerSequenceGenerator	envGen,
-				BerSequenceGenerator	eiGen)
+				BerSequenceGenerator	eiGen,
+                BerOctetStringGenerator octGen)
 			{
 				_outer = outer;
 				_out = outStream;
 				_cGen = cGen;
 				_envGen = envGen;
 				_eiGen = eiGen;
+				_octGen = octGen;
 			}
 
 			public override void Write(byte[] buffer, int offset, int count)
@@ -258,9 +260,10 @@ namespace Org.BouncyCastle.Cms
  				{
                     _out.Dispose();
 
-                    // TODO Parent context(s) should really be closed explicitly
+					// TODO Parent context(s) should really be closed explicitly
 
-                    _eiGen.Close();
+					_octGen.Dispose();
+                    _eiGen.Dispose();
 
                     if (_outer.unprotectedAttributeGenerator != null)
                     {
@@ -272,8 +275,8 @@ namespace Org.BouncyCastle.Cms
                         _envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
                     }
 
-                    _envGen.Close();
-                    _cGen.Close();
+                    _envGen.Dispose();
+                    _cGen.Dispose();
                 }
                 base.Dispose(disposing);
             }
