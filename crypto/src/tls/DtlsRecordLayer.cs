@@ -797,28 +797,28 @@ namespace Org.BouncyCastle.Tls
                         {
                             switch (heartbeatMessage.Type)
                             {
-                                case HeartbeatMessageType.heartbeat_request:
-                                    {
-                                        if (m_heartBeatResponder)
-                                        {
-                                            HeartbeatMessage response = HeartbeatMessage.Create(m_context,
-                                                HeartbeatMessageType.heartbeat_response, heartbeatMessage.Payload);
+                            case HeartbeatMessageType.heartbeat_request:
+                            {
+                                if (m_heartBeatResponder)
+                                {
+                                    HeartbeatMessage response = HeartbeatMessage.Create(m_context,
+                                        HeartbeatMessageType.heartbeat_response, heartbeatMessage.Payload);
 
-                                            SendHeartbeatMessage(response);
-                                        }
-                                        break;
-                                    }
-                                case HeartbeatMessageType.heartbeat_response:
-                                    {
-                                        if (null != m_heartbeatInFlight
-                                            && Arrays.AreEqual(heartbeatMessage.Payload, m_heartbeatInFlight.Payload))
-                                        {
-                                            ResetHeartbeat();
-                                        }
-                                        break;
-                                    }
-                                default:
-                                    break;
+                                    SendHeartbeatMessage(response);
+                                }
+                                break;
+                            }
+                            case HeartbeatMessageType.heartbeat_response:
+                            {
+                                if (null != m_heartbeatInFlight
+                                    && Arrays.AreEqual(heartbeatMessage.Payload, m_heartbeatInFlight.Payload))
+                                {
+                                    ResetHeartbeat();
+                                }
+                                break;
+                            }
+                            default:
+                                break;
                             }
                         }
                     }
