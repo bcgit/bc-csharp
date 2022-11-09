@@ -4,11 +4,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     class FalconFFT
     {
-        FPREngine fpre;
+        FprEngine fpre;
         internal FalconFFT() {
-            fpre = new FPREngine();
+            fpre = new FprEngine();
         }
-        internal FalconFFT(FPREngine fprengine) {
+        internal FalconFFT(FprEngine fprengine) {
             this.fpre = fprengine;
         }
 

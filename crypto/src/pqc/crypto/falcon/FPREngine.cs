@@ -2,9 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FPREngine
+    internal class FprEngine
     {
-        internal FalconFPR FPR(double v)
+        internal FalconFPR Fpr(double v)
         {
             return new FalconFPR(v);
         }
@@ -40,10 +40,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         internal FalconFPR fpr_of(long i)
         {
-            return FPR((double)i);
+            return Fpr((double)i);
         }
-
-
 
         internal long fpr_rint(FalconFPR x)
         {
@@ -129,53 +127,53 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         internal FalconFPR fpr_add(FalconFPR x, FalconFPR y)
         {
-            return FPR(x.v + y.v);
+            return Fpr(x.v + y.v);
         }
 
         internal FalconFPR fpr_sub(FalconFPR x, FalconFPR y)
         {
-            return FPR(x.v - y.v);
+            return Fpr(x.v - y.v);
         }
 
         internal FalconFPR fpr_neg(FalconFPR x)
         {
-            return FPR(-x.v);
+            return Fpr(-x.v);
         }
 
         internal FalconFPR fpr_half(FalconFPR x)
         {
-            return FPR(x.v * 0.5);
+            return Fpr(x.v * 0.5);
         }
 
         internal FalconFPR fpr_double(FalconFPR x)
         {
-            return FPR(x.v + x.v);
+            return Fpr(x.v + x.v);
         }
 
         internal FalconFPR fpr_mul(FalconFPR x, FalconFPR y)
         {
-            return FPR(x.v * y.v);
+            return Fpr(x.v * y.v);
         }
 
         internal FalconFPR fpr_sqr(FalconFPR x)
         {
-            return FPR(x.v * x.v);
+            return Fpr(x.v * x.v);
         }
 
         internal FalconFPR fpr_inv(FalconFPR x)
         {
-            return FPR(1.0 / x.v);
+            return Fpr(1.0 / x.v);
         }
 
         internal FalconFPR fpr_div(FalconFPR x, FalconFPR y)
         {
-            return FPR(x.v / y.v);
+            return Fpr(x.v / y.v);
         }
 
 
         internal FalconFPR fpr_sqrt(FalconFPR x)
         {
-            return FPR(System.Math.Sqrt(x.v));
+            return Fpr(System.Math.Sqrt(x.v));
         }
 
         internal bool fpr_lt(FalconFPR x, FalconFPR y)

@@ -6,12 +6,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     {
 
         FalconFFT ffte;
-        FPREngine fpre;
+        FprEngine fpre;
         FalconCommon common;
 
         internal FalconSign(FalconCommon common) {
             this.ffte = new FalconFFT();
-            this.fpre = new FPREngine();
+            this.fpre = new FprEngine();
             this.common = common;
         }
 

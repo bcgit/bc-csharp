@@ -2,22 +2,26 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconKeygen
+    internal class FalconKeygen
     {
-        FPREngine fpre;
-        FalconFFT ffte;
-        FalconSmallPrime[] PRIMES;
-        FalconCodec codec;
-        FalconVrfy vrfy;
-        internal FalconKeygen() {
-            this.fpre = new FPREngine();
+        private readonly FprEngine fpre;
+        private readonly FalconFFT ffte;
+        private readonly FalconSmallPrime[] PRIMES;
+        private readonly FalconCodec codec;
+        private readonly FalconVrfy vrfy;
+
+        internal FalconKeygen()
+        {
+            this.fpre = new FprEngine();
             this.PRIMES = new FalconSmallPrimes().PRIMES;
             this.ffte = new FalconFFT(this.fpre);
             this.codec = new FalconCodec();
             this.vrfy = new FalconVrfy();
         }
-        internal FalconKeygen(FalconCodec codec, FalconVrfy vrfy) {
-            this.fpre = new FPREngine();
+
+        internal FalconKeygen(FalconCodec codec, FalconVrfy vrfy)
+        {
+            this.fpre = new FprEngine();
             this.PRIMES = new FalconSmallPrimes().PRIMES;
             this.ffte = new FalconFFT();
             this.codec = codec;
@@ -57,7 +61,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Reduce a small signed integer modulo a small prime. The source
         * value x MUST be such that -p < x < p.
         */
-        uint modp_set(int x, uint p)
+        internal uint modp_set(int x, uint p)
         {
             uint w;
 
@@ -69,7 +73,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Normalize a modular integer around 0.
         */
-        int modp_norm(uint x, uint p)
+        internal int modp_norm(uint x, uint p)
         {
             return (int)(x - (p & (((x - ((p + 1) >> 1)) >> 31) - 1)));
         }
@@ -78,7 +82,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Compute -1/p mod 2^31. This works for all odd integers p that fit
         * on 31 bits.
         */
-        uint modp_ninv31(uint p)
+        internal uint modp_ninv31(uint p)
         {
             uint y;
 
@@ -93,7 +97,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute R = 2^31 mod p.
         */
-        uint modp_R(uint p)
+        internal uint modp_R(uint p)
         {
             /*
             * Since 2^30 < p < 2^31, we know that 2^31 mod p is simply
@@ -105,7 +109,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Addition modulo p.
         */
-        uint modp_add(uint a, uint b, uint p)
+        internal uint modp_add(uint a, uint b, uint p)
         {
             uint d;
 
@@ -117,7 +121,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Subtraction modulo p.
         */
-        uint modp_sub(uint a, uint b, uint p)
+        internal uint modp_sub(uint a, uint b, uint p)
         {
             uint d;
 
@@ -141,7 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Montgomery multiplication modulo p. The 'p0i' value is -1/p mod 2^31.
         * It is required that p is an odd integer.
         */
-        uint modp_montymul(uint a, uint b, uint p, uint p0i)
+        internal uint modp_montymul(uint a, uint b, uint p, uint p0i)
         {
             ulong z, w;
             uint d;
@@ -156,7 +160,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute R2 = 2^62 mod p.
         */
-        uint modp_R2(uint p, uint p0i)
+        internal uint modp_R2(uint p, uint p0i)
         {
             uint z;
 
@@ -189,7 +193,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * p must be prime such that 2^30 < p < 2^31; p0i must be equal to
         * -1/p mod 2^31; R2 must be equal to 2^62 mod p.
         */
-        uint modp_Rx(uint x, uint p, uint p0i, uint R2)
+        internal uint modp_Rx(uint x, uint p, uint p0i, uint R2)
         {
             int i;
             uint r, z;
@@ -221,7 +225,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *   p0i   -1/p mod 2^31
         *   R     2^31 mod R
         */
-        uint modp_div(uint a, uint b, uint p, uint p0i, uint R)
+        internal uint modp_div(uint a, uint b, uint p, uint p0i, uint R)
         {
             uint z, e;
             int i;
@@ -254,7 +258,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Bit-reversal index table.
         */
-        ushort[] REV10 = {
+        internal ushort[] REV10 = {
             0,  512,  256,  768,  128,  640,  384,  896,   64,  576,  320,  832,
             192,  704,  448,  960,   32,  544,  288,  800,  160,  672,  416,  928,
             96,  608,  352,  864,  224,  736,  480,  992,   16,  528,  272,  784,
@@ -356,7 +360,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * p must be a prime such that p = 1 mod 2048.
         */
-        void modp_mkgm2(uint[] gmsrc, int gm, uint[] igmsrc, int igm, uint logn,
+        internal void modp_mkgm2(uint[] gmsrc, int gm, uint[] igmsrc, int igm, uint logn,
             uint g, uint p, uint p0i)
         {
             int u, n;
@@ -393,7 +397,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Compute the NTT over a polynomial (binary case). Polynomial elements
         * are a[0], a[stride], a[2 * stride]...
         */
-        void modp_NTT2_ext(uint[] asrc, int a, int stride, uint[] gmsrc, int gm, uint logn,
+        internal void modp_NTT2_ext(uint[] asrc, int a, int stride, uint[] gmsrc, int gm, uint logn,
             uint p, uint p0i)
         {
             int t, m, n;
@@ -432,7 +436,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute the inverse NTT over a polynomial (binary case).
         */
-        void modp_iNTT2_ext(uint[] asrc, int a, int stride, uint[] igmsrc, int igm, uint logn,
+        internal void modp_iNTT2_ext(uint[] asrc, int a, int stride, uint[] igmsrc, int igm, uint logn,
             uint p, uint p0i)
         {
             int t, m, n, k;
@@ -486,10 +490,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Simplified macros for NTT and iNTT (binary case) when the elements
         * are consecutive in RAM.
         */
-        void modp_NTT2(uint[] asrc, int a, uint[] gmsrc, int gm, uint logn, uint p, uint p0i) {
+        internal void modp_NTT2(uint[] asrc, int a, uint[] gmsrc, int gm, uint logn, uint p, uint p0i) {
             this.modp_NTT2_ext(asrc, a, 1, gmsrc, gm, logn, p, p0i);
         }
-        void modp_iNTT2(uint[] asrc, int a, uint[] igmsrc, int igm, uint logn, uint p, uint p0i) {
+        internal void modp_iNTT2(uint[] asrc, int a, uint[] igmsrc, int igm, uint logn, uint p, uint p0i) {
             this.modp_iNTT2_ext(asrc, a, 1, igmsrc, igm, logn, p, p0i);
         }
 
@@ -507,7 +511,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * This function applies only to the binary case; it is invoked from
         * solve_NTRU_binary_depth1().
         */
-        void modp_poly_rec_res(uint[] fsrc, int f, uint logn,
+        internal void modp_poly_rec_res(uint[] fsrc, int f, uint logn,
             uint p, uint p0i, uint R2)
         {
             int hn, u;
@@ -563,7 +567,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ctl = 0, the value a[] is unmodified, but all memory accesses are
         * still performed, and the carry is computed and returned.
         */
-        uint zint_sub(uint[] asrc, int a, uint[] bsrc, int b, int len,
+        internal uint zint_sub(uint[] asrc, int a, uint[] bsrc, int b, int len,
             uint ctl)
         {
             int u;
@@ -587,7 +591,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Mutiply the provided big integer m with a small value x.
         * This function assumes that x < 2^31. The carry word is returned.
         */
-        uint zint_mul_small(uint[] msrc, int m, int mlen, uint x)
+        internal uint zint_mul_small(uint[] msrc, int m, int mlen, uint x)
         {
             int u;
             uint cc;
@@ -612,7 +616,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *  p0i = -(1/p) mod 2^31
         *  R2 = 2^62 mod p
         */
-        uint zint_mod_small_uint(uint[] dsrc, int d, int dlen,
+        internal uint zint_mod_small_uint(uint[] dsrc, int d, int dlen,
             uint p, uint p0i, uint R2)
         {
             uint x;
@@ -641,7 +645,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Similar to zint_mod_small_uint(), except that d may be signed.
         * Extra parameter is Rx = 2^(31*dlen) mod p.
         */
-        uint zint_mod_small_signed(uint[] dsrc, int d, int dlen,
+        internal uint zint_mod_small_signed(uint[] dsrc, int d, int dlen,
             uint p, uint p0i, uint R2, uint Rx)
         {
             uint z;
@@ -659,7 +663,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * has length 'len+1' words. 's' must fit on 31 bits. x[] and y[] must
         * not overlap.
         */
-        void zint_add_mul_small(uint[] xsrc, int x,
+        internal void zint_add_mul_small(uint[] xsrc, int x,
             uint[] ysrc, int y, int len, uint s)
         {
             int u;
@@ -684,7 +688,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * with x - p (signed encoding with two's complement); otherwise, x is
         * untouched. The two integers x and p are encoded over the same length.
         */
-        void zint_norm_zero(uint[] xsrc, int x, uint[] psrc, int p, int len)
+        internal void zint_norm_zero(uint[] xsrc, int x, uint[] psrc, int p, int len)
         {
             int u;
             uint r, bb;
@@ -744,7 +748,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * normalized to the -m/2..m/2 interval (where m is the product of all
         * small prime moduli); two's complement is used for negative values.
         */
-        void zint_rebuild_CRT(uint[] xxsrc, int xx, int xlen, int xstride,
+        internal void zint_rebuild_CRT(uint[] xxsrc, int xx, int xlen, int xstride,
             int num, FalconSmallPrime[] primes, int normalize_signed,
             uint[] tmpsrc, int tmp)
         {
@@ -807,7 +811,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Negate a big integer conditionally: value a is replaced with -a if
         * and only if ctl = 1. Control value ctl must be 0 or 1.
         */
-        void zint_negate(uint[] asrc, int a, int len, uint ctl)
+        internal void zint_negate(uint[] asrc, int a, int len, uint ctl)
         {
             int u;
             uint cc, m;
@@ -843,7 +847,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Coefficients xa, xb, ya and yb may use the full signed 32-bit range.
         */
-        uint zint_co_reduce(uint[] asrc, int a, uint[] bsrc, int b, int len,
+        internal uint zint_co_reduce(uint[] asrc, int a, uint[] bsrc, int b, int len,
             long xa, long xb, long ya, long yb)
         {
             int u;
@@ -889,7 +893,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Modulus m must be odd.
         */
-        void zint_finish_mod(uint[] asrc, int a, int len, uint[] msrc, int m, uint neg)
+        internal void zint_finish_mod(uint[] asrc, int a, int len, uint[] msrc, int m, uint neg)
         {
             int u;
             uint cc, xm, ym;
@@ -931,7 +935,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Replace a with (a*xa+b*xb)/(2^31) mod m, and b with
         * (a*ya+b*yb)/(2^31) mod m. Modulus m must be odd; m0i = -1/m[0] mod 2^31.
         */
-        void zint_co_reduce_mod(uint[] asrc, int a, uint[] bsrc, int b, uint[] msrc, int m, int len,
+        internal void zint_co_reduce_mod(uint[] asrc, int a, uint[] bsrc, int b, uint[] msrc, int m, int len,
             uint m0i, long xa, long xb, long ya, long yb)
         {
             int u;
@@ -996,7 +1000,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * extra values of that length. Arrays u, v and tmp may not overlap with
         * each other, or with either x or y.
         */
-        int zint_bezout(uint[] usrc, int u, uint[] vsrc, int v,
+        internal int zint_bezout(uint[] usrc, int u, uint[] vsrc, int v,
             uint[] xsrc, int x, uint[] ysrc, int y,
             int len, uint[] tmpsrc, int tmp)
         {
@@ -1332,7 +1336,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * x[] and y[] are both signed integers, using two's complement for
         * negative values.
         */
-        void zint_add_scaled_mul_small(uint[] xsrc, int x, int xlen,
+        internal void zint_add_scaled_mul_small(uint[] xsrc, int x, int xlen,
             uint[] ysrc, int y, int ylen, int k,
             uint sch, uint scl)
         {
@@ -1393,7 +1397,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * x[] and y[] are both signed integers, using two's complement for
         * negative values.
         */
-        void zint_sub_scaled(uint[] xsrc, int x, int xlen,
+        internal void zint_sub_scaled(uint[] xsrc, int x, int xlen,
             uint[] ysrc, int y, int ylen, uint sch, uint scl)
         {
             int u;
@@ -1428,7 +1432,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Convert a one-word signed big integer into a signed value.
         */
-        int zint_one_to_plain(uint[] xsrc, int x)
+        internal int zint_one_to_plain(uint[] xsrc, int x)
         {
             uint w;
 
@@ -1451,7 +1455,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * they should be "trimmed" by pointing not to the lowest word of each,
         * but upper.
         */
-        void poly_big_to_fp(FalconFPR[] dsrc, int d, uint[] fsrc, int f, int flen, int fstride,
+        internal void poly_big_to_fp(FalconFPR[] dsrc, int d, uint[] fsrc, int f, int flen, int fstride,
             uint logn)
         {
             int n, u;
@@ -1502,7 +1506,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * any failure, the NTRU-solving process will be deemed to have failed
         * and the (f,g) polynomials will be discarded.
         */
-        int poly_big_to_small(sbyte[] dsrc, int d, uint[] ssrc, int s, int lim, uint logn)
+        internal int poly_big_to_small(sbyte[] dsrc, int d, uint[] ssrc, int s, int lim, uint logn)
         {
             int n, u;
 
@@ -1529,7 +1533,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * which is efficient in space (no extra buffer needed) but slow at
         * high degree.
         */
-        void poly_sub_scaled(uint[] Fsrc, int F, int Flen, int Fstride,
+        internal void poly_sub_scaled(uint[] Fsrc, int F, int Flen, int Fstride,
             uint[] fsrc, int f, int flen, int fstride,
             int[] ksrc, int k, uint sch, uint scl, uint logn)
         {
@@ -1565,7 +1569,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * assumes that the degree is large, and integers relatively small.
         * The value sc is provided as sch = sc / 31 and scl = sc % 31.
         */
-        void poly_sub_scaled_ntt(uint[] Fsrc, int F, int Flen, int Fstride,
+        internal void poly_sub_scaled_ntt(uint[] Fsrc, int F, int Flen, int Fstride,
             uint[] fsrc, int f, int flen, int fstride,
             int[] ksrc, int k, uint sch, uint scl, uint logn,
             uint[] tmpsrc, int tmp)
@@ -1635,7 +1639,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * the same values will be obtained over different platforms, in case
         * a known seed is used.
         */
-        ulong get_rng_u64(SHAKE256 rng)
+        internal ulong get_rng_u64(SHAKE256 rng)
         {
             /*
             * We enforce little-endian representation.
@@ -1663,7 +1667,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * For k > 0, element k is P(x >= k+1 | x > 0).
         * Probabilities are scaled up by 2^63.
         */
-        ulong[] gauss_1024_12289 = {
+        internal ulong[] gauss_1024_12289 = {
             1283868770400643928u,  6416574995475331444u,  4078260278032692663u,
             2353523259288686585u,  1227179971273316331u,   575931623374121527u,
             242543240509105209u,    91437049221049666u,    30799446349977173u,
@@ -1685,7 +1689,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * sigma*sqrt(2), then we can just generate more values and add them
         * together for lower dimensions.
         */
-        int mkgauss(SHAKE256 rng, uint logn)
+        internal int mkgauss(SHAKE256 rng, uint logn)
         {
             uint u, g;
             int val;
@@ -1810,11 +1814,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * accordingly.
         */
 
-        int[] MAX_BL_SMALL = {
+        internal int[] MAX_BL_SMALL = {
             1, 1, 2, 2, 4, 7, 14, 27, 53, 106, 209
         };
 
-        int[] MAX_BL_LARGE = {
+        internal int[] MAX_BL_LARGE = {
             2, 2, 5, 7, 12, 21, 40, 78, 157, 308
         };
 
@@ -1823,7 +1827,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * coefficients of (f,g), depending on depth. These values are used
         * to compute bounds for Babai's reduction.
         */
-        int[] BITLENGTH_avg = { // BITLENGTH[i][0] = avg, [i][1] = std
+        internal int[] BITLENGTH_avg = { // BITLENGTH[i][0] = avg, [i][1] = std
                 4,
                11,
                24,
@@ -1836,7 +1840,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
              3138,
              6308,
         };
-        int[] BITLENGTH_std = { // BITLENGTH[i][0] = avg, [i][1] = std
+        internal int[] BITLENGTH_std = { // BITLENGTH[i][0] = avg, [i][1] = std
               0,
               1,
               1,
@@ -1854,13 +1858,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Minimal recursion depth at which we rebuild intermediate values
         * when reconstructing f and g.
         */
-        const int DEPTH_INT_FG = 4;
+        internal const int DEPTH_INT_FG = 4;
 
         /*
         * Compute squared norm of a short vector. Returned value is saturated to
         * 2^32-1 if it is not lower than 2^31.
         */
-        uint poly_small_sqnorm(sbyte[] fsrc, int f, uint logn)
+        internal uint poly_small_sqnorm(sbyte[] fsrc, int f, uint logn)
         {
             int n, u;
             uint s, ng;
@@ -1881,7 +1885,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Convert a small vector to floating point.
         */
-        void poly_small_to_fp(FalconFPR[] xsrc, int x, sbyte[] fsrc, int f, uint logn)
+        internal void poly_small_to_fp(FalconFPR[] xsrc, int x, sbyte[] fsrc, int f, uint logn)
         {
             int n, u;
 
@@ -1899,7 +1903,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Values are in RNS; input and/or output may also be in NTT.
         */
-        void make_fg_step(uint[] datasrc, int data, uint logn, uint depth,
+        internal void make_fg_step(uint[] datasrc, int data, uint logn, uint depth,
             int in_ntt, int out_ntt)
         {
             int n, hn, u;
@@ -2047,7 +2051,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Space use in data[]: enough room for any two successive values (f', g',
         * f and g).
         */
-        void make_fg(uint[] datasrc, int data, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+        internal void make_fg(uint[] datasrc, int data, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
             uint logn, uint depth, int out_ntt)
         {
             int n, u;
@@ -2093,7 +2097,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        int solve_NTRU_deepest(uint logn_top,
+        internal int solve_NTRU_deepest(uint logn_top,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc, int tmp)
         {
             int len;
@@ -2157,7 +2161,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        int solve_NTRU_intermediate(uint logn_top,
+        internal int solve_NTRU_intermediate(uint logn_top,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint depth, uint[] tmpsrc, int tmp)
         {
             /*
@@ -2710,7 +2714,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        int solve_NTRU_binary_depth1(uint logn_top,
+        internal int solve_NTRU_binary_depth1(uint logn_top,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc, int tmp)
         {
             /*
@@ -3083,7 +3087,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        int solve_NTRU_binary_depth0(uint logn,
+        internal int solve_NTRU_binary_depth0(uint logn,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc, int tmp)
         {
             int n, hn, u;
@@ -3350,7 +3354,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * If any of the coefficients of F and G exceeds lim (in absolute value),
         * then 0 is returned.
         */
-        int solve_NTRU(uint logn, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G,
+        internal int solve_NTRU(uint logn, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, int lim, uint[] tmpsrc, int tmp)
         {
             int n, u;
@@ -3462,7 +3466,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Generate a random polynomial with a Gaussian distribution. This function
         * also makes sure that the resultant of the polynomial with phi is odd.
         */
-        void poly_small_mkgauss(SHAKE256 rng, sbyte[] fsrc, int f, uint logn)
+        internal void poly_small_mkgauss(SHAKE256 rng, sbyte[] fsrc, int f, uint logn)
         {
             int n, u;
             uint mod2;

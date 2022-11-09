@@ -6,9 +6,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     {
         FalconRNG p;
         FalconFPR sigma_min;
-        FPREngine fpre;
+        FprEngine fpre;
 
-        internal SamplerZ(FalconRNG p, FalconFPR sigma_min, FPREngine fpre) {
+        internal SamplerZ(FalconRNG p, FalconFPR sigma_min, FprEngine fpre) {
             this.p = p;
             this.sigma_min = sigma_min;
             this.fpre = fpre;
