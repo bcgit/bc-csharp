@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection.Emit;
 using System.Text;
 
 using NUnit.Framework;
@@ -78,17 +79,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			}
 			else
 			{
-				cPacket.Dispose();
-			}
+#pragma warning disable CS0618 // Type or member is obsolete
+                cPacket.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
 
-			ValidateData(data, bOut.ToArray());
+            ValidateData(data, bOut.ToArray());
 
 			try
 			{
 				os.Dispose();
-				cPacket.Dispose();
-			}
-			catch (Exception)
+#pragma warning disable CS0618 // Type or member is obsolete
+                cPacket.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            catch (Exception)
 			{
 				Fail("Redundant Close() should be ignored");
 			}

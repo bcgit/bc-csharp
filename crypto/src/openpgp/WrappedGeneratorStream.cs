@@ -20,7 +20,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
 			if (disposing)
 			{
-				m_generator.Dispose();
+#pragma warning disable CS0618 // Type or member is obsolete
+				m_generator.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
 			}
 
 			Detach(disposing);

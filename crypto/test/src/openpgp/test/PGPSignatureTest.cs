@@ -840,24 +840,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sGen.GenerateOnePassVersion(false).Encode(bOut);
 
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
-            Stream lOut = lGen.Open(
+            using (var lOut = lGen.Open(
                 new UncloseableStream(bOut),
                 PgpLiteralData.Binary,
                 "_CONSOLE",
                 TEST_DATA.Length * 2,
-                DateTime.UtcNow);
-
-            int ch;
-            while ((ch = testIn.ReadByte()) >= 0)
+                DateTime.UtcNow))
             {
-                lOut.WriteByte((byte)ch);
-                sGen.Update((byte)ch);
+                int ch;
+                while ((ch = testIn.ReadByte()) >= 0)
+                {
+                    lOut.WriteByte((byte)ch);
+                    sGen.Update((byte)ch);
+                }
+
+                lOut.Write(TEST_DATA, 0, TEST_DATA.Length);
+                sGen.Update(TEST_DATA);
             }
-
-            lOut.Write(TEST_DATA, 0, TEST_DATA.Length);
-            sGen.Update(TEST_DATA);
-
-            lGen.Dispose();
 
             sGen.Generate().Encode(bOut);
 
@@ -881,24 +880,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sGen.GenerateOnePassVersion(false).Encode(bOut);
 
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
-            Stream lOut = lGen.Open(
+            using (var lOut = lGen.Open(
                 new UncloseableStream(bOut),
                 PgpLiteralData.Text,
                 "_CONSOLE",
                 data.Length * 2,
-                creationTime);
-
-            int ch;
-            while ((ch = testIn.ReadByte()) >= 0)
+                creationTime))
             {
-                lOut.WriteByte((byte)ch);
-                sGen.Update((byte)ch);
+                int ch;
+                while ((ch = testIn.ReadByte()) >= 0)
+                {
+                    lOut.WriteByte((byte)ch);
+                    sGen.Update((byte)ch);
+                }
+
+                lOut.Write(data, 0, data.Length);
+                sGen.Update(data);
             }
-
-            lOut.Write(data, 0, data.Length);
-            sGen.Update(data);
-
-            lGen.Dispose();
 
             PgpSignature sig = sGen.Generate();
 
@@ -936,24 +934,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sGen.GenerateOnePassVersion(false).Encode(bOut);
 
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
-            Stream lOut = lGen.Open(
+            using (var lOut = lGen.Open(
                 new UncloseableStream(bOut),
                 PgpLiteralData.Binary,
                 "_CONSOLE",
                 TEST_DATA.Length * 2,
-                DateTime.UtcNow);
-
-            int ch;
-            while ((ch = testIn.ReadByte()) >= 0)
+                DateTime.UtcNow))
             {
-                lOut.WriteByte((byte)ch);
-                sGen.Update((byte)ch);
+                int ch;
+                while ((ch = testIn.ReadByte()) >= 0)
+                {
+                    lOut.WriteByte((byte)ch);
+                    sGen.Update((byte)ch);
+                }
+
+                lOut.Write(TEST_DATA, 0, TEST_DATA.Length);
+                sGen.Update(TEST_DATA);
             }
-
-            lOut.Write(TEST_DATA, 0, TEST_DATA.Length);
-            sGen.Update(TEST_DATA);
-
-            lGen.Dispose();
 
             sGen.Generate().Encode(bOut);
 
@@ -976,24 +973,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sGen.GenerateOnePassVersion(false).Encode(bOut);
 
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
-            Stream lOut = lGen.Open(
+            using (var lOut = lGen.Open(
                 new UncloseableStream(bOut),
                 PgpLiteralData.Text,
                 "_CONSOLE",
                 data.Length * 2,
-                DateTime.UtcNow);
-
-            int ch;
-            while ((ch = testIn.ReadByte()) >= 0)
+                DateTime.UtcNow))
             {
-                lOut.WriteByte((byte)ch);
-                sGen.Update((byte)ch);
+                int ch;
+                while ((ch = testIn.ReadByte()) >= 0)
+                {
+                    lOut.WriteByte((byte)ch);
+                    sGen.Update((byte)ch);
+                }
+
+                lOut.Write(data, 0, data.Length);
+                sGen.Update(data);
             }
-
-            lOut.Write(data, 0, data.Length);
-            sGen.Update(data);
-
-            lGen.Dispose();
 
             PgpSignature sig = sGen.Generate();
 

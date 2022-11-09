@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection.Emit;
 using System.Text;
 
 using NUnit.Framework;
@@ -12,7 +13,7 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 {
-    [TestFixture]
+	[TestFixture]
     public class PgpPbeTest
 		: SimpleTest
     {
@@ -147,21 +148,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpCompressedDataGenerator comData = new PgpCompressedDataGenerator(
                 CompressionAlgorithmTag.Zip);
 
-            PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
-			Stream comOut = comData.Open(new UncloseableStream(bOut));
-            Stream ldOut = lData.Open(
-				new UncloseableStream(comOut),
-                PgpLiteralData.Binary,
-                PgpLiteralData.Console,
-                text.Length,
-                ModificationTime);
+			using (var comOut = comData.Open(new UncloseableStream(bOut)))
+			{
+                var lData = new PgpLiteralDataGenerator();
 
-			ldOut.Write(text, 0, text.Length);
-			ldOut.Close();
+				using (var ldOut = lData.Open(
+					new UncloseableStream(comOut),
+					PgpLiteralData.Binary,
+					PgpLiteralData.Console,
+					text.Length,
+					ModificationTime))
+				{
+                    ldOut.Write(text, 0, text.Length);
+                }
+            }
 
-			comOut.Close();
-
-			//
+            //
             // encrypt - with stream close
             //
             MemoryStream cbOut = new UncloseableMemoryStream();
@@ -171,9 +173,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
 
 			byte[] bOutData = bOut.ToArray();
-			Stream cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
-            cOut.Write(bOutData, 0, bOutData.Length);
-            cOut.Close();
+			using (var cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length))
+			{
+                cOut.Write(bOutData, 0, bOutData.Length);
+            }
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, text))
@@ -191,12 +194,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
 
 			bOutData = bOut.ToArray();
-			cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
-			cOut.Write(bOutData, 0, bOutData.Length);
+			{
+                var cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
+                cOut.Write(bOutData, 0, bOutData.Length);
 
-			cPk.Dispose();
+#pragma warning disable CS0618 // Type or member is obsolete
+                cPk.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
 
-			data = DecryptMessage(cbOut.ToArray());
+            data = DecryptMessage(cbOut.ToArray());
 
 			if (!AreEqual(data, text))
 			{
@@ -213,35 +220,32 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			bOut = new UncloseableMemoryStream();
 
-			comData = new PgpCompressedDataGenerator(
-				CompressionAlgorithmTag.Zip);
-			comOut = comData.Open(new UncloseableStream(bOut));
+			comData = new PgpCompressedDataGenerator(CompressionAlgorithmTag.Zip);
+			using (var comOut = comData.Open(new UncloseableStream(bOut)))
+			{
+                var lData = new PgpLiteralDataGenerator();
+				using (var ldOut = lData.Open(
+					new UncloseableStream(comOut),
+					PgpLiteralData.Binary,
+					PgpLiteralData.Console,
+					ModificationTime,
+					new byte[16]))
+				{
+                    ldOut.Write(test, 0, test.Length);
+                }
+            }
 
-			lData = new PgpLiteralDataGenerator();
-            ldOut = lData.Open(
-				new UncloseableStream(comOut),
-                PgpLiteralData.Binary,
-                PgpLiteralData.Console,
-                ModificationTime,
-                new byte[16]);
-
-            ldOut.Write(test, 0, test.Length);
-            lData.Dispose();
-
-			comData.Dispose();
             cbOut = new UncloseableMemoryStream();
             cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, rand);
 
             cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
 
-			cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
-            {
-                byte[] tmp = bOut.ToArray();
-                cOut.Write(tmp, 0, tmp.Length);
-            }
-
-			cPk.Dispose();
+			using (var cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]))
+			{
+				byte[] tmp = bOut.ToArray();
+				cOut.Write(tmp, 0, tmp.Length);
+			}
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, test))
@@ -258,12 +262,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
 
-            cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
             bOutData = bOut.ToArray();
-            cOut.Write(bOutData, 0, bOutData.Length);
-            cPk.Dispose();
 
-			data = DecryptMessage(cbOut.ToArray());
+            using (var cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]))
+			{
+                cOut.Write(bOutData, 0, bOutData.Length);
+            }
+
+            data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, test))
             {
                 Fail("wrong plain text in generated packet");
@@ -307,35 +313,34 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			byte[] msg = new byte[1];
 			bOut = new MemoryStream();
 
-			comData = new PgpCompressedDataGenerator(
-				CompressionAlgorithmTag.Zip);
+			comData = new PgpCompressedDataGenerator(CompressionAlgorithmTag.Zip);
 
-			lData = new PgpLiteralDataGenerator();
-			comOut = comData.Open(new UncloseableStream(bOut));
-			ldOut = lData.Open(
-				new UncloseableStream(comOut),
-				PgpLiteralData.Binary,
-				PgpLiteralData.Console,
-				msg.Length,
-                ModificationTime);
+			using (var comOut = comData.Open(new UncloseableStream(bOut)))
+			{
+                var lData = new PgpLiteralDataGenerator();
 
-			ldOut.Write(msg, 0, msg.Length);
+				using (var ldOut = lData.Open(
+					new UncloseableStream(comOut),
+					PgpLiteralData.Binary,
+					PgpLiteralData.Console,
+					msg.Length,
+					ModificationTime))
+				{
+                    ldOut.Write(msg, 0, msg.Length);
+                }
+            }
 
-			ldOut.Close();
-
-			comOut.Close();
-        
-			cbOut = new MemoryStream();
+            cbOut = new MemoryStream();
 			cPk = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Cast5, true, rand);
 
             cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
 
-			cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
+            data = bOut.ToArray();
 
-			data = bOut.ToArray();
-			cOut.Write(data, 0, data.Length);
-
-			cOut.Close();
+            using (var cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]))
+			{
+                cOut.Write(data, 0, data.Length);
+            }
 
 			data = DecryptMessage(cbOut.ToArray());
 			if (!AreEqual(data, msg))
