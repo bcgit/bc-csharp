@@ -114,33 +114,32 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sp, null);
 		}
 
-		private void VerifyEncodedData(
-			MemoryStream bOut)
-		{
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+		//private void VerifyEncodedData(MemoryStream bOut)
+		//{
+		//	using (var sp = new CmsSignedDataParser(bOut.ToArray()))
+		//	{
+		//		sp.GetSignedContent().Drain();
 
-			sp.GetSignedContent().Drain();
-
-			VerifySignatures(sp);
-
-			sp.Close();
-		}
+		//		VerifySignatures(sp);
+		//	}
+		//}
 
 		private void CheckSigParseable(byte[] sig)
 		{
-			CmsSignedDataParser sp = new CmsSignedDataParser(sig);
-			sp.Version.ToString();
-			CmsTypedStream sc = sp.GetSignedContent();
-			if (sc != null)
+			using (var sp = new CmsSignedDataParser(sig))
 			{
-				sc.Drain();
-			}
-			sp.GetAttributeCertificates();
-			sp.GetCertificates();
-			sp.GetCrls();
-			sp.GetSignerInfos();
-			sp.Close();
-		}
+                sp.Version.ToString();
+                CmsTypedStream sc = sp.GetSignedContent();
+                if (sc != null)
+                {
+                    sc.Drain();
+                }
+                sp.GetAttributeCertificates();
+                sp.GetCertificates();
+                sp.GetCrls();
+                sp.GetSignerInfos();
+            }
+        }
 
 		[Test]
 		public void TestSha1WithRsa()

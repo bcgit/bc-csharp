@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Cms
 	*      MemoryStream  bOut = new MemoryStream();
 	*
 	*      Stream out = edGen.Open(
-	*                              bOut, CMSEnvelopedDataGenerator.AES128_CBC);*
+	*                              bOut, CMSEnvelopedGenerator.AES128_CBC);*
 	*      out.Write(data);
 	*
 	*      out.Close();
