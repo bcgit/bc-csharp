@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Cms
 			SignerInfo			info,
 			DerObjectIdentifier	contentType,
 			CmsProcessable		content,
-			IDigestCalculator	digestCalculator)
+			byte[]				calculatedDigest)
 		{
 			this.info = info;
 			this.sid = new SignerID();
@@ -83,8 +83,9 @@ namespace Org.BouncyCastle.Cms
 			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
 
 			this.content = content;
-			this.calculatedDigest = (digestCalculator != null) ? digestCalculator.GetDigest() : null;
-		}
+			this.calculatedDigest = calculatedDigest;
+
+        }
 
         /**
          * Protected constructor. In some cases clients have their own idea about how to encode
@@ -300,8 +301,10 @@ namespace Org.BouncyCastle.Cms
 					SignerInfo si = SignerInfo.GetInstance(asn1Obj.ToAsn1Object());
 
                     string digestName = CmsSignedHelper.Instance.GetDigestAlgName(si.DigestAlgorithm.Algorithm.Id);
+                    IDigest digest = CmsSignedHelper.Instance.GetDigestInstance(digestName);
+                    byte[] hash = DigestUtilities.DoFinal(digest, GetSignature());
 
-					counterSignatures.Add(new SignerInformation(si, null, null, new CounterSignatureDigestCalculator(digestName, GetSignature())));
+					counterSignatures.Add(new SignerInformation(si, null, null, hash));
 				}
 			}
 

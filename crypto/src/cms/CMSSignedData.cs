@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Cms
 			if (signedData.EncapContentInfo.Content != null)
 			{
 				this.signedContent = new CmsProcessableByteArray(
-					((Asn1OctetString)(signedData.EncapContentInfo.Content)).GetOctets());
+					((Asn1OctetString)signedData.EncapContentInfo.Content).GetOctets());
 			}
 //			else
 //			{
@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Cms
 					}
 					else if (m_hashes.TryGetValue(info.DigestAlgorithm.Algorithm.Id, out var hash))
 					{
-						signerInfos.Add(new SignerInformation(info, contentType, null, new BaseDigestCalculator(hash)));
+						signerInfos.Add(new SignerInformation(info, contentType, null, hash));
 					}
 					else
                     {

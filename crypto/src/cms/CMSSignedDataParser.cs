@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Cms
 
 						byte[] hash = hashes[digestName];
 
-						signerInfos.Add(new SignerInformation(info, _signedContentType, null, new BaseDigestCalculator(hash)));
+						signerInfos.Add(new SignerInformation(info, _signedContentType, null, hash));
 					}
 				}
 				catch (IOException e)
