@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crmf
         }
     }
 
-    internal class DefaultPKMacResult
+    internal sealed class DefaultPKMacResult
         : IBlockResult
     {
         private readonly IMac mac;
@@ -77,21 +77,19 @@ namespace Org.BouncyCastle.Crmf
             return res;
         }
 
-        public int Collect(byte[] sig, int sigOff)
+        public int Collect(byte[] buf, int off)
         {
-            byte[] signature = Collect();
-            signature.CopyTo(sig, sigOff);
-            return signature.Length;
+            return mac.DoFinal(buf, off);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int Collect(Span<byte> destination)
+        public int Collect(Span<byte> output)
         {
-            byte[] result = Collect();
-            result.CopyTo(destination);
-            return result.Length;
+            return mac.DoFinal(output);
         }
 #endif
+
+        public int GetMaxResultLength() => mac.GetMacSize();
     }
 
     public class PKMacBuilder
