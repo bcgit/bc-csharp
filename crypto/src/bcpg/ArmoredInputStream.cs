@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Bcpg
         *
         * @return the offset the data starts in out.
         */
-        private static int Decode(int in0, int in1, int in2, int in3, int[] result)
+        private static int Decode(int in0, int in1, int in2, int in3, byte[] result)
         {
             if (in3 < 0)
                 throw new EndOfStreamException("unexpected end of file in armored stream.");
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Bcpg
                 if ((b1 | b2) >= 128)
                     throw new IOException("invalid armor");
 
-                result[2] = ((b1 << 2) | (b2 >> 4)) & 0xff;
+                result[2] = (byte)((b1 << 2) | (b2 >> 4));
                 return 2;
             }
             else if (in3 == '=')
@@ -77,8 +77,8 @@ namespace Org.BouncyCastle.Bcpg
                 if ((b1 | b2 | b3) >= 128)
                     throw new IOException("invalid armor");
 
-                result[1] = ((b1 << 2) | (b2 >> 4)) & 0xff;
-                result[2] = ((b2 << 4) | (b3 >> 2)) & 0xff;
+                result[1] = (byte)((b1 << 2) | (b2 >> 4));
+                result[2] = (byte)((b2 << 4) | (b3 >> 2));
                 return 1;
             }
             else
@@ -90,9 +90,9 @@ namespace Org.BouncyCastle.Bcpg
                 if ((b1 | b2 | b3 | b4) >= 128)
                     throw new IOException("invalid armor");
 
-                result[0] = ((b1 << 2) | (b2 >> 4)) & 0xff;
-                result[1] = ((b2 << 4) | (b3 >> 2)) & 0xff;
-                result[2] = ((b3 << 6) | b4) & 0xff;
+                result[0] = (byte)((b1 << 2) | (b2 >> 4));
+                result[1] = (byte)((b2 << 4) | (b3 >> 2));
+                result[2] = (byte)((b3 << 6) | b4);
                 return 0;
             }
         }
@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Bcpg
 
         Stream      input;
         bool        start = true;
-        int[]       outBuf = new int[3];
+        byte[]      outBuf = new byte[3];
         int         bufPtr = 3;
         Crc24       crc = new Crc24();
         bool        crcFound = false;
@@ -498,7 +498,7 @@ namespace Org.BouncyCastle.Bcpg
 
             c = outBuf[bufPtr++];
 
-            crc.Update(c);
+            crc.Update((byte)c);
 
             return c;
         }

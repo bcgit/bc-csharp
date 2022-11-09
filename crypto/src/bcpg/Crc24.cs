@@ -2,39 +2,34 @@ using System;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    public class Crc24
+    public sealed class Crc24
     {
         private const int Crc24Init = 0x0b704ce;
         private const int Crc24Poly = 0x1864cfb;
 
-        private int crc = Crc24Init;
+        private int m_crc = Crc24Init;
 
         public Crc24()
         {
         }
 
-        public void Update(
-            int b)
+        public void Update(byte b)
         {
-            crc ^= b << 16;
+            m_crc ^= (int)b << 16;
             for (int i = 0; i < 8; i++)
             {
-                crc <<= 1;
-                if ((crc & 0x1000000) != 0)
-                {
-                    crc ^= Crc24Poly;
-                }
+                int carry = -((m_crc >> 23) & 1) & Crc24Poly;
+
+                m_crc <<= 1;
+                m_crc ^= carry;
             }
         }
 
-		public int Value
-		{
-			get { return crc; }
-		}
+        public int Value => m_crc;
 
 		public void Reset()
         {
-            crc = Crc24Init;
+            m_crc = Crc24Init;
         }
     }
 }
