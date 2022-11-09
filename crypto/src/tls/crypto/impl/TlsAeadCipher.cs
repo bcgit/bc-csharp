@@ -264,20 +264,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             switch (m_nonceMode)
             {
-                case NONCE_RFC5288:
-                    Array.Copy(m_encryptNonce, 0, nonce, 0, m_encryptNonce.Length);
-                    // RFC 5288/6655: The nonce_explicit MAY be the 64-bit sequence number.
-                    TlsUtilities.WriteUint64(seqNo, nonce, m_encryptNonce.Length);
-                    break;
-                case NONCE_RFC7905:
-                    TlsUtilities.WriteUint64(seqNo, nonce, nonce.Length - 8);
-                    for (int i = 0; i < m_encryptNonce.Length; ++i)
-                    {
-                        nonce[i] ^= m_encryptNonce[i];
-                    }
-                    break;
-                default:
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            case NONCE_RFC5288:
+                Array.Copy(m_encryptNonce, 0, nonce, 0, m_encryptNonce.Length);
+                // RFC 5288/6655: The nonce_explicit MAY be the 64-bit sequence number.
+                TlsUtilities.WriteUint64(seqNo, nonce, m_encryptNonce.Length);
+                break;
+            case NONCE_RFC7905:
+                TlsUtilities.WriteUint64(seqNo, nonce, nonce.Length - 8);
+                for (int i = 0; i < m_encryptNonce.Length; ++i)
+                {
+                    nonce[i] ^= m_encryptNonce[i];
+                }
+                break;
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 
             // the length of the plaintext to encrypt, including content type and padding (currently not supported)
