@@ -780,9 +780,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector128<byte> Load128(ReadOnlySpan<byte> t)
         {
-#if NET7_0_OR_GREATER
-            return Vector128.Create<byte>(t);
-#else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
                 return MemoryMarshal.Read<Vector128<byte>>(t);
 
@@ -790,30 +787,22 @@ namespace Org.BouncyCastle.Crypto.Engines
                 BinaryPrimitives.ReadUInt64LittleEndian(t[..8]),
                 BinaryPrimitives.ReadUInt64LittleEndian(t[8..])
             ).AsByte();
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector64<byte> Load64(ReadOnlySpan<byte> t)
         {
-#if NET7_0_OR_GREATER
-            return Vector64.Create<byte>(t);
-#else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector64<byte>>() == 8)
                 return MemoryMarshal.Read<Vector64<byte>>(t);
 
             return Vector64.Create(
                 BinaryPrimitives.ReadUInt64LittleEndian(t[..8])
             ).AsByte();
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Store128(Vector128<byte> s, Span<byte> t)
         {
-#if NET7_0_OR_GREATER
-            Vector128.CopyTo(s, t);
-#else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
                 MemoryMarshal.Write(t, ref s);
@@ -823,7 +812,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             var u = s.AsUInt64();
             BinaryPrimitives.WriteUInt64LittleEndian(t[..8], u.GetElement(0));
             BinaryPrimitives.WriteUInt64LittleEndian(t[8..], u.GetElement(1));
-#endif
         }
     }
 }
