@@ -44,6 +44,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 #endif
 
+        public int GetMaxSignatureSize() => m_signer.GetMaxSignatureSize();
+
         public byte[] GenerateSignature()
         {
             m_digest.DoFinal(m_digBuf, 0);
