@@ -105,11 +105,6 @@ namespace Org.BouncyCastle.Math.Raw
             int signF = F[len30 - 1] >> 31;
             CNegate30(len30, signF, F);
 
-            /*
-             * D is in the range (-2.M, M). First, conditionally add M if D is negative, to bring it
-             * into the range (-M, M). Then normalize by conditionally negating (according to signF)
-             * and/or then adding M, to bring it into the range [0, M).
-             */
             CNormalize30(len30, signF, D, M);
 
             Decode30(bits, D, 0, z, 0);
@@ -160,11 +155,6 @@ namespace Org.BouncyCastle.Math.Raw
             int signF = F[len30 - 1] >> 31;
             CNegate30(len30, signF, F);
 
-            /*
-             * D is in the range (-2.M, M). First, conditionally add M if D is negative, to bring it
-             * into the range (-M, M). Then normalize by conditionally negating (according to signF)
-             * and/or then adding M, to bring it into the range [0, M).
-             */
             CNormalize30(len30, signF, D, M);
 
             Decode30(bits, D, z);
@@ -206,7 +196,7 @@ namespace Org.BouncyCastle.Math.Raw
             int maxDivsteps = GetMaximumDivsteps(bits);
 
             int divsteps = 0;
-            while (!IsZero(lenFG, G))
+            while (!EqualToZeroVar_Unlikely(lenFG, G))
             {
                 if (divsteps >= maxDivsteps)
                     return false;
@@ -251,7 +241,7 @@ namespace Org.BouncyCastle.Math.Raw
             }
             Debug.Assert(0 == signF);
 
-            if (!IsOne(lenFG, F))
+            if (!EqualToOneVar_Expected(lenFG, F))
                 return false;
 
             if (signD < 0)
@@ -301,7 +291,7 @@ namespace Org.BouncyCastle.Math.Raw
             int maxDivsteps = GetMaximumDivsteps(bits);
 
             int divsteps = 0;
-            while (!IsZero(lenFG, G))
+            while (!EqualToZeroVar_Unlikely(lenFG, G))
             {
                 if (divsteps >= maxDivsteps)
                     return false;
@@ -346,7 +336,7 @@ namespace Org.BouncyCastle.Math.Raw
             }
             Debug.Assert(0 == signF);
 
-            if (!IsOne(lenFG, F))
+            if (!EqualToOneVar_Expected(lenFG, F))
                 return false;
 
             if (signD < 0)
@@ -465,6 +455,12 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert(len30 > 0);
             Debug.Assert(D.Length >= len30);
             Debug.Assert(M.Length >= len30);
+
+            /*
+             * D is in the range (-2.M, M). First, conditionally add M if D is negative, to bring it
+             * into the range (-M, M). Then normalize by conditionally negating (according to signF)
+             * and/or then adding M, to bring it into the range [0, M).
+             */
 
             int last = len30 - 1;
 
@@ -717,6 +713,20 @@ namespace Org.BouncyCastle.Math.Raw
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool EqualToOneVar_Expected(int len, ReadOnlySpan<int> x)
+#else
+        private static bool EqualToOneVar_Expected(int len, int[] x)
+#endif
+        {
+            int d = x[0] ^ 1;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            return d == 0;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static int EqualToZero(int len, ReadOnlySpan<int> x)
 #else
         private static int EqualToZero(int len, int[] x)
@@ -731,49 +741,26 @@ namespace Org.BouncyCastle.Math.Raw
             return (d - 1) >> 31;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool EqualToZeroVar_Unlikely(int len, ReadOnlySpan<int> x)
+#else
+        private static bool EqualToZeroVar_Unlikely(int len, int[] x)
+#endif
+        {
+            int d = x[0];
+            if (d != 0)
+                return false;
+
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            return d == 0;
+        }
+
         private static int GetMaximumDivsteps(int bits)
         {
             return (49 * bits + (bits < 46 ? 80 : 47)) / 17;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static bool IsOne(int len, ReadOnlySpan<int> x)
-#else
-        private static bool IsOne(int len, int[] x)
-#endif
-        {
-            if (x[0] != 1)
-            {
-                return false;
-            }
-            for (int i = 1; i < len; ++i)
-            {
-                if (x[i] != 0)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static bool IsZero(int len, ReadOnlySpan<int> x)
-#else
-        private static bool IsZero(int len, int[] x)
-#endif
-        {
-            if (x[0] != 0)
-            {
-                return false;
-            }
-            for (int i = 1; i < len; ++i)
-            {
-                if (x[i] != 0)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
