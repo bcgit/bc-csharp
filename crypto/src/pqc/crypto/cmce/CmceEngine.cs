@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         public int PublicKeySize => usePadding ? PK_NROWS * ((SYS_N / 8 - ((PK_NROWS - 1) / 8))) : PK_NROWS * PK_NCOLS / 8;
 
-        public int CipherTextSize => SYND_BYTES + 32;
+        public int CipherTextSize => SYND_BYTES;
 
 
         public int DefaultSessionKeySize => defaultKeySize;
@@ -527,22 +527,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             /*
             2.4.5 Encapsulation
-            3. Compute C1 = H(2,e); Put C = (C0,C1)
-             */
-
-            // C1 = 0x2 || error_vector
-            // C = C0 || SHAKE256(C1, 32)
-            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
-            digest.Update((byte)0x02);
-            digest.BlockUpdate(error_vector, 0, error_vector.Length); // input
-            ((IXof)digest).OutputFinal(cipher_text, SYND_BYTES, cipher_text.Length - SYND_BYTES);     // output
-
-            /*
-            2.4.5 Encapsulation
             4. Compute K = H(1,e,C)
              */
 
             // K = Hash((0x1 || e || C), 32)
+            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)0x01);
             digest.BlockUpdate(error_vector, 0, error_vector.Length);
             digest.BlockUpdate(cipher_text, 0, cipher_text.Length); // input
@@ -555,7 +544,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 mask = (byte)padding_ok;
                 mask ^= 0xFF;
 
-                for (i = 0; i < SYND_BYTES + 32; i++)
+                for (i = 0; i < SYND_BYTES; i++)
                 {
                     cipher_text[i] &= mask;
                 }
@@ -573,8 +562,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         // 2.3.3 Decapsulation
         public int kem_dec(byte[] key, byte[] cipher_text, byte[] sk)
         {
-            byte[] conf = new byte[32];
             byte[] error_vector = new byte[SYS_N / 8];
+            byte[] preimage = new byte[1 + SYS_N/8 + SYND_BYTES];
 
             int i, padding_ok = 0;
             byte mask;
@@ -594,33 +583,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             /*
             2.3.3 Decapsulation
-            5. Compute C′1 = H(2,e)
-             */
-
-            // 0x2 || error_vector
-            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
-            digest.Update((byte)0x02);
-            digest.BlockUpdate(error_vector, 0, error_vector.Length); // input
-            ((IXof)digest).OutputFinal(conf, 0, conf.Length);     // output
-
-            /*
-            2.3.3 Decapsulation
             6. If C′1 6= C1, set e ←s and b ←0.
              */
-            byte ret_confirm = 0;
-            for (i = 0; i < 32; i++)
-            {
-                ret_confirm |= (byte)(conf[i] ^ cipher_text[SYND_BYTES + i]);
-            }
             short m;
 
-            m = (short)(ret_decrypt | ret_confirm);
+            m = ret_decrypt;
             m -= 1;
             m >>= 8;
             m &= 0xff;
-
-            byte[] preimage = new byte[1 + SYS_N / 8 + (SYND_BYTES + 32)];
-
+            
             /*
             2.3.3 Decapsulation
             2. Set b ←1.
@@ -630,7 +601,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 preimage[1 + i] = (byte)((~m & sk[i + 40 + IRR_BYTES + COND_BYTES]) | (m & error_vector[i]));
             }
-            for (i = 0; i < SYND_BYTES + 32; i++)
+            for (i = 0; i < SYND_BYTES; i++)
             {
                 preimage[1 + SYS_N / 8 + i] = cipher_text[i];
             }
@@ -641,6 +612,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
              */
 
             //  = SHAKE256(preimage, 32)
+            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.BlockUpdate(preimage, 0, preimage.Length); // input
             ((IXof)digest).OutputFinal(key, 0, key.Length);     // output
