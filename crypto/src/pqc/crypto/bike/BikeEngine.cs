@@ -396,17 +396,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             Debug.Assert(0 <= j && j < r);
 
             int count = 0;
-            for (int i = 0; i < hw; i++)
+
+            int i = 0, limit8 = hw - 8;
+            while (i < limit8)
             {
-                //int sPos = (hCompactCol[i] + j) % r;
+                int sPos0 = hCompactCol[i + 0] + j - r;
+                int sPos1 = hCompactCol[i + 1] + j - r;
+                int sPos2 = hCompactCol[i + 2] + j - r;
+                int sPos3 = hCompactCol[i + 3] + j - r;
+                int sPos4 = hCompactCol[i + 4] + j - r;
+                int sPos5 = hCompactCol[i + 5] + j - r;
+                int sPos6 = hCompactCol[i + 6] + j - r;
+                int sPos7 = hCompactCol[i + 7] + j - r;
+
+                sPos0 += (sPos0 >> 31) & r;
+                sPos1 += (sPos1 >> 31) & r;
+                sPos2 += (sPos2 >> 31) & r;
+                sPos3 += (sPos3 >> 31) & r;
+                sPos4 += (sPos4 >> 31) & r;
+                sPos5 += (sPos5 >> 31) & r;
+                sPos6 += (sPos6 >> 31) & r;
+                sPos7 += (sPos7 >> 31) & r;
+
+                count += s[sPos0];
+                count += s[sPos1];
+                count += s[sPos2];
+                count += s[sPos3];
+                count += s[sPos4];
+                count += s[sPos5];
+                count += s[sPos6];
+                count += s[sPos7];
+
+                i += 8;
+            }
+            while (i < hw)
+            {
                 int sPos = hCompactCol[i] + j - r;
                 sPos += (sPos >> 31) & r;
-
-                //if (s[sPos] == 1)
-                //{
-                //    count += 1;
-                //}
                 count += s[sPos];
+                ++i;
             }
             return count;
         }
