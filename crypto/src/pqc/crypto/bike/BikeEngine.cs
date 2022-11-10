@@ -489,7 +489,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             int count = 0;
 
             int i = 0, limit = hw - 4;
-            while (i < limit)
+            while (i <= limit)
             {
                 int sPos0 = hCompactCol[i + 0] + j - r;
                 int sPos1 = hCompactCol[i + 1] + j - r;
@@ -529,7 +529,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 if (Vector.IsHardwareAccelerated)
                 {
                     int jLimit = neg - Vector<byte>.Count;
-                    while (j < jLimit)
+                    while (j <= jLimit)
                     {
                         var vc = new Vector<byte>(ctrs, j);
                         var vs = new Vector<byte>(s, col + j);
@@ -541,7 +541,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 #endif
                 {
                     int jLimit = neg - 4;
-                    while (j < jLimit)
+                    while (j <= jLimit)
                     {
                         ctrs[j + 0] += s[col + j + 0];
                         ctrs[j + 1] += s[col + j + 1];
@@ -561,7 +561,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 if (Vector.IsHardwareAccelerated)
                 {
                     int kLimit = r - Vector<byte>.Count;
-                    while (k < kLimit)
+                    while (k <= kLimit)
                     {
                         var vc = new Vector<byte>(ctrs, k);
                         var vs = new Vector<byte>(s, k - neg);
@@ -573,7 +573,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 #endif
                 {
                     int kLimit = r - 4;
-                    while (k < kLimit)
+                    while (k <= kLimit)
                     {
                         ctrs[k + 0] += s[k + 0 - neg];
                         ctrs[k + 1] += s[k + 1 - neg];

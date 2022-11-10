@@ -211,6 +211,63 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private void ImplMultiplyAcc(ulong[] x, ulong[] y, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                int i = 0, limit = Size - 2;
+                while (i <= limit)
+                {
+                    var X01 = Vector128.Create(x[i], x[i + 1]);
+
+                    int j = 0;
+                    while (j <= limit)
+                    {
+                        var Y01 = Vector128.Create(y[j], y[j + 1]);
+
+                        var Z01 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
+                        var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
+                        var Z23 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11);
+
+                        zz[i + j + 0] ^= Z01.GetElement(0);
+                        zz[i + j + 1] ^= Z01.GetElement(1) ^ Z12.GetElement(0);
+                        zz[i + j + 2] ^= Z23.GetElement(0) ^ Z12.GetElement(1);
+                        zz[i + j + 3] ^= Z23.GetElement(1);
+
+                        j += 2;
+                    }
+
+                    i += 2;
+                }
+                if (i < Size)
+                {
+                    var Xi = Vector128.CreateScalar(x[i]);
+                    var Yi = Vector128.CreateScalar(y[i]);
+
+                    for (int j = 0; j < i; ++j)
+                    {
+                        var Xj = Vector128.CreateScalar(x[j]);
+                        var Yj = Vector128.CreateScalar(y[j]);
+
+                        var Z = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x00),
+                                         Pclmulqdq.CarrylessMultiply(Yi, Xj, 0x00));
+
+                        zz[i + j + 0] ^= Z.GetElement(0);
+                        zz[i + j + 1] ^= Z.GetElement(1);
+                    }
+
+                    {
+                        var Z = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x00);
+
+                        zz[i + i + 0] ^= Z.GetElement(0);
+                        zz[i + i + 1] ^= Z.GetElement(1);
+
+                    }
+                }
+                return;
+            }
+#endif
+
             ulong[] u = new ulong[16];
 
             // Schoolbook
@@ -241,10 +298,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
 
             ulong w = v0 ^ v1;
-            for (int i = 0; i < Size; ++i)
-            {
-                zz[Size + i] = zz[i] ^ w;
-            }
+            Nat.Xor64(Size, zz, 0, w, zz, Size);
 
             int last = Size - 1;
             for (int zPos = 1; zPos < (last * 2); ++zPos)
@@ -351,18 +405,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
-#if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
-            {
-                var X = Vector128.CreateScalar(x);
-                var Y = Vector128.CreateScalar(y);
-                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
-                z[zOff    ] ^= Z.GetElement(0);
-                z[zOff + 1] ^= Z.GetElement(1);
-                return;
-            }
-#endif
-
             //u[0] = 0;
             u[1] = y;
             for (int i = 2; i < 16; i += 2)

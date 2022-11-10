@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Numerics;
+#endif
 
 using Org.BouncyCastle.Crypto.Utilities;
 
@@ -2732,6 +2735,66 @@ namespace Org.BouncyCastle.Math.Raw
             while (i < len)
             {
                 z[i] = x[i] ^ y[i];
+                ++i;
+            }
+        }
+#endif
+
+        public static void Xor64(int len, ulong[] x, ulong y, ulong[] z)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor64(len, x.AsSpan(0, len), y, z.AsSpan(0, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y;
+            }
+#endif
+        }
+
+        public static void Xor64(int len, ulong[] x, int xOff, ulong y, ulong[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor64(len, x.AsSpan(xOff, len), y, z.AsSpan(zOff, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = x[xOff + i] ^ y;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Xor64(int len, ReadOnlySpan<ulong> x, ulong y, Span<ulong> z)
+        {
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                var vy = new Vector<ulong>(y);
+
+                int limit = len - Vector<ulong>.Count;
+                while (i <= limit)
+                {
+                    var vx = new Vector<ulong>(x[i..]);
+                    (vx ^ vy).CopyTo(z[i..]);
+                    i += Vector<ulong>.Count;
+                }
+            }
+            else
+            {
+                int limit = len - 4;
+                while (i <= limit)
+                {
+                    z[i + 0] = x[i + 0] ^ y;
+                    z[i + 1] = x[i + 1] ^ y;
+                    z[i + 2] = x[i + 2] ^ y;
+                    z[i + 3] = x[i + 3] ^ y;
+                    i += 4;
+                }
+            }
+            while (i < len)
+            {
+                z[i] = x[i] ^ y;
                 ++i;
             }
         }
