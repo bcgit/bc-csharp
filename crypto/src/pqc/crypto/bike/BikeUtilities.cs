@@ -6,14 +6,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
     internal class BikeUtilities
     {
-        internal static void XorTo(byte[] x, byte[] z, int zLen)
-        {
-            for (int i = 0; i < zLen; ++i)
-            {
-                z[i] ^= x[i];
-            }
-        }
-
         internal static int GetHammingWeight(byte[] bytes)
         {
             int hammingWeight = 0;
@@ -46,28 +38,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        internal static void FromBitArrayToByteArray(byte[] output, byte[] input)
+        internal static void FromBitArrayToByteArray(byte[] output, byte[] inputX, int inputOff, int inputLen)
         {
             int count = 0;
             int pos = 0;
-            long len = input.Length;
-            while (count < len)
+            while (count < inputLen)
             {
-                if (count + 8 >= input.Length)
+                if (count + 8 >= inputLen)
                 {// last set of bits cannot have enough 8 bits
-                    int b = input[count];
-                    for (int j = input.Length - count - 1; j >= 1; j--)
+                    int b = inputX[inputOff + count];
+                    for (int j = inputLen - count - 1; j >= 1; j--)
                     { //bin in reversed order
-                        b |= input[count + j] << j;
+                        b |= inputX[inputOff + count + j] << j;
                     }
                     output[pos] = (byte)b;
                 }
                 else
                 {
-                    int b = input[count];
+                    int b = inputX[inputOff + count];
                     for (int j = 7; j >= 1; j--)
                     { //bin in reversed order
-                        b |= input[count + j] << j;
+                        b |= inputX[inputOff + count + j] << j;
                     }
                     output[pos] = (byte)b;
                 }
