@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         private void InitCipher(SikeParameters param)
         {
-            engine = param.Engine;
+            engine = param.GetEngine();
             SikePrivateKeyParameters privateParams = (SikePrivateKeyParameters)key;
             //todo: add compression check
         }

@@ -110,7 +110,7 @@ internal class P434
             this.PLEN_3 = 47;
 
             // Import compression tables from properties
-            _props = new Dictionary<string, string>(); 
+            var props = new Dictionary<string, string>(); 
             Stream input = typeof(P434).Assembly
                 .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p434.properties");
             
@@ -134,42 +134,42 @@ internal class P434
                         int index = header.IndexOf('=');
                         matrix = header.Substring(0, index).Trim();
                         hexString = header.Substring(index + 1).Trim();
-                        _props.Add(matrix, hexString);
+                        props.Add(matrix, hexString);
                         i++;
                     }
 
                     line = sr.ReadLine();
                 }
             }
-            ph2_path = ReadIntsFromProperty("ph2_path", PLEN_2);
-            ph3_path = ReadIntsFromProperty("ph3_path", PLEN_3);
-            A_gen = ReadFromProperty("A_gen", 6 * NWORDS64_FIELD);
-            B_gen = ReadFromProperty("B_gen", 6 * NWORDS64_FIELD);
-            XQB3 = ReadFromProperty("XQB3", 2 * NWORDS64_FIELD);
-            A_basis_zero = ReadFromProperty("A_basis_zero", 8 * NWORDS64_FIELD);
-            B_basis_zero = ReadFromProperty("B_basis_zero", 8 * NWORDS64_FIELD);
-            B_gen_3_tors = ReadFromProperty("B_gen_3_tors", 16 * NWORDS64_FIELD);
-            g_R_S_im = ReadFromProperty("g_R_S_im", NWORDS64_FIELD );
-            g_phiR_phiS_re = ReadFromProperty("g_phiR_phiS_re", NWORDS64_FIELD);
-            g_phiR_phiS_im = ReadFromProperty("g_phiR_phiS_im", NWORDS64_FIELD);
-            Montgomery_RB1 = ReadFromProperty("Montgomery_RB1", NWORDS64_FIELD);
-            Montgomery_RB2 = ReadFromProperty("Montgomery_RB2", NWORDS64_FIELD);
-            threeinv = ReadFromProperty("threeinv", NWORDS64_FIELD);
-            u_entang = ReadFromProperty("u_entang", 2 * NWORDS64_FIELD);
-            u0_entang = ReadFromProperty("u0_entang", 2 * NWORDS64_FIELD);
-            table_r_qr = ReadFromProperty("table_r_qr", TABLE_R_LEN, NWORDS64_FIELD);
-            table_r_qnr = ReadFromProperty("table_r_qnr", TABLE_R_LEN, NWORDS64_FIELD);
-            table_v_qr = ReadFromProperty("table_v_qr", TABLE_V_LEN, NWORDS64_FIELD);
-            table_v_qnr = ReadFromProperty("table_v_qnr", TABLE_V_LEN, NWORDS64_FIELD);
-            v_3_torsion = ReadFromProperty("v_3_torsion", TABLE_V3_LEN, 2, NWORDS64_FIELD);
-            T_tate3 = ReadFromProperty("T_tate3", (6 * (OBOB_EXPON - 1) + 4) * NWORDS64_FIELD);
-            T_tate2_firststep_P = ReadFromProperty("T_tate2_firststep_P", 4 * NWORDS64_FIELD);
-            T_tate2_P = ReadFromProperty("T_tate2_P", 3 * (OALICE_BITS - 2) * NWORDS64_FIELD);
-            T_tate2_firststep_Q = ReadFromProperty("T_tate2_firststep_Q", 4 * NWORDS64_FIELD);
-            T_tate2_Q = ReadFromProperty("T_tate2_Q", 3 * (OALICE_BITS - 2) * NWORDS64_FIELD);
-            ph2_T = ReadFromProperty("ph2_T",DLEN_2*(ELL2_W >> 1)*2*NWORDS64_FIELD);
-            ph3_T1 = ReadFromProperty("ph3_T1",DLEN_3*(ELL3_W >> 1)*2*NWORDS64_FIELD);
-            ph3_T2 = ReadFromProperty("ph3_T2",DLEN_3*(ELL3_W >> 1)*2*NWORDS64_FIELD);
+            ph2_path = ReadIntsFromProperty(props, "ph2_path", PLEN_2);
+            ph3_path = ReadIntsFromProperty(props, "ph3_path", PLEN_3);
+            A_gen = ReadFromProperty(props, "A_gen", 6 * NWORDS64_FIELD);
+            B_gen = ReadFromProperty(props, "B_gen", 6 * NWORDS64_FIELD);
+            XQB3 = ReadFromProperty(props, "XQB3", 2 * NWORDS64_FIELD);
+            A_basis_zero = ReadFromProperty(props, "A_basis_zero", 8 * NWORDS64_FIELD);
+            B_basis_zero = ReadFromProperty(props, "B_basis_zero", 8 * NWORDS64_FIELD);
+            B_gen_3_tors = ReadFromProperty(props, "B_gen_3_tors", 16 * NWORDS64_FIELD);
+            g_R_S_im = ReadFromProperty(props, "g_R_S_im", NWORDS64_FIELD );
+            g_phiR_phiS_re = ReadFromProperty(props, "g_phiR_phiS_re", NWORDS64_FIELD);
+            g_phiR_phiS_im = ReadFromProperty(props, "g_phiR_phiS_im", NWORDS64_FIELD);
+            Montgomery_RB1 = ReadFromProperty(props, "Montgomery_RB1", NWORDS64_FIELD);
+            Montgomery_RB2 = ReadFromProperty(props, "Montgomery_RB2", NWORDS64_FIELD);
+            threeinv = ReadFromProperty(props, "threeinv", NWORDS64_FIELD);
+            u_entang = ReadFromProperty(props, "u_entang", 2 * NWORDS64_FIELD);
+            u0_entang = ReadFromProperty(props, "u0_entang", 2 * NWORDS64_FIELD);
+            table_r_qr = ReadFromProperty(props, "table_r_qr", TABLE_R_LEN, NWORDS64_FIELD);
+            table_r_qnr = ReadFromProperty(props, "table_r_qnr", TABLE_R_LEN, NWORDS64_FIELD);
+            table_v_qr = ReadFromProperty(props, "table_v_qr", TABLE_V_LEN, NWORDS64_FIELD);
+            table_v_qnr = ReadFromProperty(props, "table_v_qnr", TABLE_V_LEN, NWORDS64_FIELD);
+            v_3_torsion = ReadFromProperty(props, "v_3_torsion", TABLE_V3_LEN, 2, NWORDS64_FIELD);
+            T_tate3 = ReadFromProperty(props, "T_tate3", (6 * (OBOB_EXPON - 1) + 4) * NWORDS64_FIELD);
+            T_tate2_firststep_P = ReadFromProperty(props, "T_tate2_firststep_P", 4 * NWORDS64_FIELD);
+            T_tate2_P = ReadFromProperty(props, "T_tate2_P", 3 * (OALICE_BITS - 2) * NWORDS64_FIELD);
+            T_tate2_firststep_Q = ReadFromProperty(props, "T_tate2_firststep_Q", 4 * NWORDS64_FIELD);
+            T_tate2_Q = ReadFromProperty(props, "T_tate2_Q", 3 * (OALICE_BITS - 2) * NWORDS64_FIELD);
+            ph2_T = ReadFromProperty(props, "ph2_T",DLEN_2*(ELL2_W >> 1)*2*NWORDS64_FIELD);
+            ph3_T1 = ReadFromProperty(props, "ph3_T1",DLEN_3*(ELL3_W >> 1)*2*NWORDS64_FIELD);
+            ph3_T2 = ReadFromProperty(props, "ph3_T2",DLEN_3*(ELL3_W >> 1)*2*NWORDS64_FIELD);
 
             ph2_T1 = new ulong[2*((DLEN_2 - 1)*(ELL2_W/2) + (ph2_path[PLEN_2 - 1]-1))];
             ph2_T2 = new ulong[2*((DLEN_2 - 1)*(ELL2_W/2) + (ph2_path[PLEN_2 - 1]-1))];
@@ -177,5 +177,4 @@ internal class P434
         }
     }
 }
-
 }
