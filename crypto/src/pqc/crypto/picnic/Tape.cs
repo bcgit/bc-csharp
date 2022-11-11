@@ -114,15 +114,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         internal uint TapesToWord()
         {
-            byte[] shares = new byte[4];
+            //byte[] shares = new byte[4];
+            //for (int i = 0; i < 16; i++)
+            //{
+            //    byte bit = PicnicUtilities.GetBit(this.tapes[i], this.pos);
+            //    PicnicUtilities.SetBit(shares, i, bit);
+            //}
+            //this.pos++;
+            //return Pack.LE_To_UInt32(shares, 0);
 
-            for (int i = 0; i < 16; i++)
-            {
-                byte bit = PicnicUtilities.GetBit(this.tapes[i], this.pos);
-                PicnicUtilities.SetBit(shares, i, bit);
-            }
+            uint shares = 0U;
+            int arrayPos = pos >> 3, bitPos = (pos & 7) ^ 7;
+            uint bitMask = 1U << bitPos;
+
+            shares |= (tapes[ 0][arrayPos] & bitMask) <<  7;
+            shares |= (tapes[ 1][arrayPos] & bitMask) <<  6;
+            shares |= (tapes[ 2][arrayPos] & bitMask) <<  5;
+            shares |= (tapes[ 3][arrayPos] & bitMask) <<  4;
+            shares |= (tapes[ 4][arrayPos] & bitMask) <<  3;
+            shares |= (tapes[ 5][arrayPos] & bitMask) <<  2;
+            shares |= (tapes[ 6][arrayPos] & bitMask) <<  1;
+            shares |= (tapes[ 7][arrayPos] & bitMask) <<  0;
+
+            shares |= (tapes[ 8][arrayPos] & bitMask) << 15;
+            shares |= (tapes[ 9][arrayPos] & bitMask) << 14;
+            shares |= (tapes[10][arrayPos] & bitMask) << 13;
+            shares |= (tapes[11][arrayPos] & bitMask) << 12;
+            shares |= (tapes[12][arrayPos] & bitMask) << 11;
+            shares |= (tapes[13][arrayPos] & bitMask) << 10;
+            shares |= (tapes[14][arrayPos] & bitMask) <<  9;
+            shares |= (tapes[15][arrayPos] & bitMask) <<  8;
+
             this.pos++;
-            return Pack.LE_To_UInt32(shares, 0);
+            return shares >> bitPos;
         }
     }
 }

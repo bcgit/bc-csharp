@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -2175,8 +2176,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             for (int i = 0; i < numMPCParties; i++)
             {
-                 uint w_i = PicnicUtilities.GetBit(Pack.UInt32_To_LE(w), i);
-                PicnicUtilities.SetBit(msg.msgs[i], msg.pos, (byte) (w_i & 0xff));
+                uint w_i = PicnicUtilities.GetBit(w, i);
+                PicnicUtilities.SetBit(msg.msgs[i], msg.pos, (byte)w_i);
             }
 
             msg.pos++;
@@ -2187,13 +2188,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint and_helper = tape.TapesToWord(); // The special mask value setup during preprocessing for each AND gate
             uint s_shares = (Extend(a) & mask_b) ^ (Extend(b) & mask_a) ^ and_helper;
 
-            byte[] temp = Pack.UInt32_To_LE(s_shares);
-
             if (msg.unopened >= 0)
             {
-                 uint unopenedPartyBit = PicnicUtilities.GetBit(msg.msgs[msg.unopened], msg.pos);
-                PicnicUtilities.SetBit(temp, msg.unopened, (byte) (unopenedPartyBit & 0xff));
-                s_shares = Pack.LE_To_UInt32(temp, 0);
+                uint unopenedPartyBit = PicnicUtilities.GetBit(msg.msgs[msg.unopened], msg.pos);
+                s_shares = PicnicUtilities.SetBit(s_shares, msg.unopened, unopenedPartyBit);
             }
 
             // Broadcast each share of s
@@ -2489,6 +2487,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint[] temp = new uint[LOWMC_MAX_WORDS];
             temp[stateSizeWords - 1] = 0;
             int wholeWords = stateSizeBits / WORD_SIZE_BITS;
+            int unusedStateBits = stateSizeWords * WORD_SIZE_BITS - stateSizeBits;
+
+            // The final word mask, with bits reversed within each byte
+            uint partialWordMask = uint.MaxValue >> unusedStateBits;
+            partialWordMask = Bits.BitPermuteStepSimple(partialWordMask, 0x55555555U, 1);
+            partialWordMask = Bits.BitPermuteStepSimple(partialWordMask, 0x33333333U, 2);
+            partialWordMask = Bits.BitPermuteStepSimple(partialWordMask, 0x0F0F0F0FU, 4);
 
             for (int i = 0; i < stateSizeBits; i++)
             {
@@ -2496,15 +2501,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = 0; j < wholeWords; j++)
                 {
                     int index = i * stateSizeWords + j;
-                    prod ^= state[j + stateOffset] & matrix[matrixOffset + index];
+                    prod ^= state[j + stateOffset] &
+                            matrix[matrixOffset + index];
                 }
-
-                for (int j = wholeWords * WORD_SIZE_BITS; j < stateSizeBits; j++)
+                if (unusedStateBits > 0)
                 {
-                    int index = i * stateSizeWords * WORD_SIZE_BITS + j;
-                    uint bit = PicnicUtilities.GetBitFromWordArray(state, stateOffset * 32 + j)
-                             & PicnicUtilities.GetBitFromWordArray(matrix, matrixOffset * 32 + index);
-                    prod ^= bit;
+                    int index = i * stateSizeWords + wholeWords;
+                    prod ^= state[stateOffset + wholeWords] &
+                            matrix[matrixOffset + index] &
+                            partialWordMask;
                 }
 
                 PicnicUtilities.SetBit(temp, i, PicnicUtilities.Parity32(prod));
