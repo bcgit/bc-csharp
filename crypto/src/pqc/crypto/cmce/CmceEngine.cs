@@ -1,5 +1,6 @@
 using System;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Numerics;
 using System.Runtime.InteropServices;
 #endif
 
@@ -1463,21 +1464,38 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         c = 0;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                        ulong mask64 = 0UL - mask;
-                        int limit64 = (SYS_N / 8) - 8;
-                        while (c <= limit64)
+                        if (Vector.IsHardwareAccelerated)
                         {
-                            ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c)) & mask64;
-                            ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c)) ^ t0;
-                            MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
-                            c += 8;
+                            var vm = new Vector<byte>((byte)-mask);
+                            int limit = (SYS_N / 8) - Vector<byte>.Count;
+                            while (c <= limit)
+                            {
+                                var vk = new Vector<byte>(mat_k, c);
+                                var vr = new Vector<byte>(mat_row, c);
+                                ((vk & vm) ^ vr).CopyTo(mat_row, c);
+                                c += Vector<byte>.Count;
+                            }
+                        }
+                        {
+                            ulong mask64 = 0UL - mask;
+                            int limit = (SYS_N / 8) - 8;
+                            while (c <= limit)
+                            {
+                                ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
+                                ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                                t1 ^= t0 & mask64;
+                                MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
+                                c += 8;
+                            }
                         }
 #endif
-                        byte maskByte = (byte)-mask;
-                        while (c < SYS_N / 8)
                         {
-                            mat_row[c] ^= (byte)(mat_k[c] & maskByte);
-                            ++c;
+                            byte maskByte = (byte)-mask;
+                            while (c < SYS_N / 8)
+                            {
+                                mat_row[c] ^= (byte)(mat_k[c] & maskByte);
+                                ++c;
+                            }
                         }
                     }
 
@@ -1507,21 +1525,38 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             c = 0;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                            ulong mask64 = 0UL - mask;
-                            int limit64 = (SYS_N / 8) - 8;
-                            while (c <= limit64)
+                            if (Vector.IsHardwareAccelerated)
                             {
-                                ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c)) & mask64;
-                                ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c)) ^ t0;
-                                MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
-                                c += 8;
+                                var vm = new Vector<byte>((byte)-mask);
+                                int limit = (SYS_N / 8) - Vector<byte>.Count;
+                                while (c <= limit)
+                                {
+                                    var vr = new Vector<byte>(mat_row, c);
+                                    var vk = new Vector<byte>(mat_k, c);
+                                    ((vr & vm) ^ vk).CopyTo(mat_k, c);
+                                    c += Vector<byte>.Count;
+                                }
+                            }
+                            {
+                                ulong mask64 = 0UL - mask;
+                                int limit = (SYS_N / 8) - 8;
+                                while (c <= limit)
+                                {
+                                    ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                                    ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
+                                    t1 ^= t0 & mask64;
+                                    MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
+                                    c += 8;
+                                }
                             }
 #endif
-                            byte maskByte = (byte)-mask;
-                            while (c < SYS_N / 8)
                             {
-                                mat_k[c] ^= (byte)(mat_row[c] & maskByte);
-                                ++c;
+                                byte maskByte = (byte)-mask;
+                                while (c < SYS_N / 8)
+                                {
+                                    mat_k[c] ^= (byte)(mat_row[c] & maskByte);
+                                    ++c;
+                                }
                             }
                         }
                     }
