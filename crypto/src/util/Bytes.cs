@@ -1,6 +1,7 @@
 ﻿using System;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Numerics;
+using System.Runtime.InteropServices;
 #endif
 
 namespace Org.BouncyCastle.Utilities
@@ -50,14 +51,14 @@ namespace Org.BouncyCastle.Utilities
                 }
             }
             {
-                int limit = len - 4;
+                int limit = len - 8;
                 while (i <= limit)
                 {
-                    z[i + 0] = (byte)(x[i + 0] ^ y[i + 0]);
-                    z[i + 1] = (byte)(x[i + 1] ^ y[i + 1]);
-                    z[i + 2] = (byte)(x[i + 2] ^ y[i + 2]);
-                    z[i + 3] = (byte)(x[i + 3] ^ y[i + 3]);
-                    i += 4;
+                    ulong x64 = MemoryMarshal.Read<ulong>(x[i..]);
+                    ulong y64 = MemoryMarshal.Read<ulong>(y[i..]);
+                    ulong z64 = x64 ^ y64;
+                    MemoryMarshal.Write(z[i..], ref z64);
+                    i += 8;
                 }
             }
             {
@@ -110,14 +111,14 @@ namespace Org.BouncyCastle.Utilities
                 }
             }
             {
-                int limit = len - 4;
+                int limit = len - 8;
                 while (i <= limit)
                 {
-                    z[i + 0] ^= x[i + 0];
-                    z[i + 1] ^= x[i + 1];
-                    z[i + 2] ^= x[i + 2];
-                    z[i + 3] ^= x[i + 3];
-                    i += 4;
+                    ulong x64 = MemoryMarshal.Read<ulong>(x[i..]);
+                    ulong z64 = MemoryMarshal.Read<ulong>(z[i..]);
+                    z64 ^= x64;
+                    MemoryMarshal.Write(z[i..], ref z64);
+                    i += 8;
                 }
             }
             {
