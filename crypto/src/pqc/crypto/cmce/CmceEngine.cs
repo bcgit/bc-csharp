@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         public int DefaultSessionKeySize => defaultKeySize;
 
-        public CmceEngine(int m, int n, int t, int[] p, bool usePivots, int defaultKeySize)
+        internal CmceEngine(int m, int n, int t, int[] p, bool usePivots, int defaultKeySize)
         {
             this.usePivots = usePivots;
             this.SYS_N = n;
@@ -71,21 +71,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             SYND_BYTES = (PK_NROWS + 7) / 8;
             GFMASK = (1 << GFBITS) - 1;
 
-
             if (GFBITS == 12)
             {
-                gf = new GF12(GFBITS);
+                gf = new GF12();
                 benes = new Benes12(SYS_N, SYS_T, GFBITS);
             }
             else
             {
-                gf = new GF13(GFBITS);
+                gf = new GF13();
                 benes = new Benes13(SYS_N, SYS_T, GFBITS);
 
             }
             usePadding = SYS_T % 8 != 0;
             countErrorIndices = (1 << GFBITS) > SYS_N;
         }
+
         public byte[] GeneratePublicKeyFromPrivateKey(byte[] sk)
         {
             byte[] pk = new byte[PublicKeySize];
@@ -123,12 +123,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             // generate hash using the seed given in the sk (64 || first 32 bytes)
             byte[] hash = new byte[(SYS_N / 8) + ((1 << GFBITS) * 4) + IRR_BYTES + 32];
 
-            int hash_idx = 0;
             IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)64);
             digest.BlockUpdate(sk, 0, 32); // input
             ((IXof)digest).OutputFinal(hash, 0, hash.Length);
-
 
             // generate g
             if (sk.Length <= 40)
@@ -136,7 +134,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 ushort[] field = new ushort[SYS_T];
 
                 byte[] reg_g = new byte[IRR_BYTES];
-                hash_idx = hash.Length - 32 - IRR_BYTES;
+                int hash_idx = hash.Length - 32 - IRR_BYTES;
                 for (int i = 0; i < SYS_T; i++)
                 {
                     field[i] = Utils.LoadGF(hash, hash_idx + i * 2, GFMASK);
@@ -156,7 +154,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 uint[] perm = new uint[1 << GFBITS];
                 ushort[] pi = new ushort[1 << GFBITS];
 
-                hash_idx = hash.Length - 32 - IRR_BYTES - ((1 << GFBITS) * 4);
+                int hash_idx = hash.Length - 32 - IRR_BYTES - ((1 << GFBITS) * 4);
                 for (int i = 0; i < (1 << GFBITS); i++)
                 {
                     perm[i] = Utils.Load4(hash, hash_idx + i * 4);
@@ -172,10 +170,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     long[] buf = new long[1 << GFBITS];
                     for (int i = 0; i < (1 << GFBITS); i++)
                     {
-                        buf[i] = perm[i];
-                        buf[i] <<= 31;
-                        buf[i] |= (uint)i;
-                        buf[i] &= 0x7fffffffffffffffL; // getting rid of signed longs
+                        buf[i] = ((long)perm[i] << 31) | (uint)i;
                     }
                     Sort64(buf, 0, buf.Length);
                     for (int i = 0; i < (1 << GFBITS); i++)
@@ -183,7 +178,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         pi[i] = (ushort)(buf[i] & GFMASK);
                     }
                 }
-
 
                 byte[] output = new byte[COND_BYTES];
                 ControlBitsFromPermutation(output, pi, GFBITS, 1 << GFBITS);
@@ -1348,10 +1342,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             long[] buf = new long[1 << GFBITS];
             for (i = 0; i < (1 << GFBITS); i++)
             {
-                buf[i] = perm[i];
-                buf[i] <<= 31;
-                buf[i] |= (uint)i;
-                // buf[i] &= 0x7fffffffffffffffL; // getting rid of signed longs
+                buf[i] = ((long)perm[i] << 31) | (uint)i;
             }
             // Sort32 the buffer
 
@@ -1431,34 +1422,84 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             // gaussian elimination
             int row, c;
             byte mask;
-            for (i = 0; i < (PK_NROWS + 7) / 8; i++)
+            for (row = 0; row < PK_NROWS; row++)
             {
-                for (j = 0; j < 8; j++)
+                i = row >> 3;
+                j = row & 7;
+
+                if (usePivots)
                 {
-                    row = i * 8 + j;
-
-                    if (row >= PK_NROWS)
-                        break;
-
-                    byte[] mat_row = mat[row];
-
-                    if (usePivots)
+                    if (row == PK_NROWS - 32)
                     {
-                        if (row == PK_NROWS - 32)
+                        if (MovColumns(mat, pi, pivots) != 0)
                         {
-                            if (MovColumns(mat, pi, pivots) != 0)
-                            {
-                                //System.out.println("failed mov column!");
-                                return -1;
-                            }
+                            //System.out.println("failed mov column!");
+                            return -1;
                         }
                     }
+                }
 
-                    for (k = row + 1; k < PK_NROWS; k++)
+                byte[] mat_row = mat[row];
+
+                for (k = row + 1; k < PK_NROWS; k++)
+                {
+                    byte[] mat_k = mat[k];
+                    mask = (byte)(mat_row[i] ^ mat_k[i]);
+                    mask >>= j;
+                    mask &= 1;
+
+                    c = 0;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    if (Vector.IsHardwareAccelerated)
+                    {
+                        var vm = new Vector<byte>((byte)-mask);
+                        int limit = (SYS_N / 8) - Vector<byte>.Count;
+                        while (c <= limit)
+                        {
+                            var vk = new Vector<byte>(mat_k, c);
+                            var vr = new Vector<byte>(mat_row, c);
+                            ((vk & vm) ^ vr).CopyTo(mat_row, c);
+                            c += Vector<byte>.Count;
+                        }
+                    }
+                    {
+                        ulong mask64 = 0UL - mask;
+                        int limit = (SYS_N / 8) - 8;
+                        while (c <= limit)
+                        {
+                            ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
+                            ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                            t1 ^= t0 & mask64;
+                            MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
+                            c += 8;
+                        }
+                    }
+#endif
+                    {
+                        byte maskByte = (byte)-mask;
+                        while (c < SYS_N / 8)
+                        {
+                            mat_row[c] ^= (byte)(mat_k[c] & maskByte);
+                            ++c;
+                        }
+                    }
+                }
+
+                // 7. Compute (T,cn−k−μ+1,...,cn−k,Γ′) ← MatGen(Γ). If this fails, set δ ← δ′ and
+                // restart the algorithm.
+                if (((mat_row[i] >> j) & 1) == 0) // return if not systematic
+                {
+                    //System.out.println("FAIL 2\n");
+                    return -1;
+                }
+
+                for (k = 0; k < PK_NROWS; k++)
+                {
+                    if (k != row)
                     {
                         byte[] mat_k = mat[k];
-                        mask = (byte)(mat_row[i] ^ mat_k[i]);
-                        mask >>= j;
+                        mask = (byte)(mat_k[i] >> j);
                         mask &= 1;
 
                         c = 0;
@@ -1470,9 +1511,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             int limit = (SYS_N / 8) - Vector<byte>.Count;
                             while (c <= limit)
                             {
-                                var vk = new Vector<byte>(mat_k, c);
                                 var vr = new Vector<byte>(mat_row, c);
-                                ((vk & vm) ^ vr).CopyTo(mat_row, c);
+                                var vk = new Vector<byte>(mat_k, c);
+                                ((vr & vm) ^ vk).CopyTo(mat_k, c);
                                 c += Vector<byte>.Count;
                             }
                         }
@@ -1481,10 +1522,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             int limit = (SYS_N / 8) - 8;
                             while (c <= limit)
                             {
-                                ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
-                                ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                                ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                                ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
                                 t1 ^= t0 & mask64;
-                                MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
+                                MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
                                 c += 8;
                             }
                         }
@@ -1493,70 +1534,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             byte maskByte = (byte)-mask;
                             while (c < SYS_N / 8)
                             {
-                                mat_row[c] ^= (byte)(mat_k[c] & maskByte);
+                                mat_k[c] ^= (byte)(mat_row[c] & maskByte);
                                 ++c;
-                            }
-                        }
-                    }
-
-                    // 7. Compute (T,cn−k−μ+1,...,cn−k,Γ′) ← MatGen(Γ). If this fails, set δ ← δ′ and
-                    // restart the algorithm.
-                    if (((mat_row[i] >> j) & 1) == 0) // return if not systematic
-                    {
-                        //System.out.println("FAIL 2\n");
-                        return -1;
-                    }
-
-                    for (k = 0; k < PK_NROWS; k++)
-                    {
-                        if (k != row)
-                        {
-                            byte[] mat_k = mat[k];
-                            mask = (byte)(mat_k[i] >> j);
-                            mask &= 1;
-
-                            //mask = (byte)-mask;
-
-                            //for (c = 0; c < SYS_N / 8; c++)
-                            //{
-                            //    mat_k[c] ^= (byte)(mat_row[c] & mask);
-                            //}
-
-                            c = 0;
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                            if (Vector.IsHardwareAccelerated)
-                            {
-                                var vm = new Vector<byte>((byte)-mask);
-                                int limit = (SYS_N / 8) - Vector<byte>.Count;
-                                while (c <= limit)
-                                {
-                                    var vr = new Vector<byte>(mat_row, c);
-                                    var vk = new Vector<byte>(mat_k, c);
-                                    ((vr & vm) ^ vk).CopyTo(mat_k, c);
-                                    c += Vector<byte>.Count;
-                                }
-                            }
-                            {
-                                ulong mask64 = 0UL - mask;
-                                int limit = (SYS_N / 8) - 8;
-                                while (c <= limit)
-                                {
-                                    ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
-                                    ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
-                                    t1 ^= t0 & mask64;
-                                    MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
-                                    c += 8;
-                                }
-                            }
-#endif
-                            {
-                                byte maskByte = (byte)-mask;
-                                while (c < SYS_N / 8)
-                                {
-                                    mat_k[c] ^= (byte)(mat_row[c] & maskByte);
-                                    ++c;
-                                }
                             }
                         }
                     }
@@ -1568,27 +1547,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 if (usePadding)
                 {
-                    int tail, pk_index = 0;
-                    tail = PK_NROWS % 8;
+                    int pk_index = 0, tail = PK_NROWS % 8;
                     for (i = 0; i < PK_NROWS; i++)
                     {
+                        byte[] mat_i = mat[i];
                         for (j = (PK_NROWS - 1) / 8; j < SYS_N / 8 - 1; j++)
                         {
-                            pk[pk_index++] = (byte)(((mat[i][j] & 0xff) >> tail) | (mat[i][j + 1] << (8 - tail)));
+                            pk[pk_index++] = (byte)(((mat_i[j] & 0xff) >> tail) | (mat_i[j + 1] << (8 - tail)));
                         }
-                        pk[pk_index++] = (byte)((mat[i][j] & 0xff) >> tail);
+                        pk[pk_index++] = (byte)((mat_i[j] & 0xff) >> tail);
                     }
                 }
                 else
                 {
+                    int count = (SYS_N - PK_NROWS + 7) / 8;
                     for (i = 0; i < PK_NROWS; i++)
                     {
-                        k = 0;
-                        for (j = 0; j < (((SYS_N - PK_NROWS) + 7) / 8); j++)
-                        {
-                            pk[i * (((SYS_N - PK_NROWS) + 7) / 8) + k] = mat[i][j + PK_NROWS / 8];
-                            k++;
-                        }
+                        Array.Copy(mat[i], PK_NROWS / 8, pk, count * i, count);
                     }
                 }
             }
@@ -1597,9 +1572,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private ushort Eval(ushort[] f, ushort a)
         {
-            ushort r;
-
-            r = f[SYS_T];
+            ushort r = f[SYS_T];
 
             for (int i = SYS_T - 1; i >= 0; i--)
             {
@@ -1696,19 +1669,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private void GFMul(ushort[] output, ushort[] left, ushort[] right)
         {
-
             ushort[] prod = new ushort[SYS_T * 2 - 1];
-            for (int i = 0; i < SYS_T * 2 - 1; i++)
-            {
-                prod[i] = 0;
-            }
+
             for (int i = 0; i < SYS_T; i++)
             {
-                for (int j = 0; j < SYS_T; j++)
+                ushort left_i = left[i];
+                ushort right_i = right[i];
+
+                for (int j = 0; j < i; j++)
                 {
-                    ushort temp = gf.GFMul(left[i], right[j]);
-                    prod[i + j] ^= temp;
+                    prod[i + j] ^= (ushort)(gf.GFMul(left_i, right[j]) ^ gf.GFMul(left[j], right_i));
                 }
+
+                prod[i + i] ^= gf.GFMul(left_i, right_i);
             }
 
             for (int i = (SYS_T - 1) * 2; i >= SYS_T; i--)
@@ -1717,7 +1690,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 {
                     if (polyIndex == 0 && GFBITS == 12)
                     {
-                        prod[i - SYS_T] ^= (gf.GFMul(prod[i], (ushort)2));
+                        prod[i - SYS_T] ^= gf.GFMul(prod[i], 2);
                     }
                     else
                     {
@@ -1727,20 +1700,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
 
             Array.Copy(prod, 0, output, 0, SYS_T);
-            for (int i = 0; i < SYS_T; i++)
-            {
-                output[i] = prod[i];
-            }
         }
 
         /* check if the padding bits of pk are all zero */
         int CheckPKPadding(byte[] pk)
         {
-            byte b;
-            int i, ret;
-
-            b = 0;
-            for (i = 0; i < PK_NROWS; i++)
+            byte b = 0;
+            for (int i = 0; i < PK_NROWS; i++)
             {
                 b |= pk[i * PK_ROW_BYTES + PK_ROW_BYTES - 1];
             }
@@ -1748,7 +1714,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             b = (byte)((b & 0xff) >> (PK_NCOLS % 8));
             b -= 1;
             b = (byte)((b & 0xff) >> 7);
-            ret = b;
+            int ret = b;
 
             return ret - 1;
         }
@@ -1756,31 +1722,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* check if the padding bits of c are all zero */
         int CheckCPadding(byte[] c)
         {
-            byte b;
-            int ret;
-
-            b = (byte)((c[SYND_BYTES - 1] & 0xff) >> (PK_NROWS % 8));
+            byte b = (byte)((c[SYND_BYTES - 1] & 0xff) >> (PK_NROWS % 8));
             b -= 1;
             b = (byte)((b & 0xff) >> 7);
-            ret = b;
+            int ret = b;
 
             return ret - 1;
         }
 
-
-
         private static void Sort32(int[] temp, int from, int to)
         {
-            int top, p, q, r, i;
             int n = to - from;
+            if (n < 2)
+                return;
 
-            if (n < 2) return;
-            top = 1;
-            while (top < n - top) top += top;
-
-            for (p = top; p > 0; p >>= 1)
+            int top = 1;
+            while (top < n - top)
             {
-                for (i = 0; i < n - p; ++i)
+                top += top;
+            }
+
+            for (int p = top; p > 0; p >>= 1)
+            {
+                for (int i = 0; i < n - p; ++i)
                 {
                     if ((i & p) == 0)
                     {
@@ -1793,15 +1757,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         temp[from + i + p] ^= c;
                     }
                 }
-                i = 0;
-                for (q = top; q > p; q >>= 1)
+                for (int q = top; q > p; q >>= 1)
                 {
-                    for (; i < n - q; ++i)
+                    for (int i = 0; i < n - q; ++i)
                     {
                         if ((i & p) == 0)
                         {
                             int a = temp[from + i + p];
-                            for (r = q; r > p; r >>= 1)
+                            for (int r = q; r > p; r >>= 1)
                             {
                                 int ab = temp[from + i + r] ^ a;
                                 int c = temp[from + i + r] - a;
@@ -1820,40 +1783,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private static void Sort64(long[] temp, int from, int to)
         {
-            int top, p, q, r, i;
             int n = to - from;
+            if (n < 2)
+                return;
 
-            if (n < 2) return;
-            top = 1;
-            while (top < n - top) top += top;
-
-            for (p = top; p > 0; p >>= 1)
+            int top = 1;
+            while (top < n - top)
             {
-                for (i = 0; i < n - p; ++i)
+                top += top;
+            }
+
+            for (int p = top; p > 0; p >>= 1)
+            {
+                for (int i = 0; i < n - p; ++i)
                 {
                     if ((i & p) == 0)
                     {
                         long c = temp[from + i + p] - temp[from + i];
                         c >>= 63;
-                        // c = -c;
                         c &= temp[from + i] ^ temp[from + i + p];
                         temp[from + i] ^= c;
                         temp[from + i + p] ^= c;
                     }
                 }
-                i = 0;
-                for (q = top; q > p; q >>= 1)
+                for (int q = top; q > p; q >>= 1)
                 {
-                    for (; i < n - q; ++i)
+                    for (int i = 0; i < n - q; ++i)
                     {
                         if ((i & p) == 0)
                         {
                             long a = temp[from + i + p];
-                            for (r = q; r > p; r >>= 1)
+                            for (int r = q; r > p; r >>= 1)
                             {
                                 long c = temp[from + i + r] - a;
                                 c >>= 63;
-                                // c = -c;
                                 c &= a ^ temp[from + i + r];
                                 a ^= c;
                                 temp[from + i + r] ^= c;
@@ -1863,7 +1826,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     }
                 }
             }
-
         }
     }
 }

@@ -12,23 +12,37 @@ namespace Org.BouncyCastle.Math.Raw
         private const ulong M64 = 0x5555555555555555UL;
         private const ulong M64R = 0xAAAAAAAAAAAAAAAAUL;
 
-        internal static uint Expand8to16(uint x)
+        internal static uint Expand8to16(byte x)
         {
-            x &= 0xFFU;
-            x = (x | (x << 4)) & 0x0F0FU;
-            x = (x | (x << 2)) & 0x3333U;
-            x = (x | (x << 1)) & 0x5555U;
-            return x;
+            uint t = x;
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.IsSupported)
+            {
+                return Bmi2.ParallelBitDeposit(t, 0x55555555U);
+            }
+#endif
+            t = (t | (t << 4)) & 0x0F0FU;
+            t = (t | (t << 2)) & 0x3333U;
+            t = (t | (t << 1)) & 0x5555U;
+            return t;
         }
 
-        internal static uint Expand16to32(uint x)
+        internal static uint Expand16to32(ushort x)
         {
-            x &= 0xFFFFU;
-            x = (x | (x << 8)) & 0x00FF00FFU;
-            x = (x | (x << 4)) & 0x0F0F0F0FU;
-            x = (x | (x << 2)) & 0x33333333U;
-            x = (x | (x << 1)) & 0x55555555U;
-            return x;
+            uint t = x;
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.IsSupported)
+            {
+                return Bmi2.ParallelBitDeposit(t, 0x55555555U);
+            }
+#endif
+            t = (t | (t << 8)) & 0x00FF00FFU;
+            t = (t | (t << 4)) & 0x0F0F0F0FU;
+            t = (t | (t << 2)) & 0x33333333U;
+            t = (t | (t << 1)) & 0x55555555U;
+            return t;
         }
 
         internal static ulong Expand32to64(uint x)

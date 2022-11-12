@@ -370,7 +370,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
             Interleave.Expand64To128(x, 0, 2, zz, 0);
-            zz[4] = Interleave.Expand8to16((uint)x[2]);
+            zz[4] = Interleave.Expand8to16((byte)x[2]);
         }
     }
 }
