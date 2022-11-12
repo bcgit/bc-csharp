@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        internal static void FromBitArrayToByteArray(byte[] output, byte[] inputX, int inputOff, int inputLen)
+        internal static void FromBitArrayToByteArray(byte[] output, byte[] input, int inputOff, int inputLen)
         {
             int count = 0;
             int pos = 0;
@@ -46,19 +46,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             {
                 if (count + 8 >= inputLen)
                 {// last set of bits cannot have enough 8 bits
-                    int b = inputX[inputOff + count];
+                    int b = input[inputOff + count];
                     for (int j = inputLen - count - 1; j >= 1; j--)
                     { //bin in reversed order
-                        b |= inputX[inputOff + count + j] << j;
+                        b |= input[inputOff + count + j] << j;
                     }
                     output[pos] = (byte)b;
                 }
                 else
                 {
-                    int b = inputX[inputOff + count];
+                    int b = input[inputOff + count];
                     for (int j = 7; j >= 1; j--)
                     { //bin in reversed order
-                        b |= inputX[inputOff + count + j] << j;
+                        b |= input[inputOff + count + j] << j;
                     }
                     output[pos] = (byte)b;
                 }
