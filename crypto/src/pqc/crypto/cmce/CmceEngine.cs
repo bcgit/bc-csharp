@@ -1475,6 +1475,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             c += 8;
                         }
                     }
+#else
+                    {
+                        byte maskByte = (byte)-mask;
+                        int limit = (SYS_N / 8) - 4;
+                        while (c <= limit)
+                        {
+                            mat_row[c + 0] ^= (byte)(mat_k[c + 0] & maskByte);
+                            mat_row[c + 1] ^= (byte)(mat_k[c + 1] & maskByte);
+                            mat_row[c + 2] ^= (byte)(mat_k[c + 2] & maskByte);
+                            mat_row[c + 3] ^= (byte)(mat_k[c + 3] & maskByte);
+                            c += 4;
+                        }
+                    }
 #endif
                     {
                         byte maskByte = (byte)-mask;
@@ -1527,6 +1540,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                                 t1 ^= t0 & mask64;
                                 MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
                                 c += 8;
+                            }
+                        }
+#else
+                        {
+                            byte maskByte = (byte)-mask;
+                            int limit = (SYS_N / 8) - 4;
+                            while (c <= limit)
+                            {
+                                mat_k[c + 0] ^= (byte)(mat_row[c + 0] & maskByte);
+                                mat_k[c + 1] ^= (byte)(mat_row[c + 1] & maskByte);
+                                mat_k[c + 2] ^= (byte)(mat_row[c + 2] & maskByte);
+                                mat_k[c + 3] ^= (byte)(mat_row[c + 3] & maskByte);
+                                c += 4;
                             }
                         }
 #endif
