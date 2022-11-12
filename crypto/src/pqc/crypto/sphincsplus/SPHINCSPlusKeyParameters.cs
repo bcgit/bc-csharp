@@ -5,9 +5,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
     public abstract class SphincsPlusKeyParameters
         : AsymmetricKeyParameter
     {
-        protected readonly SphincsPlusParameters m_parameters;
+        private readonly SphincsPlusParameters m_parameters;
 
-        protected SphincsPlusKeyParameters(bool isPrivate, SphincsPlusParameters parameters)
+        internal SphincsPlusKeyParameters(bool isPrivate, SphincsPlusParameters parameters)
             : base(isPrivate)
         {
             m_parameters = parameters;

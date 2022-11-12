@@ -3,7 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
-    public class DilithiumParameters
+    public sealed class DilithiumParameters
         : ICipherParameters
     {
         public static DilithiumParameters Dilithium2 = new DilithiumParameters(2, false);

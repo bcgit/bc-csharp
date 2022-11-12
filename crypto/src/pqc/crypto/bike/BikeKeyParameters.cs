@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
     {
         private readonly BikeParameters m_parameters;
 
-        public BikeKeyParameters(bool isPrivate, BikeParameters parameters)
+        internal BikeKeyParameters(bool isPrivate, BikeParameters parameters)
             : base(isPrivate)
         {
             this.m_parameters = parameters;

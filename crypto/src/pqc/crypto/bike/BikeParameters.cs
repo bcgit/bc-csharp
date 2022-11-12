@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private readonly int defaultKeySize;
         private readonly BikeEngine bikeEngine;
 
-        internal BikeParameters(string name, int r, int w, int t, int l, int nbIter, int tau, int defaultKeySize)
+        private BikeParameters(string name, int r, int w, int t, int l, int nbIter, int tau, int defaultKeySize)
         {
             this.name = name;
             this.r = r;

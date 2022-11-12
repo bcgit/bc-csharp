@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         private int m_sessionKeySize;
         private KyberEngine m_engine;
 
-        public KyberParameters(string name, int k, int sessionKeySize, bool usingAes)
+        private KyberParameters(string name, int k, int sessionKeySize, bool usingAes)
         {
             m_name = name;
             this.m_sessionKeySize = sessionKeySize;

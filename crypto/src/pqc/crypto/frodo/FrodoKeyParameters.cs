@@ -1,22 +1,18 @@
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
-    public class FrodoKeyParameters
+    public abstract class FrodoKeyParameters
         : AsymmetricKeyParameter
     {
-        private FrodoParameters parameters;
+        private readonly FrodoParameters m_parameters;
 
-        public FrodoKeyParameters(
-            bool isPrivate,
-            FrodoParameters parameters)
+        internal FrodoKeyParameters(bool isPrivate, FrodoParameters parameters)
             : base(isPrivate)
         {
-            this.parameters = parameters;
+            this.m_parameters = parameters;
         }
 
-        public FrodoParameters Parameters => parameters;
-
+        public FrodoParameters Parameters => m_parameters;
     }
 }

@@ -10,10 +10,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
     {
         private readonly SikeParameters m_parameters;
 
-        public SikeKeyParameters(bool isPrivate, SikeParameters param)
+        internal SikeKeyParameters(bool isPrivate, SikeParameters parameters)
             : base(isPrivate)
         {
-            this.m_parameters = param;
+            m_parameters = parameters;
         }
 
         public SikeParameters Parameters => m_parameters;

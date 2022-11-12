@@ -1,5 +1,6 @@
-using Org.BouncyCastle.Crypto;
 using System;
+
+using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {

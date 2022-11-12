@@ -2,16 +2,17 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
-    public class DilithiumKeyParameters
+    public abstract class DilithiumKeyParameters
         : AsymmetricKeyParameter
     {
-        DilithiumParameters parameters;
+        private readonly DilithiumParameters m_parameters;
 
-        public DilithiumKeyParameters(bool isPrivate, DilithiumParameters parameters) : base(isPrivate)
+        internal DilithiumKeyParameters(bool isPrivate, DilithiumParameters parameters)
+            : base(isPrivate)
         {
-            this.parameters = parameters;
+            m_parameters = parameters;
         }
 
-        public DilithiumParameters Parameters => parameters;
+        public DilithiumParameters Parameters => m_parameters;
     }
 }

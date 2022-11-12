@@ -25,19 +25,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            var parameterSet = ((NtruPublicKeyParameters)recipientKey).GetParameters().ParameterSet;
+            var parameterSet = ((NtruPublicKeyParameters)recipientKey).Parameters.ParameterSet;
             var sampling = new NtruSampling(parameterSet);
             var owcpa = new NtruOwcpa(parameterSet);
-            Polynomial r;
-            Polynomial m;
             var rm = new byte[parameterSet.OwcpaMsgBytes()];
             var rmSeed = new byte[parameterSet.SampleRmBytes()];
 
             _random.NextBytes(rmSeed);
 
             var pair = sampling.SampleRm(rmSeed);
-            r = pair.R();
-            m = pair.M();
+            Polynomial r = pair.R();
+            Polynomial m = pair.M();
 
             var rm1 = r.S3ToBytes(parameterSet.OwcpaMsgBytes());
             Array.Copy(rm1, 0, rm, 0, rm1.Length);

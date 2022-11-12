@@ -1,9 +1,9 @@
 ﻿using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
-
 {
-    public class HqcParameters : ICipherParameters
+    public sealed class HqcParameters
+        : ICipherParameters
     {
         // 128 bits security
         public static HqcParameters hqc128 = new HqcParameters("hqc128", 17669, 46, 384, 16, 31, 15, 66, 75, 75, 16767881, 4, new int[] { 89, 69, 153, 116, 176, 117, 111, 75, 73, 233, 242, 233, 65, 210, 21, 139, 103, 173, 67, 118, 105, 210, 174, 110, 74, 69, 228, 82, 255, 181, 1 }, 128);

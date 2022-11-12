@@ -2,9 +2,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    public class SNtruPrimePublicKeyParameters : SNtruPrimeKeyParameters
+    public sealed class SNtruPrimePublicKeyParameters
+        : SNtruPrimeKeyParameters
     {
         internal byte[] pubKey;
+
+        public SNtruPrimePublicKeyParameters(SNtruPrimeParameters primeParameters, byte[] pubKey) : base(false, primeParameters)
+        {
+            this.pubKey = Arrays.Clone(pubKey);
+        }
 
         public byte[] GetPublicKey()
         {
@@ -14,11 +20,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         public byte[] GetEncoded()
         {
             return GetPublicKey();
-        }
-
-        public SNtruPrimePublicKeyParameters(SNtruPrimeParameters primeParameters, byte[] pubKey) : base(false,primeParameters)
-        {
-            this.pubKey = Arrays.Clone(pubKey);
         }
     }
 }

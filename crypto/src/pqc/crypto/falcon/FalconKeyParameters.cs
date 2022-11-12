@@ -1,22 +1,18 @@
 using Org.BouncyCastle.Crypto;
 
-
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     public abstract class FalconKeyParameters 
         : AsymmetricKeyParameter
     {
-        private FalconParameters parameters;
+        private readonly FalconParameters m_parameters;
 
-        public FalconKeyParameters(bool isprivate, FalconParameters parameters)
+        internal FalconKeyParameters(bool isprivate, FalconParameters parameters)
             : base(isprivate)
         {
-            this.parameters = parameters;
+            m_parameters = parameters;
         }
 
-        public FalconParameters Parameters
-        {
-            get { return parameters; }
-        }
+        public FalconParameters Parameters => m_parameters;
     }
 }

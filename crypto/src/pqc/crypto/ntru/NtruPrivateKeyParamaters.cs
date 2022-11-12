@@ -1,6 +1,7 @@
 ﻿namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {
-    public class NtruPrivateKeyParameters : NtruKeyParameters
+    public sealed class NtruPrivateKeyParameters
+        : NtruKeyParameters
     {
         private byte[] _privateKey;
 
@@ -14,7 +15,6 @@
         {
             PrivateKey = key;
         }
-
 
         public override byte[] GetEncoded()
         {

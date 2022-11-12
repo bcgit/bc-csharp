@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private int defaultKeySize;
         private FrodoEngine engine;
 
-        public FrodoParameters(string name, int n, int d, int b, short[] cdf_table, IDigest digest,
+        private FrodoParameters(string name, int n, int d, int b, short[] cdf_table, IDigest digest,
             FrodoMatrixGenerator mGen)
         {
             this.name = name;

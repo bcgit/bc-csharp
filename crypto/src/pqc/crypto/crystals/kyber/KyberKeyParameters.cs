@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
     {
         private readonly KyberParameters m_parameters;
 
-        public KyberKeyParameters(bool isPrivate, KyberParameters parameters)
+        internal KyberKeyParameters(bool isPrivate, KyberParameters parameters)
             : base(isPrivate)
         {
             m_parameters = parameters;

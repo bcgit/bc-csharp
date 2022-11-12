@@ -2,7 +2,8 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    public class HqcPrivateKeyParameters : HqcKeyParameters
+    public sealed class HqcPrivateKeyParameters
+        : HqcKeyParameters
     {
         private byte[] sk;
 
