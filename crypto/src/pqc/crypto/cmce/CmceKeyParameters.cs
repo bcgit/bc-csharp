@@ -1,17 +1,13 @@
-using System;
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    public class CmceKeyParameters
+    public abstract class CmceKeyParameters
         : AsymmetricKeyParameter
     {
-        private CmceParameters parameters;
+        private readonly CmceParameters parameters;
 
-        public CmceKeyParameters(
-            bool isPrivate,
-            CmceParameters parameters)
+        internal CmceKeyParameters(bool isPrivate, CmceParameters parameters)
             : base(isPrivate)
         {
             this.parameters = parameters;

@@ -4,11 +4,11 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    public class CmceKemGenerator
+    public sealed class CmceKemGenerator
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
-        private SecureRandom sr;
+        private readonly SecureRandom sr;
 
         public CmceKemGenerator(SecureRandom random)
         {

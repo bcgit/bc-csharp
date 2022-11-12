@@ -1,13 +1,13 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    abstract class Benes
+    internal abstract class Benes
     {
         protected int SYS_N;
         protected int SYS_T;
         protected int GFBITS;
 
-        public Benes(int n, int t, int m)
+        internal Benes(int n, int t, int m)
         {
             SYS_N = n;
             SYS_T = t;
@@ -49,7 +49,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     }
                 }
             }
-
         }
 
         internal static void Transpose64x64(ulong[] output, ulong[] input, int offset)
@@ -85,10 +84,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     }
                 }
             }
-
         }
 
-        internal abstract protected void SupportGen(ushort[] s, byte[] c);
-
+        internal abstract void SupportGen(ushort[] s, byte[] c);
     }
 }

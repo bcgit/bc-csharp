@@ -1,10 +1,8 @@
-using System;
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    public class CmceKemExtractor
+    public sealed class CmceKemExtractor
         : IEncapsulatedSecretExtractor
     {
         private CmceEngine engine;
@@ -23,7 +21,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             CmcePrivateKeyParameters privateParams = (CmcePrivateKeyParameters)key;
             if (privateParams.privateKey.Length < engine.PrivateKeySize)
             {
-                key = new CmcePrivateKeyParameters(privateParams.Parameters, engine.decompress_private_key(privateParams.privateKey));
+                key = new CmcePrivateKeyParameters(privateParams.Parameters,
+                    engine.decompress_private_key(privateParams.privateKey));
             }
         }
 
