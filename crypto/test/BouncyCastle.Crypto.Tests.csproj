@@ -7,6 +7,7 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <NoWarn>618;1591</NoWarn>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

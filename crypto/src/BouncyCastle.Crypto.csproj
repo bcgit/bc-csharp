@@ -50,6 +50,7 @@
 	  TODO: Use suppressions for each individual case of a Span-based method.
     -->
     <NoWarn>$(NoWarn);CP0005;CP0006</NoWarn>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
