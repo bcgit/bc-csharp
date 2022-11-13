@@ -818,13 +818,17 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint[] FromBigInteger(int bits, BigInteger x)
         {
-            int len = GetLengthForBits(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
+            int len = GetLengthForBits(bits);
             uint[] z = Create(len);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int xLen = x.GetLengthofUInt32ArrayUnsigned();
+            x.ToUInt32ArrayLittleEndianUnsigned(z.AsSpan(0, xLen));
+            //z.AsSpan(xLen).Fill(0x00);
+#else
             // NOTE: Use a fixed number of loop iterations
             z[0] = (uint)x.IntValue;
             for (int i = 1; i < len; ++i)
@@ -832,36 +836,33 @@ namespace Org.BouncyCastle.Math.Raw
                 x = x.ShiftRight(32);
                 z[i] = (uint)x.IntValue;
             }
+#endif
+
             return z;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void FromBigInteger(int bits, BigInteger x, Span<uint> z)
         {
-            int len = GetLengthForBits(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
+
+            int len = GetLengthForBits(bits);
             if (z.Length < len)
                 throw new ArgumentException();
 
-            // NOTE: Use a fixed number of loop iterations
-            z[0] = (uint)x.IntValue;
-            for (int i = 1; i < len; ++i)
-            {
-                x = x.ShiftRight(32);
-                z[i] = (uint)x.IntValue;
-            }
+            int xLen = x.GetLengthofUInt32ArrayUnsigned();
+            x.ToUInt32ArrayLittleEndianUnsigned(z[..xLen]);
+            z[xLen..].Fill(0x00);
         }
 #endif
 
         public static ulong[] FromBigInteger64(int bits, BigInteger x)
         {
-            int len = GetLengthForBits64(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
+            int len = GetLengthForBits64(bits);
             ulong[] z = Create64(len);
 
             // NOTE: Use a fixed number of loop iterations
@@ -877,10 +878,10 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void FromBigInteger64(int bits, BigInteger x, Span<ulong> z)
         {
-            int len = GetLengthForBits64(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
+
+            int len = GetLengthForBits64(bits);
             if (z.Length < len)
                 throw new ArgumentException();
 

@@ -7,6 +7,7 @@ using System.Numerics;
 #endif
 using System.Runtime.Serialization;
 using System.Text;
+
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -235,10 +236,17 @@ namespace Org.BouncyCastle.Math
             this.nBitLength = -1;
         }
 
-        private static int GetByteLength(int nBits)
+        private static int GetBytesLength(int nBits)
         {
             return (nBits + BitsPerByte - 1) / BitsPerByte;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static int GetIntsLength(int nBits)
+        {
+            return (nBits + BitsPerInt - 1) / BitsPerInt;
+        }
+#endif
 
         public static BigInteger Arbitrary(int sizeInBits)
         {
@@ -711,7 +719,7 @@ namespace Org.BouncyCastle.Math
                 return;
             }
 
-            int nBytes = GetByteLength(sizeInBits);
+            int nBytes = GetBytesLength(sizeInBits);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> b = nBytes <= 512
@@ -749,7 +757,7 @@ namespace Org.BouncyCastle.Math
                 return;
             }
              
-            int nBytes = GetByteLength(bitLength);
+            int nBytes = GetBytesLength(bitLength);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> b = nBytes <= 512
@@ -3175,13 +3183,25 @@ namespace Org.BouncyCastle.Math
 
         public int GetLengthofByteArray()
         {
-            return GetByteLength(BitLength + 1);
+            return GetBytesLength(BitLength + 1);
         }
 
         public int GetLengthofByteArrayUnsigned()
         {
-            return GetByteLength(sign < 0 ? BitLength + 1 : BitLength);
+            return GetBytesLength(sign < 0 ? BitLength + 1 : BitLength);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int GetLengthofUInt32Array()
+        {
+            return GetIntsLength(BitLength + 1);
+        }
+
+        public int GetLengthofUInt32ArrayUnsigned()
+        {
+            return GetIntsLength(sign < 0 ? BitLength + 1 : BitLength);
+        }
+#endif
 
         public byte[] ToByteArray()
         {
@@ -3192,6 +3212,18 @@ namespace Org.BouncyCastle.Math
         public void ToByteArray(Span<byte> output)
         {
             ToByteArray(false, output);
+        }
+
+        [CLSCompliant(false)]
+        public void ToUInt32ArrayBigEndian(Span<uint> output)
+        {
+            ToUInt32ArrayBigEndian(false, output);
+        }
+
+        [CLSCompliant(false)]
+        public void ToUInt32ArrayLittleEndian(Span<uint> output)
+        {
+            ToUInt32ArrayLittleEndian(false, output);
         }
 #endif
 
@@ -3205,6 +3237,18 @@ namespace Org.BouncyCastle.Math
         {
             ToByteArray(true, output);
         }
+
+        [CLSCompliant(false)]
+        public void ToUInt32ArrayBigEndianUnsigned(Span<uint> output)
+        {
+            ToUInt32ArrayBigEndian(true, output);
+        }
+
+        [CLSCompliant(false)]
+        public void ToUInt32ArrayLittleEndianUnsigned(Span<uint> output)
+        {
+            ToUInt32ArrayLittleEndian(true, output);
+        }
 #endif
 
         private byte[] ToByteArray(bool unsigned)
@@ -3216,7 +3260,7 @@ namespace Org.BouncyCastle.Math
                 ?	BitLength
                 :	BitLength + 1;
 
-            int nBytes = GetByteLength(nBits);
+            int nBytes = GetBytesLength(nBits);
             byte[] bytes = new byte[nBytes];
 
             int magIndex = magnitude.Length;
@@ -3239,6 +3283,11 @@ namespace Org.BouncyCastle.Math
                 }
 
                 bytes[--bytesIndex] = (byte) lastMag;
+                Debug.Assert((bytesIndex & 1) == bytesIndex);
+                //if (bytesIndex != 0)
+                //{
+                //    bytes[0] = 0;
+                //}
             }
             else // sign < 0
             {
@@ -3272,8 +3321,8 @@ namespace Org.BouncyCastle.Math
                 }
 
                 bytes[--bytesIndex] = (byte) ~lastMag;
-
-                if (bytesIndex > 0)
+                Debug.Assert((bytesIndex & 1) == bytesIndex);
+                if (bytesIndex != 0)
                 {
                     bytes[--bytesIndex] = byte.MaxValue;
                 }
@@ -3296,7 +3345,7 @@ namespace Org.BouncyCastle.Math
 
             int nBits = (unsigned && sign > 0) ? BitLength : BitLength + 1;
 
-            int nBytes = GetByteLength(nBits);
+            int nBytes = GetBytesLength(nBits);
             if (nBytes > output.Length)
                 throw new ArgumentException("insufficient space", nameof(output));
 
@@ -3320,6 +3369,11 @@ namespace Org.BouncyCastle.Math
                 }
 
                 output[--bytesIndex] = (byte)lastMag;
+                Debug.Assert((bytesIndex & 1) == bytesIndex);
+                if (bytesIndex != 0)
+                {
+                    output[0] = 0;
+                }
             }
             else // sign < 0
             {
@@ -3353,10 +3407,111 @@ namespace Org.BouncyCastle.Math
                 }
 
                 output[--bytesIndex] = (byte)~lastMag;
-
-                if (bytesIndex > 0)
+                Debug.Assert((bytesIndex & 1) == bytesIndex);
+                if (bytesIndex != 0)
                 {
                     output[--bytesIndex] = byte.MaxValue;
+                }
+            }
+        }
+
+        private void ToUInt32ArrayBigEndian(bool unsigned, Span<uint> output)
+        {
+            if (sign == 0)
+            {
+                if (!unsigned)
+                {
+                    output[0] = uint.MinValue;
+                }
+                return;
+            }
+
+            int nBits = (unsigned && sign > 0) ? BitLength : BitLength + 1;
+
+            int nInts = GetIntsLength(nBits);
+            if (nInts > output.Length)
+                throw new ArgumentException("insufficient space", nameof(output));
+
+            int magIndex = magnitude.Length;
+            int intsIndex = nInts;
+
+            if (sign > 0)
+            {
+                while (magIndex > 0)
+                {
+                    output[--intsIndex] = (uint)magnitude[--magIndex];
+                }
+
+                Debug.Assert((intsIndex & 1) == intsIndex);
+                if (intsIndex != 0)
+                {
+                    output[0] = uint.MinValue;
+                }
+            }
+            else // sign < 0
+            {
+                ulong cc = 1UL;
+                while (magIndex > 0)
+                {
+                    cc += ~(uint)magnitude[--magIndex];
+                    output[--intsIndex] = (uint)cc; cc >>= 32;
+                }
+                Debug.Assert(cc == 0UL);
+
+                Debug.Assert((intsIndex & 1) == intsIndex);
+                if (intsIndex != 0)
+                {
+                    output[--intsIndex] = uint.MaxValue;
+                }
+            }
+        }
+
+        private void ToUInt32ArrayLittleEndian(bool unsigned, Span<uint> output)
+        {
+            if (sign == 0)
+            {
+                if (!unsigned)
+                {
+                    output[0] = uint.MinValue;
+                }
+                return;
+            }
+
+            int nBits = (unsigned && sign > 0) ? BitLength : BitLength + 1;
+
+            int nInts = GetIntsLength(nBits);
+            if (nInts > output.Length)
+                throw new ArgumentException("insufficient space", nameof(output));
+
+            int magIndex = magnitude.Length;
+
+            if (sign > 0)
+            {
+                for (int intsIndex = 0; intsIndex < magnitude.Length; ++intsIndex)
+                {
+                    output[intsIndex] = (uint)magnitude[--magIndex];
+                }
+
+                if (nInts > magnitude.Length)
+                {
+                    Debug.Assert(nInts == magnitude.Length + 1);
+                    output[magnitude.Length] = uint.MinValue;
+                }
+            }
+            else // sign < 0
+            {
+                ulong cc = 1UL;
+                for (int intsIndex = 0; intsIndex < magnitude.Length; ++intsIndex)
+                {
+                    cc += ~(uint)magnitude[--magIndex];
+                    output[intsIndex] = (uint)cc; cc >>= 32;
+                }
+                Debug.Assert(cc == 0UL);
+
+                if (nInts > magnitude.Length)
+                {
+                    Debug.Assert(nInts == magnitude.Length + 1);
+                    output[magnitude.Length] = uint.MaxValue;
                 }
             }
         }

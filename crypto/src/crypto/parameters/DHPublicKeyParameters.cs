@@ -122,12 +122,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
             //return BigInteger.One.Equals(b) ? (1 - (r & 2)) : 0;
 
             int bitLength = b.BitLength;
+            int len = Nat.GetLengthForBits(bitLength);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<uint> A = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(bitLength, a, A);
+            Span<uint> B = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(bitLength, b, B);
+#else
             uint[] A = Nat.FromBigInteger(bitLength, a);
             uint[] B = Nat.FromBigInteger(bitLength, b);
+#endif
 
             int r = 0;
 
-            int len = B.Length;
             for (;;)
             {
                 while (A[0] == 0)
@@ -150,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (cmp < 0)
                 {
                     r ^= (int)(A[0] & B[0]);
-                    uint[] t = A; A = B; B = t;
+                    var t = A; A = B; B = t;
                 }
 
                 while (A[len - 1] == 0)

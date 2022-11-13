@@ -569,14 +569,25 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             int width = widthP;
-
             int d = (combSize + width - 1) / width;
-
-            ECPoint R = c.Infinity;
-
             int fullComb = d * width;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int len = Nat.GetLengthForBits(fullComb);
+            Span<uint> K = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(fullComb, k, K);
+            Span<uint> L = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(fullComb, l, L);
+#else
             uint[] K = Nat.FromBigInteger(fullComb, k);
             uint[] L = Nat.FromBigInteger(fullComb, l);
+#endif
+
+            ECPoint R = c.Infinity;
 
             int top = fullComb - 1; 
             for (int i = 0; i < d; ++i)

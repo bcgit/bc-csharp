@@ -26,21 +26,20 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p);
             ECLookupTable lookupTable = info.LookupTable;
             int width = info.Width;
-
             int d = (size + width - 1) / width;
             int fullComb = d * width;
 
-            ECPoint R = c.Infinity;
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            int KLen = Nat.GetLengthForBits(fullComb);
-            Span<uint> K = KLen <= 32
-                ? stackalloc uint[KLen]
-                : new uint[KLen];
+            int len = Nat.GetLengthForBits(fullComb);
+            Span<uint> K = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
             Nat.FromBigInteger(fullComb, k, K);
 #else
             uint[] K = Nat.FromBigInteger(fullComb, k);
 #endif
+
+            ECPoint R = c.Infinity;
 
             for (int i = 1; i <= d; ++i)
             {
