@@ -1,5 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Math.Raw;
 
@@ -18,11 +26,63 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private static readonly int[] RootNegOne = { 0x020EA0B0, 0x0386C9D2, 0x00478C4E, 0x0035697F, 0x005E8630,
             0x01FBD7A7, 0x0340264F, 0x01F0B2B4, 0x00027E0E, 0x00570649 };
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Add(int[] x, int[] y, int[] z)
         {
-            for (int i = 0; i < Size; ++i)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Avx2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<int>>() == 32)
             {
-                z[i] = x[i] + y[i];
+                var X = MemoryMarshal.AsBytes(x.AsSpan(0, 8));
+                var Y = MemoryMarshal.AsBytes(y.AsSpan(0, 8));
+                var Z = MemoryMarshal.AsBytes(z.AsSpan(0, 8));
+
+                var X0 = MemoryMarshal.Read<Vector256<int>>(X);
+                var Y0 = MemoryMarshal.Read<Vector256<int>>(Y);
+
+                var R0 = Avx2.Add(X0, Y0);
+
+                MemoryMarshal.Write(Z, ref R0);
+
+                z[8] = x[8] + y[8];
+                z[9] = x[9] + y[9];
+
+                return;
+            }
+
+            if (Sse2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<int>>() == 16)
+            {
+                var X = MemoryMarshal.AsBytes(x.AsSpan(0, 8));
+                var Y = MemoryMarshal.AsBytes(y.AsSpan(0, 8));
+                var Z = MemoryMarshal.AsBytes(z.AsSpan(0, 8));
+
+                var X0 = MemoryMarshal.Read<Vector128<int>>(X);
+                var Y0 = MemoryMarshal.Read<Vector128<int>>(Y);
+
+                var R0 = Sse2.Add(X0, Y0);
+
+                MemoryMarshal.Write(Z, ref R0);
+
+                var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
+                var Y1 = MemoryMarshal.Read<Vector128<int>>(Y[0x10..]);
+
+                var R1 = Sse2.Add(X1, Y1);
+
+                MemoryMarshal.Write(Z[0x10..], ref R1);
+
+                z[8] = x[8] + y[8];
+                z[9] = x[9] + y[9];
+
+                return;
+            }
+#endif
+
+            {
+                for (int i = 0; i < Size; ++i)
+                {
+                    z[i] = x[i] + y[i];
+                }
             }
         }
 
@@ -36,13 +96,83 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[zOff] += 1;
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Apm(int[] x, int[] y, int[] zp, int[] zm)
         {
-            for (int i = 0; i < Size; ++i)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Avx2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<int>>() == 32)
             {
-                int xi = x[i], yi = y[i];
-                zp[i] = xi + yi;
-                zm[i] = xi - yi;
+                var X = MemoryMarshal.AsBytes(x.AsSpan(0, 8));
+                var Y = MemoryMarshal.AsBytes(y.AsSpan(0, 8));
+                var ZP = MemoryMarshal.AsBytes(zp.AsSpan(0, 8));
+                var ZM = MemoryMarshal.AsBytes(zm.AsSpan(0, 8));
+
+                var X0 = MemoryMarshal.Read<Vector256<int>>(X);
+                var Y0 = MemoryMarshal.Read<Vector256<int>>(Y);
+
+                var RP0 = Avx2.Add(X0, Y0);
+                var RM0 = Avx2.Subtract(X0, Y0);
+
+                MemoryMarshal.Write(ZP, ref RP0);
+                MemoryMarshal.Write(ZM, ref RM0);
+
+                int x8 = x[8], y8 = y[8];
+                zp[8] = x8 + y8;
+                zm[8] = x8 - y8;
+
+                int x9 = x[9], y9 = y[9];
+                zp[9] = x9 + y9;
+                zm[9] = x9 - y9;
+
+                return;
+            }
+
+            if (Sse2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<int>>() == 16)
+            {
+                var X = MemoryMarshal.AsBytes(x.AsSpan(0, 8));
+                var Y = MemoryMarshal.AsBytes(y.AsSpan(0, 8));
+                var ZP = MemoryMarshal.AsBytes(zp.AsSpan(0, 8));
+                var ZM = MemoryMarshal.AsBytes(zm.AsSpan(0, 8));
+
+                var X0 = MemoryMarshal.Read<Vector128<int>>(X);
+                var Y0 = MemoryMarshal.Read<Vector128<int>>(Y);
+
+                var RP0 = Sse2.Add(X0, Y0);
+                var RM0 = Sse2.Subtract(X0, Y0);
+
+                MemoryMarshal.Write(ZP, ref RP0);
+                MemoryMarshal.Write(ZM, ref RM0);
+
+                var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
+                var Y1 = MemoryMarshal.Read<Vector128<int>>(Y[0x10..]);
+
+                var RP1 = Sse2.Add(X1, Y1);
+                var RM1 = Sse2.Subtract(X1, Y1);
+
+                MemoryMarshal.Write(ZP[0x10..], ref RP1);
+                MemoryMarshal.Write(ZM[0x10..], ref RM1);
+
+                int x8 = x[8], y8 = y[8];
+                zp[8] = x8 + y8;
+                zm[8] = x8 - y8;
+
+                int x9 = x[9], y9 = y[9];
+                zp[9] = x9 + y9;
+                zm[9] = x9 - y9;
+
+                return;
+            }
+#endif
+
+            {
+                for (int i = 0; i < Size; ++i)
+                {
+                    int xi = x[i], yi = y[i];
+                    zp[i] = xi + yi;
+                    zm[i] = xi - yi;
+                }
             }
         }
 
@@ -935,11 +1065,63 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return false;
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Sub(int[] x, int[] y, int[] z)
         {
-            for (int i = 0; i < Size; ++i)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Avx2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<int>>() == 32)
             {
-                z[i] = x[i] - y[i];
+                var X = MemoryMarshal.AsBytes(x.AsSpan(0, 8));
+                var Y = MemoryMarshal.AsBytes(y.AsSpan(0, 8));
+                var Z = MemoryMarshal.AsBytes(z.AsSpan(0, 8));
+
+                var X0 = MemoryMarshal.Read<Vector256<int>>(X);
+                var Y0 = MemoryMarshal.Read<Vector256<int>>(Y);
+
+                var R0 = Avx2.Subtract(X0, Y0);
+
+                MemoryMarshal.Write(Z, ref R0);
+
+                z[8] = x[8] - y[8];
+                z[9] = x[9] - y[9];
+
+                return;
+            }
+
+            if (Sse2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<int>>() == 16)
+            {
+                var X = MemoryMarshal.AsBytes(x.AsSpan(0, 8));
+                var Y = MemoryMarshal.AsBytes(y.AsSpan(0, 8));
+                var Z = MemoryMarshal.AsBytes(z.AsSpan(0, 8));
+
+                var X0 = MemoryMarshal.Read<Vector128<int>>(X);
+                var Y0 = MemoryMarshal.Read<Vector128<int>>(Y);
+
+                var R0 = Sse2.Subtract(X0, Y0);
+
+                MemoryMarshal.Write(Z, ref R0);
+
+                var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
+                var Y1 = MemoryMarshal.Read<Vector128<int>>(Y[0x10..]);
+
+                var R1 = Sse2.Subtract(X1, Y1);
+
+                MemoryMarshal.Write(Z[0x10..], ref R1);
+
+                z[8] = x[8] - y[8];
+                z[9] = x[9] - y[9];
+
+                return;
+            }
+#endif
+
+            {
+                for (int i = 0; i < Size; ++i)
+                {
+                    z[i] = x[i] - y[i];
+                }
             }
         }
 
