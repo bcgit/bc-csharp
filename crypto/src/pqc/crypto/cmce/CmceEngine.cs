@@ -761,8 +761,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* output: out, minimal polynomial of s */
         private void BM(ushort[] output, ushort[] s)
         {
-            int i;
-
             ushort N = 0;
             ushort L = 0;
             ushort mle;
@@ -775,7 +773,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             ushort b = 1, d, f;
             //
 
-            for (i = 0; i < SYS_T + 1; i++)
+            for (int i = 0; i < SYS_T + 1; i++)
             {
                 C[i] = B[i] = 0;
             }
@@ -787,7 +785,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             for (N = 0; N < 2 * SYS_T; N++)
             {
                 uint dExt = 0U;
-                for (i = 0; i <= Min(N, SYS_T); i++)
+                for (int i = 0; i <= Min(N, SYS_T); i++)
                 {
                     dExt = gf.GFAddExt(dExt, gf.GFMulExt(C[i], s[N - i]));
                 }
@@ -806,35 +804,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 mle -= 1;
                 mle &= mne;
 
-                for (i = 0; i <= SYS_T; i++)
+                for (int i = 0; i <= SYS_T; i++)
                 {
                     T[i] = C[i];
                 }
 
                 f = gf.GFFrac(b, d);
 
-                for (i = 0; i <= SYS_T; i++)
+                for (int i = 0; i <= SYS_T; i++)
                 {
                     C[i] ^= (ushort)(gf.GFMul(f, B[i]) & mne);
                 }
                 L = (ushort)((L & ~mle) | ((N + 1 - L) & mle));
 
-                for (i = 0; i <= SYS_T; i++)
+                for (int i = SYS_T - 1; i >= 0; i--)
                 {
-                    B[i] = (ushort)((B[i] & ~mle) | (T[i] & mle));
+                    B[i + 1] = (ushort)((B[i] & ~mle) | (T[i] & mle));
                 }
+                B[0] = 0;
 
                 b = (ushort)((b & ~mle) | (d & mle));
-
-                for (i = SYS_T; i >= 1; i--)
-                {
-                    B[i] = B[i - 1];
-                }
-
-                B[0] = 0;
             }
 
-            for (i = 0; i <= SYS_T; i++)
+            for (int i = 0; i <= SYS_T; i++)
             {
                 output[i] = C[SYS_T - i];
             }
@@ -1690,14 +1682,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 m[0] = new ushort[SYS_T];
                 m[0][0] = 1;
-                for (int i = 1; i < SYS_T; i++)
-                {
-                    m[0][i] = 0;
-                }
+                //for (int i = 1; i < SYS_T; i++)
+                //{
+                //    m[0][i] = 0;
+                //}
+
                 Array.Copy(field, 0, m[1], 0, SYS_T);
 
                 uint[] temp = new uint[SYS_T * 2 - 1];
-
                 int j = 2;
                 while (j < SYS_T)
                 {
@@ -1746,17 +1738,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     {
                         ushort t = m[j][k];
 
-                        for (int c = j; c < SYS_T + 1; c++)
+                        for (int c = j; c <= SYS_T; c++)
                         {
                             m[c][k] ^= gf.GFMul(m[c][j], t);
                         }
                     }
                 }
             }
-            for (int i = 0; i < SYS_T; i++)
-            {
-                field[i] = m[SYS_T][i];
-            }
+            Array.Copy(m[SYS_T], field, SYS_T);
             return 0;
         }
 
@@ -1810,6 +1799,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         private void GFSqr(ushort[] output, ushort[] input, uint[] temp)
         {
             temp[0] = gf.GFSqExt(input[0]);
+
             for (int i = 1; i < SYS_T; i++)
             {
                 temp[i + i - 1] = 0;

@@ -253,7 +253,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             t  = x & 0x0000001FFC000000L;
             x ^= (t >> 18) ^ (t >> 20) ^ (t >> 24) ^ (t >> 26);
 
-            return GFReduce((uint)(x & 0x03FFFFFFU));
+            return GFReduce((uint)x & 0x03FFFFFFU);
         }
 
         /* input: field element in, m */
