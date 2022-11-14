@@ -45,11 +45,12 @@
 
 	<!--
 	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
-	  affected interfaces (or abstract classes) will not be backward compatible.
+	  affected interfaces (or abstract classes) will not be backward compatible. There are also several
+	  methods in DotNetUtilities dealing with ECDsa which is only available from net47.
 
-	  TODO: Use suppressions for each individual case of a Span-based method.
+	  TODO: Use suppressions for each individual case of version-dependent methods.
     -->
-    <NoWarn>$(NoWarn);CP0005;CP0006</NoWarn>
+    <NoWarn>$(NoWarn);CP0002;CP0005;CP0006</NoWarn>
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
