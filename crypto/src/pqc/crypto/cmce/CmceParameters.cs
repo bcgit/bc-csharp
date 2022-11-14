@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
@@ -48,7 +50,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         //private readonly int[] poly;
         private readonly bool usePivots;
         private readonly int defaultKeySize;
-        private readonly CmceEngine engine;
+        private readonly ICmceEngine engine;
 
         private CmceParameters(string name, int m, int n, int t, int[] p, bool usePivots, int defaultKeySize)
         {
@@ -59,7 +61,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             //this.poly = p;
             this.usePivots = usePivots;
             this.defaultKeySize = defaultKeySize;
-            this.engine = new CmceEngine(m, n, t, p, usePivots, defaultKeySize);
+
+            switch (m)
+            {
+            case 12:
+                this.engine = new CmceEngine<GF12>(m, n, t, p, usePivots, defaultKeySize);
+                break;
+            case 13:
+                this.engine = new CmceEngine<GF13>(m, n, t, p, usePivots, defaultKeySize);
+                break;
+            default:
+                throw new ArgumentException();
+            }
         }
 
         public string Name => name;
@@ -76,6 +89,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         public int DefaultKeySize => defaultKeySize;
 
-        internal CmceEngine Engine => engine;
+        internal ICmceEngine Engine => engine;
     }
 }

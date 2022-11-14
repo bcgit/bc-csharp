@@ -5,49 +5,39 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    internal abstract class GF
+    internal interface GF
     {
-        internal GF()
-        {
-        }
+        ushort GFAdd(ushort left, ushort right);
+        uint GFAddExt(uint left, uint right);
+        ushort GFFrac(ushort den, ushort num);
+        ushort GFInv(ushort input);
+        ushort GFIsZero(ushort a);
+        ushort GFMul(ushort left, ushort right);
+        uint GFMulExt(ushort left, ushort right);
+        ushort GFReduce(uint input);
+        ushort GFSq(ushort input);
+        uint GFSqExt(ushort input);
+    }
 
-        internal ushort GFIsZero(ushort a)
-        {
-            return (ushort)((a - 1) >> 31);
-        }
-
-        internal ushort GFAdd(ushort left, ushort right)
+    internal struct GF12
+        : GF
+    {
+        public ushort GFAdd(ushort left, ushort right)
         {
             return (ushort)(left ^ right);
         }
 
-        internal abstract ushort GFMul(ushort left, ushort right);
-        internal abstract ushort GFFrac(ushort den, ushort num);
-        internal abstract ushort GFInv(ushort input);
-    }
-
-    internal class GF12
-        : GF
-    {
-        internal GF12()
+        public uint GFAddExt(uint left, uint right)
         {
+            return left ^ right;
         }
 
-        internal override ushort GFMul(ushort left, ushort right)
+        public ushort GFFrac(ushort den, ushort num)
         {
-            int x = left;
-            int y = right;
-
-            int z = x * (y & 1);
-            for (int i = 1; i < 12; i++)
-            {
-                z ^= x * (y & (1 << i));
-            }
-
-            return Reduce((uint)z);
+            return GFMul(GFInv(den), num);
         }
 
-        internal override ushort GFInv(ushort input)
+        public ushort GFInv(ushort input)
         {
             ushort tmp_11;
             ushort tmp_1111;
@@ -77,18 +67,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return GFSq(output); // 111111111110
         }
 
-        internal override ushort GFFrac(ushort den, ushort num)
+        public ushort GFIsZero(ushort a)
         {
-            return GFMul(GFInv(den), num);
+            return (ushort)((a - 1) >> 31);
         }
 
-        private static ushort GFSq(ushort input)
+        public ushort GFMul(ushort left, ushort right)
         {
-            uint z = Interleave.Expand16to32(input);
-            return Reduce(z);
+            int x = left;
+            int y = right;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 12; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return GFReduce((uint)z);
         }
 
-        private static ushort Reduce(uint x)
+        public uint GFMulExt(ushort left, ushort right)
+        {
+            int x = left;
+            int y = right;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 12; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return (uint)z;
+        }
+
+        public ushort GFReduce(uint x)
         {
             Debug.Assert((x >> 24) == 0);
 
@@ -100,34 +112,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             return (ushort)(u0 ^ u1 ^ u2 ^ u3 ^ u4);
         }
+
+        public ushort GFSq(ushort input)
+        {
+            uint z = Interleave.Expand16to32(input);
+            return GFReduce(z);
+        }
+
+        public uint GFSqExt(ushort input)
+        {
+            return Interleave.Expand16to32(input);
+        }
     }
 
-    internal class GF13
+    internal struct GF13
         : GF
     {
         private const int GFMASK = (1 << 13) - 1;
 
-        internal GF13()
+        public ushort GFAdd(ushort left, ushort right)
         {
+            return (ushort)(left ^ right);
         }
 
-        internal override ushort GFMul(ushort in0, ushort in1)
+        public uint GFAddExt(uint left, uint right)
         {
-            int x = in0;
-            int y = in1;
-
-            int z = x * (y & 1);
-            for (int i = 1; i < 13; i++)
-            {
-                z ^= x * (y & (1 << i));
-            }
-
-            return Reduce((uint)z);
+            return left ^ right;
         }
 
         /* input: field element den, num */
         /* return: (num/den) */
-        internal override ushort GFFrac(ushort den, ushort num)
+        public ushort GFFrac(ushort den, ushort num)
         {
             ushort tmp_11, tmp_1111, output;
 
@@ -141,24 +156,84 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return GFSqMul(output, num); // ^1111111111110 = ^-1
         }
 
-        internal override ushort GFInv(ushort den)
+        public ushort GFInv(ushort den)
         {
             return GFFrac(den, 1);
         }
 
+        public ushort GFIsZero(ushort a)
+        {
+            return (ushort)((a - 1) >> 31);
+        }
+
+        public ushort GFMul(ushort in0, ushort in1)
+        {
+            int x = in0;
+            int y = in1;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 13; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return GFReduce((uint)z);
+        }
+
+        public uint GFMulExt(ushort in0, ushort in1)
+        {
+            int x = in0;
+            int y = in1;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 13; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return (uint)z;
+        }
+
+        public ushort GFReduce(uint x)
+        {
+            Debug.Assert((x >> 26) == 0);
+
+            uint u0 = x & 0x00001FFFU;
+            uint u1 = x >> 13;
+
+            uint t2 = (u1 << 4) ^ (u1 << 3) ^ (u1 << 1);
+
+            uint u2 = t2 >> 13;
+            uint u3 = t2 & 0x00001FFFU;
+            uint u4 = (u2 << 4) ^ (u2 << 3) ^ (u2 << 1);
+
+            return (ushort)(u0 ^ u1 ^ u2 ^ u3 ^ u4);
+        }
+
+        public ushort GFSq(ushort input)
+        {
+            uint z = Interleave.Expand16to32(input);
+            return GFReduce(z);
+        }
+
+        public uint GFSqExt(ushort input)
+        {
+            return Interleave.Expand16to32(input);
+        }
+
         /* input: field element in */
         /* return: (in^2)^2 */
-        private static ushort GFSq2(ushort input)
+        private ushort GFSq2(ushort input)
         {
             uint z1 = Interleave.Expand16to32(input);
-            input = Reduce(z1);
+            input = GFReduce(z1);
             uint z2 = Interleave.Expand16to32(input);
-            return Reduce(z2);
+            return GFReduce(z2);
         }
 
         /* input: field element in, m */
         /* return: (in^2)*m */
-        private static ushort GFSqMul(ushort input, ushort m)
+        private ushort GFSqMul(ushort input, ushort m)
         {
             long t0 = input;
             long t1 = m;
@@ -178,12 +253,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             t  = x & 0x0000001FFC000000L;
             x ^= (t >> 18) ^ (t >> 20) ^ (t >> 24) ^ (t >> 26);
 
-            return Reduce((uint)(x & 0x03FFFFFFU));
+            return GFReduce((uint)(x & 0x03FFFFFFU));
         }
 
         /* input: field element in, m */
         /* return: ((in^2)^2)*m */
-        private static ushort GFSq2Mul(ushort input, ushort m)
+        private ushort GFSq2Mul(ushort input, ushort m)
         {
             long t0 = input;
             long t1 = m;
@@ -206,23 +281,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             t  = x & 0x000007FFFC000000L;
             x ^= (t >> 18) ^ (t >> 20) ^ (t >> 24) ^ (t >> 26);
 
-            return Reduce((uint)x & 0x03FFFFFFU);
-        }
-
-        private static ushort Reduce(uint x)
-        {
-            Debug.Assert((x >> 26) == 0);
-
-            uint u0 = x & 0x00001FFFU;
-            uint u1 = x >> 13;
-
-            uint t2 = (u1 << 4) ^ (u1 << 3) ^ (u1 << 1);
-
-            uint u2 = t2 >> 13;
-            uint u3 = t2 & 0x00001FFFU;
-            uint u4 = (u2 << 4) ^ (u2 << 3) ^ (u2 << 1);
-
-            return (ushort)(u0 ^ u1 ^ u2 ^ u3 ^ u4);
+            return GFReduce((uint)x & 0x03FFFFFFU);
         }
     }
 }

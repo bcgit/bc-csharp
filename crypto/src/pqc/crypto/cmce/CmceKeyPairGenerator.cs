@@ -19,10 +19,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private AsymmetricCipherKeyPair GenKeyPair()
         {
-            CmceEngine engine = m_cmceParams.Parameters.Engine;
+            ICmceEngine engine = m_cmceParams.Parameters.Engine;
             byte[] sk = new byte[engine.PrivateKeySize];
             byte[] pk = new byte[engine.PublicKeySize];
-            engine.kem_keypair(pk, sk, random);
+            engine.KemKeypair(pk, sk, random);
 
             CmcePublicKeyParameters pubKey = new CmcePublicKeyParameters(m_cmceParams.Parameters, pk);
             CmcePrivateKeyParameters privKey = new CmcePrivateKeyParameters(m_cmceParams.Parameters, sk);
