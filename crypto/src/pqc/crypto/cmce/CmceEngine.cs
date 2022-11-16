@@ -27,9 +27,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         int PublicKeySize { get; }
     }
 
-    internal class CmceEngine<TGFImpl>
+    internal class CmceEngine<GFImpl>
         : ICmceEngine
-        where TGFImpl : struct, GF
+        where GFImpl : struct, GF
     {
         private int SYS_N;       // = 3488;
         private int SYS_T;       // = 64;
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         private int[] poly; // only needed for key pair gen
         private int defaultKeySize;
 
-        private readonly TGFImpl gf;
+        private readonly GFImpl gf;
         private readonly Benes benes;
 
         private bool usePadding;
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             SYND_BYTES = (PK_NROWS + 7) / 8;
             GFMASK = (1 << GFBITS) - 1;
 
-            gf = default(TGFImpl);
+            gf = default(GFImpl);
 
             if (GFBITS == 12)
             {
@@ -787,7 +787,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 uint dExt = 0U;
                 for (int i = 0; i <= Min(N, SYS_T); i++)
                 {
-                    dExt = gf.GFAddExt(dExt, gf.GFMulExt(C[i], s[N - i]));
+                    dExt ^= gf.GFMulExt(C[i], s[N - i]);
                 }
 
                 d = gf.GFReduce(dExt);
@@ -861,12 +861,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 ushort e_inv = gf.GFInv(gf.GFSq(e));
                 ushort c_div_e = gf.GFMul(e_inv, c);
 
-                output[0] = gf.GFAdd(output[0], c_div_e);
+                output[0] ^= c_div_e;
 
                 for (int j = 1; j < 2 * SYS_T; j++)
                 {
                     c_div_e = gf.GFMul(c_div_e, L_i);
-                    output[j] = gf.GFAdd(output[j], c_div_e);
+                    output[j] ^= c_div_e;
                 }
             }
         }
@@ -1652,8 +1652,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             for (int i = SYS_T - 1; i >= 0; i--)
             {
-                r = gf.GFMul(r, a);
-                r = gf.GFAdd(r, f[i]);
+                r  = gf.GFMul(r, a);
+                r ^= f[i];
             }
 
             return r;
@@ -1669,14 +1669,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private int GenerateIrrPoly(ushort[] field)
         {
-
             // Irreducible 2.4.1 - 2. Define β = β0 + β1y + ···+ βt−1yt−1 ∈Fq[y]/F(y).
             // generating poly
             ushort[][] m = new ushort[SYS_T + 1][];
-            for (int i = 0; i < SYS_T + 1; i++)
-            {
-                m[i] = new ushort[SYS_T];
-            }
 
             // filling matrix
             {
@@ -1687,19 +1682,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 //    m[0][i] = 0;
                 //}
 
+                m[1] = new ushort[SYS_T];
                 Array.Copy(field, 0, m[1], 0, SYS_T);
 
                 uint[] temp = new uint[SYS_T * 2 - 1];
                 int j = 2;
                 while (j < SYS_T)
                 {
-                    GFSqr(m[j], m[j >> 1], temp);
-                    GFMul(m[j + 1], m[j], field, temp);
+                    m[j] = new ushort[SYS_T];
+                    gf.GFSqrPoly(SYS_T, poly, m[j], m[j >> 1], temp);
+                    m[j + 1] = new ushort[SYS_T];
+                    gf.GFMulPoly(SYS_T, poly, m[j + 1], m[j], field, temp);
                     j += 2;
                 }
                 if (j == SYS_T)
                 {
-                    GFSqr(m[j], m[j >> 1], temp);
+                    m[j] = new ushort[SYS_T];
+                    gf.GFSqrPoly(SYS_T, poly, m[j], m[j >> 1], temp);
                 }
             }
 
@@ -1714,7 +1713,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     ushort mask = gf.GFIsZero(m[j][j]);
                     for (int c = j; c < SYS_T + 1; c++)
                     {
-                        m[c][j] = gf.GFAdd(m[c][j], (ushort)(m[c][k] & mask));
+                        m[c][j] ^= (ushort)(m[c][k] & mask);
                     }
                 }
 
@@ -1747,88 +1746,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
             Array.Copy(m[SYS_T], field, SYS_T);
             return 0;
-        }
-
-        private void GFMul(ushort[] output, ushort[] left, ushort[] right, uint[] temp)
-        {
-            temp[0] = gf.GFMulExt(left[0], right[0]);
-
-            for (int i = 1; i < SYS_T; i++)
-            {
-                temp[i + i - 1] = 0U;
-
-                ushort left_i = left[i];
-                ushort right_i = right[i];
-
-                for (int j = 0; j < i; j++)
-                {
-                    uint t = temp[i + j];
-                    t = gf.GFAddExt(t, gf.GFMulExt(left_i, right[j]));
-                    t = gf.GFAddExt(t, gf.GFMulExt(left[j], right_i));
-                    temp[i + j] = t;
-                }
-
-                temp[i + i] = gf.GFMulExt(left_i, right_i);
-            }
-
-            for (int i = (SYS_T - 1) * 2; i >= SYS_T; i--)
-            {
-                uint temp_i = temp[i];
-
-                foreach (int polyIndex in poly)
-                {
-                    uint t = temp[i - SYS_T + polyIndex];
-                    if (polyIndex == 0 && GFBITS == 12)
-                    {
-                        t = gf.GFAddExt(t, gf.GFMulExt(gf.GFReduce(temp_i), 2));
-                    }
-                    else
-                    {
-                        t = gf.GFAddExt(t, temp_i);
-                    }
-                    temp[i - SYS_T + polyIndex] = t;
-                }
-            }
-
-            for (int i = 0; i < SYS_T; ++i)
-            {
-                output[i] = gf.GFReduce(temp[i]);
-            }
-        }
-
-        private void GFSqr(ushort[] output, ushort[] input, uint[] temp)
-        {
-            temp[0] = gf.GFSqExt(input[0]);
-
-            for (int i = 1; i < SYS_T; i++)
-            {
-                temp[i + i - 1] = 0;
-                temp[i + i] = gf.GFSqExt(input[i]);
-            }
-
-            for (int i = (SYS_T - 1) * 2; i >= SYS_T; i--)
-            {
-                uint temp_i = temp[i];
-
-                foreach (int polyIndex in poly)
-                {
-                    uint t = temp[i - SYS_T + polyIndex];
-                    if (polyIndex == 0 && GFBITS == 12)
-                    {
-                        t = gf.GFAddExt(t, gf.GFMulExt(gf.GFReduce(temp_i), 2));
-                    }
-                    else
-                    {
-                        t = gf.GFAddExt(t, temp_i);
-                    }
-                    temp[i - SYS_T + polyIndex] = t;
-                }
-            }
-
-            for (int i = 0; i < SYS_T; ++i)
-            {
-                output[i] = gf.GFReduce(temp[i]);
-            }
         }
 
         /* check if the padding bits of pk are all zero */

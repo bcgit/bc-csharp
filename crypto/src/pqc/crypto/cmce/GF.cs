@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 
 using Org.BouncyCastle.Math.Raw;
@@ -7,8 +6,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
     internal interface GF
     {
-        ushort GFAdd(ushort left, ushort right);
-        uint GFAddExt(uint left, uint right);
+        void GFMulPoly(int length, int[] poly, ushort[] output, ushort[] left, ushort[] right, uint[] temp);
+        void GFSqrPoly(int length, int[] poly, ushort[] output, ushort[] input, uint[] temp);
+
         ushort GFFrac(ushort den, ushort num);
         ushort GFInv(ushort input);
         ushort GFIsZero(ushort a);
@@ -22,14 +22,71 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
     internal struct GF12
         : GF
     {
-        public ushort GFAdd(ushort left, ushort right)
+        public void GFMulPoly(int length, int[] poly, ushort[] output, ushort[] left, ushort[] right, uint[] temp)
         {
-            return (ushort)(left ^ right);
+            temp[0] = GFMulExt(left[0], right[0]);
+
+            for (int i = 1; i < length; i++)
+            {
+                temp[i + i - 1] = 0U;
+
+                ushort left_i = left[i];
+                ushort right_i = right[i];
+
+                for (int j = 0; j < i; j++)
+                {
+                    temp[i + j] ^= GFMulExtPar(left_i, right[j], left[j], right_i);
+                }
+
+                temp[i + i] = GFMulExt(left_i, right_i);
+            }
+
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
+
+                for (int j = 0; j < poly.Length - 1; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+                {
+                    temp[i - length] ^= GFMulExt(GFReduce(temp_i), 2);
+                }
+            }
+
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
-        public uint GFAddExt(uint left, uint right)
+        public void GFSqrPoly(int length, int[] poly, ushort[] output, ushort[] input, uint[] temp)
         {
-            return left ^ right;
+            temp[0] = GFSqExt(input[0]);
+
+            for (int i = 1; i < length; i++)
+            {
+                temp[i + i - 1] = 0;
+                temp[i + i] = GFSqExt(input[i]);
+            }
+
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
+
+                for (int j = 0; j < poly.Length - 1; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+                {
+                    temp[i - length] ^= GFMulExt(GFReduce(temp_i), 2);
+                }
+            }
+
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
         public ushort GFFrac(ushort den, ushort num)
@@ -88,8 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         public uint GFMulExt(ushort left, ushort right)
         {
-            int x = left;
-            int y = right;
+            int x = left, y = right;
 
             int z = x * (y & 1);
             for (int i = 1; i < 12; i++)
@@ -98,6 +154,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
 
             return (uint)z;
+        }
+
+        private uint GFMulExtPar(ushort left0, ushort right0, ushort left1, ushort right1)
+        {
+            int x0 = left0, y0 = right0, x1 = left1, y1 = right1;
+
+            int z0 = x0 * (y0 & 1);
+            int z1 = x1 * (y1 & 1);
+
+            for (int i = 1; i < 12; i++)
+            {
+                z0 ^= x0 * (y0 & (1 << i));
+                z1 ^= x1 * (y1 & (1 << i));
+            }
+
+            return (uint)(z0 ^ z1);
         }
 
         public ushort GFReduce(uint x)
@@ -128,16 +200,65 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
     internal struct GF13
         : GF
     {
-        private const int GFMASK = (1 << 13) - 1;
-
-        public ushort GFAdd(ushort left, ushort right)
+        public void GFMulPoly(int length, int[] poly, ushort[] output, ushort[] left, ushort[] right, uint[] temp)
         {
-            return (ushort)(left ^ right);
+            temp[0] = GFMulExt(left[0], right[0]);
+
+            for (int i = 1; i < length; i++)
+            {
+                temp[i + i - 1] = 0U;
+
+                ushort left_i = left[i];
+                ushort right_i = right[i];
+
+                for (int j = 0; j < i; j++)
+                {
+                    temp[i + j] ^= GFMulExtPar(left_i, right[j], left[j], right_i);
+                }
+
+                temp[i + i] = GFMulExt(left_i, right_i);
+            }
+
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
+
+                for (int j = 0; j < poly.Length; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+            }
+
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
-        public uint GFAddExt(uint left, uint right)
+        public void GFSqrPoly(int length, int[] poly, ushort[] output, ushort[] input, uint[] temp)
         {
-            return left ^ right;
+            temp[0] = GFSqExt(input[0]);
+
+            for (int i = 1; i < length; i++)
+            {
+                temp[i + i - 1] = 0;
+                temp[i + i] = GFSqExt(input[i]);
+            }
+
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
+
+                for (int j = 0; j < poly.Length; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+            }
+
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
         /* input: field element den, num */
@@ -180,10 +301,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return GFReduce((uint)z);
         }
 
-        public uint GFMulExt(ushort in0, ushort in1)
+        public uint GFMulExt(ushort left, ushort right)
         {
-            int x = in0;
-            int y = in1;
+            int x = left, y = right;
 
             int z = x * (y & 1);
             for (int i = 1; i < 13; i++)
@@ -192,6 +312,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
 
             return (uint)z;
+        }
+
+        private uint GFMulExtPar(ushort left0, ushort right0, ushort left1, ushort right1)
+        {
+            int x0 = left0, y0 = right0, x1 = left1, y1 = right1;
+
+            int z0 = x0 * (y0 & 1);
+            int z1 = x1 * (y1 & 1);
+
+            for (int i = 1; i < 13; i++)
+            {
+                z0 ^= x0 * (y0 & (1 << i));
+                z1 ^= x1 * (y1 & (1 << i));
+            }
+
+            return (uint)(z0 ^ z1);
         }
 
         public ushort GFReduce(uint x)
