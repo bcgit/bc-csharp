@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #endif
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers.Binary;
 using System.Numerics;
 #endif
 #if NETCOREAPP3_0_OR_GREATER
@@ -318,21 +319,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         private static uint Decode32(byte[] bs, int off)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return BinaryPrimitives.ReadUInt32LittleEndian(bs.AsSpan(off));
+#else
             uint n = bs[off];
             n |= (uint)bs[++off] << 8;
             n |= (uint)bs[++off] << 16;
             n |= (uint)bs[++off] << 24;
             return n;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static uint Decode32(ReadOnlySpan<byte> bs)
         {
-            uint n = bs[0];
-            n |= (uint)bs[1] << 8;
-            n |= (uint)bs[2] << 16;
-            n |= (uint)bs[3] << 24;
-            return n;
+            return BinaryPrimitives.ReadUInt32LittleEndian(bs);
         }
 #endif
 
@@ -442,19 +443,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         private static void Encode32(uint n, byte[] bs, int off)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BinaryPrimitives.WriteUInt32LittleEndian(bs.AsSpan(off), n);
+#else
             bs[  off] = (byte)(n      );
             bs[++off] = (byte)(n >>  8);
             bs[++off] = (byte)(n >> 16);
             bs[++off] = (byte)(n >> 24);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void Encode32(uint n, Span<byte> bs)
         {
-            bs[0] = (byte)(n      );
-            bs[1] = (byte)(n >>  8);
-            bs[2] = (byte)(n >> 16);
-            bs[3] = (byte)(n >> 24);
+            BinaryPrimitives.WriteUInt32LittleEndian(bs, n);
         }
 #endif
 

@@ -19,7 +19,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public Ed448phSigner(byte[] context)
         {
-            this.context = Arrays.Clone(context);
+            if (null == context)
+                throw new ArgumentNullException(nameof(context));
+
+            this.context = (byte[])context.Clone();
         }
 
         public virtual string AlgorithmName
@@ -88,8 +91,11 @@ namespace Org.BouncyCastle.Crypto.Signers
                 return false;
             }
 
-            byte[] pk = publicKey.GetEncoded();
-            return Ed448.VerifyPrehash(signature, 0, pk, 0, context, prehash);
+            byte[] msg = new byte[Ed448.PrehashSize];
+            if (Ed448.PrehashSize != prehash.OutputFinal(msg, 0, Ed448.PrehashSize))
+                throw new InvalidOperationException("Prehash digest failed");
+
+            return publicKey.Verify(Ed448.Algorithm.Ed448ph, context, msg, 0, Ed448.PrehashSize, signature, 0);
         }
 
         public void Reset()

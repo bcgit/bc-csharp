@@ -60,6 +60,45 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return Arrays.Clone(data);
         }
 
+        public bool Verify(Ed25519.Algorithm algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen,
+            byte[] sig, int sigOff)
+        {
+            switch (algorithm)
+            {
+            case Ed25519.Algorithm.Ed25519:
+            {
+                if (null != ctx)
+                    throw new ArgumentException(nameof(ctx));
+
+                return Ed25519.Verify(sig, sigOff, data, 0, msg, msgOff, msgLen);
+            }
+            case Ed25519.Algorithm.Ed25519ctx:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                return Ed25519.Verify(sig, sigOff, data, 0, ctx, msg, msgOff, msgLen);
+            }
+            case Ed25519.Algorithm.Ed25519ph:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+                if (Ed25519.PrehashSize != msgLen)
+                    throw new ArgumentException(nameof(msgLen));
+
+                return Ed25519.VerifyPrehash(sig, sigOff, data, 0, ctx, msg, msgOff);
+            }
+            default:
+            {
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+            }
+        }
+
         private static byte[] Validate(byte[] buf)
         {
             if (buf.Length != KeySize)

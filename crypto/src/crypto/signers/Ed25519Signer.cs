@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             buffer.Reset();
         }
 
-        private class Buffer : MemoryStream
+        private sealed class Buffer : MemoryStream
         {
             internal byte[] GenerateSignature(Ed25519PrivateKeyParameters privateKey)
             {
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     int count = Convert.ToInt32(Length);
 
                     byte[] signature = new byte[Ed25519PrivateKeyParameters.SignatureSize];
-                    privateKey.Sign(Ed25519.Algorithm.Ed25519, null, buf, 0, count, signature, 0);
+                    privateKey.Sign(Ed25519.Algorithm.Ed25519, ctx: null, buf, 0, count, signature, 0);
                     Reset();
                     return signature;
                 }
@@ -111,8 +111,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     byte[] buf = GetBuffer();
                     int count = Convert.ToInt32(Length);
 
-                    byte[] pk = publicKey.GetEncoded();
-                    bool result = Ed25519.Verify(signature, 0, pk, 0, buf, 0, count);
+                    bool result = publicKey.Verify(Ed25519.Algorithm.Ed25519, ctx: null, buf, 0, count, signature, 0);
                     Reset();
                     return result;
                 }

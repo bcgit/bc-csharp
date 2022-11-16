@@ -103,20 +103,29 @@ namespace Org.BouncyCastle.Crypto.Parameters
             {
             case Ed448.Algorithm.Ed448:
             {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
                 Ed448.Sign(data, 0, pk, 0, ctx, msg, msgOff, msgLen, sig, sigOff);
                 break;
             }
             case Ed448.Algorithm.Ed448ph:
             {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
                 if (Ed448.PrehashSize != msgLen)
-                    throw new ArgumentException("msgLen");
+                    throw new ArgumentException(nameof(msgLen));
 
                 Ed448.SignPrehash(data, 0, pk, 0, ctx, msg, msgOff, sig, sigOff);
                 break;
             }
             default:
             {
-                throw new ArgumentException("algorithm");
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
             }
             }
         }
