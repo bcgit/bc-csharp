@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Math
 {
     [Serializable]
     public sealed class BigInteger
-        : IComparable<BigInteger>, IEquatable<BigInteger>
+        : IComparable, IComparable<BigInteger>, IEquatable<BigInteger>
     {
         // The first few odd primes
         /*
@@ -1049,6 +1049,17 @@ namespace Org.BouncyCastle.Math
         private bool QuickPow2Check()
         {
             return sign > 0 && nBits == 1;
+        }
+
+        public int CompareTo(object obj)
+        {
+            if (obj == null)
+                return 1;
+
+            if (!(obj is BigInteger other))
+                throw new ArgumentException("Object is not a BigInteger", nameof(obj));
+
+            return CompareTo(other);
         }
 
         public int CompareTo(BigInteger other)
