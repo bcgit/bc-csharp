@@ -36,9 +36,7 @@
   <!--Package Validation-->
   <PropertyGroup>
     <EnablePackageValidation>true</EnablePackageValidation>
-
-    <!-- TODO: Enable this once there is a baseline version to compare to. -->
-    <!--<PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>-->
+    <PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>
 
 	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
     <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
