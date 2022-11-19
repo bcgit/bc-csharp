@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             case Ed25519.Algorithm.Ed25519:
             {
                 if (null != ctx)
-                    throw new ArgumentException(nameof(ctx));
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
 
                 Ed25519.Sign(data, 0, pk, 0, msg, msgOff, msgLen, sig, sigOff);
                 break;
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (ctx.Length > 255)
                     throw new ArgumentOutOfRangeException(nameof(ctx));
                 if (Ed25519.PrehashSize != msgLen)
-                    throw new ArgumentException(nameof(msgLen));
+                    throw new ArgumentOutOfRangeException(nameof(msgLen));
 
                 Ed25519.SignPrehash(data, 0, pk, 0, ctx, msg, msgOff, sig, sigOff);
                 break;

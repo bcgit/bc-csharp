@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (ctx.Length > 255)
                     throw new ArgumentOutOfRangeException(nameof(ctx));
                 if (Ed448.PrehashSize != msgLen)
-                    throw new ArgumentException(nameof(msgLen));
+                    throw new ArgumentOutOfRangeException(nameof(msgLen));
 
                 return Ed448.VerifyPrehash(sig, sigOff, data, 0, ctx, msg, msgOff);
             }
