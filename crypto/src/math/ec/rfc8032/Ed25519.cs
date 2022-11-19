@@ -530,61 +530,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return (x[w] >> b) & 15U;
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static sbyte[] GetWnafVar(ReadOnlySpan<uint> n, int width)
-#else
-        private static sbyte[] GetWnafVar(uint[] n, int width)
-#endif
-        {
-            Debug.Assert(n[ScalarUints - 1] <= L[ScalarUints - 1]);
-            Debug.Assert(2 <= width && width <= 8);
-
-            uint[] t = new uint[ScalarUints * 2];
-            {
-                uint c = 0;
-                int tPos = t.Length, i = ScalarUints;
-                while (--i >= 0)
-                {
-                    uint next = n[i];
-                    t[--tPos] = (next >> 16) | (c << 16);
-                    t[--tPos] = c = next;
-                }
-            }
-
-            sbyte[] ws = new sbyte[253];
-
-            int lead = 32 - width;
-
-            uint carry = 0U;
-            int j = 0;
-            for (int i = 0; i < t.Length; ++i, j -= 16)
-            {
-                uint word = t[i];
-                while (j < 16)
-                {
-                    uint word16 = word >> j;
-                    uint bit = word16 & 1U;
-
-                    if (bit == carry)
-                    {
-                        ++j;
-                        continue;
-                    }
-
-                    uint digit = (word16 | 1U) << lead;
-                    carry = digit >> 31;
-
-                    ws[(i << 4) + j] = (sbyte)((int)digit >> lead);
-
-                    j += width;
-                }
-            }
-
-            Debug.Assert(carry == 0);
-
-            return ws;
-        }
-
         private static void ImplSign(IDigest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
             byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
@@ -1893,42 +1838,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void ScalarMultOrderVar(ref PointAffine p, ref PointAccum r)
         {
-            sbyte[] ws_p = GetWnafVar(L, WnafWidth);
-
-            int count = 1 << (WnafWidth - 2);
-            PointPrecompZ[] tp = new PointPrecompZ[count];
-            Init(out PointTemp t);
-            PointPrecomputeZ(ref p, tp, count, ref t);
-
-            PointSetNeutral(ref r);
-
-            for (int bit = 252;;)
-            {
-                int wp = ws_p[bit];
-                if (wp != 0)
-                {
-                    int sign = wp >> 31;
-                    int index = (wp ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref tp[index], ref r, ref t);
-                }
-
-                if (--bit < 0)
-                    break;
-
-                PointDouble(ref r);
-            }
-        }
-
-        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointAffine p, ref PointAccum r)
-        {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMultStrausVar(nb.AsSpan(), np.AsSpan(), ref p, ref r);
+            Span<sbyte> ws_p = stackalloc sbyte[253];
 #else
-            Precompute();
-
-            sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
-            sbyte[] ws_p = GetWnafVar(np, WnafWidth);
+            sbyte[] ws_p = new sbyte[253];
+#endif
+            Wnaf.GetSignedVar(L, WnafWidth, ws_p);
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
@@ -1939,20 +1854,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             for (int bit = 252;;)
             {
-                int wb = ws_b[bit];
-                if (wb != 0)
-                {
-                    int sign = wb >> 31;
-                    int index = (wb ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref PrecompBaseWnaf[index], ref r, ref t);
-                }
-
                 int wp = ws_p[bit];
                 if (wp != 0)
                 {
                     int sign = wp >> 31;
-                    int index = (wp ^ sign) >> 1;
+                    int index = (wp >> 1) ^ sign;
 
                     PointAddVar(sign != 0, ref tp[index], ref r, ref t);
                 }
@@ -1962,17 +1868,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 PointDouble(ref r);
             }
-#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ScalarMultStrausVar(ReadOnlySpan<uint> nb, ReadOnlySpan<uint> np, ref PointAffine p,
             ref PointAccum r)
+#else
+        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointAffine p, ref PointAccum r)
+#endif
         {
+            Debug.Assert(nb.Length == ScalarUints);
+            Debug.Assert(nb[ScalarUints - 1] <= L[ScalarUints - 1]);
+
+            Debug.Assert(np.Length == ScalarUints);
+            Debug.Assert(np[ScalarUints - 1] <= L[ScalarUints - 1]);
+
             Precompute();
 
-            sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
-            sbyte[] ws_p = GetWnafVar(np, WnafWidth);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<sbyte> ws_b = stackalloc sbyte[253];
+            Span<sbyte> ws_p = stackalloc sbyte[253];
+#else
+            sbyte[] ws_b = new sbyte[253];
+            sbyte[] ws_p = new sbyte[253];
+#endif
+
+            Wnaf.GetSignedVar(nb, WnafWidthBase, ws_b);
+            Wnaf.GetSignedVar(np, WnafWidth, ws_p);
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
@@ -1981,13 +1903,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointSetNeutral(ref r);
 
-            for (int bit = 252; ;)
+            for (int bit = 252;;)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)
                 {
                     int sign = wb >> 31;
-                    int index = (wb ^ sign) >> 1;
+                    int index = (wb >> 1) ^ sign;
 
                     PointAddVar(sign != 0, ref PrecompBaseWnaf[index], ref r, ref t);
                 }
@@ -1996,7 +1918,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (wp != 0)
                 {
                     int sign = wp >> 31;
-                    int index = (wp ^ sign) >> 1;
+                    int index = (wp >> 1) ^ sign;
 
                     PointAddVar(sign != 0, ref tp[index], ref r, ref t);
                 }
@@ -2007,7 +1929,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 PointDouble(ref r);
             }
         }
-#endif
 
         public static void Sign(byte[] sk, int skOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
