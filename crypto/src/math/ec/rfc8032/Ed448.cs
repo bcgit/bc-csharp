@@ -73,10 +73,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int L4_6 = 0x08EEC492;    // L4_6:27/24
         private const int L4_7 = 0x20CD7705;    // L4_7:29/24
 
-        private static readonly uint[] B_x = { 0x070CC05EU, 0x026A82BCU, 0x00938E26U, 0x080E18B0U, 0x0511433BU, 0x0F72AB66U, 0x0412AE1AU,
-            0x0A3D3A46U, 0x0A6DE324U, 0x00F1767EU, 0x04657047U, 0x036DA9E1U, 0x05A622BFU, 0x0ED221D1U, 0x066BED0DU, 0x04F1970CU };
-        private static readonly uint[] B_y = { 0x0230FA14U, 0x008795BFU, 0x07C8AD98U, 0x0132C4EDU, 0x09C4FDBDU, 0x01CE67C3U, 0x073AD3FFU,
-            0x005A0C2DU, 0x07789C1EU, 0x0A398408U, 0x0A73736CU, 0x0C7624BEU, 0x003756C9U, 0x02488762U, 0x016EB6BCU, 0x0693F467U };
+        private static readonly uint[] B_x = { 0x070CC05EU, 0x026A82BCU, 0x00938E26U, 0x080E18B0U, 0x0511433BU,
+            0x0F72AB66U, 0x0412AE1AU, 0x0A3D3A46U, 0x0A6DE324U, 0x00F1767EU, 0x04657047U, 0x036DA9E1U, 0x05A622BFU,
+            0x0ED221D1U, 0x066BED0DU, 0x04F1970CU };
+        private static readonly uint[] B_y = { 0x0230FA14U, 0x008795BFU, 0x07C8AD98U, 0x0132C4EDU, 0x09C4FDBDU,
+            0x01CE67C3U, 0x073AD3FFU, 0x005A0C2DU, 0x07789C1EU, 0x0A398408U, 0x0A73736CU, 0x0C7624BEU, 0x003756C9U,
+            0x02488762U, 0x016EB6BCU, 0x0693F467U };
+
+        // 2^224 * B
+        private static readonly uint[] B224_x = { 0x091780C7U, 0x0A7EA989U, 0x0D2476B6U, 0x004E4ECCU, 0x0C494B68U,
+            0x00AF9F58U, 0x0DEE64FDU, 0x0E0F269FU, 0x0021BD26U, 0x085A61F6U, 0x0B5D284BU, 0x0C265C35U, 0x03775AFDU,
+            0x058755EAU, 0x02ECF2C6U, 0x0617F174U };
+        private static readonly uint[] B224_y = { 0x05EC556AU, 0x050109E2U, 0x0FD57E39U, 0x0235366BU, 0x044B6B2EU,
+            0x07B3C976U, 0x0B2B7B9CU, 0x0F7F9E82U, 0x00EC6409U, 0x0B6196ABU, 0x00A20D9EU, 0x088F1D16U, 0x0586F761U,
+            0x0e3BE3B4U, 0x0E26395DU, 0x09983C26U };
+
         private const int C_d = -39081;
 
         private const int WnafWidth = 5;
@@ -92,6 +103,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static readonly object PrecompLock = new object();
         private static PointAffine[] PrecompBaseWnaf = null;
+        private static PointAffine[] PrecompBase224Wnaf = null;
         private static uint[] PrecompBaseComb = null;
 
         private struct PointAffine
@@ -1067,21 +1079,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return table;
         }
 
-        private static void PointPrecomputeVar(ref PointProjective p, PointProjective[] points, int count)
+        private static void PointPrecomputeVar(ref PointProjective p, PointProjective[] points, int pointsOff,
+            int pointsLen)
         {
-            Debug.Assert(count > 0);
+            Debug.Assert(pointsLen > 0);
 
             Init(out PointProjective d);
             PointCopy(ref p, ref d);
             PointDouble(ref d);
 
-            Init(out points[0]);
-            PointCopy(ref p, ref points[0]);
-            for (int i = 1; i < count; ++i)
+            Init(out points[pointsOff]);
+            PointCopy(ref p, ref points[pointsOff]);
+            for (int i = 1; i < pointsLen; ++i)
             {
-                Init(out points[i]);
-                PointCopy(ref points[i - 1], ref points[i]);
-                PointAdd(ref d, ref points[i]);
+                Init(out points[pointsOff + i]);
+                PointCopy(ref points[pointsOff + i - 1], ref points[pointsOff + i]);
+                PointAdd(ref d, ref points[pointsOff + i]);
             }
         }
 
@@ -1096,7 +1109,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             lock (PrecompLock)
             {
-                if (PrecompBaseWnaf != null && PrecompBaseComb != null)
+                if (PrecompBaseComb != null)
                     return;
 
                 Debug.Assert(PrecompRange > 448);
@@ -1104,7 +1117,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 int wnafPoints = 1 << (WnafWidthBase - 2);
                 int combPoints = PrecompBlocks * PrecompPoints;
-                int totalPoints = wnafPoints + combPoints;
+                int totalPoints = wnafPoints * 2 + combPoints;
 
                 PointProjective[] points = new PointProjective[totalPoints];
 
@@ -1113,9 +1126,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 F.Copy(B_y, 0, p.y, 0);
                 F.One(p.z);
 
-                PointPrecomputeVar(ref p, points, wnafPoints);
+                PointPrecomputeVar(ref p, points, 0, wnafPoints);
 
-                int pointsIndex = wnafPoints;
+                Init(out PointProjective p224);
+                F.Copy(B224_x, 0, p224.x, 0);
+                F.Copy(B224_y, 0, p224.y, 0);
+                F.One(p224.z);
+
+                PointPrecomputeVar(ref p224, points, wnafPoints, wnafPoints);
+
+                int pointsIndex = wnafPoints * 2;
                 PointProjective[] toothPowers = new PointProjective[PrecompTeeth];
                 for (int tooth = 0; tooth < PrecompTeeth; ++tooth)
                 {
@@ -1177,9 +1197,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     F.Mul(q.y, q.z, r.y);       F.Normalize(r.y);
                 }
 
+                PrecompBase224Wnaf = new PointAffine[wnafPoints];
+                for (int i = 0; i < wnafPoints; ++i)
+                {
+                    ref PointProjective q = ref points[wnafPoints + i];
+                    ref PointAffine r = ref PrecompBase224Wnaf[i];
+                    Init(out r);
+
+                    F.Mul(q.x, q.z, r.x);       F.Normalize(r.x);
+                    F.Mul(q.y, q.z, r.y);       F.Normalize(r.y);
+                }
+
                 PrecompBaseComb = F.CreateTable(combPoints * 2);
                 int off = 0;
-                for (int i = wnafPoints; i < totalPoints; ++i)
+                for (int i = wnafPoints * 2; i < totalPoints; ++i)
                 {
                     ref PointProjective q = ref points[i];
 
@@ -2045,7 +2076,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int count = 1 << (WnafWidth - 2);
             PointProjective[] tp = new PointProjective[count];
-            PointPrecomputeVar(ref p, tp, count);
+            PointPrecomputeVar(ref p, tp, 0, count);
 
             PointSetNeutral(ref r);
 
@@ -2079,7 +2110,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int count = 1 << (WnafWidth - 2);
             PointProjective[] tp = new PointProjective[count];
-            PointPrecomputeVar(ref p, tp, count);
+            PointPrecomputeVar(ref p, tp, 0, count);
 
             PointSetNeutral(ref r);
 
@@ -2122,7 +2153,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int count = 1 << (WnafWidth - 2);
             PointProjective[] tp = new PointProjective[count];
-            PointPrecomputeVar(ref p, tp, count);
+            PointPrecomputeVar(ref p, tp, 0, count);
 
             PointSetNeutral(ref r);
 

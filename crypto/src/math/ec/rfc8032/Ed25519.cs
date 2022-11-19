@@ -72,6 +72,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static readonly int[] B_y = { 0x02666658, 0x01999999, 0x00666666, 0x03333333, 0x00CCCCCC, 0x02666666,
             0x01999999, 0x00666666, 0x03333333, 0x00CCCCCC, };
 
+        // 2^128 * B
+        private static readonly int[] B128_x = { 0x00B7E824, 0x0011EB98, 0x003E5FC8, 0x024E1739, 0x0131CD0B, 0x014E29A0,
+            0x034E6138, 0x0132C952, 0x03F9E22F, 0x00984F5F };
+        private static readonly int[] B128_y = { 0x03F5A66B, 0x02AF4452, 0x0049E5BB, 0x00F28D26, 0x0121A17C, 0x02C29C3A,
+            0x0047AD89, 0x0087D95F, 0x0332936E, 0x00BE5933 };
+
         // Note that d == -121665/121666
         private static readonly int[] C_d = { 0x035978A3, 0x02D37284, 0x018AB75E, 0x026A0A0E, 0x0000E014, 0x0379E898,
             0x01D01E5D, 0x01E738CC, 0x03715B7F, 0x00A406D9 };
@@ -93,6 +99,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static readonly object PrecompLock = new object();
         private static PointPrecomp[] PrecompBaseWnaf = null;
+        private static PointPrecomp[] PrecompBase128Wnaf = null;
         private static int[] PrecompBaseComb = null;
 
         private struct PointAccum
@@ -1072,20 +1079,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        private static void PointPrecompute(ref PointAffine p, PointExtended[] points, int count, ref PointTemp t)
+        private static void PointPrecompute(ref PointAffine p, PointExtended[] points, int pointsOff, int pointsLen,
+            ref PointTemp t)
         {
-            Debug.Assert(count > 0);
+            Debug.Assert(pointsLen > 0);
 
-            Init(out points[0]);
-            PointCopy(ref p, ref points[0]);
+            Init(out points[pointsOff]);
+            PointCopy(ref p, ref points[pointsOff]);
 
             Init(out PointExtended d);
-            PointAdd(ref points[0], ref points[0], ref d, ref t);
+            PointAdd(ref points[pointsOff], ref points[pointsOff], ref d, ref t);
 
-            for (int i = 1; i < count; ++i)
+            for (int i = 1; i < pointsLen; ++i)
             {
-                Init(out points[i]);
-                PointAdd(ref points[i - 1], ref d, ref points[i], ref t);
+                Init(out points[pointsOff + i]);
+                PointAdd(ref points[pointsOff + i - 1], ref d, ref points[pointsOff + i], ref t);
             }
         }
 
@@ -1159,12 +1167,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             lock (PrecompLock)
             {
-                if (PrecompBaseWnaf != null && PrecompBaseComb != null)
+                if (PrecompBaseComb != null)
                     return;
 
                 int wnafPoints = 1 << (WnafWidthBase - 2);
                 int combPoints = PrecompBlocks * PrecompPoints;
-                int totalPoints = wnafPoints + combPoints;
+                int totalPoints = wnafPoints * 2 + combPoints;
 
                 PointExtended[] points = new PointExtended[totalPoints];
                 Init(out PointTemp t);
@@ -1173,7 +1181,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 F.Copy(B_x, 0, b.x, 0);
                 F.Copy(B_y, 0, b.y, 0);
 
-                PointPrecompute(ref b, points, wnafPoints, ref t);
+                PointPrecompute(ref b, points, 0, wnafPoints, ref t);
+
+                Init(out PointAffine b128);
+                F.Copy(B128_x, 0, b128.x, 0);
+                F.Copy(B128_y, 0, b128.y, 0);
+
+                PointPrecompute(ref b128, points, wnafPoints, wnafPoints, ref t);
 
                 Init(out PointAccum p);
                 F.Copy(B_x, 0, p.x, 0);
@@ -1182,7 +1196,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 F.Copy(B_x, 0, p.u, 0);
                 F.Copy(B_y, 0, p.v, 0);
 
-                int pointsIndex = wnafPoints;
+                int pointsIndex = wnafPoints * 2;
                 PointExtended[] toothPowers = new PointExtended[PrecompTeeth];
                 for (int tooth = 0; tooth < PrecompTeeth; ++tooth)
                 {
@@ -1260,10 +1274,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     F.Normalize(r.xyd);
                 }
 
+                PrecompBase128Wnaf = new PointPrecomp[wnafPoints];
+                for (int i = 0; i < wnafPoints; ++i)
+                {
+                    ref PointExtended q = ref points[wnafPoints + i];
+                    ref PointPrecomp r = ref PrecompBase128Wnaf[i];
+                    Init(out r);
+
+                    // Calculate x/2 and y/2 (because the z value holds half the inverse; see above).
+                    F.Mul(q.x, q.z, q.x);
+                    F.Mul(q.y, q.z, q.y);
+
+                    // y/2 +/- x/2
+                    F.Apm(q.y, q.x, r.ypx_h, r.ymx_h);
+
+                    // x/2 * y/2 * (4.d) == x.y.d
+                    F.Mul(q.x, q.y, r.xyd);
+                    F.Mul(r.xyd, C_d4, r.xyd);
+
+                    F.Normalize(r.ymx_h);
+                    F.Normalize(r.ypx_h);
+                    F.Normalize(r.xyd);
+                }
+
                 PrecompBaseComb = F.CreateTable(combPoints * 3);
                 Init(out PointPrecomp s);
                 int off = 0;
-                for (int i = wnafPoints; i < totalPoints; ++i)
+                for (int i = wnafPoints * 2; i < totalPoints; ++i)
                 {
                     ref PointExtended q = ref points[i];
 
