@@ -556,7 +556,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private void Compress(ReadOnlySpan<byte> message)
         {
 #if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            if(System.Runtime.Intrinsics.X86.Sse41.IsSupported && BitConverter.IsLittleEndian)
+            if (System.Runtime.Intrinsics.X86.Sse41.IsSupported && BitConverter.IsLittleEndian)
             {
                 Blake2s_X86.Compress(f0 == uint.MaxValue, chainValue, message, t0, t1, blake2s_IV);
                 return;

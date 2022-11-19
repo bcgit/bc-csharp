@@ -10,16 +10,6 @@ namespace Org.BouncyCastle.Crypto.Digests
     internal static class VectorExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector128<T> BroadcastVector64ToVector128<T>(ReadOnlySpan<byte> source) where T : struct
-        {
-            Debug.Assert(source.Length >= Unsafe.SizeOf<Vector64<byte>>());
-
-            var vector = MemoryMarshal.Read<Vector64<T>>(source);
-            Vector128<T> result = vector.ToVector128Unsafe();
-            return result.WithUpper(vector);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<T> BroadcastVector128ToVector256<T>(ReadOnlySpan<byte> source) where T : struct
         {
             Debug.Assert(source.Length >= Unsafe.SizeOf<Vector128<byte>>());
