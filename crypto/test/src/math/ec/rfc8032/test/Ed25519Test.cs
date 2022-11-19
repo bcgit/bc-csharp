@@ -609,28 +609,28 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
         private static void ImplTamingVector(int number, bool expected, string msgHex, string pubHex, string sigHex)
         {
-            bool actual;
-            if (sigHex.Length > Ed25519.SignatureSize * 2)
-            {
-                actual = false;
-            }
-            else
-            {
-                byte[] msg = Hex.DecodeStrict(msgHex);
-                byte[] pub = Hex.DecodeStrict(pubHex);
-                byte[] sig = Hex.DecodeStrict(sigHex);
-
-                try
-                {
-                    actual = Ed25519.Verify(sig, 0, pub, 0, msg, 0, msg.Length);
-                }
-                catch (Exception)
-                {
-                    actual = false;
-                }
-            }
+            bool actual = ImplTamingVector(msgHex, pubHex, sigHex);
 
             Assert.AreEqual(expected, actual, "Failed Taming EdDSA Vector #" + number);
+        }
+
+        private static bool ImplTamingVector(string msgHex, string pubHex, string sigHex)
+        {
+            if (sigHex.Length != Ed25519.SignatureSize * 2)
+                return false;
+
+            byte[] msg = Hex.DecodeStrict(msgHex);
+            byte[] pub = Hex.DecodeStrict(pubHex);
+            byte[] sig = Hex.DecodeStrict(sigHex);
+
+            try
+            {
+                return Ed25519.Verify(sig, 0, pub, 0, msg, 0, msg.Length);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         #endregion
