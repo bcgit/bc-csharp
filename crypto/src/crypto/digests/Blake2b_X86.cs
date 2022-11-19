@@ -8,22 +8,47 @@ using System.Runtime.Intrinsics;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    // License from the original code created by Clinton Ingram (saucecontrol) for Blake2Fast 
+    // at https://github.com/saucecontrol/Blake2Fast. The code has been copied and modified.
+
+    // The MIT License
+
+    // Copyright(c) 2018-2021 Clinton Ingram
+
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+
+    // The above copyright notice and this permission notice shall be included in
+    // all copies or substantial portions of the Software.
+
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    // THE SOFTWARE.
+
     internal static class Blake2b_X86
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Compress(bool isFinal, Span<ulong> hashBuffer, ReadOnlySpan<byte> dataBuffer, ulong totalSegmentsLow, ulong totalSegmentsHigh, ReadOnlySpan<ulong> blakeIV)
         {
+            if(!Avx2.IsSupported || !BitConverter.IsLittleEndian)
+                throw new PlatformNotSupportedException(nameof(Blake2b_X86));
+
             Debug.Assert(dataBuffer.Length >= 128);
             Debug.Assert(hashBuffer.Length >= 8);
-            Debug.Assert(Avx2.IsSupported);
-            Debug.Assert(BitConverter.IsLittleEndian);
 
             unchecked
             {
                 Vector256<byte> r24 = Vector256.Create((byte)3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10, 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10);
                 Vector256<byte> r16 = Vector256.Create((byte)2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9, 2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9);
 
-                // TODO: moving this to the bottom causes a 2x slow down?
                 var hashBytes = MemoryMarshal.AsBytes(hashBuffer);
                 var ivBytes = MemoryMarshal.AsBytes(blakeIV);
 
