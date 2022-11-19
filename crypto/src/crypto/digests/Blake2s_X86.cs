@@ -1,10 +1,10 @@
 ﻿#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
@@ -36,44 +36,41 @@ namespace Org.BouncyCastle.Crypto.Digests
     internal static class Blake2s_X86
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Compress(bool isFinal, Span<uint> hashBuffer, ReadOnlySpan<byte> dataBuffer, uint totalSegmentsLow, uint totalSegmentsHigh, ReadOnlySpan<uint> blakeIV)
+        public static void Compress(bool isFinal, Span<uint> hashBuffer, ReadOnlySpan<byte> message, uint totalSegmentsLow, uint totalSegmentsHigh, ReadOnlySpan<uint> blakeIV)
         {
-            if(!Sse41.IsSupported || !BitConverter.IsLittleEndian)
+            if (!Sse41.IsSupported || !BitConverter.IsLittleEndian)
                 throw new PlatformNotSupportedException(nameof(Blake2s_X86));
 
-            Debug.Assert(dataBuffer.Length >= Unsafe.SizeOf<uint>() * 16);
+            Debug.Assert(message.Length >= Unsafe.SizeOf<uint>() * 8);
             Debug.Assert(hashBuffer.Length >= 8);
 
-            unchecked
-            {
-                Vector128<byte> r8 = Vector128.Create((byte)1, 2, 3, 0, 5, 6, 7, 4, 9, 10, 11, 8, 13, 14, 15, 12);
-                Vector128<byte> r16 = Vector128.Create((byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
+            Vector128<byte> r8 = Vector128.Create((byte)1, 2, 3, 0, 5, 6, 7, 4, 9, 10, 11, 8, 13, 14, 15, 12);
+            Vector128<byte> r16 = Vector128.Create((byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
 
-                var hashBytes = MemoryMarshal.AsBytes(hashBuffer);
-                var ivBytes = MemoryMarshal.AsBytes(blakeIV);
+            var hashBytes = MemoryMarshal.AsBytes(hashBuffer);
+            var ivBytes = MemoryMarshal.AsBytes(blakeIV);
 
-                var r_14 = isFinal ? uint.MaxValue : 0;
-                var t_0 = Vector128.Create(totalSegmentsLow, totalSegmentsHigh, r_14, 0);
+            var r_14 = isFinal ? uint.MaxValue : 0;
+            var t_0 = Vector128.Create(totalSegmentsLow, totalSegmentsHigh, r_14, 0);
 
-                Vector128<uint> row1 = VectorExtensions.LoadVector128<uint>(hashBytes);
-                Vector128<uint> row2 = VectorExtensions.LoadVector128<uint>(hashBytes[Vector128<byte>.Count..]);
-                Vector128<uint> row3 = VectorExtensions.LoadVector128<uint>(ivBytes);
-                Vector128<uint> row4 = VectorExtensions.LoadVector128<uint>(ivBytes[Vector128<byte>.Count..]);
-                row4 = Sse2.Xor(row4, t_0);
+            Vector128<uint> row1 = VectorExtensions.LoadVector128<uint>(hashBytes);
+            Vector128<uint> row2 = VectorExtensions.LoadVector128<uint>(hashBytes[Vector128<byte>.Count..]);
+            Vector128<uint> row3 = VectorExtensions.LoadVector128<uint>(ivBytes);
+            Vector128<uint> row4 = VectorExtensions.LoadVector128<uint>(ivBytes[Vector128<byte>.Count..]);
+            row4 = Sse2.Xor(row4, t_0);
 
-                Vector128<uint> orig_1 = row1;
-                Vector128<uint> orig_2 = row2;
+            Vector128<uint> orig_1 = row1;
+            Vector128<uint> orig_2 = row2;
 
-                Perform10Rounds(r8, r16, dataBuffer, ref row1, ref row2, ref row3, ref row4);
+            Perform10Rounds(r8, r16, message, ref row1, ref row2, ref row3, ref row4);
 
-                row1 = Sse2.Xor(row1, row3);
-                row2 = Sse2.Xor(row2, row4);
-                row1 = Sse2.Xor(row1, orig_1);
-                row2 = Sse2.Xor(row2, orig_2);
+            row1 = Sse2.Xor(row1, row3);
+            row2 = Sse2.Xor(row2, row4);
+            row1 = Sse2.Xor(row1, orig_1);
+            row2 = Sse2.Xor(row2, orig_2);
 
-                row1.Store(hashBytes);
-                row2.Store(hashBytes[Vector128<byte>.Count..]);
-            }
+            row1.Store(hashBytes);
+            row2.Store(hashBytes[Vector128<byte>.Count..]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -401,21 +398,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Diagonalize(ref Vector128<uint> row1, ref Vector128<uint> row3, ref Vector128<uint> row4)
         {
-            //     +-------------------+
-            //     |  0 |  1 |  2 |  3 |
-            //     +-------------------+
-            //     |  8 |  9 | 10 | 11 |
-            //     +-------------------+
-            //     | 12 | 13 | 14 | 15 |
-            //     +-------------------+
-            //         --->
-            //     +-------------------+
-            //     |  3 |  0 |  1 |  2 |
-            //     +-------------------+
-            //     |  9 | 10 | 11 |  8 |
-            //     +-------------------+
-            //     | 14 | 15 | 12 | 13 |
-            //     +-------------------+
+            //     +-------------------+        +-------------------+
+            //     |  0 |  1 |  2 |  3 |        |  3 |  0 |  1 |  2 |
+            //     +-------------------+        +-------------------+
+            //     |  8 |  9 | 10 | 11 |  --->  |  9 | 10 | 11 |  8 |
+            //     +-------------------+        +-------------------+
+            //     | 12 | 13 | 14 | 15 |        | 14 | 15 | 12 | 13 |
+            //     +-------------------+        +-------------------+
 
             row1 = Sse2.Shuffle(row1, 0b_10_01_00_11);
             row3 = Sse2.Shuffle(row3, 0b_00_11_10_01);
@@ -449,21 +438,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Undiagonalize(ref Vector128<uint> row1, ref Vector128<uint> row3, ref Vector128<uint> row4)
         {
-            //     +-------------------+
-            //     |  3 |  0 |  1 |  2 |
-            //     +-------------------+
-            //     |  9 | 10 | 11 |  8 |
-            //     +-------------------+
-            //     | 14 | 15 | 12 | 13 |
-            //     +-------------------+
-            //         --->
-            //     +-------------------+
-            //     |  0 |  1 |  2 |  3 |
-            //     +-------------------+
-            //     |  8 |  9 | 10 | 11 |
-            //     +-------------------+
-            //     | 12 | 13 | 14 | 15 |
-            //     +-------------------+
+            //     +-------------------+        +-------------------+
+            //     |  3 |  0 |  1 |  2 |        |  0 |  1 |  2 |  3 |
+            //     +-------------------+        +-------------------+
+            //     |  9 | 10 | 11 |  8 |  --->  |  8 |  9 | 10 | 11 |
+            //     +-------------------+        +-------------------+
+            //     | 14 | 15 | 12 | 13 |        | 12 | 13 | 14 | 15 |
+            //     +-------------------+        +-------------------+
 
             row1 = Sse2.Shuffle(row1, 0b_00_11_10_01);
             row3 = Sse2.Shuffle(row3, 0b_10_01_00_11);
