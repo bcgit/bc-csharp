@@ -53,10 +53,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             var r_14 = isFinal ? uint.MaxValue : 0;
             var t_0 = Vector128.Create(totalSegmentsLow, totalSegmentsHigh, r_14, 0);
 
-            Vector128<uint> row1 = VectorExtensions.LoadVector128<uint>(hashBytes);
-            Vector128<uint> row2 = VectorExtensions.LoadVector128<uint>(hashBytes[Vector128<byte>.Count..]);
-            Vector128<uint> row3 = VectorExtensions.LoadVector128<uint>(ivBytes);
-            Vector128<uint> row4 = VectorExtensions.LoadVector128<uint>(ivBytes[Vector128<byte>.Count..]);
+            Vector128<uint> row1 = LoadVector128<uint>(hashBytes);
+            Vector128<uint> row2 = LoadVector128<uint>(hashBytes[Vector128<byte>.Count..]);
+            Vector128<uint> row3 = LoadVector128<uint>(ivBytes);
+            Vector128<uint> row4 = LoadVector128<uint>(ivBytes[Vector128<byte>.Count..]);
             row4 = Sse2.Xor(row4, t_0);
 
             Vector128<uint> orig_1 = row1;
@@ -69,8 +69,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Sse2.Xor(row1, orig_1);
             row2 = Sse2.Xor(row2, orig_2);
 
-            row1.Store(hashBytes);
-            row2.Store(hashBytes[Vector128<byte>.Count..]);
+            Store(row1, hashBytes);
+            Store(row2, hashBytes[Vector128<byte>.Count..]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,10 +79,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             Debug.Assert(m.Length >= Unsafe.SizeOf<uint>() * 16);
 
             #region Rounds
-            var m0 = VectorExtensions.LoadVector128<uint>(m);
-            var m1 = VectorExtensions.LoadVector128<uint>(m[Vector128<byte>.Count..]);
-            var m2 = VectorExtensions.LoadVector128<uint>(m[(Vector128<byte>.Count * 2)..]);
-            var m3 = VectorExtensions.LoadVector128<uint>(m[(Vector128<byte>.Count * 3)..]);
+            var m0 = LoadVector128<uint>(m);
+            var m1 = LoadVector128<uint>(m[Vector128<byte>.Count..]);
+            var m2 = LoadVector128<uint>(m[(Vector128<byte>.Count * 2)..]);
+            var m3 = LoadVector128<uint>(m[(Vector128<byte>.Count * 3)..]);
 
             //ROUND 1
             var b0 = Sse.Shuffle(m0.AsSingle(), m1.AsSingle(), 0b_10_00_10_00).AsUInt32();
@@ -449,6 +449,20 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Sse2.Shuffle(row1, 0b_00_11_10_01);
             row3 = Sse2.Shuffle(row3, 0b_10_01_00_11);
             row4 = Sse2.Shuffle(row4, 0b_01_00_11_10);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<T> LoadVector128<T>(ReadOnlySpan<byte> source) where T : struct
+        {
+            Debug.Assert(source.Length >= Unsafe.SizeOf<Vector128<byte>>());
+            return MemoryMarshal.Read<Vector128<T>>(source);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store<T>(Vector128<T> vector, Span<byte> destination) where T : struct
+        {
+            Debug.Assert(destination.Length >= Unsafe.SizeOf<Vector128<byte>>());
+            MemoryMarshal.Write(destination, ref vector);
         }
     }
 }

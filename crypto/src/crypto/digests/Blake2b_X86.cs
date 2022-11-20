@@ -53,10 +53,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             var r_14 = isFinal ? ulong.MaxValue : 0;
             var t_0 = Vector256.Create(totalSegmentsLow, totalSegmentsHigh, r_14, 0);
 
-            Vector256<ulong> row1 = VectorExtensions.LoadVector256<ulong>(hashBytes);
-            Vector256<ulong> row2 = VectorExtensions.LoadVector256<ulong>(hashBytes[Vector256<byte>.Count..]);
-            Vector256<ulong> row3 = VectorExtensions.LoadVector256<ulong>(ivBytes);
-            Vector256<ulong> row4 = VectorExtensions.LoadVector256<ulong>(ivBytes[Vector256<byte>.Count..]);
+            Vector256<ulong> row1 = LoadVector256<ulong>(hashBytes);
+            Vector256<ulong> row2 = LoadVector256<ulong>(hashBytes[Vector256<byte>.Count..]);
+            Vector256<ulong> row3 = LoadVector256<ulong>(ivBytes);
+            Vector256<ulong> row4 = LoadVector256<ulong>(ivBytes[Vector256<byte>.Count..]);
             row4 = Avx2.Xor(row4, t_0);
 
             Vector256<ulong> orig_1 = row1;
@@ -69,8 +69,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Avx2.Xor(row1, orig_1);
             row2 = Avx2.Xor(row2, orig_2);
 
-            row1.Store(hashBytes);
-            row2.Store(hashBytes[Vector256<byte>.Count..]);
+            Store(row1, hashBytes);
+            Store(row2, hashBytes[Vector256<byte>.Count..]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -80,10 +80,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             #region Rounds
             //ROUND 1
-            var m0 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m);
-            var m1 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[Unsafe.SizeOf<Vector128<ulong>>()..]);
-            var m2 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 2)..]);
-            var m3 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 3)..]);
+            var m0 = BroadcastVector128ToVector256<ulong>(m);
+            var m1 = BroadcastVector128ToVector256<ulong>(m[Unsafe.SizeOf<Vector128<ulong>>()..]);
+            var m2 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 2)..]);
+            var m3 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 3)..]);
 
             var t0 = Avx2.UnpackLow(m0, m1);
             var t1 = Avx2.UnpackLow(m2, m3);
@@ -99,10 +99,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             Diagonalize(ref row1, ref row3, ref row4);
 
-            var m4 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 4)..]);
-            var m5 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 5)..]);
-            var m6 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 6)..]);
-            var m7 = VectorExtensions.BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 7)..]);
+            var m4 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 4)..]);
+            var m5 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 5)..]);
+            var m6 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 6)..]);
+            var m7 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 7)..]);
 
             t0 = Avx2.UnpackLow(m7, m4);
             t1 = Avx2.UnpackLow(m5, m6);
@@ -493,6 +493,30 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Avx2.Permute4x64(row1, 0b_00_11_10_01);
             row3 = Avx2.Permute4x64(row3, 0b_10_01_00_11);
             row4 = Avx2.Permute4x64(row4, 0b_01_00_11_10);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<T> BroadcastVector128ToVector256<T>(ReadOnlySpan<byte> source) where T : struct
+        {
+            Debug.Assert(source.Length >= Unsafe.SizeOf<Vector128<byte>>());
+
+            var vector = MemoryMarshal.Read<Vector128<T>>(source);
+            Vector256<T> result = vector.ToVector256Unsafe();
+            return result.WithUpper(vector);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<T> LoadVector256<T>(ReadOnlySpan<byte> source) where T : struct
+        {
+            Debug.Assert(source.Length >= Unsafe.SizeOf<Vector256<byte>>());
+            return MemoryMarshal.Read<Vector256<T>>(source);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store<T>(Vector256<T> vector, Span<byte> destination) where T : struct
+        {
+            Debug.Assert(destination.Length >= Unsafe.SizeOf<Vector256<byte>>());
+            MemoryMarshal.Write(destination, ref vector);
         }
     }
 }
