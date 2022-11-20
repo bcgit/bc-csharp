@@ -190,15 +190,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             return false;
         }
-
-        private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
-        {
-            if (s[ScalarBytes - 1] != 0x00)
-                return false;
-
-            DecodeScalar(s, n);
-            return !Nat.Gte(ScalarUints, n, L);
-        }
 #else
         private static bool CheckPointVar(byte[] p)
         {
@@ -215,7 +206,54 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             return false;
         }
+#endif
 
+
+        private static bool CheckPointFullVar(byte[] p)
+        {
+            if ((p[PointBytes - 1] & 0x7F) != 0x00)
+                return false;
+
+            uint y13 = Codec.Decode32(p, 52);
+
+            uint t0 = y13;
+            uint t1 = y13 ^ P[13];
+
+            for (int i = CoordUints - 2; i > 0; --i)
+            {
+                uint yi = Codec.Decode32(p, i * 4);
+
+                // Reject non-canonical encodings (i.e. >= P)
+                if (t1 == 0 && yi > P[i])
+                    return false;
+
+                t0 |= yi;
+                t1 |= yi ^ P[i];
+            }
+
+            uint y0 = Codec.Decode32(p, 0);
+
+            // Reject 0 and 1
+            if (t0 == 0 && y0 <= 1U)
+                return false;
+
+            // Reject P - 1 and non-canonical encodings (i.e. >= P)
+            if (t1 == 0 && y0 >= (P[0] - 1U))
+                return false;
+
+            return true;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
+        {
+            if (s[ScalarBytes - 1] != 0x00)
+                return false;
+
+            DecodeScalar(s, n);
+            return !Nat.Gte(ScalarUints, n, L);
+        }
+#else
         private static bool CheckScalarVar(byte[] s, uint[] n)
         {
             if (s[ScalarBytes - 1] != 0x00)
@@ -246,7 +284,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointProjective r)
         {
             byte[] py = Copy(p, pOff, PointBytes);
-            if (!CheckPointVar(py))
+            if (!CheckPointFullVar(py))
                 return false;
 
             int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
@@ -2040,13 +2078,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Init(out PointProjective p);
             if (!DecodePointVar(pk, pkOff, false, ref p))
-                return false;
-
-            F.Normalize(p.x);
-            F.Normalize(p.y);
-            F.Normalize(p.z);
-
-            if (IsNeutralElementVar(p.x, p.y, p.z))
                 return false;
 
             Init(out PointProjective r);
