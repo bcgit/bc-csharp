@@ -1,7 +1,4 @@
 ﻿using System;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers.Binary;
-#endif
 using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto;
@@ -127,7 +124,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] result = new byte[ScalarBytes * 2];
             for (int i = 0; i < t.Length; ++i)
             {
-                Encode32(t[i], result, i * 4);
+                Codec.Encode32(t[i], result, i * 4);
             }
             return ReduceScalar(result);
         }
@@ -182,13 +179,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if ((p[PointBytes - 1] & 0x7F) != 0x00)
                 return false;
-            if (Decode32(p[52..]) < P[13])
+            if (Codec.Decode32(p[52..]) < P[13])
                 return true;
 
             int last = p[28] == 0xFF ? 7 : 0;
             for (int i = CoordUints - 2; i >= last; --i)
             {
-                if (Decode32(p[(i * 4)..]) < P[i])
+                if (Codec.Decode32(p[(i * 4)..]) < P[i])
                     return true;
             }
             return false;
@@ -207,13 +204,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if ((p[PointBytes - 1] & 0x7F) != 0x00)
                 return false;
-            if (Decode32(p, 52) < P[13])
+            if (Codec.Decode32(p, 52) < P[13])
                 return true;
 
             int last = p[28] == 0xFF ? 7 : 0;
             for (int i = CoordUints - 2; i >= last; --i)
             {
-                if (Decode32(p, i * 4) < P[i])
+                if (Codec.Decode32(p, i * 4) < P[i])
                     return true;
             }
             return false;
@@ -245,80 +242,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             return new ShakeDigest(256);
         }
-
-        private static uint Decode16(byte[] bs, int off)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return BinaryPrimitives.ReadUInt16LittleEndian(bs.AsSpan(off));
-#else
-            uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            return n;
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode16(ReadOnlySpan<byte> bs)
-        {
-            return BinaryPrimitives.ReadUInt16LittleEndian(bs);
-        }
-#endif
-
-        private static uint Decode24(byte[] bs, int off)
-        {
-            uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            n |= (uint)bs[++off] << 16;
-            return n;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode24(ReadOnlySpan<byte> bs)
-        {
-            uint n = bs[0];
-            n |= (uint)bs[1] << 8;
-            n |= (uint)bs[2] << 16;
-            return n;
-        }
-#endif
-
-        private static uint Decode32(byte[] bs, int off)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs.AsSpan(off));
-#else
-            uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            n |= (uint)bs[++off] << 16;
-            n |= (uint)bs[++off] << 24;
-            return n;
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode32(ReadOnlySpan<byte> bs)
-        {
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs);
-        }
-#endif
-
-        private static void Decode32(byte[] bs, int bsOff, uint[] n, int nOff, int nLen)
-        {
-            for (int i = 0; i < nLen; ++i)
-            {
-                n[nOff + i] = Decode32(bs, bsOff + i * 4);
-            }
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Decode32(ReadOnlySpan<byte> bs, Span<uint> n)
-        {
-            for (int i = 0; i < n.Length; ++i)
-            {
-                n[i] = Decode32(bs[(i * 4)..]);
-            }
-        }
-#endif
 
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointProjective r)
         {
@@ -360,7 +283,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Debug.Assert(k[kOff + ScalarBytes - 1] == 0x00);
 
-            Decode32(k, kOff, n, 0, ScalarUints);
+            Codec.Decode32(k, kOff, n, 0, ScalarUints);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -368,7 +291,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Debug.Assert(k[ScalarBytes - 1] == 0x00);
 
-            Decode32(k, n[..ScalarUints]);
+            Codec.Decode32(k, n[..ScalarUints]);
         }
 #endif
 
@@ -383,55 +306,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             d.BlockUpdate(t, 0, t.Length);
         }
-
-        private static void Encode24(uint n, byte[] bs, int off)
-        {
-            bs[off] = (byte)(n);
-            bs[++off] = (byte)(n >> 8);
-            bs[++off] = (byte)(n >> 16);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Encode24(uint n, Span<byte> bs)
-        {
-            bs[0] = (byte)(n);
-            bs[1] = (byte)(n >> 8);
-            bs[2] = (byte)(n >> 16);
-        }
-#endif
-
-        private static void Encode32(uint n, byte[] bs, int off)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            BinaryPrimitives.WriteUInt32LittleEndian(bs.AsSpan(off), n);
-#else
-            bs[  off] = (byte)(n      );
-            bs[++off] = (byte)(n >>  8);
-            bs[++off] = (byte)(n >> 16);
-            bs[++off] = (byte)(n >> 24);
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Encode32(uint n, Span<byte> bs)
-        {
-            BinaryPrimitives.WriteUInt32LittleEndian(bs, n);
-        }
-#endif
-
-        private static void Encode56(ulong n, byte[] bs, int off)
-        {
-            Encode32((uint)n, bs, off);
-            Encode24((uint)(n >> 32), bs, off + 4);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Encode56(ulong n, Span<byte> bs)
-        {
-            Encode32((uint)n, bs);
-            Encode24((uint)(n >> 32), bs[4..]);
-        }
-#endif
 
         private static int EncodePoint(ref PointProjective p, byte[] r, int rOff)
         {
@@ -1196,39 +1070,39 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ReduceScalar(n, r);
 #else
-            ulong x00 =  Decode32(n,   0);              // x00:32/--
-            ulong x01 = (Decode24(n,   4) << 4);        // x01:28/--
-            ulong x02 =  Decode32(n,   7);              // x02:32/--
-            ulong x03 = (Decode24(n,  11) << 4);        // x03:28/--
-            ulong x04 =  Decode32(n,  14);              // x04:32/--
-            ulong x05 = (Decode24(n,  18) << 4);        // x05:28/--
-            ulong x06 =  Decode32(n,  21);              // x06:32/--
-            ulong x07 = (Decode24(n,  25) << 4);        // x07:28/--
-            ulong x08 =  Decode32(n,  28);              // x08:32/--
-            ulong x09 = (Decode24(n,  32) << 4);        // x09:28/--
-            ulong x10 =  Decode32(n,  35);              // x10:32/--
-            ulong x11 = (Decode24(n,  39) << 4);        // x11:28/--
-            ulong x12 =  Decode32(n,  42);              // x12:32/--
-            ulong x13 = (Decode24(n,  46) << 4);        // x13:28/--
-            ulong x14 =  Decode32(n,  49);              // x14:32/--
-            ulong x15 = (Decode24(n,  53) << 4);        // x15:28/--
-            ulong x16 =  Decode32(n,  56);              // x16:32/--
-            ulong x17 = (Decode24(n,  60) << 4);        // x17:28/--
-            ulong x18 =  Decode32(n,  63);              // x18:32/--
-            ulong x19 = (Decode24(n,  67) << 4);        // x19:28/--
-            ulong x20 =  Decode32(n,  70);              // x20:32/--
-            ulong x21 = (Decode24(n,  74) << 4);        // x21:28/--
-            ulong x22 =  Decode32(n,  77);              // x22:32/--
-            ulong x23 = (Decode24(n,  81) << 4);        // x23:28/--
-            ulong x24 =  Decode32(n,  84);              // x24:32/--
-            ulong x25 = (Decode24(n,  88) << 4);        // x25:28/--
-            ulong x26 =  Decode32(n,  91);              // x26:32/--
-            ulong x27 = (Decode24(n,  95) << 4);        // x27:28/--
-            ulong x28 =  Decode32(n,  98);              // x28:32/--
-            ulong x29 = (Decode24(n, 102) << 4);        // x29:28/--
-            ulong x30 =  Decode32(n, 105);              // x30:32/--
-            ulong x31 = (Decode24(n, 109) << 4);        // x31:28/--
-            ulong x32 =  Decode16(n, 112);              // x32:16/--
+            ulong x00 =  Codec.Decode32(n,   0);                // x00:32/--
+            ulong x01 = (Codec.Decode24(n,   4) << 4);          // x01:28/--
+            ulong x02 =  Codec.Decode32(n,   7);                // x02:32/--
+            ulong x03 = (Codec.Decode24(n,  11) << 4);          // x03:28/--
+            ulong x04 =  Codec.Decode32(n,  14);                // x04:32/--
+            ulong x05 = (Codec.Decode24(n,  18) << 4);          // x05:28/--
+            ulong x06 =  Codec.Decode32(n,  21);                // x06:32/--
+            ulong x07 = (Codec.Decode24(n,  25) << 4);          // x07:28/--
+            ulong x08 =  Codec.Decode32(n,  28);                // x08:32/--
+            ulong x09 = (Codec.Decode24(n,  32) << 4);          // x09:28/--
+            ulong x10 =  Codec.Decode32(n,  35);                // x10:32/--
+            ulong x11 = (Codec.Decode24(n,  39) << 4);          // x11:28/--
+            ulong x12 =  Codec.Decode32(n,  42);                // x12:32/--
+            ulong x13 = (Codec.Decode24(n,  46) << 4);          // x13:28/--
+            ulong x14 =  Codec.Decode32(n,  49);                // x14:32/--
+            ulong x15 = (Codec.Decode24(n,  53) << 4);          // x15:28/--
+            ulong x16 =  Codec.Decode32(n,  56);                // x16:32/--
+            ulong x17 = (Codec.Decode24(n,  60) << 4);          // x17:28/--
+            ulong x18 =  Codec.Decode32(n,  63);                // x18:32/--
+            ulong x19 = (Codec.Decode24(n,  67) << 4);          // x19:28/--
+            ulong x20 =  Codec.Decode32(n,  70);                // x20:32/--
+            ulong x21 = (Codec.Decode24(n,  74) << 4);          // x21:28/--
+            ulong x22 =  Codec.Decode32(n,  77);                // x22:32/--
+            ulong x23 = (Codec.Decode24(n,  81) << 4);          // x23:28/--
+            ulong x24 =  Codec.Decode32(n,  84);                // x24:32/--
+            ulong x25 = (Codec.Decode24(n,  88) << 4);          // x25:28/--
+            ulong x26 =  Codec.Decode32(n,  91);                // x26:32/--
+            ulong x27 = (Codec.Decode24(n,  95) << 4);          // x27:28/--
+            ulong x28 =  Codec.Decode32(n,  98);                // x28:32/--
+            ulong x29 = (Codec.Decode24(n, 102) << 4);          // x29:28/--
+            ulong x30 =  Codec.Decode32(n, 105);                // x30:32/--
+            ulong x31 = (Codec.Decode24(n, 109) << 4);          // x31:28/--
+            ulong x32 =  Codec.Decode16(n, 112);                // x32:16/--
 
             //x32 += (x31 >> 28); x31 &= M28UL;
             x16 += x32 * L4_0;                          // x16:42/--
@@ -1458,14 +1332,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Debug.Assert(x15 >> 26 == 0UL);
 
-            Encode56(x00 | (x01 << 28), r,  0);
-            Encode56(x02 | (x03 << 28), r,  7);
-            Encode56(x04 | (x05 << 28), r, 14);
-            Encode56(x06 | (x07 << 28), r, 21);
-            Encode56(x08 | (x09 << 28), r, 28);
-            Encode56(x10 | (x11 << 28), r, 35);
-            Encode56(x12 | (x13 << 28), r, 42);
-            Encode56(x14 | (x15 << 28), r, 49);
+            Codec.Encode56(x00 | (x01 << 28), r,  0);
+            Codec.Encode56(x02 | (x03 << 28), r,  7);
+            Codec.Encode56(x04 | (x05 << 28), r, 14);
+            Codec.Encode56(x06 | (x07 << 28), r, 21);
+            Codec.Encode56(x08 | (x09 << 28), r, 28);
+            Codec.Encode56(x10 | (x11 << 28), r, 35);
+            Codec.Encode56(x12 | (x13 << 28), r, 42);
+            Codec.Encode56(x14 | (x15 << 28), r, 49);
             //r[ScalarBytes - 1] = 0;
 #endif
 
@@ -1475,39 +1349,39 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ReduceScalar(ReadOnlySpan<byte> n, Span<byte> r)
         {
-            ulong x00 =  Decode32(n[ 0..]);             // x00:32/--
-            ulong x01 = (Decode24(n[ 4..]) << 4);       // x01:28/--
-            ulong x02 =  Decode32(n[ 7..]);             // x02:32/--
-            ulong x03 = (Decode24(n[11..]) << 4);       // x03:28/--
-            ulong x04 =  Decode32(n[14..]);             // x04:32/--
-            ulong x05 = (Decode24(n[18..]) << 4);       // x05:28/--
-            ulong x06 =  Decode32(n[21..]);             // x06:32/--
-            ulong x07 = (Decode24(n[25..]) << 4);       // x07:28/--
-            ulong x08 =  Decode32(n[28..]);             // x08:32/--
-            ulong x09 = (Decode24(n[32..]) << 4);       // x09:28/--
-            ulong x10 =  Decode32(n[35..]);             // x10:32/--
-            ulong x11 = (Decode24(n[39..]) << 4);       // x11:28/--
-            ulong x12 =  Decode32(n[42..]);             // x12:32/--
-            ulong x13 = (Decode24(n[46..]) << 4);       // x13:28/--
-            ulong x14 =  Decode32(n[49..]);             // x14:32/--
-            ulong x15 = (Decode24(n[53..]) << 4);       // x15:28/--
-            ulong x16 =  Decode32(n[56..]);             // x16:32/--
-            ulong x17 = (Decode24(n[60..]) << 4);       // x17:28/--
-            ulong x18 =  Decode32(n[63..]);             // x18:32/--
-            ulong x19 = (Decode24(n[67..]) << 4);       // x19:28/--
-            ulong x20 =  Decode32(n[70..]);             // x20:32/--
-            ulong x21 = (Decode24(n[74..]) << 4);       // x21:28/--
-            ulong x22 =  Decode32(n[77..]);             // x22:32/--
-            ulong x23 = (Decode24(n[81..]) << 4);       // x23:28/--
-            ulong x24 =  Decode32(n[84..]);             // x24:32/--
-            ulong x25 = (Decode24(n[88..]) << 4);       // x25:28/--
-            ulong x26 =  Decode32(n[91..]);             // x26:32/--
-            ulong x27 = (Decode24(n[95..]) << 4);       // x27:28/--
-            ulong x28 =  Decode32(n[98..]);             // x28:32/--
-            ulong x29 = (Decode24(n[102..]) << 4);      // x29:28/--
-            ulong x30 =  Decode32(n[105..]);            // x30:32/--
-            ulong x31 = (Decode24(n[109..]) << 4);      // x31:28/--
-            ulong x32 =  Decode16(n[112..]);            // x32:16/--
+            ulong x00 =  Codec.Decode32(n[  0..]);              // x00:32/--
+            ulong x01 = (Codec.Decode24(n[  4..]) << 4);        // x01:28/--
+            ulong x02 =  Codec.Decode32(n[  7..]);              // x02:32/--
+            ulong x03 = (Codec.Decode24(n[ 11..]) << 4);        // x03:28/--
+            ulong x04 =  Codec.Decode32(n[ 14..]);              // x04:32/--
+            ulong x05 = (Codec.Decode24(n[ 18..]) << 4);        // x05:28/--
+            ulong x06 =  Codec.Decode32(n[ 21..]);              // x06:32/--
+            ulong x07 = (Codec.Decode24(n[ 25..]) << 4);        // x07:28/--
+            ulong x08 =  Codec.Decode32(n[ 28..]);              // x08:32/--
+            ulong x09 = (Codec.Decode24(n[ 32..]) << 4);        // x09:28/--
+            ulong x10 =  Codec.Decode32(n[ 35..]);              // x10:32/--
+            ulong x11 = (Codec.Decode24(n[ 39..]) << 4);        // x11:28/--
+            ulong x12 =  Codec.Decode32(n[ 42..]);              // x12:32/--
+            ulong x13 = (Codec.Decode24(n[ 46..]) << 4);        // x13:28/--
+            ulong x14 =  Codec.Decode32(n[ 49..]);              // x14:32/--
+            ulong x15 = (Codec.Decode24(n[ 53..]) << 4);        // x15:28/--
+            ulong x16 =  Codec.Decode32(n[ 56..]);              // x16:32/--
+            ulong x17 = (Codec.Decode24(n[ 60..]) << 4);        // x17:28/--
+            ulong x18 =  Codec.Decode32(n[ 63..]);              // x18:32/--
+            ulong x19 = (Codec.Decode24(n[ 67..]) << 4);        // x19:28/--
+            ulong x20 =  Codec.Decode32(n[ 70..]);              // x20:32/--
+            ulong x21 = (Codec.Decode24(n[ 74..]) << 4);        // x21:28/--
+            ulong x22 =  Codec.Decode32(n[ 77..]);              // x22:32/--
+            ulong x23 = (Codec.Decode24(n[ 81..]) << 4);        // x23:28/--
+            ulong x24 =  Codec.Decode32(n[ 84..]);              // x24:32/--
+            ulong x25 = (Codec.Decode24(n[ 88..]) << 4);        // x25:28/--
+            ulong x26 =  Codec.Decode32(n[ 91..]);              // x26:32/--
+            ulong x27 = (Codec.Decode24(n[ 95..]) << 4);        // x27:28/--
+            ulong x28 =  Codec.Decode32(n[ 98..]);              // x28:32/--
+            ulong x29 = (Codec.Decode24(n[102..]) << 4);        // x29:28/--
+            ulong x30 =  Codec.Decode32(n[105..]);              // x30:32/--
+            ulong x31 = (Codec.Decode24(n[109..]) << 4);        // x31:28/--
+            ulong x32 =  Codec.Decode16(n[112..]);              // x32:16/--
 
             //x32 += (x31 >> 28); x31 &= M28UL;
             x16 += x32 * L4_0;                          // x16:42/--
@@ -1737,15 +1611,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Debug.Assert(x15 >> 26 == 0UL);
 
-            Encode56(x00 | (x01 << 28), r);
-            Encode56(x02 | (x03 << 28), r[7..]);
-            Encode56(x04 | (x05 << 28), r[14..]);
-            Encode56(x06 | (x07 << 28), r[21..]);
-            Encode56(x08 | (x09 << 28), r[28..]);
-            Encode56(x10 | (x11 << 28), r[35..]);
-            Encode56(x12 | (x13 << 28), r[42..]);
-            Encode56(x14 | (x15 << 28), r[49..]);
-            //r[ScalarBytes - 1] = 0;
+            Codec.Encode56(x00 | (x01 << 28), r);
+            Codec.Encode56(x02 | (x03 << 28), r[7..]);
+            Codec.Encode56(x04 | (x05 << 28), r[14..]);
+            Codec.Encode56(x06 | (x07 << 28), r[21..]);
+            Codec.Encode56(x08 | (x09 << 28), r[28..]);
+            Codec.Encode56(x10 | (x11 << 28), r[35..]);
+            Codec.Encode56(x12 | (x13 << 28), r[42..]);
+            Codec.Encode56(x14 | (x15 << 28), r[49..]);
+            r[ScalarBytes - 1] = 0;
         }
 #endif
 
@@ -2035,10 +1909,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 int wp = ws_p[bit];
                 if (wp != 0)
                 {
-                    int sign = wp >> 31;
-                    int index = (wp >> 1) ^ sign;
-
-                    PointAddVar(sign != 0, ref tp[index], ref r);
+                    int index = (wp >> 1) ^ (wp >> 31);
+                    PointAddVar(wp < 0, ref tp[index], ref r);
                 }
 
                 if (--bit < 0)
@@ -2085,19 +1957,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 int wb = ws_b[bit];
                 if (wb != 0)
                 {
-                    int sign = wb >> 31;
-                    int index = (wb >> 1) ^ sign;
-
-                    PointAddVar(sign != 0, ref PrecompBaseWnaf[index], ref r);
+                    int index = (wb >> 1) ^ (wb >> 31);
+                    PointAddVar(wb < 0, ref PrecompBaseWnaf[index], ref r);
                 }
 
                 int wp = ws_p[bit];
                 if (wp != 0)
                 {
-                    int sign = wp >> 31;
-                    int index = (wp >> 1) ^ sign;
-
-                    PointAddVar(sign != 0, ref tp[index], ref r);
+                    int index = (wp >> 1) ^ (wp >> 31);
+                    PointAddVar(wp < 0, ref tp[index], ref r);
                 }
 
                 if (--bit < 0)
