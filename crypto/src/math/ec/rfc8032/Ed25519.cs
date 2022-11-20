@@ -64,6 +64,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int L3 = -0x006215D1;     // L3:23/--
         private const int L4 =  0x000014DF;     // L4:12/11
 
+        private static readonly uint[] Order8_y1 = { 0x706A17C7, 0x4FD84D3D, 0x760B3CBA, 0x0F67100D, 0xFA53202A,
+            0xC6CC392C, 0x77FDC74E, 0x7A03AC92 };
+        private static readonly uint[] Order8_y2 = { 0x8F95E826, 0xB027B2C2, 0x89F4C345, 0xF098EFF2, 0x05ACDFD5,
+            0x3933C6D3, 0x880238B1, 0x05FC536D };
+
         private static readonly int[] B_x = { 0x0325D51A, 0x018B5823, 0x007B2C95, 0x0304A92D, 0x00D2598E, 0x01D6DC5C,
             0x01388C7F, 0x013FEC0A, 0x029E6B72, 0x0042D26D };
         private static readonly int[] B_y = { 0x02666658, 0x01999999, 0x00666666, 0x03333333, 0x00CCCCCC, 0x02666666,
@@ -209,12 +214,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             return false;
         }
-
-        private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
-        {
-            DecodeScalar(s, n);
-            return !Nat.Gte(ScalarUints, n, L);
-        }
 #else
         private static bool CheckPointVar(byte[] p)
         {
@@ -227,7 +226,51 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             return false;
         }
+#endif
 
+        private static bool CheckPointFullVar(byte[] p)
+        {
+            uint y7 = Codec.Decode32(p, 28) & 0x7FFFFFFFU;
+
+            uint t0 = y7;
+            uint t1 = y7 ^ P[7];
+            uint t2 = y7 ^ Order8_y1[7];
+            uint t3 = y7 ^ Order8_y2[7];
+
+            for (int i = CoordUints - 2; i > 0; --i)
+            {
+                uint yi = Codec.Decode32(p, i * 4);
+
+                t0 |= yi;
+                t1 |= yi ^ P[i];
+                t2 |= yi ^ Order8_y1[i];
+                t3 |= yi ^ Order8_y2[i];
+            }
+
+            uint y0 = Codec.Decode32(p, 0);
+
+            // Reject 0 and 1
+            if (t0 == 0 && y0 <= 1U)
+                return false;
+
+            // Reject P - 1 and non-canonical encodings (i.e. >= P)
+            if (t1 == 0 && y0 >= (P[0] - 1U))
+                return false;
+
+            t2 |= y0 ^ Order8_y1[0];
+            t3 |= y0 ^ Order8_y2[0];
+
+            // Reject order 8 points
+            return (t2 != 0) & (t3 != 0);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
+        {
+            DecodeScalar(s, n);
+            return !Nat.Gte(ScalarUints, n, L);
+        }
+#else
         private static bool CheckScalarVar(byte[] s, uint[] n)
         {
             DecodeScalar(s, 0, n);
@@ -258,7 +301,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointAffine r)
         {
             byte[] py = Copy(p, pOff, PointBytes);
-            if (!CheckPointVar(py))
+            if (!CheckPointFullVar(py))
                 return false;
 
             int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
@@ -1908,12 +1951,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Init(out PointAffine p);
             if (!DecodePointVar(pk, pkOff, false, ref p))
-                return false;
-
-            F.Normalize(p.x);
-            F.Normalize(p.y);
-
-            if (IsNeutralElementVar(p.x, p.y))
                 return false;
 
             Init(out PointAccum r);

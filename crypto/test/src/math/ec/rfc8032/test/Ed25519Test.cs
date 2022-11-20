@@ -15,8 +15,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
     {
 		private static readonly SecureRandom Random = new SecureRandom();
 
-        private static readonly byte[] Neutral = Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000");
-
         [SetUp]
         public void SetUp()
         {
@@ -371,8 +369,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TestPublicKeyValidationFull()
         {
-            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Neutral, 0));
-
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
 
@@ -383,9 +379,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Assert.IsTrue(Ed25519.ValidatePublicKeyFull(pk, 0));
             }
 
-            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
-
+            // Small order points (canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC037A"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC03FA"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC05"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC85"), 0));
+
+            // Small order points (non-canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+            // Non-canonical encodings
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
@@ -417,8 +425,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TestPublicKeyValidationPartial()
         {
-            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Neutral, 0));
-
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
 
@@ -429,9 +435,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(pk, 0));
             }
 
-            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+            // Small order points (canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC037A"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC03FA"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC05"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC85"), 0));
 
-            Assert.IsTrue (Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            // Small order points (non-canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+            // Non-canonical encodings
             Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
@@ -469,23 +487,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TamingNonRepudiation()
         {
-            // TODO Algorithm 2 rejects this because A is one of 8 small order points
-
             byte[] msg1 = Encoding.UTF8.GetBytes("Send 100 USD to Alice");
             byte[] msg2 = Encoding.UTF8.GetBytes("Send 100000 USD to Alice");
             byte[] pub = Hex.DecodeStrict("ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f");
             byte[] sig = Hex.DecodeStrict("a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
                                           "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
 
-            Assert.IsTrue(Ed25519.Verify(sig, 0, pub, 0, msg1, 0, msg1.Length));
-            Assert.IsTrue(Ed25519.Verify(sig, 0, pub, 0, msg2, 0, msg2.Length));
+            Assert.IsFalse(Ed25519.Verify(sig, 0, pub, 0, msg1, 0, msg1.Length));
+            Assert.IsFalse(Ed25519.Verify(sig, 0, pub, 0, msg2, 0, msg2.Length));
         }
 
         [Test]
         public void TamingVector_00()
         {
-            // TODO Algorithm 2 rejects this because A is one of 8 small order points
-            ImplTamingVector(0, true,
+            ImplTamingVector(0, false,
                 "8c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6",
                 "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
                 "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a" +
@@ -495,8 +510,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TamingVector_01()
         {
-            // TODO Algorithm 2 rejects this because A is one of 8 small order points
-            ImplTamingVector(1, true,
+            ImplTamingVector(1, false,
                 "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
                 "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
                 "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43" +
