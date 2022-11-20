@@ -303,17 +303,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void Dom2(IDigest d, byte phflag, byte[] ctx)
         {
-            if (ctx != null)
-            {
-                int n = Dom2Prefix.Length;
-                byte[] t = new byte[n + 2 + ctx.Length];
-                Dom2Prefix.CopyTo(t, 0);
-                t[n] = phflag;
-                t[n + 1] = (byte)ctx.Length;
-                ctx.CopyTo(t, n + 2);
+            Debug.Assert(ctx != null);
 
-                d.BlockUpdate(t, 0, t.Length);
-            }
+            int n = Dom2Prefix.Length;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> t = stackalloc byte[n + 2 + ctx.Length];
+            Dom2Prefix.CopyTo(t);
+            t[n] = phflag;
+            t[n + 1] = (byte)ctx.Length;
+            ctx.CopyTo(t.Slice(n + 2));
+
+            d.BlockUpdate(t);
+#else
+            byte[] t = new byte[n + 2 + ctx.Length];
+            Dom2Prefix.CopyTo(t, 0);
+            t[n] = phflag;
+            t[n + 1] = (byte)ctx.Length;
+            ctx.CopyTo(t, n + 2);
+
+            d.BlockUpdate(t, 0, t.Length);
+#endif
         }
 
         private static int EncodePoint(ref PointAccum p, byte[] r, int rOff)
@@ -425,7 +435,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static void ImplSign(IDigest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
             byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(h, ScalarBytes, ScalarBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
@@ -434,7 +447,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] R = new byte[PointBytes];
             ScalarMultBaseEncoded(r, R, 0);
 
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(R, 0, PointBytes);
             d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
@@ -513,7 +529,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             Span<byte> h = stackalloc byte[64];
 
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(R);
             d.BlockUpdate(pk.AsSpan(pkOff, PointBytes));
             d.BlockUpdate(m.AsSpan(mOff, mLen));
@@ -548,7 +567,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             byte[] h = new byte[64];
 
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(R, 0, PointBytes);
             d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);

@@ -298,6 +298,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static void Dom4(IXof d, byte phflag, byte[] ctx)
         {
             int n = Dom4Prefix.Length;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> t = stackalloc byte[n + 2 + ctx.Length];
+            Dom4Prefix.CopyTo(t);
+            t[n] = phflag;
+            t[n + 1] = (byte)ctx.Length;
+            ctx.CopyTo(t.Slice(n + 2));
+
+            d.BlockUpdate(t);
+#else
             byte[] t = new byte[n + 2 + ctx.Length];
             Dom4Prefix.CopyTo(t, 0);
             t[n] = phflag;
@@ -305,6 +315,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ctx.CopyTo(t, n + 2);
 
             d.BlockUpdate(t, 0, t.Length);
+#endif
         }
 
         private static int EncodePoint(ref PointProjective p, byte[] r, int rOff)
