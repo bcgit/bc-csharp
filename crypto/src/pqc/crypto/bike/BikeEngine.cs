@@ -56,9 +56,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] FunctionH(byte[] seed)
         {
+            byte[] res = new byte[r * 2];
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(seed, 0, seed.Length);
-            return BikeUtilities.GenerateRandomByteArray(r * 2, 2 * R_BYTE, t, digest);
+            BikeUtilities.GenerateRandomByteArray(res, (uint)r * 2, (uint)t, digest);
+            return res;
         }
 
         private void FunctionL(byte[] e0, byte[] e1, byte[] result)
@@ -137,11 +139,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 #endif
 
             // 1. Randomly generate h0, h1
-            ulong[] h0Element = bikeRing.GenerateRandom(hw, digest);
-            ulong[] h1Element = bikeRing.GenerateRandom(hw, digest);
+            BikeUtilities.GenerateRandomByteArray(h0, (uint)r, (uint)hw, digest);
+            BikeUtilities.GenerateRandomByteArray(h1, (uint)r, (uint)hw, digest);
 
-            bikeRing.EncodeBytes(h0Element, h0);
-            bikeRing.EncodeBytes(h1Element, h1);
+            ulong[] h0Element = bikeRing.Create();
+            ulong[] h1Element = bikeRing.Create();
+            bikeRing.DecodeBytes(h0, h0Element);
+            bikeRing.DecodeBytes(h1, h1Element);
 
             // 2. Compute h
             ulong[] hElement = bikeRing.Create();
@@ -248,7 +252,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             // 3. Compute K
             byte[] wlist = FunctionH(mPrime);
-            if (Arrays.AreEqual(ePrimeBytes, wlist))
+            if (Arrays.AreEqual(ePrimeBytes, 0, ePrimeBytes.Length,
+                    wlist, 0, ePrimeBytes.Length))
             {
                 FunctionK(mPrime, c0, c1, k);
             }
