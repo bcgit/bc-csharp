@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+﻿#if NETCOREAPP3_0_OR_GREATER
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -35,10 +35,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
     internal static class Blake2b_X86
     {
+        public static bool IsSupported => Avx2.IsSupported && BitConverter.IsLittleEndian;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Compress(bool isFinal, Span<ulong> hashBuffer, ReadOnlySpan<byte> message, ulong totalSegmentsLow, ulong totalSegmentsHigh, ReadOnlySpan<ulong> blakeIV)
         {
-            if (!Avx2.IsSupported || !BitConverter.IsLittleEndian)
+            if (!IsSupported)
                 throw new PlatformNotSupportedException(nameof(Blake2b_X86));
 
             Debug.Assert(message.Length >= Unsafe.SizeOf<ulong>() * 8);
@@ -96,7 +98,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             var m4 = BroadcastVector128ToVector256<ulong>(m[(Unsafe.SizeOf<Vector128<ulong>>() * 4)..]);
@@ -115,7 +116,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 2
@@ -130,7 +130,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.UnpackHigh(m2, m0);
@@ -144,7 +143,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 3
@@ -159,7 +157,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.AlignRight(m5, m4, 8);
@@ -173,7 +170,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 4
@@ -188,7 +184,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.AlignRight(m1, m7, 8);
@@ -202,7 +197,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 5
@@ -217,7 +211,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.AlignRight(m7, m1, 8);
@@ -231,7 +224,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 6
@@ -246,7 +238,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.AlignRight(m2, m0, 8);
@@ -260,7 +251,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 7
@@ -275,7 +265,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.UnpackLow(m4, m0);
@@ -289,7 +278,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 8
@@ -304,7 +292,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.Blend(m1.AsUInt32(), m2.AsUInt32(), 0b_1100_1100).AsUInt64();
@@ -318,7 +305,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 9
@@ -333,7 +319,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.UnpackLow(m5, m6);
@@ -347,7 +332,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 10
@@ -362,7 +346,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.UnpackHigh(m6, m7);
@@ -376,7 +359,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 11
@@ -391,7 +373,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.UnpackLow(m7, m4);
@@ -405,7 +386,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
 
             //ROUND 12
@@ -420,7 +400,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Diagonalize(ref row1, ref row3, ref row4);
 
             t0 = Avx2.UnpackHigh(m2, m0);
@@ -434,7 +413,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             b0 = Avx2.Blend(t0.AsUInt32(), t1.AsUInt32(), 0b_1111_0000).AsUInt64();
 
             G2(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
             Undiagonalize(ref row1, ref row3, ref row4);
             #endregion
         }

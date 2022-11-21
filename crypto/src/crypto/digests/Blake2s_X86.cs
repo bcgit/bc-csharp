@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+﻿#if NETCOREAPP3_0_OR_GREATER
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -35,10 +35,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
     internal static class Blake2s_X86
     {
+        public static bool IsSupported => Avx2.IsSupported && BitConverter.IsLittleEndian;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Compress(bool isFinal, Span<uint> hashBuffer, ReadOnlySpan<byte> message, uint totalSegmentsLow, uint totalSegmentsHigh, ReadOnlySpan<uint> blakeIV)
         {
-            if (!Sse41.IsSupported || !BitConverter.IsLittleEndian)
+            if (!IsSupported)
                 throw new PlatformNotSupportedException(nameof(Blake2s_X86));
 
             Debug.Assert(message.Length >= Unsafe.SizeOf<uint>() * 8);
