@@ -46,9 +46,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             Debug.Assert(message.Length >= Unsafe.SizeOf<uint>() * 8);
             Debug.Assert(hashBuffer.Length >= 8);
 
-            Vector128<byte> r8 = Vector128.Create((byte)1, 2, 3, 0, 5, 6, 7, 4, 9, 10, 11, 8, 13, 14, 15, 12);
-            Vector128<byte> r16 = Vector128.Create((byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
-
             var hashBytes = MemoryMarshal.AsBytes(hashBuffer);
             var ivBytes = MemoryMarshal.AsBytes(blakeIV);
 
@@ -76,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Perform10Rounds(Vector128<byte> r8, Vector128<byte> r16, ReadOnlySpan<byte> m, ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4)
+        private static void Perform10Rounds(ReadOnlySpan<byte> m, ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4)
         {
             Debug.Assert(m.Length >= Unsafe.SizeOf<uint>() * 16);
 
@@ -87,314 +84,230 @@ namespace Org.BouncyCastle.Crypto.Digests
             var m3 = LoadVector128<uint>(m[(Vector128<byte>.Count * 3)..]);
 
             //ROUND 1
-            var b0 = Sse.Shuffle(m0.AsSingle(), m1.AsSingle(), 0b_10_00_10_00).AsUInt32();
+            var b1 = Sse.Shuffle(m0.AsSingle(), m1.AsSingle(), 0b_10_00_10_00).AsUInt32();
 
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
-
-            b0 = Sse.Shuffle(m0.AsSingle(), m1.AsSingle(), 0b_11_01_11_01).AsUInt32();
-
-            //G2
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            var b2 = Sse.Shuffle(m0.AsSingle(), m1.AsSingle(), 0b_11_01_11_01).AsUInt32();
 
             var t0 = Sse2.Shuffle(m2, 0b_11_10_00_01);
             var t1 = Sse2.Shuffle(m3, 0b_00_01_11_10);
-            b0 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_11_00_00_11).AsUInt32();
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            var b3 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_11_00_00_11).AsUInt32();
 
             t0 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_11_11_00).AsUInt32();
-            b0 = Sse2.Shuffle(t0, 0b_10_11_00_01);
+            var b4 = Sse2.Shuffle(t0, 0b_10_11_00_01);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 2
             t0 = Sse41.Blend(m1.AsUInt16(), m2.AsUInt16(), 0b_00_00_11_00).AsUInt32();
             t1 = Sse2.ShiftLeftLogical128BitLane(m3, 4);
             var t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_11_11_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_01_00_11);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.Shuffle(t2, 0b_10_01_00_11);
 
             t0 = Sse2.Shuffle(m2, 0b_00_00_10_00);
             t1 = Sse41.Blend(m1.AsUInt16(), m3.AsUInt16(), 0b_11_00_00_00).AsUInt32();
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_11_11_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_11_00_01);
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse2.Shuffle(t2, 0b_10_11_00_01);
 
             t0 = Sse2.ShiftLeftLogical128BitLane(m1, 4);
             t1 = Sse41.Blend(m2.AsUInt16(), t0.AsUInt16(), 0b_00_11_00_00).AsUInt32();
             t2 = Sse41.Blend(m0.AsUInt16(), t1.AsUInt16(), 0b_11_11_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_11_00_01_10);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_11_00_01_10);
 
             t0 = Sse2.UnpackHigh(m0, m1);
             t1 = Sse2.ShiftLeftLogical128BitLane(m3, 4);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_11_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_11_00_01_10);
+            b4 = Sse2.Shuffle(t2, 0b_11_00_01_10);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 3
             t0 = Sse2.UnpackHigh(m2, m3);
             t1 = Sse41.Blend(m3.AsUInt16(), m1.AsUInt16(), 0b_00_00_11_00).AsUInt32();
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_11_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_11_01_00_10);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.Shuffle(t2, 0b_11_01_00_10);
 
             t0 = Sse2.UnpackLow(m2, m0);
             t1 = Sse41.Blend(t0.AsUInt16(), m0.AsUInt16(), 0b_11_11_00_00).AsUInt32();
             t2 = Sse2.ShiftLeftLogical128BitLane(m3, 8);
-            b0 = Sse41.Blend(t1.AsUInt16(), t2.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse41.Blend(t1.AsUInt16(), t2.AsUInt16(), 0b_11_00_00_00).AsUInt32();
 
             t0 = Sse41.Blend(m0.AsUInt16(), m2.AsUInt16(), 0b_00_11_11_00).AsUInt32();
             t1 = Sse2.ShiftRightLogical128BitLane(m1, 12);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_00_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_00_11_10_01);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_00_11_10_01);
 
             t0 = Sse2.ShiftLeftLogical128BitLane(m3, 4);
             t1 = Sse41.Blend(m0.AsUInt16(), m1.AsUInt16(), 0b_00_11_00_11).AsUInt32();
             t2 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_01_10_11_00);
+            b4 = Sse2.Shuffle(t2, 0b_01_10_11_00);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 4
             t0 = Sse2.UnpackHigh(m0, m1);
             t1 = Sse2.UnpackHigh(t0, m2);
             t2 = Sse41.Blend(t1.AsUInt16(), m3.AsUInt16(), 0b_00_00_11_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_11_01_00_10);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.Shuffle(t2, 0b_11_01_00_10);
 
             t0 = Sse2.ShiftLeftLogical128BitLane(m2, 8);
             t1 = Sse41.Blend(m3.AsUInt16(), m0.AsUInt16(), 0b_00_00_11_00).AsUInt32();
             t2 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_00_01_11);
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse2.Shuffle(t2, 0b_10_00_01_11);
 
             t0 = Sse41.Blend(m0.AsUInt16(), m1.AsUInt16(), 0b_00_00_11_11).AsUInt32();
             t1 = Sse41.Blend(t0.AsUInt16(), m3.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t1, 0b_00_01_10_11);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t1, 0b_00_01_10_11);
 
             t0 = Ssse3.AlignRight(m0, m1, 4);
-            b0 = Sse41.Blend(t0.AsUInt16(), m2.AsUInt16(), 0b_00_11_00_11).AsUInt32();
+            b4 = Sse41.Blend(t0.AsUInt16(), m2.AsUInt16(), 0b_00_11_00_11).AsUInt32();
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 5
             t0 = Sse2.UnpackLow(m1.AsUInt64(), m2.AsUInt64()).AsUInt32();
             t1 = Sse2.UnpackHigh(m0.AsUInt64(), m2.AsUInt64()).AsUInt32();
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_11_00_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_00_01_11);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.Shuffle(t2, 0b_10_00_01_11);
 
             t0 = Sse2.UnpackHigh(m1.AsUInt64(), m3.AsUInt64()).AsUInt32();
             t1 = Sse2.UnpackLow(m0.AsUInt64(), m1.AsUInt64()).AsUInt32();
-            b0 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_11_00_11).AsUInt32();
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_11_00_11).AsUInt32();
 
             t0 = Sse2.UnpackHigh(m3.AsUInt64(), m1.AsUInt64()).AsUInt32();
             t1 = Sse2.UnpackHigh(m2.AsUInt64(), m0.AsUInt64()).AsUInt32();
             t2 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_00_11_00_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_01_00_11);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_10_01_00_11);
 
             t0 = Sse41.Blend(m0.AsUInt16(), m2.AsUInt16(), 0b_00_00_00_11).AsUInt32();
             t1 = Sse2.ShiftLeftLogical128BitLane(t0, 8);
             t2 = Sse41.Blend(t1.AsUInt16(), m3.AsUInt16(), 0b_00_00_11_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_00_11_01);
+            b4 = Sse2.Shuffle(t2, 0b_10_00_11_01);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 6
             t0 = Sse2.UnpackHigh(m0, m1);
             t1 = Sse2.UnpackLow(m0, m2);
-            b0 = Sse2.UnpackLow(t0.AsUInt64(), t1.AsUInt64()).AsUInt32();
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.UnpackLow(t0.AsUInt64(), t1.AsUInt64()).AsUInt32();
 
             t0 = Sse2.ShiftRightLogical128BitLane(m2, 4);
             t1 = Sse41.Blend(m0.AsUInt16(), m3.AsUInt16(), 0b_00_00_00_11).AsUInt32();
-            b0 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_00_11_11_00).AsUInt32();
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_00_11_11_00).AsUInt32();
 
             t0 = Sse41.Blend(m1.AsUInt16(), m0.AsUInt16(), 0b_00_00_11_00).AsUInt32();
             t1 = Sse2.ShiftRightLogical128BitLane(m3, 4);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_11_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_11_00_01);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_10_11_00_01);
 
             t0 = Sse2.UnpackLow(m2.AsUInt64(), m1.AsUInt64()).AsUInt32();
             t1 = Sse2.Shuffle(m3, 0b_10_00_01_00);
             t2 = Sse2.ShiftRightLogical128BitLane(t0, 4);
-            b0 = Sse41.Blend(t1.AsUInt16(), t2.AsUInt16(), 0b_00_11_00_11).AsUInt32();
+            b4 = Sse41.Blend(t1.AsUInt16(), t2.AsUInt16(), 0b_00_11_00_11).AsUInt32();
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 7
             t0 = Sse2.ShiftLeftLogical128BitLane(m1, 12);
             t1 = Sse41.Blend(m0.AsUInt16(), m3.AsUInt16(), 0b_00_11_00_11).AsUInt32();
-            b0 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_11_00_00_00).AsUInt32();
 
             t0 = Sse41.Blend(m3.AsUInt16(), m2.AsUInt16(), 0b_00_11_00_00).AsUInt32();
             t1 = Sse2.ShiftRightLogical128BitLane(m1, 4);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_00_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_01_11_00);
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse2.Shuffle(t2, 0b_10_01_11_00);
 
             t0 = Sse2.UnpackLow(m0.AsUInt64(), m2.AsUInt64()).AsUInt32();
             t1 = Sse2.ShiftRightLogical128BitLane(m1, 4);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_11_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_11_01_00_10);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_11_01_00_10);
 
             t0 = Sse2.UnpackHigh(m1, m2);
             t1 = Sse2.UnpackHigh(m0.AsUInt64(), t0.AsUInt64()).AsUInt32();
-            b0 = Sse2.Shuffle(t1, 0b_00_01_10_11);
+            b4 = Sse2.Shuffle(t1, 0b_00_01_10_11);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 8
             t0 = Sse2.UnpackHigh(m0, m1);
             t1 = Sse41.Blend(t0.AsUInt16(), m3.AsUInt16(), 0b_00_00_11_11).AsUInt32();
-            b0 = Sse2.Shuffle(t1, 0b_10_00_11_01);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.Shuffle(t1, 0b_10_00_11_01);
 
             t0 = Sse41.Blend(m2.AsUInt16(), m3.AsUInt16(), 0b_00_11_00_00).AsUInt32();
             t1 = Sse2.ShiftRightLogical128BitLane(m0, 4);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_00_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_01_00_10_11);
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse2.Shuffle(t2, 0b_01_00_10_11);
 
             t0 = Sse2.UnpackHigh(m0.AsUInt64(), m3.AsUInt64()).AsUInt32();
             t1 = Sse2.UnpackLow(m1.AsUInt64(), m2.AsUInt64()).AsUInt32();
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_11_11_00).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_11_01_00);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_10_11_01_00);
 
             t0 = Sse2.UnpackLow(m0, m1);
             t1 = Sse2.UnpackHigh(m1, m2);
             t2 = Sse2.UnpackLow(t0.AsUInt64(), t1.AsUInt64()).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_10_01_00_11);
+            b4 = Sse2.Shuffle(t2, 0b_10_01_00_11);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 9
             t0 = Sse2.UnpackHigh(m1, m3);
             t1 = Sse2.UnpackLow(t0.AsUInt64(), m0.AsUInt64()).AsUInt32();
             t2 = Sse41.Blend(t1.AsUInt16(), m2.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-            b0 = Sse2.ShuffleHigh(t2.AsUInt16(), 0b_01_00_11_10).AsUInt32();
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.ShuffleHigh(t2.AsUInt16(), 0b_01_00_11_10).AsUInt32();
 
             t0 = Sse2.UnpackHigh(m0, m3);
             t1 = Sse41.Blend(m2.AsUInt16(), t0.AsUInt16(), 0b_11_11_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t1, 0b_00_10_01_11);
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse2.Shuffle(t1, 0b_00_10_01_11);
 
             t0 = Sse2.UnpackLow(m0.AsUInt64(), m3.AsUInt64()).AsUInt32();
             t1 = Sse2.ShiftRightLogical128BitLane(m2, 8);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_00_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_01_11_10_00);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_01_11_10_00);
 
             t0 = Sse41.Blend(m1.AsUInt16(), m0.AsUInt16(), 0b_00_11_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t0, 0b_00_11_10_01);
+            b4 = Sse2.Shuffle(t0, 0b_00_11_10_01);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
 
             //ROUND 10
             t0 = Sse41.Blend(m0.AsUInt16(), m2.AsUInt16(), 0b_00_00_00_11).AsUInt32();
             t1 = Sse41.Blend(m1.AsUInt16(), m2.AsUInt16(), 0b_00_11_00_00).AsUInt32();
             t2 = Sse41.Blend(t1.AsUInt16(), t0.AsUInt16(), 0b_00_00_11_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_01_11_00_10);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b1 = Sse2.Shuffle(t2, 0b_01_11_00_10);
 
             t0 = Sse2.ShiftLeftLogical128BitLane(m0, 4);
             t1 = Sse41.Blend(m1.AsUInt16(), t0.AsUInt16(), 0b_11_00_00_00).AsUInt32();
-            b0 = Sse2.Shuffle(t1, 0b_01_10_00_11);
-
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
-
-            Diagonalize(ref row1, ref row3, ref row4);
+            b2 = Sse2.Shuffle(t1, 0b_01_10_00_11);
 
             t0 = Sse2.UnpackHigh(m0, m3);
             t1 = Sse2.UnpackLow(m2, m3);
             t2 = Sse2.UnpackHigh(t0.AsUInt64(), t1.AsUInt64()).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_00_10_01_11);
-
-            G1(r16, ref row1, ref row2, ref row3, ref row4, b0);
+            b3 = Sse2.Shuffle(t2, 0b_00_10_01_11);
 
             t0 = Sse41.Blend(m3.AsUInt16(), m2.AsUInt16(), 0b_11_00_00_00).AsUInt32();
             t1 = Sse2.UnpackLow(m0, m3);
             t2 = Sse41.Blend(t0.AsUInt16(), t1.AsUInt16(), 0b_00_00_11_11).AsUInt32();
-            b0 = Sse2.Shuffle(t2, 0b_01_10_11_00);
+            b4 = Sse2.Shuffle(t2, 0b_01_10_11_00);
 
-            G2(r8, ref row1, ref row2, ref row3, ref row4, b0);
+            Round(r8, r16, ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
+            #endregion
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Round(ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4, Vector128<uint> b1, Vector128<uint> b2, Vector128<uint> b3, Vector128<uint> b4)
+        {
+            Vector128<byte> r8 = Vector128.Create((byte)1, 2, 3, 0, 5, 6, 7, 4, 9, 10, 11, 8, 13, 14, 15, 12);
+            Vector128<byte> r16 = Vector128.Create((byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
+
+            G1(r16, ref row1, ref row2, ref row3, ref row4, b1);
+            G2(r8, ref row1, ref row2, ref row3, ref row4, b2);
+
+            Diagonalize(ref row1, ref row3, ref row4);
+
+            G1(r16, ref row1, ref row2, ref row3, ref row4, b3);
+            G2(r8, ref row1, ref row2, ref row3, ref row4, b4);
 
             Undiagonalize(ref row1, ref row3, ref row4);
-            #endregion
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
