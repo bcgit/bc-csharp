@@ -431,6 +431,8 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         public int DoFinal(byte[] output, int outOffset)
         {
+            Check.OutputLength(output, outOffset, digestLength, "output buffer too short");
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(output.AsSpan(outOffset));
 #else
@@ -464,6 +466,8 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
+            Check.OutputLength(output, digestLength, "output buffer too short");
+
             f0 = 0xFFFFFFFFFFFFFFFFUL;
             t0 += (ulong)bufferPos;
             if (bufferPos > 0 && t0 == 0)
