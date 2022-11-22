@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public HqcKemExtractor(HqcPrivateKeyParameters privParams)
         {
-            this.key = privParams;
+            key = privParams;
             InitCipher(key.Parameters);
         }
 
