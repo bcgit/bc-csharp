@@ -361,7 +361,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			byte[]	key,
 			byte[]	checksum)
 		{
-			return Arrays.ConstantTimeAreEqual(CalculateCmsKeyChecksum(key), checksum);
+			return Arrays.FixedTimeEquals(CalculateCmsKeyChecksum(key), checksum);
 		}
 	}
 }

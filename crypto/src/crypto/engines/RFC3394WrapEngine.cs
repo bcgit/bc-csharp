@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 				}
 			}
 
-			if (!Arrays.ConstantTimeAreEqual(a, iv))
+			if (!Arrays.FixedTimeEquals(a, iv))
 				throw new InvalidCipherTextException("checksum failed");
 
 			return block;

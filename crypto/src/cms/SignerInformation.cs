@@ -595,7 +595,7 @@ namespace Org.BouncyCastle.Cms
 
 					byte[] sigHash = digInfo.GetDigest();
 
-					return Arrays.ConstantTimeAreEqual(digest, sigHash);
+					return Arrays.FixedTimeEquals(digest, sigHash);
 				}
 				else if (algorithm.Equals("DSA"))
 				{

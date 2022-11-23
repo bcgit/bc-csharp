@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Security
             // integrity check
             byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
 
-            if (!Arrays.ConstantTimeAreEqual(20, encryptedData, pkcs8Len + 20, checksum, 0))
+            if (!Arrays.FixedTimeEquals(20, encryptedData, pkcs8Len + 20, checksum, 0))
                 throw new IOException("cannot recover key");
 
             return PrivateKeyFactory.CreateKey(pkcs8Key);
@@ -393,7 +393,7 @@ namespace Org.BouncyCastle.Security
             {
                 byte[] checksum = CalculateChecksum(password, rawStore, 0, checksumPos);
 
-                if (!Arrays.ConstantTimeAreEqual(20, checksum, 0, rawStore, checksumPos))
+                if (!Arrays.FixedTimeEquals(20, checksum, 0, rawStore, checksumPos))
                 {
                     Array.Clear(rawStore, 0, rawStore.Length);
                     throw new IOException("password incorrect or store tampered with");
