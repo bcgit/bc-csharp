@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            Debug.Assert(sign == n[n.Length - 1] >> 31);
+            Debug.Assert((int)sign == (int)n[n.Length - 1] >> 31);
         }
     }
 }

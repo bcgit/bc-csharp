@@ -542,8 +542,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TamingVector_04()
         {
-            // TODO Algorithm 2 accepts this (cofactored verification)
-            ImplTamingVector(4, false,
+            ImplTamingVector(4, true,
                 "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
                 "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
                 "160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed512" +
@@ -553,8 +552,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TamingVector_05()
         {
-            // TODO Algorithm 2 accepts this (cofactored verification)
-            ImplTamingVector(5, false,
+            ImplTamingVector(5, true,
                 "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
                 "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
                 "21122a84e0b5fca4052f5b1235c80a537878b38f3142356b2c2384ebad4668b7" +

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -34,10 +35,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Ed25519ph = 2,
         }
 
-        private const long M08L = 0x000000FFL;
-        private const long M28L = 0x0FFFFFFFL;
-        private const long M32L = 0xFFFFFFFFL;
-
         private const int CoordUints = 8;
         private const int PointBytes = CoordUints * 4;
         private const int ScalarUints = 8;
@@ -55,14 +52,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static readonly uint[] P = { 0xFFFFFFEDU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
             0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
-        private static readonly uint[] L = { 0x5CF5D3EDU, 0x5812631AU, 0xA2F79CD6U, 0x14DEF9DEU, 0x00000000U,
-            0x00000000U, 0x00000000U, 0x10000000U };
-
-        private const int L0 = -0x030A2C13;     // L0:26/--
-        private const int L1 =  0x012631A6;     // L1:24/22
-        private const int L2 =  0x079CD658;     // L2:27/--
-        private const int L3 = -0x006215D1;     // L3:23/--
-        private const int L4 =  0x000014DF;     // L4:12/11
 
         private static readonly uint[] Order8_y1 = { 0x706A17C7, 0x4FD84D3D, 0x760B3CBA, 0x0F67100D, 0xFA53202A,
             0xC6CC392C, 0x77FDC74E, 0x7A03AC92 };
@@ -142,9 +131,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static byte[] CalculateS(byte[] r, byte[] k, byte[] s)
         {
-            uint[] t = new uint[ScalarUints * 2];   DecodeScalar(r, 0, t);
-            uint[] u = new uint[ScalarUints];       DecodeScalar(k, 0, u);
-            uint[] v = new uint[ScalarUints];       DecodeScalar(s, 0, v);
+            uint[] t = new uint[ScalarUints * 2];   Scalar25519.Decode(r, t);
+            uint[] u = new uint[ScalarUints];       Scalar25519.Decode(k, u);
+            uint[] v = new uint[ScalarUints];       Scalar25519.Decode(s, v);
 
             Nat256.MulAddTo(u, v, t);
 
@@ -153,7 +142,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 Codec.Encode32(t[i], result, i * 4);
             }
-            return ReduceScalar(result);
+            return Scalar25519.Reduce(result);
         }
 
         private static bool CheckContextVar(byte[] ctx, byte phflag)
@@ -228,6 +217,43 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool CheckPointFullVar(ReadOnlySpan<byte> p)
+        {
+            uint y7 = Codec.Decode32(p[28..]) & 0x7FFFFFFFU;
+
+            uint t0 = y7;
+            uint t1 = y7 ^ P[7];
+            uint t2 = y7 ^ Order8_y1[7];
+            uint t3 = y7 ^ Order8_y2[7];
+
+            for (int i = CoordUints - 2; i > 0; --i)
+            {
+                uint yi = Codec.Decode32(p[(i * 4)..]);
+
+                t0 |= yi;
+                t1 |= yi ^ P[i];
+                t2 |= yi ^ Order8_y1[i];
+                t3 |= yi ^ Order8_y2[i];
+            }
+
+            uint y0 = Codec.Decode32(p);
+
+            // Reject 0 and 1
+            if (t0 == 0 && y0 <= 1U)
+                return false;
+
+            // Reject P - 1 and non-canonical encodings (i.e. >= P)
+            if (t1 == 0 && y0 >= (P[0] - 1U))
+                return false;
+
+            t2 |= y0 ^ Order8_y1[0];
+            t3 |= y0 ^ Order8_y2[0];
+
+            // Reject order 8 points
+            return (t2 != 0) & (t3 != 0);
+        }
+#else
         private static bool CheckPointFullVar(byte[] p)
         {
             uint y7 = Codec.Decode32(p, 28) & 0x7FFFFFFFU;
@@ -263,19 +289,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             // Reject order 8 points
             return (t2 != 0) & (t3 != 0);
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
-        {
-            DecodeScalar(s, n);
-            return !Nat.Gte(ScalarUints, n, L);
-        }
-#else
-        private static bool CheckScalarVar(byte[] s, uint[] n)
-        {
-            DecodeScalar(s, 0, n);
-            return !Nat256.Gte(n, L);
-        }
 #endif
 
         private static byte[] Copy(byte[] buf, int off, int len)
@@ -298,16 +311,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return CreateDigest();
         }
 
-        private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointAffine r)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool DecodePointVar(ReadOnlySpan<byte> p, bool negate, ref PointAffine r)
+#else
+        private static bool DecodePointVar(byte[] p, bool negate, ref PointAffine r)
+#endif
         {
-            byte[] py = Copy(p, pOff, PointBytes);
-            if (!CheckPointFullVar(py))
-                return false;
+            int x_0 = (p[PointBytes - 1] & 0x80) >> 7;
 
-            int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
-            py[PointBytes - 1] &= 0x7F;
-
-            F.Decode(py, 0, r.y);
+            F.Decode(p, r.y);
 
             int[] u = F.Create();
             int[] v = F.Create();
@@ -331,18 +343,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             return true;
         }
-
-        private static void DecodeScalar(byte[] k, int kOff, uint[] n)
-        {
-            Codec.Decode32(k, kOff, n, 0, ScalarUints);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void DecodeScalar(ReadOnlySpan<byte> k, Span<uint> n)
-        {
-            Codec.Decode32(k, n[..ScalarUints]);
-        }
-#endif
 
         private static void Dom2(IDigest d, byte phflag, byte[] ctx)
         {
@@ -475,6 +475,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return (x[w] >> b) & 15U;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void GroupCombBits(Span<uint> n)
+#else
+        private static void GroupCombBits(uint[] n)
+#endif
+        {
+            /*
+             * Because we are using 4 teeth and 8 spacing, each limb of n corresponds to one of the 8 blocks.
+             * Therefore we can efficiently group the bits for each comb position using a (double) shuffle. 
+             */
+            for (int i = 0; i < n.Length; ++i)
+            {
+                n[i] = Interleave.Shuffle2(n[i]);
+            }
+        }
+
         private static void ImplSign(IDigest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
             byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
@@ -486,7 +502,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] r = ReduceScalar(h);
+            byte[] r = Scalar25519.Reduce(h);
             byte[] R = new byte[PointBytes];
             ScalarMultBaseEncoded(r, R, 0);
 
@@ -499,7 +515,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] k = ReduceScalar(h);
+            byte[] k = Scalar25519.Reduce(h);
             byte[] S = CalculateS(r, k, s);
 
             Array.Copy(R, 0, sig, sigOff, PointBytes);
@@ -552,21 +568,30 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException("ctx");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> RS = stackalloc byte[PointBytes + ScalarBytes];
-            RS.CopyFrom(sig.AsSpan(sigOff, PointBytes + ScalarBytes));
+            Span<byte> signature = stackalloc byte[SignatureSize];
+            signature.CopyFrom(sig.AsSpan(sigOff, SignatureSize));
+            var R = signature[..PointBytes];
+            var S = signature[PointBytes..];
 
-            var R = RS[..PointBytes];
-            var S = RS[PointBytes..];
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk.AsSpan(pkOff));
 
             if (!CheckPointVar(R))
                 return false;
 
             Span<uint> nS = stackalloc uint[ScalarUints];
-            if (!CheckScalarVar(S, nS))
+            if (!Scalar25519.CheckVar(S, nS))
+                return false;
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointAffine pR);
+            if (!DecodePointVar(R, true, ref pR))
                 return false;
 
             Init(out PointAffine pA);
-            if (!DecodePointVar(pk, pkOff, true, ref pA))
+            if (!DecodePointVar(A, true, ref pA))
                 return false;
 
             IDigest d = CreateDigest();
@@ -577,34 +602,41 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Dom2(d, phflag, ctx);
             }
             d.BlockUpdate(R);
-            d.BlockUpdate(pk.AsSpan(pkOff, PointBytes));
+            d.BlockUpdate(A);
             d.BlockUpdate(m.AsSpan(mOff, mLen));
             d.DoFinal(h);
 
             Span<byte> k = stackalloc byte[ScalarBytes];
-            ReduceScalar(h, k);
+            Scalar25519.Reduce(h, k);
 
             Span<uint> nA = stackalloc uint[ScalarUints];
-            DecodeScalar(k, nA);
+            Scalar25519.Decode(k, nA);
 
-            Init(out PointAccum pR);
-            ScalarMultStrausVar(nS, nA, ref pA, ref pR);
-
-            Span<byte> check = stackalloc byte[PointBytes];
-            return 0 != EncodePoint(ref pR, check) && check.SequenceEqual(R);
+            Span<uint> v0 = stackalloc uint[4];
+            Span<uint> v1 = stackalloc uint[4];
+            Scalar25519.ReduceBasisVar(nA, v0, v1);
+            Scalar25519.Multiply128Var(nS, v1, nS);
 #else
             byte[] R = Copy(sig, sigOff, PointBytes);
             byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
 
             if (!CheckPointVar(R))
                 return false;
 
             uint[] nS = new uint[ScalarUints];
-            if (!CheckScalarVar(S, nS))
+            if (!Scalar25519.CheckVar(S, nS))
+                return false;
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointAffine pR);
+            if (!DecodePointVar(R, true, ref pR))
                 return false;
 
             Init(out PointAffine pA);
-            if (!DecodePointVar(pk, pkOff, true, ref pA))
+            if (!DecodePointVar(A, true, ref pA))
                 return false;
 
             IDigest d = CreateDigest();
@@ -615,21 +647,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Dom2(d, phflag, ctx);
             }
             d.BlockUpdate(R, 0, PointBytes);
-            d.BlockUpdate(pk, pkOff, PointBytes);
+            d.BlockUpdate(A, 0, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] k = ReduceScalar(h);
+            byte[] k = Scalar25519.Reduce(h);
 
             uint[] nA = new uint[ScalarUints];
-            DecodeScalar(k, 0, nA);
+            Scalar25519.Decode(k, nA);
 
-            Init(out PointAccum pR);
-            ScalarMultStrausVar(nS, nA, ref pA, ref pR);
-
-            byte[] check = new byte[PointBytes];
-            return 0 != EncodePoint(ref pR, check, 0) && Arrays.AreEqual(check, R);
+            uint[] v0 = new uint[4];
+            uint[] v1 = new uint[4];
+            Scalar25519.ReduceBasisVar(nA, v0, v1);
+            Scalar25519.Multiply128Var(nS, v1, nS);
 #endif
+
+            Init(out PointAccum pZ);
+            ScalarMultStraus128Var(nS, v0, ref pA, v1, ref pR, ref pZ);
+
+            F.Normalize(pZ.x);
+            F.Normalize(pZ.y);
+            F.Normalize(pZ.z);
+
+            return IsNeutralElementVar(pZ.x, pZ.y, pZ.z);
         }
 
         private static void Init(out PointAccum r)
@@ -1249,332 +1289,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        private static byte[] ReduceScalar(byte[] n)
-        {
-            byte[] r = new byte[ScalarBytes];
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ReduceScalar(n, r);
-#else
-            long x00 =  Codec.Decode32(n,  0)       & M32L;         // x00:32/--
-            long x01 = (Codec.Decode24(n,  4) << 4) & M32L;         // x01:28/--
-            long x02 =  Codec.Decode32(n,  7)       & M32L;         // x02:32/--
-            long x03 = (Codec.Decode24(n, 11) << 4) & M32L;         // x03:28/--
-            long x04 =  Codec.Decode32(n, 14)       & M32L;         // x04:32/--
-            long x05 = (Codec.Decode24(n, 18) << 4) & M32L;         // x05:28/--
-            long x06 =  Codec.Decode32(n, 21)       & M32L;         // x06:32/--
-            long x07 = (Codec.Decode24(n, 25) << 4) & M32L;         // x07:28/--
-            long x08 =  Codec.Decode32(n, 28)       & M32L;         // x08:32/--
-            long x09 = (Codec.Decode24(n, 32) << 4) & M32L;         // x09:28/--
-            long x10 =  Codec.Decode32(n, 35)       & M32L;         // x10:32/--
-            long x11 = (Codec.Decode24(n, 39) << 4) & M32L;         // x11:28/--
-            long x12 =  Codec.Decode32(n, 42)       & M32L;         // x12:32/--
-            long x13 = (Codec.Decode24(n, 46) << 4) & M32L;         // x13:28/--
-            long x14 =  Codec.Decode32(n, 49)       & M32L;         // x14:32/--
-            long x15 = (Codec.Decode24(n, 53) << 4) & M32L;         // x15:28/--
-            long x16 =  Codec.Decode32(n, 56)       & M32L;         // x16:32/--
-            long x17 = (Codec.Decode24(n, 60) << 4) & M32L;         // x17:28/--
-            long x18 =                 n[63]        & M08L;         // x18:08/--
-            long t;
-
-            //x18 += (x17 >> 28); x17 &= M28L;
-            x09 -= x18 * L0;                            // x09:34/28
-            x10 -= x18 * L1;                            // x10:33/30
-            x11 -= x18 * L2;                            // x11:35/28
-            x12 -= x18 * L3;                            // x12:32/31
-            x13 -= x18 * L4;                            // x13:28/21
-
-            x17 += (x16 >> 28); x16 &= M28L;            // x17:28/--, x16:28/--
-            x08 -= x17 * L0;                            // x08:54/32
-            x09 -= x17 * L1;                            // x09:52/51
-            x10 -= x17 * L2;                            // x10:55/34
-            x11 -= x17 * L3;                            // x11:51/36
-            x12 -= x17 * L4;                            // x12:41/--
-
-            //x16 += (x15 >> 28); x15 &= M28L;
-            x07 -= x16 * L0;                            // x07:54/28
-            x08 -= x16 * L1;                            // x08:54/53
-            x09 -= x16 * L2;                            // x09:55/53
-            x10 -= x16 * L3;                            // x10:55/52
-            x11 -= x16 * L4;                            // x11:51/41
-
-            x15 += (x14 >> 28); x14 &= M28L;            // x15:28/--, x14:28/--
-            x06 -= x15 * L0;                            // x06:54/32
-            x07 -= x15 * L1;                            // x07:54/53
-            x08 -= x15 * L2;                            // x08:56/--
-            x09 -= x15 * L3;                            // x09:55/54
-            x10 -= x15 * L4;                            // x10:55/53
-
-            //x14 += (x13 >> 28); x13 &= M28L;
-            x05 -= x14 * L0;                            // x05:54/28
-            x06 -= x14 * L1;                            // x06:54/53
-            x07 -= x14 * L2;                            // x07:56/--
-            x08 -= x14 * L3;                            // x08:56/51
-            x09 -= x14 * L4;                            // x09:56/--
-
-            x13 += (x12 >> 28); x12 &= M28L;            // x13:28/22, x12:28/--
-            x04 -= x13 * L0;                            // x04:54/49
-            x05 -= x13 * L1;                            // x05:54/53
-            x06 -= x13 * L2;                            // x06:56/--
-            x07 -= x13 * L3;                            // x07:56/52
-            x08 -= x13 * L4;                            // x08:56/52
-
-            x12 += (x11 >> 28); x11 &= M28L;            // x12:28/24, x11:28/--
-            x03 -= x12 * L0;                            // x03:54/49
-            x04 -= x12 * L1;                            // x04:54/51
-            x05 -= x12 * L2;                            // x05:56/--
-            x06 -= x12 * L3;                            // x06:56/52
-            x07 -= x12 * L4;                            // x07:56/53
-
-            x11 += (x10 >> 28); x10 &= M28L;            // x11:29/--, x10:28/--
-            x02 -= x11 * L0;                            // x02:55/32
-            x03 -= x11 * L1;                            // x03:55/--
-            x04 -= x11 * L2;                            // x04:56/55
-            x05 -= x11 * L3;                            // x05:56/52
-            x06 -= x11 * L4;                            // x06:56/53
-
-            x10 += (x09 >> 28); x09 &= M28L;            // x10:29/--, x09:28/--
-            x01 -= x10 * L0;                            // x01:55/28
-            x02 -= x10 * L1;                            // x02:55/54
-            x03 -= x10 * L2;                            // x03:56/55
-            x04 -= x10 * L3;                            // x04:57/--
-            x05 -= x10 * L4;                            // x05:56/53
-
-            x08 += (x07 >> 28); x07 &= M28L;            // x08:56/53, x07:28/--
-            x09 += (x08 >> 28); x08 &= M28L;            // x09:29/25, x08:28/--
-
-            t    = (x08 >> 27) & 1L;
-            x09 += t;                                   // x09:29/26
-
-            x00 -= x09 * L0;                            // x00:55/53
-            x01 -= x09 * L1;                            // x01:55/54
-            x02 -= x09 * L2;                            // x02:57/--
-            x03 -= x09 * L3;                            // x03:57/--
-            x04 -= x09 * L4;                            // x04:57/42
-
-            x01 += (x00 >> 28); x00 &= M28L;
-            x02 += (x01 >> 28); x01 &= M28L;
-            x03 += (x02 >> 28); x02 &= M28L;
-            x04 += (x03 >> 28); x03 &= M28L;
-            x05 += (x04 >> 28); x04 &= M28L;
-            x06 += (x05 >> 28); x05 &= M28L;
-            x07 += (x06 >> 28); x06 &= M28L;
-            x08 += (x07 >> 28); x07 &= M28L;
-            x09  = (x08 >> 28); x08 &= M28L;
-
-            x09 -= t;
-
-            Debug.Assert(x09 == 0L || x09 == -1L);
-
-            x00 += x09 & L0;
-            x01 += x09 & L1;
-            x02 += x09 & L2;
-            x03 += x09 & L3;
-            x04 += x09 & L4;
-
-            x01 += (x00 >> 28); x00 &= M28L;
-            x02 += (x01 >> 28); x01 &= M28L;
-            x03 += (x02 >> 28); x02 &= M28L;
-            x04 += (x03 >> 28); x03 &= M28L;
-            x05 += (x04 >> 28); x04 &= M28L;
-            x06 += (x05 >> 28); x05 &= M28L;
-            x07 += (x06 >> 28); x06 &= M28L;
-            x08 += (x07 >> 28); x07 &= M28L;
-
-            Codec.Encode56((ulong)(x00 | (x01 << 28)), r, 0);
-            Codec.Encode56((ulong)(x02 | (x03 << 28)), r, 7);
-            Codec.Encode56((ulong)(x04 | (x05 << 28)), r, 14);
-            Codec.Encode56((ulong)(x06 | (x07 << 28)), r, 21);
-            Codec.Encode32((uint)x08, r, 28);
-#endif
-
-            return r;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void ReduceScalar(ReadOnlySpan<byte> n, Span<byte> r)
-        {
-            long x00 =  Codec.Decode32(n[ 0..])       & M32L;       // x00:32/--
-            long x01 = (Codec.Decode24(n[ 4..]) << 4) & M32L;       // x01:28/--
-            long x02 =  Codec.Decode32(n[ 7..])       & M32L;       // x02:32/--
-            long x03 = (Codec.Decode24(n[11..]) << 4) & M32L;       // x03:28/--
-            long x04 =  Codec.Decode32(n[14..])       & M32L;       // x04:32/--
-            long x05 = (Codec.Decode24(n[18..]) << 4) & M32L;       // x05:28/--
-            long x06 =  Codec.Decode32(n[21..])       & M32L;       // x06:32/--
-            long x07 = (Codec.Decode24(n[25..]) << 4) & M32L;       // x07:28/--
-            long x08 =  Codec.Decode32(n[28..])       & M32L;       // x08:32/--
-            long x09 = (Codec.Decode24(n[32..]) << 4) & M32L;       // x09:28/--
-            long x10 =  Codec.Decode32(n[35..])       & M32L;       // x10:32/--
-            long x11 = (Codec.Decode24(n[39..]) << 4) & M32L;       // x11:28/--
-            long x12 =  Codec.Decode32(n[42..])       & M32L;       // x12:32/--
-            long x13 = (Codec.Decode24(n[46..]) << 4) & M32L;       // x13:28/--
-            long x14 =  Codec.Decode32(n[49..])       & M32L;       // x14:32/--
-            long x15 = (Codec.Decode24(n[53..]) << 4) & M32L;       // x15:28/--
-            long x16 =  Codec.Decode32(n[56..])       & M32L;       // x16:32/--
-            long x17 = (Codec.Decode24(n[60..]) << 4) & M32L;       // x17:28/--
-            long x18 =                 n[63]          & M08L;       // x18:08/--
-            long t;
-
-            //x18 += (x17 >> 28); x17 &= M28L;
-            x09 -= x18 * L0;                            // x09:34/28
-            x10 -= x18 * L1;                            // x10:33/30
-            x11 -= x18 * L2;                            // x11:35/28
-            x12 -= x18 * L3;                            // x12:32/31
-            x13 -= x18 * L4;                            // x13:28/21
-
-            x17 += (x16 >> 28); x16 &= M28L;            // x17:28/--, x16:28/--
-            x08 -= x17 * L0;                            // x08:54/32
-            x09 -= x17 * L1;                            // x09:52/51
-            x10 -= x17 * L2;                            // x10:55/34
-            x11 -= x17 * L3;                            // x11:51/36
-            x12 -= x17 * L4;                            // x12:41/--
-
-            //x16 += (x15 >> 28); x15 &= M28L;
-            x07 -= x16 * L0;                            // x07:54/28
-            x08 -= x16 * L1;                            // x08:54/53
-            x09 -= x16 * L2;                            // x09:55/53
-            x10 -= x16 * L3;                            // x10:55/52
-            x11 -= x16 * L4;                            // x11:51/41
-
-            x15 += (x14 >> 28); x14 &= M28L;            // x15:28/--, x14:28/--
-            x06 -= x15 * L0;                            // x06:54/32
-            x07 -= x15 * L1;                            // x07:54/53
-            x08 -= x15 * L2;                            // x08:56/--
-            x09 -= x15 * L3;                            // x09:55/54
-            x10 -= x15 * L4;                            // x10:55/53
-
-            //x14 += (x13 >> 28); x13 &= M28L;
-            x05 -= x14 * L0;                            // x05:54/28
-            x06 -= x14 * L1;                            // x06:54/53
-            x07 -= x14 * L2;                            // x07:56/--
-            x08 -= x14 * L3;                            // x08:56/51
-            x09 -= x14 * L4;                            // x09:56/--
-
-            x13 += (x12 >> 28); x12 &= M28L;            // x13:28/22, x12:28/--
-            x04 -= x13 * L0;                            // x04:54/49
-            x05 -= x13 * L1;                            // x05:54/53
-            x06 -= x13 * L2;                            // x06:56/--
-            x07 -= x13 * L3;                            // x07:56/52
-            x08 -= x13 * L4;                            // x08:56/52
-
-            x12 += (x11 >> 28); x11 &= M28L;            // x12:28/24, x11:28/--
-            x03 -= x12 * L0;                            // x03:54/49
-            x04 -= x12 * L1;                            // x04:54/51
-            x05 -= x12 * L2;                            // x05:56/--
-            x06 -= x12 * L3;                            // x06:56/52
-            x07 -= x12 * L4;                            // x07:56/53
-
-            x11 += (x10 >> 28); x10 &= M28L;            // x11:29/--, x10:28/--
-            x02 -= x11 * L0;                            // x02:55/32
-            x03 -= x11 * L1;                            // x03:55/--
-            x04 -= x11 * L2;                            // x04:56/55
-            x05 -= x11 * L3;                            // x05:56/52
-            x06 -= x11 * L4;                            // x06:56/53
-
-            x10 += (x09 >> 28); x09 &= M28L;            // x10:29/--, x09:28/--
-            x01 -= x10 * L0;                            // x01:55/28
-            x02 -= x10 * L1;                            // x02:55/54
-            x03 -= x10 * L2;                            // x03:56/55
-            x04 -= x10 * L3;                            // x04:57/--
-            x05 -= x10 * L4;                            // x05:56/53
-
-            x08 += (x07 >> 28); x07 &= M28L;            // x08:56/53, x07:28/--
-            x09 += (x08 >> 28); x08 &= M28L;            // x09:29/25, x08:28/--
-
-            t    = (x08 >> 27) & 1L;
-            x09 += t;                                   // x09:29/26
-
-            x00 -= x09 * L0;                            // x00:55/53
-            x01 -= x09 * L1;                            // x01:55/54
-            x02 -= x09 * L2;                            // x02:57/--
-            x03 -= x09 * L3;                            // x03:57/--
-            x04 -= x09 * L4;                            // x04:57/42
-
-            x01 += (x00 >> 28); x00 &= M28L;
-            x02 += (x01 >> 28); x01 &= M28L;
-            x03 += (x02 >> 28); x02 &= M28L;
-            x04 += (x03 >> 28); x03 &= M28L;
-            x05 += (x04 >> 28); x04 &= M28L;
-            x06 += (x05 >> 28); x05 &= M28L;
-            x07 += (x06 >> 28); x06 &= M28L;
-            x08 += (x07 >> 28); x07 &= M28L;
-            x09  = (x08 >> 28); x08 &= M28L;
-
-            x09 -= t;
-
-            Debug.Assert(x09 == 0L || x09 == -1L);
-
-            x00 += x09 & L0;
-            x01 += x09 & L1;
-            x02 += x09 & L2;
-            x03 += x09 & L3;
-            x04 += x09 & L4;
-
-            x01 += (x00 >> 28); x00 &= M28L;
-            x02 += (x01 >> 28); x01 &= M28L;
-            x03 += (x02 >> 28); x02 &= M28L;
-            x04 += (x03 >> 28); x03 &= M28L;
-            x05 += (x04 >> 28); x04 &= M28L;
-            x06 += (x05 >> 28); x05 &= M28L;
-            x07 += (x06 >> 28); x06 &= M28L;
-            x08 += (x07 >> 28); x07 &= M28L;
-
-            Codec.Encode56((ulong)(x00 | (x01 << 28)), r);
-            Codec.Encode56((ulong)(x02 | (x03 << 28)), r[7..]);
-            Codec.Encode56((ulong)(x04 | (x05 << 28)), r[14..]);
-            Codec.Encode56((ulong)(x06 | (x07 << 28)), r[21..]);
-            Codec.Encode32((uint)x08, r[28..]);
-        }
-#endif
-
-        private static void ScalarMult(byte[] k, ref PointAffine p, ref PointAccum r)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMult(k.AsSpan(), ref p, ref r);
-#else
-            uint[] n = new uint[ScalarUints];
-            DecodeScalar(k, 0, n);
-
-            // Recode the scalar into signed-digit form
-            {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
-            }
-
-            Init(out PointPrecompZ q);
-            Init(out PointTemp t);
-            int[] table = PointPrecomputeZ(ref p, 8, ref t);
-
-            PointSetNeutral(ref r);
-
-            int w = 63;
-            for (;;)
-            {
-                PointLookupZ(n, w, table, ref q);
-                PointAdd(ref q, ref r, ref t);
-
-                if (--w < 0)
-                    break;
-
-                for (int i = 0; i < 4; ++i)
-                {
-                    PointDouble(ref r);
-                }
-            }
-#endif
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ScalarMult(ReadOnlySpan<byte> k, ref PointAffine p, ref PointAccum r)
+#else
+        private static void ScalarMult(byte[] k, ref PointAffine p, ref PointAccum r)
+#endif
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<uint> n = stackalloc uint[ScalarUints];
-            DecodeScalar(k, n);
+#else
+            uint[] n = new uint[ScalarUints];
+#endif
 
-            // Recode the scalar into signed-digit form
-            {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
-            }
+            Scalar25519.Decode(k, n);
+            Scalar25519.ToSignedDigits(n, n);
 
             Init(out PointPrecompZ q);
             Init(out PointTemp t);
@@ -1597,79 +1325,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
         }
-#endif
 
-        private static void ScalarMultBase(byte[] k, ref PointAccum r)
-        {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMultBase(k.AsSpan(), ref r);
+            private static void ScalarMultBase(ReadOnlySpan<byte> k, ref PointAccum r)
 #else
-            // Equivalent (but much slower)
-            //Init(out PointAffine p);
-            //F.Copy(B_x, 0, p.x, 0);
-            //F.Copy(B_y, 0, p.y, 0);
-            //ScalarMult(k, ref p, ref r);
-
-            Precompute();
-
-            uint[] n = new uint[ScalarUints];
-            DecodeScalar(k, 0, n);
-
-            // Recode the scalar into signed-digit form, then group comb bits in each block
-            {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
-
-                /*
-                 * Because we are using 4 teeth and 8 spacing, each limb of n corresponds to one of the 8 blocks.
-                 * Therefore we can efficiently group the bits for each comb position using a (double) shuffle. 
-                 */
-                for (int i = 0; i < ScalarUints; ++i)
-                {
-                    n[i] = Interleave.Shuffle2(n[i]);
-                }
-            }
-
-            Init(out PointPrecomp p);
-            Init(out PointTemp t);
-
-            PointSetNeutral(ref r);
-            int resultSign = 0;
-
-            int cOff = (PrecompSpacing - 1) * PrecompTeeth;
-            for (;;)
-            {
-                for (int b = 0; b < PrecompBlocks; ++b)
-                {
-                    uint w = n[b] >> cOff;
-                    int sign = (int)(w >> (PrecompTeeth - 1)) & 1;
-                    int abs = ((int)w ^ -sign) & PrecompMask;
-
-                    Debug.Assert(sign == 0 || sign == 1);
-                    Debug.Assert(0 <= abs && abs < PrecompPoints);
-
-                    PointLookup(b, abs, ref p);
-
-                    F.CNegate(resultSign ^ sign, r.x);
-                    F.CNegate(resultSign ^ sign, r.u);
-                    resultSign = sign;
-
-                    PointAdd(ref p, ref r, ref t);
-                }
-
-                if ((cOff -= PrecompTeeth) < 0)
-                    break;
-
-                PointDouble(ref r);
-            }
-
-            F.CNegate(resultSign, r.x);
-            F.CNegate(resultSign, r.u);
+        private static void ScalarMultBase(byte[] k, ref PointAccum r)
 #endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void ScalarMultBase(ReadOnlySpan<byte> k, ref PointAccum r)
         {
             // Equivalent (but much slower)
             //Init(out PointAffine p);
@@ -1679,23 +1340,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Precompute();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<uint> n = stackalloc uint[ScalarUints];
-            DecodeScalar(k, n);
+#else
+            uint[] n = new uint[ScalarUints];
+#endif
 
-            // Recode the scalar into signed-digit form, then group comb bits in each block
-            {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
-
-                /*
-                 * Because we are using 4 teeth and 8 spacing, each limb of n corresponds to one of the 8 blocks.
-                 * Therefore we can efficiently group the bits for each comb position using a (double) shuffle. 
-                 */
-                for (int i = 0; i < ScalarUints; ++i)
-                {
-                    n[i] = Interleave.Shuffle2(n[i]);
-                }
-            }
+            Scalar25519.Decode(k, n);
+            Scalar25519.ToSignedDigits(n, n);
+            GroupCombBits(n);
 
             Init(out PointPrecomp p);
             Init(out PointTemp t);
@@ -1733,7 +1386,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.CNegate(resultSign, r.x);
             F.CNegate(resultSign, r.u);
         }
-#endif
 
         private static void ScalarMultBaseEncoded(byte[] k, byte[] r, int rOff)
         {
@@ -1800,7 +1452,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #else
             sbyte[] ws_p = new sbyte[253];
 #endif
-            Wnaf.GetSignedVar(L, WnafWidth, ws_p);
+            Scalar25519.GetOrderWnafVar(WnafWidth, ws_p);
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
@@ -1826,45 +1478,56 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void ScalarMultStrausVar(ReadOnlySpan<uint> nb, ReadOnlySpan<uint> np, ref PointAffine p,
-            ref PointAccum r)
+        private static void ScalarMultStraus128Var(ReadOnlySpan<uint> nb, ReadOnlySpan<uint> np, ref PointAffine p,
+            ReadOnlySpan<uint> nq, ref PointAffine q, ref PointAccum r)
 #else
-        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointAffine p, ref PointAccum r)
+        private static void ScalarMultStraus128Var(uint[] nb, uint[] np, ref PointAffine p, uint[] nq,
+            ref PointAffine q, ref PointAccum r)
 #endif
         {
             Debug.Assert(nb.Length == ScalarUints);
-            Debug.Assert(nb[ScalarUints - 1] <= L[ScalarUints - 1]);
-
-            Debug.Assert(np.Length == ScalarUints);
-            Debug.Assert(np[ScalarUints - 1] <= L[ScalarUints - 1]);
+            Debug.Assert(np.Length == 4);
+            Debug.Assert(nq.Length == 4);
 
             Precompute();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<sbyte> ws_b = stackalloc sbyte[253];
-            Span<sbyte> ws_p = stackalloc sbyte[253];
+            Span<sbyte> ws_b = stackalloc sbyte[256];
+            Span<sbyte> ws_p = stackalloc sbyte[128];
+            Span<sbyte> ws_q = stackalloc sbyte[128];
 #else
-            sbyte[] ws_b = new sbyte[253];
-            sbyte[] ws_p = new sbyte[253];
+            sbyte[] ws_b = new sbyte[256];
+            sbyte[] ws_p = new sbyte[128];
+            sbyte[] ws_q = new sbyte[128];
 #endif
 
             Wnaf.GetSignedVar(nb, WnafWidthBase, ws_b);
-            Wnaf.GetSignedVar(np, WnafWidth, ws_p);
+            Wnaf.GetSignedVar(np, WnafWidth - 1, ws_p);
+            Wnaf.GetSignedVar(nq, WnafWidth - 1, ws_q);
 
-            int count = 1 << (WnafWidth - 2);
+            int count = 1 << (WnafWidth - 3);
             PointPrecompZ[] tp = new PointPrecompZ[count];
+            PointPrecompZ[] tq = new PointPrecompZ[count];
             Init(out PointTemp t);
             PointPrecomputeZ(ref p, tp, count, ref t);
+            PointPrecomputeZ(ref q, tq, count, ref t);
 
             PointSetNeutral(ref r);
 
-            for (int bit = 252;;)
+            for (int bit = 127; bit >= 0; --bit)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)
                 {
                     int index = (wb >> 1) ^ (wb >> 31);
                     PointAddVar(wb < 0, ref PrecompBaseWnaf[index], ref r, ref t);
+                }
+
+                int wb128 = ws_b[128 + bit];
+                if (wb128 != 0)
+                {
+                    int index = (wb128 >> 1) ^ (wb128 >> 31);
+                    PointAddVar(wb128 < 0, ref PrecompBase128Wnaf[index], ref r, ref t);
                 }
 
                 int wp = ws_p[bit];
@@ -1874,11 +1537,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     PointAddVar(wp < 0, ref tp[index], ref r, ref t);
                 }
 
-                if (--bit < 0)
-                    break;
+                int wq = ws_q[bit];
+                if (wq != 0)
+                {
+                    int index = (wq >> 1) ^ (wq >> 31);
+                    PointAddVar(wq < 0, ref tq[index], ref r, ref t);
+                }
 
                 PointDouble(ref r);
             }
+
+            // NOTE: Together with the final PointDouble of the loop, this clears the cofactor of 8
+            PointDouble(ref r);
+            PointDouble(ref r);
         }
 
         public static void Sign(byte[] sk, int skOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
@@ -1949,24 +1620,44 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
-            Init(out PointAffine p);
-            if (!DecodePointVar(pk, pkOff, false, ref p))
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk.AsSpan(pkOff));
+#else
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
+#endif
+
+            if (!CheckPointFullVar(A))
                 return false;
 
-            Init(out PointAccum r);
-            ScalarMultOrderVar(ref p, ref r);
+            Init(out PointAffine pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return false;
 
-            F.Normalize(r.x);
-            F.Normalize(r.y);
-            F.Normalize(r.z);
+            Init(out PointAccum pR);
+            ScalarMultOrderVar(ref pA, ref pR);
 
-            return IsNeutralElementVar(r.x, r.y, r.z);
+            F.Normalize(pR.x);
+            F.Normalize(pR.y);
+            F.Normalize(pR.z);
+
+            return IsNeutralElementVar(pR.x, pR.y, pR.z);
         }
 
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
-            Init(out PointAffine p);
-            return DecodePointVar(pk, pkOff, false, ref p);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk.AsSpan(pkOff));
+#else
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
+#endif
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointAffine pA);
+            return DecodePointVar(A, false, ref pA);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)

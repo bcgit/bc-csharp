@@ -116,6 +116,24 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        internal static void Encode32(uint[] n, int nOff, int nLen, byte[] bs, int bsOff)
+        {
+            for (int i = 0; i < nLen; ++i)
+            {
+                Encode32(n[nOff + i], bs, bsOff + i * 4);
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Encode32(ReadOnlySpan<uint> n, Span<byte> bs)
+        {
+            for (int i = 0; i < n.Length; ++i)
+            {
+                Encode32(n[i], bs[(i * 4)..]);
+            }
+        }
+#endif
+
         internal static void Encode56(ulong n, byte[] bs, int off)
         {
             Encode32((uint)n, bs, off);

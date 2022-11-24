@@ -319,6 +319,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        public static void Decode(byte[] x, int[] z)
+        {
+            Decode128(x, 0, z, 0);
+            Decode128(x, 16, z, 5);
+            z[9] &= M24;
+        }
+
         public static void Decode(byte[] x, int xOff, int[] z)
         {
             Decode128(x, xOff, z, 0);
@@ -424,6 +431,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode128(x[5..], z[4..]);
         }
 #endif
+
+        public static void Encode(int[] x, byte[] z)
+        {
+            Encode128(x, 0, z, 0);
+            Encode128(x, 5, z, 16);
+        }
 
         public static void Encode(int[] x, byte[] z, int zOff)
         {
