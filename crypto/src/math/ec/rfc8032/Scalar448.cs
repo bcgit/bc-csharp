@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #endif
 
-using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math.Raw;
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
