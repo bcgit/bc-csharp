@@ -77,14 +77,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static readonly int[] C_d4 = { 0x0165E2B2, 0x034DCA13, 0x002ADD7A, 0x01A8283B, 0x00038052, 0x01E7A260,
             0x03407977, 0x019CE331, 0x01C56DFF, 0x00901B67 };
 
-        private const int WnafWidth = 5;
-        private const int WnafWidthBase = 7;
+        //private const int WnafWidth = 5;
+        private const int WnafWidth128 = 4;
+        private const int WnafWidthBase = 6;
 
         // ScalarMultBase is hard-coded for these values of blocks, teeth, spacing so they can't be freely changed
         private const int PrecompBlocks = 8;
         private const int PrecompTeeth = 4;
         private const int PrecompSpacing = 8;
-        //private const int PrecompRange = PrecompBlocks * PrecompTeeth * PrecompSpacing; // range == 256
+        private const int PrecompRange = PrecompBlocks * PrecompTeeth * PrecompSpacing; // range == 256
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
@@ -614,8 +615,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Span<uint> v0 = stackalloc uint[4];
             Span<uint> v1 = stackalloc uint[4];
-            Scalar25519.ReduceBasisVar(nA, v0, v1);
-            Scalar25519.Multiply128Var(nS, v1, nS);
 #else
             byte[] R = Copy(sig, sigOff, PointBytes);
             byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
@@ -658,9 +657,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             uint[] v0 = new uint[4];
             uint[] v1 = new uint[4];
+#endif
+
             Scalar25519.ReduceBasisVar(nA, v0, v1);
             Scalar25519.Multiply128Var(nS, v1, nS);
-#endif
 
             Init(out PointAccum pZ);
             ScalarMultStraus128Var(nS, v0, ref pA, v1, ref pR, ref pZ);
@@ -1302,7 +1302,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
             Scalar25519.Decode(k, n);
-            Scalar25519.ToSignedDigits(n, n);
+            Scalar25519.ToSignedDigits(256, n, n);
 
             Init(out PointPrecompZ q);
             Init(out PointTemp t);
@@ -1327,7 +1327,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            private static void ScalarMultBase(ReadOnlySpan<byte> k, ref PointAccum r)
+        private static void ScalarMultBase(ReadOnlySpan<byte> k, ref PointAccum r)
 #else
         private static void ScalarMultBase(byte[] k, ref PointAccum r)
 #endif
@@ -1347,7 +1347,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
             Scalar25519.Decode(k, n);
-            Scalar25519.ToSignedDigits(n, n);
+            Scalar25519.ToSignedDigits(PrecompRange, n, n);
             GroupCombBits(n);
 
             Init(out PointPrecomp p);
@@ -1452,9 +1452,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #else
             sbyte[] ws_p = new sbyte[253];
 #endif
-            Scalar25519.GetOrderWnafVar(WnafWidth, ws_p);
 
-            int count = 1 << (WnafWidth - 2);
+            // NOTE: WnafWidth128 because of the special structure of the order 
+            Scalar25519.GetOrderWnafVar(WnafWidth128, ws_p);
+
+            int count = 1 << (WnafWidth128 - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
             Init(out PointTemp t);
             PointPrecomputeZ(ref p, tp, count, ref t);
@@ -1486,6 +1488,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
         {
             Debug.Assert(nb.Length == ScalarUints);
+            Debug.Assert(nb[ScalarUints - 1] >> 29 == 0U);
             Debug.Assert(np.Length == 4);
             Debug.Assert(nq.Length == 4);
 
@@ -1502,10 +1505,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
             Wnaf.GetSignedVar(nb, WnafWidthBase, ws_b);
-            Wnaf.GetSignedVar(np, WnafWidth - 1, ws_p);
-            Wnaf.GetSignedVar(nq, WnafWidth - 1, ws_q);
+            Wnaf.GetSignedVar(np, WnafWidth128, ws_p);
+            Wnaf.GetSignedVar(nq, WnafWidth128, ws_q);
 
-            int count = 1 << (WnafWidth - 3);
+            int count = 1 << (WnafWidth128 - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
             PointPrecompZ[] tq = new PointPrecompZ[count];
             Init(out PointTemp t);
@@ -1514,7 +1517,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointSetNeutral(ref r);
 
-            for (int bit = 127; bit >= 0; --bit)
+            int bit = 128;
+            while (--bit >= 0)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)

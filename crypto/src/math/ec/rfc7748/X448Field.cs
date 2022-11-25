@@ -241,6 +241,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        public static void Decode(byte[] x, uint[] z)
+        {
+            Decode56(x, 0, z, 0);
+            Decode56(x, 7, z, 2);
+            Decode56(x, 14, z, 4);
+            Decode56(x, 21, z, 6);
+            Decode56(x, 28, z, 8);
+            Decode56(x, 35, z, 10);
+            Decode56(x, 42, z, 12);
+            Decode56(x, 49, z, 14);
+        }
+
         public static void Decode(byte[] x, int xOff, uint[] z)
         {
             Decode56(x, xOff, z, 0);
@@ -368,6 +380,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode224(x[8..], z[7..]);
         }
 #endif
+
+        public static void Encode(uint[] x, byte[] z)
+        {
+            Encode56(x, 0, z, 0);
+            Encode56(x, 2, z, 7);
+            Encode56(x, 4, z, 14);
+            Encode56(x, 6, z, 21);
+            Encode56(x, 8, z, 28);
+            Encode56(x, 10, z, 35);
+            Encode56(x, 12, z, 42);
+            Encode56(x, 14, z, 49);
+        }
 
         public static void Encode(uint[] x, byte[] z, int zOff)
         {

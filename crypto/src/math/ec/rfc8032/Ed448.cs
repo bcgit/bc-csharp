@@ -31,9 +31,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Ed448ph = 1,
         }
 
-        private const ulong M26UL = 0x03FFFFFFUL;
-        private const ulong M28UL = 0x0FFFFFFFUL;
-
         private const int CoordUints = 14;
         private const int PointBytes = CoordUints * 4 + 1;
         private const int ScalarUints = 14;
@@ -47,28 +44,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         // "SigEd448"
         private static readonly byte[] Dom4Prefix = new byte[]{ 0x53, 0x69, 0x67, 0x45, 0x64, 0x34, 0x34, 0x38 };
 
-        private static readonly uint[] P = { 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-            0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU };
-        private static readonly uint[] L = { 0xAB5844F3U, 0x2378C292U, 0x8DC58F55U, 0x216CC272U, 0xAED63690U, 0xC44EDB49U, 0x7CCA23E9U,
-            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0x3FFFFFFFU };
-
-        private const int L_0 = 0x04A7BB0D;     // L_0:26/24
-        private const int L_1 = 0x0873D6D5;     // L_1:27/23
-        private const int L_2 = 0x0A70AADC;     // L_2:27/26
-        private const int L_3 = 0x03D8D723;     // L_3:26/--
-        private const int L_4 = 0x096FDE93;     // L_4:27/25
-        private const int L_5 = 0x0B65129C;     // L_5:27/26
-        private const int L_6 = 0x063BB124;     // L_6:27/--
-        private const int L_7 = 0x08335DC1;     // L_7:27/22
-
-        private const int L4_0 = 0x029EEC34;    // L4_0:25/24
-        private const int L4_1 = 0x01CF5B55;    // L4_1:25/--
-        private const int L4_2 = 0x09C2AB72;    // L4_2:27/25
-        private const int L4_3 = 0x0F635C8E;    // L4_3:28/--
-        private const int L4_4 = 0x05BF7A4C;    // L4_4:26/25
-        private const int L4_5 = 0x0D944A72;    // L4_5:28/--
-        private const int L4_6 = 0x08EEC492;    // L4_6:27/24
-        private const int L4_7 = 0x20CD7705;    // L4_7:29/24
+        private static readonly uint[] P = { 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU };
 
         private static readonly uint[] B_x = { 0x070CC05EU, 0x026A82BCU, 0x00938E26U, 0x080E18B0U, 0x0511433BU,
             0x0F72AB66U, 0x0412AE1AU, 0x0A3D3A46U, 0x0A6DE324U, 0x00F1767EU, 0x04657047U, 0x036DA9E1U, 0x05A622BFU,
@@ -77,17 +55,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             0x01CE67C3U, 0x073AD3FFU, 0x005A0C2DU, 0x07789C1EU, 0x0A398408U, 0x0A73736CU, 0x0C7624BEU, 0x003756C9U,
             0x02488762U, 0x016EB6BCU, 0x0693F467U };
 
-        // 2^224 * B
-        private static readonly uint[] B224_x = { 0x091780C7U, 0x0A7EA989U, 0x0D2476B6U, 0x004E4ECCU, 0x0C494B68U,
-            0x00AF9F58U, 0x0DEE64FDU, 0x0E0F269FU, 0x0021BD26U, 0x085A61F6U, 0x0B5D284BU, 0x0C265C35U, 0x03775AFDU,
-            0x058755EAU, 0x02ECF2C6U, 0x0617F174U };
-        private static readonly uint[] B224_y = { 0x05EC556AU, 0x050109E2U, 0x0FD57E39U, 0x0235366BU, 0x044B6B2EU,
-            0x07B3C976U, 0x0B2B7B9CU, 0x0F7F9E82U, 0x00EC6409U, 0x0B6196ABU, 0x00A20D9EU, 0x088F1D16U, 0x0586F761U,
-            0x0e3BE3B4U, 0x0E26395DU, 0x09983C26U };
+        // 2^225 * B
+        private static readonly uint[] B225_x = { 0x06909ee2U, 0x01d7605cU, 0x0995ec8aU, 0x0fc4d970U, 0x0cf2b361U,
+            0x02d82e9dU, 0x01225f55U, 0x007f0ef6U, 0x0aee9c55U, 0x0a240c13U, 0x05627b54U, 0x0d449d1eU, 0x03a44575U,
+            0x007164a7U, 0x0bd4bd71U, 0x061a15fdU };
+        private static readonly uint[] B225_y = { 0x0d3a9fe4U, 0x030696b9U, 0x07e7e326U, 0x068308c7U, 0x0ce0b8c8U,
+            0x03ac222bU, 0x0304db8eU, 0x083ee319U, 0x05e5db0bU, 0x0eca503bU, 0x0b1c6539U, 0x078a8dceU, 0x02d256bcU,
+            0x04a8b05eU, 0x0bd9fd57U, 0x0a1c3cb8U };
 
         private const int C_d = -39081;
 
-        private const int WnafWidth = 5;
+        //private const int WnafWidth = 6;
+        private const int WnafWidth225 = 5;
         private const int WnafWidthBase = 7;
 
         // ScalarMultBase supports varying blocks, teeth, spacing so long as their product is in range [449, 479]
@@ -100,7 +79,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static readonly object PrecompLock = new object();
         private static PointAffine[] PrecompBaseWnaf = null;
-        private static PointAffine[] PrecompBase224Wnaf = null;
+        private static PointAffine[] PrecompBase225Wnaf = null;
         private static uint[] PrecompBaseComb = null;
 
         private struct PointAffine
@@ -115,9 +94,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static byte[] CalculateS(byte[] r, byte[] k, byte[] s)
         {
-            uint[] t = new uint[ScalarUints * 2];   DecodeScalar(r, 0, t);
-            uint[] u = new uint[ScalarUints];       DecodeScalar(k, 0, u);
-            uint[] v = new uint[ScalarUints];       DecodeScalar(s, 0, v);
+            uint[] t = new uint[ScalarUints * 2];   Scalar448.Decode(r, t);
+            uint[] u = new uint[ScalarUints];       Scalar448.Decode(k, u);
+            uint[] v = new uint[ScalarUints];       Scalar448.Decode(s, v);
 
             Nat.MulAddTo(ScalarUints, u, v, t);
 
@@ -126,7 +105,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 Codec.Encode32(t[i], result, i * 4);
             }
-            return ReduceScalar(result);
+            return Scalar448.Reduce(result);
         }
 
         private static bool CheckContextVar(byte[] ctx)
@@ -208,7 +187,42 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool CheckPointFullVar(ReadOnlySpan<byte> p)
+        {
+            if ((p[PointBytes - 1] & 0x7F) != 0x00)
+                return false;
 
+            uint y13 = Codec.Decode32(p[52..]);
+
+            uint t0 = y13;
+            uint t1 = y13 ^ P[13];
+
+            for (int i = CoordUints - 2; i > 0; --i)
+            {
+                uint yi = Codec.Decode32(p[(i * 4)..]);
+
+                // Reject non-canonical encodings (i.e. >= P)
+                if (t1 == 0 && yi > P[i])
+                    return false;
+
+                t0 |= yi;
+                t1 |= yi ^ P[i];
+            }
+
+            uint y0 = Codec.Decode32(p);
+
+            // Reject 0 and 1
+            if (t0 == 0 && y0 <= 1U)
+                return false;
+
+            // Reject P - 1 and non-canonical encodings (i.e. >= P)
+            if (t1 == 0 && y0 >= (P[0] - 1U))
+                return false;
+
+            return true;
+        }
+#else
         private static bool CheckPointFullVar(byte[] p)
         {
             if ((p[PointBytes - 1] & 0x7F) != 0x00)
@@ -243,25 +257,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             return true;
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
-        {
-            if (s[ScalarBytes - 1] != 0x00)
-                return false;
-
-            DecodeScalar(s, n);
-            return !Nat.Gte(ScalarUints, n, L);
-        }
-#else
-        private static bool CheckScalarVar(byte[] s, uint[] n)
-        {
-            if (s[ScalarBytes - 1] != 0x00)
-                return false;
-
-            DecodeScalar(s, 0, n);
-            return !Nat.Gte(ScalarUints, n, L);
-        }
 #endif
 
         private static byte[] Copy(byte[] buf, int off, int len)
@@ -281,16 +276,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return new ShakeDigest(256);
         }
 
-        private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointProjective r)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool DecodePointVar(ReadOnlySpan<byte> p, bool negate, ref PointProjective r)
+#else
+        private static bool DecodePointVar(byte[] p, bool negate, ref PointProjective r)
+#endif
         {
-            byte[] py = Copy(p, pOff, PointBytes);
-            if (!CheckPointFullVar(py))
-                return false;
+            int x_0 = (p[PointBytes - 1] & 0x80) >> 7;
 
-            int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
-            py[PointBytes - 1] &= 0x7F;
-
-            F.Decode(py, 0, r.y);
+            F.Decode(p, r.y);
 
             uint[] u = F.Create();
             uint[] v = F.Create();
@@ -316,22 +310,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.One(r.z);
             return true;
         }
-
-        private static void DecodeScalar(byte[] k, int kOff, uint[] n)
-        {
-            Debug.Assert(k[kOff + ScalarBytes - 1] == 0x00);
-
-            Codec.Decode32(k, kOff, n, 0, ScalarUints);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void DecodeScalar(ReadOnlySpan<byte> k, Span<uint> n)
-        {
-            Debug.Assert(k[ScalarBytes - 1] == 0x00);
-
-            Codec.Decode32(k, n[..ScalarUints]);
-        }
-#endif
 
         private static void Dom4(IXof d, byte phflag, byte[] ctx)
         {
@@ -466,7 +444,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.OutputFinal(h, 0, h.Length);
 
-            byte[] r = ReduceScalar(h);
+            byte[] r = Scalar448.Reduce(h);
             byte[] R = new byte[PointBytes];
             ScalarMultBaseEncoded(r, R, 0);
 
@@ -476,7 +454,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.OutputFinal(h, 0, h.Length);
 
-            byte[] k = ReduceScalar(h);
+            byte[] k = Scalar448.Reduce(h);
             byte[] S = CalculateS(r, k, s);
 
             Array.Copy(R, 0, sig, sigOff, PointBytes);
@@ -529,21 +507,30 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException("ctx");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> RS = stackalloc byte[PointBytes + ScalarBytes];
-            RS.CopyFrom(sig.AsSpan(sigOff, PointBytes + ScalarBytes));
+            Span<byte> signature = stackalloc byte[SignatureSize];
+            signature.CopyFrom(sig.AsSpan(sigOff, SignatureSize));
+            var R = signature[..PointBytes];
+            var S = signature[PointBytes..];
 
-            var R = RS[..PointBytes];
-            var S = RS[PointBytes..];
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk.AsSpan(pkOff));
 
             if (!CheckPointVar(R))
                 return false;
 
             Span<uint> nS = stackalloc uint[ScalarUints];
-            if (!CheckScalarVar(S, nS))
+            if (!Scalar448.CheckVar(S, nS))
+                return false;
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointProjective pR);
+            if (!DecodePointVar(R, true, ref pR))
                 return false;
 
             Init(out PointProjective pA);
-            if (!DecodePointVar(pk, pkOff, true, ref pA))
+            if (!DecodePointVar(A, true, ref pA))
                 return false;
 
             IXof d = CreateXof();
@@ -551,34 +538,39 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R);
-            d.BlockUpdate(pk.AsSpan(pkOff, PointBytes));
+            d.BlockUpdate(A);
             d.BlockUpdate(m.AsSpan(mOff, mLen));
             d.OutputFinal(h);
 
             Span<byte> k = stackalloc byte[ScalarBytes];
-            ReduceScalar(h, k);
+            Scalar448.Reduce(h, k);
 
             Span<uint> nA = stackalloc uint[ScalarUints];
-            DecodeScalar(k, nA);
+            Scalar448.Decode(k, nA);
 
-            Init(out PointProjective pR);
-            ScalarMultStrausVar(nS, nA, ref pA, ref pR);
-
-            Span<byte> check = stackalloc byte[PointBytes];
-            return 0 != EncodePoint(ref pR, check) && check.SequenceEqual(R);
+            Span<uint> v0 = stackalloc uint[8];
+            Span<uint> v1 = stackalloc uint[8];
 #else
             byte[] R = Copy(sig, sigOff, PointBytes);
             byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
 
             if (!CheckPointVar(R))
                 return false;
 
             uint[] nS = new uint[ScalarUints];
-            if (!CheckScalarVar(S, nS))
+            if (!Scalar448.CheckVar(S, nS))
+                return false;
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointProjective pR);
+            if (!DecodePointVar(R, true, ref pR))
                 return false;
 
             Init(out PointProjective pA);
-            if (!DecodePointVar(pk, pkOff, true, ref pA))
+            if (!DecodePointVar(A, true, ref pA))
                 return false;
 
             IXof d = CreateXof();
@@ -586,21 +578,30 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R, 0, PointBytes);
-            d.BlockUpdate(pk, pkOff, PointBytes);
+            d.BlockUpdate(A, 0, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.OutputFinal(h, 0, h.Length);
 
-            byte[] k = ReduceScalar(h);
+            byte[] k = Scalar448.Reduce(h);
 
             uint[] nA = new uint[ScalarUints];
-            DecodeScalar(k, 0, nA);
+            Scalar448.Decode(k, nA);
 
-            Init(out PointProjective pR);
-            ScalarMultStrausVar(nS, nA, ref pA, ref pR);
-
-            byte[] check = new byte[PointBytes];
-            return 0 != EncodePoint(ref pR, check, 0) && Arrays.AreEqual(check, R);
+            uint[] v0 = new uint[8];
+            uint[] v1 = new uint[8];
 #endif
+
+            Scalar448.ReduceBasisVar(nA, v0, v1);
+            Scalar448.Multiply225Var(nS, v1, nS);
+
+            Init(out PointProjective pZ);
+            ScalarMultStraus225Var(nS, v0, ref pA, v1, ref pR, ref pZ);
+
+            F.Normalize(pZ.x);
+            F.Normalize(pZ.y);
+            F.Normalize(pZ.z);
+
+            return IsNeutralElementVar(pZ.x, pZ.y, pZ.z);
         }
 
         private static void Init(out PointAffine r)
@@ -996,12 +997,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 PointPrecomputeVar(ref p, points, 0, wnafPoints);
 
-                Init(out PointProjective p224);
-                F.Copy(B224_x, 0, p224.x, 0);
-                F.Copy(B224_y, 0, p224.y, 0);
-                F.One(p224.z);
+                Init(out PointProjective p225);
+                F.Copy(B225_x, 0, p225.x, 0);
+                F.Copy(B225_y, 0, p225.y, 0);
+                F.One(p225.z);
 
-                PointPrecomputeVar(ref p224, points, wnafPoints, wnafPoints);
+                PointPrecomputeVar(ref p225, points, wnafPoints, wnafPoints);
 
                 int pointsIndex = wnafPoints * 2;
                 PointProjective[] toothPowers = new PointProjective[PrecompTeeth];
@@ -1065,11 +1066,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     F.Mul(q.y, q.z, r.y);       F.Normalize(r.y);
                 }
 
-                PrecompBase224Wnaf = new PointAffine[wnafPoints];
+                PrecompBase225Wnaf = new PointAffine[wnafPoints];
                 for (int i = 0; i < wnafPoints; ++i)
                 {
                     ref PointProjective q = ref points[wnafPoints + i];
-                    ref PointAffine r = ref PrecompBase224Wnaf[i];
+                    ref PointAffine r = ref PrecompBase225Wnaf[i];
                     Init(out r);
 
                     F.Mul(q.x, q.z, r.x);       F.Normalize(r.x);
@@ -1112,619 +1113,23 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        private static byte[] ReduceScalar(byte[] n)
-        {
-            byte[] r = new byte[ScalarBytes];
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ReduceScalar(n, r);
-#else
-            ulong x00 =  Codec.Decode32(n,   0);                // x00:32/--
-            ulong x01 = (Codec.Decode24(n,   4) << 4);          // x01:28/--
-            ulong x02 =  Codec.Decode32(n,   7);                // x02:32/--
-            ulong x03 = (Codec.Decode24(n,  11) << 4);          // x03:28/--
-            ulong x04 =  Codec.Decode32(n,  14);                // x04:32/--
-            ulong x05 = (Codec.Decode24(n,  18) << 4);          // x05:28/--
-            ulong x06 =  Codec.Decode32(n,  21);                // x06:32/--
-            ulong x07 = (Codec.Decode24(n,  25) << 4);          // x07:28/--
-            ulong x08 =  Codec.Decode32(n,  28);                // x08:32/--
-            ulong x09 = (Codec.Decode24(n,  32) << 4);          // x09:28/--
-            ulong x10 =  Codec.Decode32(n,  35);                // x10:32/--
-            ulong x11 = (Codec.Decode24(n,  39) << 4);          // x11:28/--
-            ulong x12 =  Codec.Decode32(n,  42);                // x12:32/--
-            ulong x13 = (Codec.Decode24(n,  46) << 4);          // x13:28/--
-            ulong x14 =  Codec.Decode32(n,  49);                // x14:32/--
-            ulong x15 = (Codec.Decode24(n,  53) << 4);          // x15:28/--
-            ulong x16 =  Codec.Decode32(n,  56);                // x16:32/--
-            ulong x17 = (Codec.Decode24(n,  60) << 4);          // x17:28/--
-            ulong x18 =  Codec.Decode32(n,  63);                // x18:32/--
-            ulong x19 = (Codec.Decode24(n,  67) << 4);          // x19:28/--
-            ulong x20 =  Codec.Decode32(n,  70);                // x20:32/--
-            ulong x21 = (Codec.Decode24(n,  74) << 4);          // x21:28/--
-            ulong x22 =  Codec.Decode32(n,  77);                // x22:32/--
-            ulong x23 = (Codec.Decode24(n,  81) << 4);          // x23:28/--
-            ulong x24 =  Codec.Decode32(n,  84);                // x24:32/--
-            ulong x25 = (Codec.Decode24(n,  88) << 4);          // x25:28/--
-            ulong x26 =  Codec.Decode32(n,  91);                // x26:32/--
-            ulong x27 = (Codec.Decode24(n,  95) << 4);          // x27:28/--
-            ulong x28 =  Codec.Decode32(n,  98);                // x28:32/--
-            ulong x29 = (Codec.Decode24(n, 102) << 4);          // x29:28/--
-            ulong x30 =  Codec.Decode32(n, 105);                // x30:32/--
-            ulong x31 = (Codec.Decode24(n, 109) << 4);          // x31:28/--
-            ulong x32 =  Codec.Decode16(n, 112);                // x32:16/--
-
-            //x32 += (x31 >> 28); x31 &= M28UL;
-            x16 += x32 * L4_0;                          // x16:42/--
-            x17 += x32 * L4_1;                          // x17:41/28
-            x18 += x32 * L4_2;                          // x18:43/42
-            x19 += x32 * L4_3;                          // x19:44/28
-            x20 += x32 * L4_4;                          // x20:43/--
-            x21 += x32 * L4_5;                          // x21:44/28
-            x22 += x32 * L4_6;                          // x22:43/41
-            x23 += x32 * L4_7;                          // x23:45/41
-
-            x31 += (x30 >> 28); x30 &= M28UL;           // x31:28/--, x30:28/--
-            x15 += x31 * L4_0;                          // x15:54/--
-            x16 += x31 * L4_1;                          // x16:53/42
-            x17 += x31 * L4_2;                          // x17:55/54
-            x18 += x31 * L4_3;                          // x18:56/44
-            x19 += x31 * L4_4;                          // x19:55/--
-            x20 += x31 * L4_5;                          // x20:56/43
-            x21 += x31 * L4_6;                          // x21:55/53
-            x22 += x31 * L4_7;                          // x22:57/53
-
-            //x30 += (x29 >> 28); x29 &= M28UL;
-            x14 += x30 * L4_0;                          // x14:54/--
-            x15 += x30 * L4_1;                          // x15:54/53
-            x16 += x30 * L4_2;                          // x16:56/--
-            x17 += x30 * L4_3;                          // x17:57/--
-            x18 += x30 * L4_4;                          // x18:56/55
-            x19 += x30 * L4_5;                          // x19:56/55
-            x20 += x30 * L4_6;                          // x20:57/--
-            x21 += x30 * L4_7;                          // x21:57/56
-
-            x29 += (x28 >> 28); x28 &= M28UL;           // x29:28/--, x28:28/--
-            x13 += x29 * L4_0;                          // x13:54/--
-            x14 += x29 * L4_1;                          // x14:54/53
-            x15 += x29 * L4_2;                          // x15:56/--
-            x16 += x29 * L4_3;                          // x16:57/--
-            x17 += x29 * L4_4;                          // x17:57/55
-            x18 += x29 * L4_5;                          // x18:57/55
-            x19 += x29 * L4_6;                          // x19:57/52
-            x20 += x29 * L4_7;                          // x20:58/52
-
-            //x28 += (x27 >> 28); x27 &= M28UL;
-            x12 += x28 * L4_0;                          // x12:54/--
-            x13 += x28 * L4_1;                          // x13:54/53
-            x14 += x28 * L4_2;                          // x14:56/--
-            x15 += x28 * L4_3;                          // x15:57/--
-            x16 += x28 * L4_4;                          // x16:57/55
-            x17 += x28 * L4_5;                          // x17:58/--
-            x18 += x28 * L4_6;                          // x18:58/--
-            x19 += x28 * L4_7;                          // x19:58/53
-
-            x27 += (x26 >> 28); x26 &= M28UL;           // x27:28/--, x26:28/--
-            x11 += x27 * L4_0;                          // x11:54/--
-            x12 += x27 * L4_1;                          // x12:54/53
-            x13 += x27 * L4_2;                          // x13:56/--
-            x14 += x27 * L4_3;                          // x14:57/--
-            x15 += x27 * L4_4;                          // x15:57/55
-            x16 += x27 * L4_5;                          // x16:58/--
-            x17 += x27 * L4_6;                          // x17:58/56
-            x18 += x27 * L4_7;                          // x18:59/--
-
-            //x26 += (x25 >> 28); x25 &= M28UL;
-            x10 += x26 * L4_0;                          // x10:54/--
-            x11 += x26 * L4_1;                          // x11:54/53
-            x12 += x26 * L4_2;                          // x12:56/--
-            x13 += x26 * L4_3;                          // x13:57/--
-            x14 += x26 * L4_4;                          // x14:57/55
-            x15 += x26 * L4_5;                          // x15:58/--
-            x16 += x26 * L4_6;                          // x16:58/56
-            x17 += x26 * L4_7;                          // x17:59/--
-
-            x25 += (x24 >> 28); x24 &= M28UL;           // x25:28/--, x24:28/--
-            x09 += x25 * L4_0;                          // x09:54/--
-            x10 += x25 * L4_1;                          // x10:54/53
-            x11 += x25 * L4_2;                          // x11:56/--
-            x12 += x25 * L4_3;                          // x12:57/--
-            x13 += x25 * L4_4;                          // x13:57/55
-            x14 += x25 * L4_5;                          // x14:58/--
-            x15 += x25 * L4_6;                          // x15:58/56
-            x16 += x25 * L4_7;                          // x16:59/--
-
-            x21 += (x20 >> 28); x20 &= M28UL;           // x21:58/--, x20:28/--
-            x22 += (x21 >> 28); x21 &= M28UL;           // x22:57/54, x21:28/--
-            x23 += (x22 >> 28); x22 &= M28UL;           // x23:45/42, x22:28/--
-            x24 += (x23 >> 28); x23 &= M28UL;           // x24:28/18, x23:28/--
-
-            x08 += x24 * L4_0;                          // x08:54/--
-            x09 += x24 * L4_1;                          // x09:55/--
-            x10 += x24 * L4_2;                          // x10:56/46
-            x11 += x24 * L4_3;                          // x11:57/46
-            x12 += x24 * L4_4;                          // x12:57/55
-            x13 += x24 * L4_5;                          // x13:58/--
-            x14 += x24 * L4_6;                          // x14:58/56
-            x15 += x24 * L4_7;                          // x15:59/--
-
-            x07 += x23 * L4_0;                          // x07:54/--
-            x08 += x23 * L4_1;                          // x08:54/53
-            x09 += x23 * L4_2;                          // x09:56/53
-            x10 += x23 * L4_3;                          // x10:57/46
-            x11 += x23 * L4_4;                          // x11:57/55
-            x12 += x23 * L4_5;                          // x12:58/--
-            x13 += x23 * L4_6;                          // x13:58/56
-            x14 += x23 * L4_7;                          // x14:59/--
-
-            x06 += x22 * L4_0;                          // x06:54/--
-            x07 += x22 * L4_1;                          // x07:54/53
-            x08 += x22 * L4_2;                          // x08:56/--
-            x09 += x22 * L4_3;                          // x09:57/53
-            x10 += x22 * L4_4;                          // x10:57/55
-            x11 += x22 * L4_5;                          // x11:58/--
-            x12 += x22 * L4_6;                          // x12:58/56
-            x13 += x22 * L4_7;                          // x13:59/--
-
-            x18 += (x17 >> 28); x17 &= M28UL;           // x18:59/31, x17:28/--
-            x19 += (x18 >> 28); x18 &= M28UL;           // x19:58/54, x18:28/--
-            x20 += (x19 >> 28); x19 &= M28UL;           // x20:30/29, x19:28/--
-            x21 += (x20 >> 28); x20 &= M28UL;           // x21:28/03, x20:28/--
-
-            x05 += x21 * L4_0;                          // x05:54/--
-            x06 += x21 * L4_1;                          // x06:55/--
-            x07 += x21 * L4_2;                          // x07:56/31
-            x08 += x21 * L4_3;                          // x08:57/31
-            x09 += x21 * L4_4;                          // x09:57/56
-            x10 += x21 * L4_5;                          // x10:58/--
-            x11 += x21 * L4_6;                          // x11:58/56
-            x12 += x21 * L4_7;                          // x12:59/--
-
-            x04 += x20 * L4_0;                          // x04:54/--
-            x05 += x20 * L4_1;                          // x05:54/53
-            x06 += x20 * L4_2;                          // x06:56/53
-            x07 += x20 * L4_3;                          // x07:57/31
-            x08 += x20 * L4_4;                          // x08:57/55
-            x09 += x20 * L4_5;                          // x09:58/--
-            x10 += x20 * L4_6;                          // x10:58/56
-            x11 += x20 * L4_7;                          // x11:59/--
-
-            x03 += x19 * L4_0;                          // x03:54/--
-            x04 += x19 * L4_1;                          // x04:54/53
-            x05 += x19 * L4_2;                          // x05:56/--
-            x06 += x19 * L4_3;                          // x06:57/53
-            x07 += x19 * L4_4;                          // x07:57/55
-            x08 += x19 * L4_5;                          // x08:58/--
-            x09 += x19 * L4_6;                          // x09:58/56
-            x10 += x19 * L4_7;                          // x10:59/--
-
-            x15 += (x14 >> 28); x14 &= M28UL;           // x15:59/31, x14:28/--
-            x16 += (x15 >> 28); x15 &= M28UL;           // x16:59/32, x15:28/--
-            x17 += (x16 >> 28); x16 &= M28UL;           // x17:31/29, x16:28/--
-            x18 += (x17 >> 28); x17 &= M28UL;           // x18:28/04, x17:28/--
-
-            x02 += x18 * L4_0;                          // x02:54/--
-            x03 += x18 * L4_1;                          // x03:55/--
-            x04 += x18 * L4_2;                          // x04:56/32
-            x05 += x18 * L4_3;                          // x05:57/32
-            x06 += x18 * L4_4;                          // x06:57/56
-            x07 += x18 * L4_5;                          // x07:58/--
-            x08 += x18 * L4_6;                          // x08:58/56
-            x09 += x18 * L4_7;                          // x09:59/--
-
-            x01 += x17 * L4_0;                          // x01:54/--
-            x02 += x17 * L4_1;                          // x02:54/53
-            x03 += x17 * L4_2;                          // x03:56/53
-            x04 += x17 * L4_3;                          // x04:57/32
-            x05 += x17 * L4_4;                          // x05:57/55
-            x06 += x17 * L4_5;                          // x06:58/--
-            x07 += x17 * L4_6;                          // x07:58/56
-            x08 += x17 * L4_7;                          // x08:59/--
-
-            x16 *= 4;
-            x16 += (x15 >> 26); x15 &= M26UL;
-            x16 += 1;                                   // x16:30/01
-
-            x00 += x16 * L_0;
-            x01 += x16 * L_1;
-            x02 += x16 * L_2;
-            x03 += x16 * L_3;
-            x04 += x16 * L_4;
-            x05 += x16 * L_5;
-            x06 += x16 * L_6;
-            x07 += x16 * L_7;
-
-            x01 += (x00 >> 28); x00 &= M28UL;
-            x02 += (x01 >> 28); x01 &= M28UL;
-            x03 += (x02 >> 28); x02 &= M28UL;
-            x04 += (x03 >> 28); x03 &= M28UL;
-            x05 += (x04 >> 28); x04 &= M28UL;
-            x06 += (x05 >> 28); x05 &= M28UL;
-            x07 += (x06 >> 28); x06 &= M28UL;
-            x08 += (x07 >> 28); x07 &= M28UL;
-            x09 += (x08 >> 28); x08 &= M28UL;
-            x10 += (x09 >> 28); x09 &= M28UL;
-            x11 += (x10 >> 28); x10 &= M28UL;
-            x12 += (x11 >> 28); x11 &= M28UL;
-            x13 += (x12 >> 28); x12 &= M28UL;
-            x14 += (x13 >> 28); x13 &= M28UL;
-            x15 += (x14 >> 28); x14 &= M28UL;
-            x16  = (x15 >> 26); x15 &= M26UL;
-
-            x16 -= 1;
-
-            Debug.Assert(x16 == 0UL || x16 == ulong.MaxValue);
-
-            x00 -= x16 & L_0;
-            x01 -= x16 & L_1;
-            x02 -= x16 & L_2;
-            x03 -= x16 & L_3;
-            x04 -= x16 & L_4;
-            x05 -= x16 & L_5;
-            x06 -= x16 & L_6;
-            x07 -= x16 & L_7;
-
-            x01 += (ulong)((long)x00 >> 28); x00 &= M28UL;
-            x02 += (ulong)((long)x01 >> 28); x01 &= M28UL;
-            x03 += (ulong)((long)x02 >> 28); x02 &= M28UL;
-            x04 += (ulong)((long)x03 >> 28); x03 &= M28UL;
-            x05 += (ulong)((long)x04 >> 28); x04 &= M28UL;
-            x06 += (ulong)((long)x05 >> 28); x05 &= M28UL;
-            x07 += (ulong)((long)x06 >> 28); x06 &= M28UL;
-            x08 += (ulong)((long)x07 >> 28); x07 &= M28UL;
-            x09 += (ulong)((long)x08 >> 28); x08 &= M28UL;
-            x10 += (ulong)((long)x09 >> 28); x09 &= M28UL;
-            x11 += (ulong)((long)x10 >> 28); x10 &= M28UL;
-            x12 += (ulong)((long)x11 >> 28); x11 &= M28UL;
-            x13 += (ulong)((long)x12 >> 28); x12 &= M28UL;
-            x14 += (ulong)((long)x13 >> 28); x13 &= M28UL;
-            x15 += (ulong)((long)x14 >> 28); x14 &= M28UL;
-
-            Debug.Assert(x15 >> 26 == 0UL);
-
-            Codec.Encode56(x00 | (x01 << 28), r,  0);
-            Codec.Encode56(x02 | (x03 << 28), r,  7);
-            Codec.Encode56(x04 | (x05 << 28), r, 14);
-            Codec.Encode56(x06 | (x07 << 28), r, 21);
-            Codec.Encode56(x08 | (x09 << 28), r, 28);
-            Codec.Encode56(x10 | (x11 << 28), r, 35);
-            Codec.Encode56(x12 | (x13 << 28), r, 42);
-            Codec.Encode56(x14 | (x15 << 28), r, 49);
-            //r[ScalarBytes - 1] = 0;
-#endif
-
-            return r;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void ReduceScalar(ReadOnlySpan<byte> n, Span<byte> r)
-        {
-            ulong x00 =  Codec.Decode32(n[  0..]);              // x00:32/--
-            ulong x01 = (Codec.Decode24(n[  4..]) << 4);        // x01:28/--
-            ulong x02 =  Codec.Decode32(n[  7..]);              // x02:32/--
-            ulong x03 = (Codec.Decode24(n[ 11..]) << 4);        // x03:28/--
-            ulong x04 =  Codec.Decode32(n[ 14..]);              // x04:32/--
-            ulong x05 = (Codec.Decode24(n[ 18..]) << 4);        // x05:28/--
-            ulong x06 =  Codec.Decode32(n[ 21..]);              // x06:32/--
-            ulong x07 = (Codec.Decode24(n[ 25..]) << 4);        // x07:28/--
-            ulong x08 =  Codec.Decode32(n[ 28..]);              // x08:32/--
-            ulong x09 = (Codec.Decode24(n[ 32..]) << 4);        // x09:28/--
-            ulong x10 =  Codec.Decode32(n[ 35..]);              // x10:32/--
-            ulong x11 = (Codec.Decode24(n[ 39..]) << 4);        // x11:28/--
-            ulong x12 =  Codec.Decode32(n[ 42..]);              // x12:32/--
-            ulong x13 = (Codec.Decode24(n[ 46..]) << 4);        // x13:28/--
-            ulong x14 =  Codec.Decode32(n[ 49..]);              // x14:32/--
-            ulong x15 = (Codec.Decode24(n[ 53..]) << 4);        // x15:28/--
-            ulong x16 =  Codec.Decode32(n[ 56..]);              // x16:32/--
-            ulong x17 = (Codec.Decode24(n[ 60..]) << 4);        // x17:28/--
-            ulong x18 =  Codec.Decode32(n[ 63..]);              // x18:32/--
-            ulong x19 = (Codec.Decode24(n[ 67..]) << 4);        // x19:28/--
-            ulong x20 =  Codec.Decode32(n[ 70..]);              // x20:32/--
-            ulong x21 = (Codec.Decode24(n[ 74..]) << 4);        // x21:28/--
-            ulong x22 =  Codec.Decode32(n[ 77..]);              // x22:32/--
-            ulong x23 = (Codec.Decode24(n[ 81..]) << 4);        // x23:28/--
-            ulong x24 =  Codec.Decode32(n[ 84..]);              // x24:32/--
-            ulong x25 = (Codec.Decode24(n[ 88..]) << 4);        // x25:28/--
-            ulong x26 =  Codec.Decode32(n[ 91..]);              // x26:32/--
-            ulong x27 = (Codec.Decode24(n[ 95..]) << 4);        // x27:28/--
-            ulong x28 =  Codec.Decode32(n[ 98..]);              // x28:32/--
-            ulong x29 = (Codec.Decode24(n[102..]) << 4);        // x29:28/--
-            ulong x30 =  Codec.Decode32(n[105..]);              // x30:32/--
-            ulong x31 = (Codec.Decode24(n[109..]) << 4);        // x31:28/--
-            ulong x32 =  Codec.Decode16(n[112..]);              // x32:16/--
-
-            //x32 += (x31 >> 28); x31 &= M28UL;
-            x16 += x32 * L4_0;                          // x16:42/--
-            x17 += x32 * L4_1;                          // x17:41/28
-            x18 += x32 * L4_2;                          // x18:43/42
-            x19 += x32 * L4_3;                          // x19:44/28
-            x20 += x32 * L4_4;                          // x20:43/--
-            x21 += x32 * L4_5;                          // x21:44/28
-            x22 += x32 * L4_6;                          // x22:43/41
-            x23 += x32 * L4_7;                          // x23:45/41
-
-            x31 += (x30 >> 28); x30 &= M28UL;           // x31:28/--, x30:28/--
-            x15 += x31 * L4_0;                          // x15:54/--
-            x16 += x31 * L4_1;                          // x16:53/42
-            x17 += x31 * L4_2;                          // x17:55/54
-            x18 += x31 * L4_3;                          // x18:56/44
-            x19 += x31 * L4_4;                          // x19:55/--
-            x20 += x31 * L4_5;                          // x20:56/43
-            x21 += x31 * L4_6;                          // x21:55/53
-            x22 += x31 * L4_7;                          // x22:57/53
-
-            //x30 += (x29 >> 28); x29 &= M28UL;
-            x14 += x30 * L4_0;                          // x14:54/--
-            x15 += x30 * L4_1;                          // x15:54/53
-            x16 += x30 * L4_2;                          // x16:56/--
-            x17 += x30 * L4_3;                          // x17:57/--
-            x18 += x30 * L4_4;                          // x18:56/55
-            x19 += x30 * L4_5;                          // x19:56/55
-            x20 += x30 * L4_6;                          // x20:57/--
-            x21 += x30 * L4_7;                          // x21:57/56
-
-            x29 += (x28 >> 28); x28 &= M28UL;           // x29:28/--, x28:28/--
-            x13 += x29 * L4_0;                          // x13:54/--
-            x14 += x29 * L4_1;                          // x14:54/53
-            x15 += x29 * L4_2;                          // x15:56/--
-            x16 += x29 * L4_3;                          // x16:57/--
-            x17 += x29 * L4_4;                          // x17:57/55
-            x18 += x29 * L4_5;                          // x18:57/55
-            x19 += x29 * L4_6;                          // x19:57/52
-            x20 += x29 * L4_7;                          // x20:58/52
-
-            //x28 += (x27 >> 28); x27 &= M28UL;
-            x12 += x28 * L4_0;                          // x12:54/--
-            x13 += x28 * L4_1;                          // x13:54/53
-            x14 += x28 * L4_2;                          // x14:56/--
-            x15 += x28 * L4_3;                          // x15:57/--
-            x16 += x28 * L4_4;                          // x16:57/55
-            x17 += x28 * L4_5;                          // x17:58/--
-            x18 += x28 * L4_6;                          // x18:58/--
-            x19 += x28 * L4_7;                          // x19:58/53
-
-            x27 += (x26 >> 28); x26 &= M28UL;           // x27:28/--, x26:28/--
-            x11 += x27 * L4_0;                          // x11:54/--
-            x12 += x27 * L4_1;                          // x12:54/53
-            x13 += x27 * L4_2;                          // x13:56/--
-            x14 += x27 * L4_3;                          // x14:57/--
-            x15 += x27 * L4_4;                          // x15:57/55
-            x16 += x27 * L4_5;                          // x16:58/--
-            x17 += x27 * L4_6;                          // x17:58/56
-            x18 += x27 * L4_7;                          // x18:59/--
-
-            //x26 += (x25 >> 28); x25 &= M28UL;
-            x10 += x26 * L4_0;                          // x10:54/--
-            x11 += x26 * L4_1;                          // x11:54/53
-            x12 += x26 * L4_2;                          // x12:56/--
-            x13 += x26 * L4_3;                          // x13:57/--
-            x14 += x26 * L4_4;                          // x14:57/55
-            x15 += x26 * L4_5;                          // x15:58/--
-            x16 += x26 * L4_6;                          // x16:58/56
-            x17 += x26 * L4_7;                          // x17:59/--
-
-            x25 += (x24 >> 28); x24 &= M28UL;           // x25:28/--, x24:28/--
-            x09 += x25 * L4_0;                          // x09:54/--
-            x10 += x25 * L4_1;                          // x10:54/53
-            x11 += x25 * L4_2;                          // x11:56/--
-            x12 += x25 * L4_3;                          // x12:57/--
-            x13 += x25 * L4_4;                          // x13:57/55
-            x14 += x25 * L4_5;                          // x14:58/--
-            x15 += x25 * L4_6;                          // x15:58/56
-            x16 += x25 * L4_7;                          // x16:59/--
-
-            x21 += (x20 >> 28); x20 &= M28UL;           // x21:58/--, x20:28/--
-            x22 += (x21 >> 28); x21 &= M28UL;           // x22:57/54, x21:28/--
-            x23 += (x22 >> 28); x22 &= M28UL;           // x23:45/42, x22:28/--
-            x24 += (x23 >> 28); x23 &= M28UL;           // x24:28/18, x23:28/--
-
-            x08 += x24 * L4_0;                          // x08:54/--
-            x09 += x24 * L4_1;                          // x09:55/--
-            x10 += x24 * L4_2;                          // x10:56/46
-            x11 += x24 * L4_3;                          // x11:57/46
-            x12 += x24 * L4_4;                          // x12:57/55
-            x13 += x24 * L4_5;                          // x13:58/--
-            x14 += x24 * L4_6;                          // x14:58/56
-            x15 += x24 * L4_7;                          // x15:59/--
-
-            x07 += x23 * L4_0;                          // x07:54/--
-            x08 += x23 * L4_1;                          // x08:54/53
-            x09 += x23 * L4_2;                          // x09:56/53
-            x10 += x23 * L4_3;                          // x10:57/46
-            x11 += x23 * L4_4;                          // x11:57/55
-            x12 += x23 * L4_5;                          // x12:58/--
-            x13 += x23 * L4_6;                          // x13:58/56
-            x14 += x23 * L4_7;                          // x14:59/--
-
-            x06 += x22 * L4_0;                          // x06:54/--
-            x07 += x22 * L4_1;                          // x07:54/53
-            x08 += x22 * L4_2;                          // x08:56/--
-            x09 += x22 * L4_3;                          // x09:57/53
-            x10 += x22 * L4_4;                          // x10:57/55
-            x11 += x22 * L4_5;                          // x11:58/--
-            x12 += x22 * L4_6;                          // x12:58/56
-            x13 += x22 * L4_7;                          // x13:59/--
-
-            x18 += (x17 >> 28); x17 &= M28UL;           // x18:59/31, x17:28/--
-            x19 += (x18 >> 28); x18 &= M28UL;           // x19:58/54, x18:28/--
-            x20 += (x19 >> 28); x19 &= M28UL;           // x20:30/29, x19:28/--
-            x21 += (x20 >> 28); x20 &= M28UL;           // x21:28/03, x20:28/--
-
-            x05 += x21 * L4_0;                          // x05:54/--
-            x06 += x21 * L4_1;                          // x06:55/--
-            x07 += x21 * L4_2;                          // x07:56/31
-            x08 += x21 * L4_3;                          // x08:57/31
-            x09 += x21 * L4_4;                          // x09:57/56
-            x10 += x21 * L4_5;                          // x10:58/--
-            x11 += x21 * L4_6;                          // x11:58/56
-            x12 += x21 * L4_7;                          // x12:59/--
-
-            x04 += x20 * L4_0;                          // x04:54/--
-            x05 += x20 * L4_1;                          // x05:54/53
-            x06 += x20 * L4_2;                          // x06:56/53
-            x07 += x20 * L4_3;                          // x07:57/31
-            x08 += x20 * L4_4;                          // x08:57/55
-            x09 += x20 * L4_5;                          // x09:58/--
-            x10 += x20 * L4_6;                          // x10:58/56
-            x11 += x20 * L4_7;                          // x11:59/--
-
-            x03 += x19 * L4_0;                          // x03:54/--
-            x04 += x19 * L4_1;                          // x04:54/53
-            x05 += x19 * L4_2;                          // x05:56/--
-            x06 += x19 * L4_3;                          // x06:57/53
-            x07 += x19 * L4_4;                          // x07:57/55
-            x08 += x19 * L4_5;                          // x08:58/--
-            x09 += x19 * L4_6;                          // x09:58/56
-            x10 += x19 * L4_7;                          // x10:59/--
-
-            x15 += (x14 >> 28); x14 &= M28UL;           // x15:59/31, x14:28/--
-            x16 += (x15 >> 28); x15 &= M28UL;           // x16:59/32, x15:28/--
-            x17 += (x16 >> 28); x16 &= M28UL;           // x17:31/29, x16:28/--
-            x18 += (x17 >> 28); x17 &= M28UL;           // x18:28/04, x17:28/--
-
-            x02 += x18 * L4_0;                          // x02:54/--
-            x03 += x18 * L4_1;                          // x03:55/--
-            x04 += x18 * L4_2;                          // x04:56/32
-            x05 += x18 * L4_3;                          // x05:57/32
-            x06 += x18 * L4_4;                          // x06:57/56
-            x07 += x18 * L4_5;                          // x07:58/--
-            x08 += x18 * L4_6;                          // x08:58/56
-            x09 += x18 * L4_7;                          // x09:59/--
-
-            x01 += x17 * L4_0;                          // x01:54/--
-            x02 += x17 * L4_1;                          // x02:54/53
-            x03 += x17 * L4_2;                          // x03:56/53
-            x04 += x17 * L4_3;                          // x04:57/32
-            x05 += x17 * L4_4;                          // x05:57/55
-            x06 += x17 * L4_5;                          // x06:58/--
-            x07 += x17 * L4_6;                          // x07:58/56
-            x08 += x17 * L4_7;                          // x08:59/--
-
-            x16 *= 4;
-            x16 += (x15 >> 26); x15 &= M26UL;
-            x16 += 1;                                   // x16:30/01
-
-            x00 += x16 * L_0;
-            x01 += x16 * L_1;
-            x02 += x16 * L_2;
-            x03 += x16 * L_3;
-            x04 += x16 * L_4;
-            x05 += x16 * L_5;
-            x06 += x16 * L_6;
-            x07 += x16 * L_7;
-
-            x01 += (x00 >> 28); x00 &= M28UL;
-            x02 += (x01 >> 28); x01 &= M28UL;
-            x03 += (x02 >> 28); x02 &= M28UL;
-            x04 += (x03 >> 28); x03 &= M28UL;
-            x05 += (x04 >> 28); x04 &= M28UL;
-            x06 += (x05 >> 28); x05 &= M28UL;
-            x07 += (x06 >> 28); x06 &= M28UL;
-            x08 += (x07 >> 28); x07 &= M28UL;
-            x09 += (x08 >> 28); x08 &= M28UL;
-            x10 += (x09 >> 28); x09 &= M28UL;
-            x11 += (x10 >> 28); x10 &= M28UL;
-            x12 += (x11 >> 28); x11 &= M28UL;
-            x13 += (x12 >> 28); x12 &= M28UL;
-            x14 += (x13 >> 28); x13 &= M28UL;
-            x15 += (x14 >> 28); x14 &= M28UL;
-            x16  = (x15 >> 26); x15 &= M26UL;
-
-            x16 -= 1;
-
-            Debug.Assert(x16 == 0UL || x16 == ulong.MaxValue);
-
-            x00 -= x16 & L_0;
-            x01 -= x16 & L_1;
-            x02 -= x16 & L_2;
-            x03 -= x16 & L_3;
-            x04 -= x16 & L_4;
-            x05 -= x16 & L_5;
-            x06 -= x16 & L_6;
-            x07 -= x16 & L_7;
-
-            x01 += (ulong)((long)x00 >> 28); x00 &= M28UL;
-            x02 += (ulong)((long)x01 >> 28); x01 &= M28UL;
-            x03 += (ulong)((long)x02 >> 28); x02 &= M28UL;
-            x04 += (ulong)((long)x03 >> 28); x03 &= M28UL;
-            x05 += (ulong)((long)x04 >> 28); x04 &= M28UL;
-            x06 += (ulong)((long)x05 >> 28); x05 &= M28UL;
-            x07 += (ulong)((long)x06 >> 28); x06 &= M28UL;
-            x08 += (ulong)((long)x07 >> 28); x07 &= M28UL;
-            x09 += (ulong)((long)x08 >> 28); x08 &= M28UL;
-            x10 += (ulong)((long)x09 >> 28); x09 &= M28UL;
-            x11 += (ulong)((long)x10 >> 28); x10 &= M28UL;
-            x12 += (ulong)((long)x11 >> 28); x11 &= M28UL;
-            x13 += (ulong)((long)x12 >> 28); x12 &= M28UL;
-            x14 += (ulong)((long)x13 >> 28); x13 &= M28UL;
-            x15 += (ulong)((long)x14 >> 28); x14 &= M28UL;
-
-            Debug.Assert(x15 >> 26 == 0UL);
-
-            Codec.Encode56(x00 | (x01 << 28), r);
-            Codec.Encode56(x02 | (x03 << 28), r[7..]);
-            Codec.Encode56(x04 | (x05 << 28), r[14..]);
-            Codec.Encode56(x06 | (x07 << 28), r[21..]);
-            Codec.Encode56(x08 | (x09 << 28), r[28..]);
-            Codec.Encode56(x10 | (x11 << 28), r[35..]);
-            Codec.Encode56(x12 | (x13 << 28), r[42..]);
-            Codec.Encode56(x14 | (x15 << 28), r[49..]);
-            r[ScalarBytes - 1] = 0;
-        }
-#endif
-
-        private static void ScalarMult(byte[] k, ref PointProjective p, ref PointProjective r)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMult(k.AsSpan(), ref p, ref r);
-#else
-            uint[] n = new uint[ScalarUints];
-            DecodeScalar(k, 0, n);
-
-            // Recode the scalar into signed-digit form
-            {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, c1);             Debug.Assert(c2 == (1U << 31));
-
-                // NOTE: Bit 448 is implicitly set after the signed-digit recoding
-            }
-
-            uint[] table = PointPrecompute(ref p, 8);
-            Init(out PointProjective q);
-
-            // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
-            PointLookup15(table, ref r);
-            PointAdd(ref p, ref r);
-
-            int w = 111;
-            for (;;)
-            {
-                PointLookup(n, w, table, ref q);
-                PointAdd(ref q, ref r);
-
-                if (--w < 0)
-                    break;
-
-                for (int i = 0; i < 4; ++i)
-                {
-                    PointDouble(ref r);
-                }
-            }
-#endif
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ScalarMult(ReadOnlySpan<byte> k, ref PointProjective p, ref PointProjective r)
+#else
+        private static void ScalarMult(byte[] k, ref PointProjective p, ref PointProjective r)
+#endif
         {
-            Span<uint> n = stackalloc uint[ScalarUints];
-            DecodeScalar(k, n);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<uint> n = stackalloc uint[ScalarUints + 1];
+#else
+            uint[] n = new uint[ScalarUints + 1];
+#endif
 
-            // Recode the scalar into signed-digit form
-            {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, c1);             Debug.Assert(c2 == (1U << 31));
+            Scalar448.Decode(k, n);
+            Scalar448.ToSignedDigits(449, n, n);
 
-                // NOTE: Bit 448 is implicitly set after the signed-digit recoding
-            }
+            // NOTE: Bit 448 is handled explicitly by an initial addition
+            Debug.Assert(n[ScalarUints] == 1U);
 
             uint[] table = PointPrecompute(ref p, 8);
             Init(out PointProjective q);
@@ -1747,77 +1152,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     PointDouble(ref r);
                 }
             }
-        }
-#endif
-
-        private static void ScalarMultBase(byte[] k, ref PointProjective r)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMultBase(k.AsSpan(), ref r);
-#else
-            // Equivalent (but much slower)
-            //Init(out PointProjective p);
-            //F.Copy(B_x, 0, p.x, 0);
-            //F.Copy(B_y, 0, p.y, 0);
-            //F.One(p.z);
-            //ScalarMult(k, ref p, ref r);
-
-            Precompute();
-
-            uint[] n = new uint[ScalarUints + 1];
-            DecodeScalar(k, 0, n);
-
-            // Recode the scalar into signed-digit form
-            {
-                n[ScalarUints] = (1U << (PrecompRange - 448))
-                               + Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
-                uint c = Nat.ShiftDownBit(n.Length, n, 0);
-                Debug.Assert(c == (1U << 31));
-            }
-
-            Init(out PointAffine p);
-
-            PointSetNeutral(ref r);
-
-            int cOff = PrecompSpacing - 1;
-            for (;;)
-            {
-                int tPos = cOff;
-
-                for (int b = 0; b < PrecompBlocks; ++b)
-                {
-                    uint w = 0;
-                    for (int t = 0; t < PrecompTeeth; ++t)
-                    {
-                        uint tBit = n[tPos >> 5] >> (tPos & 0x1F);
-                        w &= ~(1U << t);
-                        w ^= (tBit << t);
-                        tPos += PrecompSpacing;
-                    }
-
-                    int sign = (int)(w >> (PrecompTeeth - 1)) & 1;
-                    int abs = ((int)w ^ -sign) & PrecompMask;
-
-                    Debug.Assert(sign == 0 || sign == 1);
-                    Debug.Assert(0 <= abs && abs < PrecompPoints);
-
-                    PointLookup(b, abs, ref p);
-
-                    F.CNegate(sign, p.x);
-
-                    PointAdd(ref p, ref r);
-                }
-
-                if (--cOff < 0)
-                    break;
-
-                PointDouble(ref r);
-            }
-#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ScalarMultBase(ReadOnlySpan<byte> k, ref PointProjective r)
+#else
+        private static void ScalarMultBase(byte[] k, ref PointProjective r)
+#endif
         {
             // Equivalent (but much slower)
             //Init(out PointProjective p);
@@ -1828,16 +1169,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Precompute();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<uint> n = stackalloc uint[ScalarUints + 1];
-            DecodeScalar(k, n);
+#else
+            uint[] n = new uint[ScalarUints + 1];
+#endif
 
-            // Recode the scalar into signed-digit form
-            {
-                n[ScalarUints] = (1U << (PrecompRange - 448))
-                               + Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
-                uint c = Nat.ShiftDownBit(n.Length, n, 0);
-                Debug.Assert(c == (1U << 31));
-            }
+            Scalar448.Decode(k, n);
+            Scalar448.ToSignedDigits(PrecompRange, n, n);
 
             Init(out PointAffine p);
 
@@ -1878,7 +1217,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 PointDouble(ref r);
             }
         }
-#endif
 
         private static void ScalarMultBaseEncoded(byte[] k, byte[] r, int rOff)
         {
@@ -1945,9 +1283,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #else
             sbyte[] ws_p = new sbyte[447];
 #endif
-            Wnaf.GetSignedVar(L, WnafWidth, ws_p);
+            // NOTE: WnafWidth225 because of the special structure of the order 
+            Scalar448.GetOrderWnafVar(WnafWidth225, ws_p);
 
-            int count = 1 << (WnafWidth - 2);
+            int count = 1 << (WnafWidth225 - 2);
             PointProjective[] tp = new PointProjective[count];
             PointPrecomputeVar(ref p, tp, 0, count);
 
@@ -1970,44 +1309,59 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void ScalarMultStrausVar(ReadOnlySpan<uint> nb, ReadOnlySpan<uint> np, ref PointProjective p,
-            ref PointProjective r)
+        private static void ScalarMultStraus225Var(ReadOnlySpan<uint> nb, ReadOnlySpan<uint> np, ref PointProjective p,
+            ReadOnlySpan<uint> nq, ref PointProjective q, ref PointProjective r)
 #else
-        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointProjective p, ref PointProjective r)
+        private static void ScalarMultStraus225Var(uint[] nb, uint[] np, ref PointProjective p, uint[] nq,
+            ref PointProjective q, ref PointProjective r)
 #endif
         {
             Debug.Assert(nb.Length == ScalarUints);
-            Debug.Assert(nb[ScalarUints - 1] <= L[ScalarUints - 1]);
-
-            Debug.Assert(np.Length == ScalarUints);
-            Debug.Assert(np[ScalarUints - 1] <= L[ScalarUints - 1]);
+            Debug.Assert((int)nb[ScalarUints - 1] >= 0);
+            Debug.Assert(np.Length == 8);
+            Debug.Assert((int)np[7] >> 31 == (int)np[7] >> 1);
+            Debug.Assert(nq.Length == 8);
+            Debug.Assert((int)nq[7] >> 31 == (int)nq[7] >> 1);
 
             Precompute();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<sbyte> ws_b = stackalloc sbyte[447];
-            Span<sbyte> ws_p = stackalloc sbyte[447];
+            Span<sbyte> ws_b = stackalloc sbyte[450];
+            Span<sbyte> ws_p = stackalloc sbyte[225];
+            Span<sbyte> ws_q = stackalloc sbyte[225];
 #else
-            sbyte[] ws_b = new sbyte[447];
-            sbyte[] ws_p = new sbyte[447];
+            sbyte[] ws_b = new sbyte[450];
+            sbyte[] ws_p = new sbyte[225];
+            sbyte[] ws_q = new sbyte[225];
 #endif
 
             Wnaf.GetSignedVar(nb, WnafWidthBase, ws_b);
-            Wnaf.GetSignedVar(np, WnafWidth, ws_p);
+            Wnaf.GetSignedVar(np, WnafWidth225, ws_p);
+            Wnaf.GetSignedVar(nq, WnafWidth225, ws_q);
 
-            int count = 1 << (WnafWidth - 2);
+            int count = 1 << (WnafWidth225 - 2);
             PointProjective[] tp = new PointProjective[count];
+            PointProjective[] tq = new PointProjective[count];
             PointPrecomputeVar(ref p, tp, 0, count);
+            PointPrecomputeVar(ref q, tq, 0, count);
 
             PointSetNeutral(ref r);
 
-            for (int bit = 446;;)
+            int bit = 225;
+            while (--bit >= 0)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)
                 {
                     int index = (wb >> 1) ^ (wb >> 31);
                     PointAddVar(wb < 0, ref PrecompBaseWnaf[index], ref r);
+                }
+
+                int wb225 = ws_b[225 + bit];
+                if (wb225 != 0)
+                {
+                    int index = (wb225 >> 1) ^ (wb225 >> 31);
+                    PointAddVar(wb225 < 0, ref PrecompBase225Wnaf[index], ref r);
                 }
 
                 int wp = ws_p[bit];
@@ -2017,11 +1371,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     PointAddVar(wp < 0, ref tp[index], ref r);
                 }
 
-                if (--bit < 0)
-                    break;
+                int wq = ws_q[bit];
+                if (wq != 0)
+                {
+                    int index = (wq >> 1) ^ (wq >> 31);
+                    PointAddVar(wq < 0, ref tq[index], ref r);
+                }
 
                 PointDouble(ref r);
             }
+
+            // NOTE: Together with the final PointDouble of the loop, this clears the cofactor of 4
+            PointDouble(ref r);
         }
 
         public static void Sign(byte[] sk, int skOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
@@ -2076,24 +1437,44 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
-            Init(out PointProjective p);
-            if (!DecodePointVar(pk, pkOff, false, ref p))
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk.AsSpan(pkOff));
+#else
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
+#endif
+
+            if (!CheckPointFullVar(A))
                 return false;
 
-            Init(out PointProjective r);
-            ScalarMultOrderVar(ref p, ref r);
+            Init(out PointProjective pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return false;
 
-            F.Normalize(r.x);
-            F.Normalize(r.y);
-            F.Normalize(r.z);
+            Init(out PointProjective pR);
+            ScalarMultOrderVar(ref pA, ref pR);
 
-            return IsNeutralElementVar(r.x, r.y, r.z);
+            F.Normalize(pR.x);
+            F.Normalize(pR.y);
+            F.Normalize(pR.z);
+
+            return IsNeutralElementVar(pR.x, pR.y, pR.z);
         }
 
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
-            Init(out PointProjective p);
-            return DecodePointVar(pk, pkOff, false, ref p);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk.AsSpan(pkOff));
+#else
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
+#endif
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointProjective pA);
+            return DecodePointVar(A, false, ref pA);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen)

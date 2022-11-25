@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Span<uint> tt = stackalloc uint[16];
             Nat.Mul(y128, x, tt);
 
-            if ((y128[3] >> 31) != 0)
+            if ((int)y128[3] < 0)
             {
                 Nat.AddTo(8, L, tt[4..]);
                 Nat.SubFrom(8, x, tt[4..]);
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] tt = new uint[12];
             Nat.Mul(y128, 0, 4, x, 0, 8, tt, 0);
 
-            if ((y128[3] >> 31) != 0)
+            if ((int)y128[3] < 0)
             {
                 Nat256.AddTo(L, 0, tt, 4, 0U);
                 Nat256.SubFrom(x, 0, tt, 4);
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Codec.Encode32(tt, 0, 12, bytes, 0);
 
             byte[] r = Reduce(bytes);
-            Codec.Decode32(r, 0, z, 0, 8);
+            Decode(r, z);
         }
 #endif
 
@@ -400,33 +400,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Span<uint> v1 = stackalloc uint[4];     v1[0] = 1U;
 
             int last = 15;
-            int len_Nv = GetBitLengthPositive(last, Nv);
+            int len_Nv = ScalarUtilities.GetBitLengthPositive(last, Nv);
 
             while (len_Nv > TargetLength)
             {
-                int len_p = GetBitLength(last, p);
+                int len_p = ScalarUtilities.GetBitLength(last, p);
                 int s = len_p - len_Nv;
                 s &= ~(s >> 31);
 
                 if ((int)p[last] < 0)
                 {
-                    AddShifted_NP(last, s, Nu, Nv, p);
-                    AddShifted_UV(3, s, u0, u1, v0, v1);
+                    ScalarUtilities.AddShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.AddShifted_UV(last: 3, s, u0, u1, v0, v1);
                 }
                 else
                 {
-                    SubShifted_NP(last, s, Nu, Nv, p);
-                    SubShifted_UV(3, s, u0, u1, v0, v1);
+                    ScalarUtilities.SubShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.SubShifted_UV(last: 3, s, u0, u1, v0, v1);
                 }
 
-                if (LessThan(last, Nu, Nv))
+                if (ScalarUtilities.LessThan(last, Nu, Nv))
                 {
-                    Swap(ref u0, ref v0);
-                    Swap(ref u1, ref v1);
-                    Swap(ref Nu, ref Nv);
+                    ScalarUtilities.Swap(ref u0, ref v0);
+                    ScalarUtilities.Swap(ref u1, ref v1);
+                    ScalarUtilities.Swap(ref Nu, ref Nv);
 
                     last = len_Nv >> 5;
-                    len_Nv = GetBitLengthPositive(last, Nv);
+                    len_Nv = ScalarUtilities.GetBitLengthPositive(last, Nv);
                 }
             }
 
@@ -452,33 +452,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] v1 = new uint[4];        v1[0] = 1U;
 
             int last = 15;
-            int len_Nv = GetBitLengthPositive(last, Nv);
+            int len_Nv = ScalarUtilities.GetBitLengthPositive(last, Nv);
 
             while (len_Nv > TargetLength)
             {
-                int len_p = GetBitLength(last, p);
+                int len_p = ScalarUtilities.GetBitLength(last, p);
                 int s = len_p - len_Nv;
                 s &= ~(s >> 31);
 
                 if ((int)p[last] < 0)
                 {
-                    AddShifted_NP(last, s, Nu, Nv, p);
-                    AddShifted_UV(3, s, u0, u1, v0, v1);
+                    ScalarUtilities.AddShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.AddShifted_UV(last: 3, s, u0, u1, v0, v1);
                 }
                 else
                 {
-                    SubShifted_NP(last, s, Nu, Nv, p);
-                    SubShifted_UV(3, s, u0, u1, v0, v1);
+                    ScalarUtilities.SubShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.SubShifted_UV(last: 3, s, u0, u1, v0, v1);
                 }
 
-                if (LessThan(last, Nu, Nv))
+                if (ScalarUtilities.LessThan(last, Nu, Nv))
                 {
-                    Swap(ref u0, ref v0);
-                    Swap(ref u1, ref v1);
-                    Swap(ref Nu, ref Nv);
+                    ScalarUtilities.Swap(ref u0, ref v0);
+                    ScalarUtilities.Swap(ref u1, ref v1);
+                    ScalarUtilities.Swap(ref Nu, ref Nv);
 
                     last = len_Nv >> 5;
-                    len_Nv = GetBitLengthPositive(last, Nv);
+                    len_Nv = ScalarUtilities.GetBitLengthPositive(last, Nv);
                 }
             }
 
@@ -489,294 +489,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static void ToSignedDigits(ReadOnlySpan<uint> x, Span<uint> z)
+        internal static void ToSignedDigits(int bits, ReadOnlySpan<uint> x, Span<uint> z)
 #else
-        internal static void ToSignedDigits(uint[] x, uint[] z)
+        internal static void ToSignedDigits(int bits, uint[] x, uint[] z)
 #endif
         {
+            Debug.Assert(bits == 256);
+            Debug.Assert(z.Length >= Size);
+
             uint c1 = Nat.CAdd(Size, ~(int)x[0] & 1, x, L, z);  Debug.Assert(c1 == 0U);
             uint c2 = Nat.ShiftDownBit(Size, z, 1U);            Debug.Assert(c2 == (1U << 31));
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AddShifted_NP(int last, int s, Span<uint> Nu, ReadOnlySpan<uint> Nv, Span<uint> _p)
-#else
-        private static void AddShifted_NP(int last, int s, uint[] Nu, uint[] Nv, uint[] _p)
-#endif
-        {
-            int sWords = s >> 5, sBits = s & 31;
-
-            ulong cc__p = 0UL;
-            ulong cc_Nu = 0UL;
-
-            if (sBits == 0)
-            {
-                for (int i = sWords; i <= last; ++i)
-                {
-                    cc_Nu += Nu[i];
-                    cc_Nu += _p[i - sWords];
-
-                    cc__p += _p[i];
-                    cc__p += Nv[i - sWords];
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
-
-                    cc_Nu += _p[i - sWords];
-                    Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
-                }
-            }
-            else
-            {
-                uint prev_p = 0U;
-                uint prev_q = 0U;
-                uint prev_v = 0U;
-
-                for (int i = sWords; i <= last; ++i)
-                {
-                    uint next_p = _p[i - sWords];
-                    uint p_s = (next_p << sBits) | (prev_p >> -sBits);
-                    prev_p = next_p;
-
-                    cc_Nu += Nu[i];
-                    cc_Nu += p_s;
-
-                    uint next_v = Nv[i - sWords];
-                    uint v_s = (next_v << sBits) | (prev_v >> -sBits);
-                    prev_v = next_v;
-
-                    cc__p += _p[i];
-                    cc__p += v_s;
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
-
-                    uint next_q = _p[i - sWords];
-                    uint q_s = (next_q << sBits) | (prev_q >> -sBits);
-                    prev_q = next_q;
-
-                    cc_Nu += q_s;
-                    Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
-                }
-            }
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AddShifted_UV(int last, int s, Span<uint> u0, Span<uint> u1, ReadOnlySpan<uint> v0,
-            ReadOnlySpan<uint> v1)
-#else
-        private static void AddShifted_UV(int last, int s, uint[] u0, uint[] u1, uint[] v0, uint[] v1)
-#endif
-        {
-            int sWords = s >> 5, sBits = s & 31;
-
-            ulong cc_u0 = 0UL;
-            ulong cc_u1 = 0UL;
-
-            if (sBits == 0)
-            {
-                for (int i = sWords; i <= last; ++i)
-                {
-                    cc_u0 += u0[i];
-                    cc_u1 += u1[i];
-                    cc_u0 += v0[i - sWords];
-                    cc_u1 += v1[i - sWords];
-                    u0[i]  = (uint)cc_u0; cc_u0 >>= 32;
-                    u1[i]  = (uint)cc_u1; cc_u1 >>= 32;
-                }
-            }
-            else
-            {
-                uint prev_v0 = 0U;
-                uint prev_v1 = 0U;
-
-                for (int i = sWords; i <= last; ++i)
-                {
-                    uint next_v0 = v0[i - sWords];
-                    uint next_v1 = v1[i - sWords];
-                    uint v0_s = (next_v0 << sBits) | (prev_v0 >> -sBits);
-                    uint v1_s = (next_v1 << sBits) | (prev_v1 >> -sBits);
-                    prev_v0 = next_v0;
-                    prev_v1 = next_v1;
-
-                    cc_u0 += u0[i];
-                    cc_u1 += u1[i];
-                    cc_u0 += v0_s;
-                    cc_u1 += v1_s;
-                    u0[i]  = (uint)cc_u0; cc_u0 >>= 32;
-                    u1[i]  = (uint)cc_u1; cc_u1 >>= 32;
-                }
-            }
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetBitLength(int last, ReadOnlySpan<uint> x)
-#else
-        private static int GetBitLength(int last, uint[] x)
-#endif
-        {
-            int i = last;
-            uint sign = (uint)((int)x[i] >> 31);
-            while (i > 0 && x[i] == sign)
-            {
-                --i;
-            }
-            return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)(x[i] ^ sign));
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetBitLengthPositive(int last, ReadOnlySpan<uint> x)
-#else
-        private static int GetBitLengthPositive(int last, uint[] x)
-#endif
-        {
-            int i = last;
-            while (i > 0 && x[i] == 0)
-            {
-                --i;
-            }
-            return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x[i]);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool LessThan(int last, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
-#else
-        private static bool LessThan(int last, uint[] x, uint[] y)
-#endif
-        {
-            int i = last;
-            if ((int)x[i] < (int)y[i])
-                return true;
-            if ((int)x[i] > (int)y[i])
-                return false;
-            while (--i >= 0)
-            {
-                if (x[i] < y[i])
-                    return true;
-                if (x[i] > y[i])
-                    return false;
-            }
-            return false;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SubShifted_NP(int last, int s, Span<uint> Nu, ReadOnlySpan<uint> Nv, Span<uint> _p)
-#else
-        private static void SubShifted_NP(int last, int s, uint[] Nu, uint[] Nv, uint[] _p)
-#endif
-        {
-            int sWords = s >> 5, sBits = s & 31;
-
-            long cc__p = 0L;
-            long cc_Nu = 0L;
-
-            if (sBits == 0)
-            {
-                for (int i = sWords; i <= last; ++i)
-                {
-                    cc_Nu += Nu[i];
-                    cc_Nu -= _p[i - sWords];
-
-                    cc__p += _p[i];
-                    cc__p -= Nv[i - sWords];
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
-
-                    cc_Nu -= _p[i - sWords];
-                    Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
-                }
-            }
-            else
-            {
-                uint prev_p = 0U;
-                uint prev_q = 0U;
-                uint prev_v = 0U;
-
-                for (int i = sWords; i <= last; ++i)
-                {
-                    uint next_p = _p[i - sWords];
-                    uint p_s = (next_p << sBits) | (prev_p >> -sBits);
-                    prev_p = next_p;
-
-                    cc_Nu += Nu[i];
-                    cc_Nu -= p_s;
-
-                    uint next_v = Nv[i - sWords];
-                    uint v_s = (next_v << sBits) | (prev_v >> -sBits);
-                    prev_v = next_v;
-
-                    cc__p += _p[i];
-                    cc__p -= v_s;
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
-
-                    uint next_q = _p[i - sWords];
-                    uint q_s = (next_q << sBits) | (prev_q >> -sBits);
-                    prev_q = next_q;
-
-                    cc_Nu -= q_s;
-                    Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
-                }
-            }
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SubShifted_UV(int last, int s, Span<uint> u0, Span<uint> u1, ReadOnlySpan<uint> v0,
-            ReadOnlySpan<uint> v1)
-#else
-        private static void SubShifted_UV(int last, int s, uint[] u0, uint[] u1, uint[] v0, uint[] v1)
-#endif
-        {
-            int sWords = s >> 5, sBits = s & 31;
-
-            long cc_u0 = 0L;
-            long cc_u1 = 0L;
-
-            if (sBits == 0)
-            {
-                for (int i = sWords; i <= last; ++i)
-                {
-                    cc_u0 += u0[i];
-                    cc_u1 += u1[i];
-                    cc_u0 -= v0[i - sWords];
-                    cc_u1 -= v1[i - sWords];
-                    u0[i]  = (uint)cc_u0; cc_u0 >>= 32;
-                    u1[i]  = (uint)cc_u1; cc_u1 >>= 32;
-                }
-            }
-            else
-            {
-                uint prev_v0 = 0U;
-                uint prev_v1 = 0U;
-
-                for (int i = sWords; i <= last; ++i)
-                {
-                    uint next_v0 = v0[i - sWords];
-                    uint next_v1 = v1[i - sWords];
-                    uint v0_s = (next_v0 << sBits) | (prev_v0 >> -sBits);
-                    uint v1_s = (next_v1 << sBits) | (prev_v1 >> -sBits);
-                    prev_v0 = next_v0;
-                    prev_v1 = next_v1;
-
-                    cc_u0 += u0[i];
-                    cc_u1 += u1[i];
-                    cc_u0 -= v0_s;
-                    cc_u1 -= v1_s;
-                    u0[i]  = (uint)cc_u0; cc_u0 >>= 32;
-                    u1[i]  = (uint)cc_u1; cc_u1 >>= 32;
-                }
-            }
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Swap(ref Span<uint> x, ref Span<uint> y)
-#else
-        private static void Swap(ref uint[] x, ref uint[] y)
-#endif
-        {
-            var t = x; x = y; y = t;
         }
     }
 }
