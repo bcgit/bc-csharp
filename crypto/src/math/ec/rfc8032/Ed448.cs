@@ -102,6 +102,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             internal uint[] x, y, z;
         }
 
+        // Temp space to avoid allocations in point formulae.
+        private struct PointTemp
+        {
+            internal uint[] r0, r1, r2, r3, r4, r5, r6, r7;
+        }
+
         private static byte[] CalculateS(byte[] r, byte[] k, byte[] s)
         {
             uint[] t = new uint[ScalarUints * 2];   Scalar448.Decode(r, t);
@@ -578,8 +584,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(d, h, s, pk, 0, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
-            byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
+            int mOff, int mLen, byte[] sig, int sigOff)
         {
             if (!CheckContextVar(ctx))
                 throw new ArgumentException("ctx");
@@ -596,8 +602,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(d, h, s, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
-            byte[] m, int mOff, int mLen)
+        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
+            int mOff, int mLen)
         {
             if (!CheckContextVar(ctx))
                 throw new ArgumentException("ctx");
@@ -803,6 +809,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             r.z = F.Create();
         }
 
+        private static void Init(out PointTemp r)
+        {
+            r.r0 = F.Create();
+            r.r1 = F.Create();
+            r.r2 = F.Create();
+            r.r3 = F.Create();
+            r.r4 = F.Create();
+            r.r5 = F.Create();
+            r.r6 = F.Create();
+            r.r7 = F.Create();
+        }
+
         private static void InvertZs(PointProjective[] points)
         {
             int count = points.Length;
@@ -859,15 +877,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return IsNeutralElementVar(p.x, p.y, p.z);
         }
 
-        private static void PointAdd(ref PointAffine p, ref PointProjective r)
+        private static void PointAdd(ref PointAffine p, ref PointProjective r, ref PointTemp t)
         {
-            uint[] b = F.Create();
-            uint[] c = F.Create();
-            uint[] d = F.Create();
-            uint[] e = F.Create();
-            uint[] f = F.Create();
-            uint[] g = F.Create();
-            uint[] h = F.Create();
+            uint[] b = t.r1;
+            uint[] c = t.r2;
+            uint[] d = t.r3;
+            uint[] e = t.r4;
+            uint[] f = t.r5;
+            uint[] g = t.r6;
+            uint[] h = t.r7;
 
             F.Sqr(r.z, b);
             F.Mul(p.x, r.x, c);
@@ -892,16 +910,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static void PointAdd(ref PointProjective p, ref PointProjective r)
+        private static void PointAdd(ref PointProjective p, ref PointProjective r, ref PointTemp t)
         {
-            uint[] a = F.Create();
-            uint[] b = F.Create();
-            uint[] c = F.Create();
-            uint[] d = F.Create();
-            uint[] e = F.Create();
-            uint[] f = F.Create();
-            uint[] g = F.Create();
-            uint[] h = F.Create();
+            uint[] a = t.r0;
+            uint[] b = t.r1;
+            uint[] c = t.r2;
+            uint[] d = t.r3;
+            uint[] e = t.r4;
+            uint[] f = t.r5;
+            uint[] g = t.r6;
+            uint[] h = t.r7;
 
             F.Mul(p.z, r.z, a);
             F.Sqr(a, b);
@@ -927,15 +945,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static void PointAddVar(bool negate, ref PointAffine p, ref PointProjective r)
+        private static void PointAddVar(bool negate, ref PointAffine p, ref PointProjective r, ref PointTemp t)
         {
-            uint[] b = F.Create();
-            uint[] c = F.Create();
-            uint[] d = F.Create();
-            uint[] e = F.Create();
-            uint[] f = F.Create();
-            uint[] g = F.Create();
-            uint[] h = F.Create();
+            uint[] b = t.r1;
+            uint[] c = t.r2;
+            uint[] d = t.r3;
+            uint[] e = t.r4;
+            uint[] f = t.r5;
+            uint[] g = t.r6;
+            uint[] h = t.r7;
 
             uint[] nb, ne, nf, ng;
             if (negate)
@@ -971,16 +989,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static void PointAddVar(bool negate, ref PointProjective p, ref PointProjective r)
+        private static void PointAddVar(bool negate, ref PointProjective p, ref PointProjective r, ref PointTemp t)
         {
-            uint[] a = F.Create();
-            uint[] b = F.Create();
-            uint[] c = F.Create();
-            uint[] d = F.Create();
-            uint[] e = F.Create();
-            uint[] f = F.Create();
-            uint[] g = F.Create();
-            uint[] h = F.Create();
+            uint[] a = t.r0;
+            uint[] b = t.r1;
+            uint[] c = t.r2;
+            uint[] d = t.r3;
+            uint[] e = t.r4;
+            uint[] f = t.r5;
+            uint[] g = t.r6;
+            uint[] h = t.r7;
 
             uint[] nb, ne, nf, ng;
             if (negate)
@@ -1031,14 +1049,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.z, 0, r.z, 0);
         }
 
-        private static void PointDouble(ref PointProjective r)
+        private static void PointDouble(ref PointProjective r, ref PointTemp t)
         {
-            uint[] b = F.Create();
-            uint[] c = F.Create();
-            uint[] d = F.Create();
-            uint[] e = F.Create();
-            uint[] h = F.Create();
-            uint[] j = F.Create();
+            uint[] b = t.r1;
+            uint[] c = t.r2;
+            uint[] d = t.r3;
+            uint[] e = t.r4;
+            uint[] h = t.r7;
+            uint[] j = t.r0;
 
             F.Add(r.x, r.y, b);
             F.Sqr(b, b);
@@ -1129,7 +1147,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(table, off, r.z, 0);
         }
 
-        private static uint[] PointPrecompute(ref PointProjective p, int count)
+        private static uint[] PointPrecompute(ref PointProjective p, int count, ref PointTemp t)
         {
             Debug.Assert(count > 0);
 
@@ -1138,7 +1156,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Init(out PointProjective d);
             PointCopy(ref q, ref d);
-            PointDouble(ref d);
+            PointDouble(ref d, ref t);
 
             uint[] table = F.CreateTable(count * 3);
             int off = 0;
@@ -1153,19 +1171,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (++i == count)
                     break;
 
-                PointAdd(ref d, ref q);
+                PointAdd(ref d, ref q, ref t);
             }
 
             return table;
         }
 
-        private static void PointPrecompute(ref PointAffine p, PointProjective[] points, int pointsOff, int pointsLen)
+        private static void PointPrecompute(ref PointAffine p, PointProjective[] points, int pointsOff, int pointsLen,
+            ref PointTemp t)
         {
             Debug.Assert(pointsLen > 0);
 
             Init(out PointProjective d);
             PointCopy(ref p, ref d);
-            PointDouble(ref d);
+            PointDouble(ref d, ref t);
 
             Init(out points[pointsOff]);
             PointCopy(ref p, ref points[pointsOff]);
@@ -1174,7 +1193,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 Init(out points[pointsOff + i]);
                 PointCopy(ref points[pointsOff + i - 1], ref points[pointsOff + i]);
-                PointAdd(ref d, ref points[pointsOff + i]);
+                PointAdd(ref d, ref points[pointsOff + i], ref t);
             }
         }
 
@@ -1200,18 +1219,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 int totalPoints = wnafPoints * 2 + combPoints;
 
                 PointProjective[] points = new PointProjective[totalPoints];
+                Init(out PointTemp t);
 
                 Init(out PointAffine B);
                 F.Copy(B_x, 0, B.x, 0);
                 F.Copy(B_y, 0, B.y, 0);
 
-                PointPrecompute(ref B, points, 0, wnafPoints);
+                PointPrecompute(ref B, points, 0, wnafPoints, ref t);
 
                 Init(out PointAffine B225);
                 F.Copy(B225_x, 0, B225.x, 0);
                 F.Copy(B225_y, 0, B225.y, 0);
 
-                PointPrecompute(ref B225, points, wnafPoints, wnafPoints);
+                PointPrecompute(ref B225, points, wnafPoints, wnafPoints, ref t);
 
                 Init(out PointProjective p);
                 PointCopy(ref B, ref p);
@@ -1236,17 +1256,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         }
                         else
                         {
-                            PointAdd(ref p, ref sum);
+                            PointAdd(ref p, ref sum, ref t);
                         }
 
-                        PointDouble(ref p);
+                        PointDouble(ref p, ref t);
                         PointCopy(ref p, ref toothPowers[tooth]);
 
                         if (block + tooth != PrecompBlocks + PrecompTeeth - 2)
                         {
                             for (int spacing = 1; spacing < PrecompSpacing; ++spacing)
                             {
-                                PointDouble(ref p);
+                                PointDouble(ref p, ref t);
                             }
                         }
                     }
@@ -1260,7 +1280,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         {
                             Init(out points[pointsIndex]);
                             PointCopy(ref points[pointsIndex - size], ref points[pointsIndex]);
-                            PointAdd(ref toothPowers[tooth], ref points[pointsIndex]);
+                            PointAdd(ref toothPowers[tooth], ref points[pointsIndex], ref t);
                         }
                     }
                 }
@@ -1344,25 +1364,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             // NOTE: Bit 448 is handled explicitly by an initial addition
             Debug.Assert(n[ScalarUints] == 1U);
 
-            uint[] table = PointPrecompute(ref p, 8);
             Init(out PointProjective q);
+            Init(out PointTemp t);
+            uint[] table = PointPrecompute(ref p, 8, ref t);
 
             // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
             PointLookup15(table, ref r);
-            PointAdd(ref p, ref r);
+            PointAdd(ref p, ref r, ref t);
 
             int w = 111;
             for (;;)
             {
                 PointLookup(n, w, table, ref q);
-                PointAdd(ref q, ref r);
+                PointAdd(ref q, ref r, ref t);
 
                 if (--w < 0)
                     break;
 
                 for (int i = 0; i < 4; ++i)
                 {
-                    PointDouble(ref r);
+                    PointDouble(ref r, ref t);
                 }
             }
         }
@@ -1392,6 +1413,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Scalar448.ToSignedDigits(PrecompRange, n, n);
 
             Init(out PointAffine p);
+            Init(out PointTemp t);
 
             PointSetNeutral(ref r);
 
@@ -1400,14 +1422,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 int tPos = cOff;
 
-                for (int b = 0; b < PrecompBlocks; ++b)
+                for (int block = 0; block < PrecompBlocks; ++block)
                 {
                     uint w = 0;
-                    for (int t = 0; t < PrecompTeeth; ++t)
+                    for (int tooth = 0; tooth < PrecompTeeth; ++tooth)
                     {
                         uint tBit = n[tPos >> 5] >> (tPos & 0x1F);
-                        w &= ~(1U << t);
-                        w ^= (tBit << t);
+                        w &= ~(1U << tooth);
+                        w ^= (tBit << tooth);
                         tPos += PrecompSpacing;
                     }
 
@@ -1417,17 +1439,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     Debug.Assert(sign == 0 || sign == 1);
                     Debug.Assert(0 <= abs && abs < PrecompPoints);
 
-                    PointLookup(b, abs, ref p);
+                    PointLookup(block, abs, ref p);
 
                     F.CNegate(sign, p.x);
 
-                    PointAdd(ref p, ref r);
+                    PointAdd(ref p, ref r, ref t);
                 }
 
                 if (--cOff < 0)
                     break;
 
-                PointDouble(ref r);
+                PointDouble(ref r, ref t);
             }
         }
 
@@ -1501,7 +1523,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int count = 1 << (WnafWidth225 - 2);
             PointProjective[] tp = new PointProjective[count];
-            PointPrecompute(ref p, tp, 0, count);
+            Init(out PointTemp t);
+            PointPrecompute(ref p, tp, 0, count, ref t);
 
             PointSetNeutral(ref r);
 
@@ -1511,13 +1534,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (wp != 0)
                 {
                     int index = (wp >> 1) ^ (wp >> 31);
-                    PointAddVar(wp < 0, ref tp[index], ref r);
+                    PointAddVar(wp < 0, ref tp[index], ref r, ref t);
                 }
 
                 if (--bit < 0)
                     break;
 
-                PointDouble(ref r);
+                PointDouble(ref r, ref t);
             }
         }
 
@@ -1555,8 +1578,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             int count = 1 << (WnafWidth225 - 2);
             PointProjective[] tp = new PointProjective[count];
             PointProjective[] tq = new PointProjective[count];
-            PointPrecompute(ref p, tp, 0, count);
-            PointPrecompute(ref q, tq, 0, count);
+            Init(out PointTemp t);
+            PointPrecompute(ref p, tp, 0, count, ref t);
+            PointPrecompute(ref q, tq, 0, count, ref t);
 
             PointSetNeutral(ref r);
 
@@ -1567,35 +1591,35 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (wb != 0)
                 {
                     int index = (wb >> 1) ^ (wb >> 31);
-                    PointAddVar(wb < 0, ref PrecompBaseWnaf[index], ref r);
+                    PointAddVar(wb < 0, ref PrecompBaseWnaf[index], ref r, ref t);
                 }
 
                 int wb225 = ws_b[225 + bit];
                 if (wb225 != 0)
                 {
                     int index = (wb225 >> 1) ^ (wb225 >> 31);
-                    PointAddVar(wb225 < 0, ref PrecompBase225Wnaf[index], ref r);
+                    PointAddVar(wb225 < 0, ref PrecompBase225Wnaf[index], ref r, ref t);
                 }
 
                 int wp = ws_p[bit];
                 if (wp != 0)
                 {
                     int index = (wp >> 1) ^ (wp >> 31);
-                    PointAddVar(wp < 0, ref tp[index], ref r);
+                    PointAddVar(wp < 0, ref tp[index], ref r, ref t);
                 }
 
                 int wq = ws_q[bit];
                 if (wq != 0)
                 {
                     int index = (wq >> 1) ^ (wq >> 31);
-                    PointAddVar(wq < 0, ref tq[index], ref r);
+                    PointAddVar(wq < 0, ref tq[index], ref r, ref t);
                 }
 
-                PointDouble(ref r);
+                PointDouble(ref r, ref t);
             }
 
             // NOTE: Together with the final PointDouble of the loop, this clears the cofactor of 4
-            PointDouble(ref r);
+            PointDouble(ref r, ref t);
         }
 
         public static void Sign(byte[] sk, int skOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
@@ -1605,7 +1629,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen,
+            byte[] sig, int sigOff)
         {
             byte phflag = 0x00;
 
@@ -1619,7 +1644,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
         }
 
-        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff,
+            byte[] sig, int sigOff)
         {
             byte phflag = 0x01;
 
@@ -1637,7 +1663,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
 
-        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IXof ph, byte[] sig, int sigOff)
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IXof ph, byte[] sig,
+            int sigOff)
         {
             byte[] m = new byte[PrehashSize];
             if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))

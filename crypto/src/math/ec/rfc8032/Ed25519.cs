@@ -1566,16 +1566,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             int cOff = (PrecompSpacing - 1) * PrecompTeeth;
             for (;;)
             {
-                for (int b = 0; b < PrecompBlocks; ++b)
+                for (int block = 0; block < PrecompBlocks; ++block)
                 {
-                    uint w = n[b] >> cOff;
+                    uint w = n[block] >> cOff;
                     int sign = (int)(w >> (PrecompTeeth - 1)) & 1;
                     int abs = ((int)w ^ -sign) & PrecompMask;
 
                     Debug.Assert(sign == 0 || sign == 1);
                     Debug.Assert(0 <= abs && abs < PrecompPoints);
 
-                    PointLookup(b, abs, ref p);
+                    PointLookup(block, abs, ref p);
 
                     F.CNegate(resultSign ^ sign, r.x);
                     F.CNegate(resultSign ^ sign, r.u);
@@ -1771,7 +1771,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen, byte[] sig,
+            int sigOff)
         {
             byte[] ctx = null;
             byte phflag = 0x00;
@@ -1786,7 +1787,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen,
+            byte[] sig, int sigOff)
         {
             byte phflag = 0x00;
 
@@ -1800,7 +1802,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
         }
 
-        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff,
+            byte[] sig, int sigOff)
         {
             byte phflag = 0x01;
 
@@ -1818,7 +1821,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
 
-        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IDigest ph, byte[] sig, int sigOff)
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IDigest ph, byte[] sig,
+            int sigOff)
         {
             byte[] m = new byte[PrehashSize];
             if (PrehashSize != ph.DoFinal(m, 0))
@@ -2001,14 +2005,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, m, mOff, mLen);
         }
 
-        public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen)
+        public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff,
+            int mLen)
         {
             byte phflag = 0x00;
 
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
         }
 
-        public static bool Verify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte[] m, int mOff, int mLen)
+        public static bool Verify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte[] m, int mOff,
+            int mLen)
         {
             byte phflag = 0x00;
 
