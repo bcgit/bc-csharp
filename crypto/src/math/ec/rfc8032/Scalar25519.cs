@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         internal static bool CheckVar(ReadOnlySpan<byte> s, Span<uint> n)
         {
             Decode(s, n);
-            return !Nat.Gte(Size, n, L);
+            return !Nat256.Gte(n, L);
         }
 #else
         internal static bool CheckVar(byte[] s, uint[] n)
@@ -71,28 +71,28 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         internal static void Multiply128Var(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y128, Span<uint> z)
         {
             Span<uint> tt = stackalloc uint[16];
-            Nat.Mul(y128, x, tt);
+            Nat256.Mul128(x, y128, tt);
 
             if ((int)y128[3] < 0)
             {
-                Nat.AddTo(8, L, tt[4..]);
-                Nat.SubFrom(8, x, tt[4..]);
+                Nat256.AddTo(L, tt[4..], 0U);
+                Nat256.SubFrom(x, tt[4..], 0);
             }
 
             Span<byte> r = MemoryMarshal.AsBytes(tt);
             Reduce(r, r);
-            tt[..8].CopyTo(z);
+            tt[..Size].CopyTo(z);
         }
 #else
         internal static void Multiply128Var(uint[] x, uint[] y128, uint[] z)
         {
             uint[] tt = new uint[12];
-            Nat.Mul(y128, 0, 4, x, 0, 8, tt, 0);
+            Nat256.Mul128(x, y128, tt);
 
             if ((int)y128[3] < 0)
             {
                 Nat256.AddTo(L, 0, tt, 4, 0U);
-                Nat256.SubFrom(x, 0, tt, 4);
+                Nat256.SubFrom(x, 0, tt, 4, 0);
             }
 
             byte[] bytes = new byte[64];
@@ -391,8 +391,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
              */
 
             Span<uint> Nu = stackalloc uint[16];    LSq.CopyTo(Nu);
-            Span<uint> Nv = stackalloc uint[16];    Nat.Square(8, k, Nv); Nat.AddWordTo(16, 1U, Nv);
-            Span<uint> p  = stackalloc uint[16];    Nat.Mul(8, L, k, p);
+            Span<uint> Nv = stackalloc uint[16];    Nat256.Square(k, Nv); ++Nv[0];
+            Span<uint> p  = stackalloc uint[16];    Nat256.Mul(L, k, p);
             Span<uint> u0 = stackalloc uint[4];     u0.CopyFrom(L);
             Span<uint> u1 = stackalloc uint[4];
             Span<uint> v0 = stackalloc uint[4];     v0.CopyFrom(k);
@@ -443,8 +443,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
              */
 
             uint[] Nu = new uint[16];       Array.Copy(LSq, Nu, 16);
-            uint[] Nv = new uint[16];       Nat.Square(8, k, Nv); Nat.AddWordTo(16, 1U, Nv);
-            uint[] p  = new uint[16];       Nat.Mul(8, L, k, p);
+            uint[] Nv = new uint[16];       Nat256.Square(k, Nv); ++Nv[0];
+            uint[] p  = new uint[16];       Nat256.Mul(L, k, p);
             uint[] u0 = new uint[4];        Array.Copy(L, u0, 4);
             uint[] u1 = new uint[4];
             uint[] v0 = new uint[4];        Array.Copy(k, v0, 4);

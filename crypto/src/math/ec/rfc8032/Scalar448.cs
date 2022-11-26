@@ -95,29 +95,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void Multiply225Var(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y225, Span<uint> z)
         {
+            Debug.Assert((int)y225[7] >> 31 == (int)y225[7]);
+
             Span<uint> tt = stackalloc uint[29];
             Nat.Mul(y225, x, tt);
 
             if ((int)y225[7] < 0)
             {
-                Nat.AddTo(14, L, tt[8..]);
-                Nat.SubFrom(14, x, tt[8..]);
+                Nat.AddTo(Size, L, tt[8..]);
+                Nat.SubFrom(Size, x, tt[8..]);
             }
 
             Span<byte> r = MemoryMarshal.AsBytes(tt);
             Reduce(r, r);
-            tt[..14].CopyTo(z);
+            tt[..Size].CopyTo(z);
         }
 #else
         internal static void Multiply225Var(uint[] x, uint[] y225, uint[] z)
         {
+            Debug.Assert((int)y225[7] >> 31 == (int)y225[7]);
+
             uint[] tt = new uint[22];
-            Nat.Mul(y225, 0, 8, x, 0, 14, tt, 0);
+            Nat.Mul(y225, 0, 8, x, 0, Size, tt, 0);
 
             if ((int)y225[7] < 0)
             {
-                Nat.AddTo(14, L, 0, tt, 8);
-                Nat.SubFrom(14, x, 0, tt, 8);
+                Nat.AddTo(Size, L, 0, tt, 8);
+                Nat.SubFrom(Size, x, 0, tt, 8);
             }
 
             byte[] bytes = new byte[114];
@@ -698,8 +702,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
              */
 
             Span<uint> Nu = stackalloc uint[28];    LSq.CopyTo(Nu);
-            Span<uint> Nv = stackalloc uint[28];    Nat.Square(14, k, Nv); Nat.AddWordTo(28, 1U, Nv);
-            Span<uint> p  = stackalloc uint[28];    Nat.Mul(14, L, k, p);
+            Span<uint> Nv = stackalloc uint[28];    Nat448.Square(k, Nv); ++Nv[0];
+            Span<uint> p  = stackalloc uint[28];    Nat448.Mul(L, k, p);
             Span<uint> u0 = stackalloc uint[8];     u0.CopyFrom(L);
             Span<uint> u1 = stackalloc uint[8];
             Span<uint> v0 = stackalloc uint[8];     v0.CopyFrom(k);
@@ -736,8 +740,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            Debug.Assert((int)v0[7] >> 31 == (int)v0[7] >> 1);
-            Debug.Assert((int)v1[7] >> 31 == (int)v1[7] >> 1);
+            Debug.Assert((int)v0[7] >> 31 == (int)v0[7]);
+            Debug.Assert((int)v1[7] >> 31 == (int)v1[7]);
 
             // v1 * k == v0 mod L
             v0.CopyTo(z0);
@@ -753,8 +757,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
              */
 
             uint[] Nu = new uint[28];       Array.Copy(LSq, Nu, 28);
-            uint[] Nv = new uint[28];       Nat.Square(14, k, Nv); Nat.AddWordTo(28, 1U, Nv);
-            uint[] p  = new uint[28];       Nat.Mul(14, L, k, p);
+            uint[] Nv = new uint[28];       Nat448.Square(k, Nv); ++Nv[0];
+            uint[] p  = new uint[28];       Nat448.Mul(L, k, p);
             uint[] u0 = new uint[8];        Array.Copy(L, u0, 8);
             uint[] u1 = new uint[8];
             uint[] v0 = new uint[8];        Array.Copy(k, v0, 8);
@@ -791,8 +795,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            Debug.Assert((int)v0[7] >> 31 == (int)v0[7] >> 1);
-            Debug.Assert((int)v1[7] >> 31 == (int)v1[7] >> 1);
+            Debug.Assert((int)v0[7] >> 31 == (int)v0[7]);
+            Debug.Assert((int)v1[7] >> 31 == (int)v1[7]);
 
             // v1 * k == v0 mod L
             Array.Copy(v0, z0, 8);

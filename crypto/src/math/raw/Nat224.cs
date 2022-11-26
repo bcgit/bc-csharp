@@ -117,9 +117,9 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
-        public static uint AddTo(uint[] x, uint[] z)
+        public static uint AddTo(uint[] x, uint[] z, uint cIn)
         {
-            ulong c = 0;
+            ulong c = cIn;
             c += (ulong)x[0] + z[0];
             z[0] = (uint)c;
             c >>= 32;
@@ -171,6 +171,35 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint AddTo(ReadOnlySpan<uint> x, Span<uint> z, uint cIn)
+        {
+            ulong c = cIn;
+            c += (ulong)x[0] + z[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[1] + z[1];
+            z[1] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[2] + z[2];
+            z[2] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[3] + z[3];
+            z[3] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[4] + z[4];
+            z[4] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[5] + z[5];
+            z[5] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[6] + z[6];
+            z[6] = (uint)c;
+            c >>= 32;
+            return (uint)c;
+        }
+#endif
+
         public static uint AddToEachOther(uint[] u, int uOff, uint[] v, int vOff)
         {
             ulong c = 0;
@@ -204,6 +233,42 @@ namespace Org.BouncyCastle.Math.Raw
             c >>= 32;
             return (uint)c;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint AddToEachOther(Span<uint> u, Span<uint> v)
+        {
+            ulong c = 0;
+            c += (ulong)u[0] + v[0];
+            u[0] = (uint)c;
+            v[0] = (uint)c;
+            c >>= 32;
+            c += (ulong)u[1] + v[1];
+            u[1] = (uint)c;
+            v[1] = (uint)c;
+            c >>= 32;
+            c += (ulong)u[2] + v[2];
+            u[2] = (uint)c;
+            v[2] = (uint)c;
+            c >>= 32;
+            c += (ulong)u[3] + v[3];
+            u[3] = (uint)c;
+            v[3] = (uint)c;
+            c >>= 32;
+            c += (ulong)u[4] + v[4];
+            u[4] = (uint)c;
+            v[4] = (uint)c;
+            c >>= 32;
+            c += (ulong)u[5] + v[5];
+            u[5] = (uint)c;
+            v[5] = (uint)c;
+            c >>= 32;
+            c += (ulong)u[6] + v[6];
+            u[6] = (uint)c;
+            v[6] = (uint)c;
+            c >>= 32;
+            return (uint)c;
+        }
+#endif
 
         public static void Copy(uint[] x, uint[] z)
         {
@@ -250,6 +315,22 @@ namespace Org.BouncyCastle.Math.Raw
             }
             return pos;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool Diff(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+            bool pos = Gte(x, y);
+            if (pos)
+            {
+                Sub(x, y, z);
+            }
+            else
+            {
+                Sub(y, x, z);
+            }
+            return pos;
+        }
+#endif
 
         public static bool Eq(uint[] x, uint[] y)
         {
@@ -301,6 +382,21 @@ namespace Org.BouncyCastle.Math.Raw
             }
             return true;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool Gte(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
+        {
+            for (int i = 6; i >= 0; --i)
+            {
+                uint x_i = x[i], y_i = y[i];
+                if (x_i < y_i)
+                    return false;
+                if (x_i > y_i)
+                    return true;
+            }
+            return true;
+        }
+#endif
 
         public static bool IsOne(uint[] x)
         {
@@ -458,6 +554,72 @@ namespace Org.BouncyCastle.Math.Raw
                 zz[zzOff + 7] = (uint)c;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Mul(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> zz)
+        {
+            ulong y_0 = y[0];
+            ulong y_1 = y[1];
+            ulong y_2 = y[2];
+            ulong y_3 = y[3];
+            ulong y_4 = y[4];
+            ulong y_5 = y[5];
+            ulong y_6 = y[6];
+
+            {
+                ulong c = 0, x_0 = x[0];
+                c += x_0 * y_0;
+                zz[0] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_1;
+                zz[1] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_2;
+                zz[2] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_3;
+                zz[3] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_4;
+                zz[4] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_5;
+                zz[5] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_6;
+                zz[6] = (uint)c;
+                c >>= 32;
+                zz[7] = (uint)c;
+            }
+
+            for (int i = 1; i < 7; ++i)
+            {
+                ulong c = 0, x_i = x[i];
+                c += x_i * y_0 + zz[i + 0];
+                zz[i + 0] = (uint)c;
+                c >>= 32;
+                c += x_i * y_1 + zz[i + 1];
+                zz[i + 1] = (uint)c;
+                c >>= 32;
+                c += x_i * y_2 + zz[i + 2];
+                zz[i + 2] = (uint)c;
+                c >>= 32;
+                c += x_i * y_3 + zz[i + 3];
+                zz[i + 3] = (uint)c;
+                c >>= 32;
+                c += x_i * y_4 + zz[i + 4];
+                zz[i + 4] = (uint)c;
+                c >>= 32;
+                c += x_i * y_5 + zz[i + 5];
+                zz[i + 5] = (uint)c;
+                c >>= 32;
+                c += x_i * y_6 + zz[i + 6];
+                zz[i + 6] = (uint)c;
+                c >>= 32;
+                zz[i + 7] = (uint)c;
+            }
+        }
+#endif
 
         public static uint MulAddTo(uint[] x, uint[] y, uint[] zz)
         {
@@ -1011,6 +1173,147 @@ namespace Org.BouncyCastle.Math.Raw
             zz[zzOff + 13] = (w << 1) | c;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Square(ReadOnlySpan<uint> x, Span<uint> zz)
+        {
+            ulong x_0 = x[0];
+            ulong zz_1;
+
+            uint c = 0, w;
+            {
+                int i = 6, j = 14;
+                do
+                {
+                    ulong xVal = x[i--];
+                    ulong p = xVal * xVal;
+                    zz[--j] = (c << 31) | (uint)(p >> 33);
+                    zz[--j] = (uint)(p >> 1);
+                    c = (uint)p;
+                }
+                while (i > 0);
+
+                {
+                    ulong p = x_0 * x_0;
+                    zz_1 = (ulong)(c << 31) | (p >> 33);
+                    zz[0] = (uint)p;
+                    c = (uint)(p >> 32) & 1;
+                }
+            }
+
+            ulong x_1 = x[1];
+            ulong zz_2 = zz[2];
+
+            {
+                zz_1 += x_1 * x_0;
+                w = (uint)zz_1;
+                zz[1] = (w << 1) | c;
+                c = w >> 31;
+                zz_2 += zz_1 >> 32;
+            }
+
+            ulong x_2 = x[2];
+            ulong zz_3 = zz[3];
+            ulong zz_4 = zz[4];
+            {
+                zz_2 += x_2 * x_0;
+                w = (uint)zz_2;
+                zz[2] = (w << 1) | c;
+                c = w >> 31;
+                zz_3 += (zz_2 >> 32) + x_2 * x_1;
+                zz_4 += zz_3 >> 32;
+                zz_3 &= M;
+            }
+
+            ulong x_3 = x[3];
+            ulong zz_5 = zz[5] + (zz_4 >> 32); zz_4 &= M;
+            ulong zz_6 = zz[6] + (zz_5 >> 32); zz_5 &= M;
+            {
+                zz_3 += x_3 * x_0;
+                w = (uint)zz_3;
+                zz[3] = (w << 1) | c;
+                c = w >> 31;
+                zz_4 += (zz_3 >> 32) + x_3 * x_1;
+                zz_5 += (zz_4 >> 32) + x_3 * x_2;
+                zz_4 &= M;
+                zz_6 += zz_5 >> 32;
+                zz_5 &= M;
+            }
+
+            ulong x_4 = x[4];
+            ulong zz_7 = zz[7] + (zz_6 >> 32); zz_6 &= M;
+            ulong zz_8 = zz[8] + (zz_7 >> 32); zz_7 &= M;
+            {
+                zz_4 += x_4 * x_0;
+                w = (uint)zz_4;
+                zz[4] = (w << 1) | c;
+                c = w >> 31;
+                zz_5 += (zz_4 >> 32) + x_4 * x_1;
+                zz_6 += (zz_5 >> 32) + x_4 * x_2;
+                zz_5 &= M;
+                zz_7 += (zz_6 >> 32) + x_4 * x_3;
+                zz_6 &= M;
+                zz_8 += zz_7 >> 32;
+                zz_7 &= M;
+            }
+
+            ulong x_5 = x[5];
+            ulong zz_9 = zz[9] + (zz_8 >> 32); zz_8 &= M;
+            ulong zz_10 = zz[10] + (zz_9 >> 32); zz_9 &= M;
+            {
+                zz_5 += x_5 * x_0;
+                w = (uint)zz_5;
+                zz[5] = (w << 1) | c;
+                c = w >> 31;
+                zz_6 += (zz_5 >> 32) + x_5 * x_1;
+                zz_7 += (zz_6 >> 32) + x_5 * x_2;
+                zz_6 &= M;
+                zz_8 += (zz_7 >> 32) + x_5 * x_3;
+                zz_7 &= M;
+                zz_9 += (zz_8 >> 32) + x_5 * x_4;
+                zz_8 &= M;
+                zz_10 += zz_9 >> 32;
+                zz_9 &= M;
+            }
+
+            ulong x_6 = x[6];
+            ulong zz_11 = zz[11] + (zz_10 >> 32); zz_10 &= M;
+            ulong zz_12 = zz[12] + (zz_11 >> 32); zz_11 &= M;
+            {
+                zz_6 += x_6 * x_0;
+                w = (uint)zz_6;
+                zz[6] = (w << 1) | c;
+                c = w >> 31;
+                zz_7 += (zz_6 >> 32) + x_6 * x_1;
+                zz_8 += (zz_7 >> 32) + x_6 * x_2;
+                zz_9 += (zz_8 >> 32) + x_6 * x_3;
+                zz_10 += (zz_9 >> 32) + x_6 * x_4;
+                zz_11 += (zz_10 >> 32) + x_6 * x_5;
+                zz_12 += zz_11 >> 32;
+            }
+
+            w = (uint)zz_7;
+            zz[7] = (w << 1) | c;
+            c = w >> 31;
+            w = (uint)zz_8;
+            zz[8] = (w << 1) | c;
+            c = w >> 31;
+            w = (uint)zz_9;
+            zz[9] = (w << 1) | c;
+            c = w >> 31;
+            w = (uint)zz_10;
+            zz[10] = (w << 1) | c;
+            c = w >> 31;
+            w = (uint)zz_11;
+            zz[11] = (w << 1) | c;
+            c = w >> 31;
+            w = (uint)zz_12;
+            zz[12] = (w << 1) | c;
+            c = w >> 31;
+            w = zz[13] + (uint)(zz_12 >> 32);
+            zz[13] = (w << 1) | c;
+        }
+#endif
+
         public static int Sub(uint[] x, uint[] y, uint[] z)
         {
             long c = 0;
@@ -1064,6 +1367,35 @@ namespace Org.BouncyCastle.Math.Raw
             c >>= 32;
             return (int)c;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int Sub(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+            long c = 0;
+            c += (long)x[0] - y[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)x[1] - y[1];
+            z[1] = (uint)c;
+            c >>= 32;
+            c += (long)x[2] - y[2];
+            z[2] = (uint)c;
+            c >>= 32;
+            c += (long)x[3] - y[3];
+            z[3] = (uint)c;
+            c >>= 32;
+            c += (long)x[4] - y[4];
+            z[4] = (uint)c;
+            c >>= 32;
+            c += (long)x[5] - y[5];
+            z[5] = (uint)c;
+            c >>= 32;
+            c += (long)x[6] - y[6];
+            z[6] = (uint)c;
+            c >>= 32;
+            return (int)c;
+        }
+#endif
 
         public static int SubBothFrom(uint[] x, uint[] y, uint[] z)
         {

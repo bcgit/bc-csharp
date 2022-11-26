@@ -98,13 +98,35 @@ namespace Org.BouncyCastle.Math.Raw
             Nat.AddWordAt(28, c21, zz, 21);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Mul(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> zz)
+        {
+            Nat224.Mul(x, y, zz);
+            Nat224.Mul(x[7..], y[7..], zz[14..]);
+
+            uint c21 = Nat224.AddToEachOther(zz[7..], zz[14..]);
+            uint c14 = c21 + Nat224.AddTo(zz, zz[7..], 0U);
+            c21 += Nat224.AddTo(zz[21..], zz[14..], c14);
+
+            Span<uint> dx = stackalloc uint[7];
+            Span<uint> dy = stackalloc uint[7];
+            bool neg = Nat224.Diff(x[7..], x, dx) != Nat224.Diff(y[7..], y, dy);
+
+            Span<uint> tt = stackalloc uint[14];
+            Nat224.Mul(dx, dy, tt);
+
+            c21 += neg ? Nat.AddTo(14, tt, zz[7..]) : (uint)Nat.SubFrom(14, tt, zz[7..]);
+            Nat.AddWordAt(28, c21, zz, 21);
+        }
+#endif
+
         public static void Square(uint[] x, uint[] zz)
         {
             Nat224.Square(x, zz);
             Nat224.Square(x, 7, zz, 14);
 
             uint c21 = Nat224.AddToEachOther(zz, 7, zz, 14);
-            uint c14 = c21 + Nat224.AddTo(zz, 0, zz, 7, 0);
+            uint c14 = c21 + Nat224.AddTo(zz, 0, zz, 7, 0U);
             c21 += Nat224.AddTo(zz, 21, zz, 14, c14);
 
             uint[] dx = Nat224.Create();
@@ -116,6 +138,27 @@ namespace Org.BouncyCastle.Math.Raw
             c21 += (uint)Nat.SubFrom(14, tt, 0, zz, 7);
             Nat.AddWordAt(28, c21, zz, 21);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Square(ReadOnlySpan<uint> x, Span<uint> zz)
+        {
+            Nat224.Square(x, zz);
+            Nat224.Square(x[7..], zz[14..]);
+
+            uint c21 = Nat224.AddToEachOther(zz[7..], zz[14..]);
+            uint c14 = c21 + Nat224.AddTo(zz, zz[7..], 0U);
+            c21 += Nat224.AddTo(zz[21..], zz[14..], c14);
+
+            Span<uint> dx = stackalloc uint[7];
+            Nat224.Diff(x[7..], x, dx);
+
+            Span<uint> tt = stackalloc uint[14];
+            Nat224.Square(dx, tt);
+
+            c21 += (uint)Nat.SubFrom(14, tt, zz[7..]);
+            Nat.AddWordAt(28, c21, zz, 21);
+        }
+#endif
 
         public static BigInteger ToBigInteger64(ulong[] x)
         {

@@ -1317,11 +1317,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
         {
             Debug.Assert(nb.Length == ScalarUints);
-            Debug.Assert((int)nb[ScalarUints - 1] >= 0);
+            Debug.Assert(nb[ScalarUints - 1] >> 30 == 0U);
             Debug.Assert(np.Length == 8);
-            Debug.Assert((int)np[7] >> 31 == (int)np[7] >> 1);
+            Debug.Assert((int)np[7] >> 31 == (int)np[7]);
             Debug.Assert(nq.Length == 8);
-            Debug.Assert((int)nq[7] >> 31 == (int)nq[7] >> 1);
+            Debug.Assert((int)nq[7] >> 31 == (int)nq[7]);
 
             Precompute();
 
