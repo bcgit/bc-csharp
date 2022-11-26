@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
+            byte[] pk2 = new byte[Ed25519.PublicKeySize];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed25519.SignatureSize];
 			byte[] sig2 = new byte[Ed25519.SignatureSize];
@@ -35,7 +36,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
 				Random.NextBytes(sk);
-                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+                Ed25519.GeneratePublicKey(sk, 0, out var publicPoint);
+                Ed25519.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed25519.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed25519 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -44,14 +52,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519 consistent signatures #" + i);
 
-                bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
+                {
+                    bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
 
-                Assert.IsTrue(shouldVerify, "Ed25519 consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed25519 consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed25519.Verify(sig1, 0, publicPoint, m, 0, mLen);
+
+                    Assert.IsTrue(shouldVerify, "Ed25519 consistent sign/verify #" + i);
+                }
 
                 sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
 
-                Assert.IsFalse(shouldNotVerify, "Ed25519 consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519 consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed25519.Verify(sig1, 0, publicPoint, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519 consistent verification failure #" + i);
+                }
             }
         }
 
@@ -60,6 +83,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
+            byte[] pk2 = new byte[Ed25519.PublicKeySize];
             byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed25519.SignatureSize];
@@ -71,7 +95,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+                Ed25519.GeneratePublicKey(sk, 0, out var publicPoint);
+                Ed25519.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed25519.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed25519 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -80,14 +111,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519ctx consistent signatures #" + i);
 
-                bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+                {
+                    bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsTrue(shouldVerify, "Ed25519ctx consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed25519ctx consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed25519.Verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                    Assert.IsTrue(shouldVerify, "Ed25519ctx consistent sign/verify #" + i);
+                }
 
                 sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsFalse(shouldNotVerify, "Ed25519ctx consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519ctx consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed25519.Verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519ctx consistent verification failure #" + i);
+                }
             }
         }
 
@@ -96,6 +142,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
+            byte[] pk2 = new byte[Ed25519.PublicKeySize];
             byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] ph = new byte[Ed25519.PrehashSize];
@@ -108,7 +155,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+                Ed25519.GeneratePublicKey(sk, 0, out var publicPoint);
+                Ed25519.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed25519.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed25519 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -121,14 +175,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519ph consistent signatures #" + i);
 
-                bool shouldVerify = Ed25519.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+                {
+                    bool shouldVerify = Ed25519.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-                Assert.IsTrue(shouldVerify, "Ed25519ph consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed25519ph consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed25519.VerifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                    Assert.IsTrue(shouldVerify, "Ed25519ph consistent sign/verify #" + i);
+                }
 
                 sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed25519.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-                Assert.IsFalse(shouldNotVerify, "Ed25519ph consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed25519.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519ph consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed25519.VerifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519ph consistent verification failure #" + i);
+                }
             }
         }
 

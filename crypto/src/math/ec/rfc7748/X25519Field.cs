@@ -444,6 +444,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode128(x, 5, z, zOff + 16);
         }
 
+        public static void Encode(int[] x, int xOff, byte[] z, int zOff)
+        {
+            Encode128(x, xOff, z, zOff);
+            Encode128(x, xOff + 5, z, zOff + 16);
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Encode(ReadOnlySpan<int> x, Span<byte> z)
         {

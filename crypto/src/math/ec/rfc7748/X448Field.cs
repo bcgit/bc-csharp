@@ -405,6 +405,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode56(x, 14, z, zOff + 49);
         }
 
+        public static void Encode(uint[] x, int xOff, byte[] z, int zOff)
+        {
+            Encode56(x, xOff, z, zOff);
+            Encode56(x, xOff + 2, z, zOff + 7);
+            Encode56(x, xOff + 4, z, zOff + 14);
+            Encode56(x, xOff + 6, z, zOff + 21);
+            Encode56(x, xOff + 8, z, zOff + 28);
+            Encode56(x, xOff + 10, z, zOff + 35);
+            Encode56(x, xOff + 12, z, zOff + 42);
+            Encode56(x, xOff + 14, z, zOff + 49);
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Encode(ReadOnlySpan<uint> x, Span<byte> z)
         {

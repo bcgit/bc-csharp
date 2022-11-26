@@ -34,6 +34,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Ed25519ph = 2,
         }
 
+        public sealed class PublicPoint
+        {
+            internal readonly int[] m_data;
+
+            internal PublicPoint(int[] data)
+            {
+                m_data = data;
+            }
+        }
+
         private const int CoordUints = 8;
         private const int PointBytes = CoordUints * 4;
         private const int ScalarUints = 8;
@@ -151,14 +161,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 || ctx != null && ctx.Length < 256;
         }
 
-        private static int CheckPoint(int[] x, int[] y)
+        private static int CheckPoint(ref PointAffine p)
         {
             int[] t = F.Create();
             int[] u = F.Create();
             int[] v = F.Create();
 
-            F.Sqr(x, u);
-            F.Sqr(y, v);
+            F.Sqr(p.x, u);
+            F.Sqr(p.y, v);
             F.Mul(u, v, t);
             F.Sub(v, u, v);
             F.Mul(t, C_d, t);
@@ -189,6 +199,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Normalize(t);
 
             return F.IsZero(t);
+        }
+
+        private static bool CheckPointOrderVar(ref PointAffine p)
+        {
+            Init(out PointAccum r);
+            ScalarMultOrderVar(ref p, ref r);
+            return NormalizeToNeutralElementVar(ref r);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -339,6 +356,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (negate ^ (x_0 != (r.x[0] & 1)))
             {
                 F.Negate(r.x, r.x);
+                F.Normalize(r.x);
             }
 
             return true;
@@ -369,49 +387,72 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
         }
 
-        private static int EncodePoint(ref PointAccum p, byte[] r, int rOff)
+        private static void EncodePoint(ref PointAffine p, byte[] r, int rOff)
+        {
+            F.Encode(p.y, r, rOff);
+            r[rOff + PointBytes - 1] |= (byte)((p.x[0] & 1) << 7);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void EncodePoint(ref PointAffine p, Span<byte> r)
+        {
+            F.Encode(p.y, r);
+            r[PointBytes - 1] |= (byte)((p.x[0] & 1) << 7);
+        }
+#endif
+
+        public static void EncodePublicPoint(PublicPoint publicPoint, byte[] pk, int pkOff)
+        {
+            F.Encode(publicPoint.m_data, F.Size, pk, pkOff);
+            pk[pkOff + PointBytes - 1] |= (byte)((publicPoint.m_data[0] & 1) << 7);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void EncodePublicPoint(PublicPoint publicPoint, Span<byte> pk)
+        {
+            F.Encode(publicPoint.m_data.AsSpan(F.Size), pk);
+            pk[PointBytes - 1] |= (byte)((publicPoint.m_data[0] & 1) << 7);
+        }
+#endif
+
+        private static int EncodeResult(ref PointAccum p, byte[] r, int rOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return EncodePoint(ref p, r.AsSpan(rOff));
+            return EncodeResult(ref p, r.AsSpan(rOff));
 #else
-            int[] x = F.Create();
-            int[] y = F.Create();
+            Init(out PointAffine q);
+            NormalizeToAffine(ref p, ref q);
 
-            F.Inv(p.z, y);
-            F.Mul(p.x, y, x);
-            F.Mul(p.y, y, y);
-            F.Normalize(x);
-            F.Normalize(y);
+            int result = CheckPoint(ref q);
 
-            int result = CheckPoint(x, y);
-
-            F.Encode(y, r, rOff);
-            r[rOff + PointBytes - 1] |= (byte)((x[0] & 1) << 7);
+            EncodePoint(ref q, r, rOff);
 
             return result;
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static int EncodePoint(ref PointAccum p, Span<byte> r)
+        private static int EncodeResult(ref PointAccum p, Span<byte> r)
         {
-            int[] x = F.Create();
-            int[] y = F.Create();
+            Init(out PointAffine q);
+            NormalizeToAffine(ref p, ref q);
 
-            F.Inv(p.z, y);
-            F.Mul(p.x, y, x);
-            F.Mul(p.y, y, y);
-            F.Normalize(x);
-            F.Normalize(y);
+            int result = CheckPoint(ref q);
 
-            int result = CheckPoint(x, y);
-
-            F.Encode(y, r);
-            r[PointBytes - 1] |= (byte)((x[0] & 1) << 7);
+            EncodePoint(ref q, r);
 
             return result;
         }
 #endif
+
+        private static void ExportPoint(ref PointAffine p, out PublicPoint publicPoint)
+        {
+            int[] data = new int[F.Size * 2];
+            F.Copy(p.x, 0, data, 0);
+            F.Copy(p.y, 0, data, F.Size);
+
+            publicPoint = new PublicPoint(data);
+        }
 
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
@@ -462,6 +503,58 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PruneScalar(h, s);
 
             ScalarMultBaseEncoded(s, pk);
+        }
+#endif
+
+        public static void GeneratePublicKey(byte[] sk, int skOff, out PublicPoint publicPoint)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            GeneratePublicKey(sk.AsSpan(skOff), out publicPoint);
+#else
+            IDigest d = CreateDigest();
+            byte[] h = new byte[64];
+
+            d.BlockUpdate(sk, skOff, SecretKeySize);
+            d.DoFinal(h, 0);
+
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(h, 0, s);
+
+            Init(out PointAccum p);
+            ScalarMultBase(s, ref p);
+
+            Init(out PointAffine q);
+            NormalizeToAffine(ref p, ref q);
+
+            if (0 == CheckPoint(ref q))
+                throw new InvalidOperationException();
+
+            ExportPoint(ref q, out publicPoint);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void GeneratePublicKey(ReadOnlySpan<byte> sk, out PublicPoint publicPoint)
+        {
+            IDigest d = CreateDigest();
+            Span<byte> h = stackalloc byte[64];
+
+            d.BlockUpdate(sk[..SecretKeySize]);
+            d.DoFinal(h);
+
+            Span<byte> s = stackalloc byte[ScalarBytes];
+            PruneScalar(h, s);
+
+            Init(out PointAccum p);
+            ScalarMultBase(s, ref p);
+
+            Init(out PointAffine q);
+            NormalizeToAffine(ref p, ref q);
+
+            if (0 == CheckPoint(ref q))
+                throw new InvalidOperationException();
+
+            ExportPoint(ref q, out publicPoint);
         }
 #endif
 
@@ -663,12 +756,108 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Init(out PointAccum pZ);
             ScalarMultStraus128Var(nS, v0, ref pA, v1, ref pR, ref pZ);
+            return NormalizeToNeutralElementVar(ref pZ);
+        }
 
-            F.Normalize(pZ.x);
-            F.Normalize(pZ.y);
-            F.Normalize(pZ.z);
+        private static bool ImplVerify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen)
+        {
+            if (!CheckContextVar(ctx, phflag))
+                throw new ArgumentException("ctx");
 
-            return IsNeutralElementVar(pZ.x, pZ.y, pZ.z);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> signature = stackalloc byte[SignatureSize];
+            signature.CopyFrom(sig.AsSpan(sigOff, SignatureSize));
+            var R = signature[..PointBytes];
+            var S = signature[PointBytes..];
+
+            if (!CheckPointVar(R))
+                return false;
+
+            Span<uint> nS = stackalloc uint[ScalarUints];
+            if (!Scalar25519.CheckVar(S, nS))
+                return false;
+
+            Init(out PointAffine pR);
+            if (!DecodePointVar(R, true, ref pR))
+                return false;
+
+            Init(out PointAffine pA);
+            F.Negate(publicPoint.m_data, pA.x);
+            F.Copy(publicPoint.m_data.AsSpan(F.Size), pA.y);
+
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            EncodePublicPoint(publicPoint, A);
+
+            IDigest d = CreateDigest();
+            Span<byte> h = stackalloc byte[64];
+
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
+            d.BlockUpdate(R);
+            d.BlockUpdate(A);
+            d.BlockUpdate(m.AsSpan(mOff, mLen));
+            d.DoFinal(h);
+
+            Span<byte> k = stackalloc byte[ScalarBytes];
+            Scalar25519.Reduce(h, k);
+
+            Span<uint> nA = stackalloc uint[ScalarUints];
+            Scalar25519.Decode(k, nA);
+
+            Span<uint> v0 = stackalloc uint[4];
+            Span<uint> v1 = stackalloc uint[4];
+#else
+            byte[] R = Copy(sig, sigOff, PointBytes);
+            byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
+
+            if (!CheckPointVar(R))
+                return false;
+
+            uint[] nS = new uint[ScalarUints];
+            if (!Scalar25519.CheckVar(S, nS))
+                return false;
+
+            Init(out PointAffine pR);
+            if (!DecodePointVar(R, true, ref pR))
+                return false;
+
+            Init(out PointAffine pA);
+            F.Negate(publicPoint.m_data, pA.x);
+            F.Copy(publicPoint.m_data, F.Size, pA.y, 0);
+
+            byte[] A = new byte[PublicKeySize];
+            EncodePublicPoint(publicPoint, A, 0);
+
+            IDigest d = CreateDigest();
+            byte[] h = new byte[64];
+
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
+            d.BlockUpdate(R, 0, PointBytes);
+            d.BlockUpdate(A, 0, PointBytes);
+            d.BlockUpdate(m, mOff, mLen);
+            d.DoFinal(h, 0);
+
+            byte[] k = Scalar25519.Reduce(h);
+
+            uint[] nA = new uint[ScalarUints];
+            Scalar25519.Decode(k, nA);
+
+            uint[] v0 = new uint[4];
+            uint[] v1 = new uint[4];
+#endif
+
+            Scalar25519.ReduceBasisVar(nA, v0, v1);
+            Scalar25519.Multiply128Var(nS, v1, nS);
+
+            Init(out PointAccum pZ);
+            ScalarMultStraus128Var(nS, v0, ref pA, v1, ref pR, ref pZ);
+            return NormalizeToNeutralElementVar(ref pZ);
         }
 
         private static void Init(out PointAccum r)
@@ -757,6 +946,24 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static bool IsNeutralElementVar(int[] x, int[] y, int[] z)
         {
             return F.IsZeroVar(x) && F.AreEqualVar(y, z);
+        }
+
+        private static void NormalizeToAffine(ref PointAccum p, ref PointAffine r)
+        {
+            F.Inv(p.z, r.y);
+            F.Mul(r.y, p.x, r.x);
+            F.Mul(r.y, p.y, r.y);
+            F.Normalize(r.x);
+            F.Normalize(r.y);
+        }
+
+        private static bool NormalizeToNeutralElementVar(ref PointAccum p)
+        {
+            F.Normalize(p.x);
+            F.Normalize(p.y);
+            F.Normalize(p.z);
+
+            return IsNeutralElementVar(p.x, p.y, p.z);
         }
 
         private static void PointAdd(ref PointExtended p, ref PointExtended q, ref PointExtended r, ref PointTemp t)
@@ -1143,6 +1350,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 {
                     Init(out toothPowers[tooth]);
                 }
+
                 Init(out PointExtended u);
                 for (int block = 0; block < PrecompBlocks; ++block)
                 {
@@ -1393,7 +1601,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #else
             Init(out PointAccum p);
             ScalarMultBase(k, ref p);
-            if (0 == EncodePoint(ref p, r, rOff))
+            if (0 == EncodeResult(ref p, r, rOff))
                 throw new InvalidOperationException();
 #endif
         }
@@ -1403,7 +1611,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Init(out PointAccum p);
             ScalarMultBase(k, ref p);
-            if (0 == EncodePoint(ref p, r))
+            if (0 == EncodeResult(ref p, r))
                 throw new InvalidOperationException();
         }
 #endif
@@ -1624,11 +1832,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> A = stackalloc byte[PublicKeySize];
-            A.CopyFrom(pk.AsSpan(pkOff));
+            return ValidatePublicKeyFull(pk.AsSpan(pkOff));
 #else
             byte[] A = Copy(pk, pkOff, PublicKeySize);
-#endif
 
             if (!CheckPointFullVar(A))
                 return false;
@@ -1637,24 +1843,96 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!DecodePointVar(A, false, ref pA))
                 return false;
 
-            Init(out PointAccum pR);
-            ScalarMultOrderVar(ref pA, ref pR);
-
-            F.Normalize(pR.x);
-            F.Normalize(pR.y);
-            F.Normalize(pR.z);
-
-            return IsNeutralElementVar(pR.x, pR.y, pR.z);
+            return CheckPointOrderVar(ref pA);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool ValidatePublicKeyFull(ReadOnlySpan<byte> pk)
+        {
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk);
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointAffine pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return false;
+
+            return CheckPointOrderVar(ref pA);
+        }
+#endif
+
+        public static bool ValidatePublicKeyFull(byte[] pk, int pkOff, out PublicPoint publicPoint)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ValidatePublicKeyFull(pk.AsSpan(pkOff), out publicPoint);
+#else
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
+
+            if (CheckPointFullVar(A))
+            {
+                Init(out PointAffine pA);
+                if (DecodePointVar(A, false, ref pA))
+                {
+                    if (CheckPointOrderVar(ref pA))
+                    {
+                        ExportPoint(ref pA, out publicPoint);
+                        return true;
+                    }
+                }
+            }
+
+            publicPoint = null;
+            return false;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool ValidatePublicKeyFull(ReadOnlySpan<byte> pk, out PublicPoint publicPoint)
+        {
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk);
+
+            if (CheckPointFullVar(A))
+            {
+                Init(out PointAffine pA);
+                if (DecodePointVar(A, false, ref pA))
+                {
+                    if (CheckPointOrderVar(ref pA))
+                    {
+                        ExportPoint(ref pA, out publicPoint);
+                        return true;
+                    }
+                }
+            }
+
+            publicPoint = null;
+            return false;
+        }
+#endif
 
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> A = stackalloc byte[PublicKeySize];
-            A.CopyFrom(pk.AsSpan(pkOff));
+            return ValidatePublicKeyPartial(pk.AsSpan(pkOff));
 #else
             byte[] A = Copy(pk, pkOff, PublicKeySize);
+
+            if (!CheckPointFullVar(A))
+                return false;
+
+            Init(out PointAffine pA);
+            return DecodePointVar(A, false, ref pA);
 #endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool ValidatePublicKeyPartial(ReadOnlySpan<byte> pk)
+        {
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk);
 
             if (!CheckPointFullVar(A))
                 return false;
@@ -1662,6 +1940,50 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Init(out PointAffine pA);
             return DecodePointVar(A, false, ref pA);
         }
+#endif
+
+        public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff, out PublicPoint publicPoint)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ValidatePublicKeyPartial(pk.AsSpan(pkOff), out publicPoint);
+#else
+            byte[] A = Copy(pk, pkOff, PublicKeySize);
+
+            if (CheckPointFullVar(A))
+            {
+                Init(out PointAffine pA);
+                if (DecodePointVar(A, false, ref pA))
+                {
+                    ExportPoint(ref pA, out publicPoint);
+                    return true;
+                }
+            }
+
+            publicPoint = null;
+            return false;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool ValidatePublicKeyPartial(ReadOnlySpan<byte> pk, out PublicPoint publicPoint)
+        {
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            A.CopyFrom(pk);
+
+            if (CheckPointFullVar(A))
+            {
+                Init(out PointAffine pA);
+                if (DecodePointVar(A, false, ref pA))
+                {
+                    ExportPoint(ref pA, out publicPoint);
+                    return true;
+                }
+            }
+
+            publicPoint = null;
+            return false;
+        }
+#endif
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)
         {
@@ -1671,6 +1993,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
         }
 
+        public static bool Verify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] m, int mOff, int mLen)
+        {
+            byte[] ctx = null;
+            byte phflag = 0x00;
+
+            return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, m, mOff, mLen);
+        }
+
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen)
         {
             byte phflag = 0x00;
@@ -1678,11 +2008,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
         }
 
+        public static bool Verify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte[] m, int mOff, int mLen)
+        {
+            byte phflag = 0x00;
+
+            return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, m, mOff, mLen);
+        }
+
         public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff)
         {
             byte phflag = 0x01;
 
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize);
+        }
+
+        public static bool VerifyPrehash(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte[] ph,
+            int phOff)
+        {
+            byte phflag = 0x01;
+
+            return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, ph, phOff, PrehashSize);
         }
 
         public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, IDigest ph)
@@ -1694,6 +2039,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte phflag = 0x01;
 
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, 0, m.Length);
+        }
+
+        public static bool VerifyPrehash(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, IDigest ph)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0))
+                throw new ArgumentException("ph");
+
+            byte phflag = 0x01;
+
+            return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, m, 0, m.Length);
         }
     }
 }

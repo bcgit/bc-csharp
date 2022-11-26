@@ -1,6 +1,4 @@
-﻿using System;
-
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
@@ -25,6 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
+            byte[] pk2 = new byte[Ed448.PublicKeySize];
             byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed448.SignatureSize];
@@ -36,7 +35,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed448.GeneratePublicKey(sk, 0, pk, 0);
+                Ed448.GeneratePublicKey(sk, 0, out var publicPoint);
+                Ed448.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed448.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed448 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -45,14 +51,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed448 consistent signatures #" + i);
 
-                bool shouldVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+                {
+                    bool shouldVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed448.Verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                    Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
+                }
 
                 sig1[Ed448.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed448.Verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+                }
             }
         }
 
@@ -61,6 +82,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
+            byte[] pk2 = new byte[Ed448.PublicKeySize];
             byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] ph = new byte[Ed448.PrehashSize];
@@ -73,7 +95,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed448.GeneratePublicKey(sk, 0, pk, 0);
+                Ed448.GeneratePublicKey(sk, 0, out var publicPoint);
+                Ed448.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed448.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed448 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -86,14 +115,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed448ph consistent signatures #" + i);
 
-                bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+                {
+                    bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-                Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                    Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+                }
 
                 sig1[Ed448.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-                Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
+                }
             }
         }
 
