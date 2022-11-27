@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(this.iv, 0, TEMP2, 0, this.iv.Length);
             Array.Copy(TEMP1, 0, TEMP2, this.iv.Length, TEMP1.Length);
 
-            // Reverse the order of the octets in TEMP2 and call the result TEMP3.
+            // Reverse the order of the octets in TEMP2.
             Array.Reverse(TEMP2);
 
 			// Encrypt TEMP3 in CBC mode using the KEK and an initialization vector
@@ -232,7 +232,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 				engine.ProcessBlock(input, inOff + currentBytePos, TEMP2, currentBytePos);
             }
 
-            // Reverse the order of the octets in TEMP3 and call the result TEMP2.
+            // Reverse the order of the octets in TEMP2.
             Array.Reverse(TEMP2);
 
 			// Decompose TEMP2 into IV, the first 8 octets, and TEMP1, the remaining octets.
