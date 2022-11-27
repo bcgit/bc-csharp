@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Math.Raw
             Nat224.Mul(x, 7, y, 7, zz, 14);
 
             uint c21 = Nat224.AddToEachOther(zz, 7, zz, 14);
-            uint c14 = c21 + Nat224.AddTo(zz, 0, zz, 7, 0);
+            uint c14 = c21 + Nat224.AddTo(zz, 0, zz, 7, 0U);
             c21 += Nat224.AddTo(zz, 21, zz, 14, c14);
 
             uint[] dx = Nat224.Create(), dy = Nat224.Create();

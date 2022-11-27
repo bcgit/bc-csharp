@@ -333,6 +333,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9] &= M24;
         }
 
+        public static void Decode(byte[] x, int xOff, int[] z, int zOff)
+        {
+            Decode128(x, xOff, z, zOff);
+            Decode128(x, xOff + 16, z, zOff + 5);
+            z[zOff + 9] &= M24;
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Decode(ReadOnlySpan<byte> x, Span<int> z)
         {

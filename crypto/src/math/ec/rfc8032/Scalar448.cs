@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
     {
         internal const int Size = 14;
 
-        internal const int ScalarBytes = Size * 4 + 1;
+        private const int ScalarBytes = Size * 4 + 1;
 
         private const ulong M26UL = 0x03FFFFFFUL;
         private const ulong M28UL = 0x0FFFFFFFUL;

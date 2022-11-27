@@ -265,6 +265,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Decode56(x, xOff + 49, z, 14);
         }
 
+        public static void Decode(byte[] x, int xOff, uint[] z, int zOff)
+        {
+            Decode56(x, xOff, z, zOff);
+            Decode56(x, xOff + 7, z, zOff + 2);
+            Decode56(x, xOff + 14, z, zOff + 4);
+            Decode56(x, xOff + 21, z, zOff + 6);
+            Decode56(x, xOff + 28, z, zOff + 8);
+            Decode56(x, xOff + 35, z, zOff + 10);
+            Decode56(x, xOff + 42, z, zOff + 12);
+            Decode56(x, xOff + 49, z, zOff + 14);
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Decode(ReadOnlySpan<byte> x, Span<uint> z)
         {

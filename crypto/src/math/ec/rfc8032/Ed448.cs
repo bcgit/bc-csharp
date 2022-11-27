@@ -66,12 +66,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             0x02488762U, 0x016EB6BCU, 0x0693F467U };
 
         // 2^225 * B
-        private static readonly uint[] B225_x = { 0x06909ee2U, 0x01d7605cU, 0x0995ec8aU, 0x0fc4d970U, 0x0cf2b361U,
-            0x02d82e9dU, 0x01225f55U, 0x007f0ef6U, 0x0aee9c55U, 0x0a240c13U, 0x05627b54U, 0x0d449d1eU, 0x03a44575U,
-            0x007164a7U, 0x0bd4bd71U, 0x061a15fdU };
-        private static readonly uint[] B225_y = { 0x0d3a9fe4U, 0x030696b9U, 0x07e7e326U, 0x068308c7U, 0x0ce0b8c8U,
-            0x03ac222bU, 0x0304db8eU, 0x083ee319U, 0x05e5db0bU, 0x0eca503bU, 0x0b1c6539U, 0x078a8dceU, 0x02d256bcU,
-            0x04a8b05eU, 0x0bd9fd57U, 0x0a1c3cb8U };
+        private static readonly uint[] B225_x = { 0x06909EE2U, 0x01D7605CU, 0x0995EC8AU, 0x0FC4D970U, 0x0CF2B361U,
+            0x02D82E9DU, 0x01225F55U, 0x007F0EF6U, 0x0AEE9C55U, 0x0A240C13U, 0x05627B54U, 0x0D449D1EU, 0x03A44575U,
+            0x007164A7U, 0x0BD4BD71U, 0x061A15FDU };
+        private static readonly uint[] B225_y = { 0x0D3A9FE4U, 0x030696B9U, 0x07E7E326U, 0x068308C7U, 0x0CE0B8C8U,
+            0x03AC222BU, 0x0304DB8EU, 0x083EE319U, 0x05E5DB0BU, 0x0ECA503BU, 0x0B1C6539U, 0x078A8DCEU, 0x02D256BCU,
+            0x04A8B05EU, 0x0BD9FD57U, 0x0A1C3CB8U };
 
         private const int C_d = -39081;
 
@@ -117,10 +117,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Nat.MulAddTo(ScalarUints, u, v, t);
 
             byte[] result = new byte[ScalarBytes * 2];
-            for (int i = 0; i < t.Length; ++i)
-            {
-                Codec.Encode32(t[i], result, i * 4);
-            }
+            Codec.Encode32(t, 0, t.Length, result, 0);
             return Scalar448.Reduce(result);
         }
 
@@ -147,16 +144,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return F.IsZero(t);
         }
 
-        private static int CheckPoint(uint[] x, uint[] y, uint[] z)
+        private static int CheckPoint(PointProjective p)
         {
             uint[] t = F.Create();
             uint[] u = F.Create();
             uint[] v = F.Create();
             uint[] w = F.Create();
 
-            F.Sqr(x, u);
-            F.Sqr(y, v);
-            F.Sqr(z, w);
+            F.Sqr(p.x, u);
+            F.Sqr(p.y, v);
+            F.Sqr(p.z, w);
             F.Mul(u, v, t);
             F.Add(u, v, u);
             F.Mul(u, w, u);
@@ -168,47 +165,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             return F.IsZero(t);
         }
-
-        private static bool CheckPointOrderVar(ref PointAffine p)
-        {
-            Init(out PointProjective r);
-            ScalarMultOrderVar(ref p, ref r);
-            return NormalizeToNeutralElementVar(ref r);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static bool CheckPointVar(ReadOnlySpan<byte> p)
-        {
-            if ((p[PointBytes - 1] & 0x7F) != 0x00)
-                return false;
-            if (Codec.Decode32(p[52..]) < P[13])
-                return true;
-
-            int last = p[28] == 0xFF ? 7 : 0;
-            for (int i = CoordUints - 2; i >= last; --i)
-            {
-                if (Codec.Decode32(p[(i * 4)..]) < P[i])
-                    return true;
-            }
-            return false;
-        }
-#else
-        private static bool CheckPointVar(byte[] p)
-        {
-            if ((p[PointBytes - 1] & 0x7F) != 0x00)
-                return false;
-            if (Codec.Decode32(p, 52) < P[13])
-                return true;
-
-            int last = p[28] == 0xFF ? 7 : 0;
-            for (int i = CoordUints - 2; i >= last; --i)
-            {
-                if (Codec.Decode32(p, i * 4) < P[i])
-                    return true;
-            }
-            return false;
-        }
-#endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static bool CheckPointFullVar(ReadOnlySpan<byte> p)
@@ -282,6 +238,47 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        private static bool CheckPointOrderVar(ref PointAffine p)
+        {
+            Init(out PointProjective r);
+            ScalarMultOrderVar(ref p, ref r);
+            return NormalizeToNeutralElementVar(ref r);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool CheckPointVar(ReadOnlySpan<byte> p)
+        {
+            if ((p[PointBytes - 1] & 0x7F) != 0x00)
+                return false;
+            if (Codec.Decode32(p[52..]) < P[13])
+                return true;
+
+            int last = p[28] == 0xFF ? 7 : 0;
+            for (int i = CoordUints - 2; i >= last; --i)
+            {
+                if (Codec.Decode32(p[(i * 4)..]) < P[i])
+                    return true;
+            }
+            return false;
+        }
+#else
+        private static bool CheckPointVar(byte[] p)
+        {
+            if ((p[PointBytes - 1] & 0x7F) != 0x00)
+                return false;
+            if (Codec.Decode32(p, 52) < P[13])
+                return true;
+
+            int last = p[28] == 0xFF ? 7 : 0;
+            for (int i = CoordUints - 2; i >= last; --i)
+            {
+                if (Codec.Decode32(p, i * 4) < P[i])
+                    return true;
+            }
+            return false;
+        }
+#endif
+
         private static byte[] Copy(byte[] buf, int off, int len)
         {
             byte[] result = new byte[len];
@@ -336,6 +333,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void Dom4(IXof d, byte phflag, byte[] ctx)
         {
+            Debug.Assert(ctx != null);
+
             int n = Dom4Prefix.Length;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -853,6 +852,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             F.Copy(u, 0, points[0].z, 0);
         }
+
+        //private static bool IsNeutralElementVar(uint[] x, uint[] y)
+        //{
+        //    return F.IsZeroVar(x) && F.IsOneVar(y);
+        //}
 
         private static bool IsNeutralElementVar(uint[] x, uint[] y, uint[] z)
         {
@@ -1486,7 +1490,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Init(out PointProjective p);
             ScalarMultBase(n, ref p);
 
-            if (0 == CheckPoint(p.x, p.y, p.z))
+            if (0 == CheckPoint(p))
                 throw new InvalidOperationException();
 
             F.Copy(p.x, 0, x, 0);
@@ -1503,7 +1507,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Init(out PointProjective p);
             ScalarMultBase(n, ref p);
 
-            if (0 == CheckPoint(p.x, p.y, p.z))
+            if (0 == CheckPoint(p))
                 throw new InvalidOperationException();
 
             F.Copy(p.x, x);

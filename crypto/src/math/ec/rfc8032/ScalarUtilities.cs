@@ -158,17 +158,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
         {
             int i = last;
-            if ((int)x[i] < (int)y[i])
-                return true;
-            if ((int)x[i] > (int)y[i])
-                return false;
-            while (--i >= 0)
+            do
             {
                 if (x[i] < y[i])
                     return true;
                 if (x[i] > y[i])
                     return false;
             }
+            while (--i >= 0);
             return false;
         }
 
