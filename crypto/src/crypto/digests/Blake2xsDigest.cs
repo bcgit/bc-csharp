@@ -12,19 +12,23 @@ namespace Org.BouncyCastle.Crypto.Digests
       Reference Implementation and Description can be found at: https://blake2.net/blake2x.pdf
      */
 
-    /**
-     * Implementation of the eXtendable Output Function (XOF) BLAKE2xs.
-     * <p/>
-     * BLAKE2xs offers a built-in keying mechanism to be used directly
-     * for authentication ("Prefix-MAC") rather than a HMAC construction.
-     * <p/>
-     * BLAKE2xs offers a built-in support for a salt for randomized hashing
-     * and a personal string for defining a unique hash function for each application.
-     * <p/>
-     * BLAKE2xs is optimized for 32-bit platforms and produces digests of any size
-     * between 1 and 2^16-2 bytes. The length can also be unknown and then the maximum
-     * length will be 2^32 blocks of 32 bytes.
-     */
+    /// <summary>
+    /// Implementation of the eXtendable Output Function (XOF) BLAKE2xs.
+    /// BLAKE2xs is optimized for 32-bit platforms and produces digests of any size
+    /// between 1 and 2^16-2 bytes. The length can also be unknown and then the maximum
+    /// length will be 2^32 blocks of 32 bytes.
+    /// </summary>
+    /// 
+    /// <remarks>
+    /// <para>
+    /// BLAKE2xs offers a built-in keying mechanism to be used directly
+    /// for authentication ("Prefix-MAC") rather than a HMAC construction.
+    /// </para>
+    /// <para>
+    /// BLAKE2xs offers a built-in support for a salt for randomized hashing
+    /// and a personal string for defining a unique hash function for each application.
+    /// </para>
+    /// </remarks>
     public sealed class Blake2xsDigest
         : IXof
     {
@@ -78,43 +82,48 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         private long nodeOffset;
 
-        /**
-         * BLAKE2xs for hashing with unknown digest length
-         */
+        /// <summary>
+        /// Initializes a new instance of <see cref="Blake2xsDigest"/> for hashing an unknown digest length.
+        /// </summary>
         public Blake2xsDigest()
             : this(UnknownDigestLength)
         {
         }
 
-        /**
-         * BLAKE2xs for hashing
-         *
-         * @param digestBytes The desired digest length in bytes. Must be above 1 and less than 2^16-1
-         */
+        /// <summary>
+        /// Initializes a new instance of <see cref="Blake2xsDigest"/> with a given digest size.
+        /// </summary>
+        /// <param name="digestBytes">The desired digest length in bytes. Must be above 1 and less than 2^16-1.</param>
         public Blake2xsDigest(int digestBytes)
             : this(digestBytes, null, null, null)
         {
         }
 
-        /**
-         * BLAKE2xs with key
-         *
-         * @param digestBytes The desired digest length in bytes. Must be above 1 and less than 2^16-1
-         * @param key         A key up to 32 bytes or null
-         */
+        /// <summary>
+        /// <para>
+        /// Initializes a new instance of <see cref="Blake2bDigest"/> with a key and given digest length.
+        /// </para>
+        /// After calling the <see cref="DoFinal(byte[], int)"/> method, the key will
+        /// remain to be used for further computations of this instance.
+        /// </summary>
+        /// <param name="digestBytes">The desired digest length in bytes. Must be above 1 and less than 2^16-1.</param>
+        /// <param name="key">A key up to 32 bytes or null.</param>
         public Blake2xsDigest(int digestBytes, byte[] key)
             : this(digestBytes, key, null, null)
         {
         }
 
-        /**
-         * BLAKE2xs with key, salt and personalization
-         *
-         * @param digestBytes     The desired digest length in bytes. Must be above 1 and less than 2^16-1
-         * @param key             A key up to 32 bytes or null
-         * @param salt            8 bytes or null
-         * @param personalization 8 bytes or null
-         */
+
+        /// <summary>
+        /// <para>
+        /// Initializes a new instance of <see cref="Blake2xsDigest"/> with a key, required digest length (in bytes), salt and personalization.
+        /// </para>
+        /// </summary>
+        /// <param name="digestBytes">The desired digest length in bytes. Must be above 1 and less than 2^16-1.</param>
+        /// <param name="key">A key up to 32 bytes or null.</param>
+        /// <param name="salt">A 8 bytes or null salt.</param>
+        /// <param name="personalization">A 8 bytes or null personalization.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2xsDigest(int digestBytes, byte[] key, byte[] salt, byte[] personalization)
         {
             if (digestBytes < 1 || digestBytes > UnknownDigestLength)
@@ -125,6 +134,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             hash = new Blake2sDigest(DigestLength, key, salt, personalization, nodeOffset);
         }
 
+        /// <summary>
+        /// Constructs a new instance of <see cref="Blake2xsDigest"/> from another <see cref="Blake2xsDigest"/>./>.
+        /// </summary>
+        /// <param name="digest">The original instance of <see cref="Blake2xsDigest"/> that is copied.</param>
         public Blake2xsDigest(Blake2xsDigest digest)
         {
             digestLength = digest.digestLength;
@@ -137,72 +150,53 @@ namespace Org.BouncyCastle.Crypto.Digests
             nodeOffset = digest.nodeOffset;
         }
 
-        /**
-         * Return the algorithm name.
-         *
-         * @return the algorithm name
-         */
+        /// <inheritdoc />
         public string AlgorithmName => "BLAKE2xs";
 
-        /**
-         * Return the size in bytes of the digest produced by this message digest.
-         *
-         * @return the size in bytes of the digest produced by this message digest.
-         */
+        /// <inheritdoc />
         public int GetDigestSize() => digestLength;
 
-        /**
-         * Return the size in bytes of the internal buffer the digest applies its
-         * compression function to.
-         *
-         * @return byte length of the digest's internal buffer.
-         */
+        /// <summary>
+        ///  Return the size in bytes of the internal buffer the digest applies it's compression 
+        ///  function to.
+        ///  </summary>
+        /// <returns>The byte length of the digests internal buffer.</returns>
         public int GetByteLength() => hash.GetByteLength();
 
-        /**
-         * Return the maximum size in bytes the digest can produce when the length
-         * is unknown
-         *
-         * @return byte length of the largest digest with unknown length
-         */
+        /// <summary>
+        ///  Return the maximum size in bytes the digest can produce when the length
+        ///  is unknown
+        /// </summary>
+        /// <returns>The byte length of the largest digest with unknown length</returns>
         public long GetUnknownMaxLength()
         {
             return MaxNumberBlocks * DigestLength;
         }
 
-        /**
-         * Update the message digest with a single byte.
-         *
-         * @param in the input byte to be entered.
-         */
+        /// <inheritdoc />
         public void Update(byte b)
         {
             hash.Update(b);
         }
 
-        /**
-         * Update the message digest with a block of bytes.
-         *
-         * @param in    the byte array containing the data.
-         * @param inOff the offset into the byte array where the data starts.
-         * @param len   the length of the data.
-         */
+        /// <inheritdoc />
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             hash.BlockUpdate(input, inOff, inLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc />
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             hash.BlockUpdate(input);
         }
 #endif
 
-        /**
-         * Reset the digest back to its initial state. The key, the salt and the
-         * personal string will remain for further computations.
-         */
+        /// <summary>
+        /// Reset the digest back to it's initial state.
+        /// The key, the salt and the personalization will remain for further computations.
+        /// </summary>
         public void Reset()
         {
             hash.Reset();
@@ -214,26 +208,28 @@ namespace Org.BouncyCastle.Crypto.Digests
             nodeOffset = ComputeNodeOffset();
         }
 
-        /**
-         * Close the digest, producing the final digest value. The doFinal() call
-         * leaves the digest reset. Key, salt and personal string remain.
-         *
-         * @param out       the array the digest is to be copied into.
-         * @param outOffset the offset into the out array the digest is to start at.
-         */
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="DoFinal(byte[], int)"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The byte array the digest is to be copied into.</param>
+        /// <param name="outOff">The offset into the byte array the digest is to start at.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(byte[] output, int outOff)
         {
             return OutputFinal(output, outOff, digestLength);
         }
 
-        /**
-         * Close the digest, producing the final digest value. The doFinal() call
-         * leaves the digest reset. Key, salt, personal string remain.
-         *
-         * @param out    output array to write the output bytes to.
-         * @param outOff offset to start writing the bytes at.
-         * @param outLen the number of output bytes requested.
-         */
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="OutputFinal(byte[], int, int)"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The output array to write the output bytes to.</param>
+        /// <param name="outOff">The offset to start writing the bytes at.</param>
+        /// <param name="outLen">The number of output bytes requested.</param>
+        /// <returns>The number of bytes written.</returns>
         public int OutputFinal(byte[] output, int outOff, int outLen)
         {
             int ret = Output(output, outOff, outLen);
@@ -243,15 +239,14 @@ namespace Org.BouncyCastle.Crypto.Digests
             return ret;
         }
 
-        /**
-         * Start outputting the results of the final calculation for this digest. Unlike doFinal, this method
-         * will continue producing output until the Xof is explicitly reset, or signals otherwise.
-         *
-         * @param out    output array to write the output bytes to.
-         * @param outOff offset to start writing the bytes at.
-         * @param outLen the number of output bytes requested.
-         * @return the number of bytes written
-         */
+        /// <summary>
+        /// Start outputting the results of the final calculation for this digest. Unlike <see cref="DoFinal(byte[], int)"/>, this method
+        /// will continue producing output until the Xof is explicitly reset, or signals otherwise.
+        /// </summary>
+        /// <param name="output">The output array to write the output bytes to.</param>
+        /// <param name="outOff">The offset to start writing the bytes at.</param>
+        /// <param name="outLen">The number of output bytes requested.</param>
+        /// <returns>The number of bytes written.</returns>
         public int Output(byte[] output, int outOff, int outLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -296,11 +291,25 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="DoFinal(Span{byte})"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The output span to write the output bytes to.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(Span<byte> output)
         {
             return OutputFinal(output[..digestLength]);
         }
 
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="OutputFinal(Span{byte})"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The output span to write the output bytes to.</param>
+        /// <returns>The number of bytes written.</returns>
         public int OutputFinal(Span<byte> output)
         {
             int ret = Output(output);
@@ -310,6 +319,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             return ret;
         }
 
+        /// <summary>
+        /// Start outputting the results of the final calculation for this digest. Unlike <see cref="DoFinal(Span{byte})"/>, this method
+        /// will continue producing output until the Xof is explicitly reset, or signals otherwise.
+        /// </summary>
+        /// <param name="output">The output span to write the output bytes to.</param>
+        /// <returns>The number of bytes written.</returns>
         public int Output(Span<byte> output)
         {
             int outLen = output.Length;
