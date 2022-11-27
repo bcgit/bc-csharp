@@ -442,13 +442,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        private static void ExportPoint(ref PointAffine p, out PublicPoint publicPoint)
+        private static PublicPoint ExportPoint(ref PointAffine p)
         {
             int[] data = new int[F.Size * 2];
             F.Copy(p.x, 0, data, 0);
             F.Copy(p.y, 0, data, F.Size);
 
-            publicPoint = new PublicPoint(data);
+            return new PublicPoint(data);
         }
 
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
@@ -503,10 +503,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        public static void GeneratePublicKey(byte[] sk, int skOff, out PublicPoint publicPoint)
+        public static PublicPoint GeneratePublicKey(byte[] sk, int skOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            GeneratePublicKey(sk.AsSpan(skOff), out publicPoint);
+            return GeneratePublicKey(sk.AsSpan(skOff));
 #else
             IDigest d = CreateDigest();
             byte[] h = new byte[64];
@@ -526,12 +526,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (0 == CheckPoint(ref q))
                 throw new InvalidOperationException();
 
-            ExportPoint(ref q, out publicPoint);
+            return ExportPoint(ref q);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void GeneratePublicKey(ReadOnlySpan<byte> sk, out PublicPoint publicPoint)
+        public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> sk)
         {
             IDigest d = CreateDigest();
             Span<byte> h = stackalloc byte[64];
@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (0 == CheckPoint(ref q))
                 throw new InvalidOperationException();
 
-            ExportPoint(ref q, out publicPoint);
+            return ExportPoint(ref q);
         }
 #endif
 
@@ -1865,52 +1865,44 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        public static bool ValidatePublicKeyFull(byte[] pk, int pkOff, out PublicPoint publicPoint)
+        public static PublicPoint ValidatePublicKeyFullExport(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ValidatePublicKeyFull(pk.AsSpan(pkOff), out publicPoint);
+            return ValidatePublicKeyFullExport(pk.AsSpan(pkOff));
 #else
             byte[] A = Copy(pk, pkOff, PublicKeySize);
 
-            if (CheckPointFullVar(A))
-            {
-                Init(out PointAffine pA);
-                if (DecodePointVar(A, false, ref pA))
-                {
-                    if (CheckPointOrderVar(ref pA))
-                    {
-                        ExportPoint(ref pA, out publicPoint);
-                        return true;
-                    }
-                }
-            }
+            if (!CheckPointFullVar(A))
+                return null;
 
-            publicPoint = null;
-            return false;
+            Init(out PointAffine pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return null;
+
+            if (!CheckPointOrderVar(ref pA))
+                return null;
+
+            return ExportPoint(ref pA);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static bool ValidatePublicKeyFull(ReadOnlySpan<byte> pk, out PublicPoint publicPoint)
+        public static PublicPoint ValidatePublicKeyFullExport(ReadOnlySpan<byte> pk)
         {
             Span<byte> A = stackalloc byte[PublicKeySize];
             A.CopyFrom(pk);
 
-            if (CheckPointFullVar(A))
-            {
-                Init(out PointAffine pA);
-                if (DecodePointVar(A, false, ref pA))
-                {
-                    if (CheckPointOrderVar(ref pA))
-                    {
-                        ExportPoint(ref pA, out publicPoint);
-                        return true;
-                    }
-                }
-            }
+            if (!CheckPointFullVar(A))
+                return null;
 
-            publicPoint = null;
-            return false;
+            Init(out PointAffine pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return null;
+
+            if (!CheckPointOrderVar(ref pA))
+                return null;
+
+            return ExportPoint(ref pA);
         }
 #endif
 
@@ -1943,46 +1935,38 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff, out PublicPoint publicPoint)
+        public static PublicPoint ValidatePublicKeyPartialExport(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ValidatePublicKeyPartial(pk.AsSpan(pkOff), out publicPoint);
+            return ValidatePublicKeyPartialExport(pk.AsSpan(pkOff));
 #else
             byte[] A = Copy(pk, pkOff, PublicKeySize);
 
-            if (CheckPointFullVar(A))
-            {
-                Init(out PointAffine pA);
-                if (DecodePointVar(A, false, ref pA))
-                {
-                    ExportPoint(ref pA, out publicPoint);
-                    return true;
-                }
-            }
+            if (!CheckPointFullVar(A))
+                return null;
 
-            publicPoint = null;
-            return false;
+            Init(out PointAffine pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return null;
+
+            return ExportPoint(ref pA);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static bool ValidatePublicKeyPartial(ReadOnlySpan<byte> pk, out PublicPoint publicPoint)
+        public static PublicPoint ValidatePublicKeyPartialExport(ReadOnlySpan<byte> pk)
         {
             Span<byte> A = stackalloc byte[PublicKeySize];
             A.CopyFrom(pk);
 
-            if (CheckPointFullVar(A))
-            {
-                Init(out PointAffine pA);
-                if (DecodePointVar(A, false, ref pA))
-                {
-                    ExportPoint(ref pA, out publicPoint);
-                    return true;
-                }
-            }
+            if (!CheckPointFullVar(A))
+                return null;
 
-            publicPoint = null;
-            return false;
+            Init(out PointAffine pA);
+            if (!DecodePointVar(A, false, ref pA))
+                return null;
+
+            return ExportPoint(ref pA);
         }
 #endif
 

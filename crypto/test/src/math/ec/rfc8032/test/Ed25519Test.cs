@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
 				Random.NextBytes(sk);
-                Ed25519.GeneratePublicKey(sk, 0, out var publicPoint);
+                var publicPoint = Ed25519.GeneratePublicKey(sk, 0);
                 Ed25519.EncodePublicPoint(publicPoint, pk, 0);
 
                 {
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed25519.GeneratePublicKey(sk, 0, out var publicPoint);
+                var publicPoint = Ed25519.GeneratePublicKey(sk, 0);
                 Ed25519.EncodePublicPoint(publicPoint, pk, 0);
 
                 {
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed25519.GeneratePublicKey(sk, 0, out var publicPoint);
+                var publicPoint = Ed25519.GeneratePublicKey(sk, 0);
                 Ed25519.EncodePublicPoint(publicPoint, pk, 0);
 
                 {

@@ -77,11 +77,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (null == cachedPublicKey)
                 {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    Ed25519.GeneratePublicKey(data, out var publicPoint);
+                    cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data));
 #else
-                    Ed25519.GeneratePublicKey(data, 0, out var publicPoint);
+                    cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data, 0));
 #endif
-                    cachedPublicKey = new Ed25519PublicKeyParameters(publicPoint);
                 }
 
                 return cachedPublicKey;

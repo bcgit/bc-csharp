@@ -21,8 +21,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public Ed448PublicKeyParameters(byte[] buf, int off)
             : base(false)
         {
-            if (!Ed448.ValidatePublicKeyPartial(buf, off, out m_publicPoint))
-                throw new ArgumentException("invalid public key");
+            m_publicPoint = Parse(buf, off);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -32,8 +31,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (buf.Length != KeySize)
                 throw new ArgumentException("must have length " + KeySize, nameof(buf));
 
-            if (!Ed448.ValidatePublicKeyPartial(buf, out m_publicPoint))
-                throw new ArgumentException("invalid public key");
+            m_publicPoint = Parse(buf);
         }
 #endif
 
@@ -50,11 +48,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new EndOfStreamException("EOF encountered in middle of Ed448 public key");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            if (!Ed448.ValidatePublicKeyPartial(data, out m_publicPoint))
-                throw new ArgumentException("invalid public key");
+            m_publicPoint = Parse(data);
 #else
-            if (!Ed448.ValidatePublicKeyPartial(data, 0, out m_publicPoint))
-                throw new ArgumentException("invalid public key");
+            m_publicPoint = Parse(data, 0);
 #endif
         }
 
@@ -114,6 +110,20 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
             }
         }
+
+        private static Ed448.PublicPoint Parse(byte[] buf, int off)
+        {
+            return Ed448.ValidatePublicKeyPartialExport(buf, off)
+                ?? throw new ArgumentException("invalid public key");
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static Ed448.PublicPoint Parse(ReadOnlySpan<byte> buf)
+        {
+            return Ed448.ValidatePublicKeyPartialExport(buf)
+                ?? throw new ArgumentException("invalid public key");
+        }
+#endif
 
         private static byte[] Validate(byte[] buf)
         {
