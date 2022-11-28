@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Math.EC.Multiplier;
+
 namespace Org.BouncyCastle.Math.EC.Abc
 {
     /**
@@ -16,6 +18,8 @@ namespace Org.BouncyCastle.Math.EC.Abc
         private static readonly BigInteger MinusThree = BigInteger.Three.Negate();
         private static readonly BigInteger Four = BigInteger.ValueOf(4);
 
+        private static readonly string PRECOMP_NAME = "bc_tnaf_partmod";
+
         /**
         * The window width of WTNAF. The standard value of 4 is slightly less
         * than optimal for running time, but keeps space requirements for
@@ -27,11 +31,6 @@ namespace Org.BouncyCastle.Math.EC.Abc
         * p. 121-122
         */
         public const sbyte Width = 4;
-
-        /**
-        * 2<sup>4</sup>
-        */
-        public const sbyte Pow2Width = 16;
 
         /**
         * The <code>&#945;<sub>u</sub></code>'s for <code>a=0</code> as an array
@@ -449,13 +448,10 @@ namespace Org.BouncyCastle.Math.EC.Abc
         */
         public static BigInteger[] GetLucas(sbyte mu, int k, bool doV)
         {
-            if (!(mu == 1 || mu == -1)) 
+            if (!(mu == 1 || mu == -1))
                 throw new ArgumentException("mu must be 1 or -1");
 
-            BigInteger u0;
-            BigInteger u1;
-            BigInteger u2;
-
+            BigInteger u0, u1, u2;
             if (doV)
             {
                 u0 = BigInteger.Two;
@@ -470,26 +466,18 @@ namespace Org.BouncyCastle.Math.EC.Abc
             for (int i = 1; i < k; i++)
             {
                 // u2 = mu*u1 - 2*u0;
-                BigInteger s = null;
-                if (mu == 1)
+                BigInteger s = u1;
+                if (mu < 0)
                 {
-                    s = u1;
+                    s = s.Negate();
                 }
-                else
-                {
-                    // mu == -1
-                    s = u1.Negate();
-                }
-                
+
                 u2 = s.Subtract(u0.ShiftLeft(1));
                 u0 = u1;
                 u1 = u2;
-                //            System.out.println(i + ": " + u2);
-                //            System.out.println();
             }
 
-            BigInteger[] retVal = {u0, u1};
-            return retVal;
+            return new BigInteger[]{ u0, u1 };
         }
 
         /**
@@ -520,11 +508,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
                 BigInteger[] us = GetLucas(mu, w, false);
                 BigInteger twoToW = BigInteger.Zero.SetBit(w);
                 BigInteger u1invert = us[1].ModInverse(twoToW);
-                BigInteger tw;
-                tw = BigInteger.Two.Multiply(us[0]).Multiply(u1invert).Mod(twoToW);
-                //System.out.println("mu = " + mu);
-                //System.out.println("tw = " + tw);
-                return tw;
+                return us[0].ShiftLeft(1).Multiply(u1invert).Mod(twoToW);
             }
         }
 
@@ -541,23 +525,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             if (!curve.IsKoblitz)
                 throw new ArgumentException("si is defined for Koblitz curves only");
 
-            int m = curve.FieldSize;
-            int a = curve.A.ToBigInteger().IntValue;
-            sbyte mu = GetMu(a);
-            int shifts = GetShiftsForCofactor(curve.Cofactor);
-            int index = m + 3 - a;
-            BigInteger[] ui = GetLucas(mu, index, false);
-
-            if (mu == 1)
-            {
-                ui[0] = ui[0].Negate();
-                ui[1] = ui[1].Negate();
-            }
-
-            BigInteger dividend0 = BigInteger.One.Add(ui[1]).ShiftRight(shifts);
-            BigInteger dividend1 = BigInteger.One.Add(ui[0]).ShiftRight(shifts).Negate();
-
-            return new BigInteger[] { dividend0, dividend1 };
+            return GetSi(curve.FieldSize, curve.A.ToBigInteger().IntValue, curve.Cofactor);
         }
 
         public static BigInteger[] GetSi(int fieldSize, int curveA, BigInteger cofactor)
@@ -605,38 +573,39 @@ namespace Org.BouncyCastle.Math.EC.Abc
         * modular reduction.
         * @return <code>&#961; := k partmod (&#964;<sup>m</sup> - 1)/(&#964; - 1)</code>
         */
-        public static ZTauElement PartModReduction(BigInteger k, int m, sbyte a,
-            BigInteger[] s, sbyte mu, sbyte c)
+        public static ZTauElement PartModReduction(AbstractF2mCurve curve, BigInteger k, sbyte a, sbyte mu, sbyte c)
         {
+            PartModPreCompCallback callback = new PartModPreCompCallback(curve, mu, true);
+            PartModPreCompInfo preCompInfo = (PartModPreCompInfo)curve.Precompute(PRECOMP_NAME, callback);
+
+            BigInteger vm = preCompInfo.Lucas;
+            BigInteger s0 = preCompInfo.S0;
+            BigInteger s1 = preCompInfo.S1;
+
             // d0 = s[0] + mu*s[1]; mu is either 1 or -1
             BigInteger d0;
             if (mu == 1)
             {
-                d0 = s[0].Add(s[1]);
+                d0 = s0.Add(s1);
             }
             else
             {
-                d0 = s[0].Subtract(s[1]);
+                d0 = s0.Subtract(s1);
             }
 
-            BigInteger[] v = GetLucas(mu, m, true);
-            BigInteger vm = v[1];
-
-            SimpleBigDecimal lambda0 = ApproximateDivisionByN(
-                k, s[0], vm, a, m, c);
-            
-            SimpleBigDecimal lambda1 = ApproximateDivisionByN(
-                k, s[1], vm, a, m, c);
+            int m = curve.FieldSize;
+            SimpleBigDecimal lambda0 = ApproximateDivisionByN(k, s0, vm, a, m, c);
+            SimpleBigDecimal lambda1 = ApproximateDivisionByN(k, s1, vm, a, m, c);
 
             ZTauElement q = Round(lambda0, lambda1, mu);
 
             // r0 = n - d0*q0 - 2*s1*q1
             BigInteger r0 = k.Subtract(d0.Multiply(q.u)).Subtract(
-                BigInteger.ValueOf(2).Multiply(s[1]).Multiply(q.v));
+                s1.Multiply(q.v).ShiftLeft(1));
 
             // r1 = s1*q0 - s0*q1
-            BigInteger r1 = s[1].Multiply(q.u).Subtract(s[0].Multiply(q.v));
-            
+            BigInteger r1 = s1.Multiply(q.u).Subtract(s0.Multiply(q.v));
+
             return new ZTauElement(r0, r1);
         }
 
@@ -651,11 +620,10 @@ namespace Org.BouncyCastle.Math.EC.Abc
         public static AbstractF2mPoint MultiplyRTnaf(AbstractF2mPoint p, BigInteger k)
         {
             AbstractF2mCurve curve = (AbstractF2mCurve)p.Curve;
-            int m = curve.FieldSize;
             int a = curve.A.ToBigInteger().IntValue;
             sbyte mu = GetMu(a);
-            BigInteger[] s = curve.GetSi();
-            ZTauElement rho = PartModReduction(k, m, (sbyte)a, s, mu, (sbyte)10);
+
+            ZTauElement rho = PartModReduction(curve, k, (sbyte)a, mu, (sbyte)10);
 
             return MultiplyTnaf(p, rho);
         }
@@ -675,9 +643,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             sbyte mu = GetMu(curve.A);
             sbyte[] u = TauAdicNaf(mu, lambda);
 
-            AbstractF2mPoint q = MultiplyFromTnaf(p, u);
-
-            return q;
+            return MultiplyFromTnaf(p, u);
         }
 
         /**
@@ -729,10 +695,9 @@ namespace Org.BouncyCastle.Math.EC.Abc
         * @return The <code>[&#964;]</code>-adic window NAF of
         * <code>&#955;</code>.
         */
-        public static sbyte[] TauAdicWNaf(sbyte mu, ZTauElement lambda,
-            sbyte width, BigInteger pow2w, BigInteger tw, ZTauElement[] alpha)
+        public static sbyte[] TauAdicWNaf(sbyte mu, ZTauElement lambda, int width, int tw, ZTauElement[] alpha)
         {
-            if (!((mu == 1) || (mu == -1))) 
+            if (!(mu == 1 || mu == -1))
                 throw new ArgumentException("mu must be 1 or -1");
 
             BigInteger norm = Norm(mu, lambda);
@@ -746,8 +711,10 @@ namespace Org.BouncyCastle.Math.EC.Abc
             // The array holding the TNAF
             sbyte[] u = new sbyte[maxLength];
 
+            int pow2Width = 1 << width;
+
             // 2^(width - 1)
-            BigInteger pow2wMin1 = pow2w.ShiftRight(1);
+            int pow2wMin1 = pow2Width >> 1;
 
             // Split lambda into two BigIntegers to simplify calculations
             BigInteger r0 = lambda.u;
@@ -755,65 +722,39 @@ namespace Org.BouncyCastle.Math.EC.Abc
             int i = 0;
 
             // while lambda <> (0, 0)
-            while (!((r0.Equals(BigInteger.Zero))&&(r1.Equals(BigInteger.Zero))))
+            while (!(r0.Equals(BigInteger.Zero) && r1.Equals(BigInteger.Zero)))
             {
                 // if r0 is odd
                 if (r0.TestBit(0)) 
                 {
-                    // uUnMod = r0 + r1*tw Mod 2^width
-                    BigInteger uUnMod
-                        = r0.Add(r1.Multiply(tw)).Mod(pow2w);
-                    
-                    sbyte uLocal;
-                    // if uUnMod >= 2^(width - 1)
-                    if (uUnMod.CompareTo(pow2wMin1) >= 0)
+                    int uUnMod = (r0.IntValue + (r1.IntValue * tw)) & (pow2Width - 1);
+
+                    if (uUnMod >= pow2wMin1)
                     {
-                        uLocal = (sbyte) uUnMod.Subtract(pow2w).IntValue;
+                        u[i] = (sbyte)(uUnMod - pow2Width);
+                        r0 = r0.Add(alpha[pow2Width - uUnMod].u);
+                        r1 = r1.Add(alpha[pow2Width - uUnMod].v);
                     }
                     else
                     {
-                        uLocal = (sbyte) uUnMod.IntValue;
-                    }
-                    // uLocal is now in [-2^(width-1), 2^(width-1)-1]
-
-                    u[i] = uLocal;
-                    bool s = true;
-                    if (uLocal < 0) 
-                    {
-                        s = false;
-                        uLocal = (sbyte)-uLocal;
-                    }
-                    // uLocal is now >= 0
-
-                    if (s) 
-                    {
-                        r0 = r0.Subtract(alpha[uLocal].u);
-                        r1 = r1.Subtract(alpha[uLocal].v);
-                    }
-                    else
-                    {
-                        r0 = r0.Add(alpha[uLocal].u);
-                        r1 = r1.Add(alpha[uLocal].v);
+                        u[i] = (sbyte)uUnMod;
+                        r0 = r0.Subtract(alpha[uUnMod].u);
+                        r1 = r1.Subtract(alpha[uUnMod].v);
                     }
                 }
-                else
-                {
-                    u[i] = 0;
-                }
 
-                BigInteger t = r0;
+                ++i;
 
+                BigInteger t = r0.ShiftRight(1);
                 if (mu == 1)
                 {
-                    r0 = r1.Add(r0.ShiftRight(1));
+                    r0 = r1.Add(t);
                 }
-                else
+                else // mu == -1
                 {
-                    // mu == -1
-                    r0 = r1.Subtract(r0.ShiftRight(1));
+                    r0 = r1.Subtract(t);
                 }
-                r1 = t.ShiftRight(1).Negate();
-                i++;
+                r1 = t.Negate();
             }
             return u;
         }
@@ -831,7 +772,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             AbstractF2mPoint[] pu = new AbstractF2mPoint[(uint)(alphaTnaf.Length + 1) >> 1];
             pu[0] = p;
 
-            uint precompLen = (uint)alphaTnaf.Length;
+            int precompLen = alphaTnaf.Length;
             for (uint i = 3; i < precompLen; i += 2)
             {
                 pu[i >> 1] = Tnaf.MultiplyFromTnaf(p, alphaTnaf[i]);
@@ -840,6 +781,51 @@ namespace Org.BouncyCastle.Math.EC.Abc
             p.Curve.NormalizeAll(pu);
 
             return pu;
+        }
+
+        private sealed class PartModPreCompCallback
+            : IPreCompCallback
+        {
+            private readonly AbstractF2mCurve m_curve;
+            private readonly sbyte m_mu;
+            private readonly bool m_doV;
+
+            internal PartModPreCompCallback(AbstractF2mCurve curve, sbyte mu, bool doV)
+            {
+                m_curve = curve;
+                m_mu = mu;
+                m_doV = doV;
+            }
+
+            public PreCompInfo Precompute(PreCompInfo existing)
+            {
+                if (existing is PartModPreCompInfo)
+                    return existing;
+
+                var lucas = GetLucas(m_mu, m_curve.FieldSize, m_doV)[1];
+                var si = GetSi(m_curve);
+
+                return new PartModPreCompInfo(lucas, si[0], si[1]);
+            }
+        }
+
+        private sealed class PartModPreCompInfo
+            : PreCompInfo
+        {
+            private readonly BigInteger m_lucas;
+            private readonly BigInteger m_s0;
+            private readonly BigInteger m_s1;
+
+            internal PartModPreCompInfo(BigInteger lucas, BigInteger s0, BigInteger s1)
+            {
+                m_lucas = lucas;
+                m_s0 = s0;
+                m_s1 = s1;
+            }
+
+            internal BigInteger Lucas => m_lucas;
+            internal BigInteger S0 => m_s0;
+            internal BigInteger S1 => m_s1;
         }
     }
 }
