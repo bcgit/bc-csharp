@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsProtocol.AssertEmpty(buf);
 
-            if (!Arrays.ConstantTimeAreEqual(expected_verify_data, verify_data))
+            if (!Arrays.FixedTimeEquals(expected_verify_data, verify_data))
                 throw new TlsFatalAlert(AlertDescription.handshake_failure);
         }
 

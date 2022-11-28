@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal bool MatchesT1(byte[] sig)
         {
-            return Arrays.ConstantTimeAreEqual(T1, sig);
+            return Arrays.FixedTimeEquals(T1, sig);
         }
 
         public byte[] GetI()

@@ -38,12 +38,12 @@ namespace Org.BouncyCastle.Math.EC
             int count = ps.Length;
             switch (count)
             {
-                case 1:
-                    return ps[0].Multiply(ks[0]);
-                case 2:
-                    return SumOfTwoMultiplies(ps[0], ks[0], ps[1], ks[1]);
-                default:
-                    break;
+            case 1:
+                return ps[0].Multiply(ks[0]);
+            case 2:
+                return SumOfTwoMultiplies(ps[0], ks[0], ps[1], ks[1]);
+            default:
+                break;
             }
 
             ECPoint p = ps[0];
@@ -56,8 +56,7 @@ namespace Org.BouncyCastle.Math.EC
                 imported[i] = ImportPoint(c, ps[i]);
             }
 
-            GlvEndomorphism glvEndomorphism = c.GetEndomorphism() as GlvEndomorphism;
-            if (glvEndomorphism != null)
+            if (c.GetEndomorphism() is GlvEndomorphism glvEndomorphism)
             {
                 return ImplCheckResult(ImplSumOfMultipliesGlv(imported, ks, glvEndomorphism));
             }
@@ -72,18 +71,14 @@ namespace Org.BouncyCastle.Math.EC
 
             // Point multiplication for Koblitz curves (using WTNAF) beats Shamir's trick
             {
-                AbstractF2mCurve f2mCurve = cp as AbstractF2mCurve;
-                if (f2mCurve != null && f2mCurve.IsKoblitz)
-                {
+                if (cp is AbstractF2mCurve f2mCurve && f2mCurve.IsKoblitz)
                     return ImplCheckResult(P.Multiply(a).Add(Q.Multiply(b)));
-                }
             }
 
-            GlvEndomorphism glvEndomorphism = cp.GetEndomorphism() as GlvEndomorphism;
-            if (glvEndomorphism != null)
+            if (cp.GetEndomorphism() is GlvEndomorphism glvEndomorphism)
             {
                 return ImplCheckResult(
-                    ImplSumOfMultipliesGlv(new ECPoint[] { P, Q }, new BigInteger[] { a, b }, glvEndomorphism));
+                    ImplSumOfMultipliesGlv(new ECPoint[]{ P, Q }, new BigInteger[]{ a, b }, glvEndomorphism));
             }
 
             return ImplCheckResult(ImplShamirsTrickWNaf(P, a, Q, b));

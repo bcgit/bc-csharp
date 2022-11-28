@@ -130,11 +130,8 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
-            GlvEndomorphism glvEndomorphism = m_endomorphism as GlvEndomorphism;
-            if (glvEndomorphism != null)
-            {
+            if (m_endomorphism is GlvEndomorphism glvEndomorphism)
                 return new GlvMultiplier(this, glvEndomorphism);
-            }
 
             return new WNafL2RMultiplier();
         }

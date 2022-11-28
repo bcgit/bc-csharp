@@ -57,14 +57,14 @@ namespace Org.BouncyCastle.Tls
                         //}
                         //case 1:
                         //{
-                        //    if (Arrays.ConstantTimeAreEqual(expectedCookie, request.ClientHello.Cookie))
+                        //    if (Arrays.FixedTimeEquals(expectedCookie, request.ClientHello.Cookie))
                         //        return request;
 
                         //    break;
                         //}
                         //}
 
-                        if (Arrays.ConstantTimeAreEqual(expectedCookie, request.ClientHello.Cookie))
+                        if (Arrays.FixedTimeEquals(expectedCookie, request.ClientHello.Cookie))
                             return request;
 
                         DtlsReliableHandshake.SendHelloVerifyRequest(sender, request.RecordSeq, expectedCookie);

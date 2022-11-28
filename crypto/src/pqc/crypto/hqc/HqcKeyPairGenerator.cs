@@ -36,17 +36,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public void Init(KeyGenerationParameters parameters)
         {
-            this.hqcKeyGenerationParameters = (HqcKeyGenerationParameters)parameters;
-            this.random = parameters.Random;
+            hqcKeyGenerationParameters = (HqcKeyGenerationParameters)parameters;
+            random = parameters.Random;
 
             // get parameters
-            this.n = this.hqcKeyGenerationParameters.Parameters.N;
-            this.k = this.hqcKeyGenerationParameters.Parameters.K;
-            this.delta = this.hqcKeyGenerationParameters.Parameters.Delta;
-            this.w = this.hqcKeyGenerationParameters.Parameters.W;
-            this.wr = this.hqcKeyGenerationParameters.Parameters.Wr;
-            this.we = this.hqcKeyGenerationParameters.Parameters.We;
-            this.N_BYTE = (n + 7) / 8;
+            n = hqcKeyGenerationParameters.Parameters.N;
+            k = hqcKeyGenerationParameters.Parameters.K;
+            delta = hqcKeyGenerationParameters.Parameters.Delta;
+            w = hqcKeyGenerationParameters.Parameters.W;
+            wr = hqcKeyGenerationParameters.Parameters.Wr;
+            we = hqcKeyGenerationParameters.Parameters.We;
+            N_BYTE = (n + 7) / 8;
         }
         private AsymmetricCipherKeyPair GenKeyPair(byte[] seed)
         {

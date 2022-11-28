@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 using NUnit.Framework;
 
@@ -13,8 +14,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
     public class Ed25519Test
     {
 		private static readonly SecureRandom Random = new SecureRandom();
-
-        private static readonly byte[] Neutral = Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000");
 
         [SetUp]
         public void SetUp()
@@ -370,8 +369,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TestPublicKeyValidationFull()
         {
-            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Neutral, 0));
-
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
 
@@ -382,9 +379,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Assert.IsTrue(Ed25519.ValidatePublicKeyFull(pk, 0));
             }
 
-            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
-
+            // Small order points (canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC037A"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC03FA"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC05"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC85"), 0));
+
+            // Small order points (non-canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+            // Non-canonical encodings
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
@@ -416,8 +425,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TestPublicKeyValidationPartial()
         {
-            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Neutral, 0));
-
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
 
@@ -428,9 +435,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(pk, 0));
             }
 
-            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+            // Small order points (canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC037A"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC03FA"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC05"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC85"), 0));
 
-            Assert.IsTrue (Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            // Small order points (non-canonical encodings)
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+            // Non-canonical encodings
             Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
             Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
@@ -458,6 +477,177 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FCADF40DE51A943F3B7847DBEBA0627B33D020D81DFFABF2B3701BD9B746952A"), 0));
             Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("379B071E6F7E2479D5A8588AB708137808D63F689127D4A228E2C1681873C55E"), 0));
         }
+
+        #region Taming EdDSA
+
+        /*
+         * Test vectors from the paper "Taming the many EdDSAs" (https://ia.cr/2020/1244).
+         */
+
+        [Test]
+        public void TamingNonRepudiation()
+        {
+            byte[] msg1 = Encoding.UTF8.GetBytes("Send 100 USD to Alice");
+            byte[] msg2 = Encoding.UTF8.GetBytes("Send 100000 USD to Alice");
+            byte[] pub = Hex.DecodeStrict("ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f");
+            byte[] sig = Hex.DecodeStrict("a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
+                                          "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+
+            Assert.IsFalse(Ed25519.Verify(sig, 0, pub, 0, msg1, 0, msg1.Length));
+            Assert.IsFalse(Ed25519.Verify(sig, 0, pub, 0, msg2, 0, msg2.Length));
+        }
+
+        [Test]
+        public void TamingVector_00()
+        {
+            ImplTamingVector(0, false,
+                "8c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6",
+                "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+                "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a" +
+                "0000000000000000000000000000000000000000000000000000000000000000");
+        }
+
+        [Test]
+        public void TamingVector_01()
+        {
+            ImplTamingVector(1, false,
+                "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+                "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+                "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43" +
+                "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+        }
+
+        [Test]
+        public void TamingVector_02()
+        {
+            // NOTE: Algorithm 2 accepts this, although LibSodium rejects R as one of 8 small order points
+            ImplTamingVector(2, true,
+                "aebf3f2601a0c8c5d39cc7d8911642f740b78168218da8471772b35f9d35b9ab",
+                "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+                "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa" +
+                "8c4bd45aecaca5b24fb97bc10ac27ac8751a7dfe1baff8b953ec9f5833ca260e");
+        }
+
+        [Test]
+        public void TamingVector_03()
+        {
+            // NOTE: Has mixed-order A and R; a full check could catch this, but is (too) expensive
+            ImplTamingVector(3, true,
+                "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+                "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+                "9046a64750444938de19f227bb80485e92b83fdb4b6506c160484c016cc1852f" +
+                "87909e14428a7a1d62e9f22f3d3ad7802db02eb2e688b6c52fcd6648a98bd009");
+        }
+
+        [Test]
+        public void TamingVector_04()
+        {
+            // TODO Algorithm 2 accepts this (cofactored verification)
+            ImplTamingVector(4, false,
+                "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+                "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+                "160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed512" +
+                "5ec6bc982a269b723e0668e540911a9a6a58921d6925e434ab10aa7940551a09");
+        }
+
+        [Test]
+        public void TamingVector_05()
+        {
+            // TODO Algorithm 2 accepts this (cofactored verification)
+            ImplTamingVector(5, false,
+                "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+                "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+                "21122a84e0b5fca4052f5b1235c80a537878b38f3142356b2c2384ebad4668b7" +
+                "e40bc836dac0f71076f9abe3a53f9c03c1ceeeddb658d0030494ace586687405");
+        }
+
+        [Test]
+        public void TamingVector_06()
+        {
+            ImplTamingVector(6, false,
+                "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+                "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+                "e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e" +
+                "547f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514");
+        }
+
+        [Test]
+        public void TamingVector_07()
+        {
+            ImplTamingVector(7, false,
+                "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+                "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+                "8ce5b96c8f26d0ab6c47958c9e68b937104cd36e13c33566acd2fe8d38aa1942" +
+                "7e71f98a4734e74f2f13f06f97c20d58cc3f54b8bd0d272f42b695dd7e89a8c22");
+        }
+
+        [Test]
+        public void TamingVector_08()
+        {
+            ImplTamingVector(8, false,
+                "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+                "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+                "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
+                "03be9678ac102edcd92b0210bb34d7428d12ffc5df5f37e359941266a4e35f0f");
+        }
+
+        [Test]
+        public void TamingVector_09()
+        {
+            ImplTamingVector(9, false,
+                "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+                "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+                "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
+                "ca8c5b64cd208982aa38d4936621a4775aa233aa0505711d8fdcfdaa943d4908");
+        }
+
+        [Test]
+        public void TamingVector_10()
+        {
+            ImplTamingVector(10, false,
+                "e96b7021eb39c1a163b6da4e3093dcd3f21387da4cc4572be588fafae23c155b",
+                "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
+                "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+        }
+
+        [Test]
+        public void TamingVector_11()
+        {
+            ImplTamingVector(11, false,
+                "39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f",
+                "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
+                "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+        }
+
+        private static void ImplTamingVector(int number, bool expected, string msgHex, string pubHex, string sigHex)
+        {
+            bool actual = ImplTamingVector(msgHex, pubHex, sigHex);
+
+            Assert.AreEqual(expected, actual, "Failed Taming EdDSA Vector #" + number);
+        }
+
+        private static bool ImplTamingVector(string msgHex, string pubHex, string sigHex)
+        {
+            if (sigHex.Length != Ed25519.SignatureSize * 2)
+                return false;
+
+            byte[] msg = Hex.DecodeStrict(msgHex);
+            byte[] pub = Hex.DecodeStrict(pubHex);
+            byte[] sig = Hex.DecodeStrict(sigHex);
+
+            try
+            {
+                return Ed25519.Verify(sig, 0, pub, 0, msg, 0, msg.Length);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        #endregion
 
         private static void CheckEd25519Vector(string sSK, string sPK, string sM, string sSig, string text)
         {

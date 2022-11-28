@@ -1211,7 +1211,7 @@ namespace Org.BouncyCastle.Tls
                      */
                     securityParameters.m_secureRenegotiation = true;
 
-                    if (!Arrays.ConstantTimeAreEqual(renegExtData, CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
+                    if (!Arrays.FixedTimeEquals(renegExtData, CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
                 }
             }

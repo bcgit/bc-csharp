@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Cmp
 
             IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
 
-            return Arrays.ConstantTimeAreEqual(result.Collect(), m_pkiMessage.Protection.GetBytes());
+            return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
         }
 
         private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)

@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
     //        {System.out.printf("%08x ", key0[i]);}System.out.Println();
 
             // key = key0 x KMatrix[0]^(-1)
-            KMatricesWithPointer current = LowmcConstants.Instance.KMatrixInv(engine, 0);
+            KMatricesWithPointer current = engine._lowmcConstants.KMatrixInv(engine, 0);
             engine.matrix_mul(key, key0, current.GetData(), current.GetMatrixPointer());
 
     //        System.out.print("key: ");
@@ -75,12 +75,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             for (int r = engine.numRounds; r > 0; r--)
             {
-                current = LowmcConstants.Instance.KMatrix(engine, r);
+                current = engine._lowmcConstants.KMatrix(engine, r);
                 engine.matrix_mul(roundKey, key, current.GetData(), current.GetMatrixPointer());    // roundKey = key * KMatrix(r)
 
                 engine.xor_array(x, x, roundKey, 0, engine.stateSizeWords);
 
-                current = LowmcConstants.Instance.LMatrixInv(engine, r-1);
+                current = engine._lowmcConstants.LMatrixInv(engine, r-1);
                 engine.matrix_mul(y, x, current.GetData(), current.GetMatrixPointer());
 
                 if(r == 1)

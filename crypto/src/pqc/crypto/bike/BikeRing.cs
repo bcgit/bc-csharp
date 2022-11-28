@@ -100,33 +100,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             Pack.UInt64_To_LE(x[Size - 1], last);
             Array.Copy(last, 0, bs, (Size - 1) << 3, (partialBits + 7) >> 3);
         }
-
-        internal ulong[] GenerateRandom(int weight, IXof digest)
-        {
-            byte[] buf = new byte[4];
-            int highest = Integers.HighestOneBit(m_bits);
-            int mask = highest | (highest - 1);
-
-            ulong[] z = Create();
-            int count = 0;
-            while (count < weight)
-            {
-                digest.Output(buf, 0, 4);
-                int candidate = (int)Pack.LE_To_UInt32(buf) & mask;
-                if (candidate < m_bits)
-                {
-                    int pos = candidate >> 6;
-                    ulong bit = 1UL << (candidate & 63);
-                    if ((z[pos] & bit) == 0UL)
-                    {
-                        z[pos] |= bit;
-                        ++count;
-                    }
-                }
-            }
-            return z;
-        }
-
+        
         internal void Inv(ulong[] a, ulong[] z)
         {
             ulong[] f = Create();

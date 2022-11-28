@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             public TlsSrpLoginParameters GetLoginParameters(byte[] identity)
             {
-                if (Arrays.ConstantTimeAreEqual(TEST_IDENTITY, identity))
+                if (Arrays.FixedTimeEquals(TEST_IDENTITY, identity))
                 {
                     Srp6VerifierGenerator verifierGenerator = new Srp6VerifierGenerator();
                     verifierGenerator.Init(TEST_GROUP.N, TEST_GROUP.G, new Sha1Digest());

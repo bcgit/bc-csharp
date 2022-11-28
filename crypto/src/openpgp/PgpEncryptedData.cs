@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			byte[] streamDigest = new byte[digest.Length];
 			Array.Copy(lookAhead, 2, streamDigest, 0, streamDigest.Length);
 
-			return Arrays.ConstantTimeAreEqual(digest, streamDigest);
+			return Arrays.FixedTimeEquals(digest, streamDigest);
         }
     }
 }

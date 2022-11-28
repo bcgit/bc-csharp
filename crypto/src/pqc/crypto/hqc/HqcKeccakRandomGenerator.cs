@@ -1,5 +1,4 @@
 ﻿using System;
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
@@ -60,10 +59,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 state[i] = 0L;
             }
-            Arrays.Fill(this.dataQueue, 0);
-            this.bitsInQueue = 0;
-            this.squeezing = false;
-            this.fixedOutputLength = (1600 - rate) / 2;
+            Arrays.Fill(dataQueue, 0);
+            bitsInQueue = 0;
+            squeezing = false;
+            fixedOutputLength = (1600 - rate) / 2;
         }
 
         private void KeccakPermutation()
@@ -273,7 +272,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public void RandomGeneratorInit(byte[] entropyInput, byte[] personalizationString, int entropyLen, int perLen)
         {
-            byte[] domain = new byte[] { 1 };
+            byte[] domain = { 1 };
             KeccakIncAbsorb(entropyInput, entropyLen);
             KeccakIncAbsorb(personalizationString, perLen);
             KeccakIncAbsorb(domain, domain.Length);
@@ -282,7 +281,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public void SeedExpanderInit(byte[] seed, int seedLen)
         {
-            byte[] domain = new byte[] { 2 };
+            byte[] domain = { 2 };
             KeccakIncAbsorb(seed, seedLen);
             KeccakIncAbsorb(domain, 1);
             KeccakIncFinalize(0x1F);

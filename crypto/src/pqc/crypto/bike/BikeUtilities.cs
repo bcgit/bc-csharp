@@ -68,35 +68,38 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        internal static byte[] GenerateRandomByteArray(int mod, int size, int weight, IXof digest)
+        internal static void GenerateRandomByteArray(byte[] res, uint size, uint weight, IXof digest)
         {
             byte[] buf = new byte[4];
-            int highest = Integers.HighestOneBit(mod);
-            int mask = highest | (highest - 1);
+            uint rand_pos;
 
-            byte[] res = new byte[size];
-            int count = 0;
-            while (count < weight)
+            for (int i = (int)weight - 1; i >= 0; i--)
             {
                 digest.Output(buf, 0, 4);
-                int tmp = (int)Pack.LE_To_UInt32(buf) & mask;
+                ulong temp = (Pack.LE_To_UInt32(buf, 0)) & 0xFFFFFFFFUL;
+                temp = temp * (size - (uint)i) >> 32;
+                rand_pos = (uint) temp;
 
-                if (tmp < mod && SetBit(res, tmp))
+                rand_pos += (uint)i;
+
+                if(CHECK_BIT(res, rand_pos) != 0)
                 {
-                    ++count;
+                    rand_pos = (uint)i;
                 }
+                SET_BIT(res, rand_pos);
             }
-            return res;
         }
-
-        private static bool SetBit(byte[] a, int position)
+        protected static uint CHECK_BIT(byte[] tmp, uint position)
         {
-            int index = position / 8;
-            int pos = position % 8;
-            int selector = 1 << pos;
-            bool result = (a[index] & selector) == 0;
-            a[index] |= (byte)selector;
-            return result;
+            uint index = position / 8;
+            uint pos = position % 8;
+            return (((uint)tmp[index] >> (int)(pos))  & 0x01);
+        }
+        protected static void SET_BIT(byte[] tmp, uint position)
+        {
+            uint index = position/8;
+            uint pos = position%8;
+            tmp[index] |= (byte)(1UL << (int)pos);
         }
     }
 }

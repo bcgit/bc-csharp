@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] fBlock = BigIntegers.AsUnsignedByteArray(block.Length, f);
 #endif
 
-            bool rv = Arrays.ConstantTimeAreEqual(block, fBlock);
+            bool rv = Arrays.FixedTimeEquals(block, fBlock);
 
             Arrays.Fill(block, 0x00);
             Arrays.Fill<byte>(fBlock, 0x00);

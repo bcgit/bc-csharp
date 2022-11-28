@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     sig = tmp;
                 }
 
-                return Arrays.ConstantTimeAreEqual(sig, hash);
+                return Arrays.FixedTimeEquals(sig, hash);
             }
             catch (Exception)
             {

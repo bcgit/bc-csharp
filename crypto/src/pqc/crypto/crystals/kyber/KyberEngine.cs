@@ -148,7 +148,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
             m_indCpa.Encrypt(cmp, Arrays.CopyOf(buf, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, kr.Length));
 
-            bool fail = !Arrays.ConstantTimeAreEqual(cipherText, cmp);
+            bool fail = !Arrays.FixedTimeEquals(cipherText, cmp);
             
             Symmetric.Hash_h(kr, cipherText, SymBytes);
 

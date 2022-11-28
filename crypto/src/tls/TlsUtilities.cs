@@ -5630,7 +5630,7 @@ namespace Org.BouncyCastle.Tls
                             byte[] calculatedBinder = CalculatePskBinder(crypto, isExternalPsk, pskCryptoHashAlgorithm,
                                 earlySecret, transcriptHash);
 
-                            if (Arrays.ConstantTimeAreEqual(calculatedBinder, binder))
+                            if (Arrays.FixedTimeEquals(calculatedBinder, binder))
                                 return new OfferedPsks.SelectedConfig(index, psk, pskKeyExchangeModes, earlySecret);
                         }
                     }

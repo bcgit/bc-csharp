@@ -17,9 +17,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     {
         private static readonly Dictionary<string, HqcParameters> Parameters = new Dictionary<string, HqcParameters>()
         {
-            { "PQCkemKAT_2289.rsp", HqcParameters.hqc128 },
-            { "PQCkemKAT_4562.rsp", HqcParameters.hqc192 },
-            { "PQCkemKAT_7285.rsp", HqcParameters.hqc256 },
+            { "hqc-128_kat.rsp", HqcParameters.hqc128 },
+            { "hqc-192_kat.rsp", HqcParameters.hqc192 },
+            { "hqc-256_kat.rsp", HqcParameters.hqc256 },
         };
 
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;

@@ -1,7 +1,4 @@
 ﻿using System;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers.Binary;
-#endif
 using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto;
@@ -67,10 +64,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int L3 = -0x006215D1;     // L3:23/--
         private const int L4 =  0x000014DF;     // L4:12/11
 
+        private static readonly uint[] Order8_y1 = { 0x706A17C7, 0x4FD84D3D, 0x760B3CBA, 0x0F67100D, 0xFA53202A,
+            0xC6CC392C, 0x77FDC74E, 0x7A03AC92 };
+        private static readonly uint[] Order8_y2 = { 0x8F95E826, 0xB027B2C2, 0x89F4C345, 0xF098EFF2, 0x05ACDFD5,
+            0x3933C6D3, 0x880238B1, 0x05FC536D };
+
         private static readonly int[] B_x = { 0x0325D51A, 0x018B5823, 0x007B2C95, 0x0304A92D, 0x00D2598E, 0x01D6DC5C,
             0x01388C7F, 0x013FEC0A, 0x029E6B72, 0x0042D26D };
         private static readonly int[] B_y = { 0x02666658, 0x01999999, 0x00666666, 0x03333333, 0x00CCCCCC, 0x02666666,
             0x01999999, 0x00666666, 0x03333333, 0x00CCCCCC, };
+
+        // 2^128 * B
+        private static readonly int[] B128_x = { 0x00B7E824, 0x0011EB98, 0x003E5FC8, 0x024E1739, 0x0131CD0B, 0x014E29A0,
+            0x034E6138, 0x0132C952, 0x03F9E22F, 0x00984F5F };
+        private static readonly int[] B128_y = { 0x03F5A66B, 0x02AF4452, 0x0049E5BB, 0x00F28D26, 0x0121A17C, 0x02C29C3A,
+            0x0047AD89, 0x0087D95F, 0x0332936E, 0x00BE5933 };
 
         // Note that d == -121665/121666
         private static readonly int[] C_d = { 0x035978A3, 0x02D37284, 0x018AB75E, 0x026A0A0E, 0x0000E014, 0x0379E898,
@@ -93,6 +101,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static readonly object PrecompLock = new object();
         private static PointPrecomp[] PrecompBaseWnaf = null;
+        private static PointPrecomp[] PrecompBase128Wnaf = null;
         private static int[] PrecompBaseComb = null;
 
         private struct PointAccum
@@ -142,7 +151,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] result = new byte[ScalarBytes * 2];
             for (int i = 0; i < t.Length; ++i)
             {
-                Encode32(t[i], result, i * 4);
+                Codec.Encode32(t[i], result, i * 4);
             }
             return ReduceScalar(result);
         }
@@ -196,34 +205,72 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static bool CheckPointVar(ReadOnlySpan<byte> p)
         {
-            if ((Decode32(p[28..]) & 0x7FFFFFFFU) < P[7])
+            if ((Codec.Decode32(p[28..]) & 0x7FFFFFFFU) < P[7])
                 return true;
             for (int i = CoordUints - 2; i >= 0; --i)
             {
-                if (Decode32(p[(i * 4)..]) < P[i])
+                if (Codec.Decode32(p[(i * 4)..]) < P[i])
                     return true;
             }
             return false;
         }
+#else
+        private static bool CheckPointVar(byte[] p)
+        {
+            if ((Codec.Decode32(p, 28) & 0x7FFFFFFFU) < P[7])
+                return true;
+            for (int i = CoordUints - 2; i >= 0; --i)
+            {
+                if (Codec.Decode32(p, i * 4) < P[i])
+                    return true;
+            }
+            return false;
+        }
+#endif
 
+        private static bool CheckPointFullVar(byte[] p)
+        {
+            uint y7 = Codec.Decode32(p, 28) & 0x7FFFFFFFU;
+
+            uint t0 = y7;
+            uint t1 = y7 ^ P[7];
+            uint t2 = y7 ^ Order8_y1[7];
+            uint t3 = y7 ^ Order8_y2[7];
+
+            for (int i = CoordUints - 2; i > 0; --i)
+            {
+                uint yi = Codec.Decode32(p, i * 4);
+
+                t0 |= yi;
+                t1 |= yi ^ P[i];
+                t2 |= yi ^ Order8_y1[i];
+                t3 |= yi ^ Order8_y2[i];
+            }
+
+            uint y0 = Codec.Decode32(p, 0);
+
+            // Reject 0 and 1
+            if (t0 == 0 && y0 <= 1U)
+                return false;
+
+            // Reject P - 1 and non-canonical encodings (i.e. >= P)
+            if (t1 == 0 && y0 >= (P[0] - 1U))
+                return false;
+
+            t2 |= y0 ^ Order8_y1[0];
+            t3 |= y0 ^ Order8_y2[0];
+
+            // Reject order 8 points
+            return (t2 != 0) & (t3 != 0);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static bool CheckScalarVar(ReadOnlySpan<byte> s, Span<uint> n)
         {
             DecodeScalar(s, n);
             return !Nat.Gte(ScalarUints, n, L);
         }
 #else
-        private static bool CheckPointVar(byte[] p)
-        {
-            if ((Decode32(p, 28) & 0x7FFFFFFFU) < P[7])
-                return true;
-            for (int i = CoordUints - 2; i >= 0; --i)
-            {
-                if (Decode32(p, i * 4) < P[i])
-                    return true;
-            }
-            return false;
-        }
-
         private static bool CheckScalarVar(byte[] s, uint[] n)
         {
             DecodeScalar(s, 0, n);
@@ -251,66 +298,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return CreateDigest();
         }
 
-        private static uint Decode24(byte[] bs, int off)
-        {
-            uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            n |= (uint)bs[++off] << 16;
-            return n;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode24(ReadOnlySpan<byte> bs)
-        {
-            uint n = bs[0];
-            n |= (uint)bs[1] << 8;
-            n |= (uint)bs[2] << 16;
-            return n;
-        }
-#endif
-
-        private static uint Decode32(byte[] bs, int off)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs.AsSpan(off));
-#else
-            uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            n |= (uint)bs[++off] << 16;
-            n |= (uint)bs[++off] << 24;
-            return n;
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode32(ReadOnlySpan<byte> bs)
-        {
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs);
-        }
-#endif
-
-        private static void Decode32(byte[] bs, int bsOff, uint[] n, int nOff, int nLen)
-        {
-            for (int i = 0; i < nLen; ++i)
-            {
-                n[nOff + i] = Decode32(bs, bsOff + i * 4);
-            }
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Decode32(ReadOnlySpan<byte> bs, Span<uint> n)
-        {
-            for (int i = 0; i < n.Length; ++i)
-            {
-                n[i] = Decode32(bs[(i * 4)..]);
-            }
-        }
-#endif
-
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointAffine r)
         {
             byte[] py = Copy(p, pOff, PointBytes);
-            if (!CheckPointVar(py))
+            if (!CheckPointFullVar(py))
                 return false;
 
             int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
@@ -343,79 +334,40 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void DecodeScalar(byte[] k, int kOff, uint[] n)
         {
-            Decode32(k, kOff, n, 0, ScalarUints);
+            Codec.Decode32(k, kOff, n, 0, ScalarUints);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void DecodeScalar(ReadOnlySpan<byte> k, Span<uint> n)
         {
-            Decode32(k, n[..ScalarUints]);
+            Codec.Decode32(k, n[..ScalarUints]);
         }
 #endif
 
         private static void Dom2(IDigest d, byte phflag, byte[] ctx)
         {
-            if (ctx != null)
-            {
-                int n = Dom2Prefix.Length;
-                byte[] t = new byte[n + 2 + ctx.Length];
-                Dom2Prefix.CopyTo(t, 0);
-                t[n] = phflag;
-                t[n + 1] = (byte)ctx.Length;
-                ctx.CopyTo(t, n + 2);
+            Debug.Assert(ctx != null);
 
-                d.BlockUpdate(t, 0, t.Length);
-            }
-        }
-
-        private static void Encode24(uint n, byte[] bs, int off)
-        {
-            bs[off] = (byte)(n);
-            bs[++off] = (byte)(n >> 8);
-            bs[++off] = (byte)(n >> 16);
-        }
+            int n = Dom2Prefix.Length;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Encode24(uint n, Span<byte> bs)
-        {
-            bs[0] = (byte)(n);
-            bs[1] = (byte)(n >> 8);
-            bs[2] = (byte)(n >> 16);
-        }
-#endif
+            Span<byte> t = stackalloc byte[n + 2 + ctx.Length];
+            Dom2Prefix.CopyTo(t);
+            t[n] = phflag;
+            t[n + 1] = (byte)ctx.Length;
+            ctx.CopyTo(t.Slice(n + 2));
 
-        private static void Encode32(uint n, byte[] bs, int off)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            BinaryPrimitives.WriteUInt32LittleEndian(bs.AsSpan(off), n);
+            d.BlockUpdate(t);
 #else
-            bs[  off] = (byte)(n      );
-            bs[++off] = (byte)(n >>  8);
-            bs[++off] = (byte)(n >> 16);
-            bs[++off] = (byte)(n >> 24);
+            byte[] t = new byte[n + 2 + ctx.Length];
+            Dom2Prefix.CopyTo(t, 0);
+            t[n] = phflag;
+            t[n + 1] = (byte)ctx.Length;
+            ctx.CopyTo(t, n + 2);
+
+            d.BlockUpdate(t, 0, t.Length);
 #endif
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Encode32(uint n, Span<byte> bs)
-        {
-            BinaryPrimitives.WriteUInt32LittleEndian(bs, n);
-        }
-#endif
-
-        private static void Encode56(ulong n, byte[] bs, int off)
-        {
-            Encode32((uint)n, bs, off);
-            Encode24((uint)(n >> 32), bs, off + 4);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void Encode56(ulong n, Span<byte> bs)
-        {
-            Encode32((uint)n, bs);
-            Encode24((uint)(n >> 32), bs[4..]);
-        }
-#endif
 
         private static int EncodePoint(ref PointAccum p, byte[] r, int rOff)
         {
@@ -523,65 +475,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return (x[w] >> b) & 15U;
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static sbyte[] GetWnafVar(ReadOnlySpan<uint> n, int width)
-#else
-        private static sbyte[] GetWnafVar(uint[] n, int width)
-#endif
-        {
-            Debug.Assert(n[ScalarUints - 1] <= L[ScalarUints - 1]);
-            Debug.Assert(2 <= width && width <= 8);
-
-            uint[] t = new uint[ScalarUints * 2];
-            {
-                uint c = 0;
-                int tPos = t.Length, i = ScalarUints;
-                while (--i >= 0)
-                {
-                    uint next = n[i];
-                    t[--tPos] = (next >> 16) | (c << 16);
-                    t[--tPos] = c = next;
-                }
-            }
-
-            sbyte[] ws = new sbyte[253];
-
-            int lead = 32 - width;
-
-            uint carry = 0U;
-            int j = 0;
-            for (int i = 0; i < t.Length; ++i, j -= 16)
-            {
-                uint word = t[i];
-                while (j < 16)
-                {
-                    uint word16 = word >> j;
-                    uint bit = word16 & 1U;
-
-                    if (bit == carry)
-                    {
-                        ++j;
-                        continue;
-                    }
-
-                    uint digit = (word16 | 1U) << lead;
-                    carry = digit >> 31;
-
-                    ws[(i << 4) + j] = (sbyte)((int)digit >> lead);
-
-                    j += width;
-                }
-            }
-
-            Debug.Assert(carry == 0);
-
-            return ws;
-        }
-
         private static void ImplSign(IDigest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
             byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(h, ScalarBytes, ScalarBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
@@ -590,7 +490,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] R = new byte[PointBytes];
             ScalarMultBaseEncoded(r, R, 0);
 
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(R, 0, PointBytes);
             d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
@@ -669,7 +572,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             Span<byte> h = stackalloc byte[64];
 
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(R);
             d.BlockUpdate(pk.AsSpan(pkOff, PointBytes));
             d.BlockUpdate(m.AsSpan(mOff, mLen));
@@ -704,7 +610,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             byte[] h = new byte[64];
 
-            Dom2(d, phflag, ctx);
+            if (ctx != null)
+            {
+                Dom2(d, phflag, ctx);
+            }
             d.BlockUpdate(R, 0, PointBytes);
             d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
@@ -1072,20 +981,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
-        private static void PointPrecompute(ref PointAffine p, PointExtended[] points, int count, ref PointTemp t)
+        private static void PointPrecompute(ref PointAffine p, PointExtended[] points, int pointsOff, int pointsLen,
+            ref PointTemp t)
         {
-            Debug.Assert(count > 0);
+            Debug.Assert(pointsLen > 0);
 
-            Init(out points[0]);
-            PointCopy(ref p, ref points[0]);
+            Init(out points[pointsOff]);
+            PointCopy(ref p, ref points[pointsOff]);
 
             Init(out PointExtended d);
-            PointAdd(ref points[0], ref points[0], ref d, ref t);
+            PointAdd(ref points[pointsOff], ref points[pointsOff], ref d, ref t);
 
-            for (int i = 1; i < count; ++i)
+            for (int i = 1; i < pointsLen; ++i)
             {
-                Init(out points[i]);
-                PointAdd(ref points[i - 1], ref d, ref points[i], ref t);
+                Init(out points[pointsOff + i]);
+                PointAdd(ref points[pointsOff + i - 1], ref d, ref points[pointsOff + i], ref t);
             }
         }
 
@@ -1159,12 +1069,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             lock (PrecompLock)
             {
-                if (PrecompBaseWnaf != null && PrecompBaseComb != null)
+                if (PrecompBaseComb != null)
                     return;
 
                 int wnafPoints = 1 << (WnafWidthBase - 2);
                 int combPoints = PrecompBlocks * PrecompPoints;
-                int totalPoints = wnafPoints + combPoints;
+                int totalPoints = wnafPoints * 2 + combPoints;
 
                 PointExtended[] points = new PointExtended[totalPoints];
                 Init(out PointTemp t);
@@ -1173,7 +1083,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 F.Copy(B_x, 0, b.x, 0);
                 F.Copy(B_y, 0, b.y, 0);
 
-                PointPrecompute(ref b, points, wnafPoints, ref t);
+                PointPrecompute(ref b, points, 0, wnafPoints, ref t);
+
+                Init(out PointAffine b128);
+                F.Copy(B128_x, 0, b128.x, 0);
+                F.Copy(B128_y, 0, b128.y, 0);
+
+                PointPrecompute(ref b128, points, wnafPoints, wnafPoints, ref t);
 
                 Init(out PointAccum p);
                 F.Copy(B_x, 0, p.x, 0);
@@ -1182,7 +1098,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 F.Copy(B_x, 0, p.u, 0);
                 F.Copy(B_y, 0, p.v, 0);
 
-                int pointsIndex = wnafPoints;
+                int pointsIndex = wnafPoints * 2;
                 PointExtended[] toothPowers = new PointExtended[PrecompTeeth];
                 for (int tooth = 0; tooth < PrecompTeeth; ++tooth)
                 {
@@ -1260,10 +1176,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     F.Normalize(r.xyd);
                 }
 
+                PrecompBase128Wnaf = new PointPrecomp[wnafPoints];
+                for (int i = 0; i < wnafPoints; ++i)
+                {
+                    ref PointExtended q = ref points[wnafPoints + i];
+                    ref PointPrecomp r = ref PrecompBase128Wnaf[i];
+                    Init(out r);
+
+                    // Calculate x/2 and y/2 (because the z value holds half the inverse; see above).
+                    F.Mul(q.x, q.z, q.x);
+                    F.Mul(q.y, q.z, q.y);
+
+                    // y/2 +/- x/2
+                    F.Apm(q.y, q.x, r.ypx_h, r.ymx_h);
+
+                    // x/2 * y/2 * (4.d) == x.y.d
+                    F.Mul(q.x, q.y, r.xyd);
+                    F.Mul(r.xyd, C_d4, r.xyd);
+
+                    F.Normalize(r.ymx_h);
+                    F.Normalize(r.ypx_h);
+                    F.Normalize(r.xyd);
+                }
+
                 PrecompBaseComb = F.CreateTable(combPoints * 3);
                 Init(out PointPrecomp s);
                 int off = 0;
-                for (int i = wnafPoints; i < totalPoints; ++i)
+                for (int i = wnafPoints * 2; i < totalPoints; ++i)
                 {
                     ref PointExtended q = ref points[i];
 
@@ -1317,25 +1256,25 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ReduceScalar(n, r);
 #else
-            long x00 = Decode32(n,  0) & M32L;          // x00:32/--
-            long x01 = (Decode24(n, 4) << 4) & M32L;    // x01:28/--
-            long x02 = Decode32(n,  7) & M32L;          // x02:32/--
-            long x03 = (Decode24(n, 11) << 4) & M32L;   // x03:28/--
-            long x04 = Decode32(n, 14) & M32L;          // x04:32/--
-            long x05 = (Decode24(n, 18) << 4) & M32L;   // x05:28/--
-            long x06 = Decode32(n, 21) & M32L;          // x06:32/--
-            long x07 = (Decode24(n, 25) << 4) & M32L;   // x07:28/--
-            long x08 = Decode32(n, 28) & M32L;          // x08:32/--
-            long x09 = (Decode24(n, 32) << 4) & M32L;   // x09:28/--
-            long x10 = Decode32(n, 35) & M32L;          // x10:32/--
-            long x11 = (Decode24(n, 39) << 4) & M32L;   // x11:28/--
-            long x12 = Decode32(n, 42) & M32L;          // x12:32/--
-            long x13 = (Decode24(n, 46) << 4) & M32L;   // x13:28/--
-            long x14 = Decode32(n, 49) & M32L;          // x14:32/--
-            long x15 = (Decode24(n, 53) << 4) & M32L;   // x15:28/--
-            long x16 = Decode32(n, 56) & M32L;          // x16:32/--
-            long x17 = (Decode24(n, 60) << 4) & M32L;   // x17:28/--
-            long x18 = n[63]                  & M08L;   // x18:08/--
+            long x00 =  Codec.Decode32(n,  0)       & M32L;         // x00:32/--
+            long x01 = (Codec.Decode24(n,  4) << 4) & M32L;         // x01:28/--
+            long x02 =  Codec.Decode32(n,  7)       & M32L;         // x02:32/--
+            long x03 = (Codec.Decode24(n, 11) << 4) & M32L;         // x03:28/--
+            long x04 =  Codec.Decode32(n, 14)       & M32L;         // x04:32/--
+            long x05 = (Codec.Decode24(n, 18) << 4) & M32L;         // x05:28/--
+            long x06 =  Codec.Decode32(n, 21)       & M32L;         // x06:32/--
+            long x07 = (Codec.Decode24(n, 25) << 4) & M32L;         // x07:28/--
+            long x08 =  Codec.Decode32(n, 28)       & M32L;         // x08:32/--
+            long x09 = (Codec.Decode24(n, 32) << 4) & M32L;         // x09:28/--
+            long x10 =  Codec.Decode32(n, 35)       & M32L;         // x10:32/--
+            long x11 = (Codec.Decode24(n, 39) << 4) & M32L;         // x11:28/--
+            long x12 =  Codec.Decode32(n, 42)       & M32L;         // x12:32/--
+            long x13 = (Codec.Decode24(n, 46) << 4) & M32L;         // x13:28/--
+            long x14 =  Codec.Decode32(n, 49)       & M32L;         // x14:32/--
+            long x15 = (Codec.Decode24(n, 53) << 4) & M32L;         // x15:28/--
+            long x16 =  Codec.Decode32(n, 56)       & M32L;         // x16:32/--
+            long x17 = (Codec.Decode24(n, 60) << 4) & M32L;         // x17:28/--
+            long x18 =                 n[63]        & M08L;         // x18:08/--
             long t;
 
             //x18 += (x17 >> 28); x17 &= M28L;
@@ -1442,11 +1381,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             x07 += (x06 >> 28); x06 &= M28L;
             x08 += (x07 >> 28); x07 &= M28L;
 
-            Encode56((ulong)(x00 | (x01 << 28)), r, 0);
-            Encode56((ulong)(x02 | (x03 << 28)), r, 7);
-            Encode56((ulong)(x04 | (x05 << 28)), r, 14);
-            Encode56((ulong)(x06 | (x07 << 28)), r, 21);
-            Encode32((uint)x08, r, 28);
+            Codec.Encode56((ulong)(x00 | (x01 << 28)), r, 0);
+            Codec.Encode56((ulong)(x02 | (x03 << 28)), r, 7);
+            Codec.Encode56((ulong)(x04 | (x05 << 28)), r, 14);
+            Codec.Encode56((ulong)(x06 | (x07 << 28)), r, 21);
+            Codec.Encode32((uint)x08, r, 28);
 #endif
 
             return r;
@@ -1455,25 +1394,25 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ReduceScalar(ReadOnlySpan<byte> n, Span<byte> r)
         {
-            long x00 = Decode32(n[0..]) & M32L;         // x00:32/--
-            long x01 = (Decode24(n[4..]) << 4) & M32L;  // x01:28/--
-            long x02 = Decode32(n[7..]) & M32L;         // x02:32/--
-            long x03 = (Decode24(n[11..]) << 4) & M32L; // x03:28/--
-            long x04 = Decode32(n[14..]) & M32L;        // x04:32/--
-            long x05 = (Decode24(n[18..]) << 4) & M32L; // x05:28/--
-            long x06 = Decode32(n[21..]) & M32L;        // x06:32/--
-            long x07 = (Decode24(n[25..]) << 4) & M32L; // x07:28/--
-            long x08 = Decode32(n[28..]) & M32L;        // x08:32/--
-            long x09 = (Decode24(n[32..]) << 4) & M32L; // x09:28/--
-            long x10 = Decode32(n[35..]) & M32L;        // x10:32/--
-            long x11 = (Decode24(n[39..]) << 4) & M32L; // x11:28/--
-            long x12 = Decode32(n[42..]) & M32L;        // x12:32/--
-            long x13 = (Decode24(n[46..]) << 4) & M32L; // x13:28/--
-            long x14 = Decode32(n[49..]) & M32L;        // x14:32/--
-            long x15 = (Decode24(n[53..]) << 4) & M32L; // x15:28/--
-            long x16 = Decode32(n[56..]) & M32L;        // x16:32/--
-            long x17 = (Decode24(n[60..]) << 4) & M32L; // x17:28/--
-            long x18 = n[63]                  & M08L;   // x18:08/--
+            long x00 =  Codec.Decode32(n[ 0..])       & M32L;       // x00:32/--
+            long x01 = (Codec.Decode24(n[ 4..]) << 4) & M32L;       // x01:28/--
+            long x02 =  Codec.Decode32(n[ 7..])       & M32L;       // x02:32/--
+            long x03 = (Codec.Decode24(n[11..]) << 4) & M32L;       // x03:28/--
+            long x04 =  Codec.Decode32(n[14..])       & M32L;       // x04:32/--
+            long x05 = (Codec.Decode24(n[18..]) << 4) & M32L;       // x05:28/--
+            long x06 =  Codec.Decode32(n[21..])       & M32L;       // x06:32/--
+            long x07 = (Codec.Decode24(n[25..]) << 4) & M32L;       // x07:28/--
+            long x08 =  Codec.Decode32(n[28..])       & M32L;       // x08:32/--
+            long x09 = (Codec.Decode24(n[32..]) << 4) & M32L;       // x09:28/--
+            long x10 =  Codec.Decode32(n[35..])       & M32L;       // x10:32/--
+            long x11 = (Codec.Decode24(n[39..]) << 4) & M32L;       // x11:28/--
+            long x12 =  Codec.Decode32(n[42..])       & M32L;       // x12:32/--
+            long x13 = (Codec.Decode24(n[46..]) << 4) & M32L;       // x13:28/--
+            long x14 =  Codec.Decode32(n[49..])       & M32L;       // x14:32/--
+            long x15 = (Codec.Decode24(n[53..]) << 4) & M32L;       // x15:28/--
+            long x16 =  Codec.Decode32(n[56..])       & M32L;       // x16:32/--
+            long x17 = (Codec.Decode24(n[60..]) << 4) & M32L;       // x17:28/--
+            long x18 =                 n[63]          & M08L;       // x18:08/--
             long t;
 
             //x18 += (x17 >> 28); x17 &= M28L;
@@ -1580,11 +1519,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             x07 += (x06 >> 28); x06 &= M28L;
             x08 += (x07 >> 28); x07 &= M28L;
 
-            Encode56((ulong)(x00 | (x01 << 28)), r);
-            Encode56((ulong)(x02 | (x03 << 28)), r[7..]);
-            Encode56((ulong)(x04 | (x05 << 28)), r[14..]);
-            Encode56((ulong)(x06 | (x07 << 28)), r[21..]);
-            Encode32((uint)x08, r[28..]);
+            Codec.Encode56((ulong)(x00 | (x01 << 28)), r);
+            Codec.Encode56((ulong)(x02 | (x03 << 28)), r[7..]);
+            Codec.Encode56((ulong)(x04 | (x05 << 28)), r[14..]);
+            Codec.Encode56((ulong)(x06 | (x07 << 28)), r[21..]);
+            Codec.Encode32((uint)x08, r[28..]);
         }
 #endif
 
@@ -1856,42 +1795,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void ScalarMultOrderVar(ref PointAffine p, ref PointAccum r)
         {
-            sbyte[] ws_p = GetWnafVar(L, WnafWidth);
-
-            int count = 1 << (WnafWidth - 2);
-            PointPrecompZ[] tp = new PointPrecompZ[count];
-            Init(out PointTemp t);
-            PointPrecomputeZ(ref p, tp, count, ref t);
-
-            PointSetNeutral(ref r);
-
-            for (int bit = 252;;)
-            {
-                int wp = ws_p[bit];
-                if (wp != 0)
-                {
-                    int sign = wp >> 31;
-                    int index = (wp ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref tp[index], ref r, ref t);
-                }
-
-                if (--bit < 0)
-                    break;
-
-                PointDouble(ref r);
-            }
-        }
-
-        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointAffine p, ref PointAccum r)
-        {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMultStrausVar(nb.AsSpan(), np.AsSpan(), ref p, ref r);
+            Span<sbyte> ws_p = stackalloc sbyte[253];
 #else
-            Precompute();
-
-            sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
-            sbyte[] ws_p = GetWnafVar(np, WnafWidth);
+            sbyte[] ws_p = new sbyte[253];
+#endif
+            Wnaf.GetSignedVar(L, WnafWidth, ws_p);
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
@@ -1902,22 +1811,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             for (int bit = 252;;)
             {
-                int wb = ws_b[bit];
-                if (wb != 0)
-                {
-                    int sign = wb >> 31;
-                    int index = (wb ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref PrecompBaseWnaf[index], ref r, ref t);
-                }
-
                 int wp = ws_p[bit];
                 if (wp != 0)
                 {
-                    int sign = wp >> 31;
-                    int index = (wp ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref tp[index], ref r, ref t);
+                    int index = (wp >> 1) ^ (wp >> 31);
+                    PointAddVar(wp < 0, ref tp[index], ref r, ref t);
                 }
 
                 if (--bit < 0)
@@ -1925,17 +1823,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 PointDouble(ref r);
             }
-#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void ScalarMultStrausVar(ReadOnlySpan<uint> nb, ReadOnlySpan<uint> np, ref PointAffine p,
             ref PointAccum r)
+#else
+        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointAffine p, ref PointAccum r)
+#endif
         {
+            Debug.Assert(nb.Length == ScalarUints);
+            Debug.Assert(nb[ScalarUints - 1] <= L[ScalarUints - 1]);
+
+            Debug.Assert(np.Length == ScalarUints);
+            Debug.Assert(np[ScalarUints - 1] <= L[ScalarUints - 1]);
+
             Precompute();
 
-            sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
-            sbyte[] ws_p = GetWnafVar(np, WnafWidth);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<sbyte> ws_b = stackalloc sbyte[253];
+            Span<sbyte> ws_p = stackalloc sbyte[253];
+#else
+            sbyte[] ws_b = new sbyte[253];
+            sbyte[] ws_p = new sbyte[253];
+#endif
+
+            Wnaf.GetSignedVar(nb, WnafWidthBase, ws_b);
+            Wnaf.GetSignedVar(np, WnafWidth, ws_p);
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
@@ -1944,24 +1858,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointSetNeutral(ref r);
 
-            for (int bit = 252; ;)
+            for (int bit = 252;;)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)
                 {
-                    int sign = wb >> 31;
-                    int index = (wb ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref PrecompBaseWnaf[index], ref r, ref t);
+                    int index = (wb >> 1) ^ (wb >> 31);
+                    PointAddVar(wb < 0, ref PrecompBaseWnaf[index], ref r, ref t);
                 }
 
                 int wp = ws_p[bit];
                 if (wp != 0)
                 {
-                    int sign = wp >> 31;
-                    int index = (wp ^ sign) >> 1;
-
-                    PointAddVar(sign != 0, ref tp[index], ref r, ref t);
+                    int index = (wp >> 1) ^ (wp >> 31);
+                    PointAddVar(wp < 0, ref tp[index], ref r, ref t);
                 }
 
                 if (--bit < 0)
@@ -1970,7 +1880,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 PointDouble(ref r);
             }
         }
-#endif
 
         public static void Sign(byte[] sk, int skOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
@@ -2042,12 +1951,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Init(out PointAffine p);
             if (!DecodePointVar(pk, pkOff, false, ref p))
-                return false;
-
-            F.Normalize(p.x);
-            F.Normalize(p.y);
-
-            if (IsNeutralElementVar(p.x, p.y))
                 return false;
 
             Init(out PointAccum r);

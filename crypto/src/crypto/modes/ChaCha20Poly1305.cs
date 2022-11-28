@@ -588,7 +588,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 FinishData(State.DecFinal);
 
-                if (!Arrays.ConstantTimeAreEqual(MacSize, mMac, 0, mBuf, resultLen))
+                if (!Arrays.FixedTimeEquals(MacSize, mMac, 0, mBuf, resultLen))
                     throw new InvalidCipherTextException("mac check in ChaCha20Poly1305 failed");
 
                 break;
@@ -648,7 +648,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 FinishData(State.DecFinal);
 
-                if (!Arrays.ConstantTimeAreEqual(MacSize, mMac, 0, mBuf, resultLen))
+                if (!Arrays.FixedTimeEquals(MacSize, mMac, 0, mBuf, resultLen))
                     throw new InvalidCipherTextException("mac check in ChaCha20Poly1305 failed");
 
                 break;

@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
-    <PackageTags>bouncycastle cryptography dtls encryption open-source post-quantum security tls</PackageTags>
+    <PackageTags>bouncycastle cryptography dtls encryption open-source openpgp post-quantum security tls</PackageTags>
 	<Product>BouncyCastle.NET</Product>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/bcgit/bc-csharp</RepositoryUrl>
