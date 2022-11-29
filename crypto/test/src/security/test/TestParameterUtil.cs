@@ -29,15 +29,16 @@ namespace Org.BouncyCastle.Security.Tests
 				128, typeof(RC2Parameters), random);
 		}
 
-        [Test]
-        public void TestGetCypherParameters_Aes256GcmAsn1ParamsIsDerSequence_ReturnsParameters()
-        {
-            var parameters = ParameterUtilities.GetCipherParameters(
-                NistObjectIdentifiers.IdAes256Gcm.Id, new KeyParameter(new byte[] {0x0}),
-                new DerSequence(new DerOctetString(new byte[] {0x0})));
-            
+		[Test]
+		public void TestGetCypherParameters_Aes256GcmAsn1ParamsIsDerSequence_ReturnsParameters()
+		{
+			var parameters = ParameterUtilities.GetCipherParameters(
+				NistObjectIdentifiers.IdAes256Gcm.Id, 
+				new KeyParameter(new byte[] {0x0}), 
+				new DerSequence(new DerOctetString(new byte[] {0x0})));
+
 			Assert.IsInstanceOf(typeof(ParametersWithIV), parameters);
-        }
+		}
 		
 		private void doTestCreateKeyParameter(
 			string				algorithm,
