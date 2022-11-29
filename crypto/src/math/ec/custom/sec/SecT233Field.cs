@@ -22,6 +22,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[3] = x[3] ^ y[3];
         }
 
+        public static void AddBothTo(ulong[] x, ulong[] y, ulong[] z)
+        {
+            z[0] ^= x[0] ^ y[0];
+            z[1] ^= x[1] ^ y[1];
+            z[2] ^= x[2] ^ y[2];
+            z[3] ^= x[3] ^ y[3];
+        }
+
         public static void AddExt(ulong[] xx, ulong[] yy, ulong[] zz)
         {
             zz[0] = xx[0] ^ yy[0];
@@ -42,7 +50,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[3] = x[3];
         }
 
-        private static void AddTo(ulong[] x, ulong[] z)
+        public static void AddTo(ulong[] x, ulong[] z)
         {
             z[0] ^= x[0];
             z[1] ^= x[1];
@@ -115,6 +123,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] tt = Nat256.CreateExt64();
             ImplMultiply(x, y, tt);
             AddExt(zz, tt, zz);
+        }
+
+        public static void MultiplyExt(ulong[] x, ulong[] y, ulong[] zz)
+        {
+            Array.Clear(zz, 0, 8);
+            ImplMultiply(x, y, zz);
         }
 
         public static void Reduce(ulong[] xx, ulong[] z)
@@ -194,6 +208,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] tt = Nat256.CreateExt64();
             ImplSquare(x, tt);
             AddExt(zz, tt, zz);
+        }
+
+        public static void SquareExt(ulong[] x, ulong[] zz)
+        {
+            ImplSquare(x, zz);
         }
 
         public static void SquareN(ulong[] x, int n, ulong[] z)
