@@ -722,7 +722,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             int i = 0;
 
             // while lambda <> (0, 0)
-            while (!(r0.Equals(BigInteger.Zero) && r1.Equals(BigInteger.Zero)))
+            while ((r0.SignValue | r1.SignValue) != 0)
             {
                 // if r0 is odd
                 if (r0.TestBit(0)) 
@@ -802,7 +802,20 @@ namespace Org.BouncyCastle.Math.EC.Abc
                 if (existing is PartModPreCompInfo)
                     return existing;
 
-                var lucas = GetLucas(m_mu, m_curve.FieldSize, m_doV)[1];
+                BigInteger lucas;
+                if (m_curve.IsKoblitz)
+                {
+                    /*
+                     * Jerome A. Solinas, "Improved Algorithms for Arithmetic on Anomalous Binary Curves", (21).
+                     */
+                    lucas = BigInteger.One.ShiftLeft(m_curve.FieldSize).Add(BigInteger.One).Subtract(
+                        m_curve.Order.Multiply(m_curve.Cofactor));
+                }
+                else
+                {
+                    lucas = GetLucas(m_mu, m_curve.FieldSize, m_doV)[1];
+                }
+
                 var si = GetSi(m_curve);
 
                 return new PartModPreCompInfo(lucas, si[0], si[1]);
