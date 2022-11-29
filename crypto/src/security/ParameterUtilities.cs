@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.Security
 {
     public static class ParameterUtilities
     {
+        private static readonly IList<string> IvUnsupportedAlgorithms = 
+            new List<string> {"RIJNDAEL", "SKIPJACK", "TWOFISH"};
         private static readonly IDictionary<string, string> Algorithms =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static readonly IDictionary<string, int> BasicIVSizes =
@@ -260,10 +262,12 @@ namespace Org.BouncyCastle.Security
                 // "RIJNDAEL", "SKIPJACK", "TWOFISH"
 
                 int basicIVKeySize = FindBasicIVSize(canonical);
-                if (basicIVKeySize != -1
-                    || canonical == "RIJNDAEL" || canonical == "SKIPJACK" || canonical == "TWOFISH")
+                if (basicIVKeySize != -1 || IvUnsupportedAlgorithms.Contains(canonical))
                 {
-                    iv = ((Asn1OctetString) asn1Params).GetOctets();
+                    var sequence = asn1Params as DerSequence;
+                    iv = sequence != null 
+                            ? (sequence[0] as DerOctetString).GetOctets() 
+                            : (asn1Params as Asn1OctetString).GetOctets();
                 }
                 else if (canonical == "CAST5")
                 {
