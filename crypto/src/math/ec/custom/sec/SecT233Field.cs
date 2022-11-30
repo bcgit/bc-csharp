@@ -392,6 +392,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                zz[7] = Bmi2.X64.ParallelBitDeposit(x[3] >> 32, 0x5555555555555555UL);
+                zz[6] = Bmi2.X64.ParallelBitDeposit(x[3], 0x5555555555555555UL);
+                zz[5] = Bmi2.X64.ParallelBitDeposit(x[2] >> 32, 0x5555555555555555UL);
+                zz[4] = Bmi2.X64.ParallelBitDeposit(x[2], 0x5555555555555555UL);
+                zz[3] = Bmi2.X64.ParallelBitDeposit(x[1] >> 32, 0x5555555555555555UL);
+                zz[2] = Bmi2.X64.ParallelBitDeposit(x[1], 0x5555555555555555UL);
+                zz[1] = Bmi2.X64.ParallelBitDeposit(x[0] >> 32, 0x5555555555555555UL);
+                zz[0] = Bmi2.X64.ParallelBitDeposit(x[0], 0x5555555555555555UL);
+                return;
+            }
+#endif
+
             Interleave.Expand64To128(x, 0, 4, zz, 0);
         }
     }

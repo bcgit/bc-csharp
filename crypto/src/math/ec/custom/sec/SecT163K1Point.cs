@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecT163K1Point
@@ -66,8 +68,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             ECCurve curve = this.Curve;
 
-            ECFieldElement X1 = this.RawXCoord;
-            ECFieldElement X2 = b.RawXCoord;
+            SecT163FieldElement X1 = (SecT163FieldElement)this.RawXCoord;
+            SecT163FieldElement X2 = (SecT163FieldElement)b.RawXCoord;
 
             if (X1.IsZero)
             {
@@ -77,86 +79,101 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return b.Add(this);
             }
 
-            ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
-            ECFieldElement L2 = b.RawYCoord, Z2 = b.RawZCoords[0];
+            SecT163FieldElement L1 = (SecT163FieldElement)this.RawYCoord, Z1 = (SecT163FieldElement)this.RawZCoords[0];
+            SecT163FieldElement L2 = (SecT163FieldElement)b.RawYCoord, Z2 = (SecT163FieldElement)b.RawZCoords[0];
+
+            ulong[] tt0 = Nat192.CreateExt64();
+            ulong[] t1 = Nat192.Create64();
+            ulong[] t2 = Nat192.Create64();
+            ulong[] t3 = Nat192.Create64();
 
             bool Z1IsOne = Z1.IsOne;
-            ECFieldElement U2 = X2, S2 = L2;
-            if (!Z1IsOne)
+            if (Z1IsOne)
             {
-                U2 = U2.Multiply(Z1);
-                S2 = S2.Multiply(Z1);
+                Nat192.Copy64(X2.x, t1);                    // U2
+                Nat192.Copy64(L2.x, t2);                    // S2
+            }
+            else
+            {
+                SecT163Field.Multiply(X2.x, Z1.x, t1);      // U2
+                SecT163Field.Multiply(L2.x, Z1.x, t2);      // S2
             }
 
             bool Z2IsOne = Z2.IsOne;
-            ECFieldElement U1 = X1, S1 = L1;
-            if (!Z2IsOne)
+            if (Z2IsOne)
             {
-                U1 = U1.Multiply(Z2);
-                S1 = S1.Multiply(Z2);
+                Nat192.Copy64(X1.x, t3);                    // U1
+                Nat192.Copy64(L1.x, tt0);                   // S1
+            }
+            else
+            {
+                SecT163Field.Multiply(X1.x, Z2.x, t3);      // U1
+                SecT163Field.Multiply(L1.x, Z2.x, tt0);     // S1
             }
 
-            ECFieldElement A = S1.Add(S2);
-            ECFieldElement B = U1.Add(U2);
+            SecT163Field.AddTo(tt0, t2);                    // A
+            SecT163Field.Add(t3, t1, tt0);                  // B
 
-            if (B.IsZero)
+            if (Nat192.IsZero64(tt0))
             {
-                if (A.IsZero)
+                if (Nat192.IsZero64(t2))
                     return Twice();
 
                 return curve.Infinity;
             }
 
-            ECFieldElement X3, L3, Z3;
             if (X2.IsZero)
             {
                 // TODO This can probably be optimized quite a bit
                 ECPoint p = this.Normalize();
-                X1 = p.XCoord;
+                X1 = (SecT163FieldElement)p.XCoord;
                 ECFieldElement Y1 = p.YCoord;
 
                 ECFieldElement Y2 = L2;
                 ECFieldElement L = Y1.Add(Y2).Divide(X1);
 
-                X3 = L.Square().Add(L).Add(X1).AddOne();
+                ECFieldElement X3 = L.Square().Add(L).Add(X1);
                 if (X3.IsZero)
-                {
                     return new SecT163K1Point(curve, X3, curve.B);
-                }
 
                 ECFieldElement Y3 = L.Multiply(X1.Add(X3)).Add(X3).Add(Y1);
-                L3 = Y3.Divide(X3).Add(X3);
-                Z3 = curve.FromBigInteger(BigInteger.One);
+                ECFieldElement L3 = Y3.Divide(X3).Add(X3);
+                ECFieldElement Z3 = curve.FromBigInteger(BigInteger.One);
+
+                return new SecT163K1Point(curve, X3, L3, new ECFieldElement[]{ Z3 });
             }
-            else
+
+            SecT163Field.Square(tt0, tt0);
+
+            SecT163Field.Multiply(t3, t2, t3);      // AU1
+            SecT163Field.Multiply(t1, t2, t1);      // AU2
+
+            ulong[] _X3 = t3;
+            SecT163Field.Multiply(_X3, t1, _X3);
+            if (Nat192.IsZero64(_X3))
+                return new SecT163K1Point(curve, new SecT163FieldElement(_X3), curve.B);
+
+            ulong[] _Z3 = t2;
+            SecT163Field.Multiply(_Z3, tt0, _Z3);   // ABZ2
+            if (!Z2IsOne)
             {
-                B = B.Square();
-
-                ECFieldElement AU1 = A.Multiply(U1);
-                ECFieldElement AU2 = A.Multiply(U2);
-
-                X3 = AU1.Multiply(AU2);
-                if (X3.IsZero)
-                {
-                    return new SecT163K1Point(curve, X3, curve.B);
-                }
-
-                ECFieldElement ABZ2 = A.Multiply(B);
-                if (!Z2IsOne)
-                {
-                    ABZ2 = ABZ2.Multiply(Z2);
-                }
-
-                L3 = AU2.Add(B).SquarePlusProduct(ABZ2, L1.Add(Z1));
-
-                Z3 = ABZ2;
-                if (!Z1IsOne)
-                {
-                    Z3 = Z3.Multiply(Z1);
-                }
+                SecT163Field.Multiply(_Z3, Z2.x, _Z3);
             }
 
-            return new SecT163K1Point(curve, X3, L3, new ECFieldElement[] { Z3 });
+            ulong[] _L3 = t1;
+            SecT163Field.AddTo(tt0, _L3);
+            SecT163Field.SquareExt(_L3, tt0);
+            SecT163Field.Add(L1.x, Z1.x, _L3);
+            SecT163Field.MultiplyAddToExt(_Z3, _L3, tt0);
+            SecT163Field.Reduce(tt0, _L3);
+
+            if (!Z1IsOne)
+            {
+                SecT163Field.Multiply(_Z3, Z1.x, _Z3);
+            }
+
+            return new SecT163K1Point(curve, new SecT163FieldElement(_X3), new SecT163FieldElement(_L3),
+                new ECFieldElement[]{ new SecT163FieldElement(_Z3) });
         }
 
         public override ECPoint Twice()

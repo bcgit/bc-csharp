@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 ulong[] tt = Nat576.CreateExt64();
 
                 SecT571Field.Add(AU2, B, t4);
-                SecT571Field.SquareAddToExt(t4, tt);
+                SecT571Field.SquareExt(t4, tt);
 
                 SecT571Field.Add(L1.x, Z1.x, t4);
                 SecT571Field.MultiplyAddToExt(t4, Z3.x, tt);

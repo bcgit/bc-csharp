@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[6] = x[6];
         }
 
-        private static void AddTo(ulong[] x, ulong[] z)
+        public static void AddTo(ulong[] x, ulong[] z)
         {
             z[0] ^= x[0];
             z[1] ^= x[1];
@@ -225,6 +225,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             AddExt(zz, tt, zz);
         }
 
+        public static void SquareExt(ulong[] x, ulong[] zz)
+        {
+            ImplSquare(x, zz);
+        }
+
         public static void SquareN(ulong[] x, int n, ulong[] z)
         {
             Debug.Assert(n > 0);
@@ -393,8 +398,28 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
-            Interleave.Expand64To128(x, 0, 6, zz, 0);
             zz[12] = Interleave.Expand32to64((uint)x[6]);
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                zz[11] = Bmi2.X64.ParallelBitDeposit(x[5] >> 32, 0x5555555555555555UL);
+                zz[10] = Bmi2.X64.ParallelBitDeposit(x[5]      , 0x5555555555555555UL);
+                zz[ 9] = Bmi2.X64.ParallelBitDeposit(x[4] >> 32, 0x5555555555555555UL);
+                zz[ 8] = Bmi2.X64.ParallelBitDeposit(x[4]      , 0x5555555555555555UL);
+                zz[ 7] = Bmi2.X64.ParallelBitDeposit(x[3] >> 32, 0x5555555555555555UL);
+                zz[ 6] = Bmi2.X64.ParallelBitDeposit(x[3]      , 0x5555555555555555UL);
+                zz[ 5] = Bmi2.X64.ParallelBitDeposit(x[2] >> 32, 0x5555555555555555UL);
+                zz[ 4] = Bmi2.X64.ParallelBitDeposit(x[2]      , 0x5555555555555555UL);
+                zz[ 3] = Bmi2.X64.ParallelBitDeposit(x[1] >> 32, 0x5555555555555555UL);
+                zz[ 2] = Bmi2.X64.ParallelBitDeposit(x[1]      , 0x5555555555555555UL);
+                zz[ 1] = Bmi2.X64.ParallelBitDeposit(x[0] >> 32, 0x5555555555555555UL);
+                zz[ 0] = Bmi2.X64.ParallelBitDeposit(x[0]      , 0x5555555555555555UL);
+                return;
+            }
+#endif
+
+            Interleave.Expand64To128(x, 0, 6, zz, 0);
         }
     }
 }

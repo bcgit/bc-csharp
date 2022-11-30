@@ -176,11 +176,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     SecT571Field.MultiplyPrecomp(Z3.x, Z2Precomp, Z3.x);
                 }
 
-                //L3 = AU2.Add(B).SquarePlusProduct(ABZ2, L1.Add(Z1));
                 ulong[] tt = Nat576.CreateExt64();
 
                 SecT571Field.Add(AU2, B, t4);
-                SecT571Field.SquareAddToExt(t4, tt);
+                SecT571Field.SquareExt(t4, tt);
 
                 SecT571Field.Add(L1.x, Z1.x, t4);
                 SecT571Field.MultiplyAddToExt(t4, Z3.x, tt);

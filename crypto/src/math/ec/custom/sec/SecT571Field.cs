@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
-        private static void AddTo(ulong[] x, ulong[] z)
+        public static void AddTo(ulong[] x, ulong[] z)
         {
             Nat.XorTo64(9, x, z);
         }
@@ -251,6 +251,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] tt = Nat576.CreateExt64();
             ImplSquare(x, tt);
             AddExt(zz, tt, zz);
+        }
+
+        public static void SquareExt(ulong[] x, ulong[] zz)
+        {
+            ImplSquare(x, zz);
         }
 
         public static void SquareN(ulong[] x, int n, ulong[] z)
@@ -449,6 +454,31 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                zz[17] = Bmi2.X64.ParallelBitDeposit(x[8] >> 32, 0x5555555555555555UL);
+                zz[16] = Bmi2.X64.ParallelBitDeposit(x[8]      , 0x5555555555555555UL);
+                zz[15] = Bmi2.X64.ParallelBitDeposit(x[7] >> 32, 0x5555555555555555UL);
+                zz[14] = Bmi2.X64.ParallelBitDeposit(x[7]      , 0x5555555555555555UL);
+                zz[13] = Bmi2.X64.ParallelBitDeposit(x[6] >> 32, 0x5555555555555555UL);
+                zz[12] = Bmi2.X64.ParallelBitDeposit(x[6]      , 0x5555555555555555UL);
+                zz[11] = Bmi2.X64.ParallelBitDeposit(x[5] >> 32, 0x5555555555555555UL);
+                zz[10] = Bmi2.X64.ParallelBitDeposit(x[5]      , 0x5555555555555555UL);
+                zz[ 9] = Bmi2.X64.ParallelBitDeposit(x[4] >> 32, 0x5555555555555555UL);
+                zz[ 8] = Bmi2.X64.ParallelBitDeposit(x[4]      , 0x5555555555555555UL);
+                zz[ 7] = Bmi2.X64.ParallelBitDeposit(x[3] >> 32, 0x5555555555555555UL);
+                zz[ 6] = Bmi2.X64.ParallelBitDeposit(x[3]      , 0x5555555555555555UL);
+                zz[ 5] = Bmi2.X64.ParallelBitDeposit(x[2] >> 32, 0x5555555555555555UL);
+                zz[ 4] = Bmi2.X64.ParallelBitDeposit(x[2]      , 0x5555555555555555UL);
+                zz[ 3] = Bmi2.X64.ParallelBitDeposit(x[1] >> 32, 0x5555555555555555UL);
+                zz[ 2] = Bmi2.X64.ParallelBitDeposit(x[1]      , 0x5555555555555555UL);
+                zz[ 1] = Bmi2.X64.ParallelBitDeposit(x[0] >> 32, 0x5555555555555555UL);
+                zz[ 0] = Bmi2.X64.ParallelBitDeposit(x[0]      , 0x5555555555555555UL);
+                return;
+            }
+#endif
+
             Interleave.Expand64To128(x, 0, 9, zz, 0);
         }
     }

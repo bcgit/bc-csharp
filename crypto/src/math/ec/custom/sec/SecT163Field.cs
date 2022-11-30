@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[2] = x[2];
         }
 
-        private static void AddTo(ulong[] x, ulong[] z)
+        public static void AddTo(ulong[] x, ulong[] z)
         {
             z[0] ^= x[0];
             z[1] ^= x[1];
@@ -173,6 +173,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] tt = Nat192.CreateExt64();
             ImplSquare(x, tt);
             AddExt(zz, tt, zz);
+        }
+
+        public static void SquareExt(ulong[] x, ulong[] zz)
+        {
+            ImplSquare(x, zz);
         }
 
         public static void SquareN(ulong[] x, int n, ulong[] z)
@@ -375,6 +380,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                zz[5] = Bmi2.X64.ParallelBitDeposit(x[2] >> 32, 0x5555555555555555UL);
+                zz[4] = Bmi2.X64.ParallelBitDeposit(x[2]      , 0x5555555555555555UL);
+                zz[3] = Bmi2.X64.ParallelBitDeposit(x[1] >> 32, 0x5555555555555555UL);
+                zz[2] = Bmi2.X64.ParallelBitDeposit(x[1]      , 0x5555555555555555UL);
+                zz[1] = Bmi2.X64.ParallelBitDeposit(x[0] >> 32, 0x5555555555555555UL);
+                zz[0] = Bmi2.X64.ParallelBitDeposit(x[0]      , 0x5555555555555555UL);
+                return;
+            }
+#endif
+
             Interleave.Expand64To128(x, 0, 3, zz, 0);
         }
     }
