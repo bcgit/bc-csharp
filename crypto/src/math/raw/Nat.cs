@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint Add(int len, uint[] x, uint[] y, uint[] z)
         {
-            ulong c = 0;
+            ulong c = 0UL;
             for (int i = 0; i < len; ++i)
             {
                 c += (ulong)x[i] + y[i];
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint Add(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
-            ulong c = 0;
+            ulong c = 0UL;
             for (int i = 0; i < len; ++i)
             {
                 c += (ulong)x[i] + y[i];
@@ -1398,6 +1398,32 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static int Negate(int len, uint[] x, uint[] z)
+        {
+            long c = 0L;
+            for (int i = 0; i < len; ++i)
+            {
+                c -= x[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (int)c;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int Negate(int len, ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            long c = 0L;
+            for (int i = 0; i < len; ++i)
+            {
+                c -= x[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (int)c;
+        }
+#endif
+
         public static uint ShiftDownBit(int len, uint[] z, uint c)
         {
             int i = len;
@@ -2606,6 +2632,25 @@ namespace Org.BouncyCastle.Math.Raw
                 z[i] = (uint)c;
                 c >>= 32;
             }
+            return (int)c;
+        }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int SubInt32From(int len, int x, Span<uint> z)
+        {
+            long c = (long)z[0] - x;
+            z[0] = (uint)c;
+            c >>= 32;
+
+            int i = 1;
+            while (c != 0L && i < len)
+            {
+                c += z[i];
+                z[i++] = (uint)c;
+                c >>= 32;
+            }
+
             return (int)c;
         }
 #endif

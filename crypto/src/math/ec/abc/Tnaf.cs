@@ -1,6 +1,8 @@
 using System;
 
 using Org.BouncyCastle.Math.EC.Multiplier;
+using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Abc
 {
@@ -38,11 +40,14 @@ namespace Org.BouncyCastle.Math.EC.Abc
         */
         public static readonly ZTauElement[] Alpha0 =
         {
-            null,
-            new ZTauElement(BigInteger.One, BigInteger.Zero), null,
-            new ZTauElement(MinusThree, MinusOne), null,
-            new ZTauElement(MinusOne, MinusOne), null,
-            new ZTauElement(BigInteger.One, MinusOne), null
+            null, new ZTauElement(BigInteger.One, BigInteger.Zero),
+            null, new ZTauElement(MinusThree, MinusOne),
+            null, new ZTauElement(MinusOne, MinusOne),
+            null, new ZTauElement(BigInteger.One, MinusOne),
+            null, new ZTauElement(MinusOne, BigInteger.One),
+            null, new ZTauElement(BigInteger.One, BigInteger.One),
+            null, new ZTauElement(BigInteger.Three, BigInteger.One),
+            null, new ZTauElement(MinusOne, BigInteger.Zero),
         };
 
         /**
@@ -60,11 +65,14 @@ namespace Org.BouncyCastle.Math.EC.Abc
         */
         public static readonly ZTauElement[] Alpha1 =
         {
-            null,
-            new ZTauElement(BigInteger.One, BigInteger.Zero), null,
-            new ZTauElement(MinusThree, BigInteger.One), null,
-            new ZTauElement(MinusOne, BigInteger.One), null,
-            new ZTauElement(BigInteger.One, BigInteger.One), null
+            null, new ZTauElement(BigInteger.One, BigInteger.Zero),
+            null, new ZTauElement(MinusThree, BigInteger.One),
+            null, new ZTauElement(MinusOne, BigInteger.One),
+            null, new ZTauElement(BigInteger.One, BigInteger.One),
+            null, new ZTauElement(MinusOne, MinusOne),
+            null, new ZTauElement(BigInteger.One, MinusOne),
+            null, new ZTauElement(BigInteger.Three, MinusOne),
+            null, new ZTauElement(MinusOne, BigInteger.Zero),
         };
 
         /**
@@ -86,31 +94,29 @@ namespace Org.BouncyCastle.Math.EC.Abc
         */
         public static BigInteger Norm(sbyte mu, ZTauElement lambda)
         {
-            BigInteger norm;
-
             // s1 = u^2
-            BigInteger s1 = lambda.u.Multiply(lambda.u);
+            BigInteger s1 = lambda.u.Square();
 
             // s2 = u * v
-            BigInteger s2 = lambda.u.Multiply(lambda.v);
+            //BigInteger s2 = lambda.u.Multiply(lambda.v);
 
             // s3 = 2 * v^2
-            BigInteger s3 = lambda.v.Multiply(lambda.v).ShiftLeft(1);
+            //BigInteger s3 = lambda.v.Square().ShiftLeft(1);
 
             if (mu == 1)
             {
-                norm = s1.Add(s2).Add(s3);
+                //return s1.Add(s2).Add(s3);
+                return lambda.v.ShiftLeft(1).Add(lambda.u).Multiply(lambda.v).Add(s1);
             }
             else if (mu == -1)
             {
-                norm = s1.Subtract(s2).Add(s3);
+                //return s1.Subtract(s2).Add(s3);
+                return lambda.v.ShiftLeft(1).Subtract(lambda.u).Multiply(lambda.v).Add(s1);
             }
             else
             {
                 throw new ArgumentException("mu must be 1 or -1");
             }
-
-            return norm;
         }
 
         /**
@@ -640,10 +646,11 @@ namespace Org.BouncyCastle.Math.EC.Abc
         public static AbstractF2mPoint MultiplyTnaf(AbstractF2mPoint p, ZTauElement lambda)
         {
             AbstractF2mCurve curve = (AbstractF2mCurve)p.Curve;
+            AbstractF2mPoint pNeg = (AbstractF2mPoint)p.Negate();
             sbyte mu = GetMu(curve.A);
             sbyte[] u = TauAdicNaf(mu, lambda);
 
-            return MultiplyFromTnaf(p, u);
+            return MultiplyFromTnaf(p, pNeg, u);
         }
 
         /**
@@ -655,11 +662,10 @@ namespace Org.BouncyCastle.Math.EC.Abc
         * @param u The the TNAF of <code>&#955;</code>..
         * @return <code>&#955; * p</code>
         */
-        public static AbstractF2mPoint MultiplyFromTnaf(AbstractF2mPoint p, sbyte[] u)
+        public static AbstractF2mPoint MultiplyFromTnaf(AbstractF2mPoint p, AbstractF2mPoint pNeg, sbyte[] u)
         {
             ECCurve curve = p.Curve;
             AbstractF2mPoint q = (AbstractF2mPoint)curve.Infinity;
-            AbstractF2mPoint pNeg = (AbstractF2mPoint)p.Negate();
             int tauCount = 0;
             for (int i = u.Length - 1; i >= 0; i--)
             {
@@ -712,50 +718,144 @@ namespace Org.BouncyCastle.Math.EC.Abc
             sbyte[] u = new sbyte[maxLength];
 
             int pow2Width = 1 << width;
-
-            // 2^(width - 1)
-            int pow2wMin1 = pow2Width >> 1;
+            int pow2Mask = pow2Width - 1;
+            int s = 32 - width;
 
             // Split lambda into two BigIntegers to simplify calculations
-            BigInteger r0 = lambda.u;
-            BigInteger r1 = lambda.v;
-            int i = 0;
+            BigInteger R0 = lambda.u;
+            BigInteger R1 = lambda.v;
+            int uPos = 0;
 
-            // while lambda <> (0, 0)
-            while ((r0.SignValue | r1.SignValue) != 0)
+            long r0_64, r1_64;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<int> alphaUs = stackalloc int[alpha.Length];
+            Span<int> alphaVs = stackalloc int[alpha.Length];
+#else
+            int[] alphaUs = new int[alpha.Length];
+            int[] alphaVs = new int[alpha.Length];
+#endif
+            for (int i = 1; i < alpha.Length; i += 2)
             {
-                // if r0 is odd
-                if (r0.TestBit(0)) 
-                {
-                    int uUnMod = (r0.IntValue + (r1.IntValue * tw)) & (pow2Width - 1);
+                alphaUs[i] = alpha[i].u.IntValueExact;
+                alphaVs[i] = alpha[i].v.IntValueExact;
+            }
 
-                    if (uUnMod >= pow2wMin1)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int len = (System.Math.Max(R0.BitLength, R1.BitLength) + 33) >> 5;
+            if (len <= 2)
+            {
+                r0_64 = R0.LongValueExact;
+                r1_64 = R1.LongValueExact;
+            }
+            else
+            {
+                Span<uint> r0 = len <= 32 ? stackalloc uint[len] : new uint[len];
+                Span<uint> r1 = len <= 32 ? stackalloc uint[len] : new uint[len];
+                Span<uint> rt = len <= 32 ? stackalloc uint[len] : new uint[len];
+
+                BigIntegers.AsUint32ArrayLittleEndian(R0, r0);
+                BigIntegers.AsUint32ArrayLittleEndian(R1, r1);
+
+                long muMask = mu < 0 ? -1L : 0L;
+
+                while (len > 2)
+                {
+                    if ((r0[0] & 1U) != 0U)
                     {
-                        u[i] = (sbyte)(uUnMod - pow2Width);
-                        r0 = r0.Add(alpha[pow2Width - uUnMod].u);
-                        r1 = r1.Add(alpha[pow2Width - uUnMod].v);
+                        int uVal = (int)r0[0] + ((int)r1[0] * tw);
+                        int alphaPos = uVal & pow2Mask;
+
+                        u[uPos] = (sbyte)((uVal << s) >> s);
+                        Nat.SubInt32From(len, alphaUs[alphaPos], r0);
+                        Nat.SubInt32From(len, alphaVs[alphaPos], r1);
                     }
-                    else
+
+                    ++uPos;
+
+                    Nat.ShiftDownBit(len, r0, r0[len - 1] >> 31, rt);
+                    if (mu == 1)
                     {
-                        u[i] = (sbyte)uUnMod;
-                        r0 = r0.Subtract(alpha[uUnMod].u);
-                        r1 = r1.Subtract(alpha[uUnMod].v);
+                        Nat.Add(len, r1, rt, r0);
                     }
+                    else // mu == -1
+                    {
+                        Nat.Sub(len, r1, rt, r0);
+                    }
+                    Nat.Negate(len, rt, r1);
+
+                    int r0Sign = (int)r0[len - 1] >> 31;
+                    int r1Sign = (int)r1[len - 1] >> 31;
+
+                    int check = ((int)r0[len - 1] ^ r0Sign)
+                              | (((int)r0[len - 2] >> 30) ^ r0Sign)
+                              | ((int)r1[len - 1] ^ r1Sign)
+                              | (((int)r1[len - 2] >> 30) ^ r1Sign);
+
+                    len -= Convert.ToInt32(check == 0);
                 }
 
-                ++i;
+                r0_64 = (long)r0[1] << 32 | r0[0];
+                r1_64 = (long)r1[1] << 32 | r1[0];
+            }
+#else
+            // while lambda <> (0, 0)
+            while (R0.BitLength > 62 || R1.BitLength > 62)
+            {
+                if (R0.TestBit(0)) 
+                {
+                    int uVal = R0.IntValue + (R1.IntValue * tw);
+                    int alphaPos = uVal & pow2Mask;
 
-                BigInteger t = r0.ShiftRight(1);
+                    u[uPos] = (sbyte)((uVal << s) >> s);
+                    R0 = R0.Subtract(alpha[alphaPos].u);
+                    R1 = R1.Subtract(alpha[alphaPos].v);
+                }
+
+                ++uPos;
+
+                BigInteger t = R0.ShiftRight(1);
                 if (mu == 1)
                 {
-                    r0 = r1.Add(t);
+                    R0 = R1.Add(t);
                 }
                 else // mu == -1
                 {
-                    r0 = r1.Subtract(t);
+                    R0 = R1.Subtract(t);
                 }
-                r1 = t.Negate();
+                R1 = t.Negate();
             }
+
+            r0_64 = R0.LongValueExact;
+            r1_64 = R1.LongValueExact;
+#endif
+
+            // while lambda <> (0, 0)
+            while ((r0_64 | r1_64) != 0L)
+            {
+                if ((r0_64 & 1L) != 0L)
+                {
+                    int uVal = (int)r0_64 + ((int)r1_64 * tw);
+                    int alphaPos = uVal & pow2Mask;
+
+                    u[uPos] = (sbyte)((uVal << s) >> s);
+                    r0_64 -= alphaUs[alphaPos];
+                    r1_64 -= alphaVs[alphaPos];
+                }
+
+                ++uPos;
+
+                long t_64 = r0_64 >> 1;
+                if (mu == 1)
+                {
+                    r0_64 = r1_64 + t_64;
+                }
+                else // mu == -1
+                {
+                    r0_64 = r1_64 - t_64;
+                }
+                r1_64 = -t_64;
+            }
+
             return u;
         }
 
@@ -767,6 +867,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
         */
         public static AbstractF2mPoint[] GetPreComp(AbstractF2mPoint p, sbyte a)
         {
+            AbstractF2mPoint pNeg = (AbstractF2mPoint)p.Negate();
             sbyte[][] alphaTnaf = (a == 0) ? Tnaf.Alpha0Tnaf : Tnaf.Alpha1Tnaf;
 
             AbstractF2mPoint[] pu = new AbstractF2mPoint[(uint)(alphaTnaf.Length + 1) >> 1];
@@ -775,7 +876,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             int precompLen = alphaTnaf.Length;
             for (uint i = 3; i < precompLen; i += 2)
             {
-                pu[i >> 1] = Tnaf.MultiplyFromTnaf(p, alphaTnaf[i]);
+                pu[i >> 1] = Tnaf.MultiplyFromTnaf(p, pNeg, alphaTnaf[i]);
             }
 
             p.Curve.NormalizeAll(pu);

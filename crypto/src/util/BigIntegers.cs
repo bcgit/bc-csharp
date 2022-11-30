@@ -16,6 +16,22 @@ namespace Org.BouncyCastle.Utilities
 
         private const int MaxIterations = 1000;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [CLSCompliant(false)]
+        public static void AsUint32ArrayLittleEndian(BigInteger n, Span<uint> buf)
+        {
+            int uintsLength = n.GetLengthofUInt32Array();
+
+            if (uintsLength > buf.Length)
+                throw new ArgumentException("standard length exceeded", nameof(n));
+
+            n.ToUInt32ArrayLittleEndian(buf);
+
+            int sign = (int)buf[uintsLength - 1] >> 31;
+            buf[uintsLength..].Fill((uint)sign);
+        }
+#endif
+
         /**
         * Return the passed in value as an unsigned byte array.
         *
