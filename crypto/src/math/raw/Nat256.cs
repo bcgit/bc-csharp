@@ -305,6 +305,16 @@ namespace Org.BouncyCastle.Math.Raw
             z[zOff + 3] = x[xOff + 3];
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Copy64(ReadOnlySpan<ulong> x, Span<ulong> z)
+        {
+            z[0] = x[0];
+            z[1] = x[1];
+            z[2] = x[2];
+            z[3] = x[3];
+        }
+#endif
+
         public static uint[] Create()
         {
             return new uint[8];
@@ -449,26 +459,30 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool IsZero(ReadOnlySpan<uint> x)
+#else
         public static bool IsZero(uint[] x)
+#endif
         {
             for (int i = 0; i < 8; ++i)
             {
                 if (x[i] != 0)
-                {
                     return false;
-                }
             }
             return true;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool IsZero64(ReadOnlySpan<ulong> x)
+#else
         public static bool IsZero64(ulong[] x)
+#endif
         {
             for (int i = 0; i < 4; ++i)
             {
                 if (x[i] != 0UL)
-                {
                     return false;
-                }
             }
             return true;
         }
