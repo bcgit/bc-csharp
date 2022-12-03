@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 #if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -119,8 +120,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             // Itoh-Tsujii inversion
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<ulong> t0 = stackalloc ulong[8];
-            Span<ulong> t1 = stackalloc ulong[8];
+            Span<ulong> t0 = stackalloc ulong[4];
+            Span<ulong> t1 = stackalloc ulong[4];
 #else
             ulong[] t0 = Nat256.Create64();
             ulong[] t1 = Nat256.Create64();
@@ -377,7 +378,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         private static void ImplMultiply(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> zz)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
+            if (Pclmulqdq.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<ulong>>() == 16)
             {
                 var X01 = Vector128.Create(x[0], x[1]);
                 var X23 = Vector128.Create(x[2], x[3]);
@@ -461,7 +462,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 ulong c0 = f[0] ^ f[2], c1 = f[1] ^ f[3];
                 ulong d0 = g[0] ^ g[2], d1 = g[1] ^ g[3];
                 ImplMulwAcc(u, c0 ^ c1, d0 ^ d1, zz[3..]);
-                ulong[] t = new ulong[3];
+                Span<ulong> t = stackalloc ulong[3];
                 ImplMulwAcc(u, c0, d0, t[0..]);
                 ImplMulwAcc(u, c1, d1, t[1..]);
                 ulong t0 = t[0], t1 = t[1], t2 = t[2];
@@ -577,14 +578,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 #if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
-                zz[7] = Bmi2.X64.ParallelBitDeposit(x[3] >> 32, 0x5555555555555555UL);
-                zz[6] = Bmi2.X64.ParallelBitDeposit(x[3]      , 0x5555555555555555UL);
-                zz[5] = Bmi2.X64.ParallelBitDeposit(x[2] >> 32, 0x5555555555555555UL);
-                zz[4] = Bmi2.X64.ParallelBitDeposit(x[2]      , 0x5555555555555555UL);
-                zz[3] = Bmi2.X64.ParallelBitDeposit(x[1] >> 32, 0x5555555555555555UL);
-                zz[2] = Bmi2.X64.ParallelBitDeposit(x[1]      , 0x5555555555555555UL);
-                zz[1] = Bmi2.X64.ParallelBitDeposit(x[0] >> 32, 0x5555555555555555UL);
-                zz[0] = Bmi2.X64.ParallelBitDeposit(x[0]      , 0x5555555555555555UL);
+                ulong x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
+                zz[7] = Bmi2.X64.ParallelBitDeposit(x3 >> 32, 0x5555555555555555UL);
+                zz[6] = Bmi2.X64.ParallelBitDeposit(x3      , 0x5555555555555555UL);
+                zz[5] = Bmi2.X64.ParallelBitDeposit(x2 >> 32, 0x5555555555555555UL);
+                zz[4] = Bmi2.X64.ParallelBitDeposit(x2      , 0x5555555555555555UL);
+                zz[3] = Bmi2.X64.ParallelBitDeposit(x1 >> 32, 0x5555555555555555UL);
+                zz[2] = Bmi2.X64.ParallelBitDeposit(x1      , 0x5555555555555555UL);
+                zz[1] = Bmi2.X64.ParallelBitDeposit(x0 >> 32, 0x5555555555555555UL);
+                zz[0] = Bmi2.X64.ParallelBitDeposit(x0      , 0x5555555555555555UL);
                 return;
             }
 #endif

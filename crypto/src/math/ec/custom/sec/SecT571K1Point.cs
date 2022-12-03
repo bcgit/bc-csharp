@@ -176,7 +176,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     SecT571Field.MultiplyPrecomp(Z3.x, Z2Precomp, Z3.x);
                 }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<ulong> tt = stackalloc ulong[18];
+#else
                 ulong[] tt = Nat576.CreateExt64();
+#endif
 
                 SecT571Field.Add(AU2, B, t4);
                 SecT571Field.SquareExt(t4, tt);

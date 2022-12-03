@@ -177,7 +177,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             SecT233FieldElement L1 = (SecT233FieldElement)this.RawYCoord, Z1 = (SecT233FieldElement)this.RawZCoords[0];
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<ulong> tt0 = stackalloc ulong[8];
+#else
             ulong[] tt0 = Nat256.CreateExt64();
+#endif
             ulong[] _X3 = Nat256.Create64();
             ulong[] _L3 = Nat256.Create64();
             ulong[] _Z3 = Nat256.Create64();
@@ -198,24 +202,28 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
             else
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<ulong> t1 = stackalloc ulong[4];
+#else
                 ulong[] t1 = Nat256.Create64();
-                ulong[] t2 = Nat256.Create64();
+#endif
 
                 SecT233Field.Multiply(L1.x, Z1.x, t1);      // L1Z1
                 SecT233Field.Square(Z1.x, tt0);             // Z1Sq
 
-                SecT233Field.Square(L1.x, t2);
-                SecT233Field.AddBothTo(t1, tt0, t2);        // T
+                SecT233Field.Square(L1.x, _X3);
+                SecT233Field.AddBothTo(t1, tt0, _X3);       // T
 
-                if (Nat256.IsZero64(t2))
-                    return new SecT233R1Point(curve, new SecT233FieldElement(t2), curve.B.Sqrt());
+                if (Nat256.IsZero64(_X3))
+                    return new SecT233R1Point(curve, new SecT233FieldElement(_X3), curve.B.Sqrt());
 
-                SecT233Field.Square(t2, _X3);
-                SecT233Field.Multiply(t2, tt0, _Z3);
+                SecT233Field.Multiply(_X3, tt0, _Z3);
                 SecT233Field.Multiply(X1.x, Z1.x, tt0);     // X1Z1
 
                 SecT233Field.SquareExt(tt0, tt0);
-                SecT233Field.MultiplyAddToExt(t2, t1, tt0);
+                SecT233Field.MultiplyAddToExt(_X3, t1, tt0);
+
+                SecT233Field.Square(_X3, _X3);
             }
 
             SecT233Field.Reduce(tt0, _L3);

@@ -82,7 +82,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecT163FieldElement L1 = (SecT163FieldElement)this.RawYCoord, Z1 = (SecT163FieldElement)this.RawZCoords[0];
             SecT163FieldElement L2 = (SecT163FieldElement)b.RawYCoord, Z2 = (SecT163FieldElement)b.RawZCoords[0];
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<ulong> tt0 = stackalloc ulong[6];
+#else
             ulong[] tt0 = Nat192.CreateExt64();
+#endif
             ulong[] t1 = Nat192.Create64();
             ulong[] t2 = Nat192.Create64();
             ulong[] t3 = Nat192.Create64();
