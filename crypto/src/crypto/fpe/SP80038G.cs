@@ -15,34 +15,34 @@ namespace Org.BouncyCastle.Crypto.Fpe
 	 *     2. Algs 9-10 specify reversal of the cipher key!
 	 * - Separate construction/initialization stage for "prerequisites"
 	 */
-    internal class SP80038G
+    internal static class SP80038G
     {
         internal static readonly string FPE_DISABLED = "Org.BouncyCastle.Fpe.Disable";
         internal static readonly string FF1_DISABLED = "Org.BouncyCastle.Fpe.Disable_Ff1";
 
-        protected static readonly int BLOCK_SIZE = 16;
-        protected static readonly double LOG2 = System.Math.Log(2.0);
-        protected static readonly double TWO_TO_96 = System.Math.Pow(2, 96);
+        private static readonly int BLOCK_SIZE = 16;
+        private static readonly double LOG2 = System.Math.Log(2.0);
+        private static readonly double TWO_TO_96 = System.Math.Pow(2, 96);
 
         public static byte[] DecryptFF1(IBlockCipher cipher, int radix, byte[] tweak, byte[] buf, int off, int len)
         {
-            checkArgs(cipher, true, radix, buf, off, len);
+            CheckArgs(cipher, true, radix, buf, off, len);
 
             // Algorithm 8
             int n = len;
             int u = n / 2, v = n - u;
 
-            ushort[] A = toShort(buf, off, u);
-            ushort[] B = toShort(buf, off + u, v);
+            ushort[] A = ToShort(buf, off, u);
+            ushort[] B = ToShort(buf, off + u, v);
 
-            ushort[] rv = decFF1(cipher, radix, tweak, n, u, v, A, B);
+            ushort[] rv = DecFF1(cipher, radix, tweak, n, u, v, A, B);
 
-            return toByte(rv);
+            return ToByte(rv);
         }
 
         public static ushort[] DecryptFF1w(IBlockCipher cipher, int radix, byte[] tweak, ushort[] buf, int off, int len)
         {
-            checkArgs(cipher, true, radix, buf, off, len);
+            CheckArgs(cipher, true, radix, buf, off, len);
 
             // Algorithm 8
             int n = len;
@@ -54,39 +54,39 @@ namespace Org.BouncyCastle.Crypto.Fpe
             Array.Copy(buf, off, A, 0, u);
             Array.Copy(buf, off + u, B, 0, v);
 
-            return decFF1(cipher, radix, tweak, n, u, v, A, B);
+            return DecFF1(cipher, radix, tweak, n, u, v, A, B);
         }
 
-        private static ushort[] decFF1(IBlockCipher cipher, int radix, byte[] T, int n, int u, int v, ushort[] A, ushort[] B)
+        private static ushort[] DecFF1(IBlockCipher cipher, int radix, byte[] T, int n, int u, int v, ushort[] A, ushort[] B)
         {
             int t = T.Length;
             int b = ((int)Ceil(System.Math.Log((double)radix) * (double)v / LOG2) + 7) / 8;
             int d = (((b + 3) / 4) * 4) + 4;
 
-            byte[] P = calculateP_FF1(radix, (byte)u, n, t);
+            byte[] P = CalculateP_FF1(radix, (byte)u, n, t);
 
             BigInteger bigRadix = BigInteger.ValueOf(radix);
-            BigInteger[] modUV = calculateModUV(bigRadix, u, v);
+            BigInteger[] modUV = CalculateModUV(bigRadix, u, v);
 
             int m = u;
 
             for (int i = 9; i >= 0; --i)
             {
                 // i. - iv.
-                BigInteger y = calculateY_FF1(cipher, bigRadix, T, b, d, i, P, A);
+                BigInteger y = CalculateY_FF1(cipher, bigRadix, T, b, d, i, P, A);
 
                 // v.
                 m = n - m;
                 BigInteger modulus = modUV[i & 1];
 
                 // vi.
-                BigInteger c = num(bigRadix, B).Subtract(y).Mod(modulus);
+                BigInteger c = Num(bigRadix, B).Subtract(y).Mod(modulus);
 
                 // vii. - ix.
                 ushort[] C = B;
                 B = A;
                 A = C;
-                str(bigRadix, c, m, C, 0);
+                Str(bigRadix, c, m, C, 0);
             }
 
             return Arrays.Concatenate(A, B);
@@ -94,61 +94,55 @@ namespace Org.BouncyCastle.Crypto.Fpe
 
         public static byte[] DecryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak64.Length != 8)
-            {
                 throw new ArgumentException();
-            }
 
-            return implDecryptFF3(cipher, radix, tweak64, buf, off, len);
+            return ImplDecryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
         public static byte[] DecryptFF3_1(IBlockCipher cipher, int radix, byte[] tweak56, byte[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak56.Length != 7)
-            {
                 throw new ArgumentException("tweak should be 56 bits");
-            }
 
-            byte[] tweak64 = calculateTweak64_FF3_1(tweak56);
+            byte[] tweak64 = CalculateTweak64_FF3_1(tweak56);
 
-            return implDecryptFF3(cipher, radix, tweak64, buf, off, len);
+            return ImplDecryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
         public static ushort[] DecryptFF3_1w(IBlockCipher cipher, int radix, byte[] tweak56, ushort[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak56.Length != 7)
-            {
                 throw new ArgumentException("tweak should be 56 bits");
-            }
 
-            byte[] tweak64 = calculateTweak64_FF3_1(tweak56);
+            byte[] tweak64 = CalculateTweak64_FF3_1(tweak56);
 
-            return implDecryptFF3w(cipher, radix, tweak64, buf, off, len);
+            return ImplDecryptFF3w(cipher, radix, tweak64, buf, off, len);
         }
 
         public static byte[] EncryptFF1(IBlockCipher cipher, int radix, byte[] tweak, byte[] buf, int off, int len)
         {
-            checkArgs(cipher, true, radix, buf, off, len);
+            CheckArgs(cipher, true, radix, buf, off, len);
 
             // Algorithm 7
             int n = len;
             int u = n / 2, v = n - u;
 
-            ushort[] A = toShort(buf, off, u);
-            ushort[] B = toShort(buf, off + u, v);
+            ushort[] A = ToShort(buf, off, u);
+            ushort[] B = ToShort(buf, off + u, v);
 
-            return toByte(encFF1(cipher, radix, tweak, n, u, v, A, B));
+            return ToByte(EncFF1(cipher, radix, tweak, n, u, v, A, B));
         }
 
         public static ushort[] EncryptFF1w(IBlockCipher cipher, int radix, byte[] tweak, ushort[] buf, int off, int len)
         {
-            checkArgs(cipher, true, radix, buf, off, len);
+            CheckArgs(cipher, true, radix, buf, off, len);
 
             // Algorithm 7
             int n = len;
@@ -160,40 +154,40 @@ namespace Org.BouncyCastle.Crypto.Fpe
             Array.Copy(buf, off, A, 0, u);
             Array.Copy(buf, off + u, B, 0, v);
 
-            return encFF1(cipher, radix, tweak, n, u, v, A, B);
+            return EncFF1(cipher, radix, tweak, n, u, v, A, B);
         }
 
-        private static ushort[] encFF1(IBlockCipher cipher, int radix, byte[] T, int n, int u, int v, ushort[] A, ushort[] B)
+        private static ushort[] EncFF1(IBlockCipher cipher, int radix, byte[] T, int n, int u, int v, ushort[] A, ushort[] B)
         {
             int t = T.Length;
 
             int b = ((int)Ceil(System.Math.Log((double)radix) * (double)v / LOG2) + 7) / 8;
             int d = (((b + 3) / 4) * 4) + 4;
 
-            byte[] P = calculateP_FF1(radix, (byte)u, n, t);
+            byte[] P = CalculateP_FF1(radix, (byte)u, n, t);
 
             BigInteger bigRadix = BigInteger.ValueOf(radix);
-            BigInteger[] modUV = calculateModUV(bigRadix, u, v);
+            BigInteger[] modUV = CalculateModUV(bigRadix, u, v);
 
             int m = v;
 
             for (int i = 0; i < 10; ++i)
             {
                 // i. - iv.
-                BigInteger y = calculateY_FF1(cipher, bigRadix, T, b, d, i, P, B);
+                BigInteger y = CalculateY_FF1(cipher, bigRadix, T, b, d, i, P, B);
 
                 // v.
                 m = n - m;
                 BigInteger modulus = modUV[i & 1];
 
                 // vi.
-                BigInteger c = num(bigRadix, A).Add(y).Mod(modulus);
+                BigInteger c = Num(bigRadix, A).Add(y).Mod(modulus);
 
                 // vii. - ix.
                 ushort[] C = A;
                 A = B;
                 B = C;
-                str(bigRadix, c, m, C, 0);
+                Str(bigRadix, c, m, C, 0);
             }
 
             return Arrays.Concatenate(A, B);
@@ -201,56 +195,49 @@ namespace Org.BouncyCastle.Crypto.Fpe
 
         public static byte[] EncryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak64.Length != 8)
-            {
                 throw new ArgumentException();
-            }
 
-            return implEncryptFF3(cipher, radix, tweak64, buf, off, len);
+            return ImplEncryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
         public static ushort[] EncryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak64.Length != 8)
-            {
                 throw new ArgumentException();
-            }
 
-            return implEncryptFF3w(cipher, radix, tweak64, buf, off, len);
+            return ImplEncryptFF3w(cipher, radix, tweak64, buf, off, len);
         }
 
         public static ushort[] EncryptFF3_1w(IBlockCipher cipher, int radix, byte[] tweak56, ushort[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak56.Length != 7)
-            {
                 throw new ArgumentException("tweak should be 56 bits");
-            }
-            byte[] tweak64 = calculateTweak64_FF3_1(tweak56);
+
+            byte[] tweak64 = CalculateTweak64_FF3_1(tweak56);
 
             return EncryptFF3w(cipher, radix, tweak64, buf, off, len);
         }
 
         public static byte[] EncryptFF3_1(IBlockCipher cipher, int radix, byte[] tweak56, byte[] buf, int off, int len)
         {
-            checkArgs(cipher, false, radix, buf, off, len);
+            CheckArgs(cipher, false, radix, buf, off, len);
 
             if (tweak56.Length != 7)
-            {
                 throw new ArgumentException("tweak should be 56 bits");
-            }
 
-            byte[] tweak64 = calculateTweak64_FF3_1(tweak56);
+            byte[] tweak64 = CalculateTweak64_FF3_1(tweak56);
 
             return EncryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
-        protected static BigInteger[] calculateModUV(BigInteger bigRadix, int u, int v)
+        private static BigInteger[] CalculateModUV(BigInteger bigRadix, int u, int v)
         {
             BigInteger[] modUV = new BigInteger[2];
             modUV[0] = bigRadix.Pow(u);
@@ -262,7 +249,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return modUV;
         }
 
-        protected static byte[] calculateP_FF1(int radix, byte uLow, int n, int t)
+        private static byte[] CalculateP_FF1(int radix, byte uLow, int n, int t)
         {
             byte[] P = new byte[BLOCK_SIZE];
             P[0] = 1;
@@ -281,7 +268,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return P;
         }
 
-        protected static byte[] calculateTweak64_FF3_1(byte[] tweak56)
+        private static byte[] CalculateTweak64_FF3_1(byte[] tweak56)
         {
             byte[] tweak64 = new byte[8];
             tweak64[0] = tweak56[0];
@@ -296,7 +283,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return tweak64;
         }
 
-        protected static BigInteger calculateY_FF1(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int b, int d, int round, byte[] P, ushort[] AB)
+        private static BigInteger CalculateY_FF1(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int b, int d, int round, byte[] P, ushort[] AB)
         {
             int t = T.Length;
 
@@ -306,11 +293,11 @@ namespace Org.BouncyCastle.Crypto.Fpe
             Array.Copy(T, 0, Q, 0, t);
             Q[t + zeroes] = (byte)round;
 
-            BigInteger numAB = num(bigRadix, AB);
+            BigInteger numAB = Num(bigRadix, AB);
             BigIntegers.AsUnsignedByteArray(numAB, Q, Q.Length - b, b);
 
             // ii.
-            byte[] R = prf(cipher, Arrays.Concatenate(P, Q));
+            byte[] R = Prf(cipher, Arrays.Concatenate(P, Q));
 
             // iii.
             byte[] sBlocks = R;
@@ -337,14 +324,14 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return new BigInteger(1, sBlocks, 0, d);
         }
 
-        protected static BigInteger calculateY_FF3(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int wOff,
+        private static BigInteger CalculateY_FF3(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int wOff,
             uint round, ushort[] AB)
         {
             // ii.
             byte[] P = new byte[BLOCK_SIZE];
             Pack.UInt32_To_BE(Pack.BE_To_UInt32(T, wOff) ^ round, P, 0);
 
-            BigInteger numAB = num(bigRadix, AB);
+            BigInteger numAB = Num(bigRadix, AB);
             BigIntegers.AsUnsignedByteArray(numAB, P, 4, BLOCK_SIZE - 4);
 
             // iii.
@@ -357,92 +344,81 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return new BigInteger(1, S);
         }
 
-        protected static void checkArgs(IBlockCipher cipher, bool isFF1, int radix, ushort[] buf, int off, int len)
+        private static void CheckArgs(IBlockCipher cipher, bool isFF1, int radix, ushort[] buf, int off, int len)
         {
-            checkCipher(cipher);
+            CheckCipher(cipher);
             if (radix < 2 || radix > (1 << 16))
-            {
                 throw new ArgumentException();
-            }
-            checkData(isFF1, radix, buf, off, len);
+
+            CheckData(isFF1, radix, buf, off, len);
         }
 
-        protected static void checkArgs(IBlockCipher cipher, bool isFF1, int radix, byte[] buf, int off, int len)
+        private static void CheckArgs(IBlockCipher cipher, bool isFF1, int radix, byte[] buf, int off, int len)
         {
-            checkCipher(cipher);
+            CheckCipher(cipher);
             if (radix < 2 || radix > (1 << 8))
-            {
                 throw new ArgumentException();
-            }
-            checkData(isFF1, radix, buf, off, len);
+
+            CheckData(isFF1, radix, buf, off, len);
         }
 
-        protected static void checkCipher(IBlockCipher cipher)
+        private static void CheckCipher(IBlockCipher cipher)
         {
             if (BLOCK_SIZE != cipher.GetBlockSize())
-            {
                 throw new ArgumentException();
-            }
         }
 
-        protected static void checkData(bool isFF1, int radix, ushort[] buf, int off, int len)
+        private static void CheckData(bool isFF1, int radix, ushort[] buf, int off, int len)
         {
-            checkLength(isFF1, radix, len);
+            CheckLength(isFF1, radix, len);
             for (int i = 0; i < len; ++i)
             {
                 int b = buf[off + i] & 0xFFFF;
                 if (b >= radix)
-                {
                     throw new ArgumentException("input data outside of radix");
-                }
             }
         }
 
-        protected static void checkData(bool isFF1, int radix, byte[] buf, int off, int len)
+        private static void CheckData(bool isFF1, int radix, byte[] buf, int off, int len)
         {
-            checkLength(isFF1, radix, len);
+            CheckLength(isFF1, radix, len);
             for (int i = 0; i < len; ++i)
             {
                 int b = buf[off + i] & 0xFF;
                 if (b >= radix)
-                {
                     throw new ArgumentException("input data outside of radix");
-                }
             }
         }
 
-        private static void checkLength(bool isFF1, int radix, int len)
+        private static void CheckLength(bool isFF1, int radix, int len)
         {
             if (len < 2 || System.Math.Pow(radix, len) < 1000000)
-            {
                 throw new ArgumentException("input too short");
-            }
+
             if (!isFF1)
             {
                 int maxLen = 2 * (int)(System.Math.Floor(System.Math.Log(TWO_TO_96) / System.Math.Log(radix)));
                 if (len > maxLen)
-                {
                     throw new ArgumentException("maximum input length is " + maxLen);
-                }
             }
         }
 
-        protected static byte[] implDecryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
+        private static byte[] ImplDecryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
         {
             // Algorithm 10
             byte[] T = tweak64;
             int n = len;
             int v = n / 2, u = n - v;
 
-            ushort[] A = toShort(buf, off, u);
-            ushort[] B = toShort(buf, off + u, v);
+            ushort[] A = ToShort(buf, off, u);
+            ushort[] B = ToShort(buf, off + u, v);
 
-            ushort[] rv = decFF3_1(cipher, radix, T, n, v, u, A, B);
+            ushort[] rv = DecFF3_1(cipher, radix, T, n, v, u, A, B);
 
-            return toByte(rv);
+            return ToByte(rv);
         }
 
-        protected static ushort[] implDecryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
+        private static ushort[] ImplDecryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
         {
             // Algorithm 10
             byte[] T = tweak64;
@@ -455,13 +431,13 @@ namespace Org.BouncyCastle.Crypto.Fpe
             Array.Copy(buf, off, A, 0, u);
             Array.Copy(buf, off + u, B, 0, v);
 
-            return decFF3_1(cipher, radix, T, n, v, u, A, B);
+            return DecFF3_1(cipher, radix, T, n, v, u, A, B);
         }
 
-        private static ushort[] decFF3_1(IBlockCipher cipher, int radix, byte[] T, int n, int v, int u, ushort[] A, ushort[] B)
+        private static ushort[] DecFF3_1(IBlockCipher cipher, int radix, byte[] T, int n, int v, int u, ushort[] A, ushort[] B)
         {
             BigInteger bigRadix = BigInteger.ValueOf(radix);
-            BigInteger[] modVU = calculateModUV(bigRadix, v, u);
+            BigInteger[] modVU = CalculateModUV(bigRadix, v, u);
 
             int m = u;
 
@@ -477,16 +453,16 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 int wOff = 4 - ((i & 1) * 4);
 
                 // ii. - iv.
-                BigInteger y = calculateY_FF3(cipher, bigRadix, T, wOff, (uint)i, A);
+                BigInteger y = CalculateY_FF3(cipher, bigRadix, T, wOff, (uint)i, A);
 
                 // v.
-                BigInteger c = num(bigRadix, B).Subtract(y).Mod(modulus);
+                BigInteger c = Num(bigRadix, B).Subtract(y).Mod(modulus);
 
                 // vi. - viii.
                 ushort[] C = B;
                 B = A;
                 A = C;
-                str(bigRadix, c, m, C, 0);
+                Str(bigRadix, c, m, C, 0);
             }
 
             Array.Reverse(A);
@@ -495,22 +471,22 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return Arrays.Concatenate(A, B);
         }
 
-        protected static byte[] implEncryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
+        private static byte[] ImplEncryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
         {
             // Algorithm 9
             byte[] T = tweak64;
             int n = len;
             int v = n / 2, u = n - v;
 
-            ushort[] A = toShort(buf, off, u);
-            ushort[] B = toShort(buf, off + u, v);
+            ushort[] A = ToShort(buf, off, u);
+            ushort[] B = ToShort(buf, off + u, v);
 
-            ushort[] rv = encFF3_1(cipher, radix, T, n, v, u, A, B);
+            ushort[] rv = EncFF3_1(cipher, radix, T, n, v, u, A, B);
 
-            return toByte(rv);
+            return ToByte(rv);
         }
 
-        protected static ushort[] implEncryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
+        private static ushort[] ImplEncryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
         {
             // Algorithm 9
             byte[] T = tweak64;
@@ -523,13 +499,13 @@ namespace Org.BouncyCastle.Crypto.Fpe
             Array.Copy(buf, off, A, 0, u);
             Array.Copy(buf, off + u, B, 0, v);
 
-            return encFF3_1(cipher, radix, T, n, v, u, A, B);
+            return EncFF3_1(cipher, radix, T, n, v, u, A, B);
         }
 
-        private static ushort[] encFF3_1(IBlockCipher cipher, int radix, byte[] t, int n, int v, int u, ushort[] a, ushort[] b)
+        private static ushort[] EncFF3_1(IBlockCipher cipher, int radix, byte[] t, int n, int v, int u, ushort[] a, ushort[] b)
         {
             BigInteger bigRadix = BigInteger.ValueOf(radix);
-            BigInteger[] modVU = calculateModUV(bigRadix, v, u);
+            BigInteger[] modVU = CalculateModUV(bigRadix, v, u);
 
             int m = v;
 
@@ -545,16 +521,16 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 int wOff = 4 - (int)((i & 1) * 4);
 
                 // ii. - iv.
-                BigInteger y = calculateY_FF3(cipher, bigRadix, t, wOff, i, b);
+                BigInteger y = CalculateY_FF3(cipher, bigRadix, t, wOff, i, b);
 
                 // v.
-                BigInteger c = num(bigRadix, a).Add(y).Mod(modulus);
+                BigInteger c = Num(bigRadix, a).Add(y).Mod(modulus);
 
                 // vi. - viii.
                 ushort[] C = a;
                 a = b;
                 b = C;
-                str(bigRadix, c, m, C, 0);
+                Str(bigRadix, c, m, C, 0);
             }
 
             Array.Reverse(a);
@@ -563,7 +539,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return Arrays.Concatenate(a, b);
         }
 
-        protected static BigInteger num(BigInteger R, ushort[] x)
+        private static BigInteger Num(BigInteger R, ushort[] x)
         {
             BigInteger result = BigInteger.Zero;
             for (int i = 0; i < x.Length; ++i)
@@ -573,7 +549,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return result;
         }
 
-        protected static byte[] prf(IBlockCipher c, byte[] x)
+        private static byte[] Prf(IBlockCipher c, byte[] x)
         {
             if ((x.Length % BLOCK_SIZE) != 0)
                 throw new ArgumentException();
@@ -583,14 +559,14 @@ namespace Org.BouncyCastle.Crypto.Fpe
 
             for (int i = 0; i < m; ++i)
             {
-                xor(x, i * BLOCK_SIZE, y, 0, BLOCK_SIZE);
+                Xor(x, i * BLOCK_SIZE, y, 0, BLOCK_SIZE);
                 c.ProcessBlock(y, 0, y, 0);
             }
 
             return y;
         }
 
-        protected static void str(BigInteger R, BigInteger x, int m, ushort[] output, int off)
+        private static void Str(BigInteger R, BigInteger x, int m, ushort[] output, int off)
         {
             if (x.SignValue < 0)
                 throw new ArgumentException();
@@ -605,7 +581,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 throw new ArgumentException();
         }
 
-        protected static void xor(byte[] x, int xOff, byte[] y, int yOff, int len)
+        private static void Xor(byte[] x, int xOff, byte[] y, int yOff, int len)
         {
             for (int i = 0; i < len; ++i)
             {
@@ -613,7 +589,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             }
         }
 
-        private static byte[] toByte(ushort[] buf)
+        private static byte[] ToByte(ushort[] buf)
         {
             byte[] s = new byte[buf.Length];
 
@@ -625,7 +601,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return s;
         }
 
-        private static ushort[] toShort(byte[] buf, int off, int len)
+        private static ushort[] ToShort(byte[] buf, int off, int len)
         {
             ushort[] s = new ushort[len];
 
