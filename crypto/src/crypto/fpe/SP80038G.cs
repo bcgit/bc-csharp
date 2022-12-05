@@ -60,8 +60,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
         private static ushort[] DecFF1(IBlockCipher cipher, int radix, byte[] T, int n, int u, int v, ushort[] A, ushort[] B)
         {
             int t = T.Length;
-            int b = ((int)Ceil(System.Math.Log((double)radix) * (double)v / LOG2) + 7) / 8;
-            int d = (((b + 3) / 4) * 4) + 4;
+            int b = CalculateB_FF1(radix, v);
+            int d = (b + 7) & ~3;
 
             byte[] P = CalculateP_FF1(radix, (byte)u, n, t);
 
@@ -161,8 +161,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
         {
             int t = T.Length;
 
-            int b = ((int)Ceil(System.Math.Log((double)radix) * (double)v / LOG2) + 7) / 8;
-            int d = (((b + 3) / 4) * 4) + 4;
+            int b = CalculateB_FF1(radix, v);
+            int d = (b + 7) & ~3;
 
             byte[] P = CalculateP_FF1(radix, (byte)u, n, t);
 
@@ -235,6 +235,26 @@ namespace Org.BouncyCastle.Crypto.Fpe
             byte[] tweak64 = CalculateTweak64_FF3_1(tweak56);
 
             return EncryptFF3(cipher, radix, tweak64, buf, off, len);
+        }
+
+        private static int CalculateB_FF1(int radix, int v)
+        {
+            //return (BigInteger.ValueOf(radix).Pow(v).Subtract(BigInteger.One).BitLength + 7) / 8;
+
+            int powersOfTwo = Integers.NumberOfTrailingZeros(radix);
+            int bits = powersOfTwo * v;
+
+            int oddPart = radix >> powersOfTwo;
+            if (oddPart != 1)
+            {
+                // Old version with rounding issues, especially for power of 2 radix, but maybe others.
+                //bits += (int)System.Math.Ceiling(System.Math.Log((double)oddPart) * (double)v / LOG2);
+
+                // Exact calculation, with possible performance issues if v is too large.
+                bits += BigInteger.ValueOf(oddPart).Pow(v).BitLength;
+            }
+
+            return (bits + 7) / 8;
         }
 
         private static BigInteger[] CalculateModUV(BigInteger bigRadix, int u, int v)
@@ -612,14 +632,5 @@ namespace Org.BouncyCastle.Crypto.Fpe
 
             return s;
         }
-
-	    private static int Ceil(double v)
-	    {
-		    int rv = (int)v;
-		    if ((double)rv < v)
-			    return rv + 1;
-
-            return rv;
-	    }
     }
 }
