@@ -128,6 +128,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				throw new InvalidOperationException("not set for unwrapping");
 			}
+            if (inLen < iv.Length)
+            {
+                throw new InvalidCipherTextException("unwrap data too short");
+            }
 
 			int n = inLen / 8;
 

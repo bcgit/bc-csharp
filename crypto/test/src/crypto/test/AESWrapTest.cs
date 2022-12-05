@@ -163,23 +163,35 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 
 			//
-			// short test
+			// short tests
 			//
 			try
 			{
 				wrapper.Init(false, key);
 
-				wrapper.Unwrap(buf, 0, buf.Length / 2);
+				wrapper.Unwrap(buf, 0, 0);
 
-				return new SimpleTestResult(false, Name + ": failed unwrap short test.");
+				return new SimpleTestResult(false, Name + ": failed unwrap short test 1.");
 			}
 			catch (InvalidCipherTextException)
 			{
 				// expected
 			}
+            try
+            {
+                wrapper.Init(false, key);
 
-			try
-			{
+                wrapper.Unwrap(buf, 0, buf.Length / 2);
+
+                return new SimpleTestResult(false, Name + ": failed unwrap short test 2.");
+            }
+            catch (InvalidCipherTextException)
+            {
+                // expected
+            }
+
+            try
+            {
 				wrapper.Init(true, key);
 
 				wrapper.Wrap(buf, 0, 15);
