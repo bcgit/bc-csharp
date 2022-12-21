@@ -119,6 +119,22 @@ namespace Org.BouncyCastle.Cmp
             return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual bool Verify(PKMacBuilder pkMacBuilder, ReadOnlySpan<char> password)
+        {
+            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(m_pkiMessage.Header.ProtectionAlg.Algorithm))
+                throw new InvalidOperationException("protection algorithm is not mac based");
+
+            PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
+
+            pkMacBuilder.SetParameters(parameter);
+
+            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
+
+            return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
+        }
+#endif
+
         private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)
         {
             Asn1EncodableVector avec = new Asn1EncodableVector();

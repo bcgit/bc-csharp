@@ -29,7 +29,19 @@ namespace Org.BouncyCastle.Cms
 		{
 		}
 
-		internal override KeyParameter GetEncoded(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public Pkcs5Scheme2Utf8PbeKey(ReadOnlySpan<char> password, ReadOnlySpan<byte> salt, int iterationCount)
+            : base(password, salt, iterationCount)
+        {
+        }
+
+        public Pkcs5Scheme2Utf8PbeKey(ReadOnlySpan<char> password, AlgorithmIdentifier keyDerivationAlgorithm)
+            : base(password, keyDerivationAlgorithm)
+        {
+        }
+#endif
+
+        internal override KeyParameter GetEncoded(
 			string algorithmOid)
 		{
 			Pkcs5S2ParametersGenerator gen = new Pkcs5S2ParametersGenerator();

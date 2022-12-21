@@ -46,6 +46,18 @@ namespace Org.BouncyCastle.Utilities
             return bs;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] ToByteArray(ReadOnlySpan<char> cs)
+        {
+            byte[] bs = new byte[cs.Length];
+            for (int i = 0; i < bs.Length; ++i)
+            {
+                bs[i] = Convert.ToByte(cs[i]);
+            }
+            return bs;
+        }
+#endif
+
         public static string FromAsciiByteArray(byte[] bytes)
         {
             return Encoding.ASCII.GetString(bytes);
@@ -75,5 +87,15 @@ namespace Org.BouncyCastle.Utilities
         {
             return Encoding.UTF8.GetBytes(s);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] ToUtf8ByteArray(ReadOnlySpan<char> cs)
+        {
+            int count = Encoding.UTF8.GetByteCount(cs);
+            byte[] bytes = new byte[count];
+            Encoding.UTF8.GetBytes(cs, bytes);
+            return bytes;
+        }
+#endif
     }
 }

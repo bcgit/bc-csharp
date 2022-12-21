@@ -50,10 +50,53 @@ namespace Org.BouncyCastle.Security
         /// <exception cref="IOException"/>
         public AsymmetricKeyParameter GetKey(string alias, char[] password)
         {
-            if (alias == null)
-                throw new ArgumentNullException(nameof(alias));
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return GetKey(alias, password.AsSpan());
+#else
+            if (alias == null)
+                throw new ArgumentNullException(nameof(alias));
+
+            if (!m_keyEntries.TryGetValue(alias, out JksKeyEntry keyEntry))
+                return null;
+
+            if (!JksObfuscationAlg.Equals(keyEntry.keyData.EncryptionAlgorithm))
+                throw new IOException("unknown encryption algorithm");
+
+            byte[] encryptedData = keyEntry.keyData.GetEncryptedData();
+
+            // key length is encryptedData - salt - checksum
+            int pkcs8Len = encryptedData.Length - 40;
+
+            IDigest digest = DigestUtilities.GetDigest("SHA-1");
+
+            // key decryption
+            byte[] keyStream = CalculateKeyStream(digest, password, encryptedData, pkcs8Len);
+            byte[] pkcs8Key = new byte[pkcs8Len];
+            for (int i = 0; i < pkcs8Len; ++i)
+            {
+                pkcs8Key[i] = (byte)(encryptedData[20 + i] ^ keyStream[i]);
+            }
+            Array.Clear(keyStream, 0, keyStream.Length);
+
+            // integrity check
+            byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
+
+            if (!Arrays.FixedTimeEquals(20, encryptedData, pkcs8Len + 20, checksum, 0))
+                throw new IOException("cannot recover key");
+
+            return PrivateKeyFactory.CreateKey(pkcs8Key);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public AsymmetricKeyParameter GetKey(string alias, ReadOnlySpan<char> password)
+        {
+            if (alias == null)
+                throw new ArgumentNullException(nameof(alias));
 
             if (!m_keyEntries.TryGetValue(alias, out JksKeyEntry keyEntry))
                 return null;
@@ -85,14 +128,49 @@ namespace Org.BouncyCastle.Security
 
             return PrivateKeyFactory.CreateKey(pkcs8Key);
         }
+#endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private byte[] GetKeyChecksum(IDigest digest, ReadOnlySpan<char> password, ReadOnlySpan<byte> pkcs8Key)
+        {
+            AddPassword(digest, password);
+
+            return DigestUtilities.DoFinal(digest, pkcs8Key);
+        }
+#else
         private byte[] GetKeyChecksum(IDigest digest, char[] password, byte[] pkcs8Key)
         {
             AddPassword(digest, password);
 
             return DigestUtilities.DoFinal(digest, pkcs8Key);
         }
+#endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private byte[] CalculateKeyStream(IDigest digest, ReadOnlySpan<char> password, ReadOnlySpan<byte> salt,
+            int count)
+        {
+            byte[] keyStream = new byte[count];
+
+            Span<byte> hash = stackalloc byte[20];
+            hash.CopyFrom(salt);
+
+            int index = 0;
+            while (index < count)
+            {
+                AddPassword(digest, password);
+
+                digest.BlockUpdate(hash);
+                digest.DoFinal(hash);
+
+                int length = System.Math.Min(hash.Length, keyStream.Length - index);
+                keyStream.AsSpan(index, length).CopyFrom(hash);
+                index += length;
+            }
+
+            return keyStream;
+        }
+#else
         private byte[] CalculateKeyStream(IDigest digest, char[] password, byte[] salt, int count)
         {
             byte[] keyStream = new byte[count];
@@ -113,6 +191,7 @@ namespace Org.BouncyCastle.Security
 
             return keyStream;
         }
+#endif
 
         public X509Certificate[] GetCertificateChain(string alias)
         {
@@ -128,7 +207,10 @@ namespace Org.BouncyCastle.Security
                 return certEntry.cert;
 
             if (m_keyEntries.TryGetValue(alias, out var keyEntry))
-                return keyEntry.chain?[0];
+            {
+                var chain = keyEntry.chain;
+                return chain == null || chain.Length == 0 ? null : chain[0];
+            }
 
             return null;
         }
@@ -146,6 +228,52 @@ namespace Org.BouncyCastle.Security
 
         /// <exception cref="IOException"/>
         public void SetKeyEntry(string alias, AsymmetricKeyParameter key, char[] password, X509Certificate[] chain)
+        {
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            SetKeyEntry(alias, key, password.AsSpan(), chain);
+#else
+            alias = ConvertAlias(alias);
+
+            if (ContainsAlias(alias))
+                throw new IOException("alias [" + alias + "] already in use");
+
+            byte[] pkcs8Key = PrivateKeyInfoFactory.CreatePrivateKeyInfo(key).GetEncoded();
+            byte[] protectedKey = new byte[pkcs8Key.Length + 40];
+
+            SecureRandom rnd = CryptoServicesRegistrar.GetSecureRandom();
+            rnd.NextBytes(protectedKey, 0, 20);
+
+            IDigest digest = DigestUtilities.GetDigest("SHA-1");
+
+            byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
+            Array.Copy(checksum, 0, protectedKey, 20 + pkcs8Key.Length, 20);
+
+            byte[] keyStream = CalculateKeyStream(digest, password, protectedKey, pkcs8Key.Length);
+            for (int i = 0; i != keyStream.Length; i++)
+            {
+                protectedKey[20 + i] = (byte)(pkcs8Key[i] ^ keyStream[i]);
+            }
+            Array.Clear(keyStream, 0, keyStream.Length);
+
+            try
+            {
+                var epki = new EncryptedPrivateKeyInfo(JksObfuscationAlg, protectedKey);
+                m_keyEntries.Add(alias, new JksKeyEntry(DateTime.UtcNow, epki.GetEncoded(), CloneChain(chain)));
+            }
+            catch (Exception e)
+            {
+                throw new IOException("unable to encode encrypted private key", e);
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public void SetKeyEntry(string alias, AsymmetricKeyParameter key, ReadOnlySpan<char> password,
+            X509Certificate[] chain)
         {
             alias = ConvertAlias(alias);
 
@@ -180,6 +308,7 @@ namespace Org.BouncyCastle.Security
                 throw new IOException("unable to encode encrypted private key", e);
             }
         }
+#endif
 
         /// <exception cref="IOException"/>
         public void SetKeyEntry(string alias, byte[] key, X509Certificate[] chain)
@@ -254,12 +383,36 @@ namespace Org.BouncyCastle.Security
         /// <exception cref="IOException"/>
         public void Save(Stream stream, char[] password)
         {
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Save(stream, password.AsSpan());
+#else
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
             IDigest checksumDigest = CreateChecksumDigest(password);
+
+            SaveStream(stream, checksumDigest);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public void Save(Stream stream, ReadOnlySpan<char> password)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            IDigest checksumDigest = CreateChecksumDigest(password);
+
+            SaveStream(stream, checksumDigest);
+        }
+#endif
+
+        private void SaveStream(Stream stream, IDigest checksumDigest)
+        {
             BinaryWriter bw = new BinaryWriter(new DigestStream(stream, null, checksumDigest));
 
             BinaryWriters.WriteInt32BigEndian(bw, Magic);
@@ -286,7 +439,7 @@ namespace Org.BouncyCastle.Security
                 }
             }
 
-            foreach (var entry in m_certificateEntries) 
+            foreach (var entry in m_certificateEntries)
             {
                 string alias = entry.Key;
                 JksTrustedCertEntry certEntry = entry.Value;
@@ -302,74 +455,101 @@ namespace Org.BouncyCastle.Security
             bw.Flush();
         }
 
+        /// <remarks>WARNING: If <paramref name="password"/> is <c>null</c>, no integrity check is performed.</remarks>
         /// <exception cref="IOException"/>
         public void Load(Stream stream, char[] password)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            m_certificateEntries.Clear();
-            m_keyEntries.Clear();
+            using (var storeStream = ValidateStream(stream, password))
+            {
+                LoadStream(storeStream);
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public void Load(Stream stream, ReadOnlySpan<char> password)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
 
             using (var storeStream = ValidateStream(stream, password))
             {
-                BinaryReader br = new BinaryReader(storeStream);
-
-                int magic = BinaryReaders.ReadInt32BigEndian(br);
-                int storeVersion = BinaryReaders.ReadInt32BigEndian(br);
-
-                if (!(magic == Magic && (storeVersion == 1 || storeVersion == 2)))
-                    throw new IOException("Invalid keystore format");
-
-                int numEntries = BinaryReaders.ReadInt32BigEndian(br);
-
-                for (int t = 0; t < numEntries; t++)
-                {
-                    int tag = BinaryReaders.ReadInt32BigEndian(br);
-
-                    switch (tag)
-                    {
-                    case 1: // keys
-                    {
-                        string alias = ReadUtf(br);
-                        DateTime date = ReadDateTime(br);
-
-                        // encrypted key data
-                        byte[] keyData = ReadBufferWithInt32Length(br);
-
-                        // certificate chain
-                        int chainLength = BinaryReaders.ReadInt32BigEndian(br);
-                        X509Certificate[] chain = null;
-                        if (chainLength > 0)
-                        {
-                            var certs = new List<X509Certificate>(System.Math.Min(10, chainLength));
-                            for (int certNo = 0; certNo != chainLength; certNo++)
-                            {
-                                certs.Add(ReadTypedCertificate(br, storeVersion));
-                            }
-                            chain = certs.ToArray();
-                        }
-                        m_keyEntries.Add(alias, new JksKeyEntry(date, keyData, chain));
-                        break;
-                    }
-                    case 2: // certificate
-                    {
-                        string alias = ReadUtf(br);
-                        DateTime date = ReadDateTime(br);
-
-                        X509Certificate cert = ReadTypedCertificate(br, storeVersion);
-
-                        m_certificateEntries.Add(alias, new JksTrustedCertEntry(date, cert));
-                        break;
-                    }
-                    default:
-                        throw new IOException("unable to discern entry type");
-                    }
-                }
-
-                if (storeStream.Position != storeStream.Length)
-                    throw new IOException("password incorrect or store tampered with");
+                LoadStream(storeStream);
             }
+        }
+#endif
+
+        /// <summary>Load without any integrity check.</summary>
+        /// <exception cref="IOException"/>
+        public void LoadUnchecked(Stream stream)
+        {
+            Load(stream, null);
+        }
+
+        private void LoadStream(ErasableByteStream storeStream)
+        {
+            m_certificateEntries.Clear();
+            m_keyEntries.Clear();
+
+            BinaryReader br = new BinaryReader(storeStream);
+
+            int magic = BinaryReaders.ReadInt32BigEndian(br);
+            int storeVersion = BinaryReaders.ReadInt32BigEndian(br);
+
+            if (!(magic == Magic && (storeVersion == 1 || storeVersion == 2)))
+                throw new IOException("Invalid keystore format");
+
+            int numEntries = BinaryReaders.ReadInt32BigEndian(br);
+
+            for (int t = 0; t < numEntries; t++)
+            {
+                int tag = BinaryReaders.ReadInt32BigEndian(br);
+
+                switch (tag)
+                {
+                case 1: // keys
+                {
+                    string alias = ReadUtf(br);
+                    DateTime date = ReadDateTime(br);
+
+                    // encrypted key data
+                    byte[] keyData = ReadBufferWithInt32Length(br);
+
+                    // certificate chain
+                    int chainLength = BinaryReaders.ReadInt32BigEndian(br);
+                    X509Certificate[] chain = null;
+                    if (chainLength > 0)
+                    {
+                        var certs = new List<X509Certificate>(System.Math.Min(10, chainLength));
+                        for (int certNo = 0; certNo != chainLength; certNo++)
+                        {
+                            certs.Add(ReadTypedCertificate(br, storeVersion));
+                        }
+                        chain = certs.ToArray();
+                    }
+                    m_keyEntries.Add(alias, new JksKeyEntry(date, keyData, chain));
+                    break;
+                }
+                case 2: // certificate
+                {
+                    string alias = ReadUtf(br);
+                    DateTime date = ReadDateTime(br);
+
+                    X509Certificate cert = ReadTypedCertificate(br, storeVersion);
+
+                    m_certificateEntries.Add(alias, new JksTrustedCertEntry(date, cert));
+                    break;
+                }
+                default:
+                    throw new IOException("unable to discern entry type");
+                }
+            }
+
+            if (storeStream.Position != storeStream.Length)
+                throw new IOException("password incorrect or store tampered with");
         }
 
         /*
@@ -391,7 +571,11 @@ namespace Org.BouncyCastle.Security
 
             if (password != null)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                byte[] checksum = CalculateChecksum(password, rawStore.AsSpan(0, checksumPos));
+#else
                 byte[] checksum = CalculateChecksum(password, rawStore, 0, checksumPos);
+#endif
 
                 if (!Arrays.FixedTimeEquals(20, checksum, 0, rawStore, checksumPos))
                 {
@@ -403,6 +587,36 @@ namespace Org.BouncyCastle.Security
             return new ErasableByteStream(rawStore, 0, checksumPos);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        private ErasableByteStream ValidateStream(Stream inputStream, ReadOnlySpan<char> password)
+        {
+            byte[] rawStore = Streams.ReadAll(inputStream);
+            int checksumPos = rawStore.Length - 20;
+
+            byte[] checksum = CalculateChecksum(password, rawStore.AsSpan(0, checksumPos));
+
+            if (!Arrays.FixedTimeEquals(20, checksum, 0, rawStore, checksumPos))
+            {
+                Array.Clear(rawStore, 0, rawStore.Length);
+                throw new IOException("password incorrect or store tampered with");
+            }
+
+            return new ErasableByteStream(rawStore, 0, checksumPos);
+        }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void AddPassword(IDigest digest, ReadOnlySpan<char> password)
+        {
+            // Encoding.BigEndianUnicode
+            for (int i = 0; i < password.Length; ++i)
+            {
+                digest.Update((byte)(password[i] >> 8));
+                digest.Update((byte)password[i]);
+            }
+        }
+#else
         private static void AddPassword(IDigest digest, char[] password)
         {
             // Encoding.BigEndianUnicode
@@ -412,13 +626,23 @@ namespace Org.BouncyCastle.Security
                 digest.Update((byte)password[i]);
             }
         }
+#endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static byte[] CalculateChecksum(ReadOnlySpan<char> password, ReadOnlySpan<byte> buffer)
+        {
+            IDigest checksumDigest = CreateChecksumDigest(password);
+            checksumDigest.BlockUpdate(buffer);
+            return DigestUtilities.DoFinal(checksumDigest);
+        }
+#else
         private static byte[] CalculateChecksum(char[] password, byte[] buffer, int offset, int length)
         {
             IDigest checksumDigest = CreateChecksumDigest(password);
             checksumDigest.BlockUpdate(buffer, offset, length);
             return DigestUtilities.DoFinal(checksumDigest);
         }
+#endif
 
         private static X509Certificate[] CloneChain(X509Certificate[] chain)
         {
@@ -430,6 +654,22 @@ namespace Org.BouncyCastle.Security
             return alias.ToLowerInvariant();
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static IDigest CreateChecksumDigest(ReadOnlySpan<char> password)
+        {
+            IDigest digest = DigestUtilities.GetDigest("SHA-1");
+            AddPassword(digest, password);
+
+            //
+            // This "Mighty Aphrodite" string goes all the way back to the
+            // first java betas in the mid 90's, why who knows? But see
+            // https://cryptosense.com/mighty-aphrodite-dark-secrets-of-the-java-keystore/
+            //
+            byte[] prefix = Encoding.UTF8.GetBytes("Mighty Aphrodite");
+            digest.BlockUpdate(prefix);
+            return digest;
+        }
+#else
         private static IDigest CreateChecksumDigest(char[] password)
         {
             IDigest digest = DigestUtilities.GetDigest("SHA-1");
@@ -444,6 +684,7 @@ namespace Org.BouncyCastle.Security
             digest.BlockUpdate(prefix, 0, prefix.Length);
             return digest;
         }
+#endif
 
         private static byte[] ReadBufferWithInt16Length(BinaryReader br)
         {

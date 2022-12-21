@@ -128,20 +128,62 @@ namespace Org.BouncyCastle.OpenSsl
             return new PemObject(type, encoding);
         }
 
-//		private string GetHexEncoded(byte[] bytes)
-//		{
-//			bytes = Hex.Encode(bytes);
-//
-//			char[] chars = new char[bytes.Length];
-//
-//			for (int i = 0; i != bytes.Length; i++)
-//			{
-//				chars[i] = (char)bytes[i];
-//			}
-//
-//			return new string(chars);
-//		}
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static PemObject CreatePemObject(object obj, string algorithm, ReadOnlySpan<char> password,
+            SecureRandom random)
+        {
+            if (obj == null)
+                throw new ArgumentNullException("obj");
+            if (algorithm == null)
+                throw new ArgumentNullException("algorithm");
+            if (random == null)
+                throw new ArgumentNullException("random");
 
+            if (obj is AsymmetricCipherKeyPair keyPair)
+            {
+                return CreatePemObject(keyPair.Private, algorithm, password, random);
+            }
+
+            string type = null;
+            byte[] keyData = null;
+
+            if (obj is AsymmetricKeyParameter akp)
+            {
+                if (akp.IsPrivate)
+                {
+                    keyData = EncodePrivateKey(akp, out type);
+                }
+            }
+
+            if (type == null || keyData == null)
+            {
+                // TODO Support other types?
+                throw new PemGenerationException("Object type not supported: " + Platform.GetTypeName(obj));
+            }
+
+
+            string dekAlgName = algorithm.ToUpperInvariant();
+
+            // Note: For backward compatibility
+            if (dekAlgName == "DESEDE")
+            {
+                dekAlgName = "DES-EDE3-CBC";
+            }
+
+            int ivLength = Platform.StartsWith(dekAlgName, "AES-") ? 16 : 8;
+
+            byte[] iv = new byte[ivLength];
+            random.NextBytes(iv);
+
+            byte[] encData = PemUtilities.Crypt(true, keyData, password, dekAlgName, iv);
+
+            var headers = new List<PemHeader>(2);
+            headers.Add(new PemHeader("Proc-Type", "4,ENCRYPTED"));
+            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv).ToUpperInvariant()));
+
+            return new PemObject(type, headers, encData);
+        }
+#else
         private static PemObject CreatePemObject(
             object			obj,
             string			algorithm,
@@ -201,6 +243,7 @@ namespace Org.BouncyCastle.OpenSsl
 
             return new PemObject(type, headers, encData);
         }
+#endif
 
         private static byte[] EncodePrivateKey(
             AsymmetricKeyParameter	akp,

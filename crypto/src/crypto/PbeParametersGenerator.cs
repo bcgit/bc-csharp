@@ -44,6 +44,15 @@ namespace Org.BouncyCastle.Crypto
             this.mIterationCount = iterationCount;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterationCount)
+        {
+            this.mPassword = password.ToArray();
+            this.mSalt = salt.ToArray();
+            this.mIterationCount = iterationCount;
+        }
+#endif
+
         public virtual byte[] Password
         {
             get { return Arrays.Clone(mPassword); }
@@ -105,8 +114,20 @@ namespace Org.BouncyCastle.Crypto
             if (password == null)
                 return new byte[0];
 
-            return Encoding.UTF8.GetBytes(password);
+            return Strings.ToUtf8ByteArray(password);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] Pkcs5PasswordToBytes(ReadOnlySpan<char> password)
+        {
+            return Strings.ToByteArray(password);
+        }
+
+        public static byte[] Pkcs5PasswordToUtf8Bytes(ReadOnlySpan<char> password)
+        {
+            return Strings.ToUtf8ByteArray(password);
+        }
+#endif
 
         /**
          * converts a password to a byte array according to the scheme in
@@ -137,5 +158,25 @@ namespace Org.BouncyCastle.Crypto
 
             return bytes;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password)
+        {
+            return Pkcs12PasswordToBytes(password, false);
+        }
+
+        public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password, bool wrongPkcs12Zero)
+        {
+            if (password.IsEmpty)
+                return new byte[wrongPkcs12Zero ? 2 : 0];
+
+            // +1 for extra 2 pad bytes.
+            byte[] bytes = new byte[(password.Length + 1) * 2];
+
+            Encoding.BigEndianUnicode.GetBytes(password, bytes);
+
+            return bytes;
+        }
+#endif
     }
 }

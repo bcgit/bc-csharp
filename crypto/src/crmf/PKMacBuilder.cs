@@ -217,17 +217,31 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>IMacFactory</returns>
         public IMacFactory Build(char[] password)
         {
-            if (parameters != null)
-                return GenCalculator(parameters, password);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Build(password.AsSpan());
+#else
+            PbmParameter pbmParameter = parameters;
+            if (pbmParameter == null)
+            {
+                pbmParameter = GenParameters();
+            }
 
-            byte[] salt = new byte[saltLength];
-
-            this.random = CryptoServicesRegistrar.GetSecureRandom(random);
-
-            random.NextBytes(salt);
-
-            return GenCalculator(new PbmParameter(salt, owf, iterationCount, mac), password);
+            return GenCalculator(pbmParameter, password);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public IMacFactory Build(ReadOnlySpan<char> password)
+        {
+            PbmParameter pbmParameter = parameters;
+            if (pbmParameter == null)
+            {
+                pbmParameter = GenParameters();
+            }
+
+            return GenCalculator(pbmParameter, password);
+        }
+#endif
 
         private void CheckIterationCountCeiling(int iterationCount)
         {
@@ -235,7 +249,19 @@ namespace Org.BouncyCastle.Crmf
                 throw new ArgumentException("iteration count exceeds limit (" + iterationCount + " > " + maxIterations + ")");
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private IMacFactory GenCalculator(PbmParameter parameters, ReadOnlySpan<char> password)
+        {
+            return GenCalculator(parameters, Strings.ToUtf8ByteArray(password));
+        }
+#else
         private IMacFactory GenCalculator(PbmParameter parameters, char[] password)
+        {
+            return GenCalculator(parameters, Strings.ToUtf8ByteArray(password));
+        }
+#endif
+
+        private IMacFactory GenCalculator(PbmParameter parameters, byte[] pw)
         {
             // From RFC 4211
             //
@@ -252,7 +278,6 @@ namespace Org.BouncyCastle.Crmf
             //       MAC = HASH( K XOR opad, HASH( K XOR ipad, data) )
             //
             //       Where opad and ipad are defined in [HMAC].
-            byte[] pw = Strings.ToUtf8ByteArray(password);
             byte[] salt = parameters.Salt.GetOctets();
             byte[] K = new byte[pw.Length + salt.Length];
 
@@ -279,6 +304,13 @@ namespace Org.BouncyCastle.Crmf
             byte[] key = K;
 
             return new PKMacFactory(key, parameters);
+        }
+
+        private PbmParameter GenParameters()
+        {
+            byte[] salt = SecureRandom.GetNextBytes(CryptoServicesRegistrar.GetSecureRandom(random), saltLength);
+
+            return new PbmParameter(salt, owf, iterationCount, mac);
         }
     }
 }

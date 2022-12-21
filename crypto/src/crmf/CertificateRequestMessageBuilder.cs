@@ -163,7 +163,13 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        [Obsolete("Use 'SetAuthInfoPKMacBuilder' instead")]
         public CertificateRequestMessageBuilder SetAuthInfoPKMAC(PKMacBuilder pkmacFactory, char[] password)
+        {
+            return SetAuthInfoPKMacBuilder(pkmacFactory, password);
+        }
+
+        public CertificateRequestMessageBuilder SetAuthInfoPKMacBuilder(PKMacBuilder pkmacFactory, char[] password)
         {
             this._pkMacBuilder = pkmacFactory;
             this._password = password;
