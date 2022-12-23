@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
 
             BigInteger gB = JPakeUtilities.CalculateGA(pg1.P, gx3, gx1, gx2);
 
-            BigInteger s = JPakeUtilities.CalculateS("password".ToCharArray());
+            BigInteger s = JPakeUtilities.CalculateS(pg1.Q, "password".ToCharArray());
 
             BigInteger xs = JPakeUtilities.CalculateX2s(pg1.Q, x4, s);
 
