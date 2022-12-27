@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Asn1
                 case 23: return ParseUtc(s, @"yyyyMMddHHmmss.fffffff\Z");
                 case 24: return ParseUtc(s, @"yyyyMMddHHmmss.ffffffff\Z");
                 case 25: return ParseUtc(s, @"yyyyMMddHHmmss.fffffffff\Z");
-                case 26: return ParseUtc(s, @"yyyyMMddHHmmss.fffffffff\Z");
+                case 26: return ParseUtc(s, @"yyyyMMddHHmmss.ffffffffff\Z");
                 default:
                     throw new FormatException();
                 }
