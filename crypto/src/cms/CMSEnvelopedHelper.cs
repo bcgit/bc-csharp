@@ -191,9 +191,9 @@ namespace Org.BouncyCastle.Cms
 //						else
 //						{
 //							string alg = macAlg.Algorithm.Id;
-//							if (alg.Equals(CmsEnvelopedDataGenerator.DesEde3Cbc)
-//								|| alg.Equals(CmsEnvelopedDataGenerator.IdeaCbc)
-//								|| alg.Equals(CmsEnvelopedDataGenerator.Cast5Cbc))
+//							if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
+//								|| alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
+//								|| alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
 //							{
 //								cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
 //							}
@@ -269,9 +269,9 @@ namespace Org.BouncyCastle.Cms
 					else
 					{
                         string alg = this.algorithm.Algorithm.Id;
-						if (alg.Equals(CmsEnvelopedDataGenerator.DesEde3Cbc)
-							|| alg.Equals(CmsEnvelopedDataGenerator.IdeaCbc)
-							|| alg.Equals(CmsEnvelopedDataGenerator.Cast5Cbc))
+						if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
+							|| alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
+							|| alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
 						{
 							cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
 						}

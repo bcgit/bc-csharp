@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     internal abstract class SphincsPlusEngine
     {
-        bool robust;
+        internal bool robust;
 
         internal int N;
 
@@ -25,12 +25,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         internal uint D;
         internal int A; // FORS_HEIGHT
         internal int K; // FORS_TREES
-        uint FH; // FULL_HEIGHT
+        internal uint FH; // FULL_HEIGHT
         internal uint H_PRIME; // H / D
 
         internal uint T; // T = 1 << A
 
-        public SphincsPlusEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
+        internal SphincsPlusEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
         {
             this.N = n;
 
@@ -347,44 +347,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 Array.Copy(adrs.value, Adrs.OFFSET_TREE + 4, rv, 1, 8); // LS 8 bytes Tree address
                 Array.Copy(adrs.value, Adrs.OFFSET_TYPE + 3, rv, 9, 1); // LSB type
                 Array.Copy(adrs.value, 20, rv, 10, 12);
-
                 return rv;
             }
 
             protected byte[] Bitmask(byte[] key, byte[] m)
             {
                 byte[] mask = new byte[m.Length];
-
                 mgf1.Init(new MgfParameters(key));
-
                 mgf1.GenerateBytes(mask, 0, mask.Length);
-
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    mask[i] ^= m[i];
-                }
-
+                Bytes.XorTo(m.Length, m, mask);
                 return mask;
             }
 
             protected byte[] Bitmask(byte[] key, byte[] m1, byte[] m2)
             {
                 byte[] mask = new byte[m1.Length + m2.Length];
-
                 mgf1.Init(new MgfParameters(key));
-
                 mgf1.GenerateBytes(mask, 0, mask.Length);
-
-                for (int i = 0; i < m1.Length; ++i)
-                {
-                    mask[i] ^= m1[i];
-                }
-                for (int i = 0; i < m2.Length; ++i)
-                {
-                    mask[i + m1.Length] ^= m2[i];
-                }
-
-
+                Bytes.XorTo(m1.Length, m1, mask);
+                Bytes.XorTo(m2.Length, m2, 0, mask, m1.Length);
                 return mask;
             }
 
@@ -395,18 +376,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 #endif
             {
                 byte[] mask = new byte[m.Length];
-
                 Mgf1BytesGenerator mgf1 = new Mgf1BytesGenerator(new Sha256Digest());
-
                 mgf1.Init(new MgfParameters(key));
-
                 mgf1.GenerateBytes(mask, 0, mask.Length);
-
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    mask[i] ^= m[i];
-                }
-
+                Bytes.XorTo(m.Length, m, mask);
                 return mask;
             }
         }
@@ -571,16 +544,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             protected byte[] Bitmask(byte[] pkSeed, Adrs adrs, byte[] m)
             {
                 byte[] mask = new byte[m.Length];
-
                 maskDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 maskDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 maskDigest.OutputFinal(mask, 0, mask.Length);
-
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    mask[i] ^= m[i];
-                }
-
+                Bytes.XorTo(m.Length, m, mask);
                 return mask;
             }
 
@@ -591,34 +558,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 maskDigest.BlockUpdate(pkSeed);
                 maskDigest.BlockUpdate(adrs.value);
                 maskDigest.OutputFinal(mask);
-
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    m[i] ^= mask[i];
-                }
+                Bytes.XorTo(m.Length, mask, m);
             }
 #endif
 
             protected byte[] Bitmask(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
             {
                 byte[] mask = new byte[m1.Length + m2.Length];
-
                 maskDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 maskDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 maskDigest.OutputFinal(mask, 0, mask.Length);
-
-                for (int i = 0; i < m1.Length; ++i)
-                {
-                    mask[i] ^= m1[i];
-                }
-                for (int i = 0; i < m2.Length; ++i)
-                {
-                    mask[i + m1.Length] ^= m2[i];
-                }
-
+                Bytes.XorTo(m1.Length, m1, mask);
+                Bytes.XorTo(m2.Length, m2, 0, mask, m1.Length);
                 return mask;
             }
-
         }
 
         internal class HarakaSEngine
@@ -649,10 +602,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 {
                     harakaS256Digest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                     harakaS256Digest.DoFinal(hash, 0);
-                    for (int i = 0; i < m1.Length; ++i)
-                    {
-                        hash[i] ^= m1[i];
-                    }
+                    Bytes.XorTo(m1.Length, m1, hash);
                     harakaS512Digest.BlockUpdate(hash, 0, m1.Length);
                 }
                 else
@@ -672,10 +622,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 {
                     harakaS256Digest.BlockUpdate(adrs.value);
                     harakaS256Digest.DoFinal(hash);
-                    for (int i = 0; i < m1.Length; ++i)
-                    {
-                        m1[i] ^= hash[i];
-                    }
+                    Bytes.XorTo(m1.Length, hash, m1);
                 }
 
                 harakaS512Digest.BlockUpdate(adrs.value);
@@ -787,10 +734,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 byte[] mask = new byte[m.Length];
                 harakaSXof.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 harakaSXof.OutputFinal(mask, 0, mask.Length);
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    m[i] ^= mask[i];
-                }
+                Bytes.XorTo(m.Length, mask, m);
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -799,10 +743,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 Span<byte> mask = stackalloc byte[m.Length];
                 harakaSXof.BlockUpdate(adrs.value);
                 harakaSXof.OutputFinal(mask);
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    m[i] ^= mask[i];
-                }
+                Bytes.XorTo(m.Length, mask, m);
             }
 #endif
         }
@@ -835,10 +776,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 {
                     Span<byte> mask = stackalloc byte[32];
                     Haraka256_X86.Hash(adrs.value, mask, m_harakaS.RoundConstants);
-                    for (int i = 0; i < m1.Length; ++i)
-                    {
-                        buf[32 + i] = (byte)(m1[i] ^ mask[i]);
-                    }
+                    Bytes.Xor(m1.Length, m1, mask, buf[32..]);
                 }
                 else
                 {
@@ -857,10 +795,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 {
                     Span<byte> mask = stackalloc byte[32];
                     Haraka256_X86.Hash(adrs.value, mask, m_harakaS.RoundConstants);
-                    for (int i = 0; i < m1.Length; ++i)
-                    {
-                        buf[32 + i] = (byte)(m1[i] ^ mask[i]);
-                    }
+                    Bytes.Xor(m1.Length, m1, mask, buf[32..]);
                 }
                 else
                 {
@@ -949,10 +884,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 Span<byte> mask = stackalloc byte[m.Length];
                 m_harakaS.BlockUpdate(adrs.value);
                 m_harakaS.OutputFinal(mask);
-                for (int i = 0; i < m.Length; ++i)
-                {
-                    m[i] ^= mask[i];
-                }
+                Bytes.XorTo(m.Length, mask, m);
             }
         }
 #endif

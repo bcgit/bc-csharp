@@ -1,5 +1,5 @@
 using System;
-using System.Reflection;
+
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -75,21 +75,16 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public CrlIdentifier(X509Name crlIssuer, Asn1UtcTime crlIssuedTime, BigInteger crlNumber)
         {
-            if (crlIssuer == null)
-                throw new ArgumentNullException(nameof(crlIssuer));
-            if (crlIssuedTime == null)
-                throw new ArgumentNullException(nameof(crlIssuedTime));
-
-            // Validate crlIssuedTime is in the appropriate year range
-            crlIssuedTime.ToDateTime(2049);
-
-            this.crlIssuer = crlIssuer;
-            this.crlIssuedTime = crlIssuedTime;
+            this.crlIssuer = crlIssuer ?? throw new ArgumentNullException(nameof(crlIssuer));
+            this.crlIssuedTime = crlIssuedTime ?? throw new ArgumentNullException(nameof(crlIssuedTime));
 
             if (null != crlNumber)
             {
                 this.crlNumber = new DerInteger(crlNumber);
             }
+
+            // Validate crlIssuedTime is in the appropriate year range
+            this.crlIssuedTime.ToDateTime(2049);
         }
 
         public X509Name CrlIssuer
@@ -104,12 +99,12 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public BigInteger CrlNumber
 		{
-			get { return crlNumber == null ? null : crlNumber.Value; }
+			get { return crlNumber?.Value; }
 		}
 
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(crlIssuer.ToAsn1Object(), crlIssuedTime);
+			var v = new Asn1EncodableVector(crlIssuer.ToAsn1Object(), crlIssuedTime);
             v.AddOptional(crlNumber);
 			return new DerSequence(v);
 		}

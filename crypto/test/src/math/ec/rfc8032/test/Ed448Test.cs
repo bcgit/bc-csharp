@@ -1,6 +1,4 @@
-﻿using System;
-
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
@@ -14,8 +12,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
     {
         private static readonly SecureRandom Random = new SecureRandom();
 
-        private static readonly byte[] Neutral = Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-
         [SetUp]
         public void SetUp()
         {
@@ -27,6 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
+            byte[] pk2 = new byte[Ed448.PublicKeySize];
             byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed448.SignatureSize];
@@ -38,7 +35,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed448.GeneratePublicKey(sk, 0, pk, 0);
+                var publicPoint = Ed448.GeneratePublicKey(sk, 0);
+                Ed448.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed448.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed448 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -47,14 +51,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed448 consistent signatures #" + i);
 
-                bool shouldVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+                {
+                    bool shouldVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed448.Verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                    Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
+                }
 
                 sig1[Ed448.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed448.Verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+                }
             }
         }
 
@@ -63,6 +82,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
+            byte[] pk2 = new byte[Ed448.PublicKeySize];
             byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] ph = new byte[Ed448.PrehashSize];
@@ -75,7 +95,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             for (int i = 0; i < 10; ++i)
             {
                 Random.NextBytes(sk);
-                Ed448.GeneratePublicKey(sk, 0, pk, 0);
+                var publicPoint = Ed448.GeneratePublicKey(sk, 0);
+                Ed448.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed448.GeneratePublicKey(sk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed448 consistent generation #" + i);
+                }
 
                 int mLen = Random.NextInt() & 255;
 
@@ -88,14 +115,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed448ph consistent signatures #" + i);
 
-                bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+                {
+                    bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-                Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+                    Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                    Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+                }
 
                 sig1[Ed448.PublicKeySize - 1] ^= 0x80;
-                bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-                Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
+                {
+                    bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
+                }
             }
         }
 
@@ -467,8 +509,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TestPublicKeyValidationFull()
         {
-            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Neutral, 0));
-
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
 
@@ -479,10 +519,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Assert.IsTrue(Ed448.ValidatePublicKeyFull(pk, 0));
             }
 
-            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080"), 0));
+            // Small order points (canonical encodings)
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
 
-            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
-            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
+            // Small order points (non-canonical encodings)
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
+
+            // Non-canonical encodings
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("00000000000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("00000000000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
             Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), 0));
             Assert.IsFalse(Ed448.ValidatePublicKeyFull(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000081"), 0));
 
@@ -512,8 +563,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TestPublicKeyValidationPartial()
         {
-            Assert.IsTrue(Ed448.ValidatePublicKeyPartial(Neutral, 0));
-
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
 
@@ -524,10 +573,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Assert.IsTrue(Ed448.ValidatePublicKeyPartial(pk, 0));
             }
 
-            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080"), 0));
+            // Small order points (canonical encodings)
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
 
-            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
-            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
+            // Small order points (non-canonical encodings)
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
+
+            // Non-canonical encodings
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("00000000000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"), 0));
+            Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("00000000000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80"), 0));
             Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), 0));
             Assert.IsFalse(Ed448.ValidatePublicKeyPartial(Hex.DecodeStrict("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000081"), 0));
 

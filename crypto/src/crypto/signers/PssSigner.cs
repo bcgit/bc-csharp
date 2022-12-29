@@ -211,12 +211,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		}
 #endif
 
-		public virtual void Reset()
-		{
-			contentDigest1.Reset();
-		}
+        public virtual int GetMaxSignatureSize() => cipher.GetOutputBlockSize();
 
-		public virtual byte[] GenerateSignature()
+        public virtual byte[] GenerateSignature()
 		{
 			if (contentDigest1.GetDigestSize() != hLen)
 				throw new InvalidOperationException();
@@ -333,8 +330,13 @@ namespace Org.BouncyCastle.Crypto.Signers
 			return true;
 		}
 
-		/// <summary> int to octet string.</summary>
-		private void ItoOSP(
+        public virtual void Reset()
+        {
+            contentDigest1.Reset();
+        }
+
+        /// <summary> int to octet string.</summary>
+        private void ItoOSP(
 			int		i,
 			byte[]	sp)
 		{

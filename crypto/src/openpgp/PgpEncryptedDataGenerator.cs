@@ -600,55 +600,43 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return Open(outStr, 0, buffer);
         }
 
-        #region IDisposable
-
-        public void Dispose()
+        [Obsolete("Dispose any opened Stream directly")]
+        public void Close()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (cOut != null)
             {
-                if (cOut != null)
+				// TODO Should this all be under the try/catch block?
+                if (digestOut != null)
                 {
-				    // TODO Should this all be under the try/catch block?
-                    if (digestOut != null)
-                    {
-                        //
-                        // hand code a mod detection packet
-                        //
-                        BcpgOutputStream bOut = new BcpgOutputStream(
-						    digestOut, PacketTag.ModificationDetectionCode, 20);
+                    //
+                    // hand code a mod detection packet
+                    //
+                    BcpgOutputStream bOut = new BcpgOutputStream(
+						digestOut, PacketTag.ModificationDetectionCode, 20);
 
-                        bOut.Flush();
-                        digestOut.Flush();
+                    bOut.Flush();
+                    digestOut.Flush();
 
-					    // TODO
-					    byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
-					    cOut.Write(dig, 0, dig.Length);
-                    }
-
-				    cOut.Flush();
-
-				    try
-                    {
-					    pOut.Write(c.DoFinal());
-                        pOut.Finish();
-                    }
-                    catch (Exception e)
-                    {
-                        throw new IOException(e.Message, e);
-                    }
-
-				    cOut = null;
-				    pOut = null;
+					// TODO
+					byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
+					cOut.Write(dig, 0, dig.Length);
                 }
+
+				cOut.Flush();
+
+				try
+                {
+					pOut.Write(c.DoFinal());
+                    pOut.Finish();
+                }
+                catch (Exception e)
+                {
+                    throw new IOException(e.Message, e);
+                }
+
+				cOut = null;
+				pOut = null;
             }
         }
-
-        #endregion
 	}
 }

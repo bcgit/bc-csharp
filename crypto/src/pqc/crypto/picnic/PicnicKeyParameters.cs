@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
     {
         private readonly PicnicParameters m_parameters;
 
-        public PicnicKeyParameters(bool isPrivate, PicnicParameters parameters)
+        internal PicnicKeyParameters(bool isPrivate, PicnicParameters parameters)
             : base(isPrivate)
         {
             m_parameters = parameters;

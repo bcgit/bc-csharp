@@ -2,7 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberPrivateKeyParameters
+    public sealed class KyberPrivateKeyParameters
         : KyberKeyParameters
     {
         private readonly byte[] m_s;

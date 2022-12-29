@@ -354,7 +354,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Copy(buffer, 0, calculatedMac, 0, macSize);
 
-                if (!Arrays.ConstantTimeAreEqual(mac, calculatedMac))
+                if (!Arrays.FixedTimeEquals(mac, calculatedMac))
                 {
                     throw new InvalidCipherTextException("mac check failed");
                 }
@@ -465,7 +465,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 calculatedMac.CopyFrom(buffer);
 
-                if (!Arrays.ConstantTimeAreEqual(mac.AsSpan(0, macSize), calculatedMac))
+                if (!Arrays.FixedTimeEquals(mac.AsSpan(0, macSize), calculatedMac))
                     throw new InvalidCipherTextException("mac check failed");
 
                 Reset();

@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                         return new DilithiumPublicKeyParameters(dilithiumParams, encKey);
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // raw encoding
                     return new DilithiumPublicKeyParameters(dilithiumParams, keyInfo.PublicKeyData.GetOctets());
@@ -344,7 +344,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                         return new FalconPublicKeyParameters(falconParams, Arrays.CopyOfRange(keyEnc, 1, keyEnc.Length));
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // raw encoding
                     byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();

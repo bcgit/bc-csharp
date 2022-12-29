@@ -7,6 +7,8 @@
 	<body>
 		<h2>The Bouncy Castle Cryptographic C#&reg; API</h2>
 		<p>
+Holders of <a href="https://www.keyfactor.com/platform/bouncy-castle-support/">Crypto Workshop Support Contracts</a>. Without the consulting time left over from support contracts being contributed back to working on the Bouncy Castle APIs, progress would be impossible. You know who you are!
+                </p>
 		<h3>Donors</h3>
                 <p>
                 The following people and organisations donated financially to help with the release of 1.8.9:
@@ -162,9 +164,6 @@ University of Wollongong, Institute of Cybersecurity and Cryptology, under the s
                 <p>John Allberg &lt;john&#064ayoy.se&gt; - improvements to Portable Class Library patch.</p>
             </li>
             <li>
-                <p>Oren Novotny (https://github.com/onovotny) - developed and maintained a fork supporting Portable Class Library, worked closely with us to integrate the changes back into the main project.</p>
-            </li>
-            <li>
                 <p>Nicolas Dorier (https://github.com/NicolasDorier) - patch to fix culture-dependent lookups in MacUtilities.</p>
             </li>
             <li>
@@ -174,14 +173,104 @@ University of Wollongong, Institute of Cybersecurity and Cryptology, under the s
                 <p>bkalakrishnan (https://github.com/bkalakrishnan) - reported issue with SecureRandom.NextDouble and advised how to fix.</p>
             </li>
             <li>
-                <p>BlackthornYugen (https://github.com/BlackthornYugen) - contributed unit tests for NIST ECC..</p>
+                <p>fabiogermann (https://github.com/fabiogermann) - Mixed definiton support for OAEPwithSHA256andMGF1withSHA1.</p>
+            </li>
+	    <li>
+		<p>Alexander Irrgang (https://github.com/alexander-irrgang) - ISignatureFactory usage improvements in X.509 Attribute Certificate generation.</p>
+	    </li>
+	    <li>
+                <p>Claire Novotny (https://github.com/clairernovotny) - developed and maintained a fork supporting Portable Class Library, worked closely with us to integrate the changes back into the main project.</p>
+            </li>
+	    <li>
+                <p>doomkin (https://github.com/doomkin) - contribution to netocreapp2.0 project files, PrivateKeyFactory cast fixes, contributions on GOST R 3410-2012.</p>
+	    </li>
+	    <li>
+                <p>Jim Schaad (https://github.com/jimsch) - Initial work on raw Public Keys.</p>
+	    </li>
+	    <li>
+                <p>ROM-Knowledgeware (https://github.com/ROM-Knowledgeware) - initial CMSSignedDataGenerator DER improvements, .csproj file contributions.</p>
+	    </li>
+	    <li> 
+	        <p>ZZMarquis (https://github.com/ZZMarquis) - SM2Engine offset fixes, contributions to porting SM4.</p>
+	    </li>
+	    <li> 
+	        <p>Devvox93 (https://github.com/Devvox93) - initial work on plain ECDSA support.</p>
+	    </li>
+	    <li>
+	        <p>alextolp (https://github.com/alextolp) - cleanup of Pkcs10CertificationRequest.</p>
+	    </li>
+	    <li>
+	        <p>agpreynolds (https://github.com/agpreynolds) - constructor patch for PollRepContent.</p>
+	    </li>
+	    <li>
+	        <p>setycz (https://github.com/setycz) - documentation updates.</p>
+	    </li>
+	    <li>
+	        <p>abcsxl (https://github.com/abcsxl) - initial port of SM4Engine.</p>
+	    </li>
+	    <li>
+	        <p>Timo Rothenpieler (https://github.com/TimoRoth) - offset fix for Ed25519.GetWnaf().</p>
+	    </li>
+	    <li>
+	        <p>Filippo Biondi (https://github.com/fedelippo) - RsaPrivateCrtKeyParameters additions, improvements to CmsSignedDataGenerator, documentation updates.<p>
+	    </li>
+	    <li>
+	        <p>AlexPaskhin (https://github.com/AkexPaskhin) - Netcore migration work - early 1.9.0 Netcore NuGet artifact.<p>
+	    </li>
+	    <li>
+	        <p>Christoph Hannebauer (https://github.com/bb-froggy) - static refactoring of some Utilities classes, addition of Microsoft Kerberos KeyPurposeID.<p>
+	    </li>
+	    <li>
+	        <p>Kristian Rastrup (https://github.com/rastrup) - PkixCertPath otherCert list fix, encryotionAlg table fix in CmsSignedHelper, excludedCerts fix in PkixBuilderParameters, PssSigner constructor fix, type check fix in DHValidationParms, Arrays.ToString() start fix, improvements to ECPointTest.<p>
+	    </li>
+	    <li>
+		<p>deniszykov (https://github.com/deniszykov) - TlsProtocol class improvements.</p>
+	    </li>
+	    <li>
+		<p>fm-DmitryShyryayev (https://github.com/fm-DmitryShyryayev) - initial DTLS cancellation work.</p>
+	    </li>
+	    <li>
+		<p>Liam Power (https://github.com/LiamPowerMatrikon) - initial pass at ChaCha20Poly1305.</p>
+	    </li>
+	    <li>
+	        <p>Skamaev (https://github.com/Skamaev) - GOST 2012 algorithm lookups for CmsSignedHelper.</p>
+	    </li>
+	    <li>
+	        <p>AntonPlotnikov (https://github.com/AntonPlotnikov) - Additional support for GOST 2012 algorithm in CMS SignedData generation.</p>
+	    </li>
+	    <li>
+	        <p>RafikBeng (https://github.com/RafikBeng) - algorithms table correction in DefaultSignatureAlgorithmIdentifier.</p>
+	    </li>
+	    <li>
+	        <p>Aaron Clauson (https://github.com/sipsorcery) - initial work on preventing DTLS handshake silent exception swallowing.</p>
+	    </li>
+            <li>
+                <p>John Steel (https://github.com/BlackthornYugen) - contributed unit tests for NIST ECC.</p>
             </li>
             <li>
                 <p>Nathan Douthit (https://github.com/ndouthit) - Null policy fix for TimeStampTokenGenerator</p>
             </li>
-            <li>
-                <p>fabiogermann (https://github.com/fabiogermann) - Mixed definiton support for OAEPwithSHA256andMGF1withSHA1.<p>
-            </li>
+	    <li>
+	        <p>Kangyuan Niu (https://github.com/niuk) - GCM reset in DTLS, initial work on ignoring corrupt records in DTLS.</p>
+	    </li>
+	    <li>
+	        <p>glebka-kozlov (https://github.com/glebka-kozlov) - further algorithm handling for GOST 2012.</p>
+	    </li>
+	    <li>
+	        <p>Jakub Jatczak (https://github.com/JakubJatczak) - file name casing with class name unification fixes.</p>
+	    </li>
+	    <li>
+		<p>Yari Melzani (https://github.com/iupsilon) - added OtherRevocationInfoFormat into CmsSigneData classes.</p>
+	    </li>
+	    <li>
+		<p>ylabade (https://github.com/ylabade) - DerOctetString null reference fix.</p>
+	    </li>
+	    <li>
+		<p>Matthew Sitton (https://github.com/mdsitton) - Addition of missing ALPN Protocol names.</p>
+	    </li>
+	    <li>
+		<p>Jozef Gajdo&scaron; (https://github.com/harrison314) - Time constructor optimization, RevokedStatus fix.</p>
+	    </li>
 		</ul>
 	</body>
 </html>

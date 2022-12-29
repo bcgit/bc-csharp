@@ -87,11 +87,11 @@ namespace Org.BouncyCastle.Cms
 
 			eiGen.AddObject(new DerObjectIdentifier(contentOid));
 
-			Stream octetStream = CmsUtilities.CreateBerOctetOutputStream(
-				eiGen.GetRawOutputStream(), 0, true, _bufferSize);
+            BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true);
+            Stream octetStream = octGen.GetOctetOutputStream(_bufferSize);
 
-			return new CmsCompressedOutputStream(
-				Utilities.IO.Compression.ZLib.CompressOutput(octetStream, -1), sGen, cGen, eiGen);
+            return new CmsCompressedOutputStream(
+				Utilities.IO.Compression.ZLib.CompressOutput(octetStream, -1), sGen, cGen, eiGen, octGen);
 		}
 
 		private class CmsCompressedOutputStream
@@ -101,17 +101,20 @@ namespace Org.BouncyCastle.Cms
 			private BerSequenceGenerator _sGen;
 			private BerSequenceGenerator _cGen;
 			private BerSequenceGenerator _eiGen;
+			private BerOctetStringGenerator _octGen;
 
-			internal CmsCompressedOutputStream(
+            internal CmsCompressedOutputStream(
 				Stream					outStream,
 				BerSequenceGenerator	sGen,
 				BerSequenceGenerator	cGen,
-				BerSequenceGenerator	eiGen)
+				BerSequenceGenerator	eiGen,
+                BerOctetStringGenerator octGen)
 			{
 				_out = outStream;
 				_sGen = sGen;
 				_cGen = cGen;
 				_eiGen = eiGen;
+				_octGen = octGen;
 			}
 
 			public override void Write(byte[] buffer, int offset, int count)
@@ -137,11 +140,12 @@ namespace Org.BouncyCastle.Cms
                 {
                     _out.Dispose();
 
-                    // TODO Parent context(s) should really be be closed explicitly
+					// TODO Parent context(s) should really be be closed explicitly
 
-                    _eiGen.Close();
-				    _cGen.Close();
-				    _sGen.Close();
+					_octGen.Dispose();
+                    _eiGen.Dispose();
+				    _cGen.Dispose();
+				    _sGen.Dispose();
                 }
                 base.Dispose(disposing);
             }

@@ -670,7 +670,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             /* Derive and check the tag */
             byte[] myTag = CalculateTag();
-            if (!Arrays.ConstantTimeAreEqual(myTag, myExpected))
+            if (!Arrays.FixedTimeEquals(myTag, myExpected))
             {
                 Reset();
                 throw new InvalidCipherTextException("mac check failed");

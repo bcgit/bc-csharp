@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -68,6 +69,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         internal IXof digest;
         private int signatureLength;
 
+        internal LowmcConstants _lowmcConstants;
+
         internal int GetSecretKeySize()
         {
             return CRYPTO_SECRETKEYBYTES;
@@ -89,9 +92,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return signatureLength + 4;
         }
 
-        internal PicnicEngine(int picnicParams)
+        internal PicnicEngine(int picnicParams, LowmcConstants lowmcConstants)
         {
+            _lowmcConstants = lowmcConstants;
             parameters = picnicParams;
+            
             switch (parameters)
             {
             case 1:
@@ -539,7 +544,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             mpc_xor_constant_verify(tmp, plaintext, 0, stateSizeWords, challenge);
 
-            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = _lowmcConstants.KMatrix(this, 0);
             matrix_mul_offset(tmp, 0,
                 view1.inputShare, 0,
                 current.GetData(), current.GetMatrixPointer());
@@ -551,7 +556,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             for (int r = 1; r <= numRounds; ++r)
             {
-                current = LowmcConstants.Instance.KMatrix(this, r);
+                current = _lowmcConstants.KMatrix(this, r);
                 matrix_mul_offset(tmp, 0,
                     view1.inputShare, 0,
                     current.GetData(), current.GetMatrixPointer());
@@ -561,12 +566,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
                 mpc_substitution_verify(tmp, tapes, view1, view2);
 
-                current = LowmcConstants.Instance.LMatrix(this, r - 1);
+                current = _lowmcConstants.LMatrix(this, r - 1);
                 mpc_matrix_mul(tmp, 2 * stateSizeWords,
                     tmp, 2 * stateSizeWords,
                     current.GetData(), current.GetMatrixPointer(), 2);
 
-                current = LowmcConstants.Instance.RConstant(this, r - 1);
+                current = _lowmcConstants.RConstant(this, r - 1);
                 mpc_xor_constant_verify(tmp, current.GetData(), current.GetMatrixPointer(), stateSizeWords, challenge);
                 mpc_xor(tmp, tmp, stateSizeWords, 2);
             }
@@ -1589,7 +1594,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             mpc_xor_constant(slab, 3 * stateSizeWords, plaintext, 0, stateSizeWords);
 
-            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = _lowmcConstants.KMatrix(this, 0);
             for (int player = 0; player < 3; player++)
             {
                 matrix_mul_offset(slab, player * stateSizeWords, views[player].inputShare, 0,
@@ -1600,7 +1605,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             for (int r = 1; r <= numRounds; r++)
             {
-                current = LowmcConstants.Instance.KMatrix(this, r);
+                current = _lowmcConstants.KMatrix(this, r);
                 for (int player = 0; player < 3; player++)
                 {
                     matrix_mul_offset(slab, player * stateSizeWords,
@@ -1610,12 +1615,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
                 mpc_substitution(slab, tapes, views);
 
-                current = LowmcConstants.Instance.LMatrix(this, r - 1);
+                current = _lowmcConstants.LMatrix(this, r - 1);
                 mpc_matrix_mul(slab, 3 * stateSizeWords,
                     slab, 3 * stateSizeWords,
                     current.GetData(), current.GetMatrixPointer(), 3);
 
-                current = LowmcConstants.Instance.RConstant(this, r - 1);
+                current = _lowmcConstants.RConstant(this, r - 1);
                 mpc_xor_constant(slab, 3 * stateSizeWords,
                     current.GetData(), current.GetMatrixPointer(), stateSizeWords);
 
@@ -2094,7 +2099,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint[] roundKey = new uint[LOWMC_MAX_WORDS];
             uint[] state = new uint[LOWMC_MAX_WORDS];
 
-            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = _lowmcConstants.KMatrix(this, 0);
             matrix_mul(roundKey, maskedKey, current.GetData(),
                 current.GetMatrixPointer()); // roundKey = maskedKey * KMatrix[0]
             xor_array(state, roundKey, plaintext, 0, stateSizeWords); // state = plaintext + roundKey
@@ -2104,15 +2109,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 TapesToWords(tmp_shares, tape);
                 mpc_sbox(state, tmp_shares, tape, msg);
 
-                current = LowmcConstants.Instance.LMatrix(this, r - 1);
+                current = _lowmcConstants.LMatrix(this, r - 1);
                 matrix_mul(state, state, current.GetData(),
                     current.GetMatrixPointer()); // state = state * LMatrix (r-1)
 
-                current = LowmcConstants.Instance.RConstant(this, r - 1);
+                current = _lowmcConstants.RConstant(this, r - 1);
                 xor_array(state, state, current.GetData(), current.GetMatrixPointer(),
                     stateSizeWords); // state += RConstant
 
-                current = LowmcConstants.Instance.KMatrix(this, r);
+                current = _lowmcConstants.KMatrix(this, r);
                 matrix_mul(roundKey, maskedKey, current.GetData(), current.GetMatrixPointer());
                 xor_array(state, roundKey, state, 0, stateSizeWords); // state += roundKey
             }
@@ -2175,8 +2180,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             for (int i = 0; i < numMPCParties; i++)
             {
-                 uint w_i = PicnicUtilities.GetBit(Pack.UInt32_To_LE(w), i);
-                PicnicUtilities.SetBit(msg.msgs[i], msg.pos, (byte) (w_i & 0xff));
+                uint w_i = PicnicUtilities.GetBit(w, i);
+                PicnicUtilities.SetBit(msg.msgs[i], msg.pos, (byte)w_i);
             }
 
             msg.pos++;
@@ -2187,13 +2192,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint and_helper = tape.TapesToWord(); // The special mask value setup during preprocessing for each AND gate
             uint s_shares = (Extend(a) & mask_b) ^ (Extend(b) & mask_a) ^ and_helper;
 
-            byte[] temp = Pack.UInt32_To_LE(s_shares);
-
             if (msg.unopened >= 0)
             {
-                 uint unopenedPartyBit = PicnicUtilities.GetBit(msg.msgs[msg.unopened], msg.pos);
-                PicnicUtilities.SetBit(temp, msg.unopened, (byte) (unopenedPartyBit & 0xff));
-                s_shares = Pack.LE_To_UInt32(temp, 0);
+                uint unopenedPartyBit = PicnicUtilities.GetBit(msg.msgs[msg.unopened], msg.pos);
+                s_shares = PicnicUtilities.SetBit(s_shares, msg.unopened, unopenedPartyBit);
             }
 
             // Broadcast each share of s
@@ -2425,22 +2427,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 Array.Copy(plaintext, 0, output, 0, stateSizeWords);
             }
 
-            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = _lowmcConstants.KMatrix(this, 0);
             matrix_mul(roundKey, key, current.GetData(), current.GetMatrixPointer());
 
             xor_array(output, output, roundKey, 0, stateSizeWords);
 
             for (int r = 1; r <= numRounds; r++)
             {
-                current = LowmcConstants.Instance.KMatrix(this, r);
+                current = _lowmcConstants.KMatrix(this, r);
                 matrix_mul(roundKey, key, current.GetData(), current.GetMatrixPointer());
 
                 Substitution(output);
 
-                current = LowmcConstants.Instance.LMatrix(this, r - 1);
+                current = _lowmcConstants.LMatrix(this, r - 1);
                 matrix_mul(output, output, current.GetData(), current.GetMatrixPointer());
 
-                current = LowmcConstants.Instance.RConstant(this, r - 1);
+                current = _lowmcConstants.RConstant(this, r - 1);
                 xor_array(output, output, current.GetData(), current.GetMatrixPointer(), stateSizeWords);
                 xor_array(output, output, roundKey, 0, stateSizeWords);
             }
@@ -2489,6 +2491,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint[] temp = new uint[LOWMC_MAX_WORDS];
             temp[stateSizeWords - 1] = 0;
             int wholeWords = stateSizeBits / WORD_SIZE_BITS;
+            int unusedStateBits = stateSizeWords * WORD_SIZE_BITS - stateSizeBits;
+
+            // The final word mask, with bits reversed within each byte
+            uint partialWordMask = uint.MaxValue >> unusedStateBits;
+            partialWordMask = Bits.BitPermuteStepSimple(partialWordMask, 0x55555555U, 1);
+            partialWordMask = Bits.BitPermuteStepSimple(partialWordMask, 0x33333333U, 2);
+            partialWordMask = Bits.BitPermuteStepSimple(partialWordMask, 0x0F0F0F0FU, 4);
 
             for (int i = 0; i < stateSizeBits; i++)
             {
@@ -2496,15 +2505,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 for (int j = 0; j < wholeWords; j++)
                 {
                     int index = i * stateSizeWords + j;
-                    prod ^= state[j + stateOffset] & matrix[matrixOffset + index];
+                    prod ^= state[j + stateOffset] &
+                            matrix[matrixOffset + index];
                 }
-
-                for (int j = wholeWords * WORD_SIZE_BITS; j < stateSizeBits; j++)
+                if (unusedStateBits > 0)
                 {
-                    int index = i * stateSizeWords * WORD_SIZE_BITS + j;
-                    uint bit = PicnicUtilities.GetBitFromWordArray(state, stateOffset * 32 + j)
-                             & PicnicUtilities.GetBitFromWordArray(matrix, matrixOffset * 32 + index);
-                    prod ^= bit;
+                    int index = i * stateSizeWords + wholeWords;
+                    prod ^= state[stateOffset + wholeWords] &
+                            matrix[matrixOffset + index] &
+                            partialWordMask;
                 }
 
                 PicnicUtilities.SetBit(temp, i, PicnicUtilities.Parity32(prod));

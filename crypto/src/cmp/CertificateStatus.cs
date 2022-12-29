@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Cmp
 
             byte[] digest = DigestUtilities.CalculateDigest(digAlg.Algorithm, cert.GetEncoded());
 
-            return Arrays.ConstantTimeAreEqual(certStatus.CertHash.GetOctets(), digest);
+            return Arrays.FixedTimeEquals(certStatus.CertHash.GetOctets(), digest);
         }
     }
 }

@@ -139,6 +139,8 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        public virtual int GetMaxSignatureSize() => rsaEngine.GetOutputBlockSize();
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning)
@@ -174,7 +176,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (sig.Length == expected.Length)
             {
-                return Arrays.ConstantTimeAreEqual(sig, expected);
+                return Arrays.FixedTimeEquals(sig, expected);
             }
             else if (sig.Length == expected.Length - 2)  // NULL left out
             {

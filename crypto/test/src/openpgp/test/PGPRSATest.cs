@@ -354,16 +354,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             //
             MemoryStream bOut = new MemoryStream();
             PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
-            Stream lOut = lGen.Open(
+            using (var lOut = lGen.Open(
                 bOut,
                 PgpLiteralData.Binary,
                 PgpLiteralData.Console,
                 text.Length,
-                DateTime.UtcNow);
-
-            lOut.Write(text, 0, text.Length);
-
-            lGen.Dispose();
+                DateTime.UtcNow))
+            {
+                lOut.Write(text, 0, text.Length);
+            }
 
             byte[] bytes = bOut.ToArray();
 
@@ -1208,6 +1207,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             public override void Close()
             {
                 throw new Exception("Close() called on underlying stream");
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    throw new Exception("Dispose() called on underlying stream");
             }
         }
 

@@ -176,10 +176,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     SecT571Field.MultiplyPrecomp(Z3.x, Z2Precomp, Z3.x);
                 }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<ulong> tt = stackalloc ulong[18];
+#else
                 ulong[] tt = Nat576.CreateExt64();
+#endif
 
                 SecT571Field.Add(AU2, B, t4);
-                SecT571Field.SquareAddToExt(t4, tt);
+                SecT571Field.SquareExt(t4, tt);
 
                 SecT571Field.Add(L1.x, Z1.x, t4);
                 SecT571Field.MultiplyAddToExt(t4, Z3.x, tt);
@@ -237,7 +241,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return new SecT571R1Point(curve, new SecT571FieldElement(T), SecT571R1Curve.SecT571R1_B_SQRT);
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<ulong> tt = stackalloc ulong[18];
+#else
             ulong[] tt = Nat576.CreateExt64();
+#endif
             SecT571Field.MultiplyAddToExt(T, L1Z1, tt);
 
             SecT571FieldElement X3 = new SecT571FieldElement(t1);

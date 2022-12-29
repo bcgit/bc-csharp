@@ -77,6 +77,8 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        public virtual int GetMaxSignatureSize() => size;
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning)

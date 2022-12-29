@@ -1,3 +1,9 @@
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
+#endif
+
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     internal static class PicnicUtilities
@@ -16,47 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         internal static uint ceil_log2(uint x)
         {
-            if (x == 0)
-            {
-                return 0;
-            }
-
-            return 32 - nlz(x - 1);
-        }
-
-        private static uint nlz(uint x)
-        {
-            uint n;
-
-            if (x == 0) return (32);
-            n = 1;
-            if ((x >> 16) == 0)
-            {
-                n = n + 16;
-                x = x << 16;
-            }
-
-            if ((x >> 24) == 0)
-            {
-                n = n + 8;
-                x = x << 8;
-            }
-
-            if ((x >> 28) == 0)
-            {
-                n = n + 4;
-                x = x << 4;
-            }
-
-            if ((x >> 30) == 0)
-            {
-                n = n + 2;
-                x = x << 2;
-            }
-
-            n = (n - (x >> 31));
-
-            return n;
+            return x == 0 ? 0 : 32 - (uint)Integers.NumberOfLeadingZeros((int)(x - 1));
         }
 
         internal static int Parity(byte[] data, int len)
@@ -68,20 +34,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 x ^= data[i];
             }
 
-            /* Compute parity of x using code from Section 5-2 of
-             * H.S. Warren, *Hacker's Delight*, Pearson Education, 2003.
-             * http://www.hackersdelight.org/hdcodetxt/parity.c.txt
-             */
-            int y = x ^ (x >> 1);
-            y ^= (y >> 2);
-            y ^= (y >> 4);
-            y ^= (y >> 8);
-            y ^= (y >> 16);
-            return y & 1;
+            return (int)Parity16(x);
         }
 
         internal static uint Parity16(uint x)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Popcnt.IsSupported)
+            {
+                return Popcnt.PopCount(x & 0xFFFF) & 1U;
+            }
+#endif
+
             uint y = x ^ (x >> 1);
 
             y ^= (y >> 2);
@@ -92,6 +56,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         internal static uint Parity32(uint x)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Popcnt.IsSupported)
+            {
+                return Popcnt.PopCount(x) & 1U;
+            }
+#endif
+
             /* Compute parity of x using code from Section 5-2 of
              * H.S. Warren, *Hacker's Delight*, Pearson Education, 2003.
              * http://www.hackersdelight.org/hdcodetxt/parity.c.txt
@@ -124,6 +95,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return (byte)((array[arrayPos] >> bitPos) & 1);
         }
 
+        internal static uint GetBit(uint word, int bitNumber)
+        {
+            int bitPos = bitNumber ^ 7;
+            return (word >> bitPos) & 1U;
+        }
+
         /* Get one bit from a byte array */
         internal static uint GetBit(uint[] array, int bitNumber)
         {
@@ -138,6 +115,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             t &= ~(1U << bitPos);
             t |= (uint)val << bitPos;
             array[arrayPos] = (byte)t;
+        }
+
+        internal static uint SetBit(uint word, int bitNumber, uint bit)
+        {
+            int bitPos = bitNumber ^ 7;
+            word &= ~(1U << bitPos);
+            word |= bit << bitPos;
+            return word;
         }
 
         /* Set a specific bit in a int array to a given value */

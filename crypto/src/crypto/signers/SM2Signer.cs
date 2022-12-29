@@ -116,29 +116,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
-        public virtual bool VerifySignature(byte[] signature)
-        {
-            try
-            {
-                BigInteger[] rs = encoding.Decode(ecParams.N, signature);
-
-                return VerifySignature(rs[0], rs[1]);
-            }
-            catch (Exception)
-            {
-            }
-
-            return false;
-        }
-
-        public virtual void Reset()
-        {
-            if (z != null)
-            {
-                digest.Reset();
-                digest.BlockUpdate(z, 0, z.Length);
-            }
-        }
+        public virtual int GetMaxSignatureSize() => encoding.GetMaxEncodingSize(ecParams.N);
 
         public virtual byte[] GenerateSignature()
         {
@@ -185,6 +163,30 @@ namespace Org.BouncyCastle.Crypto.Signers
             catch (Exception ex)
             {
                 throw new CryptoException("unable to encode signature: " + ex.Message, ex);
+            }
+        }
+
+        public virtual bool VerifySignature(byte[] signature)
+        {
+            try
+            {
+                BigInteger[] rs = encoding.Decode(ecParams.N, signature);
+
+                return VerifySignature(rs[0], rs[1]);
+            }
+            catch (Exception)
+            {
+            }
+
+            return false;
+        }
+
+        public virtual void Reset()
+        {
+            if (z != null)
+            {
+                digest.Reset();
+                digest.BlockUpdate(z, 0, z.Length);
             }
         }
 

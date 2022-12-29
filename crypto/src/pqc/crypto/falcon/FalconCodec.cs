@@ -1,10 +1,7 @@
-using System;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconCodec
+    internal class FalconCodec
     {
-        
         internal FalconCodec() {
             
         }

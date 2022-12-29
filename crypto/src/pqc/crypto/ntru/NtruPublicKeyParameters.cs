@@ -1,6 +1,7 @@
 ﻿namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {
-    public class NtruPublicKeyParameters : NtruKeyParameters
+    public sealed class NtruPublicKeyParameters
+        : NtruKeyParameters
     {
         private byte[] _publicKey;
 

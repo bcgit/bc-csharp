@@ -2,16 +2,17 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    public class SNtruPrimeKeyParameters : AsymmetricKeyParameter
+    public abstract class SNtruPrimeKeyParameters
+        : AsymmetricKeyParameter
     {
-        private SNtruPrimeParameters _primeParameters;
-        
-        public SNtruPrimeKeyParameters(bool isPrivate, SNtruPrimeParameters primeParameters) : base(isPrivate)
+        private readonly SNtruPrimeParameters m_primeParameters;
+
+        internal SNtruPrimeKeyParameters(bool isPrivate, SNtruPrimeParameters primeParameters)
+            : base(isPrivate)
         {
-            this._primeParameters = primeParameters;
+            m_primeParameters = primeParameters;
         }
 
-        public SNtruPrimeParameters Parameters => _primeParameters;
-
+        public SNtruPrimeParameters Parameters => m_primeParameters;
     }
 }

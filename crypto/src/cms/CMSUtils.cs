@@ -176,12 +176,6 @@ namespace Org.BouncyCastle.Cms
 			return new DerSet(v);
 		}
 
-		internal static Stream CreateBerOctetOutputStream(Stream s, int tagNo, bool isExplicit, int bufferSize)
-		{
-			BerOctetStringGenerator octGen = new BerOctetStringGenerator(s, tagNo, isExplicit);
-			return octGen.GetOctetOutputStream(bufferSize);
-		}
-
 		internal static TbsCertificateStructure GetTbsCertificateStructure(X509Certificate cert)
 		{
 			return TbsCertificateStructure.GetInstance(Asn1Object.FromByteArray(cert.GetTbsCertificate()));

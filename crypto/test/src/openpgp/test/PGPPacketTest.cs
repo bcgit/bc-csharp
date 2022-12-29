@@ -25,16 +25,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 MemoryStream bOut = new MemoryStream();
 
-                Stream outputStream = generator.Open(
-					new UncloseableStream(bOut),
-					PgpLiteralData.Binary,
-					PgpLiteralData.Console,
-					i,
-					DateTime.UtcNow);
-
-				outputStream.Write(buf, 0, i);
-
-                generator.Dispose();
+                using (var outputStream = generator.Open(
+                    new UncloseableStream(bOut),
+                    PgpLiteralData.Binary,
+                    PgpLiteralData.Console,
+                    i,
+                    DateTime.UtcNow))
+                {
+                    outputStream.Write(buf, 0, i);
+                }
 
                 PgpObjectFactory fact = new PgpObjectFactory(bOut.ToArray());
 

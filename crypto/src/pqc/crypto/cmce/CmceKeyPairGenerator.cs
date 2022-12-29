@@ -1,43 +1,31 @@
-using System;
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    public class CmceKeyPairGenerator
+    public sealed class CmceKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private CmceKeyGenerationParameters CmceParams;
-
-        private int m;
-
-        private int n;
-
-        private int t;
+        private CmceKeyGenerationParameters m_cmceParams;
 
         private SecureRandom random;
 
         private void Initialize(
             KeyGenerationParameters param)
         {
-            this.CmceParams = (CmceKeyGenerationParameters) param;
+            this.m_cmceParams = (CmceKeyGenerationParameters) param;
             this.random = param.Random;
-
-            this.m = this.CmceParams.Parameters.M;
-            this.n = this.CmceParams.Parameters.N;
-            this.t = this.CmceParams.Parameters.T;
         }
 
         private AsymmetricCipherKeyPair GenKeyPair()
         {
-            CmceEngine engine = CmceParams.Parameters.Engine;
+            ICmceEngine engine = m_cmceParams.Parameters.Engine;
             byte[] sk = new byte[engine.PrivateKeySize];
             byte[] pk = new byte[engine.PublicKeySize];
-            engine.kem_keypair(pk, sk, random);
+            engine.KemKeypair(pk, sk, random);
 
-            CmcePublicKeyParameters pubKey = new CmcePublicKeyParameters(CmceParams.Parameters, pk);
-            CmcePrivateKeyParameters privKey = new CmcePrivateKeyParameters(CmceParams.Parameters, sk);
+            CmcePublicKeyParameters pubKey = new CmcePublicKeyParameters(m_cmceParams.Parameters, pk);
+            CmcePrivateKeyParameters privKey = new CmcePrivateKeyParameters(m_cmceParams.Parameters, sk);
             return new AsymmetricCipherKeyPair(pubKey, privKey);
 
         }

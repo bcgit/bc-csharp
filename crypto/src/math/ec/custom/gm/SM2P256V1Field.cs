@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
             uint[] z = Nat.FromBigInteger(256, x);
             if (z[7] >= P7 && Nat256.Gte(z, P))
             {
-                Nat256.SubFrom(P, z);
+                Nat256.SubFrom(P, z, 0);
             }
             return z;
         }

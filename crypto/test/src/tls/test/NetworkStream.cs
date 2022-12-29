@@ -34,11 +34,6 @@ namespace Org.BouncyCastle.Tls.Tests
             get { return m_inner.CanWrite; }
         }
 
-        public override void Close()
-        {
-            lock (this) m_closed = true;
-        }
-
         public override void Flush()
         {
             m_inner.Flush();
@@ -87,6 +82,14 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             CheckNotClosed();
             m_inner.WriteByte(value);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                lock (this) m_closed = true;
+            }
         }
 
         private void CheckNotClosed()

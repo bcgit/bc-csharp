@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Tsp
 								GetDigestAlgName(tstInfo.MessageImprintAlgOid),
 							    signerInfo.GetSignature());
 
-							if (!Arrays.ConstantTimeAreEqual(expectedDigest, tstInfo.GetMessageImprintDigest()))
+							if (!Arrays.FixedTimeEquals(expectedDigest, tstInfo.GetMessageImprintDigest()))
 								throw new TspValidationException("Incorrect digest in message imprint");
 
 							timestamps.Add(timeStampToken);

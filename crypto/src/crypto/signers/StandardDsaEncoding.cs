@@ -35,6 +35,23 @@ namespace Org.BouncyCastle.Crypto.Signers
             ).GetEncoded(Asn1Encodable.Der);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int Encode(BigInteger n, BigInteger r, BigInteger s, Span<byte> output)
+        {
+            byte[] encoding = Encode(n, r, s);
+            encoding.CopyTo(output);
+            return encoding.Length;
+        }
+#endif
+
+        public virtual int GetMaxEncodingSize(BigInteger n)
+        {
+            int encodingLength = BigIntegers.GetByteLength(n);
+            int derIntegerLength = Asn1OutputStream.GetLengthOfDL(encodingLength) + encodingLength;
+            int seqContentsLength = 2 * derIntegerLength;
+            return Asn1OutputStream.GetLengthOfDL(seqContentsLength) + seqContentsLength;
+        }
+
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)
         {
             if (x.SignValue < 0 || (null != n && x.CompareTo(n) >= 0))

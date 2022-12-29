@@ -2,20 +2,19 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {
-    public abstract class NtruKeyParameters : AsymmetricKeyParameter
+    public abstract class NtruKeyParameters
+        : AsymmetricKeyParameter
     {
-        public NtruParameters Parameters { get; }
+        private readonly NtruParameters m_parameters;
 
-        public NtruKeyParameters(bool privateKey, NtruParameters parameters) : base(privateKey)
+        internal NtruKeyParameters(bool privateKey, NtruParameters parameters)
+            : base(privateKey)
         {
-            Parameters = parameters;
+            m_parameters = parameters;
         }
+
+        public NtruParameters Parameters => m_parameters;
 
         public abstract byte[] GetEncoded();
-
-        public NtruParameters GetParameters()
-        {
-            return Parameters;
-        }
     }
 }

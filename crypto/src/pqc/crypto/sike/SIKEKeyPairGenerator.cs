@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         private AsymmetricCipherKeyPair GenKeyPair()
         {
-            SikeEngine engine = sikeParams.Parameters.Engine;
+            SikeEngine engine = sikeParams.Parameters.GetEngine();
             byte[] sk = new byte[engine.GetPrivateKeySize()];
             byte[] pk = new byte[engine.GetPublicKeySize()];
 

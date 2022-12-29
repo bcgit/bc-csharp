@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Tsp
 				byte[] hash = DigestUtilities.CalculateDigest(
 					certID.GetHashAlgorithmName(), cert.GetEncoded());
 
-				if (!Arrays.ConstantTimeAreEqual(certID.GetCertHash(), hash))
+				if (!Arrays.FixedTimeEquals(certID.GetCertHash(), hash))
 					throw new TspValidationException("certificate hash does not match certID hash.");
 
 				if (certID.IssuerSerial != null)

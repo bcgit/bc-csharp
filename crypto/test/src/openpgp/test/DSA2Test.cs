@@ -130,21 +130,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			DateTime modificationTime = DateTimeUtilities.UnixMsToDateTime(
 				DateTimeUtilities.CurrentUnixMs() / 1000 * 1000);
 
-			Stream lOut = lGen.Open(
+			using (var lOut = lGen.Open(
 				new UncloseableStream(bcOut),
 				PgpLiteralData.Binary,
 				"_CONSOLE",
 				dataBytes.Length,
-				modificationTime);
-
-			int ch;
-			while ((ch = testIn.ReadByte()) >= 0)
+				modificationTime))
 			{
-				lOut.WriteByte((byte)ch);
-				sGen.Update((byte)ch);
-			}
-
-			lGen.Dispose();
+                int ch;
+                while ((ch = testIn.ReadByte()) >= 0)
+                {
+                    lOut.WriteByte((byte)ch);
+                    sGen.Update((byte)ch);
+                }
+            }
 
 			sGen.Generate().Encode(bcOut);
 
@@ -165,12 +164,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			ops.InitVerify(pubRing.GetPublicKey());
 
-			while ((ch = dIn.ReadByte()) >= 0)
 			{
-				ops.Update((byte)ch);
-			}
+				int ch;
+				while ((ch = dIn.ReadByte()) >= 0)
+				{
+					ops.Update((byte)ch);
+				}
+            }
 
-			PgpSignatureList p3 = (PgpSignatureList)pgpFact.NextPgpObject();
+            PgpSignatureList p3 = (PgpSignatureList)pgpFact.NextPgpObject();
 			PgpSignature sig = p3[0];
 
 			Assert.AreEqual(digest, sig.HashAlgorithm);

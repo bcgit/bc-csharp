@@ -439,7 +439,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             else
             {
                 // Compare the tag from the message with the calculated one
-                if (!Arrays.ConstantTimeAreEqual(macBlock, tag))
+                if (!Arrays.FixedTimeEquals(macBlock, tag))
                     throw new InvalidCipherTextException("mac check in OCB failed");
             }
 
@@ -529,7 +529,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             else
             {
                 // Compare the tag from the message with the calculated one
-                if (!Arrays.ConstantTimeAreEqual(macBlock, tag))
+                if (!Arrays.FixedTimeEquals(macBlock, tag))
                     throw new InvalidCipherTextException("mac check in OCB failed");
             }
 

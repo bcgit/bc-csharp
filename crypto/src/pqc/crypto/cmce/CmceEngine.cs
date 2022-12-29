@@ -1,6 +1,10 @@
 using System;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Numerics;
 using System.Runtime.InteropServices;
+#endif
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
 #endif
 
 using Org.BouncyCastle.Asn1.Nist;
@@ -10,7 +14,22 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    internal class CmceEngine
+    internal interface ICmceEngine
+    {
+        int CipherTextSize { get; }
+        byte[] DecompressPrivateKey(byte[] sk);
+        int DefaultSessionKeySize { get; }
+        byte[] GeneratePublicKeyFromPrivateKey(byte[] sk);
+        int KemDec(byte[] key, byte[] cipher_text, byte[] sk);
+        int KemEnc(byte[] cipher_text, byte[] key, byte[] pk, SecureRandom random);
+        void KemKeypair(byte[] pk, byte[] sk, SecureRandom random);
+        int PrivateKeySize { get; }
+        int PublicKeySize { get; }
+    }
+
+    internal class CmceEngine<GFImpl>
+        : ICmceEngine
+        where GFImpl : struct, GF
     {
         private int SYS_N;       // = 3488;
         private int SYS_T;       // = 64;
@@ -31,8 +50,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         private int[] poly; // only needed for key pair gen
         private int defaultKeySize;
 
-        private GF gf;
-        private Benes benes;
+        private readonly GFImpl gf;
+        private readonly Benes benes;
 
         private bool usePadding;
         private bool countErrorIndices;
@@ -42,16 +61,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         public int IrrBytes => IRR_BYTES;
 
         public int CondBytes => COND_BYTES;
+
         public int PrivateKeySize => COND_BYTES + IRR_BYTES + SYS_N / 8 + 40;
 
         public int PublicKeySize => usePadding ? PK_NROWS * ((SYS_N / 8 - ((PK_NROWS - 1) / 8))) : PK_NROWS * PK_NCOLS / 8;
 
-        public int CipherTextSize => SYND_BYTES + 32;
+        public int CipherTextSize => SYND_BYTES;
 
 
         public int DefaultSessionKeySize => defaultKeySize;
 
-        public CmceEngine(int m, int n, int t, int[] p, bool usePivots, int defaultKeySize)
+        internal CmceEngine(int m, int n, int t, int[] p, bool usePivots, int defaultKeySize)
         {
             this.usePivots = usePivots;
             this.SYS_N = n;
@@ -70,21 +90,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             SYND_BYTES = (PK_NROWS + 7) / 8;
             GFMASK = (1 << GFBITS) - 1;
 
+            gf = default(GFImpl);
 
             if (GFBITS == 12)
             {
-                gf = new GF12(GFBITS);
                 benes = new Benes12(SYS_N, SYS_T, GFBITS);
             }
             else
             {
-                gf = new GF13(GFBITS);
                 benes = new Benes13(SYS_N, SYS_T, GFBITS);
 
             }
             usePadding = SYS_T % 8 != 0;
             countErrorIndices = (1 << GFBITS) > SYS_N;
         }
+
         public byte[] GeneratePublicKeyFromPrivateKey(byte[] sk)
         {
             byte[] pk = new byte[PublicKeySize];
@@ -110,7 +130,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         }
 
         // generates the rest of the private key given the first 40 bytes
-        public byte[] decompress_private_key(byte[] sk)
+        public byte[] DecompressPrivateKey(byte[] sk)
         {
             byte[] reg_sk = new byte[PrivateKeySize];
             Array.Copy(sk, 0, reg_sk, 0, sk.Length);
@@ -122,12 +142,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             // generate hash using the seed given in the sk (64 || first 32 bytes)
             byte[] hash = new byte[(SYS_N / 8) + ((1 << GFBITS) * 4) + IRR_BYTES + 32];
 
-            int hash_idx = 0;
             IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)64);
             digest.BlockUpdate(sk, 0, 32); // input
             ((IXof)digest).OutputFinal(hash, 0, hash.Length);
-
 
             // generate g
             if (sk.Length <= 40)
@@ -135,7 +153,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 ushort[] field = new ushort[SYS_T];
 
                 byte[] reg_g = new byte[IRR_BYTES];
-                hash_idx = hash.Length - 32 - IRR_BYTES;
+                int hash_idx = hash.Length - 32 - IRR_BYTES;
                 for (int i = 0; i < SYS_T; i++)
                 {
                     field[i] = Utils.LoadGF(hash, hash_idx + i * 2, GFMASK);
@@ -155,7 +173,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 uint[] perm = new uint[1 << GFBITS];
                 ushort[] pi = new ushort[1 << GFBITS];
 
-                hash_idx = hash.Length - 32 - IRR_BYTES - ((1 << GFBITS) * 4);
+                int hash_idx = hash.Length - 32 - IRR_BYTES - ((1 << GFBITS) * 4);
                 for (int i = 0; i < (1 << GFBITS); i++)
                 {
                     perm[i] = Utils.Load4(hash, hash_idx + i * 4);
@@ -171,10 +189,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     long[] buf = new long[1 << GFBITS];
                     for (int i = 0; i < (1 << GFBITS); i++)
                     {
-                        buf[i] = perm[i];
-                        buf[i] <<= 31;
-                        buf[i] |= (uint)i;
-                        buf[i] &= 0x7fffffffffffffffL; // getting rid of signed longs
+                        buf[i] = ((long)perm[i] << 31) | (uint)i;
                     }
                     Sort64(buf, 0, buf.Length);
                     for (int i = 0; i < (1 << GFBITS); i++)
@@ -182,7 +197,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         pi[i] = (ushort)(buf[i] & GFMASK);
                     }
                 }
-
 
                 byte[] output = new byte[COND_BYTES];
                 ControlBitsFromPermutation(output, pi, GFBITS, 1 << GFBITS);
@@ -195,7 +209,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return reg_sk;
         }
 
-        public void kem_keypair(byte[] pk, byte[] sk, SecureRandom random)
+        public void KemKeypair(byte[] pk, byte[] sk, SecureRandom random)
         {
             // 1. Generate a uniform random l-bit string δ. (This is called a seed.)
             byte[] seed_a = new byte[1];
@@ -507,7 +521,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         }
 
         // 2.4.5 Encapsulation
-        public int kem_enc(byte[] cipher_text, byte[] key, byte[] pk, SecureRandom random)
+        public int KemEnc(byte[] cipher_text, byte[] key, byte[] pk, SecureRandom random)
         {
             byte[] error_vector = new byte[SYS_N / 8];
             byte mask;
@@ -527,22 +541,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             /*
             2.4.5 Encapsulation
-            3. Compute C1 = H(2,e); Put C = (C0,C1)
-             */
-
-            // C1 = 0x2 || error_vector
-            // C = C0 || SHAKE256(C1, 32)
-            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
-            digest.Update((byte)0x02);
-            digest.BlockUpdate(error_vector, 0, error_vector.Length); // input
-            ((IXof)digest).OutputFinal(cipher_text, SYND_BYTES, cipher_text.Length - SYND_BYTES);     // output
-
-            /*
-            2.4.5 Encapsulation
             4. Compute K = H(1,e,C)
              */
 
             // K = Hash((0x1 || e || C), 32)
+            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.Update((byte)0x01);
             digest.BlockUpdate(error_vector, 0, error_vector.Length);
             digest.BlockUpdate(cipher_text, 0, cipher_text.Length); // input
@@ -555,7 +558,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 mask = (byte)padding_ok;
                 mask ^= 0xFF;
 
-                for (i = 0; i < SYND_BYTES + 32; i++)
+                for (i = 0; i < SYND_BYTES; i++)
                 {
                     cipher_text[i] &= mask;
                 }
@@ -571,10 +574,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         }
 
         // 2.3.3 Decapsulation
-        public int kem_dec(byte[] key, byte[] cipher_text, byte[] sk)
+        public int KemDec(byte[] key, byte[] cipher_text, byte[] sk)
         {
-            byte[] conf = new byte[32];
             byte[] error_vector = new byte[SYS_N / 8];
+            byte[] preimage = new byte[1 + SYS_N/8 + SYND_BYTES];
 
             int i, padding_ok = 0;
             byte mask;
@@ -594,33 +597,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             /*
             2.3.3 Decapsulation
-            5. Compute C′1 = H(2,e)
-             */
-
-            // 0x2 || error_vector
-            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
-            digest.Update((byte)0x02);
-            digest.BlockUpdate(error_vector, 0, error_vector.Length); // input
-            ((IXof)digest).OutputFinal(conf, 0, conf.Length);     // output
-
-            /*
-            2.3.3 Decapsulation
             6. If C′1 6= C1, set e ←s and b ←0.
              */
-            byte ret_confirm = 0;
-            for (i = 0; i < 32; i++)
-            {
-                ret_confirm |= (byte)(conf[i] ^ cipher_text[SYND_BYTES + i]);
-            }
             short m;
 
-            m = (short)(ret_decrypt | ret_confirm);
+            m = ret_decrypt;
             m -= 1;
             m >>= 8;
             m &= 0xff;
-
-            byte[] preimage = new byte[1 + SYS_N / 8 + (SYND_BYTES + 32)];
-
+            
             /*
             2.3.3 Decapsulation
             2. Set b ←1.
@@ -630,7 +615,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 preimage[1 + i] = (byte)((~m & sk[i + 40 + IRR_BYTES + COND_BYTES]) | (m & error_vector[i]));
             }
-            for (i = 0; i < SYND_BYTES + 32; i++)
+            for (i = 0; i < SYND_BYTES; i++)
             {
                 preimage[1 + SYS_N / 8 + i] = cipher_text[i];
             }
@@ -641,6 +626,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
              */
 
             //  = SHAKE256(preimage, 32)
+            IDigest digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest = DigestUtilities.GetDigest(NistObjectIdentifiers.IdShake256);
             digest.BlockUpdate(preimage, 0, preimage.Length); // input
             ((IXof)digest).OutputFinal(key, 0, key.Length);     // output
@@ -775,8 +761,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* output: out, minimal polynomial of s */
         private void BM(ushort[] output, ushort[] s)
         {
-            int i;
-
             ushort N = 0;
             ushort L = 0;
             ushort mle;
@@ -789,7 +773,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             ushort b = 1, d, f;
             //
 
-            for (i = 0; i < SYS_T + 1; i++)
+            for (int i = 0; i < SYS_T + 1; i++)
             {
                 C[i] = B[i] = 0;
             }
@@ -800,12 +784,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             for (N = 0; N < 2 * SYS_T; N++)
             {
-                d = 0;
-
-                for (i = 0; i <= Min(N, SYS_T); i++)
+                uint dExt = 0U;
+                for (int i = 0; i <= Min(N, SYS_T); i++)
                 {
-                    d ^= gf.GFMul(C[i], s[N - i]);
+                    dExt ^= gf.GFMulExt(C[i], s[N - i]);
                 }
+
+                d = gf.GFReduce(dExt);
 
                 mne = d;
                 mne -= 1;
@@ -819,35 +804,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 mle -= 1;
                 mle &= mne;
 
-                for (i = 0; i <= SYS_T; i++)
+                for (int i = 0; i <= SYS_T; i++)
                 {
                     T[i] = C[i];
                 }
 
                 f = gf.GFFrac(b, d);
 
-                for (i = 0; i <= SYS_T; i++)
+                for (int i = 0; i <= SYS_T; i++)
                 {
                     C[i] ^= (ushort)(gf.GFMul(f, B[i]) & mne);
                 }
                 L = (ushort)((L & ~mle) | ((N + 1 - L) & mle));
 
-                for (i = 0; i <= SYS_T; i++)
+                for (int i = SYS_T - 1; i >= 0; i--)
                 {
-                    B[i] = (ushort)((B[i] & ~mle) | (T[i] & mle));
+                    B[i + 1] = (ushort)((B[i] & ~mle) | (T[i] & mle));
                 }
+                B[0] = 0;
 
                 b = (ushort)((b & ~mle) | (d & mle));
-
-                for (i = SYS_T; i >= 1; i--)
-                {
-                    B[i] = B[i - 1];
-                }
-
-                B[0] = 0;
             }
 
-            for (i = 0; i <= SYS_T; i++)
+            for (int i = 0; i <= SYS_T; i++)
             {
                 output[i] = C[SYS_T - i];
             }
@@ -857,34 +836,46 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* output: out, the syndrome of length 2t */
         private void Synd(ushort[] output, ushort[] f, ushort[] L, byte[] r)
         {
-            int i, j;
-            ushort e, e_inv, c;
-
-            for (j = 0; j < 2 * SYS_T; j++)
             {
-                output[j] = 0;
-            }
+                ushort c = (ushort)(r[0] & 1);
 
-            for (i = 0; i < SYS_N; i++)
-            {
-                c = (ushort)((r[i / 8] >> (i % 8)) & 1);
+                ushort L_i = L[0];
+                ushort e = Eval(f, L_i);
+                ushort e_inv = gf.GFInv(gf.GFSq(e));
+                ushort c_div_e = (ushort)(e_inv & (0 - c));
 
-                e = Eval(f, L[i]);
-                e_inv = gf.GFInv(gf.GFMul(e, e));
+                output[0] = c_div_e;
 
-                for (j = 0; j < 2 * SYS_T; j++)
+                for (int j = 1; j < 2 * SYS_T; j++)
                 {
-                    output[j] = gf.GFAdd(output[j], gf.GFMul(e_inv, c));
-                    e_inv = gf.GFMul(e_inv, L[i]);
+                    c_div_e = gf.GFMul(c_div_e, L_i);
+                    output[j] = c_div_e;
+                }
+            }
+            for (int i = 1; i < SYS_N; i++)
+            {
+                ushort c = (ushort)((r[i / 8] >> (i % 8)) & 1);
+
+                ushort L_i = L[i];
+                ushort e = Eval(f, L_i);
+                ushort e_inv = gf.GFInv(gf.GFSq(e));
+                ushort c_div_e = gf.GFMul(e_inv, c);
+
+                output[0] ^= c_div_e;
+
+                for (int j = 1; j < 2 * SYS_T; j++)
+                {
+                    c_div_e = gf.GFMul(c_div_e, L_i);
+                    output[j] ^= c_div_e;
                 }
             }
         }
 
         private int MovColumns(byte[][] mat, ushort[] pi, ulong[] pivots)
         {
-            int i, j, k, s, block_idx, row, tail;
-            ulong[] buf = new ulong[64],
-                ctz_list = new ulong[32];
+            int i, j, k, block_idx, row, tail;
+            ulong[] buf = new ulong[64];
+            int[] ctz_list = new int[32];
             ulong t, d, mask, one = 1;
 
             byte[] tmp = new byte[9]; // Used for padding
@@ -937,9 +928,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     return -1; // return if buf is not full rank
                 }
 
-                s = Ctz(t);
-                ctz_list[i] = (ulong)s;
-                pivots[0] |= one << (int)ctz_list[i];
+                int s = Ctz(t);
+                ctz_list[i] = s;
+                pivots[0] |= one << s;
 
                 for (j = i + 1; j < 32; j++)
                 {
@@ -950,7 +941,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 for (j = i + 1; j < 32; j++)
                 {
                     mask = (buf[j] >> s) & 1;
-                    mask = (ulong)-(long)mask;//todo replace with ~?
+                    mask = 0UL - mask;
                     buf[j] ^= buf[i] & mask;
                 }
             }
@@ -992,10 +983,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 for (j = 0; j < 32; j++)
                 {
                     d = t >> j;
-                    d ^= t >> (int)ctz_list[j];
+                    d ^= t >> ctz_list[j];
                     d &= 1;
 
-                    t ^= d << (int)ctz_list[j];
+                    t ^= d << ctz_list[j];
                     t ^= d << j;
                 }
                 if (usePadding)
@@ -1022,16 +1013,42 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* return number of trailing zeros of the non-zero input in */
         private static int Ctz(ulong input)
         {
-            int i, b, m = 0, r = 0;
-
-            for (i = 0; i < 64; i++)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi1.X64.IsSupported)
             {
-                b = (int)((input >> i) & 1);
-                m |= b;
-                r += (m ^ 1) & (b ^ 1);
+                return (int)Bmi1.X64.TrailingZeroCount(input);
+            }
+#endif
+
+            //ulong m = 1UL, r = 0, x = ~input;
+            //for (int i = 0; i < 64; i++)
+            //{
+            //    m &= x >> i;
+            //    r += m;
+            //}
+            //return (int)r;
+
+            ulong m1 = 0x0101010101010101UL, r8 = 0, x = ~input;
+            for (int i = 0; i < 8; ++i)
+            {
+                m1 &= x >> i;
+                r8 += m1;
             }
 
-            return r;
+            ulong m8 = r8 & 0x0808080808080808UL;
+            m8 |= m8 >> 1;
+            m8 |= m8 >> 2;
+
+            ulong r = r8;
+            r8 >>= 8;
+            r += r8 & m8;
+            for (int i = 2; i < 8; ++i)
+            {
+                m8 &= m8 >> 8;
+                r8 >>= 8;
+                r += r8 & m8;
+            }
+            return (int)r & 0xFF;
         }
 
         /* Used in mov columns*/
@@ -1375,10 +1392,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             long[] buf = new long[1 << GFBITS];
             for (i = 0; i < (1 << GFBITS); i++)
             {
-                buf[i] = perm[i];
-                buf[i] <<= 31;
-                buf[i] |= (uint)i;
-                // buf[i] &= 0x7fffffffffffffffL; // getting rid of signed longs
+                buf[i] = ((long)perm[i] << 31) | (uint)i;
             }
             // Sort32 the buffer
 
@@ -1458,49 +1472,74 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             // gaussian elimination
             int row, c;
             byte mask;
-            for (i = 0; i < (PK_NROWS + 7) / 8; i++)
+            for (row = 0; row < PK_NROWS; row++)
             {
-                for (j = 0; j < 8; j++)
+                i = row >> 3;
+                j = row & 7;
+
+                if (usePivots)
                 {
-                    row = i * 8 + j;
-
-                    if (row >= PK_NROWS)
-                        break;
-
-                    byte[] mat_row = mat[row];
-
-                    if (usePivots)
+                    if (row == PK_NROWS - 32)
                     {
-                        if (row == PK_NROWS - 32)
+                        if (MovColumns(mat, pi, pivots) != 0)
                         {
-                            if (MovColumns(mat, pi, pivots) != 0)
-                            {
-                                //System.out.println("failed mov column!");
-                                return -1;
-                            }
+                            //System.out.println("failed mov column!");
+                            return -1;
                         }
                     }
+                }
 
-                    for (k = row + 1; k < PK_NROWS; k++)
-                    {
-                        byte[] mat_k = mat[k];
-                        mask = (byte)(mat_row[i] ^ mat_k[i]);
-                        mask >>= j;
-                        mask &= 1;
+                byte[] mat_row = mat[row];
 
-                        c = 0;
+                for (k = row + 1; k < PK_NROWS; k++)
+                {
+                    byte[] mat_k = mat[k];
+                    mask = (byte)(mat_row[i] ^ mat_k[i]);
+                    mask >>= j;
+                    mask &= 1;
+
+                    c = 0;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                        ulong mask64 = 0UL - mask;
-                        int limit64 = (SYS_N / 8) - 8;
-                        while (c <= limit64)
+                    if (Vector.IsHardwareAccelerated)
+                    {
+                        var vm = new Vector<byte>((byte)-mask);
+                        int limit = (SYS_N / 8) - Vector<byte>.Count;
+                        while (c <= limit)
                         {
-                            ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c)) & mask64;
-                            ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c)) ^ t0;
+                            var vk = new Vector<byte>(mat_k, c);
+                            var vr = new Vector<byte>(mat_row, c);
+                            ((vk & vm) ^ vr).CopyTo(mat_row, c);
+                            c += Vector<byte>.Count;
+                        }
+                    }
+                    {
+                        ulong mask64 = 0UL - mask;
+                        int limit = (SYS_N / 8) - 8;
+                        while (c <= limit)
+                        {
+                            ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
+                            ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                            t1 ^= t0 & mask64;
                             MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
                             c += 8;
                         }
+                    }
+#else
+                    {
+                        byte maskByte = (byte)-mask;
+                        int limit = (SYS_N / 8) - 4;
+                        while (c <= limit)
+                        {
+                            mat_row[c + 0] ^= (byte)(mat_k[c + 0] & maskByte);
+                            mat_row[c + 1] ^= (byte)(mat_k[c + 1] & maskByte);
+                            mat_row[c + 2] ^= (byte)(mat_k[c + 2] & maskByte);
+                            mat_row[c + 3] ^= (byte)(mat_k[c + 3] & maskByte);
+                            c += 4;
+                        }
+                    }
 #endif
+                    {
                         byte maskByte = (byte)-mask;
                         while (c < SYS_N / 8)
                         {
@@ -1508,43 +1547,66 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             ++c;
                         }
                     }
+                }
 
-                    // 7. Compute (T,cn−k−μ+1,...,cn−k,Γ′) ← MatGen(Γ). If this fails, set δ ← δ′ and
-                    // restart the algorithm.
-                    if (((mat_row[i] >> j) & 1) == 0) // return if not systematic
+                // 7. Compute (T,cn−k−μ+1,...,cn−k,Γ′) ← MatGen(Γ). If this fails, set δ ← δ′ and
+                // restart the algorithm.
+                if (((mat_row[i] >> j) & 1) == 0) // return if not systematic
+                {
+                    //System.out.println("FAIL 2\n");
+                    return -1;
+                }
+
+                for (k = 0; k < PK_NROWS; k++)
+                {
+                    if (k != row)
                     {
-                        //System.out.println("FAIL 2\n");
-                        return -1;
-                    }
+                        byte[] mat_k = mat[k];
+                        mask = (byte)(mat_k[i] >> j);
+                        mask &= 1;
 
-                    for (k = 0; k < PK_NROWS; k++)
-                    {
-                        if (k != row)
-                        {
-                            byte[] mat_k = mat[k];
-                            mask = (byte)(mat_k[i] >> j);
-                            mask &= 1;
-
-                            //mask = (byte)-mask;
-
-                            //for (c = 0; c < SYS_N / 8; c++)
-                            //{
-                            //    mat_k[c] ^= (byte)(mat_row[c] & mask);
-                            //}
-
-                            c = 0;
+                        c = 0;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                            ulong mask64 = 0UL - mask;
-                            int limit64 = (SYS_N / 8) - 8;
-                            while (c <= limit64)
+                        if (Vector.IsHardwareAccelerated)
+                        {
+                            var vm = new Vector<byte>((byte)-mask);
+                            int limit = (SYS_N / 8) - Vector<byte>.Count;
+                            while (c <= limit)
                             {
-                                ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c)) & mask64;
-                                ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c)) ^ t0;
+                                var vr = new Vector<byte>(mat_row, c);
+                                var vk = new Vector<byte>(mat_k, c);
+                                ((vr & vm) ^ vk).CopyTo(mat_k, c);
+                                c += Vector<byte>.Count;
+                            }
+                        }
+                        {
+                            ulong mask64 = 0UL - mask;
+                            int limit = (SYS_N / 8) - 8;
+                            while (c <= limit)
+                            {
+                                ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
+                                ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
+                                t1 ^= t0 & mask64;
                                 MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
                                 c += 8;
                             }
+                        }
+#else
+                        {
+                            byte maskByte = (byte)-mask;
+                            int limit = (SYS_N / 8) - 4;
+                            while (c <= limit)
+                            {
+                                mat_k[c + 0] ^= (byte)(mat_row[c + 0] & maskByte);
+                                mat_k[c + 1] ^= (byte)(mat_row[c + 1] & maskByte);
+                                mat_k[c + 2] ^= (byte)(mat_row[c + 2] & maskByte);
+                                mat_k[c + 3] ^= (byte)(mat_row[c + 3] & maskByte);
+                                c += 4;
+                            }
+                        }
 #endif
+                        {
                             byte maskByte = (byte)-mask;
                             while (c < SYS_N / 8)
                             {
@@ -1561,27 +1623,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 if (usePadding)
                 {
-                    int tail, pk_index = 0;
-                    tail = PK_NROWS % 8;
+                    int pk_index = 0, tail = PK_NROWS % 8;
                     for (i = 0; i < PK_NROWS; i++)
                     {
+                        byte[] mat_i = mat[i];
                         for (j = (PK_NROWS - 1) / 8; j < SYS_N / 8 - 1; j++)
                         {
-                            pk[pk_index++] = (byte)(((mat[i][j] & 0xff) >> tail) | (mat[i][j + 1] << (8 - tail)));
+                            pk[pk_index++] = (byte)(((mat_i[j] & 0xff) >> tail) | (mat_i[j + 1] << (8 - tail)));
                         }
-                        pk[pk_index++] = (byte)((mat[i][j] & 0xff) >> tail);
+                        pk[pk_index++] = (byte)((mat_i[j] & 0xff) >> tail);
                     }
                 }
                 else
                 {
+                    int count = (SYS_N - PK_NROWS + 7) / 8;
                     for (i = 0; i < PK_NROWS; i++)
                     {
-                        k = 0;
-                        for (j = 0; j < (((SYS_N - PK_NROWS) + 7) / 8); j++)
-                        {
-                            pk[i * (((SYS_N - PK_NROWS) + 7) / 8) + k] = mat[i][j + PK_NROWS / 8];
-                            k++;
-                        }
+                        Array.Copy(mat[i], PK_NROWS / 8, pk, count * i, count);
                     }
                 }
             }
@@ -1590,14 +1648,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private ushort Eval(ushort[] f, ushort a)
         {
-            ushort r;
-
-            r = f[SYS_T];
+            ushort r = f[SYS_T];
 
             for (int i = SYS_T - 1; i >= 0; i--)
             {
-                r = gf.GFMul(r, a);
-                r = gf.GFAdd(r, f[i]);
+                r  = gf.GFMul(r, a);
+                r ^= f[i];
             }
 
             return r;
@@ -1613,27 +1669,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private int GenerateIrrPoly(ushort[] field)
         {
-
             // Irreducible 2.4.1 - 2. Define β = β0 + β1y + ···+ βt−1yt−1 ∈Fq[y]/F(y).
             // generating poly
             ushort[][] m = new ushort[SYS_T + 1][];
-            for (int i = 0; i < SYS_T + 1; i++)
-            {
-                m[i] = new ushort[SYS_T];
-            }
 
             // filling matrix
-            m[0] = new ushort[SYS_T];
-            m[0][0] = 1;
-            for (int i = 1; i < SYS_T; i++)
             {
-                m[0][i] = 0;
-            }
-            Array.Copy(field, 0, m[1], 0, SYS_T);
+                m[0] = new ushort[SYS_T];
+                m[0][0] = 1;
+                //for (int i = 1; i < SYS_T; i++)
+                //{
+                //    m[0][i] = 0;
+                //}
 
-            for (int j = 2; j <= SYS_T; j++)
-            {
-                GFMul(m[j], m[j - 1], field);
+                m[1] = new ushort[SYS_T];
+                Array.Copy(field, 0, m[1], 0, SYS_T);
+
+                uint[] temp = new uint[SYS_T * 2 - 1];
+                int j = 2;
+                while (j < SYS_T)
+                {
+                    m[j] = new ushort[SYS_T];
+                    gf.GFSqrPoly(SYS_T, poly, m[j], m[j >> 1], temp);
+                    m[j + 1] = new ushort[SYS_T];
+                    gf.GFMulPoly(SYS_T, poly, m[j + 1], m[j], field, temp);
+                    j += 2;
+                }
+                if (j == SYS_T)
+                {
+                    m[j] = new ushort[SYS_T];
+                    gf.GFSqrPoly(SYS_T, poly, m[j], m[j >> 1], temp);
+                }
             }
 
             // Irreducible 2.4.1 - 3. Compute the minimal polynomial g of β over Fq. (By definition g is monic and irre-
@@ -1647,8 +1713,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     ushort mask = gf.GFIsZero(m[j][j]);
                     for (int c = j; c < SYS_T + 1; c++)
                     {
-                        ushort temp = (ushort)(m[c][j] ^ m[c][k] & mask);
-                        m[c][j] = temp;
+                        m[c][j] ^= (ushort)(m[c][k] & mask);
                     }
                 }
 
@@ -1657,7 +1722,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 {
                     //                System.out.println("FAILED GENERATING IRR POLY");
                     return -1;
-
                 }
 
                 ushort inv = gf.GFInv(m[j][j]);
@@ -1673,67 +1737,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     {
                         ushort t = m[j][k];
 
-                        for (int c = j; c < SYS_T + 1; c++)
+                        for (int c = j; c <= SYS_T; c++)
                         {
                             m[c][k] ^= gf.GFMul(m[c][j], t);
                         }
                     }
                 }
             }
-            for (int i = 0; i < SYS_T; i++)
-            {
-                field[i] = m[SYS_T][i];
-            }
+            Array.Copy(m[SYS_T], field, SYS_T);
             return 0;
-        }
-
-        private void GFMul(ushort[] output, ushort[] left, ushort[] right)
-        {
-
-            ushort[] prod = new ushort[SYS_T * 2 - 1];
-            for (int i = 0; i < SYS_T * 2 - 1; i++)
-            {
-                prod[i] = 0;
-            }
-            for (int i = 0; i < SYS_T; i++)
-            {
-                for (int j = 0; j < SYS_T; j++)
-                {
-                    ushort temp = gf.GFMul(left[i], right[j]);
-                    prod[i + j] ^= temp;
-                }
-            }
-
-            for (int i = (SYS_T - 1) * 2; i >= SYS_T; i--)
-            {
-                foreach (int polyIndex in poly)
-                {
-                    if (polyIndex == 0 && GFBITS == 12)
-                    {
-                        prod[i - SYS_T] ^= (gf.GFMul(prod[i], (ushort)2));
-                    }
-                    else
-                    {
-                        prod[i - SYS_T + polyIndex] ^= prod[i];
-                    }
-                }
-            }
-
-            Array.Copy(prod, 0, output, 0, SYS_T);
-            for (int i = 0; i < SYS_T; i++)
-            {
-                output[i] = prod[i];
-            }
         }
 
         /* check if the padding bits of pk are all zero */
         int CheckPKPadding(byte[] pk)
         {
-            byte b;
-            int i, ret;
-
-            b = 0;
-            for (i = 0; i < PK_NROWS; i++)
+            byte b = 0;
+            for (int i = 0; i < PK_NROWS; i++)
             {
                 b |= pk[i * PK_ROW_BYTES + PK_ROW_BYTES - 1];
             }
@@ -1741,7 +1760,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             b = (byte)((b & 0xff) >> (PK_NCOLS % 8));
             b -= 1;
             b = (byte)((b & 0xff) >> 7);
-            ret = b;
+            int ret = b;
 
             return ret - 1;
         }
@@ -1749,31 +1768,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* check if the padding bits of c are all zero */
         int CheckCPadding(byte[] c)
         {
-            byte b;
-            int ret;
-
-            b = (byte)((c[SYND_BYTES - 1] & 0xff) >> (PK_NROWS % 8));
+            byte b = (byte)((c[SYND_BYTES - 1] & 0xff) >> (PK_NROWS % 8));
             b -= 1;
             b = (byte)((b & 0xff) >> 7);
-            ret = b;
+            int ret = b;
 
             return ret - 1;
         }
 
-
-
         private static void Sort32(int[] temp, int from, int to)
         {
-            int top, p, q, r, i;
             int n = to - from;
+            if (n < 2)
+                return;
 
-            if (n < 2) return;
-            top = 1;
-            while (top < n - top) top += top;
-
-            for (p = top; p > 0; p >>= 1)
+            int top = 1;
+            while (top < n - top)
             {
-                for (i = 0; i < n - p; ++i)
+                top += top;
+            }
+
+            for (int p = top; p > 0; p >>= 1)
+            {
+                for (int i = 0; i < n - p; ++i)
                 {
                     if ((i & p) == 0)
                     {
@@ -1786,15 +1803,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         temp[from + i + p] ^= c;
                     }
                 }
-                i = 0;
-                for (q = top; q > p; q >>= 1)
+                for (int q = top; q > p; q >>= 1)
                 {
-                    for (; i < n - q; ++i)
+                    for (int i = 0; i < n - q; ++i)
                     {
                         if ((i & p) == 0)
                         {
                             int a = temp[from + i + p];
-                            for (r = q; r > p; r >>= 1)
+                            for (int r = q; r > p; r >>= 1)
                             {
                                 int ab = temp[from + i + r] ^ a;
                                 int c = temp[from + i + r] - a;
@@ -1813,40 +1829,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         private static void Sort64(long[] temp, int from, int to)
         {
-            int top, p, q, r, i;
             int n = to - from;
+            if (n < 2)
+                return;
 
-            if (n < 2) return;
-            top = 1;
-            while (top < n - top) top += top;
-
-            for (p = top; p > 0; p >>= 1)
+            int top = 1;
+            while (top < n - top)
             {
-                for (i = 0; i < n - p; ++i)
+                top += top;
+            }
+
+            for (int p = top; p > 0; p >>= 1)
+            {
+                for (int i = 0; i < n - p; ++i)
                 {
                     if ((i & p) == 0)
                     {
                         long c = temp[from + i + p] - temp[from + i];
                         c >>= 63;
-                        // c = -c;
                         c &= temp[from + i] ^ temp[from + i + p];
                         temp[from + i] ^= c;
                         temp[from + i + p] ^= c;
                     }
                 }
-                i = 0;
-                for (q = top; q > p; q >>= 1)
+                for (int q = top; q > p; q >>= 1)
                 {
-                    for (; i < n - q; ++i)
+                    for (int i = 0; i < n - q; ++i)
                     {
                         if ((i & p) == 0)
                         {
                             long a = temp[from + i + p];
-                            for (r = q; r > p; r >>= 1)
+                            for (int r = q; r > p; r >>= 1)
                             {
                                 long c = temp[from + i + r] - a;
                                 c >>= 63;
-                                // c = -c;
                                 c &= a ^ temp[from + i + r];
                                 a ^= c;
                                 temp[from + i + r] ^= c;
@@ -1856,7 +1872,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     }
                 }
             }
-
         }
     }
 }

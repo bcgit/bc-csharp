@@ -1,15 +1,15 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    class Benes12
+    internal class Benes12
         : Benes
     {
-        public Benes12(int n, int t, int m)
+        internal Benes12(int n, int t, int m)
             : base(n, t, m)
         {
         }
 
         /* one layer of the benes network */
-        static void LayerBenes(ulong[] data, ulong[] bits, int lgs)
+        internal static void LayerBenes(ulong[] data, ulong[] bits, int lgs)
         {
             int i, j, s;
             int bit_ptr = 0;
@@ -40,11 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             ulong[] bs = new ulong[64];
             ulong[] cond = new ulong[64];
 
-            //
-            for (i = 0; i < 64; i++)
-            {
-                bs[i] = Utils.Load8(r, i * 8);
-            }
+            Utils.Load8(r, 0, bs, 0, 64);
 
             if (rev == 0)
             {
@@ -56,8 +52,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 inc = -256;
                 cond_ptr = SYS_T * 2 + 40 + (2 * GFBITS - 2) * 256;
             }
-
-            //
 
             Transpose64x64(bs, bs);
             for (low = 0; low <= 5; low++)
@@ -77,22 +71,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             for (low = 0; low <= 5; low++)
             {
-                for (i = 0; i < 32; i++) //DONE use Utils load8
-                {
-                    cond[i] = Utils.Load8(bits, cond_ptr + i * 8);
-                }
-
+                Utils.Load8(bits, cond_ptr, cond, 0, 32);
                 LayerBenes(bs, cond, low);
                 cond_ptr += inc;
             }
 
             for (low = 4; low >= 0; low--)
             {
-                for (i = 0; i < 32; i++) //DONE use Utils load8
-                {
-                    cond[i] = Utils.Load8(bits, cond_ptr + i * 8);
-                }
-
+                Utils.Load8(bits, cond_ptr, cond, 0, 32);
                 LayerBenes(bs, cond, low);
                 cond_ptr += inc;
             }
@@ -113,16 +99,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
             Transpose64x64(bs, bs);
 
-            //
-            for (i = 0; i < 64; i++)
-            {
-                Utils.Store8(r, i * 8, bs[i]);
-
-            }
+            Utils.Store8(r, 0, bs, 0, 64);
         }
 
         // from benes network
-        protected internal override void SupportGen(ushort[] s, byte[] c)
+        internal override void SupportGen(ushort[] s, byte[] c)
         {
             ushort a;
             byte[][] L = new byte[GFBITS][]; //(1 << GFBITS)/8

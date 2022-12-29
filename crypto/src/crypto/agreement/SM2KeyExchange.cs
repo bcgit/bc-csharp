@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
                 byte[] s1 = S1(mDigest, U, inner);
 
-                if (!Arrays.ConstantTimeAreEqual(s1, confirmationTag))
+                if (!Arrays.FixedTimeEquals(s1, confirmationTag))
                     throw new InvalidOperationException("confirmation tag mismatch");
 
                 return new byte[][] { rv, S2(mDigest, U, inner)};

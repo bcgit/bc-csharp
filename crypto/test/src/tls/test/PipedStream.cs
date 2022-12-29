@@ -41,15 +41,6 @@ namespace Org.BouncyCastle.Tls.Tests
             get { return true; }
         }
 
-        public override void Close()
-        {
-            lock (this)
-            {
-                m_closed = true;
-                Monitor.PulseAll(this);
-            }
-        }
-
         public override void Flush()
         {
         }
@@ -114,6 +105,21 @@ namespace Org.BouncyCastle.Tls.Tests
                 CheckOpen();
                 m_buf.WriteByte(value);
                 Monitor.PulseAll(m_buf);
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                lock (this)
+                {
+                    if (!m_closed)
+                    {
+                        m_closed = true;
+                        Monitor.PulseAll(this);
+                    }
+                }
             }
         }
 

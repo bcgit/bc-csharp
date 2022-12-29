@@ -2,7 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
-    public class DilithiumPrivateKeyParameters
+    public sealed class DilithiumPrivateKeyParameters
         : DilithiumKeyParameters
     {
         internal byte[] rho;

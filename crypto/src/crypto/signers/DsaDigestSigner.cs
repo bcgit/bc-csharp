@@ -73,7 +73,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		}
 #endif
 
-		public virtual byte[] GenerateSignature()
+        public virtual int GetMaxSignatureSize() => encoding.GetMaxEncodingSize(GetOrder());
+
+        public virtual byte[] GenerateSignature()
 		{
 			if (!forSigning)
 				throw new InvalidOperationException("DSADigestSigner not initialised for signature generation.");

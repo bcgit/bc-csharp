@@ -90,6 +90,8 @@ namespace Org.BouncyCastle.Math.EC
         protected ECEndomorphism m_endomorphism = null;
         protected ECMultiplier m_multiplier = null;
 
+        private IDictionary<string, PreCompInfo> m_preCompTable = null;
+
         protected ECCurve(IFiniteField field)
         {
             this.m_field = field;
@@ -130,11 +132,8 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
-            GlvEndomorphism glvEndomorphism = m_endomorphism as GlvEndomorphism;
-            if (glvEndomorphism != null)
-            {
+            if (m_endomorphism is GlvEndomorphism glvEndomorphism)
                 return new GlvMultiplier(this, glvEndomorphism);
-            }
 
             return new WNafL2RMultiplier();
         }
@@ -160,6 +159,32 @@ namespace Org.BouncyCastle.Math.EC
             lock (table)
             {
                 return table.TryGetValue(name, out var preCompInfo) ? preCompInfo : null;
+            }
+        }
+
+        internal virtual PreCompInfo Precompute(string name, IPreCompCallback callback)
+        {
+            IDictionary<string, PreCompInfo> table;
+            lock (this)
+            {
+                table = m_preCompTable;
+                if (null == table)
+                {
+                    m_preCompTable = table = new Dictionary<string, PreCompInfo>();
+                }
+            }
+
+            lock (table)
+            {
+                PreCompInfo existing = table.TryGetValue(name, out var preCompInfo) ? preCompInfo : null;
+                PreCompInfo result = callback.Precompute(existing);
+
+                if (result != existing)
+                {
+                    table[name] = result;
+                }
+
+                return result;
             }
         }
 
@@ -932,13 +957,6 @@ namespace Org.BouncyCastle.Math.EC
             return new LongArray(x).ModInverse(m, ks).ToBigInteger();
         }
 
-        /**
-         * The auxiliary values <code>s<sub>0</sub></code> and
-         * <code>s<sub>1</sub></code> used for partial modular reduction for
-         * Koblitz curves.
-         */
-        private BigInteger[] si = null;
-
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
         {
             int[] exponents = (k2 | k3) == 0
@@ -1102,26 +1120,6 @@ namespace Org.BouncyCastle.Math.EC
             while (gamma.IsZero);
 
             return z;
-        }
-
-        /**
-         * @return the auxiliary values <code>s<sub>0</sub></code> and
-         * <code>s<sub>1</sub></code> used for partial modular reduction for
-         * Koblitz curves.
-         */
-        internal virtual BigInteger[] GetSi()
-        {
-            if (si == null)
-            {
-                lock (this)
-                {
-                    if (si == null)
-                    {
-                        si = Tnaf.GetSi(this);
-                    }
-                }
-            }
-            return si;
         }
 
         /**

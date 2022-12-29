@@ -126,11 +126,11 @@ namespace Org.BouncyCastle.Cms.Tests
 			byte[] data = GetRfc4134Data("5.1.bin");
 			CmsEnvelopedData envelopedData = new CmsEnvelopedData(data);
 
-			VerifyEnvelopedData(envelopedData, CmsEnvelopedDataGenerator.DesEde3Cbc);
+			VerifyEnvelopedData(envelopedData, CmsEnvelopedGenerator.DesEde3Cbc);
 
 			CmsEnvelopedDataParser envelopedParser = new CmsEnvelopedDataParser(data);
 
-			VerifyEnvelopedData(envelopedParser, CmsEnvelopedDataGenerator.DesEde3Cbc);
+			VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.DesEde3Cbc);
 		}
 
 		[Test]
@@ -139,11 +139,11 @@ namespace Org.BouncyCastle.Cms.Tests
 			byte[] data = GetRfc4134Data("5.2.bin");
 			CmsEnvelopedData envelopedData = new CmsEnvelopedData(data);
 
-			VerifyEnvelopedData(envelopedData, CmsEnvelopedDataGenerator.RC2Cbc);
+			VerifyEnvelopedData(envelopedData, CmsEnvelopedGenerator.RC2Cbc);
 
 			CmsEnvelopedDataParser envelopedParser = new CmsEnvelopedDataParser(data);
 
-			VerifyEnvelopedData(envelopedParser, CmsEnvelopedDataGenerator.RC2Cbc);
+			VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.RC2Cbc);
 		}
 
 		private void VerifyEnvelopedData(CmsEnvelopedData envelopedData, string symAlgorithmOID)

@@ -8,8 +8,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
     internal abstract class Internal
     {
-        protected static Dictionary<string, string> _props;
-                
         protected internal static uint RADIX = 64;
         protected internal static uint LOG2RADIX = 6;
 
@@ -139,10 +137,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         protected internal ulong[] ph3_T2;
 
 
-        static protected uint[] ReadIntsFromProperty(string key, uint intSize)
+        internal static uint[] ReadIntsFromProperty(IDictionary<string, string> props, string key, uint intSize)
         {
             uint[] ints = new uint[intSize];
-            string s = _props[key];
+            string s = props[key];
             uint i = 0;
             foreach (string number in s.Split(','))
             {
@@ -152,9 +150,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return ints;
         }
 
-        static protected ulong[] ReadFromProperty(string key, uint ulongSize)
+        internal static ulong[] ReadFromProperty(IDictionary<string, string> props, string key, uint ulongSize)
         {
-            string s = _props[key];
+            string s = props[key];
             s = s.Replace(",", "");
             byte[] bytes = Hex.Decode(s);
             ulong[] ulongs = new ulong[ulongSize];
@@ -165,9 +163,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return ulongs;
         }
 
-        static protected ulong[][] ReadFromProperty(string key, uint d1Size, uint d2Size)
+        internal static ulong[][] ReadFromProperty(IDictionary<string, string> props, string key, uint d1Size,
+            uint d2Size)
         {
-            string s = _props[key];
+            string s = props[key];
             s = s.Replace(",", "");
             byte[] bytes = Hex.Decode(s);
             ulong[][] ulongs = new ulong[d1Size][]; //[d2Size];
@@ -185,9 +184,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return ulongs;
         }
 
-        static protected ulong[][][] ReadFromProperty(string key, uint d1Size, uint d2Size, uint d3Size)
+        internal static ulong[][][] ReadFromProperty(IDictionary<string, string> props, string key, uint d1Size,
+            uint d2Size, uint d3Size)
         {
-            string s = _props[key];
+            string s = props[key];
             s = s.Replace(",", "");
             byte[] bytes = Hex.Decode(s);
             ulong[][][] ulongs = new ulong[d1Size][][]; //[d2Size][d3Size];

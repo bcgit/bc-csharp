@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Numerics;
+#endif
 
 using Org.BouncyCastle.Crypto.Utilities;
 
@@ -11,7 +14,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint Add(int len, uint[] x, uint[] y, uint[] z)
         {
-            ulong c = 0;
+            ulong c = 0UL;
             for (int i = 0; i < len; ++i)
             {
                 c += (ulong)x[i] + y[i];
@@ -24,7 +27,7 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint Add(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
-            ulong c = 0;
+            ulong c = 0UL;
             for (int i = 0; i < len; ++i)
             {
                 c += (ulong)x[i] + y[i];
@@ -815,13 +818,17 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint[] FromBigInteger(int bits, BigInteger x)
         {
-            int len = GetLengthForBits(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
+            int len = GetLengthForBits(bits);
             uint[] z = Create(len);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int xLen = x.GetLengthofUInt32ArrayUnsigned();
+            x.ToUInt32ArrayLittleEndianUnsigned(z.AsSpan(0, xLen));
+            //z.AsSpan(xLen).Fill(0x00);
+#else
             // NOTE: Use a fixed number of loop iterations
             z[0] = (uint)x.IntValue;
             for (int i = 1; i < len; ++i)
@@ -829,36 +836,33 @@ namespace Org.BouncyCastle.Math.Raw
                 x = x.ShiftRight(32);
                 z[i] = (uint)x.IntValue;
             }
+#endif
+
             return z;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void FromBigInteger(int bits, BigInteger x, Span<uint> z)
         {
-            int len = GetLengthForBits(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
+
+            int len = GetLengthForBits(bits);
             if (z.Length < len)
                 throw new ArgumentException();
 
-            // NOTE: Use a fixed number of loop iterations
-            z[0] = (uint)x.IntValue;
-            for (int i = 1; i < len; ++i)
-            {
-                x = x.ShiftRight(32);
-                z[i] = (uint)x.IntValue;
-            }
+            int xLen = x.GetLengthofUInt32ArrayUnsigned();
+            x.ToUInt32ArrayLittleEndianUnsigned(z[..xLen]);
+            z[xLen..].Fill(0x00);
         }
 #endif
 
         public static ulong[] FromBigInteger64(int bits, BigInteger x)
         {
-            int len = GetLengthForBits64(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
+            int len = GetLengthForBits64(bits);
             ulong[] z = Create64(len);
 
             // NOTE: Use a fixed number of loop iterations
@@ -874,10 +878,10 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void FromBigInteger64(int bits, BigInteger x, Span<ulong> z)
         {
-            int len = GetLengthForBits64(bits);
-
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
+
+            int len = GetLengthForBits64(bits);
             if (z.Length < len)
                 throw new ArgumentException();
 
@@ -1391,6 +1395,32 @@ namespace Org.BouncyCastle.Math.Raw
             z[zPos + 2] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : IncAt(len, z, zPos + 3);
+        }
+#endif
+
+        public static int Negate(int len, uint[] x, uint[] z)
+        {
+            long c = 0L;
+            for (int i = 0; i < len; ++i)
+            {
+                c -= x[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (int)c;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int Negate(int len, ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            long c = 0L;
+            for (int i = 0; i < len; ++i)
+            {
+                c -= x[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (int)c;
         }
 #endif
 
@@ -2606,6 +2636,25 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int SubInt32From(int len, int x, Span<uint> z)
+        {
+            long c = (long)z[0] - x;
+            z[0] = (uint)c;
+            c >>= 32;
+
+            int i = 1;
+            while (c != 0L && i < len)
+            {
+                c += z[i];
+                z[i++] = (uint)c;
+                c >>= 32;
+            }
+
+            return (int)c;
+        }
+#endif
+
         public static int SubWordAt(int len, uint x, uint[] z, int zPos)
         {
             Debug.Assert(zPos <= (len - 1));
@@ -2732,6 +2781,66 @@ namespace Org.BouncyCastle.Math.Raw
             while (i < len)
             {
                 z[i] = x[i] ^ y[i];
+                ++i;
+            }
+        }
+#endif
+
+        public static void Xor64(int len, ulong[] x, ulong y, ulong[] z)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor64(len, x.AsSpan(0, len), y, z.AsSpan(0, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y;
+            }
+#endif
+        }
+
+        public static void Xor64(int len, ulong[] x, int xOff, ulong y, ulong[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor64(len, x.AsSpan(xOff, len), y, z.AsSpan(zOff, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = x[xOff + i] ^ y;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Xor64(int len, ReadOnlySpan<ulong> x, ulong y, Span<ulong> z)
+        {
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                var vy = new Vector<ulong>(y);
+
+                int limit = len - Vector<ulong>.Count;
+                while (i <= limit)
+                {
+                    var vx = new Vector<ulong>(x[i..]);
+                    (vx ^ vy).CopyTo(z[i..]);
+                    i += Vector<ulong>.Count;
+                }
+            }
+            else
+            {
+                int limit = len - 4;
+                while (i <= limit)
+                {
+                    z[i + 0] = x[i + 0] ^ y;
+                    z[i + 1] = x[i + 1] ^ y;
+                    z[i + 2] = x[i + 2] ^ y;
+                    z[i + 3] = x[i + 3] ^ y;
+                    i += 4;
+                }
+            }
+            while (i < len)
+            {
+                z[i] = x[i] ^ y;
                 ++i;
             }
         }

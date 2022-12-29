@@ -465,33 +465,20 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public int DoFinal(byte[] pOutput, int pOutOffset)
         {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return OutputFinal(pOutput.AsSpan(pOutOffset, GetDigestSize()));
-#else
             return OutputFinal(pOutput, pOutOffset, GetDigestSize());
-#endif
         }
 
         public int OutputFinal(byte[] pOut, int pOutOffset, int pOutLen)
         {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return OutputFinal(pOut.AsSpan(pOutOffset, pOutLen));
-#else
-            /* Reject if we are already outputting */
-            if (m_outputting)
-                throw new InvalidOperationException(ERR_OUTPUTTING);
-
-            /* Build the required output */
             int length = Output(pOut, pOutOffset, pOutLen);
-
-            /* reset the underlying digest and return the length */
             Reset();
             return length;
-#endif
         }
 
         public int Output(byte[] pOut, int pOutOffset, int pOutLen)
         {
+            Check.OutputLength(pOut, pOutOffset, pOutLen, "output buffer too short");
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Output(pOut.AsSpan(pOutOffset, pOutLen));
 #else
@@ -548,19 +535,14 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-            return OutputFinal(output[..GetDigestSize()]);
+            int digestSize = GetDigestSize();
+            Check.OutputLength(output, digestSize, "output buffer too short");
+            return OutputFinal(output[..digestSize]);
         }
 
         public int OutputFinal(Span<byte> output)
         {
-            /* Reject if we are already outputting */
-            if (m_outputting)
-                throw new InvalidOperationException(ERR_OUTPUTTING);
-
-            /* Build the required output */
             int length = Output(output);
-
-            /* reset the underlying digest and return the length */
             Reset();
             return length;
         }

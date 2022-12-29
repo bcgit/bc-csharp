@@ -28,6 +28,8 @@ namespace Org.BouncyCastle.Crypto
         void BlockUpdate(ReadOnlySpan<byte> input);
 #endif
 
+        int GetMaxSignatureSize();
+
         /// <summary>Generate a signature for the message we've been loaded with using the key we were initialised with.
         /// </summary>
         /// <returns>A byte array containing the signature for the message.</returns>

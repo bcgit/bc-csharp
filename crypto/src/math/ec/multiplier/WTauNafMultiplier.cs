@@ -24,17 +24,14 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         */
         protected override ECPoint MultiplyPositive(ECPoint point, BigInteger k)
         {
-            AbstractF2mPoint p = point as AbstractF2mPoint;
-            if (p == null)
+            if (!(point is AbstractF2mPoint p))
                 throw new ArgumentException("Only AbstractF2mPoint can be used in WTauNafMultiplier");
 
             AbstractF2mCurve curve = (AbstractF2mCurve)p.Curve;
-            int m = curve.FieldSize;
             sbyte a = (sbyte)curve.A.ToBigInteger().IntValue;
             sbyte mu = Tnaf.GetMu(a);
-            BigInteger[] s = curve.GetSi();
 
-            ZTauElement rho = Tnaf.PartModReduction(k, m, a, s, mu, (sbyte)10);
+            ZTauElement rho = Tnaf.PartModReduction(curve, k, a, mu, (sbyte)10);
 
             return MultiplyWTnaf(p, rho, a, mu);
         }
@@ -49,15 +46,13 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         * <code>[&#964;]</code>-adic NAF.
         * @return <code>p</code> multiplied by <code>&#955;</code>.
         */
-        private AbstractF2mPoint MultiplyWTnaf(AbstractF2mPoint p, ZTauElement lambda,
-            sbyte a, sbyte mu)
+        private AbstractF2mPoint MultiplyWTnaf(AbstractF2mPoint p, ZTauElement lambda, sbyte a, sbyte mu)
         {
             ZTauElement[] alpha = (a == 0) ? Tnaf.Alpha0 : Tnaf.Alpha1;
 
             BigInteger tw = Tnaf.GetTw(mu, Tnaf.Width);
 
-            sbyte[]u = Tnaf.TauAdicWNaf(mu, lambda, Tnaf.Width,
-                BigInteger.ValueOf(Tnaf.Pow2Width), tw, alpha);
+            sbyte[] u = Tnaf.TauAdicWNaf(mu, lambda, Tnaf.Width, tw.IntValue, alpha);
 
             return MultiplyFromWTnaf(p, u);
         }

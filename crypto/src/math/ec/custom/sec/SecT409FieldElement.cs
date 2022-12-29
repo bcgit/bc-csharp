@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] xx = ((SecT409FieldElement)x).x, yx = ((SecT409FieldElement)y).x;
 
             ulong[] tt = Nat.Create64(13);
-            SecT409Field.SquareAddToExt(ax, tt);
+            SecT409Field.SquareExt(ax, tt);
             SecT409Field.MultiplyAddToExt(xx, yx, tt);
 
             ulong[] z = Nat448.Create64();

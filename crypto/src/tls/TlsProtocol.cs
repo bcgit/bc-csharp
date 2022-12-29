@@ -1517,7 +1517,7 @@ namespace Org.BouncyCastle.Tls
             /*
              * Compare both checksums.
              */
-            if (!Arrays.ConstantTimeAreEqual(expected_verify_data, verify_data))
+            if (!Arrays.FixedTimeEquals(expected_verify_data, verify_data))
             {
                 /*
                  * Wrong checksum in the finished message.
@@ -1557,7 +1557,7 @@ namespace Org.BouncyCastle.Tls
             /*
              * Compare both checksums.
              */
-            if (!Arrays.ConstantTimeAreEqual(expected_verify_data, verify_data))
+            if (!Arrays.FixedTimeEquals(expected_verify_data, verify_data))
             {
                 /*
                  * Wrong checksum in the finished message.

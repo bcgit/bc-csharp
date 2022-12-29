@@ -413,6 +413,28 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        private void ImplTestFF1Rounding()
+        {
+            int radix = 256;
+            byte[] key = Hex.DecodeStrict("000102030405060708090a0b0c0d0e0f");
+            byte[] tweak = Hex.DecodeStrict("0001020304050607");
+            byte[] asciiPT = Hex.DecodeStrict("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738");
+            byte[] asciiCT = Hex.DecodeStrict("dc18bef8b7d23aa77d1daf7a50c2253c4bacb772129f70805ecd413775bc3bdf7927ce70f455dacf4fdf61b61ac73a5c90fd3d1759dca0bf27");
+            byte[] result = new byte[asciiPT.Length];
+
+            FpeEngine fpeEngine = new FpeFf1Engine();
+            FpeParameters fpeParameters = new FpeParameters(new KeyParameter(key), radix, tweak);
+
+            fpeEngine.Init(true, fpeParameters);
+            fpeEngine.ProcessBlock(asciiPT, 0, asciiPT.Length, result, 0);
+            IsTrue("Failed FF1 rounding test (encryption)", AreEqual(asciiCT, result));
+
+            fpeEngine.Init(false, fpeParameters);
+            fpeEngine.ProcessBlock(asciiCT, 0, asciiCT.Length, result, 0);
+
+            IsTrue("Failed FF1 rounding test (decryption)", AreEqual(asciiPT, result));
+        }
+
         private void ImplTestFF3_1Bounds()
         {
             string bigAlpha = "+-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
@@ -505,6 +527,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ImplTestFF1();
             ImplTestFF1w();
             ImplTestFF1Bounds();
+            ImplTestFF1Rounding();
             ImplTestFF3_1();
             ImplTestFF3_1w();
             ImplTestFF3_1_255();

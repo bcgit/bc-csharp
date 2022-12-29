@@ -4,10 +4,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    public class CmcePrivateKeyParameters
+    public sealed class CmcePrivateKeyParameters
         : CmceKeyParameters
     {
-        internal byte[] privateKey;
+        internal readonly byte[] privateKey;
 
         public byte[] GetPrivateKey()
         {
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         public byte[] ReconstructPublicKey()
         {
-            CmceEngine engine = Parameters.Engine;
+            ICmceEngine engine = Parameters.Engine;
             byte[] pk = new byte[engine.PublicKeySize];
             engine.GeneratePublicKeyFromPrivateKey(privateKey);
             return pk;

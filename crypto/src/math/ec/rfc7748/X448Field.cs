@@ -1,5 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers.Binary;
+using System.Numerics;
+#endif
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Math.Raw;
 
@@ -16,13 +28,46 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
             0xFFFFFFFFU, 0xFFFFFFFFU };
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Add(x.AsSpan(), y.AsSpan(), z.AsSpan());
+#else
             for (int i = 0; i < Size; ++i)
             {
                 z[i] = x[i] + y[i];
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                int limit = Size - Vector<uint>.Count;
+                while (i <= limit)
+                {
+                    var vx = new Vector<uint>(x[i..]);
+                    var vy = new Vector<uint>(y[i..]);
+                    (vx + vy).CopyTo(z[i..]);
+                    i += Vector<uint>.Count;
+                }
+            }
+            {
+                while (i < Size)
+                {
+                    z[i] = x[i] + y[i];
+                    ++i;
+                }
+            }
+        }
+#endif
 
         public static void AddOne(uint[] z)
         {
@@ -140,10 +185,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void Copy(uint[] x, int xOff, uint[] z, int zOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Copy(x.AsSpan(xOff), z.AsSpan(zOff));
+#else
             for (int i = 0; i < Size; ++i)
             {
                 z[zOff + i] = x[xOff + i];
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -192,6 +241,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        public static void Decode(byte[] x, uint[] z)
+        {
+            Decode56(x, 0, z, 0);
+            Decode56(x, 7, z, 2);
+            Decode56(x, 14, z, 4);
+            Decode56(x, 21, z, 6);
+            Decode56(x, 28, z, 8);
+            Decode56(x, 35, z, 10);
+            Decode56(x, 42, z, 12);
+            Decode56(x, 49, z, 14);
+        }
+
         public static void Decode(byte[] x, int xOff, uint[] z)
         {
             Decode56(x, xOff, z, 0);
@@ -202,6 +263,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Decode56(x, xOff + 35, z, 10);
             Decode56(x, xOff + 42, z, 12);
             Decode56(x, xOff + 49, z, 14);
+        }
+
+        public static void Decode(byte[] x, int xOff, uint[] z, int zOff)
+        {
+            Decode56(x, xOff, z, zOff);
+            Decode56(x, xOff + 7, z, zOff + 2);
+            Decode56(x, xOff + 14, z, zOff + 4);
+            Decode56(x, xOff + 21, z, zOff + 6);
+            Decode56(x, xOff + 28, z, zOff + 8);
+            Decode56(x, xOff + 35, z, zOff + 10);
+            Decode56(x, xOff + 42, z, zOff + 12);
+            Decode56(x, xOff + 49, z, zOff + 14);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -270,21 +343,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         private static uint Decode32(byte[] bs, int off)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return BinaryPrimitives.ReadUInt32LittleEndian(bs.AsSpan(off));
+#else
             uint n = bs[off];
             n |= (uint)bs[++off] << 8;
             n |= (uint)bs[++off] << 16;
             n |= (uint)bs[++off] << 24;
             return n;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static uint Decode32(ReadOnlySpan<byte> bs)
         {
-            uint n = bs[0];
-            n |= (uint)bs[1] << 8;
-            n |= (uint)bs[2] << 16;
-            n |= (uint)bs[3] << 24;
-            return n;
+            return BinaryPrimitives.ReadUInt32LittleEndian(bs);
         }
 #endif
 
@@ -320,6 +393,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        public static void Encode(uint[] x, byte[] z)
+        {
+            Encode56(x, 0, z, 0);
+            Encode56(x, 2, z, 7);
+            Encode56(x, 4, z, 14);
+            Encode56(x, 6, z, 21);
+            Encode56(x, 8, z, 28);
+            Encode56(x, 10, z, 35);
+            Encode56(x, 12, z, 42);
+            Encode56(x, 14, z, 49);
+        }
+
         public static void Encode(uint[] x, byte[] z, int zOff)
         {
             Encode56(x, 0, z, zOff);
@@ -330,6 +415,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode56(x, 10, z, zOff + 35);
             Encode56(x, 12, z, zOff + 42);
             Encode56(x, 14, z, zOff + 49);
+        }
+
+        public static void Encode(uint[] x, int xOff, byte[] z, int zOff)
+        {
+            Encode56(x, xOff, z, zOff);
+            Encode56(x, xOff + 2, z, zOff + 7);
+            Encode56(x, xOff + 4, z, zOff + 14);
+            Encode56(x, xOff + 6, z, zOff + 21);
+            Encode56(x, xOff + 8, z, zOff + 28);
+            Encode56(x, xOff + 10, z, zOff + 35);
+            Encode56(x, xOff + 12, z, zOff + 42);
+            Encode56(x, xOff + 14, z, zOff + 49);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -394,19 +491,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         private static void Encode32(uint n, byte[] bs, int off)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BinaryPrimitives.WriteUInt32LittleEndian(bs.AsSpan(off), n);
+#else
             bs[  off] = (byte)(n      );
             bs[++off] = (byte)(n >>  8);
             bs[++off] = (byte)(n >> 16);
             bs[++off] = (byte)(n >> 24);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static void Encode32(uint n, Span<byte> bs)
         {
-            bs[0] = (byte)(n      );
-            bs[1] = (byte)(n >>  8);
-            bs[2] = (byte)(n >> 16);
-            bs[3] = (byte)(n >> 24);
+            BinaryPrimitives.WriteUInt32LittleEndian(bs, n);
         }
 #endif
 
@@ -1289,6 +1387,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void Sub(uint[] x, uint[] y, uint[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Sub(x.AsSpan(), y.AsSpan(), z.AsSpan());
+#else
             uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4], x5 = x[5], x6 = x[6], x7 = x[7];
             uint x8 = x[8], x9 = x[9], x10 = x[10], x11 = x[11], x12 = x[12], x13 = x[13], x14 = x[14], x15 = x[15];
             uint y0 = y[0], y1 = y[1], y2 = y[2], y3 = y[3], y4 = y[4], y5 = y[5], y6 = y[6], y7 = y[7];
@@ -1350,7 +1451,137 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[13] = z13;
             z[14] = z14;
             z[15] = z15;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Sub(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Avx2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<uint>>() == 32)
+            {
+                var ControlCarry = Vector256.Create(7U, 0U, 1U, 2U, 3U, 4U, 5U, 6U);
+                var Mask28 = Vector256.Create(M28);
+                var MaskScalar = Vector256.CreateScalar(uint.MaxValue);
+
+                var P0 = Vector256.Create(0x1FFFFFFEU);
+                var P1 = P0.WithElement(0, 0x1FFFFFFCU);
+
+                var X = MemoryMarshal.AsBytes(x[..16]);
+                var Y = MemoryMarshal.AsBytes(y[..16]);
+                var Z = MemoryMarshal.AsBytes(z[..16]);
+
+                var X0 = MemoryMarshal.Read<Vector256<uint>>(X[0x00..0x20]);
+                var X1 = MemoryMarshal.Read<Vector256<uint>>(X[0x20..0x40]);
+
+                var Y0 = MemoryMarshal.Read<Vector256<uint>>(Y[0x00..0x20]);
+                var Y1 = MemoryMarshal.Read<Vector256<uint>>(Y[0x20..0x40]);
+
+                var Z0 = Avx2.Subtract(Avx2.Add(X0, P0), Y0);
+                var Z1 = Avx2.Subtract(Avx2.Add(X1, P1), Y1);
+
+                // First carry
+                {
+                    var C0 = Avx2.ShiftRightLogical(Z0, 28);
+                    var C1 = Avx2.ShiftRightLogical(Z1, 28);
+
+                    Z0 = Avx2.And(Z0, Mask28);
+                    Z1 = Avx2.And(Z1, Mask28);
+
+                    C0 = Avx2.PermuteVar8x32(C0, ControlCarry);
+                    C1 = Avx2.PermuteVar8x32(C1, ControlCarry);
+
+                    Z0 = Avx2.Add(Z0, Avx2.Blend(C0, C1, 0x01));
+                    Z1 = Avx2.Add(Z1, C1);
+                    Z1 = Avx2.Add(Z1, Avx2.And(C0, MaskScalar));
+                }
+
+                // Second carry
+                {
+                    var C0 = Avx2.ShiftRightLogical(Z0, 28);
+                    var C1 = Avx2.ShiftRightLogical(Z1, 28);
+
+                    Z0 = Avx2.And(Z0, Mask28);
+                    Z1 = Avx2.And(Z1, Mask28);
+
+                    C0 = Avx2.PermuteVar8x32(C0, ControlCarry);
+                    C1 = Avx2.PermuteVar8x32(C1, ControlCarry);
+
+                    Z0 = Avx2.Add(Z0, Avx2.Blend(C0, C1, 0x01));
+                    Z1 = Avx2.Add(Z1, C1);
+                    Z1 = Avx2.Add(Z1, Avx2.And(C0, MaskScalar));
+                }
+
+                MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+
+                return;
+            }
+#endif
+
+            uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4], x5 = x[5], x6 = x[6], x7 = x[7];
+            uint x8 = x[8], x9 = x[9], x10 = x[10], x11 = x[11], x12 = x[12], x13 = x[13], x14 = x[14], x15 = x[15];
+            uint y0 = y[0], y1 = y[1], y2 = y[2], y3 = y[3], y4 = y[4], y5 = y[5], y6 = y[6], y7 = y[7];
+            uint y8 = y[8], y9 = y[9], y10 = y[10], y11 = y[11], y12 = y[12], y13 = y[13], y14 = y[14], y15 = y[15];
+
+            uint z0 = x0 + 0x1FFFFFFEU - y0;
+            uint z1 = x1 + 0x1FFFFFFEU - y1;
+            uint z2 = x2 + 0x1FFFFFFEU - y2;
+            uint z3 = x3 + 0x1FFFFFFEU - y3;
+            uint z4 = x4 + 0x1FFFFFFEU - y4;
+            uint z5 = x5 + 0x1FFFFFFEU - y5;
+            uint z6 = x6 + 0x1FFFFFFEU - y6;
+            uint z7 = x7 + 0x1FFFFFFEU - y7;
+            uint z8 = x8 + 0x1FFFFFFCU - y8;
+            uint z9 = x9 + 0x1FFFFFFEU - y9;
+            uint z10 = x10 + 0x1FFFFFFEU - y10;
+            uint z11 = x11 + 0x1FFFFFFEU - y11;
+            uint z12 = x12 + 0x1FFFFFFEU - y12;
+            uint z13 = x13 + 0x1FFFFFFEU - y13;
+            uint z14 = x14 + 0x1FFFFFFEU - y14;
+            uint z15 = x15 + 0x1FFFFFFEU - y15;
+
+            z2 += z1 >> 28; z1 &= M28;
+            z6 += z5 >> 28; z5 &= M28;
+            z10 += z9 >> 28; z9 &= M28;
+            z14 += z13 >> 28; z13 &= M28;
+
+            z3 += z2 >> 28; z2 &= M28;
+            z7 += z6 >> 28; z6 &= M28;
+            z11 += z10 >> 28; z10 &= M28;
+            z15 += z14 >> 28; z14 &= M28;
+
+            uint t = z15 >> 28; z15 &= M28;
+            z0 += t;
+            z8 += t;
+
+            z4 += z3 >> 28; z3 &= M28;
+            z8 += z7 >> 28; z7 &= M28;
+            z12 += z11 >> 28; z11 &= M28;
+
+            z1 += z0 >> 28; z0 &= M28;
+            z5 += z4 >> 28; z4 &= M28;
+            z9 += z8 >> 28; z8 &= M28;
+            z13 += z12 >> 28; z12 &= M28;
+
+            z[0] = z0;
+            z[1] = z1;
+            z[2] = z2;
+            z[3] = z3;
+            z[4] = z4;
+            z[5] = z5;
+            z[6] = z6;
+            z[7] = z7;
+            z[8] = z8;
+            z[9] = z9;
+            z[10] = z10;
+            z[11] = z11;
+            z[12] = z12;
+            z[13] = z13;
+            z[14] = z14;
+            z[15] = z15;
+        }
+#endif
 
         public static void SubOne(uint[] z)
         {

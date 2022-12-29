@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Crmf
 
         private EncryptedValue EncryptData(byte[] data)
         {
-            MemoryOutputStream bOut = new MemoryOutputStream();
+            MemoryStream bOut = new MemoryStream();
             var cipher = encryptor.BuildCipher(bOut);
 
             try

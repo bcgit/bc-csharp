@@ -1,5 +1,4 @@
 ﻿using System;
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -11,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private SecureRandom sr;
         public HqcKemGenerator(SecureRandom random)
         {
-            this.sr = random;
+            sr = random;
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
@@ -23,22 +22,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             byte[] u = new byte[key.Parameters.NBytes];
             byte[] v = new byte[key.Parameters.N1n2Bytes];
             byte[] d = new byte[key.Parameters.Sha512Bytes];
+            byte[] salt = new byte[key.Parameters.SaltSizeBytes];
             byte[] pk = key.PublicKey;
             byte[] seed = new byte[48];
 
             sr.NextBytes(seed);
 
-            engine.Encaps(u, v, K, d, pk, seed);
+            engine.Encaps(u, v, K, d, pk, seed, salt);
 
-            byte[] cipherText = Arrays.Concatenate(u, v);
-            cipherText = Arrays.Concatenate(cipherText, d);
+            byte[] cipherText = Arrays.ConcatenateAll(u, v, d, salt);
 
-            return new HqcKemGenerator.SecretWithEncapsulationImpl(K, cipherText);
+            return new SecretWithEncapsulationImpl(K, cipherText);
         }
 
         private class SecretWithEncapsulationImpl : ISecretWithEncapsulation
         {
-            private volatile bool hasBeenDestroyed = false;
+            private volatile bool hasBeenDestroyed;
 
             private byte[] sessionKey;
             private byte[] cipher_text;

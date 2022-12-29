@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Math.Raw
             Nat256.Mul(x, 8, y, 8, zz, 16);
 
             uint c24 = Nat256.AddToEachOther(zz, 8, zz, 16);
-            uint c16 = c24 + Nat256.AddTo(zz, 0, zz, 8, 0);
+            uint c16 = c24 + Nat256.AddTo(zz, 0, zz, 8, 0U);
             c24 += Nat256.AddTo(zz, 24, zz, 16, c16);
 
             uint[] dx = Nat256.Create(), dy = Nat256.Create();
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Math.Raw
             Nat256.Square(x, 8, zz, 16);
 
             uint c24 = Nat256.AddToEachOther(zz, 8, zz, 16);
-            uint c16 = c24 + Nat256.AddTo(zz, 0, zz, 8, 0);
+            uint c16 = c24 + Nat256.AddTo(zz, 0, zz, 8, 0U);
             c24 += Nat256.AddTo(zz, 24, zz, 16, c16);
 
             uint[] dx = Nat256.Create();

@@ -1,99 +1,100 @@
-using System;
+using System.Diagnostics;
+
+using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    abstract class GF
+    internal interface GF
     {
-        protected int GFBITS;
-        protected int GFMASK; //  = ((1 << GFBITS) - 1);
+        void GFMulPoly(int length, int[] poly, ushort[] output, ushort[] left, ushort[] right, uint[] temp);
+        void GFSqrPoly(int length, int[] poly, ushort[] output, ushort[] input, uint[] temp);
 
-        public GF(int gfbits)
-        {
-            GFBITS = gfbits;
-            GFMASK = ((1 << GFBITS) - 1);
-
-        }
-
-        internal ushort GFIsZero(ushort a)
-        {
-            int t = a;
-
-            t -= 1;
-            t >>= 19;
-
-            return (ushort) t;
-        }
-
-        internal ushort GFAdd(ushort left, ushort right)
-        {
-            return (ushort) (left ^ right);
-        }
-
-        public abstract ushort GFMul(ushort left, ushort right);
-        internal abstract protected ushort GFFrac(ushort den, ushort num);
-        internal abstract protected ushort GFInv(ushort input);
-
+        ushort GFFrac(ushort den, ushort num);
+        ushort GFInv(ushort input);
+        ushort GFIsZero(ushort a);
+        ushort GFMul(ushort left, ushort right);
+        uint GFMulExt(ushort left, ushort right);
+        ushort GFReduce(uint input);
+        ushort GFSq(ushort input);
+        uint GFSqExt(ushort input);
     }
 
-    class GF12
+    internal struct GF12
         : GF
     {
-        
-        public GF12(int gfbits)
-            :base(gfbits)
+        public void GFMulPoly(int length, int[] poly, ushort[] output, ushort[] left, ushort[] right, uint[] temp)
         {
-        }
+            temp[0] = GFMulExt(left[0], right[0]);
 
-        public override ushort GFMul(ushort left, ushort right)
-        {
-            int temp, temp_left, temp_right, t;
-            temp_left = left;
-            temp_right = right;
-            temp = temp_left * (temp_right & 1);
-
-            for (int i = 1; i < GFBITS; i++)
+            for (int i = 1; i < length; i++)
             {
-                temp ^= (temp_left * (temp_right & (1<<i)));
+                temp[i + i - 1] = 0U;
+
+                ushort left_i = left[i];
+                ushort right_i = right[i];
+
+                for (int j = 0; j < i; j++)
+                {
+                    temp[i + j] ^= GFMulExtPar(left_i, right[j], left[j], right_i);
+                }
+
+                temp[i + i] = GFMulExt(left_i, right_i);
             }
 
-            t = (temp & 0x7FC000);
-            temp ^= t >> 9;
-            temp ^= t >> 12;
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
 
-            t = (temp & 0x3000);
-            temp ^= t >> 9;
-            temp ^= t >> 12;
+                for (int j = 0; j < poly.Length - 1; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+                {
+                    temp[i - length] ^= GFMulExt(GFReduce(temp_i), 2);
+                }
+            }
 
-            ushort res = (ushort) ( temp & ((1 << GFBITS)-1));
-            return res;
-
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
-        protected ushort GFSq(ushort input)
+        public void GFSqrPoly(int length, int[] poly, ushort[] output, ushort[] input, uint[] temp)
         {
-            int[] B = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
-            int x = input;
-            int t;
+            temp[0] = GFSqExt(input[0]);
 
-            x = (x | (x << 8)) & B[3];
-            x = (x | (x << 4)) & B[2];
-            x = (x | (x << 2)) & B[1];
-            x = (x | (x << 1)) & B[0];
+            for (int i = 1; i < length; i++)
+            {
+                temp[i + i - 1] = 0;
+                temp[i + i] = GFSqExt(input[i]);
+            }
 
-            t = x & 0x7FC000;
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
 
-            x ^= t >> 9;
-            x ^= t >> 12;
+                for (int j = 0; j < poly.Length - 1; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+                {
+                    temp[i - length] ^= GFMulExt(GFReduce(temp_i), 2);
+                }
+            }
 
-            t = x & 0x3000;
-
-            x ^= t >> 9;
-            x ^= t >> 12;
-
-            return (ushort) (x & ((1 << GFBITS)-1));
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
-        protected internal override ushort GFInv(ushort input)
+        public ushort GFFrac(ushort den, ushort num)
+        {
+            return GFMul(GFInv(den), num);
+        }
+
+        public ushort GFInv(ushort input)
         {
             ushort tmp_11;
             ushort tmp_1111;
@@ -123,164 +124,146 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return GFSq(output); // 111111111110
         }
 
-        protected internal override ushort GFFrac(ushort den, ushort num)
+        public ushort GFIsZero(ushort a)
         {
-            return GFMul(GFInv(den), num);
+            return (ushort)((a - 1) >> 31);
         }
 
+        public ushort GFMul(ushort left, ushort right)
+        {
+            int x = left;
+            int y = right;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 12; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return GFReduce((uint)z);
+        }
+
+        public uint GFMulExt(ushort left, ushort right)
+        {
+            int x = left, y = right;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 12; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return (uint)z;
+        }
+
+        private uint GFMulExtPar(ushort left0, ushort right0, ushort left1, ushort right1)
+        {
+            int x0 = left0, y0 = right0, x1 = left1, y1 = right1;
+
+            int z0 = x0 * (y0 & 1);
+            int z1 = x1 * (y1 & 1);
+
+            for (int i = 1; i < 12; i++)
+            {
+                z0 ^= x0 * (y0 & (1 << i));
+                z1 ^= x1 * (y1 & (1 << i));
+            }
+
+            return (uint)(z0 ^ z1);
+        }
+
+        public ushort GFReduce(uint x)
+        {
+            Debug.Assert((x >> 24) == 0);
+
+            uint u0 = x & 0x00000FFFU;
+            uint u1 = x >> 12;
+            uint u2 = (x & 0x001FF000U) >> 9;
+            uint u3 = (x & 0x00E00000U) >> 18;
+            uint u4 = x >> 21;
+
+            return (ushort)(u0 ^ u1 ^ u2 ^ u3 ^ u4);
+        }
+
+        public ushort GFSq(ushort input)
+        {
+            uint z = Interleave.Expand16to32(input);
+            return GFReduce(z);
+        }
+
+        public uint GFSqExt(ushort input)
+        {
+            return Interleave.Expand16to32(input);
+        }
     }
 
-    class GF13
+    internal struct GF13
         : GF
     {
-        public GF13(int gfbits)
-    	    :base(gfbits)
+        public void GFMulPoly(int length, int[] poly, ushort[] output, ushort[] left, ushort[] right, uint[] temp)
         {
-        }
+            temp[0] = GFMulExt(left[0], right[0]);
 
-        public override ushort GFMul(ushort in0, ushort in1)
-        {
-            int i;
-
-            long tmp;
-            long t0;
-            long t1;
-            long t;
-
-            t0 = in0;
-            t1 = in1;
-
-            tmp = t0 * (t1 & 1);
-
-            for (i = 1; i < GFBITS; i++)
-                tmp ^= (t0 * (t1 & (1 << i)));
-
-            //
-
-            t = tmp & 0x1FF0000L;
-            tmp ^= (t >> 9) ^ (t >> 10) ^ (t >> 12) ^ (t >> 13);
-
-            t = tmp & 0x000E000L;
-            tmp ^= (t >> 9) ^ (t >> 10) ^ (t >> 12) ^ (t >> 13);
-
-            return (ushort) (tmp & GFMASK);
-        }
-
-        /* input: field element in */
-        /* return: (in^2)^2 */
-        protected ushort GFSq2(ushort input)
-        {
-            int i;
-
-            long[] B = {0x1111111111111111L,
-                        0x0303030303030303L,
-                        0x000F000F000F000FL,
-                        0x000000FF000000FFL};
-
-            long[] M = {0x0001FF0000000000L,
-                        0x000000FF80000000L,
-                        0x000000007FC00000L,
-                        0x00000000003FE000L};
-
-            long x = input;
-            long t;
-
-            x = (x | (x << 24)) & B[3];
-            x = (x | (x << 12)) & B[2];
-            x = (x | (x << 6)) & B[1];
-            x = (x | (x << 3)) & B[0];
-
-            for (i = 0; i < 4; i++)
+            for (int i = 1; i < length; i++)
             {
-                t = x & M[i];
-                x ^= (t >> 9) ^ (t >> 10) ^ (t >> 12) ^ (t >> 13);
+                temp[i + i - 1] = 0U;
+
+                ushort left_i = left[i];
+                ushort right_i = right[i];
+
+                for (int j = 0; j < i; j++)
+                {
+                    temp[i + j] ^= GFMulExtPar(left_i, right[j], left[j], right_i);
+                }
+
+                temp[i + i] = GFMulExt(left_i, right_i);
             }
 
-            return (ushort) (x & GFMASK);
-        }
-
-        /* input: field element in, m */
-        /* return: (in^2)*m */
-        private ushort GFSqMul(ushort input, ushort m)
-        {
-            int i;
-
-            long x;
-            long t0;
-            long t1;
-            long t;
-
-            long[] M = {0x0000001FF0000000L,
-                        0x000000000FF80000L,
-                        0x000000000007E000L};
-
-            t0 = input;
-            t1 = m;
-
-            x = (t1 << 6) * (t0 & (1 << 6));
-
-            t0 ^= (t0 << 7);
-
-            x ^= (t1 * (t0 & (0x04001)));
-            x ^= (t1 * (t0 & (0x08002))) << 1;
-            x ^= (t1 * (t0 & (0x10004))) << 2;
-            x ^= (t1 * (t0 & (0x20008))) << 3;
-            x ^= (t1 * (t0 & (0x40010))) << 4;
-            x ^= (t1 * (t0 & (0x80020))) << 5;
-
-            for (i = 0; i < 3; i++)
+            for (int i = (length - 1) * 2; i >= length; i--)
             {
-                t = x & M[i];
-                x ^= (t >> 9) ^ (t >> 10) ^ (t >> 12) ^ (t >> 13);
+                uint temp_i = temp[i];
+
+                for (int j = 0; j < poly.Length; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
             }
 
-            return (ushort) (x & GFMASK);
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
-        /* input: field element in, m */
-        /* return: ((in^2)^2)*m */
-        private ushort GFSq2Mul(ushort input, ushort m)
+        public void GFSqrPoly(int length, int[] poly, ushort[] output, ushort[] input, uint[] temp)
         {
-            int i;
+            temp[0] = GFSqExt(input[0]);
 
-            long x;
-            long t0;
-            long t1;
-            long t;
-
-            long[] M = {0x1FF0000000000000L,
-                        0x000FF80000000000L,
-                        0x000007FC00000000L,
-                        0x00000003FE000000L,
-                        0x0000000001FE0000L,
-                        0x000000000001E000L};
-
-            t0 = input;
-            t1 = m;
-
-            x = (t1 << 18) * (t0 & (1 << 6));
-
-            t0 ^= (t0 << 21);
-
-            x ^= (t1 * (t0 & (0x010000001L)));
-            x ^= (t1 * (t0 & (0x020000002L))) << 3;
-            x ^= (t1 * (t0 & (0x040000004L))) << 6;
-            x ^= (t1 * (t0 & (0x080000008L))) << 9;
-            x ^= (t1 * (t0 & (0x100000010L))) << 12;
-            x ^= (t1 * (t0 & (0x200000020L))) << 15;
-
-            for (i = 0; i < 6; i++)
+            for (int i = 1; i < length; i++)
             {
-                t = x & M[i];
-                x ^= (t >> 9) ^ (t >> 10) ^ (t >> 12) ^ (t >> 13);
+                temp[i + i - 1] = 0;
+                temp[i + i] = GFSqExt(input[i]);
             }
 
-            return (ushort) (x & GFMASK);
+            for (int i = (length - 1) * 2; i >= length; i--)
+            {
+                uint temp_i = temp[i];
+
+                for (int j = 0; j < poly.Length; j++)
+                {
+                    temp[i - length + poly[j]] ^= temp_i;
+                }
+            }
+
+            for (int i = 0; i < length; ++i)
+            {
+                output[i] = GFReduce(temp[i]);
+            }
         }
 
         /* input: field element den, num */
         /* return: (num/den) */
-        protected internal override ushort GFFrac(ushort den, ushort num)
+        public ushort GFFrac(ushort den, ushort num)
         {
             ushort tmp_11, tmp_1111, output;
 
@@ -294,9 +277,147 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return GFSqMul(output, num); // ^1111111111110 = ^-1
         }
 
-        protected internal override ushort GFInv(ushort den)
+        public ushort GFInv(ushort den)
         {
-            return GFFrac(den, ((ushort) 1));
+            return GFFrac(den, 1);
+        }
+
+        public ushort GFIsZero(ushort a)
+        {
+            return (ushort)((a - 1) >> 31);
+        }
+
+        public ushort GFMul(ushort in0, ushort in1)
+        {
+            int x = in0;
+            int y = in1;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 13; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return GFReduce((uint)z);
+        }
+
+        public uint GFMulExt(ushort left, ushort right)
+        {
+            int x = left, y = right;
+
+            int z = x * (y & 1);
+            for (int i = 1; i < 13; i++)
+            {
+                z ^= x * (y & (1 << i));
+            }
+
+            return (uint)z;
+        }
+
+        private uint GFMulExtPar(ushort left0, ushort right0, ushort left1, ushort right1)
+        {
+            int x0 = left0, y0 = right0, x1 = left1, y1 = right1;
+
+            int z0 = x0 * (y0 & 1);
+            int z1 = x1 * (y1 & 1);
+
+            for (int i = 1; i < 13; i++)
+            {
+                z0 ^= x0 * (y0 & (1 << i));
+                z1 ^= x1 * (y1 & (1 << i));
+            }
+
+            return (uint)(z0 ^ z1);
+        }
+
+        public ushort GFReduce(uint x)
+        {
+            Debug.Assert((x >> 26) == 0);
+
+            uint u0 = x & 0x00001FFFU;
+            uint u1 = x >> 13;
+
+            uint t2 = (u1 << 4) ^ (u1 << 3) ^ (u1 << 1);
+
+            uint u2 = t2 >> 13;
+            uint u3 = t2 & 0x00001FFFU;
+            uint u4 = (u2 << 4) ^ (u2 << 3) ^ (u2 << 1);
+
+            return (ushort)(u0 ^ u1 ^ u2 ^ u3 ^ u4);
+        }
+
+        public ushort GFSq(ushort input)
+        {
+            uint z = Interleave.Expand16to32(input);
+            return GFReduce(z);
+        }
+
+        public uint GFSqExt(ushort input)
+        {
+            return Interleave.Expand16to32(input);
+        }
+
+        /* input: field element in */
+        /* return: (in^2)^2 */
+        private ushort GFSq2(ushort input)
+        {
+            uint z1 = Interleave.Expand16to32(input);
+            input = GFReduce(z1);
+            uint z2 = Interleave.Expand16to32(input);
+            return GFReduce(z2);
+        }
+
+        /* input: field element in, m */
+        /* return: (in^2)*m */
+        private ushort GFSqMul(ushort input, ushort m)
+        {
+            long t0 = input;
+            long t1 = m;
+
+            long x = (t1 << 6) * (t0 & (1 << 6));
+
+            t0 ^= t0 << 7;
+
+            x ^= (t1 << 0) * (t0 & 0x04001);
+            x ^= (t1 << 1) * (t0 & 0x08002);
+            x ^= (t1 << 2) * (t0 & 0x10004);
+            x ^= (t1 << 3) * (t0 & 0x20008);
+            x ^= (t1 << 4) * (t0 & 0x40010);
+            x ^= (t1 << 5) * (t0 & 0x80020);
+
+            long t;
+            t  = x & 0x0000001FFC000000L;
+            x ^= (t >> 18) ^ (t >> 20) ^ (t >> 24) ^ (t >> 26);
+
+            return GFReduce((uint)x & 0x03FFFFFFU);
+        }
+
+        /* input: field element in, m */
+        /* return: ((in^2)^2)*m */
+        private ushort GFSq2Mul(ushort input, ushort m)
+        {
+            long t0 = input;
+            long t1 = m;
+
+            long x = (t1 << 18) * (t0 & (1 << 6));
+
+            t0 ^= t0 << 21;
+
+            x ^= (t1 <<  0) * (t0 & (0x010000001L));
+            x ^= (t1 <<  3) * (t0 & (0x020000002L));
+            x ^= (t1 <<  6) * (t0 & (0x040000004L));
+            x ^= (t1 <<  9) * (t0 & (0x080000008L));
+            x ^= (t1 << 12) * (t0 & (0x100000010L));
+            x ^= (t1 << 15) * (t0 & (0x200000020L));
+
+            long t;
+            t  = x & 0x1FFFF80000000000L;
+            x ^= (t >> 18) ^ (t >> 20) ^ (t >> 24) ^ (t >> 26);
+
+            t  = x & 0x000007FFFC000000L;
+            x ^= (t >> 18) ^ (t >> 20) ^ (t >> 24) ^ (t >> 26);
+
+            return GFReduce((uint)x & 0x03FFFFFFU);
         }
     }
 }

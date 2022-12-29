@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Tsp
 					throw new TspValidationException("time stamp token found in failed request.");
 				}
 
-				if (!Arrays.ConstantTimeAreEqual(request.GetMessageImprintDigest(), tstInfo.GetMessageImprintDigest()))
+				if (!Arrays.FixedTimeEquals(request.GetMessageImprintDigest(), tstInfo.GetMessageImprintDigest()))
 				{
 					throw new TspValidationException("response for different message imprint digest.");
 				}

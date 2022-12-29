@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
-    <PackageTags>bouncycastle cryptography dtls encryption open-source post-quantum security tls</PackageTags>
+    <PackageTags>bouncycastle cryptography dtls encryption open-source openpgp post-quantum security tls</PackageTags>
 	<Product>BouncyCastle.NET</Product>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/bcgit/bc-csharp</RepositoryUrl>
@@ -36,20 +36,20 @@
   <!--Package Validation-->
   <PropertyGroup>
     <EnablePackageValidation>true</EnablePackageValidation>
-
-    <!-- TODO: Enable this once there is a baseline version to compare to. -->
-    <!--<PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>-->
+    <PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>
 
 	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
     <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
 
 	<!--
 	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
-	  affected interfaces (or abstract classes) will not be backward compatible.
+	  affected interfaces (or abstract classes) will not be backward compatible. There are also several
+	  methods in DotNetUtilities dealing with ECDsa which is only available from net47.
 
-	  TODO: Use suppressions for each individual case of a Span-based method.
+	  TODO: Use suppressions for each individual case of version-dependent methods.
     -->
-    <NoWarn>$(NoWarn);CP0005;CP0006</NoWarn>
+    <NoWarn>$(NoWarn);CP0002;CP0005;CP0006</NoWarn>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

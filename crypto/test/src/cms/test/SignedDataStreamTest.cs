@@ -153,35 +153,34 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sp, null);
 		}
 
-		private void VerifyEncodedData(
-			MemoryStream bOut)
+		private void VerifyEncodedData(MemoryStream bOut)
 		{
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            using (var sp = new CmsSignedDataParser(bOut.ToArray()))
+            {
+                sp.GetSignedContent().Drain();
 
-			sp.GetSignedContent().Drain();
+                VerifySignatures(sp);
+            }
+        }
 
-			VerifySignatures(sp);
-
-			sp.Close();
-		}
-
-	    private void CheckSigParseable(byte[] sig)
+        private void CheckSigParseable(byte[] sig)
 	    {
-	        CmsSignedDataParser sp = new CmsSignedDataParser(sig);
-	        sp.Version.ToString();
-	        CmsTypedStream sc = sp.GetSignedContent();
-	        if (sc != null)
-	        {
-	            sc.Drain();
-	        }
-	        sp.GetAttributeCertificates();
-	        sp.GetCertificates();
-	        sp.GetCrls();
-	        sp.GetSignerInfos();
-	        sp.Close();
-	    }
+            using (var sp = new CmsSignedDataParser(sig))
+            {
+                sp.Version.ToString();
+                CmsTypedStream sc = sp.GetSignedContent();
+                if (sc != null)
+                {
+                    sc.Drain();
+                }
+                sp.GetAttributeCertificates();
+                sp.GetCertificates();
+                sp.GetCrls();
+                sp.GetSignerInfos();
+            }
+        }
 
-		[Test]
+        [Test]
 		public void TestEarlyInvalidKeyException()
 		{
 			try

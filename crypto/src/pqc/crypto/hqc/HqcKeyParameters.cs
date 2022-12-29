@@ -2,18 +2,17 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    public class HqcKeyParameters : AsymmetricKeyParameter
+    public abstract class HqcKeyParameters
+        : AsymmetricKeyParameter
     {
-        private HqcParameters param;
+        private readonly HqcParameters m_parameters;
 
-        public HqcKeyParameters(
-            bool isPrivate,
-            HqcParameters param) : base(isPrivate)
+        internal HqcKeyParameters(bool isPrivate, HqcParameters parameters)
+            : base(isPrivate)
         {
-            this.param = param;
+            m_parameters = parameters;
         }
 
-        public HqcParameters Parameters => param;
-       
+        public HqcParameters Parameters => m_parameters;
     }
 }

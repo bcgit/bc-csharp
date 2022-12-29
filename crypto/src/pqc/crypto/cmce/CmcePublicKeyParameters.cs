@@ -1,13 +1,17 @@
-using System;
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    public class CmcePublicKeyParameters
+    public sealed class CmcePublicKeyParameters
         : CmceKeyParameters
     {
-        internal byte[] publicKey;
+        internal readonly byte[] publicKey;
+
+        public CmcePublicKeyParameters(CmceParameters parameters, byte[] publicKey)
+            : base(false, parameters)
+        {
+            this.publicKey = Arrays.Clone(publicKey);
+        }
 
         public byte[] GetPublicKey()
         { 
@@ -17,12 +21,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         public byte[] GetEncoded()
         {
             return GetPublicKey();
-        }
-
-        public CmcePublicKeyParameters(CmceParameters parameters, byte[] publicKey)
-            : base(false,  parameters)
-        {
-            this.publicKey = Arrays.Clone(publicKey);
         }
     }
 }

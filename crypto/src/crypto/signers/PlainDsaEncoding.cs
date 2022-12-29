@@ -31,6 +31,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             return result;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int Encode(BigInteger n, BigInteger r, BigInteger s, Span<byte> output)
+        {
+            int valueLength = BigIntegers.GetUnsignedByteLength(n);
+            int resultLength = valueLength * 2;
+            EncodeValue(n, r, output[..valueLength]);
+            EncodeValue(n, s, output[valueLength..resultLength]);
+            return resultLength;
+        }
+#endif
+
+        public virtual int GetMaxEncodingSize(BigInteger n)
+        {
+            return BigIntegers.GetUnsignedByteLength(n) * 2;
+        }
+
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)
         {
             if (x.SignValue < 0 || x.CompareTo(n) >= 0)
@@ -54,5 +70,18 @@ namespace Org.BouncyCastle.Crypto.Signers
             Arrays.Fill(buf, off, off + pos, 0);
             Array.Copy(bs, bsOff, buf, off + pos, bsLen);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual void EncodeValue(BigInteger n, BigInteger x, Span<byte> buffer)
+        {
+            byte[] bs = CheckValue(n, x).ToByteArrayUnsigned();
+            int bsOff = System.Math.Max(0, bs.Length - buffer.Length);
+            int bsLen = bs.Length - bsOff;
+
+            int pos = buffer.Length - bsLen;
+            buffer[..pos].Fill(0x00);
+            bs.AsSpan(bsOff, bsLen).CopyTo(buffer[pos..]);
+        }
+#endif
     }
 }

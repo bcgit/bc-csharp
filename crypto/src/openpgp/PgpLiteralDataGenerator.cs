@@ -162,27 +162,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return Open(outStr, format, file.Name, file.Length, file.LastWriteTime);
         }
 
-        #region IDisposable
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+        [Obsolete("Dispose any opened Stream directly")]
+        public void Close()
+		{
+            if (pkOut != null)
             {
-                if (pkOut != null)
-                {
-                    pkOut.Finish();
-                    pkOut.Flush();
-                    pkOut = null;
-                }
+                pkOut.Finish();
+                pkOut.Flush();
+                pkOut = null;
             }
         }
-
-        #endregion
 	}
 }

@@ -77,13 +77,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (null == cachedPublicKey)
                 {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    Span<byte> publicKey = stackalloc byte[Ed25519.PublicKeySize];
-                    Ed25519.GeneratePublicKey(data, publicKey);
-                    cachedPublicKey = new Ed25519PublicKeyParameters(publicKey);
+                    cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data));
 #else
-                    byte[] publicKey = new byte[Ed25519.PublicKeySize];
-                    Ed25519.GeneratePublicKey(data, 0, publicKey, 0);
-                    cachedPublicKey = new Ed25519PublicKeyParameters(publicKey, 0);
+                    cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data, 0));
 #endif
                 }
 
@@ -104,27 +100,36 @@ namespace Org.BouncyCastle.Crypto.Parameters
             case Ed25519.Algorithm.Ed25519:
             {
                 if (null != ctx)
-                    throw new ArgumentException("ctx");
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
 
                 Ed25519.Sign(data, 0, pk, 0, msg, msgOff, msgLen, sig, sigOff);
                 break;
             }
             case Ed25519.Algorithm.Ed25519ctx:
             {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
                 Ed25519.Sign(data, 0, pk, 0, ctx, msg, msgOff, msgLen, sig, sigOff);
                 break;
             }
             case Ed25519.Algorithm.Ed25519ph:
             {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
                 if (Ed25519.PrehashSize != msgLen)
-                    throw new ArgumentException("msgLen");
+                    throw new ArgumentOutOfRangeException(nameof(msgLen));
 
                 Ed25519.SignPrehash(data, 0, pk, 0, ctx, msg, msgOff, sig, sigOff);
                 break;
             }
             default:
             {
-                throw new ArgumentException("algorithm");
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
             }
             }
         }

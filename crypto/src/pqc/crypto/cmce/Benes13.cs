@@ -1,15 +1,15 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    class Benes13
+    internal class Benes13
         : Benes
     {
-        public Benes13(int n, int t, int m)
+        internal Benes13(int n, int t, int m)
             : base(n, t, m)
         {
         }
 
         /* middle layers of the benes network */
-        static void LayerIn(ulong[] data, ulong[] bits, int lgs)
+        internal static void LayerIn(ulong[] data, ulong[] bits, int lgs)
         {
             int i, j, s;
             int bit_ptr = 0;
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         }
 
         /* first and last layers of the benes network */
-        static void LayerEx(ulong[] data, ulong[] bits, int lgs)
+        internal static void LayerEx(ulong[] data, ulong[] bits, int lgs)
         {
             int i, j, s;
             int bit_ptr = 0;
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /*        bits, condition bits of the Benes network */
         /*        rev, 0 for normal application; !0 for inverse */
         /* output: r, permuted bits */
-        void ApplyBenes(byte[] r, byte[] bits, int rev)
+        internal void ApplyBenes(byte[] r, byte[] bits, int rev)
         {
             int i, iter, inc;
 
@@ -171,7 +171,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         /* input: condition bits c */
         /* output: support s */
-        protected internal override void SupportGen(ushort[] s, byte[] c)
+        internal override void SupportGen(ushort[] s, byte[] c)
         {
             ushort a;
             int i, j;
