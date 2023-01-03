@@ -252,8 +252,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             // 3. Compute K
             byte[] wlist = FunctionH(mPrime);
-            if (Arrays.AreEqual(ePrimeBytes, 0, ePrimeBytes.Length,
-                    wlist, 0, ePrimeBytes.Length))
+            if (Arrays.AreEqual(ePrimeBytes, 0, ePrimeBytes.Length, wlist, 0, ePrimeBytes.Length))
             {
                 FunctionK(mPrime, c0, c1, k);
             }

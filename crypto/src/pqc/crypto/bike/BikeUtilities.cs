@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Crypto.Utilities;
+﻿using System;
+
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 
@@ -70,36 +72,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         internal static void GenerateRandomByteArray(byte[] res, uint size, uint weight, IXof digest)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = stackalloc byte[4];
+#else
             byte[] buf = new byte[4];
-            uint rand_pos;
+#endif
 
             for (int i = (int)weight - 1; i >= 0; i--)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.Output(buf);
+                ulong temp = Pack.LE_To_UInt32(buf);
+#else
                 digest.Output(buf, 0, 4);
-                ulong temp = (Pack.LE_To_UInt32(buf, 0)) & 0xFFFFFFFFUL;
+                ulong temp = Pack.LE_To_UInt32(buf, 0);
+#endif
+
                 temp = temp * (size - (uint)i) >> 32;
-                rand_pos = (uint) temp;
+                uint rand_pos = (uint)i + (uint)temp;
 
-                rand_pos += (uint)i;
-
-                if(CHECK_BIT(res, rand_pos) != 0)
+                if (CheckBit(res, rand_pos) != 0)
                 {
                     rand_pos = (uint)i;
                 }
-                SET_BIT(res, rand_pos);
+                SetBit(res, rand_pos);
             }
         }
-        protected static uint CHECK_BIT(byte[] tmp, uint position)
+
+        private static uint CheckBit(byte[] tmp, uint position)
         {
             uint index = position / 8;
             uint pos = position % 8;
-            return (((uint)tmp[index] >> (int)(pos))  & 0x01);
+            return ((uint)tmp[index] >> (int)pos) & 1U;
         }
-        protected static void SET_BIT(byte[] tmp, uint position)
+
+        private static void SetBit(byte[] tmp, uint position)
         {
-            uint index = position/8;
-            uint pos = position%8;
-            tmp[index] |= (byte)(1UL << (int)pos);
+            uint index = position / 8;
+            uint pos = position % 8;
+            tmp[index] |= (byte)(1 << (int)pos);
         }
     }
 }

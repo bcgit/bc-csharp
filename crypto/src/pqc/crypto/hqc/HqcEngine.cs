@@ -34,10 +34,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private int N1N2_BYTE;
         private int N1_BYTE;
         
-        private int GF_POLY_WT  = 5;
-        private int GF_POLY_M2 = 4;
+        //private int GF_POLY_WT  = 5;
+        //private int GF_POLY_M2 = 4;
         private int SALT_SIZE_BYTES = 16;
-        private int SALT_SIZE_64 = 2;
+        //private int SALT_SIZE_64 = 2;
 
         private int[] generatorPoly;
         private int SHA512_BYTES = 512 / 8;
