@@ -13,11 +13,10 @@ namespace Org.BouncyCastle.Pkix
 	 * exceptions. The {@link #getCause getCause} method returns the throwable, 
 	 * if any, that caused this exception to be thrown. <br />
 	 * <br />
-	 * A <code>CertPathValidatorException</code> may also include the 
-	 * certification path that was being validated when the exception was thrown 
-	 * and the index of the certificate in the certification path that caused the 
-	 * exception to be thrown. Use the {@link #getCertPath getCertPath} and
-	 * {@link #getIndex getIndex} methods to retrieve this information.<br />
+	 * A <code>CertPathValidatorException</code> may also include the index of
+	 * the certificate in the certification path that caused the 
+	 * exception to be thrown. Use the {@link #Index Index} property to retrieve
+	 * this information.<br />
 	 * <br />
 	 * <b>Concurrent Access</b><br />
 	 * <br />
