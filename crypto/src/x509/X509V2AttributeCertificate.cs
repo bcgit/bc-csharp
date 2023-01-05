@@ -190,11 +190,9 @@ namespace Org.BouncyCastle.X509
 
 			try
 			{
-                byte[] b = this.cert.ACInfo.GetEncoded();
-
 				using (var stream = streamCalculator.Stream)
 				{
-                    stream.Write(b, 0, b.Length);
+					cert.ACInfo.EncodeTo(stream);
                 }
             }
 			catch (IOException e)
@@ -202,7 +200,7 @@ namespace Org.BouncyCastle.X509
 				throw new SignatureException("Exception encoding certificate info object", e);
 			}
 
-			if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
+			if (!streamCalculator.GetResult().IsVerified(GetSignature()))
 				throw new InvalidKeyException("Public key presented not for certificate signature");
 		}
 

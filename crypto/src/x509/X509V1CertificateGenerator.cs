@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.X509
 			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
 			IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
-			using (Stream sigStream = streamCalculator.Stream)
+			using (var sigStream = streamCalculator.Stream)
 			{
 				tbsCert.EncodeTo(sigStream, Asn1Encodable.Der);
 			}

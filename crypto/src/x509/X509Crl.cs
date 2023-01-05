@@ -130,12 +130,10 @@ namespace Org.BouncyCastle.X509
             if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
 
-            byte[] b = GetTbsCertList();
-
             IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
 			using (var stream = streamCalculator.Stream)
 			{
-				stream.Write(b, 0, b.Length);
+				c.TbsCertList.EncodeTo(stream, Asn1Encodable.Der);
             }
 
             if (!streamCalculator.GetResult().IsVerified(GetSignature()))
