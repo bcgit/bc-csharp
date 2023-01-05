@@ -2157,8 +2157,6 @@ namespace Org.BouncyCastle.Tls
             }
 
             buf.CopyInputTo(output);
-
-            output.Dispose();
         }
 
         internal static DigitallySigned GenerateCertificateVerifyClient(TlsClientContext clientContext,
@@ -2399,7 +2397,10 @@ namespace Org.BouncyCastle.Tls
             byte[] signature;
             if (streamSigner != null)
             {
-                SendSignatureInput(context, extraSignatureInput, digestBuffer, streamSigner.Stream);
+                using (var output = streamSigner.Stream)
+                {
+                    SendSignatureInput(context, extraSignatureInput, digestBuffer, output);
+                }
                 signature = streamSigner.GetSignature();
             }
             else
@@ -2445,7 +2446,10 @@ namespace Org.BouncyCastle.Tls
             bool verified;
             if (streamVerifier != null)
             {
-                SendSignatureInput(context, null, digestBuffer, streamVerifier.Stream);
+                using (var output = streamVerifier.Stream)
+                {
+                    SendSignatureInput(context, null, digestBuffer, output);
+                }
                 verified = streamVerifier.IsVerified();
             }
             else
