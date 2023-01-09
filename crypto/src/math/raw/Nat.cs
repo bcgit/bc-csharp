@@ -8,7 +8,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Nat
+    internal static class Nat
     {
         private const ulong M = 0xFFFFFFFFUL;
 

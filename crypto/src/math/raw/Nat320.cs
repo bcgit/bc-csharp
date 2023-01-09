@@ -5,7 +5,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Nat320
+    internal static class Nat320
     {
         public static void Copy64(ulong[] x, ulong[] z)
         {
