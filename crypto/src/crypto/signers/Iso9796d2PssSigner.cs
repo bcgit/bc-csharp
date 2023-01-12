@@ -115,11 +115,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (parameters is ParametersWithRandom withRandom)
             {
                 kParam = (RsaKeyParameters)withRandom.Parameters;
-
-                if (forSigning)
-                {
-                    random = withRandom.Random;
-                }
+                random = forSigning ? withRandom.Random : null;
             }
             else if (parameters is ParametersWithSalt withSalt)
             {
@@ -135,11 +131,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             else
             {
                 kParam = (RsaKeyParameters)parameters;
-
-                if (forSigning)
-                {
-                    random = CryptoServicesRegistrar.GetSecureRandom();
-                }
+                random = forSigning ? CryptoServicesRegistrar.GetSecureRandom() : null;
             }
 
             cipher.Init(forSigning, kParam);

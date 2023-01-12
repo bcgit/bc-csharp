@@ -37,13 +37,11 @@ namespace Org.BouncyCastle.Crypto
 		* @exception ArgumentException if the parameters argument is
 		* inappropriate.
 		*/
-		public override void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+		public override void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
 			cipher.Init(forEncryption, parameters);

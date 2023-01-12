@@ -56,14 +56,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 			this.forWrapping = forWrapping;
 			this.engine = new CbcBlockCipher(new RC2Engine());
 
-			if (parameters is ParametersWithRandom pWithR)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				sr = pWithR.Random;
-				parameters = pWithR.Parameters;
+				sr = withRandom.Random;
+				parameters = withRandom.Parameters;
 			}
 			else
 			{
-				sr = CryptoServicesRegistrar.GetSecureRandom();
+                sr = forWrapping ? CryptoServicesRegistrar.GetSecureRandom() : null;
 			}
 
 			if (parameters is ParametersWithIV)

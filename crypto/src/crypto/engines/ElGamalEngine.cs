@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			else
 			{
 				this.key = (ElGamalKeyParameters)parameters;
-				this.random = CryptoServicesRegistrar.GetSecureRandom();
+				this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom() : null;
             }
 
 			this.forEncryption = forEncryption;

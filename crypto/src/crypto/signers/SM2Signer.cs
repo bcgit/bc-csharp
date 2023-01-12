@@ -55,10 +55,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             ICipherParameters baseParam;
             byte[] userID;
 
-            if (parameters is ParametersWithID)
+            if (parameters is ParametersWithID withID)
             {
-                baseParam = ((ParametersWithID)parameters).Parameters;
-                userID = ((ParametersWithID)parameters).GetID();
+                baseParam = withID.Parameters;
+                userID = withID.GetID();
 
                 if (userID.Length >= 8192)
                     throw new ArgumentException("SM2 user ID must be less than 2^16 bits long");
@@ -72,18 +72,23 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
+                SecureRandom random = null;
                 if (baseParam is ParametersWithRandom rParam)
                 {
                     ecKey = (ECKeyParameters)rParam.Parameters;
                     ecParams = ecKey.Parameters;
-                    kCalculator.Init(ecParams.N, rParam.Random);
+                    random = rParam.Random;
                 }
                 else
                 {
                     ecKey = (ECKeyParameters)baseParam;
                     ecParams = ecKey.Parameters;
-                    kCalculator.Init(ecParams.N, CryptoServicesRegistrar.GetSecureRandom());
                 }
+                if (!kCalculator.IsDeterministic)
+                {
+                    random = CryptoServicesRegistrar.GetSecureRandom(random);
+                }
+                kCalculator.Init(ecParams.N, random);
                 pubPoint = CreateBasePointMultiplier().Multiply(ecParams.G, ((ECPrivateKeyParameters)ecKey).D).Normalize();
             }
             else

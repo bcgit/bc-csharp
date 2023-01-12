@@ -31,12 +31,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
     {
         private ECPrivateKeyParameters privKey;
 
-        public virtual void Init(
-            ICipherParameters parameters)
+        public virtual void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                parameters = ((ParametersWithRandom) parameters).Parameters;
+                parameters = withRandom.Parameters;
             }
 
             this.privKey = (ECPrivateKeyParameters)parameters;

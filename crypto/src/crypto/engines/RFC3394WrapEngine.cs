@@ -34,31 +34,28 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.wrapCipherMode = !useReverseDirection;
         }
 
-        public virtual void Init(
-			bool				forWrapping,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forWrapping, ICipherParameters parameters)
 		{
 			this.forWrapping = forWrapping;
 
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
-			if (parameters is KeyParameter)
+			if (parameters is KeyParameter keyParameter)
 			{
-				this.param = (KeyParameter) parameters;
+				this.param = keyParameter;
 			}
-			else if (parameters is ParametersWithIV)
+			else if (parameters is ParametersWithIV withIV)
 			{
-				ParametersWithIV pIV = (ParametersWithIV) parameters;
-				byte[] iv = pIV.GetIV();
+				byte[] iv = withIV.GetIV();
 
 				if (iv.Length != 8)
 					throw new ArgumentException("IV length not equal to 8", "parameters");
 
 				this.iv = iv;
-				this.param = (KeyParameter) pIV.Parameters;
+				this.param = (KeyParameter)withIV.Parameters;
 			}
 			else
 			{

@@ -35,9 +35,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             this.forSigning = forSigning;
 
             AsymmetricKeyParameter k;
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                k = (AsymmetricKeyParameter)((ParametersWithRandom)parameters).Parameters;
+                k = (AsymmetricKeyParameter)withRandom.Parameters;
             }
             else
             {
@@ -45,15 +45,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             if (forSigning && !k.IsPrivate)
-            {
                 throw new InvalidKeyException("Signing Requires Private Key.");
-            }
 
             if (!forSigning && k.IsPrivate)
-            {
                 throw new InvalidKeyException("Verification Requires Public Key.");
-            }
-
 
             Reset();
 

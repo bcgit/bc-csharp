@@ -52,45 +52,40 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param forWrapping
         * @param param
         */
-        public virtual void Init(
-			bool				forWrapping,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forWrapping, ICipherParameters parameters)
         {
             this.forWrapping = forWrapping;
             this.engine = new CbcBlockCipher(new DesEdeEngine());
 
-			SecureRandom sr;
+			SecureRandom random = null;
 			if (parameters is ParametersWithRandom pr)
 			{
 				parameters = pr.Parameters;
-				sr = pr.Random;
-			}
-			else
-			{
-				sr = CryptoServicesRegistrar.GetSecureRandom();
+                random = pr.Random;
 			}
 
-			if (parameters is KeyParameter)
+			if (parameters is KeyParameter keyParameter)
             {
-                this.param = (KeyParameter) parameters;
+                this.param = keyParameter;
                 if (this.forWrapping)
 				{
                     // Hm, we have no IV but we want to wrap ?!?
                     // well, then we have to create our own IV.
                     this.iv = new byte[8];
-					sr.NextBytes(iv);
+
+                    CryptoServicesRegistrar.GetSecureRandom(random).NextBytes(iv);
 
 					this.paramPlusIV = new ParametersWithIV(this.param, this.iv);
                 }
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
 				if (!forWrapping)
 					throw new ArgumentException("You should not supply an IV for unwrapping");
 
-				this.paramPlusIV = (ParametersWithIV) parameters;
-                this.iv = this.paramPlusIV.GetIV();
-                this.param = (KeyParameter) this.paramPlusIV.Parameters;
+				this.paramPlusIV = withIV;
+                this.iv = withIV.GetIV();
+                this.param = (KeyParameter)withIV.Parameters;
 
 				if (this.iv.Length != 8)
 					throw new ArgumentException("IV is not 8 octets", "parameters");

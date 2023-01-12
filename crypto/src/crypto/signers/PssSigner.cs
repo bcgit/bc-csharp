@@ -161,18 +161,15 @@ namespace Org.BouncyCastle.Crypto.Signers
 			}
 			else
 			{
-				if (forSigning)
-				{
-					random = CryptoServicesRegistrar.GetSecureRandom();
-				}
+				random = forSigning ? CryptoServicesRegistrar.GetSecureRandom() : null;
 			}
 
 			cipher.Init(forSigning, parameters);
 
 			RsaKeyParameters kParam;
-			if (parameters is RsaBlindingParameters)
+			if (parameters is RsaBlindingParameters blinding)
 			{
-				kParam = ((RsaBlindingParameters)parameters).PublicKey;
+				kParam = blinding.PublicKey;
 			}
 			else
 			{

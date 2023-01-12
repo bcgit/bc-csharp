@@ -33,15 +33,15 @@ namespace Org.BouncyCastle.Crypto.Engines
 			bool				forEncryption,
 			ICipherParameters	parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
-			if (!(parameters is RsaKeyParameters))
+			if (!(parameters is RsaKeyParameters rsaKeyParameters))
 				throw new InvalidKeyException("Not an RSA key");
 
-			this.key = (RsaKeyParameters) parameters;
+			this.key = rsaKeyParameters;
 			this.forEncryption = forEncryption;
 			this.bitSize = key.Modulus.BitLength;
 		}
