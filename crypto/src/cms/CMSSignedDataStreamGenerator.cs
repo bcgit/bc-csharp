@@ -102,18 +102,18 @@ namespace Org.BouncyCastle.Cms
 
 				if (_sAttr != null)
 				{
-            		_sig = Helper.GetSignatureInstance(signatureName);
-				}
-				else
+                    _sig = SignerUtilities.InitSigner(signatureName, true, key, outer.m_random);
+                }
+                else
 				{
 					// Note: Need to use raw signatures here since we have already calculated the digest
 					if (_encName.Equals("RSA"))
 					{
-						_sig = Helper.GetSignatureInstance("RSA");
-					}
-					else if (_encName.Equals("DSA"))
+                        _sig = SignerUtilities.InitSigner("RSA", true, key, outer.m_random);
+                    }
+                    else if (_encName.Equals("DSA"))
 					{
-						_sig = Helper.GetSignatureInstance("NONEwithDSA");
+                        _sig = SignerUtilities.InitSigner("NONEwithDSA", true, key, outer.m_random);
 					}
 					// TODO Add support for raw PSS
 //					else if (_encName.equals("RSAandMGF1"))
@@ -135,10 +135,8 @@ namespace Org.BouncyCastle.Cms
 					{
 						throw new SignatureException("algorithm: " + _encName + " not supported in base signatures.");
 					}
-				}
-
-				_sig.Init(true, new ParametersWithRandom(key, outer.m_random));
-			}
+                }
+            }
 
 			public SignerInfo Generate(DerObjectIdentifier contentType, AlgorithmIdentifier digestAlgorithm,
         		byte[] calculatedDigest)

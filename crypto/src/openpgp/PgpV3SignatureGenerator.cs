@@ -47,20 +47,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             AsymmetricKeyParameter key = privKey.Key;
 
-            if (sig == null)
-            {
-                this.sig = PgpUtilities.CreateSigner(keyAlgorithm, hashAlgorithm, key);
-            }
+            this.sig = PgpUtilities.CreateSigner(keyAlgorithm, hashAlgorithm, key);
 
             try
             {
-				ICipherParameters cp = key;
-				if (random != null)
-				{
-					cp = new ParametersWithRandom(cp, random);
-				}
+                ICipherParameters cp = key;
 
-				sig.Init(true, cp);
+                // TODO Ask SignerUtilities whether random is permitted?
+                if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
+                {
+                    // EdDSA signers don't expect a SecureRandom
+                }
+                else
+                {
+                    cp = ParameterUtilities.WithRandom(cp, random);
+                }
+
+                sig.Init(true, cp);
             }
             catch (InvalidKeyException e)
             {
