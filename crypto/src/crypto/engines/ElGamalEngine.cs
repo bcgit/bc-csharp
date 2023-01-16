@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -157,14 +158,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				output = new byte[this.GetOutputBlockSize()];
 
-				// TODO Add methods to allow writing BigInteger to existing byte array?
-				byte[] out1 = gamma.ToByteArrayUnsigned();
-				byte[] out2 = phi.ToByteArrayUnsigned();
-				out1.CopyTo(output, output.Length / 2 - out1.Length);
-				out2.CopyTo(output, output.Length - out2.Length);
-			}
+				int mid = output.Length / 2;
+                BigIntegers.AsUnsignedByteArray(gamma, output, 0, mid);
+                BigIntegers.AsUnsignedByteArray(phi, output, mid, output.Length - mid);
+            }
 
-			return output;
+            return output;
 		}
 	}
 }
