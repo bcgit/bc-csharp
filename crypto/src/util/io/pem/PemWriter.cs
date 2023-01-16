@@ -13,9 +13,9 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 	{
 		private const int LineLength = 64;
 
-		private readonly TextWriter	writer;
-		private readonly int		nlLength;
-		private char[]				buf = new char[LineLength];
+		private readonly TextWriter m_writer;
+		private readonly int m_nlLength;
+		private readonly char[] m_buf = new char[LineLength];
 
 		/**
 		 * Base constructor.
@@ -24,8 +24,8 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		 */
 		public PemWriter(TextWriter writer)
 		{
-			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-            this.nlLength = Environment.NewLine.Length;
+			m_writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            m_nlLength = Environment.NewLine.Length;
 		}
 
         #region IDisposable
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
         {
             if (disposing)
             {
-                writer.Dispose();
+                m_writer.Dispose();
             }
         }
 
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
         public TextWriter Writer
 		{
-			get { return writer; }
+			get { return m_writer; }
 		}
 
 		/**
@@ -61,22 +61,22 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		public int GetOutputSize(PemObject obj)
 		{
 			// BEGIN and END boundaries.
-			int size = (2 * (obj.Type.Length + 10 + nlLength)) + 6 + 4;
+			int size = (2 * (obj.Type.Length + 10 + m_nlLength)) + 6 + 4;
 
 			if (obj.Headers.Count > 0)
 			{
 				foreach (PemHeader header in obj.Headers)
 				{
-					size += header.Name.Length + ": ".Length + header.Value.Length + nlLength;
+					size += header.Name.Length + ": ".Length + header.Value.Length + m_nlLength;
 				}
 
-				size += nlLength;
+				size += m_nlLength;
 			}
 
 			// base64 encoding
 			int dataLen = ((obj.Content.Length + 2) / 3) * 4;
 
-			size += dataLen + (((dataLen + LineLength - 1) / LineLength) * nlLength);
+			size += dataLen + (((dataLen + LineLength - 1) / LineLength) * m_nlLength);
 
 			return size;
 		}
@@ -91,12 +91,12 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			{
 				foreach (PemHeader header in obj.Headers)
 				{
-					writer.Write(header.Name);
-					writer.Write(": ");
-					writer.WriteLine(header.Value);
+					m_writer.Write(header.Name);
+					m_writer.Write(": ");
+					m_writer.WriteLine(header.Value);
 				}
 
-				writer.WriteLine();
+				m_writer.WriteLine();
 			}
 
 			WriteEncoded(obj.Content);
@@ -107,29 +107,29 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		{
 			bytes = Base64.Encode(bytes);
 
-			for (int i = 0; i < bytes.Length; i += buf.Length)
+			for (int i = 0; i < bytes.Length; i += m_buf.Length)
 			{
 				int index = 0;
-				while (index != buf.Length)
+				while (index != m_buf.Length)
 				{
 					if ((i + index) >= bytes.Length)
 						break;
 
-					buf[index] = (char)bytes[i + index];
+					m_buf[index] = (char)bytes[i + index];
 					index++;
 				}
-				writer.WriteLine(buf, 0, index);
+				m_writer.WriteLine(m_buf, 0, index);
 			}
 		}
 
 		private void WritePreEncapsulationBoundary(string type)
 		{
-			writer.WriteLine("-----BEGIN " + type + "-----");
+			m_writer.WriteLine("-----BEGIN " + type + "-----");
 		}
 
 		private void WritePostEncapsulationBoundary(string type)
 		{
-			writer.WriteLine("-----END " + type + "-----");
+			m_writer.WriteLine("-----END " + type + "-----");
 		}
     }
 }

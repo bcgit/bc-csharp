@@ -17,26 +17,22 @@ namespace Org.BouncyCastle.OpenSsl
 
 		public void WriteObject(object obj) 
 		{
-			try
-			{
-				base.WriteObject(new MiscPemGenerator(obj));
-			}
-			catch (PemGenerationException e)
-			{
-				if (e.InnerException is IOException inner)
-					throw inner;
-
-				throw e;
-			}
+			WriteObject(obj, null, null, null);
 		}
 
-		public void WriteObject(
-			object			obj,
-			string			algorithm,
-			char[]			password,
-			SecureRandom	random)
+		public void WriteObject(object obj, string algorithm, char[] password, SecureRandom random)
 		{
-			base.WriteObject(new MiscPemGenerator(obj, algorithm, password, random));
+            try
+            {
+                base.WriteObject(new MiscPemGenerator(obj, algorithm, password, random));
+            }
+            catch (PemGenerationException e)
+            {
+                if (e.InnerException is IOException inner)
+                    throw inner;
+
+                throw e;
+            }
 		}
 	}
 }

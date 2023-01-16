@@ -32,15 +32,11 @@ namespace Org.BouncyCastle.OpenSsl
         private readonly SecureRandom random;
 
         public MiscPemGenerator(object obj)
+            : this(obj, null, null, null)
         {
-            this.obj = obj;
         }
 
-        public MiscPemGenerator(
-            object			obj,
-            string			algorithm,
-            char[]			password,
-            SecureRandom	random)
+        public MiscPemGenerator(object obj, string algorithm, char[] password, SecureRandom random)
         {
             this.obj = obj;
             this.algorithm = algorithm;
@@ -54,9 +50,7 @@ namespace Org.BouncyCastle.OpenSsl
                 throw new ArgumentNullException("obj");
 
             if (obj is AsymmetricCipherKeyPair keyPair)
-            {
                 return CreatePemObject(keyPair.Private);
-            }
 
             string type;
             byte[] encoding;
