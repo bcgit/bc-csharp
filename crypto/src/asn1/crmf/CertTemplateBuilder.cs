@@ -99,27 +99,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public virtual CertTemplate Build()
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
-
-            AddOptional(v, 0, false, version);
-            AddOptional(v, 1, false, serialNumber);
-            AddOptional(v, 2, false, signingAlg);
-            AddOptional(v, 3, true, issuer); // CHOICE
-            AddOptional(v, 4, false, validity);
-            AddOptional(v, 5, true, subject); // CHOICE
-            AddOptional(v, 6, false, publicKey);
-            AddOptional(v, 7, false, issuerUID);
-            AddOptional(v, 8, false, subjectUID);
-            AddOptional(v, 9, false, extensions);
-
+            v.AddOptionalTagged(false, 0, version);
+            v.AddOptionalTagged(false, 1, serialNumber);
+            v.AddOptionalTagged(false, 2, signingAlg);
+            v.AddOptionalTagged(true, 3, issuer); // CHOICE
+            v.AddOptionalTagged(false, 4, validity);
+            v.AddOptionalTagged(true, 5, subject); // CHOICE
+            v.AddOptionalTagged(false, 6, publicKey);
+            v.AddOptionalTagged(false, 7, issuerUID);
+            v.AddOptionalTagged(false, 8, subjectUID);
+            v.AddOptionalTagged(false, 9, extensions);
             return CertTemplate.GetInstance(new DerSequence(v));
-        }
-
-        private void AddOptional(Asn1EncodableVector v, int tagNo, bool isExplicit, Asn1Encodable obj)
-        {
-            if (obj != null)
-            {
-                v.Add(new DerTaggedObject(isExplicit, tagNo, obj));
-            }
         }
     }
 }

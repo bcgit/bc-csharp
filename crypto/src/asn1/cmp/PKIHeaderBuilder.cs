@@ -189,15 +189,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		public virtual PkiHeader Build()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(pvno, sender, recipient);
-			AddOptional(v, 0, messageTime);
-			AddOptional(v, 1, protectionAlg);
-			AddOptional(v, 2, senderKID);
-			AddOptional(v, 3, recipKID);
-			AddOptional(v, 4, transactionID);
-			AddOptional(v, 5, senderNonce);
-			AddOptional(v, 6, recipNonce);
-			AddOptional(v, 7, freeText);
-			AddOptional(v, 8, generalInfo);
+            v.AddOptionalTagged(true, 0, messageTime);
+            v.AddOptionalTagged(true, 1, protectionAlg);
+			v.AddOptionalTagged(true, 2, senderKID);
+			v.AddOptionalTagged(true, 3, recipKID);
+			v.AddOptionalTagged(true, 4, transactionID);
+			v.AddOptionalTagged(true, 5, senderNonce);
+			v.AddOptionalTagged(true, 6, recipNonce);
+			v.AddOptionalTagged(true, 7, freeText);
+			v.AddOptionalTagged(true, 8, generalInfo);
 
 			messageTime = null;
 			protectionAlg = null;
@@ -210,14 +210,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			generalInfo = null;
 
 			return PkiHeader.GetInstance(new DerSequence(v));
-		}
-
-		private void AddOptional(Asn1EncodableVector v, int tagNo, Asn1Encodable obj)
-		{
-			if (obj != null)
-			{
-				v.Add(new DerTaggedObject(true, tagNo, obj));
-			}
 		}
 	}
 }

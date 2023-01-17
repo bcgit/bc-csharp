@@ -76,13 +76,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiHeader GetInstance(object obj)
         {
-            if (obj is PkiHeader)
-                return (PkiHeader)obj;
+            if (obj is PkiHeader pkiHeader)
+                return pkiHeader;
 
-            if (obj is Asn1Sequence)
-                return new PkiHeader((Asn1Sequence)obj);
+            if (obj is Asn1Sequence asn1Sequence)
+                return new PkiHeader(asn1Sequence);
 
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         public PkiHeader(
@@ -160,16 +160,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual InfoTypeAndValue[] GetGeneralInfo()
         {
-            if (generalInfo == null)
-            {
-                return null;
-            }
-            InfoTypeAndValue[] results = new InfoTypeAndValue[generalInfo.Count];
-            for (int i = 0; i < results.Length; i++)
-            {
-                results[i] = InfoTypeAndValue.GetInstance(generalInfo[i]);
-            }
-            return results;
+            return generalInfo?.MapElements(InfoTypeAndValue.GetInstance);
         }
 
         /**

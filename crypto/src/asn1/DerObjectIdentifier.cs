@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Asn1
 
         private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
 
-        private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
+        private static readonly DerObjectIdentifier[] Cache = new DerObjectIdentifier[1024];
 
         private readonly string identifier;
         private byte[] contents;
@@ -208,15 +208,15 @@ namespace Org.BouncyCastle.Asn1
             int hashCode = Arrays.GetHashCode(contents);
             int first = hashCode & 1023;
 
-            lock (cache)
+            lock (Cache)
             {
-                DerObjectIdentifier entry = cache[first];
+                DerObjectIdentifier entry = Cache[first];
                 if (entry != null && Arrays.AreEqual(contents, entry.GetContents()))
                 {
                     return entry;
                 }
 
-                return cache[first] = new DerObjectIdentifier(contents, clone);
+                return Cache[first] = new DerObjectIdentifier(contents, clone);
             }
         }
 

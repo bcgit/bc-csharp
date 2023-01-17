@@ -20,9 +20,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class CrlIdentifier
 		: Asn1Encodable
 	{
-		private readonly X509Name crlIssuer;
-		private readonly Asn1UtcTime crlIssuedTime;
-		private readonly DerInteger crlNumber;
+		private readonly X509Name m_crlIssuer;
+		private readonly Asn1UtcTime m_crlIssuedTime;
+		private readonly DerInteger m_crlNumber;
 
 		public static CrlIdentifier GetInstance(object obj)
 		{
@@ -46,15 +46,15 @@ namespace Org.BouncyCastle.Asn1.Esf
 			if (seq.Count < 2 || seq.Count > 3)
 				throw new ArgumentException("Bad sequence size: " + seq.Count, nameof(seq));
 
-			this.crlIssuer = X509Name.GetInstance(seq[0]);
-			this.crlIssuedTime = Asn1UtcTime.GetInstance(seq[1]);
+			this.m_crlIssuer = X509Name.GetInstance(seq[0]);
+			this.m_crlIssuedTime = Asn1UtcTime.GetInstance(seq[1]);
 
             // Validate crlIssuedTime is in the appropriate year range
-            crlIssuedTime.ToDateTime(2049);
+            m_crlIssuedTime.ToDateTime(2049);
 
 			if (seq.Count > 2)
 			{
-				this.crlNumber = DerInteger.GetInstance(seq[2]);
+				this.m_crlNumber = DerInteger.GetInstance(seq[2]);
 			}
 		}
 
@@ -75,37 +75,37 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public CrlIdentifier(X509Name crlIssuer, Asn1UtcTime crlIssuedTime, BigInteger crlNumber)
         {
-            this.crlIssuer = crlIssuer ?? throw new ArgumentNullException(nameof(crlIssuer));
-            this.crlIssuedTime = crlIssuedTime ?? throw new ArgumentNullException(nameof(crlIssuedTime));
+            m_crlIssuer = crlIssuer ?? throw new ArgumentNullException(nameof(crlIssuer));
+            m_crlIssuedTime = crlIssuedTime ?? throw new ArgumentNullException(nameof(crlIssuedTime));
 
             if (null != crlNumber)
             {
-                this.crlNumber = new DerInteger(crlNumber);
+                m_crlNumber = new DerInteger(crlNumber);
             }
 
             // Validate crlIssuedTime is in the appropriate year range
-            this.crlIssuedTime.ToDateTime(2049);
+            m_crlIssuedTime.ToDateTime(2049);
         }
 
         public X509Name CrlIssuer
 		{
-			get { return crlIssuer; }
+			get { return m_crlIssuer; }
 		}
 
 		public DateTime CrlIssuedTime
 		{
-			get { return crlIssuedTime.ToDateTime(2049); }
+			get { return m_crlIssuedTime.ToDateTime(2049); }
 		}
 
 		public BigInteger CrlNumber
 		{
-			get { return crlNumber?.Value; }
+			get { return m_crlNumber?.Value; }
 		}
 
 		public override Asn1Object ToAsn1Object()
 		{
-			var v = new Asn1EncodableVector(crlIssuer.ToAsn1Object(), crlIssuedTime);
-            v.AddOptional(crlNumber);
+			var v = new Asn1EncodableVector(m_crlIssuer.ToAsn1Object(), m_crlIssuedTime);
+            v.AddOptional(m_crlNumber);
 			return new DerSequence(v);
 		}
 	}

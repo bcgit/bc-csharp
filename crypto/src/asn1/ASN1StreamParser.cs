@@ -205,7 +205,7 @@ namespace Org.BouncyCastle.Asn1
         internal Asn1TaggedObjectParser ParseTaggedObject()
         {
             int tagHdr = _in.ReadByte();
-            if (tagHdr< 0)
+            if (tagHdr < 0)
                 return null;
 
             int tagClass = tagHdr & Asn1Tags.Private;

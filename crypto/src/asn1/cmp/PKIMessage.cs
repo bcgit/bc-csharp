@@ -96,15 +96,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual CmpCertificate[] GetExtraCerts()
         {
-            if (extraCerts == null)
-                return null;
-
-            CmpCertificate[] results = new CmpCertificate[extraCerts.Count];
-            for (int i = 0; i < results.Length; ++i)
-            {
-                results[i] = CmpCertificate.GetInstance(extraCerts[i]);
-            }
-            return results;
+            return extraCerts?.MapElements(CmpCertificate.GetInstance);
         }
 
         /**

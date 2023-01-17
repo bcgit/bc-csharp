@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
 using System.Numerics;
@@ -24,13 +24,9 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1OutputStream Create(Stream output, string encoding)
         {
             if (Asn1Encodable.Der.Equals(encoding))
-            {
                 return new DerOutputStream(output);
-            }
-            else
-            {
-                return new Asn1OutputStream(output);
-            }
+
+            return new Asn1OutputStream(output);
         }
 
         internal Asn1OutputStream(Stream os)

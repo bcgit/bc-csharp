@@ -15,69 +15,58 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class CertificateValues
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence certificates;
+		private readonly Asn1Sequence m_certificates;
 
-		public static CertificateValues GetInstance(
-			object obj)
+		public static CertificateValues GetInstance(object obj)
 		{
-			if (obj == null || obj is CertificateValues)
-				return (CertificateValues) obj;
+			if (obj == null)
+				return null;
 
-			if (obj is Asn1Sequence)
-				return new CertificateValues((Asn1Sequence) obj);
+			if (obj is CertificateValues certificateValues)
+				return certificateValues;
 
-			throw new ArgumentException(
-				"Unknown object in 'CertificateValues' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
+			if (obj is Asn1Sequence asn1Sequence)
+				return new CertificateValues(asn1Sequence);
+
+			throw new ArgumentException("Unknown object in 'CertificateValues' factory: " + Platform.GetTypeName(obj),
+				nameof(obj));
 		}
 
-		private CertificateValues(
-			Asn1Sequence seq)
+		private CertificateValues(Asn1Sequence seq)
 		{
 			if (seq == null)
-				throw new ArgumentNullException("seq");
+				throw new ArgumentNullException(nameof(seq));
 
-			foreach (Asn1Encodable ae in seq)
-			{
-				X509CertificateStructure.GetInstance(ae.ToAsn1Object());
-			}
+			// Validate
+            seq.MapElements(element => X509CertificateStructure.GetInstance(element.ToAsn1Object()));
 
-			this.certificates = seq;
+			m_certificates = seq;
 		}
 
-		public CertificateValues(
-			params X509CertificateStructure[] certificates)
+		public CertificateValues(params X509CertificateStructure[] certificates)
 		{
 			if (certificates == null)
-				throw new ArgumentNullException("certificates");
+				throw new ArgumentNullException(nameof(certificates));
 
-			this.certificates = new DerSequence(certificates);
+			m_certificates = new DerSequence(certificates);
 		}
 
-		public CertificateValues(
-			IEnumerable<X509CertificateStructure> certificates)
+		public CertificateValues(IEnumerable<X509CertificateStructure> certificates)
 		{
 			if (certificates == null)
-				throw new ArgumentNullException("certificates");
+                throw new ArgumentNullException(nameof(certificates));
 
-			this.certificates = new DerSequence(
-				Asn1EncodableVector.FromEnumerable(certificates));
+            m_certificates = new DerSequence(Asn1EncodableVector.FromEnumerable(certificates));
 		}
 
 		public X509CertificateStructure[] GetCertificates()
 		{
-			X509CertificateStructure[] result = new X509CertificateStructure[certificates.Count];
-			for (int i = 0; i < certificates.Count; ++i)
-			{
-				result[i] = X509CertificateStructure.GetInstance(certificates[i]);
-			}
-			return result;
+			return m_certificates.MapElements(element => X509CertificateStructure.GetInstance(element.ToAsn1Object()));
 		}
 
 		public override Asn1Object ToAsn1Object()
 		{
-			return certificates;
+			return m_certificates;
 		}
  	}
 }
