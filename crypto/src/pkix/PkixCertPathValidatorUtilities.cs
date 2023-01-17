@@ -609,37 +609,33 @@ namespace Org.BouncyCastle.Pkix
 			throw new PkixCertPathValidatorException("DSA parameters cannot be inherited from previous certificate.");
 		}
 
-		internal static DateTime GetValidCertDateFromValidityModel(
-			PkixParameters	paramsPkix,
-			PkixCertPath	certPath,
-			int				index)
+		internal static DateTime GetValidCertDateFromValidityModel(PkixParameters paramsPkix, PkixCertPath certPath,
+			int index)
 		{
-			if (paramsPkix.ValidityModel != PkixParameters.ChainValidityModel)
+			if (PkixParameters.ChainValidityModel != paramsPkix.ValidityModel || index <= 0)
 			{
+				// use given signing/encryption/... time (or current date)
 				return GetValidDate(paramsPkix);
 			}
 
-			// if end cert use given signing/encryption/... time
-			if (index <= 0)
-			{
-				return GetValidDate(paramsPkix);
-				// else use time when previous cert was created
-			}
-
-			var cert = certPath.Certificates[index - 1];
+			var issuedCert = certPath.Certificates[index - 1];
 
 			if (index - 1 == 0)
 			{
-                Asn1GeneralizedTime dateOfCertgen;
+				// use time when cert was issued, if available
+                Asn1GeneralizedTime dateOfCertgen = null;
 				try
 				{
-					Asn1OctetString extVal = cert.GetExtensionValue(IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen);
-					dateOfCertgen = Asn1GeneralizedTime.GetInstance(extVal);
-				}
-				catch (ArgumentException)
+					byte[] extBytes = issuedCert.GetExtensionValue(IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen)
+						?.GetOctets();
+					if (extBytes != null)
+					{
+                        dateOfCertgen = Asn1GeneralizedTime.GetInstance(extBytes);
+                    }
+                }
+				catch (ArgumentException e)
 				{
-					throw new Exception(
-						"Date of cert gen extension could not be read.");
+					throw new Exception("Date of cert gen extension could not be read.", e);
 				}
 				if (dateOfCertgen != null)
 				{
@@ -649,14 +645,12 @@ namespace Org.BouncyCastle.Pkix
 					}
 					catch (ArgumentException e)
 					{
-						throw new Exception(
-							"Date from date of cert gen extension could not be parsed.",
-							e);
+						throw new Exception("Date from date of cert gen extension could not be parsed.", e);
 					}
 				}
 			}
 
-			return cert.NotBefore;
+			return issuedCert.NotBefore;
 		}
 
 		/**
