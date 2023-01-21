@@ -27,10 +27,18 @@
     <Title>BouncyCastle.NET Cryptography</Title>
   </PropertyGroup>
 
-  <!--Source-Level Debugging-->
-  <PropertyGroup>
-    <DebugType>embedded</DebugType>
-    <EmbedAllSources>true</EmbedAllSources>
+  <!-- Debugging-->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+      <DebugType>full</DebugType>
+      <DebugSymbols>true</DebugSymbols>
+      <IncludeSymbols>true</IncludeSymbols>
+      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+      <DebugType>pdbonly</DebugType>
+      <DebugSymbols>true</DebugSymbols>
+      <IncludeSymbols>true</IncludeSymbols>
+      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <!--Package Validation-->
