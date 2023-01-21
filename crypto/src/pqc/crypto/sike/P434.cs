@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Utilities.IO.Compression;
 using System.Collections.Generic;
 using System.IO;
 
@@ -113,7 +114,8 @@ internal class P434
             var props = new Dictionary<string, string>(); 
             Stream input = typeof(P434).Assembly
                 .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p434.properties");
-            
+            input = Bzip2.DecompressInput(input);
+
             using (StreamReader sr = new StreamReader(input))
             {
                 int i = 0;

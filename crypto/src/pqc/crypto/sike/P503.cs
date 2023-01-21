@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Utilities.IO.Compression;
 using System.Collections.Generic;
 using System.IO;
 
@@ -149,7 +150,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             var props = new Dictionary<string, string>(); 
             Stream input = typeof(P503).Assembly
                 .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p503.properties");
-            
+            input = Bzip2.DecompressInput(input);
+
             using (StreamReader sr = new StreamReader(input))
             {
                 // load a properties file
