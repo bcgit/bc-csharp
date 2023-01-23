@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
+using static Org.BouncyCastle.Tls.DtlsReliableHandshake;
 
 /**
 * ASCON AEAD v1.2, https://ascon.iaik.tugraz.at/
@@ -25,11 +26,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private readonly AsconParameters asconParameters;
         private readonly MemoryStream aadData = new MemoryStream();
+        private readonly MemoryStream message = new MemoryStream();
         private bool encrypted;
+        private bool initialised;
+        private bool forEncryption;
+        private bool aadFinished;
         private readonly int CRYPTO_KEYBYTES;
         private readonly int CRYPTO_ABYTES;
         private readonly int ASCON_AEAD_RATE;
         private readonly int nr;
+        private byte[] mac;
         private ulong K0;
         private ulong K1;
         private ulong K2;
@@ -41,10 +47,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         private ulong x2;
         private ulong x3;
         private ulong x4;
+        private String algorithmName;
 
         public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
 
-        public string AlgorithmName => "ASCON AEAD";
+        public string AlgorithmName => algorithmName;
 
         public AsconEngine(AsconParameters asconParameters)
         {
@@ -56,35 +63,39 @@ namespace Org.BouncyCastle.Crypto.Engines
                     CRYPTO_ABYTES = 16;
                     ASCON_AEAD_RATE = 8;
                     ASCON_IV = 0xa0400c0600000000UL;
+                    algorithmName = "Ascon-80pq AEAD";
                     break;
                 case AsconParameters.ascon128a:
                     CRYPTO_KEYBYTES = 16;
                     CRYPTO_ABYTES = 16;
                     ASCON_AEAD_RATE = 16;
                     ASCON_IV = 0x80800c0800000000UL;
+                    algorithmName = "Ascon-128a AEAD";
                     break;
                 case AsconParameters.ascon128:
                     CRYPTO_KEYBYTES = 16;
                     CRYPTO_ABYTES = 16;
                     ASCON_AEAD_RATE = 8;
                     ASCON_IV = 0x80400c0600000000UL;
+                    algorithmName = "Ascon-128 AEAD";
                     break;
                 default:
                     throw new ArgumentException("invalid parameter setting for ASCON AEAD");
             }
             nr = (ASCON_AEAD_RATE == 8) ? 6 : 8;
+            initialised = false;
         }
 
         private ulong U64BIG(ulong x)
         {
-            return (((0x00000000000000FFUL & (x)) << 56) |
-            ((0x000000000000FF00UL & (x)) << 40) |
-            ((0x0000000000FF0000UL & (x)) << 24) |
-            ((0x00000000FF000000UL & (x)) << 8) |
-            ((0x000000FF00000000UL & (x)) >> 8) |
-            ((0x0000FF0000000000UL & (x)) >> 24) |
-            ((0x00FF000000000000UL & (x)) >> 40) |
-            ((0xFF00000000000000UL & (x)) >> 56));
+            return (((0x00000000000000FFUL & x) << 56) |
+            ((0x000000000000FF00UL & x) << 40) |
+            ((0x0000000000FF0000UL & x) << 24) |
+            ((0x00000000FF000000UL & x) << 8) |
+            ((0x000000FF00000000UL & x) >> 8) |
+            ((0x0000FF0000000000UL & x) >> 24) |
+            ((0x00FF000000000000UL & x) >> 40) |
+            ((0xFF00000000000000UL & x) >> 56));
         }
 
         private ulong ROR(ulong x, int n)
@@ -121,10 +132,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void STORE(byte[] bytes, int inOff, ulong w, int n)
         {
-            ulong x = Pack.LE_To_UInt64(bytes, inOff);
+            ulong x = 0;
+            for (int i = 0; i < n; ++i)
+            {
+                x |= (bytes[i + inOff] & 0xFFUL) << (i << 3);
+            }
             x &= ~MASK(n);
             x |= U64BIG(w);
-            Pack.UInt64_To_LE(x, bytes, inOff);
+            for (int i = 0; i < n; ++i)
+            {
+                bytes[i + inOff] = (byte)(x >> (i << 3));
+            }
         }
 
         private ulong LOADBYTES(byte[] bytes, int inOff, int n)
@@ -261,34 +279,102 @@ namespace Org.BouncyCastle.Crypto.Engines
                 cOff += ASCON_AEAD_RATE;
                 mlen -= ASCON_AEAD_RATE;
             }
-            /* readonly plaintext block */
-            if (ASCON_AEAD_RATE == 16 && mlen >= 8)
+        }
+
+        private void ascon_decrypt(byte[] m, int mOff, byte[] c, int cOff, int clen)
+        {
+            /* full ciphertext blocks */
+            while (clen >= ASCON_AEAD_RATE)
             {
-                x0 ^= LOAD(m, mOff, 8);
-                STORE(c, cOff, x0, 8);
-                mOff += 8;
-                cOff += 8;
-                mlen -= 8;
-                x1 ^= PAD(mlen);
-                if (mlen != 0)
+                ulong cx = LOAD(c, cOff, 8);
+                x0 ^= cx;
+                STORE(m, mOff, x0, 8);
+                x0 = cx;
+                if (ASCON_AEAD_RATE == 16)
                 {
-                    x1 ^= LOAD(m, mOff, mlen);
-                    STORE(c, cOff, x1, mlen);
+                    cx = LOAD(c, cOff + 8, 8);
+                    x1 ^= cx;
+                    STORE(m, mOff + 8, x1, 8);
+                    x1 = cx;
+                }
+                P(nr);
+                mOff += ASCON_AEAD_RATE;
+                cOff += ASCON_AEAD_RATE;
+                clen -= ASCON_AEAD_RATE;
+            }
+        }
+
+        private ulong CLEAR(ulong w, int n)
+        {
+            /* undefined for n == 0 */
+            ulong mask = 0x00ffffffffffffffUL >> (n * 8 - 8);
+            return w & mask;
+        }
+
+        private void ascon_final(byte[] c, int cOff, byte[] m, int mOff, int mlen)
+        {
+            if (forEncryption)
+            {
+                /* final plaintext block */
+                if (ASCON_AEAD_RATE == 16 && mlen >= 8)
+                {
+                    x0 ^= LOAD(m, mOff, 8);
+                    STORE(c, cOff, x0, 8);
+                    mOff += 8;
+                    cOff += 8;
+                    mlen -= 8;
+                    x1 ^= PAD(mlen);
+                    if (mlen != 0)
+                    {
+                        x1 ^= LOAD(m, mOff, mlen);
+                        STORE(c, cOff, x1, mlen);
+                    }
+                }
+                else
+                {
+                    x0 ^= PAD(mlen);
+                    if (mlen != 0)
+                    {
+                        x0 ^= LOAD(m, mOff, mlen);
+                        STORE(c, cOff, x0, mlen);
+                    }
                 }
             }
             else
             {
-                x0 ^= PAD(mlen);
-                if (mlen != 0)
+                /* final ciphertext block */
+                if (ASCON_AEAD_RATE == 16 && mlen >= 8)
                 {
-                    x0 ^= LOAD(m, mOff, mlen);
-                    STORE(c, cOff, x0, mlen);
+                    ulong cx = LOAD(m, mOff, 8);
+                    x0 ^= cx;
+                    STORE(c, cOff, x0, 8);
+                    x0 = cx;
+                    mOff += 8;
+                    cOff += 8;
+                    mlen -= 8;
+                    x1 ^= PAD(mlen);
+                    if (mlen != 0)
+                    {
+                        cx = LOAD(m, mOff, mlen);
+                        x1 ^= cx;
+                        STORE(c, cOff, x1, mlen);
+                        x1 = CLEAR(x1, mlen);
+                        x1 ^= cx;
+                    }
+                }
+                else
+                {
+                    x0 ^= PAD(mlen);
+                    if (mlen != 0)
+                    {
+                        ulong cx = LOAD(m, mOff, mlen);
+                        x0 ^= cx;
+                        STORE(c, cOff, x0, mlen);
+                        x0 = CLEAR(x0, mlen);
+                        x0 ^= cx;
+                    }
                 }
             }
-        }
-
-        private void ascon_final()
-        {
             /* finalize */
             switch (asconParameters)
             {
@@ -313,10 +399,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void Init(bool forEncryption, ICipherParameters param)
         {
-            /**
-            * ASCON encryption and decryption is completely symmetrical, so the
-            * 'forEncryption' is irrelevant.
-*/
+            this.forEncryption = forEncryption;
             if (!(param is ParametersWithIV))
             {
                 throw new ArgumentException(
@@ -352,18 +435,33 @@ namespace Org.BouncyCastle.Crypto.Engines
                 K1 = LOADBYTES(k, 4, 8);
                 K2 = LOADBYTES(k, 12, 8);
             }
+            initialised = true;
             /*Mask-Gen*/
-            Reset();
+            reset(false);
         }
 
         public void ProcessAadByte(byte input)
         {
+            if (aadFinished)
+            {
+                throw new ArgumentException("AAD cannot be added after reading a full block(" + ASCON_AEAD_RATE +
+                    " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
+            }
             aadData.Write(new byte[] { input }, 0, 1);
         }
 
 
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
+            if (aadFinished)
+            {
+                throw new ArgumentException("AAD cannot be added after reading a full block(" + ASCON_AEAD_RATE +
+                    " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
+            }
+            if ((inOff + len) > input.Length)
+            {
+                throw new DataLengthException("input buffer too short");
+            }
             aadData.Write(input, inOff, len);
         }
 
@@ -376,46 +474,127 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
-            if (encrypted)
+            if (!initialised)
             {
-                throw new ArgumentException("ProcessBytes for ASCONcan be called once only");
+                throw new ArgumentException("Need call init function before encryption/decryption");
             }
-            byte[] ad = aadData.GetBuffer();
-            int adlen = (int)aadData.Length;
-            /* perform ascon computation */
-            //ascon_aeadinit();
-            ascon_adata(ad, 0, adlen);
-            ascon_encrypt(output, outOff, input, inOff, len);
-            ascon_final();
+            if ((inOff + len) > input.Length)
+            {
+                throw new DataLengthException("input buffer too short");
+            }
+            message.Write(input, inOff, len);
+            int rv = processBytes(output, outOff);
             encrypted = true;
+            return rv;
+        }
+
+        private void processAAD()
+        {
+            if (!aadFinished)
+            {
+                byte[] ad = aadData.GetBuffer();
+                int adlen = (int)aadData.Length;
+                /* perform ascon computation */
+                ascon_adata(ad, 0, adlen);
+                aadFinished = true;
+            }
+        }
+
+        private int processBytes(byte[] output, int outOff)
+        {
+            int len = 0;
+            if (forEncryption)
+            {
+                if ((int)message.Length >= ASCON_AEAD_RATE)
+                {
+                    processAAD();
+                    byte[] input = message.GetBuffer();
+                    len = ((int)message.Length / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
+                    if (len + outOff > output.Length)
+                    {
+                        throw new OutputLengthException("output buffer is too short");
+                    }
+                    ascon_encrypt(output, outOff, input, 0, len);
+                    int len_orig = (int)message.Length;
+                    message.SetLength(0);
+                    message.Write(input, len, len_orig - len);
+                }
+            }
+            else
+            {
+                if ((int)message.Length - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
+                {
+                    processAAD();
+                    byte[] input = message.GetBuffer();
+                    len = (((int)message.Length - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
+                    if (len + outOff > output.Length)
+                    {
+                        throw new OutputLengthException("output buffer is too short");
+                    }
+                    ascon_decrypt(output, outOff, input, 0, len);
+                    int len_orig = (int)message.Length;
+                    message.SetLength(0);
+                    message.Write(input, len, len_orig - len);
+                }
+            }
             return len;
         }
 
-
         public int DoFinal(byte[] output, int outOff)
         {
+            if (!initialised)
+            {
+                throw new ArgumentException("Need call init function before encryption/decryption");
+            }
+            if (!aadFinished)
+            {
+                processAAD();
+            }
             if (!encrypted)
             {
                 ProcessBytes(new byte[] { }, 0, 0, new byte[] { }, 0);
             }
-            /* set tag */
-            STOREBYTES(output, outOff, x3, 8);
-            STOREBYTES(output, outOff + 8, x4, 8);
-            Reset();
-            return CRYPTO_ABYTES;
+            byte[] input = message.GetBuffer();
+            int len = (int)message.Length;
+            if ((forEncryption && outOff + len + CRYPTO_ABYTES > output.Length) ||
+                (!forEncryption && outOff + len - CRYPTO_ABYTES > output.Length))
+            {
+                throw new OutputLengthException("output buffer too short");
+            }
+            if (forEncryption)
+            {
+                ascon_final(output, outOff, input, 0, len);
+                /* set tag */
+                mac = new byte[16];
+                STOREBYTES(mac, 0, x3, 8);
+                STOREBYTES(mac, 8, x4, 8);
+                Array.Copy(mac, 0, output, len + outOff, 16);
+                reset(false);
+                return len + CRYPTO_ABYTES;
+            }
+            else
+            {
+                len -= CRYPTO_ABYTES;
+                ascon_final(output, outOff, input, 0, len);
+                x3 ^= LOADBYTES(input, len, 8);
+                x4 ^= LOADBYTES(input, len + 8, 8);
+                ulong result = x3 | x4;
+                result |= result >> 32;
+                result |= result >> 16;
+                result |= result >> 8;
+                reset(true);
+                if ((((((int)(result & 0xffUL) - 1) >> 8) & 1) - 1) != 0)
+                {
+                    throw new ArgumentException("Mac does not match");
+                }
+                return len;
+            }
         }
 
 
         public byte[] GetMac()
         {
-            if (!encrypted)
-            {
-                ProcessBytes(new byte[] { }, 0, 0, new byte[] { }, 0);
-            }
-            byte[] output = new byte[CRYPTO_ABYTES];
-            STOREBYTES(output, 0, x3, 8);
-            STOREBYTES(output, 8, x4, 8);
-            return output;
+            return mac;
         }
 
 
@@ -429,48 +608,85 @@ namespace Org.BouncyCastle.Crypto.Engines
             return len + CRYPTO_ABYTES;
         }
 
-
         public void Reset()
         {
+            reset(true);
+        }
+
+        private void reset(bool clearMac)
+        {
+            if (!initialised)
+            {
+                throw new ArgumentException("Need call init function before encryption/decryption");
+            }
             x0 = x1 = x2 = x3 = x4 = 0;
             ascon_aeadinit();
             aadData.SetLength(0);
+            message.SetLength(0);
             encrypted = false;
+            aadFinished = false;
+            if (clearMac)
+            {
+                mac = null;
+            }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
+            if (aadFinished)
+            {
+                throw new ArgumentException("AAD cannot be added after reading a full block(" + ASCON_AEAD_RATE +
+                    " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
+            }
             aadData.Write(input);
         }
 
         public int ProcessByte(byte input, Span<byte> output)
         {
             byte[] rv = new byte[1];
-            ProcessBytes(new byte[] { input }, 0, 1, rv, 0);
-            rv.AsSpan(0, 1).CopyTo(output);
-            return 1;
+            int len = ProcessBytes(new byte[] { input }, 0, 1, rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return len;
         }
 
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             byte[] rv = new byte[input.Length];
-            ProcessBytes(input.ToArray(), 0, rv.Length, rv, 0);
-            rv.AsSpan(0, rv.Length).CopyTo(output);
-            return rv.Length;
+            int len = ProcessBytes(input.ToArray(), 0, rv.Length, rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return len;
         }
 
         public int DoFinal(Span<byte> output)
         {
-            byte[] tag = GetMac();
-            tag.AsSpan(0, tag.Length).CopyTo(output);
-            Reset();
-            return tag.Length;
+            byte[] rv;
+            if (forEncryption)
+            {
+                rv = new byte[message.Length + 16];
+            }
+            else
+            {
+                rv = new byte[message.Length];
+            }
+            int len = DoFinal(rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return rv.Length;
         }
 #endif
         public int GetBlockSize()
         {
             return ASCON_AEAD_RATE;
+        }
+
+        public int GetKeyBytesSize()
+        {
+            return CRYPTO_KEYBYTES;
+        }
+
+        public int GetIVBytesSize()
+        {
+            return CRYPTO_ABYTES;
         }
     }
 }
