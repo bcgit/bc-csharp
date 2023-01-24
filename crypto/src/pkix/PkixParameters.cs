@@ -542,19 +542,25 @@ namespace Org.BouncyCastle.Pkix
 			return new List<IStore<X509Crl>>(m_storesCrl);
 		}
 
+		[Obsolete("Use 'SetStoresAttrCert' instead")]
 		public virtual void SetAttrStoresCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
 		{
-			if (storesAttrCert == null)
-			{
-				m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
-			}
-			else
-			{
-				m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>(storesAttrCert);
-			}
+			SetStoresAttrCert(storesAttrCert);
 		}
 
-		public virtual void SetStoresCert(IList<IStore<X509Certificate>> storesCert)
+        public virtual void SetStoresAttrCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
+        {
+            if (storesAttrCert == null)
+            {
+                m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
+            }
+            else
+            {
+                m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>(storesAttrCert);
+            }
+        }
+
+        public virtual void SetStoresCert(IList<IStore<X509Certificate>> storesCert)
 		{
 			if (storesCert == null)
 			{
