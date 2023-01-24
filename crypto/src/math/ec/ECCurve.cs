@@ -675,9 +675,40 @@ namespace Org.BouncyCastle.Math.EC
     public abstract class AbstractFpCurve
         : ECCurve
     {
+        private static readonly HashSet<BigInteger> KnownQs = new HashSet<BigInteger>();
+
         protected AbstractFpCurve(BigInteger q)
+            : this(q, false)
+        {
+        }
+
+        internal AbstractFpCurve(BigInteger q, bool isInternal)
             : base(FiniteFields.GetPrimeField(q))
         {
+            if (!isInternal)
+            {
+                bool unknownQ;
+                lock (KnownQs) unknownQ = !KnownQs.Contains(q);
+
+                if (unknownQ)
+                {
+                    int maxBitLength = ImplGetInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
+                    int certainty = ImplGetInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
+
+                    int qBitLength = q.BitLength;
+                    if (maxBitLength < qBitLength)
+                        throw new ArgumentException("Fp q value out of range");
+
+                    if (Primes.HasAnySmallFactors(q) ||
+                        !Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom,
+                            ImplGetNumberOfIterations(qBitLength, certainty)))
+                    {
+                        throw new ArgumentException("Fp q value not prime");
+                    }
+                }
+            }
+
+            lock (KnownQs) KnownQs.Add(q);
         }
 
         public override bool IsValidFieldElement(BigInteger x)
@@ -730,6 +761,47 @@ namespace Org.BouncyCastle.Math.EC
             return CreateRawPoint(x, y);
         }
 
+        private static int ImplGetInteger(string envVariable, int defaultValue)
+        {
+            string v = Platform.GetEnvironmentVariable(envVariable);
+            if (v == null)
+                return defaultValue;
+
+            return int.Parse(v);
+        }
+
+        private static int ImplGetNumberOfIterations(int bits, int certainty)
+        {
+            /*
+             * NOTE: We enforce a minimum 'certainty' of 100 for bits >= 1024 (else 80). Where the
+             * certainty is higher than the FIPS 186-4 tables (C.2/C.3) cater to, extra iterations
+             * are added at the "worst case rate" for the excess.
+             */
+            if (bits >= 1536)
+            {
+                return certainty <= 100 ? 3
+                    : certainty <= 128 ? 4
+                    : 4 + (certainty - 128 + 1) / 2;
+            }
+            else if (bits >= 1024)
+            {
+                return certainty <= 100 ? 4
+                    : certainty <= 112 ? 5
+                    : 5 + (certainty - 112 + 1) / 2;
+            }
+            else if (bits >= 512)
+            {
+                return certainty <= 80 ? 5
+                    : certainty <= 100 ? 7
+                    : 7 + (certainty - 100 + 1) / 2;
+            }
+            else
+            {
+                return certainty <= 80 ? 40
+                    : 40 + (certainty - 80 + 1) / 2;
+            }
+        }
+
         private static BigInteger ImplRandomFieldElement(SecureRandom r, BigInteger p)
         {
             BigInteger x;
@@ -761,8 +833,6 @@ namespace Org.BouncyCastle.Math.EC
     {
         private const int FP_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
 
-        private static readonly HashSet<BigInteger> KnownQs = new HashSet<BigInteger>();
-
         protected readonly BigInteger m_q, m_r;
         protected readonly FpPoint m_infinity;
 
@@ -778,32 +848,8 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         internal FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor, bool isInternal)
-            : base(q)
+            : base(q, isInternal)
         {
-            if (!isInternal)
-            {
-                bool unknownQ;
-                lock (KnownQs) unknownQ = !KnownQs.Contains(q);
-
-                if (unknownQ)
-                {
-                    int maxBitLength = AsInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
-                    int certainty = AsInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
-
-                    int qBitLength = q.BitLength;
-                    if (maxBitLength < qBitLength)
-                        throw new ArgumentException("Fp q value out of range");
-
-                    if (Primes.HasAnySmallFactors(q) ||
-                        !Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom,
-                            GetNumberOfIterations(qBitLength, certainty)))
-                    {
-                        throw new ArgumentException("Fp q value not prime");
-                    }
-                }
-            }
-
-            lock (KnownQs) KnownQs.Add(q);
             this.m_q = q;
 
             this.m_r = FpFieldElement.CalculateResidue(q);
@@ -818,7 +864,7 @@ namespace Org.BouncyCastle.Math.EC
 
         internal FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order,
             BigInteger cofactor)
-            : base(q)
+            : base(q, true)
         {
             this.m_q = q;
             this.m_r = r;
@@ -902,50 +948,6 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             return base.ImportPoint(p);
-        }
-
-        private int GetNumberOfIterations(int bits, int certainty)
-        {
-            /*
-             * NOTE: We enforce a minimum 'certainty' of 100 for bits >= 1024 (else 80). Where the
-             * certainty is higher than the FIPS 186-4 tables (C.2/C.3) cater to, extra iterations
-             * are added at the "worst case rate" for the excess.
-             */
-            if (bits >= 1536)
-            {
-                return  certainty <= 100 ? 3
-                    :   certainty <= 128 ? 4
-                    :   4 + (certainty - 128 + 1) / 2;
-            }
-            else if (bits >= 1024)
-            {
-                return  certainty <= 100 ? 4
-                    :   certainty <= 112 ? 5
-                    :   5 + (certainty - 112 + 1) / 2;
-            }
-            else if (bits >= 512)
-            {
-                return  certainty <= 80  ? 5
-                    :   certainty <= 100 ? 7
-                    :   7 + (certainty - 100 + 1) / 2;
-            }
-            else
-            {
-                return  certainty <= 80  ? 40
-                    :   40 + (certainty - 80 + 1) / 2;
-            }
-        }
-
-        int AsInteger(string envVariable, int defaultValue)
-        {
-            string v = Platform.GetEnvironmentVariable(envVariable);
-
-            if (v == null)
-            {
-                return defaultValue;
-            }
-
-            return int.Parse(v);
         }
     }
 

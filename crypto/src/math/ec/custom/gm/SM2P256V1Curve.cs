@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
         protected readonly SM2P256V1Point m_infinity;
 
         public SM2P256V1Curve()
-            : base(q)
+            : base(q, true)
         {
             this.m_infinity = new SM2P256V1Point(this, null, null);
 
