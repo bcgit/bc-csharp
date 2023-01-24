@@ -1,17 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Crypto;
+
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
-using System.Collections.Generic;
-using System.IO;
-using Org.BouncyCastle.Crypto.Engines;
-using System.Security.Cryptography;
-using Org.BouncyCastle.Crypto.Modes;
 
-namespace BouncyCastle.Crypto.Tests
+namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class AsconTest : SimpleTest
@@ -372,39 +372,40 @@ namespace BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
             }
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-//            Span<byte> c4_1 = new byte[c2.Length];
-//            Span<byte> c4_2 = new byte[c2.Length];
-//            ReadOnlySpan<byte> m5 = new ReadOnlySpan<byte>(m2);
-//            ReadOnlySpan<byte> aad4 = new ReadOnlySpan<byte>(aad2);
-//            aeadBlockCipher.Init(true, param);
-//            aeadBlockCipher.ProcessAadBytes(aad4);
-//            offset = aeadBlockCipher.ProcessBytes(m5, c4_1);
-//            aeadBlockCipher.DoFinal(c4_2);
-//            byte[] c5 = new byte[c2.Length];
-//            Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
-//            Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
-//            if (!Arrays.AreEqual(c2, c5))
-//            {
-//                Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
-//            }
-//            aeadBlockCipher.Reset();
-//            aeadBlockCipher.Init(false, param);
-//            Span<byte> m6_1 = new byte[m2.Length];
-//            Span<byte> m6_2 = new byte[m2.Length];
-//            ReadOnlySpan<byte> c6 = new ReadOnlySpan<byte>(c2);
-//            aeadBlockCipher.ProcessAadBytes(aad4);
-//            offset = aeadBlockCipher.ProcessBytes(c6, m6_1);
-//            aeadBlockCipher.DoFinal(m6_2);
-//            byte[] m6 = new byte[m2.Length];
-//            Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
-//            Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
-//            if (!Arrays.AreEqual(m2, m6))
-//            {
-//                Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
-//            }
-//#endif
-
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> c4_1 = new byte[c2.Length];
+            Span<byte> c4_2 = new byte[c2.Length];
+            ReadOnlySpan<byte> m5 = new ReadOnlySpan<byte>(m2);
+            ReadOnlySpan<byte> aad4 = new ReadOnlySpan<byte>(aad2);
+            aeadBlockCipher.Init(true, param);
+            aeadBlockCipher.ProcessAadBytes(aad4);
+            offset = aeadBlockCipher.ProcessBytes(m5, c4_1);
+            aeadBlockCipher.DoFinal(c4_2);
+            byte[] c5 = new byte[c2.Length];
+            Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
+            Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
+            if (!Arrays.AreEqual(c2, c5))
+            {
+                Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
+            }
+            aeadBlockCipher.Reset();
+            aeadBlockCipher.Init(false, param);
+            Span<byte> m6_1 = new byte[m2.Length];
+            Span<byte> m6_2 = new byte[m2.Length];
+            ReadOnlySpan<byte> c6 = new ReadOnlySpan<byte>(c2);
+            aeadBlockCipher.ProcessAadBytes(aad4);
+            offset = aeadBlockCipher.ProcessBytes(c6, m6_1);
+            aeadBlockCipher.DoFinal(m6_2);
+            byte[] m6 = new byte[m2.Length];
+            Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
+            Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
+            if (!Arrays.AreEqual(m2, m6))
+            {
+                Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
+            }
+#endif
         }
 
         private void testParameters(AsconEngine ascon, int keySize, int ivSize, int macSize, int blockSize)
