@@ -14,39 +14,31 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CertBag(Asn1Sequence.GetInstance(obj));
         }
 
-        private readonly DerObjectIdentifier certID;
-        private readonly Asn1Object certValue;
+        private readonly DerObjectIdentifier m_certID;
+        private readonly Asn1Object m_certValue;
 
 		private CertBag(Asn1Sequence seq)
         {
 			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", "seq");
+				throw new ArgumentException("Wrong number of elements in sequence", nameof(seq));
 
-            this.certID = DerObjectIdentifier.GetInstance(seq[0]);
-            this.certValue = Asn1TaggedObject.GetInstance(seq[1]).GetObject();
+            this.m_certID = DerObjectIdentifier.GetInstance(seq[0]);
+            this.m_certValue = Asn1TaggedObject.GetInstance(seq[1]).GetObject();
         }
 
-		public CertBag(
-            DerObjectIdentifier	certID,
-            Asn1Object			certValue)
+		public CertBag(DerObjectIdentifier certID, Asn1Object certValue)
         {
-            this.certID = certID;
-            this.certValue = certValue;
+            m_certID = certID;
+            m_certValue = certValue;
         }
 
-		public virtual DerObjectIdentifier CertID
-		{
-			get { return certID; }
-		}
+        public virtual DerObjectIdentifier CertID => m_certID;
 
-		public virtual Asn1Object CertValue
-		{
-			get { return certValue; }
-		}
+        public virtual Asn1Object CertValue => m_certValue;
 
 		public override Asn1Object ToAsn1Object()
         {
-			return new DerSequence(certID, new DerTaggedObject(0, certValue));
+			return new DerSequence(m_certID, new DerTaggedObject(0, m_certValue));
         }
     }
 }
