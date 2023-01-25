@@ -1365,6 +1365,13 @@ namespace Org.BouncyCastle.Pkix
             return sub;
         }
 
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        [Obsolete("Use 'CheckPermitted' instead")]
+        public void checkPermitted(GeneralName name)
+        {
+            CheckPermitted(name);
+        }
+
         /**
          * Checks if the given GeneralName is in the permitted ISet.
          *
@@ -1372,8 +1379,8 @@ namespace Org.BouncyCastle.Pkix
          * @throws PkixNameConstraintValidatorException
          *          If the <code>name</code>
          */
-        public void checkPermitted(GeneralName name)
-        //throws PkixNameConstraintValidatorException
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckPermitted(GeneralName name)
         {
             switch (name.TagNo)
             {
@@ -1398,6 +1405,13 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        [Obsolete("Use 'CheckExcluded' instead")]
+        public void checkExcluded(GeneralName name)
+        {
+            CheckExcluded(name);
+        }
+
         /**
          * Check if the given GeneralName is contained in the excluded ISet.
          *
@@ -1406,8 +1420,8 @@ namespace Org.BouncyCastle.Pkix
          *          If the <code>name</code> is
          *          excluded.
          */
-        public void checkExcluded(GeneralName name)
-        //throws PkixNameConstraintValidatorException
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckExcluded(GeneralName name)
         {
             switch (name.TagNo)
             {
