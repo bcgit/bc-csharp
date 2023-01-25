@@ -101,8 +101,8 @@ namespace Org.BouncyCastle.X509
 			if (other == null)
 				return false;
 
-			return Platform.Equals(this.forward, other.forward)
-				&& Platform.Equals(this.reverse, other.reverse);
+			return Objects.Equals(this.forward, other.forward)
+				&& Objects.Equals(this.reverse, other.reverse);
 		}
 
 		public override int GetHashCode()

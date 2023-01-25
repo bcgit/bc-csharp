@@ -731,7 +731,7 @@ namespace Org.BouncyCastle.X509
             Asn1Encodable p2 = id2.Parameters;
 
             if ((p1 == null) == (p2 == null))
-                return Platform.Equals(p1, p2);
+                return Objects.Equals(p1, p2);
 
             // Exactly one of p1, p2 is null at this point
             return p1 == null

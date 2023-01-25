@@ -1,5 +1,3 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -44,7 +42,7 @@ namespace Org.BouncyCastle.Cms
 				return false;
 
 			return Arrays.AreEqual(SubjectKeyIdentifier, id.SubjectKeyIdentifier)
-				&& Platform.Equals(SerialNumber, id.SerialNumber)
+				&& Objects.Equals(SerialNumber, id.SerialNumber)
 				&& IssuersMatch(Issuer, id.Issuer);
         }
     }
