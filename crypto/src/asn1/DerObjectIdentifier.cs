@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 
@@ -80,7 +81,7 @@ namespace Org.BouncyCastle.Asn1
 
         private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
 
-        private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
+        private static readonly ConcurrentDictionary<int, DerObjectIdentifier> cache = new ConcurrentDictionary<int, DerObjectIdentifier>();
 
         private readonly string identifier;
         private byte[] contents;
@@ -206,18 +207,16 @@ namespace Org.BouncyCastle.Asn1
         internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
         {
             int hashCode = Arrays.GetHashCode(contents);
-            int first = hashCode & 1023;
 
-            lock (cache)
+            DerObjectIdentifier entry = cache.GetOrAdd(hashCode, new DerObjectIdentifier(contents, clone));
+
+            if (!Arrays.AreEqual(contents, entry.GetContents()))
             {
-                DerObjectIdentifier entry = cache[first];
-                if (entry != null && Arrays.AreEqual(contents, entry.GetContents()))
-                {
-                    return entry;
-                }
-
-                return cache[first] = new DerObjectIdentifier(contents, clone);
+                entry = new DerObjectIdentifier(contents, clone);
+                cache[hashCode] = entry;
             }
+
+            return entry;
         }
 
         private static bool IsValidIdentifier(string identifier)
