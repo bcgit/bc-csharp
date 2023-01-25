@@ -208,7 +208,7 @@ namespace Org.BouncyCastle.Asn1
         {
             int hashCode = Arrays.GetHashCode(contents);
 
-            DerObjectIdentifier entry = cache.GetOrAdd(hashCode, new DerObjectIdentifier(contents, clone));
+            DerObjectIdentifier entry = cache.GetOrAdd(hashCode, _ => new DerObjectIdentifier(contents, clone));
 
             if (!Arrays.AreEqual(contents, entry.GetContents()))
             {
