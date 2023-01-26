@@ -9,8 +9,24 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         private readonly DerInteger			crlNum;
         private readonly Asn1GeneralizedTime crlTime;
 
-		// TODO Add GetInstance method(s) and make this private?
-		public CrlID(Asn1Sequence seq)
+        public static CrlID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        public static CrlID GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CrlID crlID)
+                return crlID;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CrlID(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public CrlID(Asn1Sequence seq)
         {
 			foreach (Asn1TaggedObject o in seq)
 			{
