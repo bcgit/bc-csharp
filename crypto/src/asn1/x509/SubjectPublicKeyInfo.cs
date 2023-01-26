@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 namespace Org.BouncyCastle.Asn1.X509
 {

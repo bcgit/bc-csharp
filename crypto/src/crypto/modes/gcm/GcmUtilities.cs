@@ -14,7 +14,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
-    internal abstract class GcmUtilities
+    internal static class GcmUtilities
     {
         internal struct FieldElement
         {
@@ -177,13 +177,13 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             ulong z1 = Interleave.Expand64To128Rev(x.n0, out ulong z0);
             ulong z3 = Interleave.Expand64To128Rev(x.n1, out ulong z2);
 
-            Debug.Assert(z3 << 63 == 0);
+            Debug.Assert(z3 << 63 == 0UL);
 
             z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
 //          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
             z2 ^=                   (z3 << 62) ^ (z3 << 57);
 
-            Debug.Assert(z2 << 63 == 0);
+            Debug.Assert(z2 << 63 == 0UL);
 
             z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
 //          z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);

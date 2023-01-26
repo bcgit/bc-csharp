@@ -108,30 +108,24 @@ namespace Org.BouncyCastle.Crypto.Modes
             KeyParameter keyParam;
             byte[] newNonce;
 
-            if (parameters is AeadParameters)
+            if (parameters is AeadParameters aeadParameters)
             {
-                AeadParameters param = (AeadParameters)parameters;
+                newNonce = aeadParameters.GetNonce();
+                initialAssociatedText = aeadParameters.GetAssociatedText();
 
-                newNonce = param.GetNonce();
-                initialAssociatedText = param.GetAssociatedText();
-
-                int macSizeBits = param.MacSize;
+                int macSizeBits = aeadParameters.MacSize;
                 if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
-                {
                     throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
-                }
 
                 macSize = macSizeBits / 8; 
-                keyParam = param.Key;
+                keyParam = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
-                ParametersWithIV param = (ParametersWithIV)parameters;
-
-                newNonce = param.GetIV();
+                newNonce = withIV.GetIV();
                 initialAssociatedText = null;
                 macSize = 16; 
-                keyParam = (KeyParameter)param.Parameters;
+                keyParam = (KeyParameter)withIV.Parameters;
             }
             else
             {
@@ -142,22 +136,17 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.bufBlock = new byte[bufLength];
 
             if (newNonce == null || newNonce.Length < 1)
-            {
                 throw new ArgumentException("IV must be at least 1 byte");
-            }
 
             if (forEncryption)
             {
                 if (nonce != null && Arrays.AreEqual(nonce, newNonce))
                 {
                     if (keyParam == null)
-                    {
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
-                    }
+
                     if (lastKey != null && Arrays.AreEqual(lastKey, keyParam.GetKey()))
-                    {
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
-                    }
                 }
             }
 
@@ -223,9 +212,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public byte[] GetMac()
         {
-            return macBlock == null
-                ?   new byte[macSize]
-                :   Arrays.Clone(macBlock);
+            return macBlock == null ? new byte[macSize] : (byte[])macBlock.Clone();
         }
 
         public int GetOutputSize(int len)
@@ -233,9 +220,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             int totalData = len + bufOff;
 
             if (forEncryption)
-            {
                 return totalData + macSize;
-            }
 
             return totalData < macSize ? 0 : totalData - macSize;
         }
@@ -246,9 +231,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (!forEncryption)
             {
                 if (totalData < macSize)
-                {
                     return 0;
-                }
+
                 totalData -= macSize;
             }
             return totalData - totalData % BlockSize;
@@ -1490,9 +1474,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (!initialised)
             {
                 if (forEncryption)
-                {
                     throw new InvalidOperationException("GCM cipher cannot be reused for encryption");
-                }
+
                 throw new InvalidOperationException("GCM cipher needs to be initialised");
             }
         }

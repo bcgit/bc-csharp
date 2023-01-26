@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -28,23 +26,16 @@ namespace Org.BouncyCastle.Asn1.X509
 	public class SubjectDirectoryAttributes
 		: Asn1Encodable
 	{
-		private readonly IList<AttributeX509> m_attributes;
+		private readonly List<AttributeX509> m_attributes;
 
-		public static SubjectDirectoryAttributes GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is SubjectDirectoryAttributes)
-			{
-				return (SubjectDirectoryAttributes) obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new SubjectDirectoryAttributes((Asn1Sequence) obj);
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        public static SubjectDirectoryAttributes GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SubjectDirectoryAttributes subjectDirectoryAttributes)
+                return subjectDirectoryAttributes;
+            return new SubjectDirectoryAttributes(Asn1Sequence.GetInstance(obj));
+        }
 
 		/**
 		 * Constructor from Asn1Sequence.
@@ -114,12 +105,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-            AttributeX509[] v = new AttributeX509[m_attributes.Count];
-            for (int i = 0; i < m_attributes.Count; ++i)
-            {
-                v[i] = m_attributes[i];
-            }
-            return new DerSequence(v);
+            return new DerSequence(m_attributes.ToArray());
 		}
 
         /**

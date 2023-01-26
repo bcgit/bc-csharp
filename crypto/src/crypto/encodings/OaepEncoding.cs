@@ -285,24 +285,17 @@ namespace Org.BouncyCastle.Crypto.Encodings
             return output;
         }
 
-        private byte[] MaskGeneratorFunction(
-            byte[] Z,
-            int zOff,
-            int zLen,
-            int length)
+        private byte[] MaskGeneratorFunction(byte[] Z, int zOff, int zLen, int length)
         {
-            if (mgf1Hash is IXof)
+            if (mgf1Hash is IXof xof)
             {
                 byte[] mask = new byte[length];
-                mgf1Hash.BlockUpdate(Z, zOff, zLen);
-                ((IXof)mgf1Hash).OutputFinal(mask, 0, mask.Length);
-
+                xof.BlockUpdate(Z, zOff, zLen);
+                xof.OutputFinal(mask, 0, length);
                 return mask;
             }
-            else
-            {
-                return MaskGeneratorFunction1(Z, zOff, zLen, length);
-            }
+
+            return MaskGeneratorFunction1(Z, zOff, zLen, length);
         }
 
         /**

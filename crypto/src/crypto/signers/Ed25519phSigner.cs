@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] msg = new byte[Ed25519.PrehashSize];
             if (Ed25519.PrehashSize != prehash.DoFinal(msg, 0))
-                throw new InvalidOperationException("Prehash digest failed");
+                throw new InvalidOperationException("Prehash calculation failed");
 
             byte[] signature = new byte[Ed25519PrivateKeyParameters.SignatureSize];
             privateKey.Sign(Ed25519.Algorithm.Ed25519ph, context, msg, 0, Ed25519.PrehashSize, signature, 0);
@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] msg = new byte[Ed25519.PrehashSize];
             if (Ed25519.PrehashSize != prehash.DoFinal(msg, 0))
-                throw new InvalidOperationException("Prehash digest failed");
+                throw new InvalidOperationException("Prehash calculation failed");
 
             return publicKey.Verify(Ed25519.Algorithm.Ed25519ph, context, msg, 0, Ed25519.PrehashSize, signature, 0);
         }

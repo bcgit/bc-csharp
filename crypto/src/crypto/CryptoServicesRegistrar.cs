@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto
 
         public static SecureRandom GetSecureRandom(SecureRandom secureRandom)
         {
-            return secureRandom ?? new SecureRandom();
+            return secureRandom ?? GetSecureRandom();
         }
     }
 }

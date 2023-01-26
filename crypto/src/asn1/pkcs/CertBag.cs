@@ -7,8 +7,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     {
         public static CertBag GetInstance(object obj)
         {
-            if (obj is CertBag)
-                return (CertBag)obj;
+            if (obj is CertBag certBag)
+                return certBag;
             if (obj == null)
                 return null;
             return new CertBag(Asn1Sequence.GetInstance(obj));

@@ -27,11 +27,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             throw new ArgumentException("Invalid GOST3410Parameter: " + Platform.GetTypeName(obj));
         }
 
-		public Gost3410ParamSetParameters(
-            int			keySize,
-            BigInteger	p,
-            BigInteger	q,
-            BigInteger	a)
+		public Gost3410ParamSetParameters(int keySize, BigInteger p, BigInteger q, BigInteger a)
         {
             this.keySize = keySize;
             this.p = new DerInteger(p);
@@ -39,8 +35,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             this.a = new DerInteger(a);
         }
 
-		private Gost3410ParamSetParameters(
-            Asn1Sequence seq)
+		private Gost3410ParamSetParameters(Asn1Sequence seq)
         {
 			if (seq.Count != 4)
 				throw new ArgumentException("Wrong number of elements in sequence", "seq");

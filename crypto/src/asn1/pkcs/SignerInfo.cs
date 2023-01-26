@@ -1,7 +1,4 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
@@ -19,21 +16,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private Asn1OctetString         encryptedDigest;
         private Asn1Set                 unauthenticatedAttributes;
 
-		public static SignerInfo GetInstance(
-            object obj)
+        public static SignerInfo GetInstance(object obj)
         {
-            if (obj is SignerInfo)
-            {
-                return (SignerInfo) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new SignerInfo((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+            if (obj == null)
+                return null;
+            if (obj is SignerInfo signerInfo)
+                return signerInfo;
+            return new SignerInfo(Asn1Sequence.GetInstance(obj));
+        }
 
 		public SignerInfo(
             DerInteger              version,

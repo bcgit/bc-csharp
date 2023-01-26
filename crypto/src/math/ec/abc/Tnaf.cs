@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
     * by Jerome A. Solinas. The paper first appeared in the Proceedings of
     * Crypto 1997.
     */
-    internal class Tnaf
+    internal static class Tnaf
     {
         private static readonly BigInteger MinusOne = BigInteger.One.Negate();
         private static readonly BigInteger MinusTwo = BigInteger.Two.Negate();
@@ -552,7 +552,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             return new BigInteger[] { dividend0, dividend1 };
         }
 
-        protected static int GetShiftsForCofactor(BigInteger h)
+        private static int GetShiftsForCofactor(BigInteger h)
         {
             if (h != null && h.BitLength < 4)
             {

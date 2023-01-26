@@ -60,23 +60,22 @@ namespace Org.BouncyCastle.Cms
         private void DoCreateStandardAttributeTable(IDictionary<CmsAttributeTableParameter, object> parameters,
 			IDictionary<DerObjectIdentifier, object> std)
         {
-            // contentType will be absent if we're trying to generate a counter signature.
-
-            if (parameters.ContainsKey(CmsAttributeTableParameter.ContentType))
+            if (!std.ContainsKey(CmsAttributes.ContentType))
             {
-                if (!std.ContainsKey(CmsAttributes.ContentType))
+                // contentType will be absent if we're trying to generate a counter signature.
+                if (parameters.TryGetValue(CmsAttributeTableParameter.ContentType, out var contentType))
                 {
-                    DerObjectIdentifier contentType = (DerObjectIdentifier)
-                        parameters[CmsAttributeTableParameter.ContentType];
-                    Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(CmsAttributes.ContentType,
-                        new DerSet(contentType));
+                    Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(
+						CmsAttributes.ContentType,
+                        new DerSet((DerObjectIdentifier)contentType));
                     std[attr.AttrType] = attr;
                 }
             }
 
             if (!std.ContainsKey(CmsAttributes.SigningTime))
             {
-                Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(CmsAttributes.SigningTime,
+                Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(
+					CmsAttributes.SigningTime,
                     new DerSet(new Time(DateTime.UtcNow)));
                 std[attr.AttrType] = attr;
             }
@@ -84,17 +83,35 @@ namespace Org.BouncyCastle.Cms
             if (!std.ContainsKey(CmsAttributes.MessageDigest))
             {
                 byte[] messageDigest = (byte[])parameters[CmsAttributeTableParameter.Digest];
-                Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(CmsAttributes.MessageDigest,
+
+                Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(
+					CmsAttributes.MessageDigest,
                     new DerSet(new DerOctetString(messageDigest)));
                 std[attr.AttrType] = attr;
             }
+
+			// TODO CmsAlgorithmProtect support (see bc-fips-csharp)
+            //if (!std.ContainsKey(CmsAttributes.CmsAlgorithmProtect))
+            //{
+            //    var digestAlgorithmIdentifier = (Asn1.X509.AlgorithmIdentifier)
+            //        parameters[CmsAttributeTableParameter.DigestAlgorithmIdentifier];
+            //    var signatureAlgorithmIdentifier = (Asn1.X509.AlgorithmIdentifier)
+            //        parameters[CmsAttributeTableParameter.SignatureAlgorithmIdentifier];
+            //    var cmsAlgorithmProtection = new CmsAlgorithmProtection(
+            //        digestAlgorithmIdentifier, CmsAlgorithmProtection.Signature, signatureAlgorithmIdentifier);
+
+            //    Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(
+            //        CmsAttributes.CmsAlgorithmProtect,
+            //        new DerSet(cmsAlgorithmProtection));
+            //    std[attr.AttrType] = attr;
+            //}
         }
 
         /**
 		 * @param parameters source parameters
 		 * @return the populated attribute table
 		 */
-		public virtual AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
+        public virtual AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
 		{
             var table = CreateStandardAttributeTable(parameters);
 			return new AttributeTable(table);

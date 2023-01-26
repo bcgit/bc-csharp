@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
@@ -11,20 +10,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		private readonly Asn1OctetString	salt;
 		private readonly DerInteger			iterationCount;
 
-		public static PbeParameter GetInstance(object obj)
-		{
-			if (obj is PbeParameter || obj == null)
-			{
-				return (PbeParameter) obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new PbeParameter((Asn1Sequence) obj);
-			}
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        public static PbeParameter GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PbeParameter pbeParameter)
+                return pbeParameter;
+            return new PbeParameter(Asn1Sequence.GetInstance(obj));
+        }
 
 		private PbeParameter(Asn1Sequence seq)
 		{

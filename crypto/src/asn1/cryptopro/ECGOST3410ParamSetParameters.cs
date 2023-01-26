@@ -18,9 +18,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         public static ECGost3410ParamSetParameters GetInstance(object obj)
         {
             if (obj == null || obj is ECGost3410ParamSetParameters)
-            {
-                return (ECGost3410ParamSetParameters) obj;
-            }
+                return (ECGost3410ParamSetParameters)obj;
 
             if (obj is Asn1Sequence seq)
                 return new ECGost3410ParamSetParameters(seq);

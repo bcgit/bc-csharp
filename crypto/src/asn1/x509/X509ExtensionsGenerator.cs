@@ -90,8 +90,6 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-
-
         /// <summary>Return true if there are no extension present in this generator.</summary>
         /// <returns>True if empty, false otherwise</returns>
         public bool IsEmpty

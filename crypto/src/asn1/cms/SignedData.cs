@@ -24,8 +24,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public static SignedData GetInstance(object obj)
         {
-            if (obj is SignedData)
-                return (SignedData)obj;
+            if (obj is SignedData signedData)
+                return signedData;
             if (obj == null)
                 return null;
             return new SignedData(Asn1Sequence.GetInstance(obj));

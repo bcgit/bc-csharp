@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pkix
 	public class PkixCertPath
 //		: CertPath
 	{
-		internal static readonly List<string> m_encodings = new List<string>{ "PkiPath", "PEM", "PKCS7" };
+		private static readonly List<string> EncodingNames = new List<string>{ "PkiPath", "PEM", "PKCS7" };
 
         private readonly IList<X509Certificate> m_certificates;
 
@@ -186,31 +186,24 @@ namespace Org.BouncyCastle.Pkix
 		 **/
 		public PkixCertPath(Stream inStream, string encoding)
 		{
-            //string upper = Platform.ToUpperInvariant(encoding);
-
             IList<X509Certificate> certs;
 			try
 			{
 				if (Platform.EqualsIgnoreCase("PkiPath", encoding))
 				{
 					Asn1InputStream derInStream = new Asn1InputStream(inStream);
-					Asn1Object derObject = derInStream.ReadObject();
-					if (!(derObject is Asn1Sequence))
-					{
-						throw new CertificateException(
+                    if (!(derInStream.ReadObject() is Asn1Sequence asn1Sequence))
+                    {
+                        throw new CertificateException(
 							"input stream does not contain a ASN1 SEQUENCE while reading PkiPath encoded data to load CertPath");
 					}
 
-					certs = new List<X509Certificate>();
+					var certArray = asn1Sequence.MapElements(
+						element => new X509Certificate(X509CertificateStructure.GetInstance(element.ToAsn1Object())));
 
-                    foreach (Asn1Encodable ae in (Asn1Sequence)derObject)
-                    {
-                        byte[] derBytes = ae.GetEncoded(Asn1Encodable.Der);
-                        Stream certInStream = new MemoryStream(derBytes, false);
+					Array.Reverse(certArray);
 
-                        // TODO Is inserting at the front important (list will be sorted later anyway)?
-                        certs.Insert(0, new X509CertificateParser().ReadCertificate(certInStream));
-					}
+					certs = new List<X509Certificate>(certArray);
 				}
 				else if (Platform.EqualsIgnoreCase("PEM", encoding) ||
 					     Platform.EqualsIgnoreCase("PKCS7", encoding))
@@ -242,7 +235,7 @@ namespace Org.BouncyCastle.Pkix
 		 **/
 		public virtual IEnumerable<string> Encodings
 		{
-            get { return CollectionUtilities.Proxy(m_encodings); }
+            get { return CollectionUtilities.Proxy(EncodingNames); }
 		}
 
 		/**
@@ -304,7 +297,7 @@ namespace Org.BouncyCastle.Pkix
 		 **/
 		public virtual byte[] GetEncoded()
 		{
-			return GetEncoded(m_encodings[0]);
+			return GetEncoded(EncodingNames[0]);
 		}
 
 		/**

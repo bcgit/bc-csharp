@@ -677,7 +677,7 @@ namespace Org.BouncyCastle.Pkix
 			DistributionPoint		dp,
 			ICollection<X509Name>	issuerPrincipals,
 			X509CrlStoreSelector	selector,
-			PkixParameters			pkixParams)
+			PkixParameters			pkixParameters)
 		{
             var issuers = new List<X509Name>();
 			// indirect CRL
@@ -778,7 +778,7 @@ namespace Org.BouncyCastle.Pkix
 		 *             or no CRLs are found.
 		 */
 		internal static ISet<X509Crl> GetCompleteCrls(DistributionPoint dp, object certObj, DateTime currentDate,
-			PkixParameters paramsPKIX)
+			PkixParameters pkixParameters)
 		{
 			var certObjIssuer = GetIssuerPrincipal(certObj);
 
@@ -788,7 +788,7 @@ namespace Org.BouncyCastle.Pkix
 				var issuers = new HashSet<X509Name>();
 				issuers.Add(certObjIssuer);
 
-				GetCrlIssuersFromDistributionPoint(dp, issuers, crlselect, paramsPKIX);
+				GetCrlIssuersFromDistributionPoint(dp, issuers, crlselect, pkixParameters);
 			}
 			catch (Exception e)
 			{
@@ -808,7 +808,7 @@ namespace Org.BouncyCastle.Pkix
 
 			crlselect.CompleteCrlEnabled = true;
 
-			ISet<X509Crl> crls = CrlUtilities.FindCrls(crlselect, paramsPKIX, currentDate);
+			ISet<X509Crl> crls = CrlUtilities.FindCrls(crlselect, pkixParameters, currentDate);
 			if (crls.Count < 1)
 				throw new Exception("No CRLs found for issuer \"" + certObjIssuer + "\"");
 
@@ -825,10 +825,8 @@ namespace Org.BouncyCastle.Pkix
 		 * @throws Exception if an exception occurs while picking the delta
 		 *             CRLs.
 		 */
-		internal static ISet<X509Crl> GetDeltaCrls(
-			DateTime		currentDate,
-			PkixParameters	paramsPKIX,
-			X509Crl			completeCRL)
+		internal static ISet<X509Crl> GetDeltaCrls(DateTime currentDate, PkixParameters pkixParameters,
+			X509Crl completeCRL)
 		{
 			X509CrlStoreSelector deltaSelect = new X509CrlStoreSelector();
 
@@ -890,7 +888,7 @@ namespace Org.BouncyCastle.Pkix
 			deltaSelect.MaxBaseCrlNumber = completeCRLNumber;
 
 			// find delta CRLs
-			ISet<X509Crl> temp = CrlUtilities.FindCrls(deltaSelect, paramsPKIX, currentDate);
+			ISet<X509Crl> temp = CrlUtilities.FindCrls(deltaSelect, pkixParameters, currentDate);
 
 			var result = new HashSet<X509Crl>();
 
@@ -975,8 +973,8 @@ namespace Org.BouncyCastle.Pkix
 			return false;
 		}
 
-		internal static void ProcessCertD1ii(int index, IList<PkixPolicyNode>[] policyNodes,
-			DerObjectIdentifier _poid, ISet<PolicyQualifierInfo> _pq)
+		internal static void ProcessCertD1ii(int index, IList<PkixPolicyNode>[] policyNodes, DerObjectIdentifier _poid,
+			ISet<PolicyQualifierInfo> _pq)
 		{
 			foreach (var _node in policyNodes[index - 1])
 			{
@@ -1007,9 +1005,8 @@ namespace Org.BouncyCastle.Pkix
 		* @exception Exception
 		*                if an error occurs.
 		*/
-		internal static HashSet<X509Certificate> FindIssuerCerts(
-			X509Certificate			cert,
-			PkixBuilderParameters	pkixParams)
+		internal static HashSet<X509Certificate> FindIssuerCerts(X509Certificate cert,
+			PkixBuilderParameters pkixBuilderParameters)
 		{
 			X509CertStoreSelector certSelector = new X509CertStoreSelector();
 			try
@@ -1025,7 +1022,7 @@ namespace Org.BouncyCastle.Pkix
 			var certs = new HashSet<X509Certificate>();
 			try
 			{
-				CollectionUtilities.CollectMatches(certs, certSelector, pkixParams.GetStoresCert());
+				CollectionUtilities.CollectMatches(certs, certSelector, pkixBuilderParameters.GetStoresCert());
 			}
 			catch (Exception e)
 			{

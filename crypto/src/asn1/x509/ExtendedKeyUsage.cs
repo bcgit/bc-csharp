@@ -67,10 +67,8 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-            foreach (object usage in usages)
+            foreach (var oid in usages)
             {
-                DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(usage);
-
                 v.Add(oid);
                 m_usageTable.Add(oid);
             }

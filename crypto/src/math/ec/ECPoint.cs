@@ -487,11 +487,7 @@ namespace Org.BouncyCastle.Math.EC
 
             public PreCompInfo Precompute(PreCompInfo existing)
             {
-                ValidityPreCompInfo info = existing as ValidityPreCompInfo;
-                if (info == null)
-                {
-                    info = new ValidityPreCompInfo();
-                }
+                ValidityPreCompInfo info = existing as ValidityPreCompInfo ?? new ValidityPreCompInfo();
 
                 if (info.HasFailed())
                     return info;

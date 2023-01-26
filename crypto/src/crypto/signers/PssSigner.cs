@@ -343,24 +343,17 @@ namespace Org.BouncyCastle.Crypto.Signers
 			sp[3] = (byte)((uint) i >> 0);
 		}
 
-		private byte[] MaskGeneratorFunction(
-			byte[] Z,
-			int zOff,
-			int zLen,
-			int length)
-		{
-			if (mgfDigest is IXof)
+        private byte[] MaskGeneratorFunction(byte[] Z, int zOff, int zLen, int length)
+        {
+            if (mgfDigest is IXof xof)
 			{
 				byte[] mask = new byte[length];
-				mgfDigest.BlockUpdate(Z, zOff, zLen);
-				((IXof)mgfDigest).OutputFinal(mask, 0, mask.Length);
-
+				xof.BlockUpdate(Z, zOff, zLen);
+				xof.OutputFinal(mask, 0, mask.Length);
 				return mask;
 			}
-			else
-			{
-				return MaskGeneratorFunction1(Z, zOff, zLen, length);
-			}
+
+			return MaskGeneratorFunction1(Z, zOff, zLen, length);
 		}
 
 		/// <summary> mask generator function, as described in Pkcs1v2.</summary>

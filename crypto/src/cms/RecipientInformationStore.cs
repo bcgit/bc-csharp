@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Cms
 				list.Add(recipientInformation);
 			}
 
-            this.m_all = new List<RecipientInformation>(recipientInfos);
+            m_all = new List<RecipientInformation>(recipientInfos);
 		}
 
 		public RecipientInformation this[RecipientID selector]
