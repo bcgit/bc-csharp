@@ -1,19 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Crypto;
+
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
-using System.Collections.Generic;
-using System.IO;
-using static Org.BouncyCastle.Crypto.Engines.ISAPEngine;
-using NUnit.Framework.Internal;
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Modes;
 
-namespace BouncyCastle.Crypto.Tests
+using static Org.BouncyCastle.Crypto.Engines.ISAPEngine;
+
+namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class ISAPTest : SimpleTest
@@ -47,7 +48,7 @@ namespace BouncyCastle.Crypto.Tests
         }
 
 
-        private void testVectors(String filename, IsapType isapType)
+        private void testVectors(string filename, IsapType isapType)
         {
             ISAPEngine isap = new ISAPEngine(isapType);
             ICipherParameters param;
@@ -120,7 +121,6 @@ namespace BouncyCastle.Crypto.Tests
         private void testVectors()
         {
             ISAPDigest isap = new ISAPDigest();
-            ICipherParameters param;
             var buf = new Dictionary<string, string>();
             //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.isap.LWC_HASH_KAT_256.txt")))
@@ -161,7 +161,6 @@ namespace BouncyCastle.Crypto.Tests
         }
 
         private void testExceptions(IAeadBlockCipher aeadBlockCipher, int keysize, int ivsize, int blocksize)
-
         {
             ICipherParameters param;
             byte[] k = new byte[keysize];
@@ -172,9 +171,9 @@ namespace BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.ProcessBytes(m, 0, m.Length, c1, 0);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessBytes");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before ProcessBytes");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -182,9 +181,9 @@ namespace BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.ProcessByte((byte)0, c1, 0);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessByte");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before ProcessByte");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -192,9 +191,9 @@ namespace BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.Reset();
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before reset");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before Reset");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -202,9 +201,9 @@ namespace BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.DoFinal(c1, m.Length);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before dofinal");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before Dofinal");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -215,10 +214,9 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.GetOutputSize(0);
                 aeadBlockCipher.GetUpdateOutputSize(0);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                //expected
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialisation");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialization");
             }
             Random rand = new Random();
             int randomNum;
@@ -231,7 +229,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
                 Assert.Fail(aeadBlockCipher.AlgorithmName + " k size does not match");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -240,7 +238,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
                 Assert.Fail(aeadBlockCipher.AlgorithmName + "iv size does not match");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -251,18 +249,18 @@ namespace BouncyCastle.Crypto.Tests
             {
                 aeadBlockCipher.DoFinal(c1, m.Length);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Assert.Fail(aeadBlockCipher.AlgorithmName + " allows no input for AAD and plaintext");
             }
             byte[] mac2 = aeadBlockCipher.GetMac();
             if (mac2 == null)
             {
-                Assert.Fail("mac should not be empty after dofinal");
+                Assert.Fail("mac should not be empty after Dofinal");
             }
             if (!Arrays.AreEqual(mac2, c1))
             {
-                Assert.Fail("mac should be equal when calling dofinal and getMac");
+                Assert.Fail("mac should be equal when calling Dofinal and GetMac");
             }
             aeadBlockCipher.ProcessAadByte((byte)0);
             byte[] mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
@@ -278,7 +276,7 @@ namespace BouncyCastle.Crypto.Tests
             //    aeadBlockCipher.ProcessAadByte((byte)0);
             //    Assert.Fail("ProcessAadByte(s) cannot be called after encryption/decryption");
             //}
-            //catch (ArgumentException e)
+            //catch (ArgumentException)
             //{
             //    //expected
             //}
@@ -287,7 +285,7 @@ namespace BouncyCastle.Crypto.Tests
             //    aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 0, 1);
             //    Assert.Fail("ProcessAadByte(s) cannot be called once only");
             //}
-            //catch (ArgumentException e)
+            //catch (ArgumentException)
             //{
             //    //expected
             //}
@@ -298,7 +296,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 1, 1);
                 Assert.Fail("input for ProcessAadBytes is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
@@ -307,7 +305,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
                 Assert.Fail("input for ProcessBytes is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
@@ -316,7 +314,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.ProcessBytes(new byte[blocksize], 0, blocksize, new byte[blocksize], blocksize >> 1);
                 Assert.Fail("output for ProcessBytes is too short");
             }
-            catch (OutputLengthException e)
+            catch (OutputLengthException)
             {
                 //expected
             }
@@ -325,7 +323,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.DoFinal(new byte[2], 2);
                 Assert.Fail("output for dofinal is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
@@ -374,7 +372,7 @@ namespace BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("The encryption and decryption does not recover the plaintext");
             }
-            Console.WriteLine(aeadBlockCipher.AlgorithmName + " test Exceptions pass");
+            //Console.WriteLine(aeadBlockCipher.AlgorithmName + " test Exceptions pass");
             c2[c2.Length - 1] ^= 1;
             aeadBlockCipher.Reset();
             aeadBlockCipher.Init(false, param);
@@ -385,17 +383,14 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected;
             }
             c2[c2.Length - 1] ^= 1;
 
             byte[] m7 = new byte[blocksize * 2];
-            for (int i = 0; i < m7.Length; ++i)
-            {
-                m7[i] = (byte)rand.Next();
-            }
+            rand.NextBytes(m7);
             byte[] c7 = new byte[aeadBlockCipher.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
             byte[] c9 = new byte[c7.Length];
@@ -418,6 +413,8 @@ namespace BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
             }
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> c4_1 = new byte[c2.Length];
             Span<byte> c4_2 = new byte[c2.Length];
@@ -450,7 +447,6 @@ namespace BouncyCastle.Crypto.Tests
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
 #endif
-
         }
 
         private void testParameters(ISAPEngine ascon, int keySize, int ivSize, int macSize, int blockSize)
@@ -471,7 +467,7 @@ namespace BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("block size of " + ascon.AlgorithmName + " is not correct");
             }
-            Console.WriteLine(ascon.AlgorithmName + " test Parameters pass");
+            //Console.WriteLine(ascon.AlgorithmName + " test Parameters pass");
         }
 
         private void testExceptions(IDigest digest, int digestsize)
@@ -484,22 +480,22 @@ namespace BouncyCastle.Crypto.Tests
             try
             {
                 digest.BlockUpdate(new byte[1], 1, 1);
-                Assert.Fail(digest.AlgorithmName + ": input for update is too short");
+                Assert.Fail(digest.AlgorithmName + ": input for BlockUpdate is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
             try
             {
                 digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
-                Assert.Fail(digest.AlgorithmName + ": output for dofinal is too short");
+                Assert.Fail(digest.AlgorithmName + ": output for Dofinal is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
-            Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
+            //Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
         }
     }
 }
