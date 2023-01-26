@@ -145,6 +145,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier IdAlgPwriKek         = IdAlg.Branch("9");
         public static readonly DerObjectIdentifier IdAlgSsdh            = IdAlg.Branch("10");
 
+        /** RFC 6211 -  id-aa-cmsAlgorithmProtect OBJECT IDENTIFIER ::= {
+iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1)
+pkcs9(9) 52 }  */
+        public static readonly DerObjectIdentifier id_aa_cmsAlgorithmProtect = new DerObjectIdentifier(Pkcs9 + ".52");
+
         /*
          * <pre>
          * -- RSA-KEM Key Transport Algorithm
