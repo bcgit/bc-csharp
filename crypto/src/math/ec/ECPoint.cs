@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math.EC
      */
     public abstract class ECPoint
     {
-        protected static ECFieldElement[] EMPTY_ZS = new ECFieldElement[0];
+        protected static readonly ECFieldElement[] EMPTY_ZS = new ECFieldElement[0];
 
         protected static ECFieldElement[] GetInitialZCoords(ECCurve curve)
         {

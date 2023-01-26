@@ -6,7 +6,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Interleave
+    internal static class Interleave
     {
         private const ulong M32 = 0x55555555UL;
         private const ulong M64 = 0x5555555555555555UL;

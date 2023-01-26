@@ -17,17 +17,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private int CRYPTO_PUBLICKEYBYTES;
         private int CRYPTO_SECRETKEYBYTES;
 
-        internal uint GetNonceLength() {
-            return this.noncelen;
-        }
-        internal uint GetLogn() {
-            return this.logn;
-        }
-        internal int GetCryptoBytes() {
-            return this.CRYPTO_BYTES;
-        }
+        internal uint NonceLength => this.noncelen;
+        internal uint LogN => this.logn;
+        internal int CryptoBytes => this.CRYPTO_BYTES;
 
-        internal FalconNist(SecureRandom random, uint logn, uint noncelen) {
+        internal FalconNist(SecureRandom random, uint logn, uint noncelen)
+        {
             this.logn = logn;
             this.codec = new FalconCodec();
             this.common = new FalconCommon();

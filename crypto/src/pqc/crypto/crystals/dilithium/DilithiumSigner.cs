@@ -20,10 +20,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             if (forSigning)
             {
-                if (param is ParametersWithRandom)
+                if (param is ParametersWithRandom withRandom)
                 {
-                    privKey = (DilithiumPrivateKeyParameters)((ParametersWithRandom)param).Parameters;
-                    random = ((ParametersWithRandom)param).Random;
+                    privKey = (DilithiumPrivateKeyParameters)withRandom.Parameters;
+                    random = withRandom.Random;
                 }
                 else
                 {
@@ -33,9 +33,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
             else
             {
-                pubKey = (DilithiumPublicKeyParameters) param;
+                pubKey = (DilithiumPublicKeyParameters)param;
+                random = null;
             }
-
         }
 
         public byte[] GenerateSignature(byte[] message)

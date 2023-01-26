@@ -31,15 +31,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @see org.bouncycastle.crypto.AsymmetricBlockCipher#init(bool,
 		*      org.bouncycastle.crypto.CipherParameters)
 		*/
-		public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+		public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
 			this.forEncryption = forEncryption;
 
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
 			key = (NaccacheSternKeyParameters)parameters;

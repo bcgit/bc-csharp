@@ -8,7 +8,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Nat512
+    internal static class Nat512
     {
         public static void Mul(uint[] x, uint[] y, uint[] zz)
         {

@@ -45,7 +45,29 @@ namespace Org.BouncyCastle.Cms
 			this.iterationCount = kdfParams.IterationCount.IntValue;
 		}
 
-		~CmsPbeKey()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public CmsPbeKey(ReadOnlySpan<char> password, ReadOnlySpan<byte> salt, int iterationCount)
+        {
+			this.password = password.ToArray();
+			this.salt = salt.ToArray();
+            this.iterationCount = iterationCount;
+        }
+
+        public CmsPbeKey(ReadOnlySpan<char> password, AlgorithmIdentifier keyDerivationAlgorithm)
+        {
+            if (!keyDerivationAlgorithm.Algorithm.Equals(PkcsObjectIdentifiers.IdPbkdf2))
+                throw new ArgumentException("Unsupported key derivation algorithm: "
+                    + keyDerivationAlgorithm.Algorithm);
+
+            Pbkdf2Params kdfParams = Pbkdf2Params.GetInstance(keyDerivationAlgorithm.Parameters.ToAsn1Object());
+
+			this.password = password.ToArray();
+            this.salt = kdfParams.GetSalt();
+            this.iterationCount = kdfParams.IterationCount.IntValue;
+        }
+#endif
+
+        ~CmsPbeKey()
 		{
 			Array.Clear(this.password, 0, this.password.Length);
 		}

@@ -30,17 +30,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			if (param is ParametersWithRandom withRandom)
 			{
-                this.rand = withRandom.Random;
                 this.param = withRandom.Parameters as ParametersWithIV;
-			}
-			else
+                this.rand = withRandom.Random;
+            }
+            else
 			{
-				if (forWrapping)
-				{
-					rand = CryptoServicesRegistrar.GetSecureRandom();
-				}
-
                 this.param = param as ParametersWithIV;
+				this.rand = forWrapping ? CryptoServicesRegistrar.GetSecureRandom() : null;
             }
 
             if (null == this.param)

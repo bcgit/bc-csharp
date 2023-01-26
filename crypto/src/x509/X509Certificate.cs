@@ -680,15 +680,13 @@ namespace Org.BouncyCastle.X509
             if (!IsAlgIDEqual(c.SignatureAlgorithm, c.TbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
-            byte[] b = GetTbsCertificate();
-
             IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
             using (var stream = streamCalculator.Stream)
             {
-                stream.Write(b, 0, b.Length);
+                c.TbsCertificate.EncodeTo(stream, Asn1Encodable.Der);
             }
 
-            if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
+            if (!streamCalculator.GetResult().IsVerified(GetSignature()))
                 throw new InvalidKeyException("Public key presented not for certificate signature");
         }
 

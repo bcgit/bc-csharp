@@ -36,19 +36,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             if (forSigning)
             {
-                if (param is ParametersWithRandom parametersWithRandom)
+                m_pubKey = null;
+                if (param is ParametersWithRandom withRandom)
                 {
-                    m_privKey = (SphincsPlusPrivateKeyParameters)parametersWithRandom.Parameters;
-                    m_random = parametersWithRandom.Random;
+                    m_privKey = (SphincsPlusPrivateKeyParameters)withRandom.Parameters;
+                    m_random = withRandom.Random;
                 }
                 else
                 {
                     m_privKey = (SphincsPlusPrivateKeyParameters)param;
+                    m_random = null;
                 }
             }
             else
             {
                 m_pubKey = (SphincsPlusPublicKeyParameters)param;
+                m_privKey = null;
+                m_random = null;
             }
         }
 

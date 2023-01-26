@@ -38,27 +38,22 @@ namespace Org.BouncyCastle.Crmf
         {
             IMacFactory fact = generator.Build(password);
 
-            byte[] d = _pubKeyInfo.GetDerEncoded();
-
-            IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
-            using (var stream = calc.Stream)
-            {
-                stream.Write(d, 0, d.Length);
-            }
-
-            this._publicKeyMAC = new PKMacValue(
-                (AlgorithmIdentifier)fact.AlgorithmDetails,
-                new DerBitString(calc.GetResult().Collect()));
-
-            return this;
+            return ImplSetPublicKeyMac(fact);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public ProofOfPossessionSigningKeyBuilder SetPublicKeyMac(PKMacBuilder generator, ReadOnlySpan<char> password)
+        {
+            IMacFactory fact = generator.Build(password);
+
+            return ImplSetPublicKeyMac(fact);
+        }
+#endif
 
         public PopoSigningKey Build(ISignatureFactory signer)
         {
             if (_name != null && _publicKeyMAC != null)
-            {
                 throw new InvalidOperationException("name and publicKeyMAC cannot both be set.");
-            }
 
             PopoSigningKeyInput popo;
 
@@ -85,6 +80,23 @@ namespace Org.BouncyCastle.Crmf
             var signature = calc.GetResult().Collect();
 
             return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, new DerBitString(signature));
+        }
+
+        private ProofOfPossessionSigningKeyBuilder ImplSetPublicKeyMac(IMacFactory fact)
+        {
+            byte[] d = _pubKeyInfo.GetDerEncoded();
+
+            IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
+            using (var stream = calc.Stream)
+            {
+                stream.Write(d, 0, d.Length);
+            }
+
+            this._publicKeyMAC = new PKMacValue(
+                (AlgorithmIdentifier)fact.AlgorithmDetails,
+                new DerBitString(calc.GetResult().Collect()));
+
+            return this;
         }
     }
 }

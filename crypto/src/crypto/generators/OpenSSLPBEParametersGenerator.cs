@@ -58,10 +58,23 @@ namespace Org.BouncyCastle.Crypto.Generators
 			base.Init(password, salt, 1);
 		}
 
-		/**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterationCount)
+        {
+            // Ignore the provided iterationCount
+            base.Init(password, salt, 1);
+        }
+
+        public virtual void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt)
+        {
+            base.Init(password, salt, 1);
+        }
+#endif
+
+        /**
 		 * the derived key function, the ith hash of the password and the salt.
 		 */
-		private byte[] GenerateDerivedKey(
+        private byte[] GenerateDerivedKey(
 			int bytesNeeded)
 		{
 			byte[] buf = new byte[digest.GetDigestSize()];

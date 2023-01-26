@@ -12,12 +12,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
     {
         protected internal MqvPrivateParameters privParams;
 
-        public virtual void Init(
-            ICipherParameters parameters)
+        public virtual void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                parameters = ((ParametersWithRandom)parameters).Parameters;
+                parameters = withRandom.Parameters;
             }
 
             this.privParams = (MqvPrivateParameters)parameters;

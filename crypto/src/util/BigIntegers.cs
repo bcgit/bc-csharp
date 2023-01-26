@@ -139,11 +139,7 @@ namespace Org.BouncyCastle.Utilities
         * @param random the source of randomness
         * @return a random BigInteger value in the range [min,max]
         */
-        public static BigInteger CreateRandomInRange(
-            BigInteger		min,
-            BigInteger		max,
-            // TODO Should have been just Random class
-            SecureRandom	random)
+        public static BigInteger CreateRandomInRange(BigInteger min, BigInteger max, SecureRandom random)
         {
             int cmp = min.CompareTo(max);
             if (cmp >= 0)
@@ -155,21 +151,37 @@ namespace Org.BouncyCastle.Utilities
             }
 
             if (min.BitLength > max.BitLength / 2)
-            {
                 return CreateRandomInRange(BigInteger.Zero, max.Subtract(min), random).Add(min);
-            }
 
             for (int i = 0; i < MaxIterations; ++i)
             {
                 BigInteger x = new BigInteger(max.BitLength, random);
                 if (x.CompareTo(min) >= 0 && x.CompareTo(max) <= 0)
-                {
                     return x;
-                }
             }
 
             // fall back to a faster (restricted) method
             return new BigInteger(max.Subtract(min).BitLength - 1, random).Add(min);
+        }
+
+        public static BigInteger FromUnsignedByteArray(byte[] buf)
+        {
+            return new BigInteger(1, buf);
+        }
+
+        public static BigInteger FromUnsignedByteArray(byte[] buf, int off, int length)
+        {
+            return new BigInteger(1, buf, off, length);
+        }
+
+        public static int GetByteLength(BigInteger n)
+        {
+            return n.GetLengthofByteArray();
+        }
+
+        public static int GetUnsignedByteLength(BigInteger n)
+        {
+            return n.GetLengthofByteArrayUnsigned();
         }
 
         public static BigInteger ModOddInverse(BigInteger M, BigInteger X)
@@ -252,16 +264,6 @@ namespace Org.BouncyCastle.Utilities
                     throw new ArithmeticException("BigInteger not invertible");
                 return Nat.ToBigInteger(len, z);
             }
-        }
-
-        public static int GetByteLength(BigInteger n)
-        {
-            return n.GetLengthofByteArray();
-        }
-
-        public static int GetUnsignedByteLength(BigInteger n)
-        {
-            return n.GetLengthofByteArrayUnsigned();
         }
     }
 }

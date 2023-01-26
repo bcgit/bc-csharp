@@ -51,10 +51,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                if (parameters is ParametersWithRandom)
+                if (parameters is ParametersWithRandom rParam)
                 {
-                    ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
                     providedRandom = rParam.Random;
                     parameters = rParam.Parameters;
                 }

@@ -40,36 +40,34 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
 		/// <summary>Initialise the generator for signing.</summary>
-        public void InitSign(
-            int				sigType,
-            PgpPrivateKey	privKey)
+        public void InitSign(int sigType, PgpPrivateKey privKey)
         {
 			InitSign(sigType, privKey, null);
         }
 
 		/// <summary>Initialise the generator for signing.</summary>
-		public void InitSign(
-			int				sigType,
-			PgpPrivateKey privKey,
-			SecureRandom	random)
+		public void InitSign(int sigType, PgpPrivateKey privKey, SecureRandom random)
 		{
 			this.privKey = privKey;
 			this.signatureType = sigType;
 
 			AsymmetricKeyParameter key = privKey.Key;
 
-			if (sig == null)
-			{
-                this.sig = PgpUtilities.CreateSigner(keyAlgorithm, hashAlgorithm, key);
-            }
+            this.sig = PgpUtilities.CreateSigner(keyAlgorithm, hashAlgorithm, key);
 
             try
 			{
 				ICipherParameters cp = key;
-				if (random != null)
+
+				// TODO Ask SignerUtilities whether random is permitted?
+				if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
 				{
-					cp = new ParametersWithRandom(cp, random);
+					// EdDSA signers don't expect a SecureRandom
 				}
+				else
+				{
+                    cp = ParameterUtilities.WithRandom(cp, random);
+                }
 
 				sig.Init(true, cp);
 			}

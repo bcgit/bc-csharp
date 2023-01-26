@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Text;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -51,10 +49,34 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// Converts the given password to a BigInteger
         /// for use in arithmetic calculations.
         /// </summary>
+        [Obsolete("Use version including the modulus instead")]
         public static BigInteger CalculateS(char[] password)
         {
-            return new BigInteger(Encoding.UTF8.GetBytes(password));
+            return new BigInteger(1, Strings.ToUtf8ByteArray(password));
         }
+
+        /// <summary>Converts the given password to a BigInteger mod q.</summary>
+        public static BigInteger CalculateS(BigInteger q, byte[] password)
+        {
+            BigInteger s = new BigInteger(1, password).Mod(q);
+            if (s.SignValue == 0)
+                throw new CryptoException("MUST ensure s is not equal to 0 modulo q");
+            return s;
+        }
+
+        /// <summary>Converts the given password (UTF8 encoded) to a BigInteger mod q.</summary>
+        public static BigInteger CalculateS(BigInteger q, char[] password)
+        {
+            return CalculateS(q, Strings.ToUtf8ByteArray(password));
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Converts the given password (UTF8 encoded) to a BigInteger mod q.</summary>
+        public static BigInteger CalculateS(BigInteger q, ReadOnlySpan<char> password)
+        {
+            return CalculateS(q, Strings.ToUtf8ByteArray(password));
+        }
+#endif
 
         /// <summary>
         /// Calculate g^x mod p as done in round 1.
@@ -340,7 +362,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 
         private static void UpdateDigest(IDigest digest, string str)
         {
-            UpdateDigest(digest, Encoding.UTF8.GetBytes(str));
+            UpdateDigest(digest, Strings.ToUtf8ByteArray(str));
         }
 
         private static void UpdateDigest(IDigest digest, byte[] bytes)
@@ -356,7 +378,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 
         private static void UpdateDigestIncludingSize(IDigest digest, string str)
         {
-            UpdateDigestIncludingSize(digest, Encoding.UTF8.GetBytes(str));
+            UpdateDigestIncludingSize(digest, Strings.ToUtf8ByteArray(str));
         }
 
         private static void UpdateDigestIncludingSize(IDigest digest, byte[] bytes)
@@ -373,7 +395,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 
         private static void UpdateMac(IMac mac, string str)
         {
-            UpdateMac(mac, Encoding.UTF8.GetBytes(str));
+            UpdateMac(mac, Strings.ToUtf8ByteArray(str));
         }
 
         private static void UpdateMac(IMac mac, byte[] bytes)

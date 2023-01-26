@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.X509
             AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
 
 			IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
-			using (Stream sigStream = streamCalculator.Stream)
+			using (var sigStream = streamCalculator.Stream)
 			{
 				acInfo.EncodeTo(sigStream, Asn1Encodable.Der);
 			}

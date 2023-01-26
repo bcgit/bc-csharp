@@ -55,23 +55,27 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             this.mForEncryption = forEncryption;
 
+            SecureRandom random = null;
+            if (param is ParametersWithRandom withRandom)
+            {
+                param = withRandom.Parameters;
+                random = withRandom.Random;
+            }
+
+            mECKey = (ECKeyParameters)param;
+            mECParams = mECKey.Parameters;
+
             if (forEncryption)
             {
-                ParametersWithRandom rParam = (ParametersWithRandom)param;
-
-                mECKey = (ECKeyParameters)rParam.Parameters;
-                mECParams = mECKey.Parameters;
+                mRandom = CryptoServicesRegistrar.GetSecureRandom(random);
 
                 ECPoint s = ((ECPublicKeyParameters)mECKey).Q.Multiply(mECParams.H);
                 if (s.IsInfinity)
                     throw new ArgumentException("invalid key: [h]Q at infinity");
-
-                mRandom = rParam.Random;
             }
             else
             {
-                mECKey = (ECKeyParameters)param;
-                mECParams = mECKey.Parameters;
+                mRandom = null;
             }
 
             mCurveLength = (mECParams.Curve.FieldSize + 7) / 8;
