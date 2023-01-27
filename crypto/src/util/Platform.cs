@@ -63,7 +63,12 @@ namespace Org.BouncyCastle.Utilities
 
         internal static string GetTypeName(object obj)
         {
-            return obj.GetType().FullName;
+            return GetTypeName(obj.GetType());
+        }
+
+        internal static string GetTypeName(Type t)
+        {
+            return t.FullName;
         }
     }
 }

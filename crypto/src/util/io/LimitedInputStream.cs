@@ -1,5 +1,4 @@
-﻿using Org.BouncyCastle.Utilities.Zlib;
-using System;
+﻿using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO

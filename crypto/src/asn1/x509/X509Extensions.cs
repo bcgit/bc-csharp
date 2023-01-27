@@ -175,12 +175,12 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public static X509Extension GetExtension(X509Extensions extensions, DerObjectIdentifier oid)
         {
-            return null == extensions ? null : extensions.GetExtension(oid);
+            return extensions?.GetExtension(oid);
         }
 
         public static Asn1Encodable GetExtensionParsedValue(X509Extensions extensions, DerObjectIdentifier oid)
         {
-            return null == extensions ? null : extensions.GetExtensionParsedValue(oid);
+            return extensions?.GetExtensionParsedValue(oid);
         }
 
 		public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)

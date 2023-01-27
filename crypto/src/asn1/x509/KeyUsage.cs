@@ -32,10 +32,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public static new KeyUsage GetInstance(object obj)
 		{
-			if (obj is KeyUsage)
-				return (KeyUsage)obj;
-            if (obj is X509Extension)
-				return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
+			if (obj is KeyUsage keyUsage)
+				return keyUsage;
+            if (obj is X509Extension x509Extension)
+				return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
             if (obj == null)
                 return null;
 			return new KeyUsage(DerBitString.GetInstance(obj));
