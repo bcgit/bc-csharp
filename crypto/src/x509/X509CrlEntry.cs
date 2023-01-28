@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.X509
 				var e = extensions.ExtensionOids.GetEnumerator();
 				if (e.MoveNext())
 				{
-					buf.Append("   crlEntryExtensions:").AppendLine();
+					buf.AppendLine("   crlEntryExtensions:");
 
 					do
 					{

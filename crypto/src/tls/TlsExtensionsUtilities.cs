@@ -592,7 +592,7 @@ namespace Org.BouncyCastle.Tls
             // Placeholder for length
             TlsUtilities.WriteUint16(0, buf);
 
-            foreach (X509Name authority in authorities)
+            foreach (var authority in authorities)
             {
                 byte[] derEncoding = authority.GetEncoded(Asn1Encodable.Der);
                 TlsUtilities.WriteOpaque16(derEncoding, buf);
@@ -736,7 +736,6 @@ namespace Org.BouncyCastle.Tls
 
             if (null != filters)
             {
-                //foreach (DerObjectIdentifier certificateExtensionOid in filters.Keys)
                 foreach (var filter in filters)
                 {
                     var certificateExtensionOid = filter.Key;
@@ -1020,7 +1019,7 @@ namespace Org.BouncyCastle.Tls
             {
                 byte[] derEncoding = TlsUtilities.ReadOpaque16(buf, 1);
                 Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
-                X509Name ca = X509Name.GetInstance(asn1);
+                var ca = X509Name.GetInstance(asn1);
                 TlsUtilities.RequireDerEncoding(ca, derEncoding);
                 authorities.Add(ca);
             }

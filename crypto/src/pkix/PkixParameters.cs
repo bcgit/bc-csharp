@@ -249,9 +249,11 @@ namespace Org.BouncyCastle.Pkix
 		* @see X509CertStoreSelector
 		* @see X509AttributeCertStoreSelector
 		*/
-		public virtual void SetTargetConstraintsAttrCert(ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
+		public virtual void SetTargetConstraintsAttrCert(
+			ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
 		{
-			this.m_targetConstraintsAttrCert = (ISelector<X509V2AttributeCertificate>)targetConstraintsAttrCert?.Clone();
+			this.m_targetConstraintsAttrCert = (ISelector<X509V2AttributeCertificate>)
+				targetConstraintsAttrCert?.Clone();
 		}
 
 		/**
@@ -625,8 +627,7 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @param enabled <code>true</code> if additional stores are used.
 		*/
-		public virtual void SetAdditionalLocationsEnabled(
-			bool enabled)
+		public virtual void SetAdditionalLocationsEnabled(bool enabled)
 		{
 			additionalLocationsEnabled = enabled;
 		}

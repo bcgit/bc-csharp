@@ -1806,7 +1806,8 @@ namespace Org.BouncyCastle.Pkix
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder("permitted:\n");
+            StringBuilder sb = new StringBuilder("permitted:");
+            sb.AppendLine();
             if (permittedSubtreesDN != null)
             {
                 Append(sb, "DN", permittedSubtreesDN);
@@ -1831,7 +1832,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 Append(sb, "OtherName", StringifyOtherNameCollection(permittedSubtreesOtherName));
             }
-            sb.Append("excluded:\n");
+            sb.AppendLine("excluded:");
             if (excludedSubtreesDN.Count > 0)
             {
                 Append(sb, "DN", excludedSubtreesDN);

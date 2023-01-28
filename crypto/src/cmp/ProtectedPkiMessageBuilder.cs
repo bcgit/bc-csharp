@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
@@ -98,7 +97,7 @@ namespace Org.BouncyCastle.Cmp
             if (null == body)
                 throw new InvalidOperationException("body must be set before building");
 
-            IStreamCalculator<IBlockResult> calculator = signatureFactory.CreateCalculator();
+            var calculator = signatureFactory.CreateCalculator();
 
             if (!(signatureFactory.AlgorithmDetails is AlgorithmIdentifier algorithmDetails))
                 throw new ArgumentException("AlgorithmDetails is not AlgorithmIdentifier");
@@ -114,7 +113,7 @@ namespace Org.BouncyCastle.Cmp
             if (null == body)
                 throw new InvalidOperationException("body must be set before building");
 
-            IStreamCalculator<IBlockResult> calculator = macFactory.CreateCalculator();
+            var calculator = macFactory.CreateCalculator();
 
             if (!(macFactory.AlgorithmDetails is AlgorithmIdentifier algorithmDetails))
                 throw new ArgumentException("AlgorithmDetails is not AlgorithmIdentifier");
@@ -150,7 +149,11 @@ namespace Org.BouncyCastle.Cmp
 
         private byte[] CalculateSignature(IStreamCalculator<IBlockResult> signer, PkiHeader header, PkiBody body)
         {
-            new DerSequence(header, body).EncodeTo(signer.Stream);
+            using (var s = signer.Stream)
+            {
+                new DerSequence(header, body).EncodeTo(s);
+            }
+
             return signer.GetResult().Collect();
         }
     }

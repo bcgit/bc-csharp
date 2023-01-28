@@ -1001,8 +1001,7 @@ namespace Org.BouncyCastle.Tls
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     }
 
-                    TlsAgreement agreement = (TlsAgreement)m_clientAgreements[keyShareEntry.NamedGroup];
-                    if (null == agreement)
+                    if (!m_clientAgreements.TryGetValue(keyShareEntry.NamedGroup, out var agreement))
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
                     agreement.ReceivePeerValue(keyShareEntry.KeyExchange);

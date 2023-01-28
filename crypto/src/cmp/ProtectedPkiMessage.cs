@@ -137,14 +137,9 @@ namespace Org.BouncyCastle.Cmp
 
         private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)
         {
-            Asn1EncodableVector avec = new Asn1EncodableVector();
-            avec.Add(m_pkiMessage.Header);
-            avec.Add(m_pkiMessage.Body);
-            byte[] enc = new DerSequence(avec).GetDerEncoded();
-
-            using (var stream = streamCalculator.Stream)
+            using (var s = streamCalculator.Stream)
             {
-                stream.Write(enc, 0, enc.Length);
+                new DerSequence(m_pkiMessage.Header, m_pkiMessage.Body).EncodeTo(s, Asn1Encodable.Der);
             }
 
             return streamCalculator.GetResult();

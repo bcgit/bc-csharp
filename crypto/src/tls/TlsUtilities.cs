@@ -5010,7 +5010,7 @@ namespace Org.BouncyCastle.Tls
         {
             if (null != clientShares && 1 == clientShares.Count)
             {
-                KeyShareEntry clientShare = (KeyShareEntry)clientShares[0];
+                KeyShareEntry clientShare = clientShares[0];
                 if (null != clientShare && clientShare.NamedGroup == keyShareGroup)
                 {
                     return clientShare;
@@ -5602,7 +5602,7 @@ namespace Org.BouncyCastle.Tls
                         int index = offeredPsks.GetIndexOfIdentity(new PskIdentity(psk.Identity, 0L));
                         if (index >= 0)
                         {
-                            byte[] binder = (byte[])offeredPsks.Binders[index];
+                            byte[] binder = offeredPsks.Binders[index];
 
                             TlsCrypto crypto = serverContext.Crypto;
                             TlsSecret earlySecret = GetPskEarlySecret(crypto, psk);

@@ -306,13 +306,13 @@ namespace Org.BouncyCastle.X509
 			byte[] sig = this.GetSignature();
 
 			buf.Append("            Signature: ");
-			buf.Append(Hex.ToHexString(sig, 0, 20)).AppendLine();
+			buf.AppendLine(Hex.ToHexString(sig, 0, 20));
 
 			for (int i = 20; i < sig.Length; i += 20)
 			{
 				int count = System.Math.Min(20, sig.Length - i);
 				buf.Append("                       ");
-				buf.Append(Hex.ToHexString(sig, i, count)).AppendLine();
+				buf.AppendLine(Hex.ToHexString(sig, i, count));
 			}
 
 			X509Extensions extensions = c.TbsCertList.Extensions;
@@ -323,7 +323,7 @@ namespace Org.BouncyCastle.X509
 
 				if (e.MoveNext())
 				{
-					buf.Append("           Extensions: ").AppendLine();
+					buf.AppendLine("           Extensions:");
 				}
 
 				do

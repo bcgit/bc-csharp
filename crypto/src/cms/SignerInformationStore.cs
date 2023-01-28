@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Cms
 {
     public class SignerInformationStore
     {
-        private readonly IList<SignerInformation> all;
+        private readonly IList<SignerInformation> m_all;
         private readonly IDictionary<SignerID, IList<SignerInformation>> m_table =
             new Dictionary<SignerID, IList<SignerInformation>>();
 
@@ -16,12 +16,12 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInformationStore(SignerInformation signerInfo)
         {
-            this.all = new List<SignerInformation>(1);
-            this.all.Add(signerInfo);
+            m_all = new List<SignerInformation>(1);
+            m_all.Add(signerInfo);
 
             SignerID sid = signerInfo.SignerID;
 
-            m_table[sid] = all;
+            m_table[sid] = m_all;
         }
 
         /**
@@ -31,19 +31,20 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInformationStore(IEnumerable<SignerInformation> signerInfos)
         {
+            m_all = new List<SignerInformation>(signerInfos);
+
             foreach (SignerInformation signer in signerInfos)
             {
                 SignerID sid = signer.SignerID;
 
                 if (!m_table.TryGetValue(sid, out var list))
                 {
-                    m_table[sid] = list = new List<SignerInformation>(1);
+                    list = new List<SignerInformation>(1);
+                    m_table[sid] = list;
                 }
 
                 list.Add(signer);
             }
-
-            this.all = new List<SignerInformation>(signerInfos);
         }
 
         /**
@@ -64,13 +65,13 @@ namespace Org.BouncyCastle.Cms
         /// <summary>The number of signers in the collection.</summary>
         public int Count
         {
-            get { return all.Count; }
+            get { return m_all.Count; }
         }
 
         /// <returns>An ICollection of all signers in the collection</returns>
         public IList<SignerInformation> GetSigners()
         {
-            return new List<SignerInformation>(all);
+            return new List<SignerInformation>(m_all);
         }
 
         /**

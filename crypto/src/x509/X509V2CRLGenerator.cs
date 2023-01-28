@@ -7,7 +7,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
 {

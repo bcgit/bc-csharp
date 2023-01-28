@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             else
             {
-                throw new ArgumentException("'privateKey' type not supported: " + Platform.GetTypeName(privateKey));
+                throw new ArgumentException("'privateKey' type not supported: " + privateKey.GetType().FullName);
             }
         }
 

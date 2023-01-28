@@ -243,7 +243,7 @@ namespace Org.BouncyCastle.Bcpg
 
 			if (headerList.Count > 0)
             {
-                header = (string)headerList[0];
+                header = headerList[0];
             }
 
 			clearText = "-----BEGIN PGP SIGNED MESSAGE-----".Equals(header);
@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Bcpg
 			string[] hdrs = new string[headerList.Count - 1];
             for (int i = 0; i != hdrs.Length; i++)
             {
-                hdrs[i] = (string)headerList[i + 1];
+                hdrs[i] = headerList[i + 1];
             }
 
 			return hdrs;
@@ -303,7 +303,7 @@ namespace Org.BouncyCastle.Bcpg
             {
                 c = input.ReadByte();
             }
-            while (c == ' ' || c == '\t' || c == '\f' || c == '\u000B') ; // \u000B ~ \v
+            while (c == ' ' || c == '\t' || c == '\f' || c == '\u000B'); // \u000B ~ \v
 
             if (c >= 128)
                 throw new IOException("invalid armor");
