@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             int IEntropySource.GetEntropy(Span<byte> output)
             {
-                int length = bitsRequired / 8;
+                int length = System.Math.Min(output.Length, bitsRequired / 8);
                 data.AsSpan(index, length).CopyTo(output);
                 index += length;
                 return length;
