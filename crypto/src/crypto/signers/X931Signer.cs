@@ -71,9 +71,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
-            kParam = (RsaKeyParameters)parameters;
+            if (parameters is ParametersWithRandom withRandom)
+            {
+                kParam = (RsaKeyParameters)withRandom.Parameters;
+            }
+            else
+            {
+                kParam = (RsaKeyParameters)parameters;
+            }
 
-            cipher.Init(forSigning, kParam);
+            cipher.Init(forSigning, parameters);
 
             keyBits = kParam.Modulus.BitLength;
 

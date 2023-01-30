@@ -179,8 +179,8 @@ namespace Org.BouncyCastle.Tests
 			// Note: PSS minimum key size determined by hash/salt lengths
 //			PrivateKey priv2048Key = fact.generatePrivate(RSATest.priv2048KeySpec);
 //			PublicKey pub2048Key = fact.generatePublic(RSATest.pub2048KeySpec);
-			AsymmetricKeyParameter priv2048Key = RsaTest.priv2048KeySpec;
-			AsymmetricKeyParameter pub2048Key = RsaTest.pub2048KeySpec;
+			var priv2048Key = RsaTest.priv2048KeySpec;
+			var pub2048Key = RsaTest.pub2048KeySpec;
 
 			rawModeTest("SHA1withRSA/PSS", X509ObjectIdentifiers.IdSha1, priv2048Key, pub2048Key, random);
 			// FIXME
@@ -191,7 +191,7 @@ namespace Org.BouncyCastle.Tests
 		}
 
 		private void rawModeTest(string sigName, DerObjectIdentifier digestOID,
-			AsymmetricKeyParameter privKey, AsymmetricKeyParameter pubKey, SecureRandom random)
+			RsaPrivateCrtKeyParameters privKey, RsaKeyParameters pubKey, SecureRandom random)
 		{
 			byte[] sampleMessage = new byte[1000 + random.Next() % 100];
 			random.NextBytes(sampleMessage);
@@ -205,7 +205,11 @@ namespace Org.BouncyCastle.Tests
 			// FIXME
 //			int saltLen = spec.getSaltLength();
 //			byte[] fixedRandomBytes = new byte[saltLen];
-			byte[] fixedRandomBytes = new byte[128];
+
+			// TODO Consider a wrapping FixedSecureRandom to avoid exhaustion
+			// At least 20 for salt and enough to generate an RSA blind, but random blinding can theoretically draw more
+			int blindBytes = (pubKey.Modulus.BitLength + 7) / 8;
+			byte[] fixedRandomBytes = new byte[20 + blindBytes * 10];
 			random.NextBytes(fixedRandomBytes);
 
 			normalSig.Init(true, new ParametersWithRandom(privKey, FixedSecureRandom.From(fixedRandomBytes)));

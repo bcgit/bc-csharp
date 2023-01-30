@@ -158,15 +158,15 @@ namespace Org.BouncyCastle.Crypto.Signers
 			{
 				parameters = withRandom.Parameters;
 				random = withRandom.Random;
-			}
-			else
+                cipher.Init(forSigning, withRandom);
+            }
+            else
 			{
 				random = forSigning ? CryptoServicesRegistrar.GetSecureRandom() : null;
-			}
+                cipher.Init(forSigning, parameters);
+            }
 
-			cipher.Init(forSigning, parameters);
-
-			RsaKeyParameters kParam;
+            RsaKeyParameters kParam;
 			if (parameters is RsaBlindingParameters blinding)
 			{
 				kParam = blinding.PublicKey;
@@ -185,8 +185,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 		}
 
 		/// <summary> clear possible sensitive data</summary>
-		private void ClearBlock(
-			byte[] block)
+		private void ClearBlock(byte[] block)
 		{
 			Array.Clear(block, 0, block.Length);
 		}
