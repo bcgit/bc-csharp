@@ -1366,10 +1366,10 @@ namespace Org.BouncyCastle.Pkix
         }
 
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        [Obsolete("Use 'CheckPermitted' instead")]
+        [Obsolete("Use 'CheckPermittedName' instead")]
         public void checkPermitted(GeneralName name)
         {
-            CheckPermitted(name);
+            CheckPermittedName(name);
         }
 
         /**
@@ -1380,7 +1380,7 @@ namespace Org.BouncyCastle.Pkix
          *          If the <code>name</code>
          */
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        public void CheckPermitted(GeneralName name)
+        public void CheckPermittedName(GeneralName name)
         {
             switch (name.TagNo)
             {
@@ -1406,10 +1406,10 @@ namespace Org.BouncyCastle.Pkix
         }
 
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        [Obsolete("Use 'CheckExcluded' instead")]
+        [Obsolete("Use 'CheckExcludedName' instead")]
         public void checkExcluded(GeneralName name)
         {
-            CheckExcluded(name);
+            CheckExcludedName(name);
         }
 
         /**
@@ -1421,7 +1421,7 @@ namespace Org.BouncyCastle.Pkix
          *          excluded.
          */
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        public void CheckExcluded(GeneralName name)
+        public void CheckExcludedName(GeneralName name)
         {
             switch (name.TagNo)
             {

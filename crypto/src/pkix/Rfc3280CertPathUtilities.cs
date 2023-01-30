@@ -278,8 +278,8 @@ namespace Org.BouncyCastle.Pkix
 					GeneralName emailAsGeneralName = new GeneralName(GeneralName.Rfc822Name, email);
 					try
 					{
-						nameConstraintValidator.CheckPermitted(emailAsGeneralName);
-						nameConstraintValidator.CheckExcluded(emailAsGeneralName);
+						nameConstraintValidator.CheckPermittedName(emailAsGeneralName);
+						nameConstraintValidator.CheckExcludedName(emailAsGeneralName);
 					}
 					catch (PkixNameConstraintValidatorException ex)
 					{
@@ -303,8 +303,8 @@ namespace Org.BouncyCastle.Pkix
 					{
 						try
 						{
-							nameConstraintValidator.CheckPermitted(genName);
-							nameConstraintValidator.CheckExcluded(genName);
+							nameConstraintValidator.CheckPermittedName(genName);
+							nameConstraintValidator.CheckExcludedName(genName);
 						}
 						catch (PkixNameConstraintValidatorException e)
 						{
