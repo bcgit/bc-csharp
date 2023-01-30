@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private readonly static uint[] TAU_SIGMA = Pack.LE_To_UInt32(Strings.ToAsciiByteArray("expand 16-byte k" + "expand 32-byte k"), 0, 8);
 
-        internal void PackTauOrSigma(int keyLength, uint[] state, int stateOffset)
+        internal static void PackTauOrSigma(int keyLength, uint[] state, int stateOffset)
         {
             int tsOff = (keyLength - 16) / 4;
             state[stateOffset] = TAU_SIGMA[tsOff];

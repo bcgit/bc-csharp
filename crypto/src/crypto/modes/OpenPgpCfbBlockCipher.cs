@@ -161,7 +161,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             return (byte)(FRE[blockOff] ^ data);
         }
 
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {

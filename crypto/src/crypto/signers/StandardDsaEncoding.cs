@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     return new BigInteger[]{ r, s };
             }
 
-            throw new ArgumentException("Malformed signature", "encoding");
+            throw new ArgumentException("Malformed signature", nameof(encoding));
         }
 
         public virtual byte[] Encode(BigInteger n, BigInteger r, BigInteger s)
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)
         {
             if (x.SignValue < 0 || (null != n && x.CompareTo(n) >= 0))
-                throw new ArgumentException("Value out of range", "x");
+                throw new ArgumentException("Value out of range", nameof(x));
 
             return x;
         }

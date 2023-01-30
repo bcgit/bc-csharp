@@ -606,9 +606,7 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
-        public static void Fill(
-            byte[]	buf,
-            byte	b)
+        public static void Fill(byte[] buf, byte b)
         {
             int i = buf.Length;
             while (i > 0)
@@ -618,9 +616,7 @@ namespace Org.BouncyCastle.Utilities
         }
 
         [CLSCompliant(false)]
-        public static void Fill(
-            ulong[]	buf,
-            ulong	b)
+        public static void Fill(ulong[] buf, ulong b)
         {
             int i = buf.Length;
             while (i > 0)

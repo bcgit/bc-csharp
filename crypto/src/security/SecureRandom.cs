@@ -254,7 +254,7 @@ namespace Org.BouncyCastle.Security
                 ? stackalloc byte[seedLength]
                 : new byte[seedLength];
 #else
-                byte[] seed = new byte[seedLength];
+            byte[] seed = new byte[seedLength];
 #endif
             MasterRandom.NextBytes(seed);
             generator.AddSeedMaterial(seed);

@@ -52,8 +52,8 @@ namespace Org.BouncyCastle.Crypto.Prng
             m_randomNumberGenerator.GetBytes(bytes, start, len);
 #else
             if (start < 0)
-                throw new ArgumentException("Start offset cannot be negative", "start");
-            if (bytes.Length < (start + len))
+                throw new ArgumentException("Start offset cannot be negative", nameof(start));
+            if (start > bytes.Length - len)
                 throw new ArgumentException("Byte array too small for requested offset and length");
 
             if (bytes.Length == len && start == 0) 
@@ -62,9 +62,9 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
             else 
             {
-                byte[] tmpBuf = new byte[len];
-                NextBytes(tmpBuf);
-                Array.Copy(tmpBuf, 0, bytes, start, len);
+                byte[] tmp = new byte[len];
+                NextBytes(tmp);
+                tmp.CopyTo(bytes, start);
             }
 #endif
         }

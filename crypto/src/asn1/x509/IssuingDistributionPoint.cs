@@ -1,8 +1,6 @@
 using System;
 using System.Text;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
 	/**
@@ -28,27 +26,18 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		private readonly Asn1Sequence seq;
 
-		public static IssuingDistributionPoint GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static IssuingDistributionPoint GetInstance(Asn1TaggedObject	obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static IssuingDistributionPoint GetInstance(
-            object obj)
+		public static IssuingDistributionPoint GetInstance(object obj)
         {
-            if (obj == null || obj is IssuingDistributionPoint)
-            {
-                return (IssuingDistributionPoint) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new IssuingDistributionPoint((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+			if (obj == null)
+				return null;
+            if (obj is IssuingDistributionPoint issuingDistributionPoint)
+                return issuingDistributionPoint;
+            return new IssuingDistributionPoint(Asn1Sequence.GetInstance(obj));
 		}
 
 		/**
@@ -113,8 +102,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		/**
          * Constructor from Asn1Sequence
          */
-        private IssuingDistributionPoint(
-            Asn1Sequence seq)
+        private IssuingDistributionPoint(Asn1Sequence seq)
         {
             this.seq = seq;
 
@@ -124,27 +112,27 @@ namespace Org.BouncyCastle.Asn1.X509
 
 				switch (o.TagNo)
                 {
-					case 0:
-						// CHOICE so explicit
-						_distributionPoint = DistributionPointName.GetInstance(o, true);
-						break;
-					case 1:
-						_onlyContainsUserCerts = DerBoolean.GetInstance(o, false).IsTrue;
-						break;
-					case 2:
-						_onlyContainsCACerts = DerBoolean.GetInstance(o, false).IsTrue;
-						break;
-					case 3:
-						_onlySomeReasons = new ReasonFlags(ReasonFlags.GetInstance(o, false));
-						break;
-					case 4:
-						_indirectCRL = DerBoolean.GetInstance(o, false).IsTrue;
-						break;
-					case 5:
-						_onlyContainsAttributeCerts = DerBoolean.GetInstance(o, false).IsTrue;
-						break;
-					default:
-						throw new ArgumentException("unknown tag in IssuingDistributionPoint");
+				case 0:
+					// CHOICE so explicit
+					_distributionPoint = DistributionPointName.GetInstance(o, true);
+					break;
+				case 1:
+					_onlyContainsUserCerts = DerBoolean.GetInstance(o, false).IsTrue;
+					break;
+				case 2:
+					_onlyContainsCACerts = DerBoolean.GetInstance(o, false).IsTrue;
+					break;
+				case 3:
+					_onlySomeReasons = new ReasonFlags(ReasonFlags.GetInstance(o, false));
+					break;
+				case 4:
+					_indirectCRL = DerBoolean.GetInstance(o, false).IsTrue;
+					break;
+				case 5:
+					_onlyContainsAttributeCerts = DerBoolean.GetInstance(o, false).IsTrue;
+					break;
+				default:
+					throw new ArgumentException("unknown tag in IssuingDistributionPoint");
                 }
             }
         }

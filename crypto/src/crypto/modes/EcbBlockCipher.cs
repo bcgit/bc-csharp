@@ -17,10 +17,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public EcbBlockCipher(IBlockCipher cipher)
         {
-            if (cipher == null)
-                throw new ArgumentNullException(nameof(cipher));
-
-            m_cipher = cipher;
+            m_cipher = cipher ?? throw new ArgumentNullException(nameof(cipher));
         }
 
         public bool IsPartialBlockOkay => false;

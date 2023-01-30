@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 
 using Org.BouncyCastle.Utilities;
 
@@ -45,8 +44,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             bool				forEncryption, //ignored by this CTR mode
             ICipherParameters	parameters)
         {
-            ParametersWithIV ivParam = parameters as ParametersWithIV;
-            if (ivParam == null)
+            if (!(parameters is ParametersWithIV ivParam))
                 throw new ArgumentException("CTR/SIC mode requires ParametersWithIV", "parameters");
 
             this.IV = Arrays.Clone(ivParam.GetIV());
@@ -58,13 +56,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (blockSize - IV.Length > maxCounterSize)
                 throw new ArgumentException("CTR/SIC mode requires IV of at least: " + (blockSize - maxCounterSize) + " bytes.");
 
+            Reset();
+
             // if null it's an IV changed only.
             if (ivParam.Parameters != null)
             {
                 cipher.Init(true, ivParam.Parameters);
             }
-
-            Reset();
         }
 
         public virtual string AlgorithmName

@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 if (pos % 16 == 0)
                 {
-                    sb.Append(Environment.NewLine);
+                    sb.AppendLine();
                     sb.Append("    ");
                 }
                 else if (pos % 16 == 8)
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 if (pos % 16 == 0)
                 {
-                    sb.Append(Environment.NewLine);
+                    sb.AppendLine();
                     sb.Append("    ");
                 }
                 else if (pos % 16 == 8)

@@ -31,6 +31,7 @@ namespace Org.BouncyCastle.Crypto
         int Collect(Span<byte> output);
 #endif
 
+        /// <summary>Return an upper limit for the size of the result.</summary>
         int GetMaxResultLength();
     }
 }

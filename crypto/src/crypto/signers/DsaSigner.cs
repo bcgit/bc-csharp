@@ -54,17 +54,17 @@ namespace Org.BouncyCastle.Crypto.Signers
                     parameters = rParam.Parameters;
                 }
 
-                if (!(parameters is DsaPrivateKeyParameters))
+                if (!(parameters is DsaPrivateKeyParameters dsaPrivateKeyParameters))
                     throw new InvalidKeyException("DSA private key required for signing");
 
-                this.key = (DsaPrivateKeyParameters)parameters;
+                this.key = dsaPrivateKeyParameters;
             }
             else
             {
-                if (!(parameters is DsaPublicKeyParameters))
+                if (!(parameters is DsaPublicKeyParameters dsaPublicKeyParameters))
                     throw new InvalidKeyException("DSA public key required for verification");
 
-                this.key = (DsaPublicKeyParameters)parameters;
+                this.key = dsaPublicKeyParameters;
             }
 
             this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
