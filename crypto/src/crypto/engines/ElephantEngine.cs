@@ -12,7 +12,7 @@ using Org.BouncyCastle.Utilities;
  */
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class ElephantEngine : IAeadCipher
+    public class ElephantEngine : IAeadBlockCipher
     {
         public enum ElephantParameters
         {
@@ -20,23 +20,23 @@ namespace Org.BouncyCastle.Crypto.Engines
             elephant176,
             elephant200
         }
-
+        private bool forEncryption;
+        private readonly string algorithmName;
         private ElephantParameters parameters;
         private int BLOCK_SIZE;
         private int nBits;
         private int nSBox;
         private int nRounds;
         private byte lfsrIV;
-        private byte[] m;
         private byte[] npub;
         private byte[] expanded_key;
-        private byte[] tag_buffer;
+        private byte[] tag;
         private byte CRYPTO_KEYBYTES = 16;
         private byte CRYPTO_NPUBBYTES = 12;
         private byte CRYPTO_ABYTES;
+        private bool initialised;
         private MemoryStream aadData = new MemoryStream();
-        private bool encrypted;
-        private bool aadFinished;
+        private MemoryStream message = new MemoryStream();
 
         private readonly byte[] sBoxLayer = {
         (byte)0xee, (byte)0xed, (byte)0xeb, (byte)0xe0, (byte)0xe2, (byte)0xe1, (byte)0xe4, (byte)0xef, (byte)0xe7, (byte)0xea, (byte)0xe8, (byte)0xe5, (byte)0xe9, (byte)0xec, (byte)0xe3, (byte)0xe6,
@@ -75,6 +75,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     nRounds = 80;
                     lfsrIV = 0x75;
                     CRYPTO_ABYTES = 8;
+                    algorithmName = "Elephant 160 AEAD";
                     break;
                 case ElephantParameters.elephant176:
                     BLOCK_SIZE = 22;
@@ -83,15 +84,19 @@ namespace Org.BouncyCastle.Crypto.Engines
                     nRounds = 90;
                     lfsrIV = 0x45;
                     CRYPTO_ABYTES = 8;
+                    algorithmName = "Elephant 176 AEAD";
                     break;
                 case ElephantParameters.elephant200:
                     BLOCK_SIZE = 25;
                     nRounds = 18;
                     CRYPTO_ABYTES = 16;
+                    algorithmName = "Elephant 200 AEAD";
                     break;
+                default:
+                    throw new ArgumentException("Invalid parameter settings for Elephant");
             }
             this.parameters = parameters;
-            tag_buffer = new byte[BLOCK_SIZE];
+            initialised = false;
             reset(false);
         }
 
@@ -157,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return x + y * 5;
         }
 
-        void KeccakP200Round(byte[] state, int indexRound)
+        private void KeccakP200Round(byte[] state, int indexRound)
         {
             int x, y;
             byte[] tempA = new byte[25];
@@ -215,7 +220,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         // State should be BLOCK_SIZE bytes long
         // Note: input may be equal to output
-        void lfsr_step(byte[] output, byte[] input)
+        private void lfsr_step(byte[] output, byte[] input)
         {
             switch (parameters)
             {
@@ -233,7 +238,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(input, 1, output, 0, BLOCK_SIZE - 1);
         }
 
-        void xor_block(byte[] state, byte[] block, int bOff, int size)
+        private void xor_block(byte[] state, byte[] block, int bOff, int size)
         {
             for (int i = 0; i < size; ++i)
             {
@@ -244,7 +249,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         // Write the ith assocated data block to "output".
         // The nonce is prepended and padding is added as required.
         // adlen is the length of the associated data in bytes
-        void get_ad_block(byte[] output, byte[] ad, int adlen, byte[] npub, int i)
+        private void get_ad_block(byte[] output, byte[] ad, int adlen, byte[] npub, int i)
         {
             int len = 0;
             // First block contains nonce
@@ -282,9 +287,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         // Return the ith ciphertext block.
         // clen is the length of the ciphertext in bytes
-        void get_c_block(byte[] output, byte[] c, int cOff, int clen, int i)
+        private void get_c_block(byte[] output, byte[] c, int cOff, int clen, int i)
         {
-            int block_offset = cOff + i * BLOCK_SIZE;
+            int block_offset = i * BLOCK_SIZE;
             // If clen is divisible by BLOCK_SIZE, add an additional padding block
             if (block_offset == clen)
             {
@@ -296,13 +301,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             // Fill with ciphertext if available
             if (BLOCK_SIZE <= r_clen)
             { // enough ciphertext
-                Array.Copy(c, block_offset, output, 0, BLOCK_SIZE);
+                Array.Copy(c, cOff + block_offset, output, 0, BLOCK_SIZE);
             }
             else
             { // not enough ciphertext, need to pad
                 if (r_clen > 0) // c might be nullptr
                 {
-                    Array.Copy(c, block_offset, output, 0, r_clen);
+                    Array.Copy(c, cOff + block_offset, output, 0, r_clen);
                 }
                 Arrays.Fill(output, r_clen, BLOCK_SIZE, (byte)0);
                 output[r_clen] = 0x01;
@@ -313,10 +318,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void Init(bool forEncryption, ICipherParameters param)
         {
-            /**
-             * Elephant encryption and decryption is completely symmetrical, so the
-             * 'forEncryption' is irrelevant.
-             */
+            this.forEncryption = forEncryption;
             if (!(param is ParametersWithIV))
             {
                 throw new ArgumentException(
@@ -350,10 +352,14 @@ namespace Org.BouncyCastle.Crypto.Engines
             expanded_key = new byte[BLOCK_SIZE];
             Array.Copy(k, 0, expanded_key, 0, CRYPTO_KEYBYTES);
             permutation(expanded_key);
+            initialised = true;
+            reset(false);
         }
 
 
-        public string AlgorithmName => "Elephant AEAD";
+        public string AlgorithmName => algorithmName;
+
+        public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
 
         public void ProcessAadByte(byte input)
         {
@@ -363,26 +369,48 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
+            if (inOff + len > input.Length)
+            {
+                throw new DataLengthException("input buffer too short");
+            }
             aadData.Write(input, inOff, len);
         }
 
 
         public int ProcessByte(byte input, byte[] output, int outOff)
         {
-            return ProcessBytes(new byte[] { input }, 0, 1, output, outOff);
+            message.Write(new byte[] { input }, 0, 1);
+            return 0;
         }
 
 
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
-            if (encrypted)
+            if (inOff + len > input.Length)
             {
-                throw new ArgumentException("Encryption has been processed");
+                throw new DataLengthException("input buffer too short");
             }
-            m = new byte[len];
-            Array.Copy(input, inOff, m, 0, len);
+            message.Write(input, inOff, len);
+            return 0;
+        }
+
+
+        public int DoFinal(byte[] output, int outOff)
+        {
+            if (!initialised)
+            {
+                throw new ArgumentException("Need call init function before encryption/decryption");
+            }
+            int mlen = (int)message.Length - (forEncryption ? 0 : CRYPTO_ABYTES);
+            if ((forEncryption && mlen + outOff + CRYPTO_ABYTES > output.Length) ||
+            (!forEncryption && mlen + outOff - CRYPTO_ABYTES > output.Length))
+            {
+                throw new OutputLengthException("output buffer is too short");
+            }
+            byte[] tag_buffer = new byte[BLOCK_SIZE];
+            byte[] m = message.GetBuffer();
             byte[] ad = aadData.GetBuffer();
-            int mlen = len, adlen = (int)aadData.Length;
+            int adlen = (int)aadData.Length;
             int nblocks_c = 1 + mlen / BLOCK_SIZE;
             int nblocks_m = (mlen % BLOCK_SIZE) != 0 ? nblocks_c : nblocks_c - 1;
             int nblocks_ad = 1 + (CRYPTO_NPUBBYTES + adlen) / BLOCK_SIZE;
@@ -415,11 +443,17 @@ namespace Org.BouncyCastle.Crypto.Engines
                     xor_block(buffer, m, offset, r_size);
                     Array.Copy(buffer, 0, output, offset + outOff, r_size);
                 }
-
                 if (i > 0 && i <= nblocks_c)
                 {
                     // Compute tag for ciphertext block
-                    get_c_block(buffer, output, outOff, mlen, i - 1);//encrypt != 0 ? c : m
+                    if (forEncryption)
+                    {
+                        get_c_block(buffer, output, outOff, mlen, i - 1);
+                    }
+                    else
+                    {
+                        get_c_block(buffer, m, 0, mlen, i - 1);
+                    }
                     xor_block(buffer, previous_mask, 0, BLOCK_SIZE);
                     xor_block(buffer, next_mask, 0, BLOCK_SIZE);
                     permutation(buffer);
@@ -444,30 +478,34 @@ namespace Org.BouncyCastle.Crypto.Engines
                 next_mask = temp;
                 offset += BLOCK_SIZE;
             }
-            encrypted = true;
-            return 0;
-        }
-
-
-        public int DoFinal(byte[] output, int outOff)
-        {
-            byte[] tag = GetMac();
-            Array.Copy(tag, 0, output, outOff, tag.Length);
+            outOff += mlen;
+            tag = new byte[CRYPTO_ABYTES];
+            xor_block(tag_buffer, expanded_key, 0, BLOCK_SIZE);
+            permutation(tag_buffer);
+            xor_block(tag_buffer, expanded_key, 0, BLOCK_SIZE);
+            if (forEncryption)
+            {
+                Array.Copy(tag_buffer, 0, tag, 0, CRYPTO_ABYTES);
+                Array.Copy(tag, 0, output, outOff, tag.Length);
+                mlen += CRYPTO_ABYTES;
+            }
+            else
+            {
+                for (int i = 0; i < CRYPTO_ABYTES; ++i)
+                {
+                    if (tag_buffer[i] != m[mlen + i])
+                    {
+                        throw new ArgumentException("Mac does not match");
+                    }
+                }
+            }
             reset(false);
-            return 0;
+            return mlen;
         }
 
 
         public byte[] GetMac()
         {
-            byte[] tag = new byte[CRYPTO_ABYTES];
-            if (!aadFinished)
-            {
-                xor_block(tag_buffer, expanded_key, 0, BLOCK_SIZE);
-                permutation(tag_buffer);
-                xor_block(tag_buffer, expanded_key, 0, BLOCK_SIZE);
-            }
-            Array.Copy(tag_buffer, 0, tag, 0, CRYPTO_ABYTES);
             return tag;
         }
 
@@ -493,11 +531,12 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (clearMac)
             {
-                aadData.SetLength(0);
+                tag = null;
             }
-            encrypted = false;
-            aadFinished = false;
+            aadData.SetLength(0);
+            message.SetLength(0);
         }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
@@ -506,28 +545,48 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int ProcessByte(byte input, Span<byte> output)
         {
-            byte[] rv = new byte[1];
-            ProcessBytes(new byte[] { input }, 0, 1, rv, 0);
-            rv.AsSpan(0, 1).CopyTo(output);
-            return 1;
+            message.Write(new byte[] { input });
+            return 0;
         }
 
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            byte[] rv = new byte[input.Length];
-            ProcessBytes(input.ToArray(), 0, rv.Length, rv, 0);
-            rv.AsSpan(0, rv.Length).CopyTo(output);
-            return rv.Length;
+            message.Write(input.ToArray());
+            return 0;
         }
 
         public int DoFinal(Span<byte> output)
         {
-            byte[] tag = GetMac();
-            tag.AsSpan(0, tag.Length).CopyTo(output);
-            reset(false);
-            return tag.Length;
+            byte[] rv;
+            if (forEncryption)
+            {
+                rv = new byte[message.Length + CRYPTO_ABYTES];
+            }
+            else
+            {
+                rv = new byte[message.Length - CRYPTO_ABYTES];
+            }
+            int len = DoFinal(rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return rv.Length;
+
         }
 #endif
+
+        public int GetKeyBytesSize()
+        {
+            return CRYPTO_KEYBYTES;
+        }
+
+        public int GetIVBytesSize()
+        {
+            return CRYPTO_NPUBBYTES;
+        }
+
+        public int GetBlockSize()
+        {
+            return BLOCK_SIZE;
+        }
     }
 }
 
