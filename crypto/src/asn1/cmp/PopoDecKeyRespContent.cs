@@ -5,13 +5,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static PopoDecKeyRespContent GetInstance(object obj)
         {
-			if (obj is PopoDecKeyRespContent popoDecKeyRespContent)
-				return popoDecKeyRespContent;
+            if (obj == null)
+                return null;
+            if (obj is PopoDecKeyRespContent popoDecKeyRespContent)
+                return popoDecKeyRespContent;
+            return new PopoDecKeyRespContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new PopoDecKeyRespContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static PopoDecKeyRespContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;

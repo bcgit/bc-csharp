@@ -1,41 +1,36 @@
 using System;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class PkiStatusInfo
 		: Asn1Encodable
 	{
-		DerInteger      status;
-		PkiFreeText     statusString;
-		DerBitString    failInfo;
+        public static PkiStatusInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PkiStatusInfo pkiStatusInfo)
+                return pkiStatusInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new PkiStatusInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-		public static PkiStatusInfo GetInstance(
-			Asn1TaggedObject obj,
-			bool isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-		}
+        public static PkiStatusInfo GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-		public static PkiStatusInfo GetInstance(
-			object obj)
-		{
-			if (obj is PkiStatusInfo)
-			{
-				return (PkiStatusInfo)obj;
-			}
-			else if (obj is Asn1Sequence)
-			{
-				return new PkiStatusInfo((Asn1Sequence)obj);
-			}
+		private readonly DerInteger status;
+		private readonly PkiFreeText statusString;
+		private readonly DerBitString failInfo;
 
-            throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public PkiStatusInfo(
-			Asn1Sequence seq)
+        [Obsolete("Use 'GetInstance' instead")]
+        public PkiStatusInfo(Asn1Sequence seq)
 		{
 			this.status = DerInteger.GetInstance(seq[0]);
 
@@ -61,59 +56,29 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			}
 		}
 
-		/**
-		 * @param status
-		 */
 		public PkiStatusInfo(int status)
 		{
 			this.status = new DerInteger(status);
 		}
 
-		/**
-		 * @param status
-		 * @param statusString
-		 */
-		public PkiStatusInfo(
-			int			status,
-			PkiFreeText	statusString)
+		public PkiStatusInfo(int status, PkiFreeText statusString)
 		{
 			this.status = new DerInteger(status);
 			this.statusString = statusString;
 		}
 
-		public PkiStatusInfo(
-			int				status,
-			PkiFreeText		statusString,
-			PkiFailureInfo	failInfo)
-		{
-			this.status = new DerInteger(status);
+        public PkiStatusInfo(int status, PkiFreeText statusString, PkiFailureInfo failInfo)
+        {
+            this.status = new DerInteger(status);
 			this.statusString = statusString;
 			this.failInfo = failInfo;
 		}
 
-		public BigInteger Status
-		{
-			get
-			{
-				return status.Value;
-			}
-		}
+		public BigInteger Status => status.Value;
 
-		public PkiFreeText StatusString
-		{
-			get
-			{
-				return statusString;
-			}
-		}
+		public PkiFreeText StatusString => statusString;
 
-		public DerBitString FailInfo
-		{
-			get
-			{
-				return failInfo;
-			}
-		}
+		public DerBitString FailInfo => failInfo;
 
 		/**
 		 * <pre>

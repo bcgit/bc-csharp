@@ -26,13 +26,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static PbmParameter GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is PbmParameter pbmParameter)
                 return pbmParameter;
+            return new PbmParameter(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new PbmParameter(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1OctetString m_salt;

@@ -1,7 +1,3 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class CAKeyUpdAnnContent
@@ -9,13 +5,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static CAKeyUpdAnnContent GetInstance(object obj)
         {
-            if (obj is CAKeyUpdAnnContent content)
-                return content;
+            if (obj == null)
+                return null;
+            if (obj is CAKeyUpdAnnContent caKeyUpdAnnContent)
+                return caKeyUpdAnnContent;
+            return new CAKeyUpdAnnContent(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj is Asn1Sequence seq)
-                return new CAKeyUpdAnnContent(seq);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+        public static CAKeyUpdAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CmpCertificate m_oldWithNew;

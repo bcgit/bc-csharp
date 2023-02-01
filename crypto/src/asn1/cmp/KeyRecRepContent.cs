@@ -7,13 +7,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static KeyRecRepContent GetInstance(object obj)
         {
-			if (obj is KeyRecRepContent keyRecRepContent)
-				return keyRecRepContent;
+            if (obj == null)
+                return null;
+            if (obj is KeyRecRepContent keyRecRepContent)
+                return keyRecRepContent;
+            return new KeyRecRepContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new KeyRecRepContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static KeyRecRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiStatusInfo m_status;
@@ -52,18 +55,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual CmpCertificate[] GetCACerts()
 		{
-			if (m_caCerts == null)
-				return null;
-
-			return m_caCerts.MapElements(CmpCertificate.GetInstance);
+			return m_caCerts?.MapElements(CmpCertificate.GetInstance);
 		}
 
 		public virtual CertifiedKeyPair[] GetKeyPairHist()
 		{
-			if (m_keyPairHist == null)
-				return null;
-
-			return m_keyPairHist.MapElements(CertifiedKeyPair.GetInstance);
+			return m_keyPairHist?.MapElements(CertifiedKeyPair.GetInstance);
 		}
 
 		/**

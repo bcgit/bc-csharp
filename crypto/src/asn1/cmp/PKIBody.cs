@@ -2,7 +2,6 @@ using System;
 
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
@@ -72,14 +71,14 @@ namespace Org.BouncyCastle.Asn1.Cmp
         {
             if (obj == null)
                 return null;
+            if (obj is PkiBody crlSource)
+                return crlSource;
+            return new PkiBody(Asn1TaggedObject.GetInstance(obj));
+        }
 
-            if (obj is PkiBody pkiBody)
-                return pkiBody;
-
-            if (obj is Asn1TaggedObject taggedObject)
-                return new PkiBody(taggedObject);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+        public static PkiBody GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly int m_tagNo;

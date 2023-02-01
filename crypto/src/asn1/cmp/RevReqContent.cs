@@ -1,7 +1,3 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class RevReqContent
@@ -9,13 +5,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static RevReqContent GetInstance(object obj)
         {
-			if (obj is RevReqContent revReqContent)
-				return revReqContent;
+            if (obj == null)
+                return null;
+            if (obj is RevReqContent revReqContent)
+                return revReqContent;
+            return new RevReqContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new RevReqContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static RevReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;

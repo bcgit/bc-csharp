@@ -10,13 +10,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static CertStatus GetInstance(object obj)
         {
-			if (obj is CertStatus certStatus)
-				return certStatus;
+            if (obj == null)
+                return null;
+            if (obj is CertStatus certStatus)
+                return certStatus;
+            return new CertStatus(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new CertStatus(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1OctetString m_certHash;

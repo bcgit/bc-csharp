@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class CertRepMessage
@@ -9,13 +7,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static CertRepMessage GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is CertRepMessage certRepMessage)
                 return certRepMessage;
+            return new CertRepMessage(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-				return new CertRepMessage(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static CertRepMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_caPubs;

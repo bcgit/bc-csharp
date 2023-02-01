@@ -1,22 +1,21 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class CertConfirmContent
+    public class CertConfirmContent
 		: Asn1Encodable
 	{
-		public static CertConfirmContent GetInstance(object obj)
-		{
-			if (obj is CertConfirmContent content)
-				return content;
+        public static CertConfirmContent GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CertConfirmContent certConfirmContent)
+                return certConfirmContent;
+            return new CertConfirmContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj is Asn1Sequence seq)
-				return new CertConfirmContent(seq);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
-		}
+        public static CertConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
 
         private readonly Asn1Sequence m_content;
 

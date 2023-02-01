@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
     /**
@@ -14,15 +12,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		{
 			if (obj == null)
 				return null;
-
 			if (obj is PkiConfirmContent pkiConfirmContent)
 				return pkiConfirmContent;
-
-			if (obj is Asn1Null asn1Null)
-				return new PkiConfirmContent(asn1Null);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+			return new PkiConfirmContent(Asn1Null.GetInstance(obj));
 		}
+
+        public static PkiConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Null.GetInstance(taggedObject, declaredExplicit));
+        }
 
         private readonly Asn1Null m_val;
 

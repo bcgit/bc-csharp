@@ -8,13 +8,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static RevAnnContent GetInstance(object obj)
         {
-			if (obj is RevAnnContent revAnnContent)
-				return revAnnContent;
+            if (obj == null)
+                return null;
+            if (obj is RevAnnContent revAnnContent)
+                return revAnnContent;
+            return new RevAnnContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new RevAnnContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiStatusEncodable m_status;

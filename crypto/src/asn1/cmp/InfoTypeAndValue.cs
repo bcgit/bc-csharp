@@ -50,6 +50,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class InfoTypeAndValue
         : Asn1Encodable
     {
+        public static InfoTypeAndValue GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is InfoTypeAndValue infoTypeAndValue)
+                return infoTypeAndValue;
+            return new InfoTypeAndValue(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static InfoTypeAndValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private readonly DerObjectIdentifier m_infoType;
         private readonly Asn1Encodable m_infoValue;
 
@@ -63,17 +77,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
             }
         }
 
-        public static InfoTypeAndValue GetInstance(object obj)
-        {
-            if (obj is InfoTypeAndValue infoTypeAndValue)
-                return infoTypeAndValue;
-
-            if (obj != null)
-                return new InfoTypeAndValue(Asn1Sequence.GetInstance(obj));
-
-            return null;
-        }
-
         public InfoTypeAndValue(DerObjectIdentifier infoType)
             : this(infoType, null)
         {
@@ -81,10 +84,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public InfoTypeAndValue(DerObjectIdentifier infoType, Asn1Encodable infoValue)
         {
-            if (infoType == null)
-                throw new ArgumentNullException(nameof(infoType));
-
-            m_infoType = infoType;
+            m_infoType = infoType ?? throw new ArgumentNullException(nameof(infoType));
             m_infoValue = infoValue;
         }
 

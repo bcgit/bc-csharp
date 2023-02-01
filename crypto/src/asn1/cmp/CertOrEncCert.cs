@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
@@ -10,13 +9,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static CertOrEncCert GetInstance(object obj)
         {
+			if (obj == null)
+				return null;
             if (obj is CertOrEncCert certOrEncCert)
                 return certOrEncCert;
+            return new CertOrEncCert(Asn1TaggedObject.GetInstance(obj));
+        }
 
-            if (obj is Asn1TaggedObject taggedObject)
-                return new CertOrEncCert(taggedObject);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+        public static CertOrEncCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly CmpCertificate m_certificate;
@@ -40,26 +42,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public CertOrEncCert(CmpCertificate certificate)
 		{
-			if (certificate == null)
-				throw new ArgumentNullException(nameof(certificate));
-
-			m_certificate = certificate;
-		}
+			m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+        }
 
 		public CertOrEncCert(EncryptedValue encryptedValue)
 		{
-			if (encryptedValue == null)
-				throw new ArgumentNullException(nameof(encryptedValue));
-
-			m_encryptedCert = new EncryptedKey(encryptedValue);
+			m_encryptedCert = new EncryptedKey(
+				encryptedValue ?? throw new ArgumentNullException(nameof(encryptedValue)));
 		}
 
         public CertOrEncCert(EncryptedKey encryptedKey)
         {
-            if (encryptedKey == null)
-                throw new ArgumentNullException(nameof(encryptedKey));
-
-            m_encryptedCert = encryptedKey;
+            m_encryptedCert = encryptedKey ?? throw new ArgumentNullException(nameof(encryptedKey));
         }
 
 		public virtual CmpCertificate Certificate => m_certificate;
@@ -79,8 +73,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		{
 			if (m_certificate != null)
 				return new DerTaggedObject(true, 0, m_certificate);
-
-			return new DerTaggedObject(true, 1, m_encryptedCert);
+			if (m_encryptedCert != null)
+				return new DerTaggedObject(true, 1, m_encryptedCert);
+			throw new InvalidOperationException();
 		}
 	}
 }

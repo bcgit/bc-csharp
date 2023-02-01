@@ -3,7 +3,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-    /**
+	/**
      * <pre>
      * RevRepContent ::= SEQUENCE {
      *          status       SEQUENCE SIZE (1..MAX) OF PKIStatusInfo,
@@ -17,18 +17,21 @@ namespace Org.BouncyCastle.Asn1.Cmp
      *      }
      *</pre>
      */
-    public class RevRepContent
+	public class RevRepContent
 		: Asn1Encodable
 	{
         public static RevRepContent GetInstance(object obj)
         {
-			if (obj is RevRepContent revRepContent)
-				return revRepContent;
+            if (obj == null)
+                return null;
+            if (obj is RevRepContent revRepContent)
+                return revRepContent;
+            return new RevRepContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new RevRepContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_status;
@@ -43,11 +46,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			{
 				Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
 
-				if (tObj.TagNo == 0)
+				if (tObj.HasContextTag(0))
 				{
 					m_revCerts = Asn1Sequence.GetInstance(tObj, true);
 				}
-				else
+				else if (tObj.HasContextTag(1))
 				{
 					m_crls = Asn1Sequence.GetInstance(tObj, true);
 				}
@@ -61,18 +64,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual CertId[] GetRevCerts()
 		{
-			if (m_revCerts == null)
-				return null;
-
-			return m_revCerts.MapElements(CertId.GetInstance);
+			return m_revCerts?.MapElements(CertId.GetInstance);
 		}
 
 		public virtual CertificateList[] GetCrls()
 		{
-			if (m_crls == null)
-				return null;
-
-			return m_crls.MapElements(CertificateList.GetInstance);
+			return m_crls?.MapElements(CertificateList.GetInstance);
 		}
 
 		/**
