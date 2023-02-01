@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Utilities
@@ -26,6 +28,23 @@ namespace Org.BouncyCastle.Asn1
                 throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
             }
             return taggedObjectParser;
+        }
+
+
+        internal static TChoice GetInstanceFromChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
+            Func<object, TChoice> constructor)
+            where TChoice : Asn1Encodable, IAsn1Choice
+        {
+            if (!declaredExplicit)
+            {
+                var message = string.Format(
+                    "Implicit tagging cannot be used with untagged choice type {0} (X.680 30.6, 30.8).",
+                    Platform.GetTypeName(typeof(TChoice)));
+
+                throw new ArgumentException(message, nameof(declaredExplicit));
+            }
+
+            return constructor(taggedObject.GetExplicitBaseObject());
         }
 
 
