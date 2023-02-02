@@ -1,8 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.IO
 {
     public sealed class MacStream
@@ -28,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.IO
             get { return m_stream.CanRead; }
         }
 
-        public sealed override bool CanSeek
+        public override bool CanSeek
         {
             get { return false; }
         }
@@ -57,12 +55,12 @@ namespace Org.BouncyCastle.Crypto.IO
             m_stream.Flush();
         }
 
-        public sealed override long Length
+        public override long Length
         {
             get { throw new NotSupportedException(); }
         }
 
-        public sealed override long Position
+        public override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
@@ -106,12 +104,12 @@ namespace Org.BouncyCastle.Crypto.IO
             return b;
         }
 
-        public sealed override long Seek(long offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
         }
 
-        public sealed override void SetLength(long length)
+        public override void SetLength(long length)
         {
             throw new NotSupportedException();
         }

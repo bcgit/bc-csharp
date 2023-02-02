@@ -1,49 +1,47 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.IO
 {
     public sealed class SignerStream
         : Stream
     {
-        private readonly Stream stream;
-        private readonly ISigner inSigner;
-        private readonly ISigner outSigner;
+        private readonly Stream m_stream;
+        private readonly ISigner m_readSigner;
+        private readonly ISigner m_writeSigner;
 
         public SignerStream(Stream stream, ISigner readSigner, ISigner writeSigner)
         {
-            this.stream = stream;
-            this.inSigner = readSigner;
-            this.outSigner = writeSigner;
+            m_stream = stream;
+            m_readSigner = readSigner;
+            m_writeSigner = writeSigner;
         }
 
-        public ISigner ReadSigner => inSigner;
+        public ISigner ReadSigner => m_readSigner;
 
-        public ISigner WriteSigner => outSigner;
+        public ISigner WriteSigner => m_writeSigner;
 
         public override bool CanRead
         {
-            get { return stream.CanRead; }
+            get { return m_stream.CanRead; }
         }
 
-        public sealed override bool CanSeek
+        public override bool CanSeek
         {
             get { return false; }
         }
 
         public override bool CanWrite
         {
-            get { return stream.CanWrite; }
+            get { return m_stream.CanWrite; }
         }
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (inSigner == null)
+            if (m_readSigner == null)
             {
-                stream.CopyTo(destination, bufferSize);
+                m_stream.CopyTo(destination, bufferSize);
             }
             else
             {
@@ -54,15 +52,15 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override void Flush()
         {
-            stream.Flush();
+            m_stream.Flush();
         }
 
-        public sealed override long Length
+        public override long Length
         {
             get { throw new NotSupportedException(); }
         }
 
-        public sealed override long Position
+        public override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
@@ -70,11 +68,11 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int n = stream.Read(buffer, offset, count);
+            int n = m_stream.Read(buffer, offset, count);
 
-            if (inSigner != null && n > 0)
+            if (m_readSigner != null && n > 0)
             {
-                inSigner.BlockUpdate(buffer, offset, n);
+                m_readSigner.BlockUpdate(buffer, offset, n);
             }
 
             return n;
@@ -83,11 +81,11 @@ namespace Org.BouncyCastle.Crypto.IO
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override int Read(Span<byte> buffer)
         {
-            int n = stream.Read(buffer);
+            int n = m_stream.Read(buffer);
 
-            if (inSigner != null && n > 0)
+            if (m_readSigner != null && n > 0)
             {
-                inSigner.BlockUpdate(buffer[..n]);
+                m_readSigner.BlockUpdate(buffer[..n]);
             }
 
             return n;
@@ -96,55 +94,55 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override int ReadByte()
         {
-            int b = stream.ReadByte();
+            int b = m_stream.ReadByte();
 
-            if (inSigner != null && b >= 0)
+            if (m_readSigner != null && b >= 0)
             {
-                inSigner.Update((byte)b);
+                m_readSigner.Update((byte)b);
             }
 
             return b;
         }
 
-        public sealed override long Seek(long offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
         }
 
-        public sealed override void SetLength(long length)
+        public override void SetLength(long length)
         {
             throw new NotSupportedException();
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            stream.Write(buffer, offset, count);
+            m_stream.Write(buffer, offset, count);
 
-            if (outSigner != null && count > 0)
+            if (m_writeSigner != null && count > 0)
             {
-                outSigner.BlockUpdate(buffer, offset, count);
+                m_writeSigner.BlockUpdate(buffer, offset, count);
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void Write(ReadOnlySpan<byte> buffer)
         {
-            stream.Write(buffer);
+            m_stream.Write(buffer);
 
-            if (outSigner != null && !buffer.IsEmpty)
+            if (m_writeSigner != null && !buffer.IsEmpty)
             {
-                outSigner.BlockUpdate(buffer);
+                m_writeSigner.BlockUpdate(buffer);
             }
         }
 #endif
 
         public override void WriteByte(byte value)
         {
-            stream.WriteByte(value);
+            m_stream.WriteByte(value);
 
-            if (outSigner != null)
+            if (m_writeSigner != null)
             {
-                outSigner.Update(value);
+                m_writeSigner.Update(value);
             }
         }
 
@@ -152,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.IO
         {
             if (disposing)
             {
-                stream.Dispose();
+                m_stream.Dispose();
             }
             base.Dispose(disposing);
         }
