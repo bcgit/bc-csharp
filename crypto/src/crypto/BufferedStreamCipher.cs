@@ -11,10 +11,7 @@ namespace Org.BouncyCastle.Crypto
 
 		public BufferedStreamCipher(IStreamCipher cipher)
 		{
-			if (cipher == null)
-				throw new ArgumentNullException("cipher");
-
-			this.m_cipher = cipher;
+			m_cipher = cipher ?? throw new ArgumentNullException(nameof(cipher));
 		}
 
 		public override string AlgorithmName

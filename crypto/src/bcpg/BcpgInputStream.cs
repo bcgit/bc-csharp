@@ -1,12 +1,11 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Reader for PGP objects.</remarks>
+    /// <remarks>Reader for PGP objects.</remarks>
     public class BcpgInputStream
         : BaseInputStream
     {
@@ -14,13 +13,10 @@ namespace Org.BouncyCastle.Bcpg
         private bool next = false;
         private int nextB;
 
-        internal static BcpgInputStream Wrap(
-			Stream inStr)
+        internal static BcpgInputStream Wrap(Stream inStr)
         {
-            if (inStr is BcpgInputStream)
-            {
-                return (BcpgInputStream) inStr;
-            }
+            if (inStr is BcpgInputStream bcpg)
+                return bcpg;
 
             return new BcpgInputStream(inStr);
         }

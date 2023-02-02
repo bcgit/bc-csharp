@@ -68,12 +68,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (byte)(input ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
 
-        public virtual void ProcessBytes(
-            byte[]	input,
-            int		inOff,
-            int		length,
-            byte[]	output,
-            int		outOff)
+        public virtual void ProcessBytes(byte[]	input, int inOff, int length, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, length, "input buffer too short");
             Check.OutputLength(output, outOff, length, "output buffer too short");

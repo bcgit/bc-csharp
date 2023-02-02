@@ -275,7 +275,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             iv[0] = (byte)((q - 1) & 0x7);
             nonce.CopyTo(iv, 1);
 
-            IBlockCipher ctrCipher = new SicBlockCipher(cipher);
+            var ctrCipher = new SicBlockCipher(cipher);
             ctrCipher.Init(forEncryption, new ParametersWithIV(keyParam, iv));
 
             int outputLen;
@@ -375,7 +375,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             iv[0] = (byte)((q - 1) & 0x7);
             nonce.CopyTo(iv, 1);
 
-            IBlockCipher ctrCipher = new SicBlockCipher(cipher);
+            var ctrCipher = new SicBlockCipher(cipher);
             ctrCipher.Init(forEncryption, new ParametersWithIV(keyParam, iv));
 
             int outputLen;
@@ -452,8 +452,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return CalculateMac(data.AsSpan(dataOff, dataLen), macBlock);
 #else
-            IMac cMac = new CbcBlockCipherMac(cipher, macSize * 8);
-
+            var cMac = new CbcBlockCipherMac(cipher, macSize * 8);
             cMac.Init(keyParam);
 
             //
@@ -544,8 +543,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private int CalculateMac(ReadOnlySpan<byte> data, Span<byte> macBlock)
         {
-            IMac cMac = new CbcBlockCipherMac(cipher, macSize * 8);
-
+            var cMac = new CbcBlockCipherMac(cipher, macSize * 8);
             cMac.Init(keyParam);
 
             //

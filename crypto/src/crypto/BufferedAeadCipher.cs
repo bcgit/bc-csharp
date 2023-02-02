@@ -16,10 +16,7 @@ namespace Org.BouncyCastle.Crypto
 
         public BufferedAeadCipher(IAeadCipher cipher)
         {
-            if (cipher == null)
-                throw new ArgumentNullException("cipher");
-
-            this.cipher = cipher;
+            this.cipher = cipher ?? throw new ArgumentNullException(nameof(cipher));
         }
 
         public override string AlgorithmName
