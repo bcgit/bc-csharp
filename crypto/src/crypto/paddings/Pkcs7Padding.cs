@@ -1,36 +1,19 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Paddings
 {
-    /**
-    * A padder that adds Pkcs7/Pkcs5 padding to a block.
-    */
+    /// <summary>A padder that adds PKCS7/PKCS5 padding to a block.</summary>
     public class Pkcs7Padding
         : IBlockCipherPadding
     {
-        /**
-        * Initialise the padder.
-        *
-        * @param random - a SecureRandom if available.
-        */
-        public void Init(
-            SecureRandom random)
+        public void Init(SecureRandom random)
         {
             // nothing to do.
         }
 
-        /**
-        * Return the name of the algorithm the cipher implements.
-        *
-        * @return the name of the algorithm the cipher implements.
-        */
-        public string PaddingName
-        {
-            get { return "PKCS7"; }
-        }
+        public string PaddingName => "PKCS7";
 
         public int AddPadding(byte[] input, int inOff)
         {

@@ -4,25 +4,12 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Paddings
 {
-
-    /// <summary> A padder that adds Null byte padding to a block.</summary>
-    public class ZeroBytePadding : IBlockCipherPadding
+    /// <summary> A padder that adds zero byte padding to a block.</summary>
+    public class ZeroBytePadding
+        : IBlockCipherPadding
     {
-        /// <summary> Return the name of the algorithm the cipher implements.
-        ///
-        /// </summary>
-        /// <returns> the name of the algorithm the cipher implements.
-        /// </returns>
-        public string PaddingName
-        {
-            get { return "ZeroBytePadding"; }
-        }
+        public string PaddingName => "ZeroBytePadding";
 
-		/// <summary> Initialise the padder.
-        ///
-        /// </summary>
-        /// <param name="random">- a SecureRandom if available.
-        /// </param>
         public void Init(SecureRandom random)
         {
             // nothing to do.
