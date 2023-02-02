@@ -29,9 +29,12 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
             byte[] sharedSecret = kdfParameters.GetSharedSecret();
             byte[] otherInfo = kdfParameters.GetIV();
 
-            m_buffer = new byte[4 + sharedSecret.Length + otherInfo.Length + m_hLen];
+            m_buffer = new byte[4 + sharedSecret.Length + (otherInfo == null ? 0 : otherInfo.Length) + m_hLen];
             sharedSecret.CopyTo(m_buffer, 4);
-            otherInfo.CopyTo(m_buffer, 4 + sharedSecret.Length);
+            if (otherInfo != null)
+            {
+                otherInfo.CopyTo(m_buffer, 4 + sharedSecret.Length);
+            }
         }
 
         /// <summary>the underlying digest.</summary>
