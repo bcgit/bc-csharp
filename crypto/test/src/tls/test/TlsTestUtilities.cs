@@ -46,12 +46,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static bool EqualsIgnoreCase(string a, string b)
         {
-            return ToUpperInvariant(a) == ToUpperInvariant(b);
-        }
-
-        internal static string ToUpperInvariant(string s)
-        {
-            return s.ToUpper(CultureInfo.InvariantCulture);
+            return string.Equals(a, b, StringComparison.InvariantCultureIgnoreCase);
         }
 
         internal static string Fingerprint(X509CertificateStructure c)
@@ -59,7 +54,7 @@ namespace Org.BouncyCastle.Tls.Tests
             byte[] der = c.GetEncoded();
             byte[] hash = Sha256DigestOf(der);
             byte[] hexBytes = Hex.Encode(hash);
-            string hex = ToUpperInvariant(Encoding.ASCII.GetString(hexBytes));
+            string hex = Encoding.ASCII.GetString(hexBytes).ToUpperInvariant();
 
             StringBuilder fp = new StringBuilder();
             int i = 0;
