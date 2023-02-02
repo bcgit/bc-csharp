@@ -4,7 +4,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    public class KdfDoublePipelineIterationParameters : IDerivationParameters
+    public class KdfDoublePipelineIterationParameters
+        : IDerivationParameters
     {
         // could be any valid value, using 32, don't know why
         private static readonly int UNUSED_R = 32;
@@ -17,9 +18,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private KdfDoublePipelineIterationParameters(byte[] ki, byte[] fixedInputData, int r, bool useCounter)
         {
             if (ki == null)
-            {
-                throw new ArgumentException("A KDF requires Ki (a seed) as input");
-            }
+                throw new ArgumentNullException("A KDF requires Ki (a seed) as input", nameof(ki));
 
             this.ki = Arrays.Clone(ki);
 
@@ -33,9 +32,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             if (r != 8 && r != 16 && r != 24 && r != 32)
-            {
                 throw new ArgumentException("Length of counter should be 8, 16, 24 or 32");
-            }
 
             this.r = r;
 
@@ -59,15 +56,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return Arrays.Clone(ki); }
         }
 
-        public bool UseCounter
-        {
-            get { return useCounter; }
-        }
+        public bool UseCounter => useCounter;
 
-        public int R
-        {
-            get { return r; }
-        }
+        public int R => r;
 
         public byte[] FixedInputData
         {

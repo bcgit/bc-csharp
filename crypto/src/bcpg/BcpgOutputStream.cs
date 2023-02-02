@@ -10,13 +10,10 @@ namespace Org.BouncyCastle.Bcpg
     public class BcpgOutputStream
         : BaseOutputStream
     {
-		internal static BcpgOutputStream Wrap(
-			Stream outStr)
+		internal static BcpgOutputStream Wrap(Stream outStr)
 		{
-			if (outStr is BcpgOutputStream)
-			{
-				return (BcpgOutputStream) outStr;
-			}
+			if (outStr is BcpgOutputStream bcpgOutputStream)
+				return bcpgOutputStream;
 
 			return new BcpgOutputStream(outStr);
 		}

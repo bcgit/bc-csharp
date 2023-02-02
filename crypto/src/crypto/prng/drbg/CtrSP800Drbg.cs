@@ -60,10 +60,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        mSeedLength = keySizeInBits + engine.GetBlockSize() * 8;
 	        mIsTdea = IsTdea(engine);
 
-            CTR_DRBG_Instantiate_algorithm(nonce, personalizationString);
+            CTR_DRBG_Instantiate_algorithm(personalizationString, nonce);
 	    }
 
-        private void CTR_DRBG_Instantiate_algorithm(byte[] nonce, byte[] personalisationString)
+        private void CTR_DRBG_Instantiate_algorithm(byte[] personalisationString, byte[] nonce)
 	    {
             byte[] entropy = GetEntropy();  // Get_entropy_input
             byte[] seedMaterial = Arrays.ConcatenateAll(entropy, nonce, personalisationString);

@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Crypto.Generators
     public sealed class KdfDoublePipelineIterationBytesGenerator
         : IMacDerivationFunction
     {
+        // please refer to the standard for the meaning of the variable names
+        // all field lengths are in bytes, not in bits as specified by the standard
+
         // fields set by the constructor       
         private readonly IMac prf;
         private readonly int h;
@@ -68,6 +71,78 @@ namespace Org.BouncyCastle.Crypto.Generators
             generatedBytes = 0;
         }
 
+        public IMac Mac => prf;
+
+        public IDigest Digest
+        {
+            get { return (prf as HMac)?.GetUnderlyingDigest(); }
+        }
+
+        public int GenerateBytes(byte[] output, int outOff, int length)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return GenerateBytes(output.AsSpan(outOff, length));
+#else
+            if (generatedBytes >= maxSizeExcl - length)
+                throw new DataLengthException("Current KDFCTR may only be used for " + maxSizeExcl + " bytes");
+
+            int toGenerate = length;
+            int posInK = generatedBytes % h;
+            if (posInK != 0)
+            {
+                // copy what is left in the currentT (1..hash
+                int toCopy = System.Math.Min(h - posInK, toGenerate);
+                Array.Copy(k, posInK, output, outOff, toCopy);
+                generatedBytes += toCopy;
+                toGenerate -= toCopy;
+                outOff += toCopy;
+            }
+
+            while (toGenerate > 0)
+            {
+                GenerateNext();
+                int toCopy = System.Math.Min(h, toGenerate);
+                Array.Copy(k, 0, output, outOff, toCopy);
+                generatedBytes += toCopy;
+                toGenerate -= toCopy;
+                outOff += toCopy;
+            }
+
+            return length;
+#endif
+        }
+
+    #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public int GenerateBytes(Span<byte> output)
+            {
+                int length = output.Length;
+                if (generatedBytes >= maxSizeExcl - length)
+                    throw new DataLengthException("Current KDFCTR may only be used for " + maxSizeExcl + " bytes");
+
+                int posInK = generatedBytes % h;
+                if (posInK != 0)
+                {
+                    // copy what is left in the currentT (1..hash
+                    GenerateNext();
+                    int toCopy = System.Math.Min(h - posInK, output.Length);
+                    k.AsSpan(posInK, toCopy).CopyTo(output);
+                    generatedBytes += toCopy;
+                    output = output[toCopy..];
+                }
+
+                while (!output.IsEmpty)
+                {
+                    GenerateNext();
+                    int toCopy = System.Math.Min(h, output.Length);
+                    k.AsSpan(0, toCopy).CopyTo(output);
+                    generatedBytes += toCopy;
+                    output = output[toCopy..];
+                }
+
+                return length;
+            }
+    #endif
+
         private void GenerateNext()
         {
             if (generatedBytes == 0)
@@ -117,77 +192,5 @@ namespace Org.BouncyCastle.Crypto.Generators
             prf.BlockUpdate(fixedInputData, 0, fixedInputData.Length);
             prf.DoFinal(k, 0);
         }
-
-        public IDigest Digest
-        {
-            get { return (prf as HMac)?.GetUnderlyingDigest(); }
-        }
-
-        public int GenerateBytes(byte[] output, int outOff, int length)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return GenerateBytes(output.AsSpan(outOff, length));
-#else
-            if (generatedBytes >= maxSizeExcl - length)
-                throw new DataLengthException("Current KDFCTR may only be used for " + maxSizeExcl + " bytes");
-
-            int toGenerate = length;
-            int posInK = generatedBytes % h;
-            if (posInK != 0)
-            {
-                // copy what is left in the currentT (1..hash
-                int toCopy = System.Math.Min(h - posInK, toGenerate);
-                Array.Copy(k, posInK, output, outOff, toCopy);
-                generatedBytes += toCopy;
-                toGenerate -= toCopy;
-                outOff += toCopy;
-            }
-
-            while (toGenerate > 0)
-            {
-                GenerateNext();
-                int toCopy = System.Math.Min(h, toGenerate);
-                Array.Copy(k, 0, output, outOff, toCopy);
-                generatedBytes += toCopy;
-                toGenerate -= toCopy;
-                outOff += toCopy;
-            }
-
-            return length;
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int GenerateBytes(Span<byte> output)
-        {
-            int length = output.Length;
-            if (generatedBytes >= maxSizeExcl - length)
-                throw new DataLengthException("Current KDFCTR may only be used for " + maxSizeExcl + " bytes");
-
-            int posInK = generatedBytes % h;
-            if (posInK != 0)
-            {
-                // copy what is left in the currentT (1..hash
-                GenerateNext();
-                int toCopy = System.Math.Min(h - posInK, output.Length);
-                k.AsSpan(posInK, toCopy).CopyTo(output);
-                generatedBytes += toCopy;
-                output = output[toCopy..];
-            }
-
-            while (!output.IsEmpty)
-            {
-                GenerateNext();
-                int toCopy = System.Math.Min(h, output.Length);
-                k.AsSpan(0, toCopy).CopyTo(output);
-                generatedBytes += toCopy;
-                output = output[toCopy..];
-            }
-
-            return length;
-        }
-#endif
-
-        public IMac Mac => prf;
     }
 }

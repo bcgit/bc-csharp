@@ -24,19 +24,18 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return new byte[1]{ feature };
         }
 
-        public Features(
-            bool critical,
-            bool isLongLength,
-            byte[] data)
+        public Features(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.Features, critical, isLongLength, data)
         {
         }
 
-        public Features(bool critical, byte features): this(critical, false, FeatureToByteArray(features))
+        public Features(bool critical, byte features)
+            : this(critical, false, FeatureToByteArray(features))
         {
         }
 
-        public Features(bool critical, int features):  this(critical, false, FeatureToByteArray((byte)features))
+        public Features(bool critical, int features)
+            : this(critical, false, FeatureToByteArray((byte)features))
         {
         }
 

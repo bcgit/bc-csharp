@@ -303,7 +303,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return tweak64;
         }
 
-        private static BigInteger CalculateY_FF1(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int b, int d, int round, byte[] P, ushort[] AB)
+        private static BigInteger CalculateY_FF1(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int b, int d,
+            int round, byte[] P, ushort[] AB)
         {
             int t = T.Length;
 

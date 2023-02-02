@@ -71,6 +71,8 @@ namespace Org.BouncyCastle.Crypto.Generators
             generatedBytes = 0;
         }
 
+        public IMac Mac => prf;
+
         public IDigest Digest
         {
             get { return (prf as HMac)?.GetUnderlyingDigest(); }
@@ -183,7 +185,5 @@ namespace Org.BouncyCastle.Crypto.Generators
             prf.BlockUpdate(fixedInputData, 0, fixedInputData.Length);
             prf.DoFinal(k, 0);
         }
-
-        public IMac Mac => prf;
     }
 }
