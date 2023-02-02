@@ -1,25 +1,27 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 
-/**
- * Photon-Beetle, https://www.isical.ac.in/~lightweight/beetle/
- * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/readonlyist-round/updated-spec-doc/photon-beetle-spec-readonly.pdf
- * <p>
- * Photon-Beetle with reference to C Reference Impl from: https://github.com/PHOTON-Beetle/Software
- * </p>
- */
-
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class PhotonBeetleEngine : IAeadBlockCipher
+    /**
+     * Photon-Beetle, https://www.isical.ac.in/~lightweight/beetle/
+     * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/readonlyist-round/updated-spec-doc/photon-beetle-spec-readonly.pdf
+     * <p>
+     * Photon-Beetle with reference to C Reference Impl from: https://github.com/PHOTON-Beetle/Software
+     * </p>
+     */
+    public class PhotonBeetleEngine
+        : IAeadBlockCipher
     {
         public enum PhotonBeetleParameters
         {
             pb32,
             pb128
         }
+
         private bool input_empty;
         private bool forEncryption;
         private bool initialised;

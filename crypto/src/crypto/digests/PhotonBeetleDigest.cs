@@ -1,19 +1,19 @@
 ﻿using System;
 using System.IO;
-using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities;
 
-/**
- * Photon-Beetle, https://www.isical.ac.in/~lightweight/beetle/
- * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/readonlyist-round/updated-spec-doc/photon-beetle-spec-readonly.pdf
- * <p>
- * Photon-Beetle with reference to C Reference Impl from: https://github.com/PHOTON-Beetle/Software
- * </p>
- */
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public class PhotonBeetleDigest : IDigest
+    /**
+     * Photon-Beetle, https://www.isical.ac.in/~lightweight/beetle/
+     * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/readonlyist-round/updated-spec-doc/photon-beetle-spec-readonly.pdf
+     * <p>
+     * Photon-Beetle with reference to C Reference Impl from: https://github.com/PHOTON-Beetle/Software
+     * </p>
+     */
+    public class PhotonBeetleDigest
+        : IDigest
     {
         private byte[] state;
         private byte[][] state_2d;

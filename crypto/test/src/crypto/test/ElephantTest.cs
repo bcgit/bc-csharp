@@ -46,7 +46,6 @@ namespace BouncyCastle.Crypto.Tests
             {
                 string line;
                 string[] data;
-                byte[] ptByte, adByte;
                 byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 while ((line = src.ReadLine()) != null)
@@ -155,7 +154,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.DoFinal(c1, m.Length);
                 Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before dofinal");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -166,7 +165,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.GetOutputSize(0);
                 aeadBlockCipher.GetUpdateOutputSize(0);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
                 Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialisation");
@@ -182,7 +181,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
                 Assert.Fail(aeadBlockCipher.AlgorithmName + " k size does not match");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -191,7 +190,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
                 Assert.Fail(aeadBlockCipher.AlgorithmName + "iv size does not match");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
@@ -202,7 +201,7 @@ namespace BouncyCastle.Crypto.Tests
             {
                 aeadBlockCipher.DoFinal(c1, m.Length);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Assert.Fail(aeadBlockCipher.AlgorithmName + " allows no input for AAD and plaintext");
             }
@@ -249,7 +248,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 1, 1);
                 Assert.Fail("input for ProcessAadBytes is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
@@ -258,7 +257,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
                 Assert.Fail("input for ProcessBytes is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
@@ -276,7 +275,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.DoFinal(new byte[2], 2);
                 Assert.Fail("output for dofinal is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
@@ -336,7 +335,7 @@ namespace BouncyCastle.Crypto.Tests
                 aeadBlockCipher.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected;
             }

@@ -1,21 +1,20 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities;
-using static Org.BouncyCastle.Tls.DtlsReliableHandshake;
 
-/**
-* ASCON AEAD v1.2, https://ascon.iaik.tugraz.at/
-* https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/ascon-spec-final.pdf
-* <p>
-* ASCON AEAD v1.2 with reference to C Reference Impl from: https://github.com/ascon/ascon-c
-* </p>
-*/
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class AsconEngine : IAeadBlockCipher
+    /**
+    * ASCON AEAD v1.2, https://ascon.iaik.tugraz.at/
+    * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/ascon-spec-final.pdf
+    * <p>
+    * ASCON AEAD v1.2 with reference to C Reference Impl from: https://github.com/ascon/ascon-c
+    * </p>
+    */
+    public class AsconEngine
+        : IAeadBlockCipher
     {
         public enum AsconParameters
         {

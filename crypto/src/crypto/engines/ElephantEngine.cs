@@ -1,18 +1,19 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 
-
-/**
- * Elephant AEAD v2, based on the current round 3 submission, https://www.esat.kuleuven.be/cosic/elephant/
- * Reference C implementation: https://github.com/TimBeyne/Elephant
- * Specification: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/elephant-spec-final.pdf
- */
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class ElephantEngine : IAeadBlockCipher
+    /**
+     * Elephant AEAD v2, based on the current round 3 submission, https://www.esat.kuleuven.be/cosic/elephant/
+     * Reference C implementation: https://github.com/TimBeyne/Elephant
+     * Specification: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/elephant-spec-final.pdf
+     */
+    public class ElephantEngine
+        : IAeadBlockCipher
     {
         public enum ElephantParameters
         {
@@ -20,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             elephant176,
             elephant200
         }
+
         private bool forEncryption;
         private readonly string algorithmName;
         private ElephantParameters parameters;

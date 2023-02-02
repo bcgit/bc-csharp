@@ -1,23 +1,21 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities;
-using static Org.BouncyCastle.Tls.DtlsReliableHandshake;
-
-
-/**
- * ISAP AEAD v2, https://isap.iaik.tugraz.at/
- * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/constist-round/updated-spec-doc/isap-spec-const.pdf
- * <p>
- * ISAP AEAD v2 with reference to C Reference Impl from: https://github.com/isap-lwc/isap-code-package
- * </p>
- */
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class ISAPEngine : IAeadBlockCipher
+    /**
+     * ISAP AEAD v2, https://isap.iaik.tugraz.at/
+     * https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/constist-round/updated-spec-doc/isap-spec-const.pdf
+     * <p>
+     * ISAP AEAD v2 with reference to C Reference Impl from: https://github.com/isap-lwc/isap-code-package
+     * </p>
+     */
+    public class ISAPEngine
+        : IAeadBlockCipher
     {
         public enum IsapType
         {
@@ -821,7 +819,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     "ISAP AEAD key must be 128 bits ulong");
             }
 
-            /**
+            /*
              * Initialize variables.
              */
             byte[] npub = new byte[iv.Length];

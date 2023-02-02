@@ -58,7 +58,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 string line;
                 string[] data;
-                byte[] ptByte, adByte;
                 byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 while ((line = src.ReadLine()) != null)
@@ -127,8 +126,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 string line;
                 string[] data;
-                byte[] ptByte, adByte;
-                byte[] rv;
+                byte[] ptByte;
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 while ((line = src.ReadLine()) != null)
                 {

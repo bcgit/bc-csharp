@@ -5,15 +5,17 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
-/**
-* Xoodyak v1, https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/xoodyak-spec-final.pdf
-* <p>
-* Xoodyak with reference to C Reference Impl from: https://github.com/XKCP/XKCP
-* </p>
-*/
+
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public sealed class XoodyakEngine : IAeadBlockCipher
+    /**
+    * Xoodyak v1, https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/xoodyak-spec-final.pdf
+    * <p>
+    * Xoodyak with reference to C Reference Impl from: https://github.com/XKCP/XKCP
+    * </p>
+*/
+    public sealed class XoodyakEngine
+        : IAeadBlockCipher
     {
         private bool forEncryption;
         private byte[] state;
