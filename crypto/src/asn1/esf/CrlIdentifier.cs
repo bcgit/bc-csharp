@@ -2,7 +2,6 @@ using System;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -28,18 +27,17 @@ namespace Org.BouncyCastle.Asn1.Esf
 		{
 			if (obj == null)
 				return null;
-
 			if (obj is CrlIdentifier crlIdentifier)
                 return crlIdentifier;
-
-			if (obj is Asn1Sequence asn1Sequence)
-				return new CrlIdentifier(asn1Sequence);
-
-			throw new ArgumentException("Unknown object in 'CrlIdentifier' factory: " + Platform.GetTypeName(obj),
-				nameof(obj));
+			return new CrlIdentifier(Asn1Sequence.GetInstance(obj));
 		}
 
-		private CrlIdentifier(Asn1Sequence seq)
+        public static CrlIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private CrlIdentifier(Asn1Sequence seq)
 		{
 			if (seq == null)
 				throw new ArgumentNullException(nameof(seq));

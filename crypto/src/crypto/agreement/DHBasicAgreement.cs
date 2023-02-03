@@ -26,10 +26,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
                 parameters = withRandom.Parameters;
             }
 
-            if (!(parameters is DHPrivateKeyParameters))
-                throw new ArgumentException("DHEngine expects DHPrivateKeyParameters");
+            if (!(parameters is DHPrivateKeyParameters dhPrivateKeyParameters))
+                throw new ArgumentException("DHBasicAgreement expects DHPrivateKeyParameters");
 
-            this.key = (DHPrivateKeyParameters)parameters;
+            this.key = dhPrivateKeyParameters;
             this.dhParams = key.Parameters;
         }
 

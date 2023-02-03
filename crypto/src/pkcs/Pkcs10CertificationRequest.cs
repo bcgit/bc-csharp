@@ -11,10 +11,10 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -342,12 +342,10 @@ namespace Org.BouncyCastle.Pkcs
         {
             try
             {
-                byte[] b = reqInfo.GetDerEncoded();
-
                 IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
                 using (var stream = streamCalculator.Stream)
                 {
-                    stream.Write(b, 0, b.Length);
+                    reqInfo.EncodeTo(stream, Asn1Encodable.Der);
                 }
 
                 return streamCalculator.GetResult().IsVerified(sigBits.GetOctets());

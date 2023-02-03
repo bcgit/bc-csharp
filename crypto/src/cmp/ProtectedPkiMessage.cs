@@ -111,10 +111,11 @@ namespace Org.BouncyCastle.Cmp
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
             PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
-
             pkMacBuilder.SetParameters(parameter);
 
-            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
+            var macFactory = pkMacBuilder.Build(password);
+
+            IBlockResult result = Process(macFactory.CreateCalculator());
 
             return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
         }
@@ -126,10 +127,11 @@ namespace Org.BouncyCastle.Cmp
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
             PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
-
             pkMacBuilder.SetParameters(parameter);
 
-            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
+            var macFactory = pkMacBuilder.Build(password);
+
+            IBlockResult result = Process(macFactory.CreateCalculator());
 
             return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
         }

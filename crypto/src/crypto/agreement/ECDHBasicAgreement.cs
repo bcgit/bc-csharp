@@ -33,7 +33,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
                 parameters = withRandom.Parameters;
             }
 
-            this.privKey = (ECPrivateKeyParameters)parameters;
+            if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
+                throw new ArgumentException("ECDHBasicAgreement expects ECPrivateKeyParameters");
+
+            this.privKey = ecPrivateKeyParameters;
         }
 
         public virtual int GetFieldSize()

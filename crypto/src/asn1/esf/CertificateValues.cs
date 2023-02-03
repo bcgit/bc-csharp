@@ -19,20 +19,19 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public static CertificateValues GetInstance(object obj)
 		{
-			if (obj == null)
-				return null;
-
-			if (obj is CertificateValues certificateValues)
-				return certificateValues;
-
-			if (obj is Asn1Sequence asn1Sequence)
-				return new CertificateValues(asn1Sequence);
-
-			throw new ArgumentException("Unknown object in 'CertificateValues' factory: " + Platform.GetTypeName(obj),
-				nameof(obj));
+            if (obj == null)
+                return null;
+            if (obj is CertificateValues certificateValues)
+                return certificateValues;
+            return new CertificateValues(Asn1Sequence.GetInstance(obj));
 		}
 
-		private CertificateValues(Asn1Sequence seq)
+        public static CertificateValues GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private CertificateValues(Asn1Sequence seq)
 		{
 			if (seq == null)
 				throw new ArgumentNullException(nameof(seq));

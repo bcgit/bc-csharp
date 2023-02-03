@@ -33,11 +33,10 @@ namespace Org.BouncyCastle.Pkcs
             {
                 MemoryStream bOut = new MemoryStream();
                 ICipher cOut = encryptor.BuildCipher(bOut);
-                byte[] keyData = privateKeyInfo.GetEncoded();
 
-                using (var str = cOut.Stream)
+                using (var stream = cOut.Stream)
                 {
-                    str.Write(keyData, 0, keyData.Length);
+                    privateKeyInfo.EncodeTo(stream);
                 }
 
                 return new Pkcs8EncryptedPrivateKeyInfo(
