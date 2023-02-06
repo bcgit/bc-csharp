@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Utilities.Net
 {
-    // TODO Make static in next API revision
+    // TODO[api] Make static
     public class IPAddress
 	{
 		/**

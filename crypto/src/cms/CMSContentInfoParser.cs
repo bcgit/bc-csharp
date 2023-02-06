@@ -6,7 +6,7 @@ using Org.BouncyCastle.Asn1.Cms;
 
 namespace Org.BouncyCastle.Cms
 {
-    // TODO Make abstract in next API revision
+    // TODO[api] Make abstract
     public class CmsContentInfoParser
 		: IDisposable
 	{
