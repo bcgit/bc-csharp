@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             ESCH256,
             ESCH384
         }
-
+        private string algorithmName;
         private readonly uint[] state;
         private MemoryStream message = new MemoryStream();
         private readonly int DIGEST_BYTES;
@@ -41,12 +41,14 @@ namespace Org.BouncyCastle.Crypto.Digests
                     SPARKLE_STATE = 384;
                     SPARKLE_STEPS_SLIM = 7;
                     SPARKLE_STEPS_BIG = 11;
+                    algorithmName = "ESCH-256";
                     break;
                 case SparkleParameters.ESCH384:
                     ESCH_DIGEST_LEN = 384;
                     SPARKLE_STATE = 512;
                     SPARKLE_STEPS_SLIM = 8;
                     SPARKLE_STEPS_BIG = 12;
+                    algorithmName = "ESCH-384";
                     break;
                 default:
                     throw new ArgumentException("Invalid definition of SCHWAEMM instance");
@@ -129,12 +131,20 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
+            if (inOff + len > input.Length)
+            {
+                throw new DataLengthException(algorithmName + " input buffer too short");
+            }
             message.Write(input, inOff, len);
         }
 
 
         public int DoFinal(byte[] output, int outOff)
         {
+            if (outOff + DIGEST_BYTES > output.Length)
+            {
+                throw new OutputLengthException(algorithmName + " input buffer too short");
+            }
             byte[] input = message.GetBuffer();
             int inlen = (int)message.Length, i, inOff = 0;
             uint tmpx, tmpy;
@@ -214,7 +224,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return DIGEST_BYTES;
         }
 
-        public String AlgorithmName => "Sparkle Hash";
+        public string AlgorithmName => algorithmName;
 
 
         public void Update(byte input)

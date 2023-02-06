@@ -13,7 +13,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class SparkleEngine : IAeadCipher
+    public class SparkleEngine : IAeadBlockCipher
     {
         public enum SparkleParameters
         {
@@ -22,17 +22,22 @@ namespace Org.BouncyCastle.Crypto.Engines
             SCHWAEMM192_192,
             SCHWAEMM256_256
         }
+        private string algorithmName;
+        private bool forEncryption;
         private readonly uint[] state;
         private readonly uint[] k;
         private readonly uint[] npub;
-        private readonly byte[] tag;
+        private byte[] tag;
+        private bool initialised;
         private bool encrypted;
         private bool aadFinished;
         private readonly MemoryStream aadData = new MemoryStream();
+        private readonly MemoryStream message = new MemoryStream();
         private readonly int SCHWAEMM_KEY_LEN;
         private readonly int SCHWAEMM_NONCE_LEN;
         private readonly int SPARKLE_STEPS_SLIM;
         private readonly int SPARKLE_STEPS_BIG;
+        private readonly int KEY_BYTES;
         private readonly int KEY_WORDS;
         private readonly int TAG_WORDS;
         private readonly int TAG_BYTES;
@@ -61,6 +66,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     SPARKLE_CAPACITY = 128;
                     SPARKLE_STEPS_SLIM = 7;
                     SPARKLE_STEPS_BIG = 10;
+                    algorithmName = "SCHWAEMM128-128";
                     break;
                 case SparkleParameters.SCHWAEMM256_128:
                     SCHWAEMM_KEY_LEN = 128;
@@ -70,6 +76,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     SPARKLE_CAPACITY = 128;
                     SPARKLE_STEPS_SLIM = 7;
                     SPARKLE_STEPS_BIG = 11;
+                    algorithmName = "SCHWAEMM256-128";
                     break;
                 case SparkleParameters.SCHWAEMM192_192:
                     SCHWAEMM_KEY_LEN = 192;
@@ -79,6 +86,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     SPARKLE_CAPACITY = 192;
                     SPARKLE_STEPS_SLIM = 7;
                     SPARKLE_STEPS_BIG = 11;
+                    algorithmName = "SCHWAEMM192-192";
                     break;
                 case SparkleParameters.SCHWAEMM256_256:
                     SCHWAEMM_KEY_LEN = 256;
@@ -88,11 +96,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                     SPARKLE_CAPACITY = 256;
                     SPARKLE_STEPS_SLIM = 8;
                     SPARKLE_STEPS_BIG = 12;
+                    algorithmName = "SCHWAEMM256-256";
                     break;
                 default:
                     throw new ArgumentException("Invalid definition of SCHWAEMM instance");
             }
             KEY_WORDS = SCHWAEMM_KEY_LEN >> 5;
+            KEY_BYTES = SCHWAEMM_KEY_LEN >> 3;
             TAG_WORDS = SCHWAEMM_TAG_LEN >> 5;
             TAG_BYTES = SCHWAEMM_TAG_LEN >> 3;
             STATE_BRANS = SPARKLE_STATE >> 6;
@@ -109,6 +119,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             tag = new byte[TAG_BYTES];
             k = new uint[KEY_WORDS];
             npub = new uint[RATE_WORDS];
+            initialised = false;
         }
 
         private uint ROT(uint x, int n)
@@ -186,8 +197,15 @@ namespace Org.BouncyCastle.Crypto.Engines
         // only authenticated but not encrypted, into the state (in blocks of size
         // RATE_BYTES). Note that this function MUST NOT be called when the length of
         // the associated data is 0.
-        void ProcessAssocData(uint[] state, byte[] input, int inlen)
+        void ProcessAssocData(uint[] state)
         {
+            int inlen = (int)aadData.Length;
+            if (aadFinished || inlen == 0)
+            {
+                return;
+            }
+            aadFinished = true;
+            byte[] input = aadData.GetBuffer();
             // Main Authentication Loop
             int inOff = 0, i, j;
             uint tmp;
@@ -241,13 +259,14 @@ namespace Org.BouncyCastle.Crypto.Engines
         // ('input' and 'output' can be the same array, i.e. they can have the same start
         // address). Note that this function MUST NOT be called when the length of the
         // plaintext is 0.
-        void ProcessPlainText(uint[] state, byte[] output, byte[] input, int inOff, int inlen)
+        private int ProcessPlainText(uint[] state, byte[] output, byte[] input, int inOff, int inlen)
         {
             // Main Encryption Loop
             int outOff = 0, i, j;
             uint tmp1, tmp2;
             uint[] in32 = Pack.LE_To_UInt32(input, inOff, input.Length >> 2);
             uint[] out32 = new uint[output.Length >> 2];
+            int rv = 0;
             while (inlen > RATE_BYTES)
             {
                 // combined Rho and rate-whitening operation
@@ -259,8 +278,16 @@ namespace Org.BouncyCastle.Crypto.Engines
                 {
                     tmp1 = state[i];
                     tmp2 = state[j];
-                    state[i] = state[j] ^ in32[i + (inOff >> 2)] ^ state[RATE_WORDS + i];
-                    state[j] ^= tmp1 ^ in32[j + (inOff >> 2)] ^ state[RATE_WORDS + CAP_INDEX(j)];
+                    if (forEncryption)
+                    {
+                        state[i] = state[j] ^ in32[i + (inOff >> 2)] ^ state[RATE_WORDS + i];
+                        state[j] ^= tmp1 ^ in32[j + (inOff >> 2)] ^ state[RATE_WORDS + CAP_INDEX(j)];
+                    }
+                    else
+                    {
+                        state[i] ^= state[j] ^ in32[i + (inOff >> 2)] ^ state[RATE_WORDS + i];
+                        state[j] = tmp1 ^ in32[j + (inOff >> 2)] ^ state[RATE_WORDS + CAP_INDEX(j)];
+                    }
                     out32[i] = in32[i] ^ tmp1;
                     out32[j] = in32[j] ^ tmp2;
                 }
@@ -270,49 +297,18 @@ namespace Org.BouncyCastle.Crypto.Engines
                 inlen -= RATE_BYTES;
                 outOff += RATE_BYTES;
                 inOff += RATE_BYTES;
+                rv += RATE_BYTES;
+                encrypted = true;
             }
-            // Encryption of Last Block
-            // addition of ant M2 or M3 to the state
-            state[STATE_WORDS - 1] ^= ((inlen < RATE_BYTES) ? _M2 : _M3);
-            // combined Rho and rate-whitening (incl. padding)
-            // Rho and rate-whitening for the encryption of the last plaintext block. Since
-            // this last block may require padding, it is always copied to a buffer.
-            uint[] buffer = new uint[RATE_WORDS];
-            for (i = 0; i < inlen; ++i)
-            {
-                buffer[i >> 2] |= (input[inOff++] & 0xffu) << ((i & 3) << 3);
-            }
-            if (inlen < RATE_BYTES)
-            {  // padding
-                buffer[i >> 2] |= 0x80u << ((i & 3) << 3);
-            }
-            for (i = 0, j = RATE_WORDS / 2; i < RATE_WORDS / 2; i++, j++)
-            {
-                tmp1 = state[i];
-                tmp2 = state[j];
-                state[i] = state[j] ^ buffer[i] ^ state[RATE_WORDS + i];
-                state[j] ^= tmp1 ^ buffer[j] ^ state[RATE_WORDS + CAP_INDEX(j)];
-                buffer[i] ^= tmp1;
-                buffer[j] ^= tmp2;
-            }
-            for (i = 0; i < inlen; ++i)
-            {
-                output[outOff++] = (byte)(buffer[i >> 2] >> ((i & 3) << 3));
-            }
-            // execute SPARKLE with big number of steps
-            sparkle_opt(state, STATE_BRANS, SPARKLE_STEPS_BIG);
+            return rv;
         }
 
         public void Init(bool forEncryption, ICipherParameters param)
         {
-            /**
-             * Sparkle encryption and decryption is completely symmetrical, so the
-             * 'forEncryption' is irrelevant.
-             */
+            this.forEncryption = forEncryption;
             if (!(param is ParametersWithIV))
             {
-                throw new ArgumentException(
-                    "Sparkle init parameters must include an IV");
+                throw new ArgumentException(algorithmName + " init parameters must include an IV");
             }
 
             ParametersWithIV ivParams = (ParametersWithIV)param;
@@ -320,36 +316,48 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             if (iv == null || iv.Length != SCHWAEMM_NONCE_LEN >> 3)
             {
-                throw new ArgumentException(
-                    "Sparkle requires exactly 16 bytes of IV");
+                throw new ArgumentException(algorithmName + " requires exactly 16 bytes of IV");
             }
             Pack.LE_To_UInt32(iv, 0, npub, 0, RATE_WORDS);
 
             if (!(ivParams.Parameters is KeyParameter))
             {
-                throw new ArgumentException(
-                    "Sparkle init parameters must include a key");
+                throw new ArgumentException(algorithmName + " init parameters must include a key");
             }
 
             KeyParameter key = (KeyParameter)ivParams.Parameters;
             byte[] key8 = key.GetKey();
             if (key8.Length != SCHWAEMM_KEY_LEN >> 3)
             {
-                throw new ArgumentException("Sparkle key must be 128 bits long");
+                throw new ArgumentException(algorithmName + " key must be 128 bits long");
             }
             Pack.LE_To_UInt32(key8, 0, k, 0, KEY_WORDS);
-
+            initialised = true;
             reset(false);
         }
 
         public void ProcessAadByte(byte input)
         {
+            if (encrypted)
+            {
+                throw new ArgumentException(algorithmName + ": AAD cannot be added after reading a full block(" +
+                    GetBlockSize() + " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
+            }
             aadData.Write(new byte[] { input }, 0, 1);
         }
 
 
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
+            if (encrypted)
+            {
+                throw new ArgumentException(algorithmName + ": AAD cannot be added after reading a full block(" +
+                    GetBlockSize() + " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
+            }
+            if (inOff + len > input.Length)
+            {
+                throw new DataLengthException(algorithmName + " input buffer too short");
+            }
             aadData.Write(input, inOff, len);
         }
 
@@ -362,19 +370,33 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
-            if (encrypted)
+            if (!initialised)
             {
-                throw new ArgumentException("Sparkle has processed encryption/decryption");
+                throw new ArgumentException(algorithmName + " Need call init function before encryption/decryption");
             }
-            byte[] ad = aadData.GetBuffer();
-            int adsize = (int)aadData.Length;
-            if (adsize != 0)
+            if (inOff + len > input.Length)
             {
-                ProcessAssocData(state, ad, adsize);
+                throw new DataLengthException(algorithmName + " input buffer too short");
             }
-            if (len != 0)
+            message.Write(input, inOff, len);
+            len = 0;
+            if ((forEncryption && (int)message.Length > GetBlockSize()) ||
+                (!forEncryption && (int)message.Length - TAG_BYTES > GetBlockSize()))
             {
-                ProcessPlainText(state, output, input, inOff, len);
+                len = ((int)message.Length - (forEncryption ? 0 : TAG_BYTES));
+                if (len / RATE_BYTES * RATE_BYTES + outOff > output.Length)
+                {
+                    throw new OutputLengthException(algorithmName + " output buffer is too short");
+                }
+                byte[] m = message.GetBuffer();
+                ProcessAssocData(state);
+                if (len != 0)
+                {
+                    len = ProcessPlainText(state, output, m, 0, len);
+                }
+                int mlen = (int)message.Length;
+                message.SetLength(0);
+                message.Write(m, len, mlen - len);
             }
             return len;
         }
@@ -382,29 +404,97 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int DoFinal(byte[] output, int outOff)
         {
-            GetMac();
-            Array.Copy(tag, 0, output, outOff, TAG_BYTES);
+            if (!initialised)
+            {
+                throw new ArgumentException(algorithmName + " needs call init function before dofinal");
+            }
+            int inlen = (int)message.Length - (forEncryption ? 0 : TAG_BYTES);
+            if ((forEncryption && inlen + TAG_BYTES + outOff > output.Length) ||
+                (!forEncryption && inlen + outOff > output.Length))
+            {
+                throw new OutputLengthException("output buffer is too short");
+            }
+            ProcessAssocData(state);
+            int i, j;
+            uint tmp1, tmp2;
+            byte[] input = message.GetBuffer();
+            int inOff = 0;
+            if (encrypted || inlen != 0)
+            {
+                // Encryption of Last Block
+                // addition of ant M2 or M3 to the state
+                state[STATE_WORDS - 1] ^= ((inlen < RATE_BYTES) ? _M2 : _M3);
+                // combined Rho and rate-whitening (incl. padding)
+                // Rho and rate-whitening for the encryption of the last plaintext block. Since
+                // this last block may require padding, it is always copied to a buffer.
+                uint[] buffer = new uint[RATE_WORDS];
+                for (i = 0; i < inlen; ++i)
+                {
+                    buffer[i >> 2] |= (input[inOff++] & 0xffu) << ((i & 3) << 3);
+                }
+                if (inlen < RATE_BYTES)
+                {
+                    if (!forEncryption)
+                    {
+                        int tmp = (i & 3) << 3;
+                        buffer[i >> 2] |= (state[i >> 2] >> tmp) << tmp;
+                        tmp = (i >> 2) + 1;
+                        Array.Copy(state, tmp, buffer, tmp, RATE_WORDS - tmp);
+                    }
+                    buffer[i >> 2] ^= 0x80u << ((i & 3) << 3);
+                }
+                for (i = 0, j = RATE_WORDS / 2; i < RATE_WORDS / 2; i++, j++)
+                {
+                    tmp1 = state[i];
+                    tmp2 = state[j];
+                    if (forEncryption)
+                    {
+                        state[i] = state[j] ^ buffer[i] ^ state[RATE_WORDS + i];
+                        state[j] ^= tmp1 ^ buffer[j] ^ state[RATE_WORDS + CAP_INDEX(j)];
+                    }
+                    else
+                    {
+                        state[i] ^= state[j] ^ buffer[i] ^ state[RATE_WORDS + i];
+                        state[j] = tmp1 ^ buffer[j] ^ state[RATE_WORDS + CAP_INDEX(j)];
+                    }
+                    buffer[i] ^= tmp1;
+                    buffer[j] ^= tmp2;
+                }
+                for (i = 0; i < inlen; ++i)
+                {
+                    output[outOff++] = (byte)(buffer[i >> 2] >> ((i & 3) << 3));
+                }
+                // execute SPARKLE with big number of steps
+                sparkle_opt(state, STATE_BRANS, SPARKLE_STEPS_BIG);
+            }
+            // add key to the capacity-part of the state
+            for (i = 0; i < KEY_WORDS; i++)
+            {
+                state[RATE_WORDS + i] ^= k[i];
+            }
+            tag = new byte[TAG_BYTES];
+            Pack.UInt32_To_LE(state, RATE_WORDS, TAG_WORDS, tag, 0);
+            if (forEncryption)
+            {
+                Array.Copy(tag, 0, output, outOff, TAG_BYTES);
+                inlen += TAG_BYTES;
+            }
+            else
+            {
+                for (i = 0; i < TAG_BYTES; ++i)
+                {
+                    if (tag[i] != input[inlen + i])
+                    {
+                        throw new ArgumentException(algorithmName + " mac does not match");
+                    }
+                }
+            }
             reset(false);
-            return TAG_BYTES;
+            return inlen;
         }
 
         public byte[] GetMac()
         {
-            if (!aadFinished)
-            {
-                // the key to the capacity part of the state.
-                uint[] buffer = new uint[TAG_WORDS];
-                // to prevent (potentially) unaligned memory accesses
-                Array.Copy(k, 0, buffer, 0, KEY_WORDS);
-                // add key to the capacity-part of the state
-                for (int i = 0; i < KEY_WORDS; i++)
-                {
-                    state[RATE_WORDS + i] ^= buffer[i];
-                }
-                aadFinished = true;
-            }
-            encrypted = true;
-            Pack.UInt32_To_LE(state, RATE_WORDS, TAG_WORDS, tag, 0);
             return tag;
         }
 
@@ -423,6 +513,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void Reset()
         {
+            if (!initialised)
+            {
+                throw new ArgumentException(algorithmName + " needs call init function before reset");
+            }
             reset(true);
         }
 
@@ -430,7 +524,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (clearMac)
             {
-                Arrays.Fill(tag, (byte)0);
+                tag = null;
             }
             // The Initialize function loads nonce and key into the state and executes the
             // SPARKLE permutation with the big number of steps.
@@ -441,10 +535,18 @@ namespace Org.BouncyCastle.Crypto.Engines
             // execute SPARKLE with big number of steps
             sparkle_opt(state, STATE_BRANS, SPARKLE_STEPS_BIG);
             aadData.SetLength(0);
+            message.SetLength(0);
             encrypted = false;
             aadFinished = false;
         }
-        public string AlgorithmName => "Sparkle AEAD";
+        public string AlgorithmName => algorithmName;
+
+        public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
+
+        public int GetBlockSize()
+        {
+            return RATE_BYTES;
+        }
 
 
 
@@ -457,27 +559,47 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int ProcessByte(byte input, Span<byte> output)
         {
             byte[] rv = new byte[1];
-            ProcessBytes(new byte[] { input }, 0, 1, rv, 0);
-            rv.AsSpan(0, 1).CopyTo(output);
-            return 1;
+            int len = ProcessBytes(new byte[] { input }, 0, 1, rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return len;
+
         }
 
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             byte[] rv = new byte[input.Length];
-            ProcessBytes(input.ToArray(), 0, rv.Length, rv, 0);
-            rv.AsSpan(0, rv.Length).CopyTo(output);
-            return rv.Length;
+            int len = ProcessBytes(input.ToArray(), 0, rv.Length, rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return len;
         }
 
         public int DoFinal(Span<byte> output)
         {
-            byte[] tag = GetMac();
-            tag.AsSpan(0, tag.Length).CopyTo(output);
-            reset(false);
-            return tag.Length;
+            byte[] rv;
+            if (forEncryption)
+            {
+                rv = new byte[message.Length + TAG_BYTES];
+            }
+            else
+            {
+                rv = new byte[message.Length - TAG_BYTES];
+            }
+            int len = DoFinal(rv, 0);
+            rv.AsSpan(0, len).CopyTo(output);
+            return rv.Length;
+
         }
 #endif
+
+        public int GetKeyBytesSize()
+        {
+            return KEY_BYTES;
+        }
+
+        public int GetIVBytesSize()
+        {
+            return RATE_BYTES;
+        }
     }
 }
 
