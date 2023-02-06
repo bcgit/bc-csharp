@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    // TODO[api] Make static
     public abstract class Asn1Utilities
     {
         internal static Asn1TaggedObject CheckTagClass(Asn1TaggedObject taggedObject, int tagClass)
@@ -140,6 +141,7 @@ namespace Org.BouncyCastle.Asn1
             return GetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        [Obsolete("Will be removed")]
         public static Asn1Encodable TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
             if (!taggedObject.HasTag(tagClass, tagNo))
@@ -148,9 +150,24 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetExplicitBaseObject();
         }
 
+        public static bool TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
+            out Asn1Encodable baseObject)
+        {
+            bool result = taggedObject.HasTag(tagClass, tagNo);
+            baseObject = result ? taggedObject.GetExplicitBaseObject() : null;
+            return result;
+        }
+
+        [Obsolete("Will be removed")]
         public static Asn1Encodable TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo)
         {
             return TryGetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        public static bool TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo,
+            out Asn1Encodable baseObject)
+        {
+            return TryGetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo, out baseObject);
         }
 
 
@@ -178,6 +195,7 @@ namespace Org.BouncyCastle.Asn1
             return GetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass)
         {
             if (!taggedObject.HasTagClass(tagClass))
@@ -186,6 +204,15 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetExplicitBaseTagged();
         }
 
+        public static bool TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass,
+            out Asn1TaggedObject baseTagged)
+        {
+            bool result = taggedObject.HasTagClass(tagClass);
+            baseTagged = result ? taggedObject.GetExplicitBaseTagged() : null;
+            return result;
+        }
+
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
             if (!taggedObject.HasTag(tagClass, tagNo))
@@ -194,14 +221,36 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetExplicitBaseTagged();
         }
 
+        public static bool TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
+            out Asn1TaggedObject baseTagged)
+        {
+            bool result = taggedObject.HasTag(tagClass, tagNo);
+            baseTagged = result ? taggedObject.GetExplicitBaseTagged() : null;
+            return result;
+        }
+
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject)
         {
             return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific);
         }
 
+        public static bool TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject,
+            out Asn1TaggedObject baseTagged)
+        {
+            return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, out baseTagged);
+        }
+
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo)
         {
             return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        public static bool TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo,
+            out Asn1TaggedObject baseTagged)
+        {
+            return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo, out baseTagged);
         }
 
 
@@ -221,6 +270,7 @@ namespace Org.BouncyCastle.Asn1
             return GetImplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo, baseTagClass, baseTagNo);
         }
 
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetImplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             int baseTagClass, int baseTagNo)
         {
@@ -230,10 +280,26 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetImplicitBaseTagged(baseTagClass, baseTagNo);
         }
 
+        public static bool TryGetImplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
+            int baseTagClass, int baseTagNo, out Asn1TaggedObject baseTagged)
+        {
+            bool result = taggedObject.HasTag(tagClass, tagNo);
+            baseTagged = result ? taggedObject.GetImplicitBaseTagged(baseTagClass, baseTagNo) : null;
+            return result;
+        }
+
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetImplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo,
             int baseTagClass, int baseTagNo)
         {
             return TryGetImplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo, baseTagClass, baseTagNo);
+        }
+
+        public static bool TryGetImplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo, int baseTagClass,
+            int baseTagNo, out Asn1TaggedObject baseTagged)
+        {
+            return TryGetImplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo, baseTagClass, baseTagNo,
+                out baseTagged);
         }
 
 
@@ -253,6 +319,7 @@ namespace Org.BouncyCastle.Asn1
             return GetBaseUniversal(taggedObject, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo);
         }
 
+        [Obsolete("Will be removed")]
         public static Asn1Object TryGetBaseUniversal(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             bool declaredExplicit, int baseTagNo)
         {
@@ -262,10 +329,26 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetBaseUniversal(declaredExplicit, baseTagNo);
         }
 
+        public static bool TryGetBaseUniversal(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
+            bool declaredExplicit, int baseTagNo, out Asn1Object baseUniversal)
+        {
+            bool result = taggedObject.HasTag(tagClass, tagNo);
+            baseUniversal = result ? taggedObject.GetBaseUniversal(declaredExplicit, baseTagNo) : null;
+            return result;
+        }
+
+        [Obsolete("Will be removed")]
         public static Asn1Object TryGetContextBaseUniversal(Asn1TaggedObject taggedObject, int tagNo,
             bool declaredExplicit, int baseTagNo)
         {
             return TryGetBaseUniversal(taggedObject, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo);
+        }
+
+        public static bool TryGetContextBaseUniversal(Asn1TaggedObject taggedObject, int tagNo, bool declaredExplicit,
+            int baseTagNo, out Asn1Object baseUniversal)
+        {
+            return TryGetBaseUniversal(taggedObject, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo,
+                out baseUniversal);
         }
 
 
@@ -301,6 +384,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObjectParser TryParseExplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
             int tagClass)
         {
@@ -311,6 +395,16 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        public static bool TryParseExplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            out Asn1TaggedObjectParser baseTagged)
+        {
+            bool result = taggedObjectParser.TagClass == tagClass;
+            baseTagged = result ? taggedObjectParser.ParseExplicitBaseTagged() : null;
+            return result;
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObjectParser TryParseExplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
             int tagClass, int tagNo)
         {
@@ -321,6 +415,16 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        public static bool TryParseExplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo, out Asn1TaggedObjectParser baseTagged)
+        {
+            bool result = taggedObjectParser.HasTag(tagClass, tagNo);
+            baseTagged = result ? taggedObjectParser.ParseExplicitBaseTagged() : null;
+            return result;
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObjectParser TryParseExplicitContextBaseTagged(
             Asn1TaggedObjectParser taggedObjectParser)
         {
@@ -328,10 +432,25 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        public static bool TryParseExplicitContextBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            out Asn1TaggedObjectParser baseTagged)
+        {
+            return TryParseExplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, out baseTagged);
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObjectParser TryParseExplicitContextBaseTagged(
             Asn1TaggedObjectParser taggedObjectParser, int tagNo)
         {
             return TryParseExplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static bool TryParseExplicitContextBaseTagged(Asn1TaggedObjectParser taggedObjectParser, int tagNo,
+            out Asn1TaggedObjectParser baseTagged)
+        {
+            return TryParseExplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, out baseTagged);
         }
 
 
@@ -355,6 +474,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObjectParser TryParseImplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
             int tagClass, int tagNo, int baseTagClass, int baseTagNo)
         {
@@ -365,11 +485,29 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        public static bool TryParseImplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo, int baseTagClass, int baseTagNo, out Asn1TaggedObjectParser baseTagged)
+        {
+            bool result = taggedObjectParser.HasTag(tagClass, tagNo);
+            baseTagged = result ? taggedObjectParser.ParseImplicitBaseTagged(baseTagClass, baseTagNo) : null;
+            return result;
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static Asn1TaggedObjectParser TryParseImplicitContextBaseTagged(
             Asn1TaggedObjectParser taggedObjectParser, int tagNo, int baseTagClass, int baseTagNo)
         {
             return TryParseImplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, baseTagClass,
                 baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static bool TryParseImplicitContextBaseTagged(Asn1TaggedObjectParser taggedObjectParser, int tagNo,
+            int baseTagClass, int baseTagNo, out Asn1TaggedObjectParser baseTagged)
+        {
+            return TryParseImplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, baseTagClass,
+                baseTagNo, out baseTagged);
         }
 
 
@@ -392,6 +530,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static IAsn1Convertible TryParseBaseUniversal(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
             int tagNo, bool declaredExplicit, int baseTagNo)
         {
@@ -402,11 +541,29 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        public static bool TryParseBaseUniversal(Asn1TaggedObjectParser taggedObjectParser, int tagClass, int tagNo,
+            bool declaredExplicit, int baseTagNo, out IAsn1Convertible baseUniversal)
+        {
+            bool result = taggedObjectParser.HasTag(tagClass, tagNo);
+            baseUniversal = result ? taggedObjectParser.ParseBaseUniversal(declaredExplicit, baseTagNo) : null;
+            return result;
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static IAsn1Convertible TryParseContextBaseUniversal(Asn1TaggedObjectParser taggedObjectParser,
             int tagNo, bool declaredExplicit, int baseTagNo)
         {
             return TryParseBaseUniversal(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, declaredExplicit,
                 baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static bool TryParseContextBaseUniversal(Asn1TaggedObjectParser taggedObjectParser, int tagNo,
+            bool declaredExplicit, int baseTagNo, out IAsn1Convertible baseUniversal)
+        {
+            return TryParseBaseUniversal(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, declaredExplicit,
+                baseTagNo, out baseUniversal);
         }
 
 
@@ -429,6 +586,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static IAsn1Convertible TryParseExplicitBaseObject(Asn1TaggedObjectParser taggedObjectParser,
             int tagClass, int tagNo)
         {
@@ -439,10 +597,27 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /// <exception cref="IOException"/>
+        public static bool TryParseExplicitBaseObject(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo, out IAsn1Convertible baseObject)
+        {
+            bool result = taggedObjectParser.HasTag(tagClass, tagNo);
+            baseObject = result ? taggedObjectParser.ParseExplicitBaseObject() : null;
+            return result;
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static IAsn1Convertible TryParseExplicitContextBaseObject(Asn1TaggedObjectParser taggedObjectParser,
             int tagNo)
         {
             return TryParseExplicitBaseObject(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static bool TryParseExplicitContextBaseObject(Asn1TaggedObjectParser taggedObjectParser, int tagNo,
+            out IAsn1Convertible baseObject)
+        {
+            return TryParseExplicitBaseObject(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, out baseObject);
         }
     }
 }
