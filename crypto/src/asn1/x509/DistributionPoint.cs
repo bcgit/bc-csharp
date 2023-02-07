@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Asn1.X509
 				switch (t.TagNo)
                 {
                 case 0:
+                    // CHOICE so explicit
                     m_distributionPoint = DistributionPointName.GetInstance(t, true);
                     break;
                 case 1:

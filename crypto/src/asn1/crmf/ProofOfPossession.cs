@@ -28,7 +28,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 break;
             case 2:
             case 3:
-                obj = PopoPrivKey.GetInstance(tagged, false);
+                // CHOICE so explicit
+                obj = PopoPrivKey.GetInstance(tagged, true);
                 break;
             default:
                 throw new ArgumentException("unknown tag: " + tagNo, "tagged");
