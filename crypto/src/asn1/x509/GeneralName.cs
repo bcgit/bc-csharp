@@ -1,15 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
+
 using NetUtils = Org.BouncyCastle.Utilities.Net;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
+	/**
      * The GeneralName object.
      * <pre>
      * GeneralName ::= CHOICE {
@@ -32,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.X509
      *      partyName               [1]     DirectoryString }
      * </pre>
      */
-    public class GeneralName
+	public class GeneralName
         : Asn1Encodable, IAsn1Choice
     {
         public const int OtherName					= 0;
@@ -45,14 +44,60 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int IPAddress					= 7;
         public const int RegisteredID				= 8;
 
-		internal readonly Asn1Encodable	obj;
-        internal readonly int			tag;
-
-		public GeneralName(
-            X509Name directoryName)
+		public static GeneralName GetInstance(object obj)
         {
-            this.obj = directoryName;
-            this.tag = 4;
+			if (obj == null)
+				return null;
+			if (obj is GeneralName generalName)
+				return generalName;
+			return GetInstanceSelection(Asn1TaggedObject.GetInstance(obj));
+		}
+
+		public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(tagObj, explicitly, GetInstance);
+        }
+
+        private static GeneralName GetInstanceSelection(Asn1TaggedObject taggedObject)
+		{
+            if (taggedObject.HasContextTag())
+			{
+				int tag = taggedObject.TagNo;
+
+				switch (tag)
+				{
+				case EdiPartyName:
+				case OtherName:
+				case X400Address:
+					return new GeneralName(tag, Asn1Sequence.GetInstance(taggedObject, false));
+
+				case DnsName:
+				case Rfc822Name:
+				case UniformResourceIdentifier:
+					return new GeneralName(tag, DerIA5String.GetInstance(taggedObject, false));
+
+				case DirectoryName:
+					// CHOICE so explicit
+					return new GeneralName(tag, X509Name.GetInstance(taggedObject, true));
+
+				case IPAddress:
+					return new GeneralName(tag, Asn1OctetString.GetInstance(taggedObject, false));
+
+				case RegisteredID:
+					return new GeneralName(tag, DerObjectIdentifier.GetInstance(taggedObject, false));
+				}
+            }
+
+            throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(taggedObject));
+        }
+
+        private readonly int m_tag;
+        private readonly Asn1Encodable m_object;
+
+		public GeneralName(X509Name directoryName)
+        {
+			m_tag = DirectoryName;
+            m_object = directoryName;
         }
 
 		/**
@@ -82,23 +127,19 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 1883, the octet string MUST contain exactly sixteen octets [RFC
          * 1883].
          */
-        public GeneralName(
-            Asn1Object	name,
-			int			tag)
+        public GeneralName(Asn1Object name, int tag)
         {
-            this.obj = name;
-            this.tag = tag;
+            m_tag = tag;
+            m_object = name;
         }
 
-		public GeneralName(
-            int				tag,
-            Asn1Encodable	name)
+		public GeneralName(int tag, Asn1Encodable name)
         {
-            this.obj = name;
-            this.tag = tag;
+            m_tag = tag;
+            m_object = name;
         }
 
-		/**
+        /**
 		 * Create a GeneralName for the given tag from the passed in string.
 		 * <p>
 		 * This constructor can handle:
@@ -123,174 +164,126 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @throws ArgumentException if the string encoding is not correct or
 		 *             not supported.
 		 */
-		public GeneralName(
-            int		tag,
-            string	name)
+        public GeneralName(int tag, string name)
         {
-			this.tag = tag;
+            m_tag = tag;
 
-			if (tag == Rfc822Name || tag == DnsName || tag == UniformResourceIdentifier)
-			{
-				this.obj = new DerIA5String(name);
-			}
-			else if (tag == RegisteredID)
-			{
-				this.obj = new DerObjectIdentifier(name);
-			}
-			else if (tag == DirectoryName)
-			{
-				this.obj = new X509Name(name);
-			}
-			else if (tag == IPAddress)
-			{
-				byte[] enc = toGeneralNameEncoding(name);
-				if (enc == null)
-					throw new ArgumentException("IP Address is invalid", "name");
-
-				this.obj = new DerOctetString(enc);
-			}
-			else
-			{
-				throw new ArgumentException("can't process string for tag: " + tag, "tag");
-			}
-		}
-
-		public static GeneralName GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is GeneralName)
+            switch (tag)
             {
-                return (GeneralName) obj;
+            case DnsName:
+            case Rfc822Name:
+            case UniformResourceIdentifier:
+                m_object = new DerIA5String(name);
+                break;
+
+            case DirectoryName:
+                m_object = new X509Name(name);
+                break;
+
+            case IPAddress:
+            {
+                byte[] encoding = ToGeneralNameEncoding(name)
+                    ?? throw new ArgumentException("IP Address is invalid", nameof(name));
+
+                m_object = new DerOctetString(encoding);
+                break;
             }
 
-            if (obj is Asn1TaggedObject)
+            case RegisteredID:
+                m_object = new DerObjectIdentifier(name);
+                break;
+
+            case EdiPartyName:
+            case OtherName:
+            case X400Address:
+            default:
             {
-                Asn1TaggedObject	tagObj = (Asn1TaggedObject) obj;
-                int					tag = tagObj.TagNo;
+                string message = string.Format("can't process string for tag: {0}",
+                    Asn1Utilities.GetTagText(Asn1Tags.ContextSpecific, tag));
 
-				switch (tag)
-				{
-                    case EdiPartyName:
-                    case OtherName:
-                    case X400Address:
-                        return new GeneralName(tag, Asn1Sequence.GetInstance(tagObj, false));
-
-                    case DnsName:
-                    case Rfc822Name:
-                    case UniformResourceIdentifier:
-                        return new GeneralName(tag, DerIA5String.GetInstance(tagObj, false));
-
-					case DirectoryName:
-						return new GeneralName(tag, X509Name.GetInstance(tagObj, true));
-					case IPAddress:
-						return new GeneralName(tag, Asn1OctetString.GetInstance(tagObj, false));
-					case RegisteredID:
-						return new GeneralName(tag, DerObjectIdentifier.GetInstance(tagObj, false));
-
-                    default:
-                        throw new ArgumentException("unknown tag: " + tag);
-				}
-	        }
-
-            if (obj is byte[])
-	        {
-	            try
-	            {
-	                return GetInstance(Asn1Object.FromByteArray((byte[])obj));
-	            }
-	            catch (IOException)
-	            {
-	                throw new ArgumentException("unable to parse encoded general name");
-	            }
-	        }
-
-			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public static GeneralName GetInstance(
-            Asn1TaggedObject	tagObj,
-            bool				explicitly)
-        {
-            return GetInstance(Asn1TaggedObject.GetInstance(tagObj, true));
+                throw new ArgumentException(message, nameof(tag));
+            }
+            }
         }
 
-		public int TagNo
-		{
-			get { return tag; }
-		}
+        public int TagNo => m_tag;
 
-		public Asn1Encodable Name
-		{
-			get { return obj; }
-		}
+		public Asn1Encodable Name => m_object;
 
-		public override string ToString()
+        public override Asn1Object ToAsn1Object()
+        {
+            // directoryName is explicitly tagged as it is a CHOICE
+            bool isExplicit = (m_tag == DirectoryName);
+
+            return new DerTaggedObject(isExplicit, m_tag, m_object);
+        }
+
+        public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
-			buf.Append(tag);
+			buf.Append(m_tag);
 			buf.Append(": ");
 
-			switch (tag)
+			switch (m_tag)
 			{
-				case Rfc822Name:
-				case DnsName:
-				case UniformResourceIdentifier:
-					buf.Append(DerIA5String.GetInstance(obj).GetString());
-					break;
-				case DirectoryName:
-					buf.Append(X509Name.GetInstance(obj).ToString());
-					break;
-				default:
-					buf.Append(obj.ToString());
-					break;
+			case Rfc822Name:
+			case DnsName:
+			case UniformResourceIdentifier:
+				buf.Append(DerIA5String.GetInstance(m_object).GetString());
+				break;
+			case DirectoryName:
+				buf.Append(X509Name.GetInstance(m_object).ToString());
+				break;
+			default:
+				buf.Append(m_object.ToString());
+				break;
 			}
 
 			return buf.ToString();
 		}
 
-		private byte[] toGeneralNameEncoding(
-			string ip)
+		private byte[] ToGeneralNameEncoding(string ip)
 		{
 			if (NetUtils.IPAddress.IsValidIPv6WithNetmask(ip) || NetUtils.IPAddress.IsValidIPv6(ip))
 			{
-				int slashIndex = ip.IndexOf('/');
+				int slashIndex = Platform.IndexOf(ip, '/');
 
 				if (slashIndex < 0)
 				{
 					byte[] addr = new byte[16];
-					int[]  parsedIp = parseIPv6(ip);
-					copyInts(parsedIp, addr, 0);
+					int[] parsedIp = ParseIPv6(ip);
+					CopyInts(parsedIp, addr, 0);
 
 					return addr;
 				}
 				else
 				{
 					byte[] addr = new byte[32];
-					int[]  parsedIp = parseIPv6(ip.Substring(0, slashIndex));
-					copyInts(parsedIp, addr, 0);
+					int[] parsedIp = ParseIPv6(ip.Substring(0, slashIndex));
+					CopyInts(parsedIp, addr, 0);
 					string mask = ip.Substring(slashIndex + 1);
-					if (mask.IndexOf(':') > 0)
+					if (Platform.IndexOf(mask, ':') > 0)
 					{
-						parsedIp = parseIPv6(mask);
+						parsedIp = ParseIPv6(mask);
 					}
 					else
 					{
-						parsedIp = parseMask(mask);
+						parsedIp = ParseIPv6Mask(mask);
 					}
-					copyInts(parsedIp, addr, 16);
+					CopyInts(parsedIp, addr, 16);
 
 					return addr;
 				}
 			}
 			else if (NetUtils.IPAddress.IsValidIPv4WithNetmask(ip) || NetUtils.IPAddress.IsValidIPv4(ip))
 			{
-				int slashIndex = ip.IndexOf('/');
+				int slashIndex = Platform.IndexOf(ip, '/');
 
 				if (slashIndex < 0)
 				{
 					byte[] addr = new byte[4];
 
-					parseIPv4(ip, addr, 0);
+					ParseIPv4(ip, addr, 0);
 
 					return addr;
 				}
@@ -298,16 +291,16 @@ namespace Org.BouncyCastle.Asn1.X509
 				{
 					byte[] addr = new byte[8];
 
-					parseIPv4(ip.Substring(0, slashIndex), addr, 0);
+					ParseIPv4(ip.Substring(0, slashIndex), addr, 0);
 
 					string mask = ip.Substring(slashIndex + 1);
-					if (mask.IndexOf('.') > 0)
+					if (Platform.IndexOf(mask, '.') > 0)
 					{
-						parseIPv4(mask, addr, 4);
+						ParseIPv4(mask, addr, 4);
 					}
 					else
 					{
-						parseIPv4Mask(mask, addr, 4);
+						ParseIPv4Mask(mask, addr, 4);
 					}
 
 					return addr;
@@ -317,46 +310,38 @@ namespace Org.BouncyCastle.Asn1.X509
 			return null;
 		}
 
-		private void parseIPv4Mask(string mask, byte[] addr, int offset)
+        private static void CopyInts(int[] parsedIp, byte[] addr, int offSet)
+        {
+            for (int i = 0; i != parsedIp.Length; i++)
+            {
+                addr[(i * 2) + offSet] = (byte)(parsedIp[i] >> 8);
+                addr[(i * 2 + 1) + offSet] = (byte)parsedIp[i];
+            }
+        }
+
+        private static void ParseIPv4(string ip, byte[] addr, int offset)
+        {
+            foreach (string token in ip.Split('.', '/'))
+            {
+                addr[offset++] = (byte)int.Parse(token);
+            }
+        }
+
+        private static void ParseIPv4Mask(string mask, byte[] addr, int offset)
 		{
-			int maskVal = int.Parse(mask);
+            int bits = int.Parse(mask);
+            while (bits >= 8)
+            {
+                addr[offset++] = byte.MaxValue;
+                bits -= 8;
+            }
+            if (bits > 0)
+            {
+                addr[offset] = (byte)(byte.MaxValue >> (8 - bits));
+            }
+        }
 
-			for (int i = 0; i != maskVal; i++)
-			{
-				addr[(i / 8) + offset] |= (byte)(1 << (i % 8));
-			}
-		}
-
-		private void parseIPv4(string ip, byte[] addr, int offset)
-		{
-			foreach (string token in ip.Split('.', '/'))
-			{
-				addr[offset++] = (byte)int.Parse(token);
-			}
-		}
-
-		private int[] parseMask(string mask)
-		{
-			int[] res = new int[8];
-			int maskVal = int.Parse(mask);
-
-			for (int i = 0; i != maskVal; i++)
-			{
-				res[i / 16] |= 1 << (i % 16);
-			}
-			return res;
-		}
-
-		private void copyInts(int[] parsedIp, byte[] addr, int offSet)
-		{
-			for (int i = 0; i != parsedIp.Length; i++)
-			{
-				addr[(i * 2) + offSet] = (byte)(parsedIp[i] >> 8);
-				addr[(i * 2 + 1) + offSet] = (byte)parsedIp[i];
-			}
-		}
-
-		private int[] parseIPv6(string ip)
+        private static int[] ParseIPv6(string ip)
 		{
 			if (Platform.StartsWith(ip, "::"))
 			{
@@ -367,18 +352,13 @@ namespace Org.BouncyCastle.Asn1.X509
 				ip = ip.Substring(0, ip.Length - 1);
 			}
 
-			IEnumerable<string> split = ip.Split(':');
-			var sEnum = split.GetEnumerator();
-
 			int index = 0;
 			int[] val = new int[8];
 
 			int doubleColon = -1;
 
-			while (sEnum.MoveNext())
+			foreach (var e in ip.Split(':'))
 			{
-				string e = sEnum.Current;
-
 				if (e.Length == 0)
 				{
 					doubleColon = index;
@@ -386,7 +366,7 @@ namespace Org.BouncyCastle.Asn1.X509
 				}
 				else
 				{
-					if (e.IndexOf('.') < 0)
+					if (Platform.IndexOf(e, '.') < 0)
 					{
 						val[index++] = int.Parse(e, NumberStyles.AllowHexSpecifier);
 					}
@@ -412,12 +392,22 @@ namespace Org.BouncyCastle.Asn1.X509
 			return val;
 		}
 
-		public override Asn1Object ToAsn1Object()
+        private static int[] ParseIPv6Mask(string mask)
         {
-            // directoryName is explicitly tagged as it is a CHOICE
-            bool isExplicit = (tag == DirectoryName);
+            int[] res = new int[8];
 
-            return new DerTaggedObject(isExplicit, tag, obj);
+			int bits = int.Parse(mask), resPos = 0;
+			while (bits >= 16)
+			{
+				res[resPos++] = ushort.MaxValue;
+				bits -= 16;
+			}
+			if (bits > 0)
+			{
+				res[resPos] = ushort.MaxValue >> (16 - bits);
+			}
+
+			return res;
         }
     }
 }
