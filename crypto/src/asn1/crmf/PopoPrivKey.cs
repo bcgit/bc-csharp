@@ -13,6 +13,20 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public const int agreeMAC = 3;
         public const int encryptedKey = 4;
 
+        public static PopoPrivKey GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PopoPrivKey popoPrivKey)
+                return popoPrivKey;
+            return new PopoPrivKey(Asn1TaggedObject.GetInstance(obj, Asn1Tags.ContextSpecific));
+        }
+
+        public static PopoPrivKey GetInstance(Asn1TaggedObject tagged, bool isExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(tagged, isExplicit, GetInstance);
+        }
+
         private readonly int tagNo;
         private readonly Asn1Encodable obj;
 
@@ -40,11 +54,6 @@ namespace Org.BouncyCastle.Asn1.Crmf
             default:
                 throw new ArgumentException("unknown tag in PopoPrivKey", "obj");
             }
-        }
-
-        public static PopoPrivKey GetInstance(Asn1TaggedObject tagged, bool isExplicit)
-        {
-            return new PopoPrivKey(Asn1TaggedObject.GetInstance(tagged, true));
         }
 
         public PopoPrivKey(PKMacValue pkMacValue)
