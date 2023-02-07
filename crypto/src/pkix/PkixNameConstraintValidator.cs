@@ -79,8 +79,8 @@ namespace Org.BouncyCastle.Pkix
                 // obey RFC 5280 7.1
                 // special treatment of serialNumber for GSMA SGP.22 RSP specification
                 if (subtreeRdn.Count == 1 && dnsRdn.Count == 1
-                    && subtreeRdn.GetFirst().GetType().Equals(SerialNumberOid)
-                    && dnsRdn.GetFirst().GetType().Equals(SerialNumberOid))
+                    && SerialNumberOid.Equals(subtreeRdn.GetFirst().Type)
+                    && SerialNumberOid.Equals(dnsRdn.GetFirst().Type))
                 {
                     if (!Platform.StartsWith(dnsRdn.GetFirst().Value.ToString(), subtreeRdn.GetFirst().Value.ToString()))
                         return false;
