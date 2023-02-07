@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -45,11 +46,14 @@ namespace Org.BouncyCastle.Asn1.X509
             m_name = name;
         }
 
+        [Obsolete("Use 'Type' instead")]
 		public int PointType => m_type;
 
 		public Asn1Encodable Name => m_name;
 
-		public DistributionPointName(Asn1TaggedObject obj)
+        public int Type => m_type;
+
+        public DistributionPointName(Asn1TaggedObject obj)
         {
             m_type = obj.TagNo;
 

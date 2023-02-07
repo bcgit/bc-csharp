@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pkix
 					DistributionPointName dpName = IssuingDistributionPoint.GetInstance(idp).DistributionPoint;
 					var names = new List<GeneralName>();
 
-					if (dpName.PointType == DistributionPointName.FullName)
+					if (dpName.Type == DistributionPointName.FullName)
 					{
 						GeneralName[] genNames = GeneralNames.GetInstance(dpName.Name).GetNames();
 						for (int j = 0; j < genNames.Length; j++)
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Pkix
 							names.Add(genNames[j]);
 						}
 					}
-					if (dpName.PointType == DistributionPointName.NameRelativeToCrlIssuer)
+					if (dpName.Type == DistributionPointName.NameRelativeToCrlIssuer)
 					{
 						var seq = Asn1Sequence.GetInstance(crl.IssuerDN.ToAsn1Object());
 
@@ -106,11 +106,11 @@ namespace Org.BouncyCastle.Pkix
 					{
 						dpName = dp.DistributionPointName;
 						GeneralName[] genNames = null;
-						if (dpName.PointType == DistributionPointName.FullName)
+						if (dpName.Type == DistributionPointName.FullName)
 						{
 							genNames = GeneralNames.GetInstance(dpName.Name).GetNames();
 						}
-						if (dpName.PointType == DistributionPointName.NameRelativeToCrlIssuer)
+						if (dpName.Type == DistributionPointName.NameRelativeToCrlIssuer)
 						{
 							if (dp.CrlIssuer != null)
 							{

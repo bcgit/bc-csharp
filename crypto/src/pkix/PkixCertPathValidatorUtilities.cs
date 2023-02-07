@@ -932,7 +932,7 @@ namespace Org.BouncyCastle.Pkix
 					// look for URIs in fullName
 					if (dpn != null)
 					{
-						if (dpn.PointType == DistributionPointName.FullName)
+						if (dpn.Type == DistributionPointName.FullName)
 						{
 							GeneralName[] genNames = GeneralNames.GetInstance(
 								dpn.Name).GetNames();
