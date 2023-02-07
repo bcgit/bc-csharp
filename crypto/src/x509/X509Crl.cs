@@ -404,15 +404,7 @@ namespace Org.BouncyCastle.X509
 		 * @return true if the given certificate is on this CRL,
 		 * false otherwise.
 		 */
-//		public bool IsRevoked(
-//			Certificate cert)
-//		{
-//			if (!cert.getType().Equals("X.509"))
-//			{
-//				throw new RuntimeException("X.509 CRL used with non X.509 Cert");
-//			}
-		public virtual bool IsRevoked(
-			X509Certificate cert)
+		public virtual bool IsRevoked(X509Certificate cert)
 		{
 			CrlEntry[] certs = c.GetRevokedCertificates();
 

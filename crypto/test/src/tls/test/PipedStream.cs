@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Tls.Tests
         private void CheckOpen()
         {
             if (m_closed)
-                throw new ObjectDisposedException(this.GetType().Name);
+                throw new ObjectDisposedException(GetType().FullName);
         }
 
         private void WaitForData()

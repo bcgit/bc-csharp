@@ -720,7 +720,7 @@ namespace Org.BouncyCastle.Pkix
 			//        if (dp.getDistributionPoint() != null)
 			//        {
 			//            // look for nameRelativeToCRLIssuer
-			//            if (dp.getDistributionPoint().getType() == DistributionPointName.NAME_RELATIVE_TO_CRL_ISSUER)
+			//            if (dp.getDistributionPoint().Type == DistributionPointName.NAME_RELATIVE_TO_CRL_ISSUER)
 			//            {
 			//                // append fragment to issuer, only one
 			//                // issuer can be there, if this is given

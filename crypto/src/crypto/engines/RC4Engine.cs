@@ -28,18 +28,16 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (parameters is KeyParameter)
+            if (parameters is KeyParameter keyParameter)
             {
                 /*
                 * RC4 encryption and decryption is completely
                 * symmetrical, so the 'forEncryption' is
                 * irrelevant.
                 */
-                workingKey = ((KeyParameter)parameters).GetKey();
+                workingKey = keyParameter.GetKey();
                 SetKey(workingKey);
 
                 return;
