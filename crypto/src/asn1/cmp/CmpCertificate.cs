@@ -13,9 +13,25 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 return null;
             if (obj is CmpCertificate cmpCertificate)
                 return cmpCertificate;
+            if (obj is X509CertificateStructure certificate)
+                return new CmpCertificate(certificate);
             if (obj is Asn1TaggedObject taggedObject)
                 return new CmpCertificate(taggedObject);
-            return new CmpCertificate(X509CertificateStructure.GetInstance(obj));
+
+            Asn1Object asn1Object = null;
+            if (obj is IAsn1Convertible asn1Convertible)
+            {
+                asn1Object = asn1Convertible.ToAsn1Object();
+            }
+            else if (obj is byte[] bytes)
+            {
+                asn1Object = Asn1Object.FromByteArray(bytes);
+            }
+
+            if (asn1Object is Asn1TaggedObject asn1TaggedObject)
+                return new CmpCertificate(asn1TaggedObject);
+
+            return new CmpCertificate(X509CertificateStructure.GetInstance(asn1Object ?? obj));
         }
 
         public static CmpCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
