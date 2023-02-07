@@ -94,14 +94,47 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
-        public void CheckPermittedDN(Asn1Sequence dn)
-        {
-            CheckPermittedDirectory(permittedSubtreesDN, dn);
-        }
+        #region DN
 
         public void CheckExcludedDN(Asn1Sequence dn)
         {
-            CheckExcludedDirectory(excludedSubtreesDN, dn);
+            CheckExcludedDN(excludedSubtreesDN, dn);
+        }
+
+        public void CheckPermittedDN(Asn1Sequence dn)
+        {
+            CheckPermittedDN(permittedSubtreesDN, dn);
+        }
+
+        private void CheckExcludedDN(ISet<Asn1Sequence> excluded, Asn1Sequence directory)
+        {
+            if (IsDNConstrained(excluded, directory))
+            {
+                throw new PkixNameConstraintValidatorException(
+                    "Subject distinguished name is from an excluded subtree");
+            }
+        }
+
+        private void CheckPermittedDN(ISet<Asn1Sequence> permitted, Asn1Sequence directory)
+        {
+            if (permitted != null
+                && !(directory.Count == 0 && permitted.Count < 1)
+                && !IsDNConstrained(permitted, directory))
+            {
+                throw new PkixNameConstraintValidatorException(
+                    "Subject distinguished name is not from a permitted subtree");
+            }
+        }
+
+        private bool IsDNConstrained(ISet<Asn1Sequence> constraints, Asn1Sequence directory)
+        {
+            foreach (var constraint in constraints)
+            {
+                if (WithinDNSubtree(directory, constraint))
+                    return true;
+            }
+
+            return false;
         }
 
         private ISet<Asn1Sequence> IntersectDN(ISet<Asn1Sequence> permitted, ISet<GeneralSubtree> dns)
@@ -168,6 +201,38 @@ namespace Org.BouncyCastle.Pkix
             return union;
         }
 
+        #endregion
+
+        #region OtherName
+
+        private void CheckExcludedOtherName(ISet<OtherName> excluded, OtherName name)
+        {
+            if (IsOtherNameConstrained(excluded, name))
+                throw new PkixNameConstraintValidatorException("OtherName is from an excluded subtree.");
+        }
+
+        private void CheckPermittedOtherName(ISet<OtherName> permitted, OtherName name)
+        {
+            if (permitted != null && !IsOtherNameConstrained(permitted, name))
+                throw new PkixNameConstraintValidatorException("Subject OtherName is not from a permitted subtree.");
+        }
+
+        private bool IsOtherNameConstrained(ISet<OtherName> constraints, OtherName otherName)
+        {
+            foreach (OtherName constraint in constraints)
+            {
+                if (IsOtherNameConstrained(constraint, otherName))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsOtherNameConstrained(OtherName constraint, OtherName otherName)
+        {
+            return constraint.Equals(otherName);
+        }
+
         private ISet<OtherName> IntersectOtherName(ISet<OtherName> permitted, ISet<GeneralSubtree> otherNames)
         {
             var intersect = new HashSet<OtherName>();
@@ -207,286 +272,36 @@ namespace Org.BouncyCastle.Pkix
             return union;
         }
 
-        private ISet<string> IntersectEmail(ISet<string> permitted, ISet<GeneralSubtree> emails)
-        {
-            var intersect = new HashSet<string>();
-            foreach (GeneralSubtree subtree1 in emails)
-            {
-                string email = ExtractNameAsString(subtree1.Base);
+        #endregion
 
-                if (permitted == null)
-                {
-                    if (email != null)
-                    {
-                        intersect.Add(email);
-                    }
-                }
-                else
-                {
-                    foreach (string _permitted in permitted)
-                    {
-                        IntersectEmail(email, _permitted, intersect);
-                    }
-                }
-            }
-            return intersect;
+        #region Email
+
+        private void CheckExcludedEmail(ISet<string> excluded, string email)
+        {
+            if (IsEmailConstrained(excluded, email))
+                throw new PkixNameConstraintValidatorException("Email address is from an excluded subtree.");
         }
 
-        private ISet<string> UnionEmail(ISet<string> excluded, string email)
+        private void CheckPermittedEmail(ISet<string> permitted, string email)
         {
-            if (excluded.Count < 1)
+            if (permitted != null
+                && !(email.Length == 0 && permitted.Count < 1)
+                && !IsEmailConstrained(permitted, email))
             {
-                if (email == null)
-                    return excluded;
-
-                excluded.Add(email);
-                return excluded;
+                throw new PkixNameConstraintValidatorException(
+                    "Subject email address is not from a permitted subtree.");
             }
-
-            var union = new HashSet<string>();
-            foreach (string _excluded in excluded)
-            {
-                UnionEmail(_excluded, email, union);
-            }
-            return union;
         }
 
-        /**
-         * Returns the intersection of the permitted IP ranges in
-         * <code>permitted</code> with <code>ip</code>.
-         *
-         * @param permitted A <code>Set</code> of permitted IP addresses with
-         *                  their subnet mask as byte arrays.
-         * @param ips       The IP address with its subnet mask.
-         * @return The <code>Set</code> of permitted IP ranges intersected with
-         *         <code>ip</code>.
-         */
-        private ISet<byte[]> IntersectIP(ISet<byte[]> permitted, ISet<GeneralSubtree> ips)
+        private bool IsEmailConstrained(ISet<string> constraints, string email)
         {
-            var intersect = new HashSet<byte[]>();
-            foreach (GeneralSubtree subtree in ips)
+            foreach (string constraint in constraints)
             {
-                byte[] ip = Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets();
-                if (permitted == null)
-                {
-                    if (ip != null)
-                    {
-                        intersect.Add(ip);
-                    }
-                }
-                else
-                {
-                    foreach (byte[] _permitted in permitted)
-                    {
-                        intersect.UnionWith(IntersectIPRange(_permitted, ip));
-                    }
-                }
-            }
-            return intersect;
-        }
-
-        /**
-         * Returns the union of the excluded IP ranges in <code>excluded</code>
-         * with <code>ip</code>.
-         *
-         * @param excluded A <code>Set</code> of excluded IP addresses with their
-         *                 subnet mask as byte arrays.
-         * @param ip       The IP address with its subnet mask.
-         * @return The <code>Set</code> of excluded IP ranges unified with
-         *         <code>ip</code> as byte arrays.
-         */
-        private ISet<byte[]> UnionIP(ISet<byte[]> excluded, byte[] ip)
-        {
-            if (excluded.Count < 1)
-            {
-                if (ip == null)
-                    return excluded;
-
-                excluded.Add(ip);
-                return excluded;
-            }
-
-            var union = new HashSet<byte[]>();
-            foreach (byte[] _excluded in excluded)
-            {
-                union.UnionWith(UnionIPRange(_excluded, ip));
-            }
-            return union;
-        }
-
-        /**
-         * Calculates the union if two IP ranges.
-         *
-         * @param ipWithSubmask1 The first IP address with its subnet mask.
-         * @param ipWithSubmask2 The second IP address with its subnet mask.
-         * @return A <code>Set</code> with the union of both addresses.
-         */
-        private ISet<byte[]> UnionIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
-        {
-            var set = new HashSet<byte[]>();
-            // difficult, adding always all IPs is not wrong
-            if (Arrays.AreEqual(ipWithSubmask1, ipWithSubmask2))
-            {
-                set.Add(ipWithSubmask1);
-            }
-            else
-            {
-                set.Add(ipWithSubmask1);
-                set.Add(ipWithSubmask2);
-            }
-            return set;
-        }
-
-        /**
-         * Calculates the interesction if two IP ranges.
-         *
-         * @param ipWithSubmask1 The first IP address with its subnet mask.
-         * @param ipWithSubmask2 The second IP address with its subnet mask.
-         * @return A <code>Set</code> with the single IP address with its subnet
-         *         mask as a byte array or an empty <code>Set</code>.
-         */
-        private ISet<byte[]> IntersectIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
-        {
-            if (ipWithSubmask1.Length != ipWithSubmask2.Length)
-            {
-                //Collections.EMPTY_SET;
-                return new HashSet<byte[]>();
-            }
-
-            byte[][] temp = ExtractIPsAndSubnetMasks(ipWithSubmask1, ipWithSubmask2);
-            byte[] ip1 = temp[0];
-            byte[] subnetmask1 = temp[1];
-            byte[] ip2 = temp[2];
-            byte[] subnetmask2 = temp[3];
-
-            byte[][] minMax = MinMaxIPs(ip1, subnetmask1, ip2, subnetmask2);
-            byte[] min;
-            byte[] max;
-            max = Min(minMax[1], minMax[3]);
-            min = Max(minMax[0], minMax[2]);
-
-            // minimum IP address must be bigger than max
-            if (CompareTo(min, max) == 1)
-            {
-                //return Collections.EMPTY_SET;
-                return new HashSet<byte[]>();
-            }
-            // OR keeps all significant bits
-            byte[] ip = Or(minMax[0], minMax[2]);
-            byte[] subnetmask = Or(subnetmask1, subnetmask2);
-
-            //return new HashSet( ICollectionsingleton(IpWithSubnetMask(ip, subnetmask));
-            var hs = new HashSet<byte[]>();
-            hs.Add(IpWithSubnetMask(ip, subnetmask));
-
-            return hs;
-        }
-
-        /**
-         * Concatenates the IP address with its subnet mask.
-         *
-         * @param ip         The IP address.
-         * @param subnetMask Its subnet mask.
-         * @return The concatenated IP address with its subnet mask.
-         */
-        private byte[] IpWithSubnetMask(byte[] ip, byte[] subnetMask)
-        {
-            int ipLength = ip.Length;
-            byte[] temp = new byte[ipLength * 2];
-            Array.Copy(ip, 0, temp, 0, ipLength);
-            Array.Copy(subnetMask, 0, temp, ipLength, ipLength);
-            return temp;
-        }
-
-        /**
-         * Splits the IP addresses and their subnet mask.
-         *
-         * @param ipWithSubmask1 The first IP address with the subnet mask.
-         * @param ipWithSubmask2 The second IP address with the subnet mask.
-         * @return An array with two elements. Each element contains the IP address
-         *         and the subnet mask in this order.
-         */
-        private byte[][] ExtractIPsAndSubnetMasks(
-            byte[] ipWithSubmask1,
-            byte[] ipWithSubmask2)
-        {
-            int ipLength = ipWithSubmask1.Length / 2;
-            byte[] ip1 = new byte[ipLength];
-            byte[] subnetmask1 = new byte[ipLength];
-            Array.Copy(ipWithSubmask1, 0, ip1, 0, ipLength);
-            Array.Copy(ipWithSubmask1, ipLength, subnetmask1, 0, ipLength);
-
-            byte[] ip2 = new byte[ipLength];
-            byte[] subnetmask2 = new byte[ipLength];
-            Array.Copy(ipWithSubmask2, 0, ip2, 0, ipLength);
-            Array.Copy(ipWithSubmask2, ipLength, subnetmask2, 0, ipLength);
-            return new byte[][]{ ip1, subnetmask1, ip2, subnetmask2 };
-        }
-
-        /**
-         * Based on the two IP addresses and their subnet masks the IP range is
-         * computed for each IP address - subnet mask pair and returned as the
-         * minimum IP address and the maximum address of the range.
-         *
-         * @param ip1         The first IP address.
-         * @param subnetmask1 The subnet mask of the first IP address.
-         * @param ip2         The second IP address.
-         * @param subnetmask2 The subnet mask of the second IP address.
-         * @return A array with two elements. The first/second element contains the
-         *         min and max IP address of the first/second IP address and its
-         *         subnet mask.
-         */
-        private byte[][] MinMaxIPs(
-            byte[] ip1,
-            byte[] subnetmask1,
-            byte[] ip2,
-            byte[] subnetmask2)
-        {
-            int ipLength = ip1.Length;
-            byte[] min1 = new byte[ipLength];
-            byte[] max1 = new byte[ipLength];
-
-            byte[] min2 = new byte[ipLength];
-            byte[] max2 = new byte[ipLength];
-
-            for (int i = 0; i < ipLength; i++)
-            {
-                min1[i] = (byte)(ip1[i] & subnetmask1[i]);
-                max1[i] = (byte)(ip1[i] & subnetmask1[i] | ~subnetmask1[i]);
-
-                min2[i] = (byte)(ip2[i] & subnetmask2[i]);
-                max2[i] = (byte)(ip2[i] & subnetmask2[i] | ~subnetmask2[i]);
-            }
-
-            return new byte[][]{ min1, max1, min2, max2 };
-        }
-
-        private bool IsOtherNameConstrained(OtherName constraint, OtherName otherName)
-        {
-            return constraint.Equals(otherName);
-        }
-
-        private bool IsOtherNameConstrained(ISet<OtherName> constraints, OtherName otherName)
-        {
-            foreach (OtherName constraint in constraints)
-            {
-                if (IsOtherNameConstrained(constraint, otherName))
+                if (IsEmailConstrained(constraint, email))
                     return true;
             }
 
             return false;
-        }
-
-        private void CheckPermittedOtherName(ISet<OtherName> permitted, OtherName name)
-        {
-            if (permitted != null && !IsOtherNameConstrained(permitted, name))
-                throw new PkixNameConstraintValidatorException("Subject OtherName is not from a permitted subtree.");
-        }
-
-        private void CheckExcludedOtherName(ISet<OtherName> excluded, OtherName name)
-        {
-            if (IsOtherNameConstrained(excluded, name))
-                throw new PkixNameConstraintValidatorException("OtherName is from an excluded subtree.");
         }
 
         private bool IsEmailConstrained(string constraint, string email)
@@ -512,249 +327,148 @@ namespace Org.BouncyCastle.Pkix
             return false;
         }
 
-        private bool IsEmailConstrained(ISet<string> constraints, string email)
+        private ISet<string> IntersectEmail(ISet<string> permitted, ISet<GeneralSubtree> emails)
         {
-            foreach (string constraint in constraints)
+            var intersect = new HashSet<string>();
+            foreach (GeneralSubtree subtree1 in emails)
             {
-                if (IsEmailConstrained(constraint, email))
-                    return true;
-            }
+                string email = ExtractNameAsString(subtree1.Base);
 
-            return false;
-        }
-
-        private void CheckPermittedEmail(ISet<string> permitted, string email)
-        {
-            if (permitted != null
-                && !(email.Length == 0 && permitted.Count < 1)
-                && !IsEmailConstrained(permitted, email))
-            {
-                throw new PkixNameConstraintValidatorException(
-                    "Subject email address is not from a permitted subtree.");
-            }
-        }
-
-        private void CheckExcludedEmail(ISet<string> excluded, string email)
-        {
-            if (IsEmailConstrained(excluded, email))
-                throw new PkixNameConstraintValidatorException("Email address is from an excluded subtree.");
-        }
-
-        private bool IsDnsConstrained(string constraint, string dns)
-        {
-            return WithinDomain(dns, constraint) || Platform.EqualsIgnoreCase(dns, constraint);
-        }
-
-        private bool IsDnsConstrained(ISet<string> constraints, string dns)
-        {
-            foreach (var constraint in constraints)
-            {
-                if (IsDnsConstrained(constraint, dns))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void CheckPermittedDns(ISet<string> permitted, string dns)
-        {
-            if (permitted != null
-                && !(dns.Length == 0 && permitted.Count < 1)
-                && !IsDnsConstrained(permitted, dns))
-            {
-                throw new PkixNameConstraintValidatorException("DNS is not from a permitted subtree.");
-            }
-        }
-
-        private void CheckExcludedDns(ISet<string> excluded, string dns)
-        {
-            if (IsDnsConstrained(excluded, dns))
-                throw new PkixNameConstraintValidatorException("DNS is from an excluded subtree.");
-        }
-
-        private bool IsDirectoryConstrained(ISet<Asn1Sequence> constraints, Asn1Sequence directory)
-        {
-            foreach (var constraint in constraints)
-            {
-                if (WithinDNSubtree(directory, constraint))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void CheckPermittedDirectory(ISet<Asn1Sequence> permitted, Asn1Sequence directory)
-        {
-            if (permitted != null
-                && !(directory.Count == 0 && permitted.Count < 1)
-                && !IsDirectoryConstrained(permitted, directory))
-            {
-                throw new PkixNameConstraintValidatorException(
-                    "Subject distinguished name is not from a permitted subtree");
-            }
-        }
-
-        private void CheckExcludedDirectory(ISet<Asn1Sequence> excluded, Asn1Sequence directory)
-        {
-            if (IsDirectoryConstrained(excluded, directory))
-            {
-                throw new PkixNameConstraintValidatorException(
-                    "Subject distinguished name is from an excluded subtree");
-            }
-        }
-
-        private bool IsUriConstrained(string constraint, string uri)
-        {
-            string host = ExtractHostFromURL(uri);
-
-            if (Platform.StartsWith(constraint, "."))
-            {
-                // in sub domain or domain
-                return WithinDomain(host, constraint);
-            }
-
-            // a host
-            return Platform.EqualsIgnoreCase(host, constraint);
-        }
-
-        private bool IsUriConstrained(ISet<string> constraints, string uri)
-        {
-            foreach (string constraint in constraints)
-            {
-                if (IsUriConstrained(constraint, uri))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void CheckPermittedUri(ISet<string> permitted, string uri)
-        {
-            if (permitted != null
-                && !(uri.Length == 0 && permitted.Count < 1)
-                && !IsUriConstrained(permitted, uri))
-            {
-                throw new PkixNameConstraintValidatorException("URI is not from a permitted subtree.");
-            }
-        }
-
-        private void CheckExcludedUri(ISet<string> excluded, string uri)
-        {
-            if (IsUriConstrained(excluded, uri))
-                throw new PkixNameConstraintValidatorException("URI is from an excluded subtree.");
-        }
-
-        /**
-         * Checks if the IP address <code>ip</code> is constrained by
-         * <code>constraint</code>.
-         *
-         * @param constraint The constraint. This is an IP address concatenated with
-         *                   its subnetmask.
-         * @param ip         The IP address.
-         * @return <code>true</code> if constrained, <code>false</code>
-         *         otherwise.
-         */
-        private bool IsIPConstrained(byte[] constraint, byte[] ip)
-        {
-            int ipLength = ip.Length;
-            if (ipLength != (constraint.Length / 2))
-                return false;
-
-            byte[] subnetMask = new byte[ipLength];
-            Array.Copy(constraint, ipLength, subnetMask, 0, ipLength);
-
-            byte[] permittedSubnetAddress = new byte[ipLength];
-
-            byte[] ipSubnetAddress = new byte[ipLength];
-
-            // the resulting IP address by applying the subnet mask
-            for (int i = 0; i < ipLength; i++)
-            {
-                permittedSubnetAddress[i] = (byte)(constraint[i] & subnetMask[i]);
-                ipSubnetAddress[i] = (byte)(ip[i] & subnetMask[i]);
-            }
-
-            return Arrays.AreEqual(permittedSubnetAddress, ipSubnetAddress);
-        }
-
-        private bool IsIPConstrained(ISet<byte[]> constraints, byte[] ip)
-        {
-            foreach (byte[] constraint in constraints)
-            {
-                if (IsIPConstrained(constraint, ip))
-                    return true;
-            }
-
-            return false;
-        }
-
-        /**
-         * Checks if the IP <code>ip</code> is included in the permitted ISet
-         * <code>permitted</code>.
-         *
-         * @param permitted A <code>Set</code> of permitted IP addresses with
-         *                  their subnet mask as byte arrays.
-         * @param ip        The IP address.
-         * @throws PkixNameConstraintValidatorException
-         *          if the IP is not permitted.
-         */
-        private void CheckPermittedIP(ISet<byte[]> permitted, byte[] ip)
-        {
-            if (permitted != null
-                && !(ip.Length == 0 && permitted.Count < 1)
-                && !IsIPConstrained(permitted, ip))
-            {
-                throw new PkixNameConstraintValidatorException("IP is not from a permitted subtree.");
-            }
-        }
-
-        /**
-         * Checks if the IP <code>ip</code> is included in the excluded ISet
-         * <code>excluded</code>.
-         *
-         * @param excluded A <code>Set</code> of excluded IP addresses with their
-         *                 subnet mask as byte arrays.
-         * @param ip       The IP address.
-         * @throws PkixNameConstraintValidatorException
-         *          if the IP is excluded.
-         */
-        private void CheckExcludedIP(ISet<byte[]> excluded, byte[] ip)
-        {
-            if (IsIPConstrained(excluded, ip))
-                throw new PkixNameConstraintValidatorException("IP is from an excluded subtree.");
-        }
-
-        private bool WithinDomain(string testDomain, string domain)
-        {
-            string tempDomain = domain;
-            if (Platform.StartsWith(tempDomain, "."))
-            {
-                tempDomain = tempDomain.Substring(1);
-            }
-
-            string[] domainParts = tempDomain.Split('.'); // Strings.split(tempDomain, '.');
-            string[] testDomainParts = testDomain.Split('.'); // Strings.split(testDomain, '.');
-
-            // must have at least one subdomain
-            if (testDomainParts.Length <= domainParts.Length)
-                return false;
-
-            int d = testDomainParts.Length - domainParts.Length;
-            for (int i = -1; i < domainParts.Length; i++)
-            {
-                if (i == -1)
+                if (permitted == null)
                 {
-                    if (testDomainParts[i + d].Length < 1)
+                    if (email != null)
                     {
-                        return false;
+                        intersect.Add(email);
                     }
                 }
-                else if (!Platform.EqualsIgnoreCase(testDomainParts[i + d], domainParts[i]))
+                else
                 {
-                    return false;
+                    foreach (string _permitted in permitted)
+                    {
+                        IntersectEmail(email, _permitted, intersect);
+                    }
                 }
             }
-            return true;
+            return intersect;
+        }
+
+        /**
+         * The most restricting part from <code>email1</code> and
+         * <code>email2</code> is added to the intersection <code>intersect</code>.
+         *
+         * @param email1    Email address constraint 1.
+         * @param email2    Email address constraint 2.
+         * @param intersect The intersection.
+         */
+        private void IntersectEmail(string email1, string email2, ISet<string> intersect)
+        {
+            // email1 is a particular address
+            if (email1.IndexOf('@') != -1)
+            {
+                string _sub = email1.Substring(email1.IndexOf('@') + 1);
+                // both are a particular mailbox
+                if (email2.IndexOf('@') != -1)
+                {
+                    if (Platform.EqualsIgnoreCase(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+                // email2 specifies a domain
+                else if (Platform.StartsWith(email2, "."))
+                {
+                    if (WithinDomain(_sub, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+                // email2 specifies a particular host
+                else
+                {
+                    if (Platform.EqualsIgnoreCase(_sub, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+            }
+            // email specifies a domain
+            else if (Platform.StartsWith(email1, "."))
+            {
+                if (email2.IndexOf('@') != -1)
+                {
+                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    if (WithinDomain(_sub, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+                // email2 specifies a domain
+                else if (Platform.StartsWith(email2, "."))
+                {
+                    if (WithinDomain(email1, email2) || Platform.EqualsIgnoreCase(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                    else if (WithinDomain(email2, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+                else
+                {
+                    if (WithinDomain(email2, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+            }
+            // email1 specifies a host
+            else
+            {
+                if (email2.IndexOf('@') != -1)
+                {
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    if (Platform.EqualsIgnoreCase(_sub, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+                // email2 specifies a domain
+                else if (Platform.StartsWith(email2, "."))
+                {
+                    if (WithinDomain(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+                // email2 specifies a particular host
+                else
+                {
+                    if (Platform.EqualsIgnoreCase(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+            }
+        }
+
+        private ISet<string> UnionEmail(ISet<string> excluded, string email)
+        {
+            if (excluded.Count < 1)
+            {
+                if (email == null)
+                    return excluded;
+
+                excluded.Add(email);
+                return excluded;
+            }
+
+            var union = new HashSet<string>();
+            foreach (string _excluded in excluded)
+            {
+                UnionEmail(_excluded, email, union);
+            }
+            return union;
         }
 
         /**
@@ -903,6 +617,645 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        #endregion
+
+        #region IP
+
+        /**
+         * Checks if the IP <code>ip</code> is included in the excluded ISet
+         * <code>excluded</code>.
+         *
+         * @param excluded A <code>Set</code> of excluded IP addresses with their
+         *                 subnet mask as byte arrays.
+         * @param ip       The IP address.
+         * @throws PkixNameConstraintValidatorException
+         *          if the IP is excluded.
+         */
+        private void CheckExcludedIP(ISet<byte[]> excluded, byte[] ip)
+        {
+            if (IsIPConstrained(excluded, ip))
+                throw new PkixNameConstraintValidatorException("IP is from an excluded subtree.");
+        }
+
+        /**
+         * Checks if the IP <code>ip</code> is included in the permitted ISet
+         * <code>permitted</code>.
+         *
+         * @param permitted A <code>Set</code> of permitted IP addresses with
+         *                  their subnet mask as byte arrays.
+         * @param ip        The IP address.
+         * @throws PkixNameConstraintValidatorException
+         *          if the IP is not permitted.
+         */
+        private void CheckPermittedIP(ISet<byte[]> permitted, byte[] ip)
+        {
+            if (permitted != null
+                && !(ip.Length == 0 && permitted.Count < 1)
+                && !IsIPConstrained(permitted, ip))
+            {
+                throw new PkixNameConstraintValidatorException("IP is not from a permitted subtree.");
+            }
+        }
+
+        private bool IsIPConstrained(ISet<byte[]> constraints, byte[] ip)
+        {
+            foreach (byte[] constraint in constraints)
+            {
+                if (IsIPConstrained(constraint, ip))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /**
+         * Checks if the IP address <code>ip</code> is constrained by
+         * <code>constraint</code>.
+         *
+         * @param constraint The constraint. This is an IP address concatenated with
+         *                   its subnetmask.
+         * @param ip         The IP address.
+         * @return <code>true</code> if constrained, <code>false</code>
+         *         otherwise.
+         */
+        private bool IsIPConstrained(byte[] constraint, byte[] ip)
+        {
+            int ipLength = ip.Length;
+            if (ipLength != (constraint.Length / 2))
+                return false;
+
+            byte[] subnetMask = new byte[ipLength];
+            Array.Copy(constraint, ipLength, subnetMask, 0, ipLength);
+
+            byte[] permittedSubnetAddress = new byte[ipLength];
+
+            byte[] ipSubnetAddress = new byte[ipLength];
+
+            // the resulting IP address by applying the subnet mask
+            for (int i = 0; i < ipLength; i++)
+            {
+                permittedSubnetAddress[i] = (byte)(constraint[i] & subnetMask[i]);
+                ipSubnetAddress[i] = (byte)(ip[i] & subnetMask[i]);
+            }
+
+            return Arrays.AreEqual(permittedSubnetAddress, ipSubnetAddress);
+        }
+
+        /**
+         * Returns the intersection of the permitted IP ranges in
+         * <code>permitted</code> with <code>ip</code>.
+         *
+         * @param permitted A <code>Set</code> of permitted IP addresses with
+         *                  their subnet mask as byte arrays.
+         * @param ips       The IP address with its subnet mask.
+         * @return The <code>Set</code> of permitted IP ranges intersected with
+         *         <code>ip</code>.
+         */
+        private ISet<byte[]> IntersectIP(ISet<byte[]> permitted, ISet<GeneralSubtree> ips)
+        {
+            var intersect = new HashSet<byte[]>();
+            foreach (GeneralSubtree subtree in ips)
+            {
+                byte[] ip = Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets();
+                if (permitted == null)
+                {
+                    if (ip != null)
+                    {
+                        intersect.Add(ip);
+                    }
+                }
+                else
+                {
+                    foreach (byte[] _permitted in permitted)
+                    {
+                        intersect.UnionWith(IntersectIPRange(_permitted, ip));
+                    }
+                }
+            }
+            return intersect;
+        }
+
+        /**
+         * Calculates the interesction if two IP ranges.
+         *
+         * @param ipWithSubmask1 The first IP address with its subnet mask.
+         * @param ipWithSubmask2 The second IP address with its subnet mask.
+         * @return A <code>Set</code> with the single IP address with its subnet
+         *         mask as a byte array or an empty <code>Set</code>.
+         */
+        private ISet<byte[]> IntersectIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
+        {
+            if (ipWithSubmask1.Length != ipWithSubmask2.Length)
+                return new HashSet<byte[]>();
+
+            byte[][] temp = ExtractIPsAndSubnetMasks(ipWithSubmask1, ipWithSubmask2);
+            byte[] ip1 = temp[0];
+            byte[] subnetmask1 = temp[1];
+            byte[] ip2 = temp[2];
+            byte[] subnetmask2 = temp[3];
+
+            byte[][] minMax = MinMaxIPs(ip1, subnetmask1, ip2, subnetmask2);
+            byte[] min;
+            byte[] max;
+            max = Min(minMax[1], minMax[3]);
+            min = Max(minMax[0], minMax[2]);
+
+            // minimum IP address must be bigger than max
+            if (CompareTo(min, max) == 1)
+            {
+                //return Collections.EMPTY_SET;
+                return new HashSet<byte[]>();
+            }
+            // OR keeps all significant bits
+            byte[] ip = Or(minMax[0], minMax[2]);
+            byte[] subnetmask = Or(subnetmask1, subnetmask2);
+
+            //return new HashSet( ICollectionsingleton(IpWithSubnetMask(ip, subnetmask));
+            var hs = new HashSet<byte[]>();
+            hs.Add(IpWithSubnetMask(ip, subnetmask));
+
+            return hs;
+        }
+
+        /**
+         * Returns the union of the excluded IP ranges in <code>excluded</code>
+         * with <code>ip</code>.
+         *
+         * @param excluded A <code>Set</code> of excluded IP addresses with their
+         *                 subnet mask as byte arrays.
+         * @param ip       The IP address with its subnet mask.
+         * @return The <code>Set</code> of excluded IP ranges unified with
+         *         <code>ip</code> as byte arrays.
+         */
+        private ISet<byte[]> UnionIP(ISet<byte[]> excluded, byte[] ip)
+        {
+            if (excluded.Count < 1)
+            {
+                if (ip == null)
+                    return excluded;
+
+                excluded.Add(ip);
+                return excluded;
+            }
+
+            var union = new HashSet<byte[]>();
+            foreach (byte[] _excluded in excluded)
+            {
+                union.UnionWith(UnionIPRange(_excluded, ip));
+            }
+            return union;
+        }
+
+        /**
+         * Calculates the union if two IP ranges.
+         *
+         * @param ipWithSubmask1 The first IP address with its subnet mask.
+         * @param ipWithSubmask2 The second IP address with its subnet mask.
+         * @return A <code>Set</code> with the union of both addresses.
+         */
+        private ISet<byte[]> UnionIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
+        {
+            var set = new HashSet<byte[]>();
+            // difficult, adding always all IPs is not wrong
+            if (Arrays.AreEqual(ipWithSubmask1, ipWithSubmask2))
+            {
+                set.Add(ipWithSubmask1);
+            }
+            else
+            {
+                set.Add(ipWithSubmask1);
+                set.Add(ipWithSubmask2);
+            }
+            return set;
+        }
+
+        /**
+         * Concatenates the IP address with its subnet mask.
+         *
+         * @param ip         The IP address.
+         * @param subnetMask Its subnet mask.
+         * @return The concatenated IP address with its subnet mask.
+         */
+        private byte[] IpWithSubnetMask(byte[] ip, byte[] subnetMask)
+        {
+            int ipLength = ip.Length;
+            byte[] temp = new byte[ipLength * 2];
+            Array.Copy(ip, 0, temp, 0, ipLength);
+            Array.Copy(subnetMask, 0, temp, ipLength, ipLength);
+            return temp;
+        }
+
+        /**
+         * Splits the IP addresses and their subnet mask.
+         *
+         * @param ipWithSubmask1 The first IP address with the subnet mask.
+         * @param ipWithSubmask2 The second IP address with the subnet mask.
+         * @return An array with two elements. Each element contains the IP address
+         *         and the subnet mask in this order.
+         */
+        private byte[][] ExtractIPsAndSubnetMasks(
+            byte[] ipWithSubmask1,
+            byte[] ipWithSubmask2)
+        {
+            int ipLength = ipWithSubmask1.Length / 2;
+            byte[] ip1 = new byte[ipLength];
+            byte[] subnetmask1 = new byte[ipLength];
+            Array.Copy(ipWithSubmask1, 0, ip1, 0, ipLength);
+            Array.Copy(ipWithSubmask1, ipLength, subnetmask1, 0, ipLength);
+
+            byte[] ip2 = new byte[ipLength];
+            byte[] subnetmask2 = new byte[ipLength];
+            Array.Copy(ipWithSubmask2, 0, ip2, 0, ipLength);
+            Array.Copy(ipWithSubmask2, ipLength, subnetmask2, 0, ipLength);
+            return new byte[][]{ ip1, subnetmask1, ip2, subnetmask2 };
+        }
+
+        /**
+         * Based on the two IP addresses and their subnet masks the IP range is
+         * computed for each IP address - subnet mask pair and returned as the
+         * minimum IP address and the maximum address of the range.
+         *
+         * @param ip1         The first IP address.
+         * @param subnetmask1 The subnet mask of the first IP address.
+         * @param ip2         The second IP address.
+         * @param subnetmask2 The subnet mask of the second IP address.
+         * @return A array with two elements. The first/second element contains the
+         *         min and max IP address of the first/second IP address and its
+         *         subnet mask.
+         */
+        private byte[][] MinMaxIPs(
+            byte[] ip1,
+            byte[] subnetmask1,
+            byte[] ip2,
+            byte[] subnetmask2)
+        {
+            int ipLength = ip1.Length;
+            byte[] min1 = new byte[ipLength];
+            byte[] max1 = new byte[ipLength];
+
+            byte[] min2 = new byte[ipLength];
+            byte[] max2 = new byte[ipLength];
+
+            for (int i = 0; i < ipLength; i++)
+            {
+                min1[i] = (byte)(ip1[i] & subnetmask1[i]);
+                max1[i] = (byte)(ip1[i] & subnetmask1[i] | ~subnetmask1[i]);
+
+                min2[i] = (byte)(ip2[i] & subnetmask2[i]);
+                max2[i] = (byte)(ip2[i] & subnetmask2[i] | ~subnetmask2[i]);
+            }
+
+            return new byte[][]{ min1, max1, min2, max2 };
+        }
+
+        /**
+         * Returns the maximum IP address.
+         *
+         * @param ip1 The first IP address.
+         * @param ip2 The second IP address.
+         * @return The maximum IP address.
+         */
+        private static byte[] Max(byte[] ip1, byte[] ip2)
+        {
+            for (int i = 0; i < ip1.Length; i++)
+            {
+                if (ip1[i] > ip2[i])
+                    return ip1;
+            }
+            return ip2;
+        }
+
+        /**
+         * Returns the minimum IP address.
+         *
+         * @param ip1 The first IP address.
+         * @param ip2 The second IP address.
+         * @return The minimum IP address.
+         */
+        private static byte[] Min(byte[] ip1, byte[] ip2)
+        {
+            for (int i = 0; i < ip1.Length; i++)
+            {
+                if (ip1[i] < ip2[i])
+                    return ip1;
+            }
+            return ip2;
+        }
+
+        /**
+         * Compares IP address <code>ip1</code> with <code>ip2</code>. If ip1
+         * is equal to ip2 0 is returned. If ip1 is bigger 1 is returned, -1
+         * otherwise.
+         *
+         * @param ip1 The first IP address.
+         * @param ip2 The second IP address.
+         * @return 0 if ip1 is equal to ip2, 1 if ip1 is bigger, -1 otherwise.
+         */
+        private static int CompareTo(byte[] ip1, byte[] ip2)
+        {
+            if (Arrays.AreEqual(ip1, ip2))
+                return 0;
+            if (Arrays.AreEqual(Max(ip1, ip2), ip1))
+                return 1;
+            return -1;
+        }
+
+        /**
+         * Returns the logical OR of the IP addresses <code>ip1</code> and
+         * <code>ip2</code>.
+         *
+         * @param ip1 The first IP address.
+         * @param ip2 The second IP address.
+         * @return The OR of <code>ip1</code> and <code>ip2</code>.
+         */
+        private static byte[] Or(byte[] ip1, byte[] ip2)
+        {
+            byte[] temp = new byte[ip1.Length];
+            for (int i = 0; i < ip1.Length; i++)
+            {
+                temp[i] = (byte)(ip1[i] | ip2[i]);
+            }
+            return temp;
+        }
+
+        #endregion
+
+        #region Dns
+
+        private void CheckExcludedDns(ISet<string> excluded, string dns)
+        {
+            if (IsDnsConstrained(excluded, dns))
+                throw new PkixNameConstraintValidatorException("DNS is from an excluded subtree.");
+        }
+
+        private void CheckPermittedDns(ISet<string> permitted, string dns)
+        {
+            if (permitted != null
+                && !(dns.Length == 0 && permitted.Count < 1)
+                && !IsDnsConstrained(permitted, dns))
+            {
+                throw new PkixNameConstraintValidatorException("DNS is not from a permitted subtree.");
+            }
+        }
+
+        private bool IsDnsConstrained(ISet<string> constraints, string dns)
+        {
+            foreach (var constraint in constraints)
+            {
+                if (IsDnsConstrained(constraint, dns))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsDnsConstrained(string constraint, string dns)
+        {
+            return WithinDomain(dns, constraint) || Platform.EqualsIgnoreCase(dns, constraint);
+        }
+
+        private ISet<string> IntersectDns(ISet<string> permitted, ISet<GeneralSubtree> dnss)
+        {
+            var intersect = new HashSet<string>();
+            foreach (GeneralSubtree subtree in dnss)
+            {
+                string dns = ExtractNameAsString(subtree.Base);
+                if (permitted == null)
+                {
+                    if (dns != null)
+                    {
+                        intersect.Add(dns);
+                    }
+                }
+                else
+                {
+                    foreach (string _permitted in permitted)
+                    {
+                        if (WithinDomain(_permitted, dns))
+                        {
+                            intersect.Add(_permitted);
+                        }
+                        else if (WithinDomain(dns, _permitted))
+                        {
+                            intersect.Add(dns);
+                        }
+                    }
+                }
+            }
+            return intersect;
+        }
+
+        private ISet<string> UnionDns(ISet<string> excluded, string dns)
+        {
+            if (excluded.Count < 1)
+            {
+                if (dns == null)
+                    return excluded;
+
+                excluded.Add(dns);
+                return excluded;
+            }
+
+            var union = new HashSet<string>();
+            foreach (string _excluded in excluded)
+            {
+                if (WithinDomain(_excluded, dns))
+                {
+                    union.Add(dns);
+                }
+                else if (WithinDomain(dns, _excluded))
+                {
+                    union.Add(_excluded);
+                }
+                else
+                {
+                    union.Add(_excluded);
+                    union.Add(dns);
+                }
+            }
+            return union;
+        }
+
+        #endregion
+
+        #region Uri
+
+        private void CheckExcludedUri(ISet<string> excluded, string uri)
+        {
+            if (IsUriConstrained(excluded, uri))
+                throw new PkixNameConstraintValidatorException("URI is from an excluded subtree.");
+        }
+
+        private void CheckPermittedUri(ISet<string> permitted, string uri)
+        {
+            if (permitted != null
+                && !(uri.Length == 0 && permitted.Count < 1)
+                && !IsUriConstrained(permitted, uri))
+            {
+                throw new PkixNameConstraintValidatorException("URI is not from a permitted subtree.");
+            }
+        }
+
+        private bool IsUriConstrained(ISet<string> constraints, string uri)
+        {
+            foreach (string constraint in constraints)
+            {
+                if (IsUriConstrained(constraint, uri))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsUriConstrained(string constraint, string uri)
+        {
+            string host = ExtractHostFromURL(uri);
+
+            if (Platform.StartsWith(constraint, "."))
+            {
+                // in sub domain or domain
+                return WithinDomain(host, constraint);
+            }
+
+            // a host
+            return Platform.EqualsIgnoreCase(host, constraint);
+        }
+
+        private ISet<string> IntersectUri(ISet<string> permitted, ISet<GeneralSubtree> uris)
+        {
+            var intersect = new HashSet<string>();
+            foreach (GeneralSubtree subtree in uris)
+            {
+                string uri = ExtractNameAsString(subtree.Base);
+                if (permitted == null)
+                {
+                    if (uri != null)
+                    {
+                        intersect.Add(uri);
+                    }
+                }
+                else
+                {
+                    foreach (string _permitted in permitted)
+                    {
+                        IntersectUri(_permitted, uri, intersect);
+                    }
+                }
+            }
+            return intersect;
+        }
+
+        private void IntersectUri(string email1, string email2, ISet<string> intersect)
+        {
+            // email1 is a particular address
+            if (email1.IndexOf('@') != -1)
+            {
+                string _sub = email1.Substring(email1.IndexOf('@') + 1);
+                // both are a particular mailbox
+                if (email2.IndexOf('@') != -1)
+                {
+                    if (Platform.EqualsIgnoreCase(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+                // email2 specifies a domain
+                else if (Platform.StartsWith(email2, "."))
+                {
+                    if (WithinDomain(_sub, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+                // email2 specifies a particular host
+                else
+                {
+                    if (Platform.EqualsIgnoreCase(_sub, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+            }
+            // email specifies a domain
+            else if (Platform.StartsWith(email1, "."))
+            {
+                if (email2.IndexOf('@') != -1)
+                {
+                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    if (WithinDomain(_sub, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+                // email2 specifies a domain
+                else if (Platform.StartsWith(email2, "."))
+                {
+                    if (WithinDomain(email1, email2) || Platform.EqualsIgnoreCase(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                    else if (WithinDomain(email2, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+                else
+                {
+                    if (WithinDomain(email2, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+            }
+            // email1 specifies a host
+            else
+            {
+                if (email2.IndexOf('@') != -1)
+                {
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    if (Platform.EqualsIgnoreCase(_sub, email1))
+                    {
+                        intersect.Add(email2);
+                    }
+                }
+                // email2 specifies a domain
+                else if (Platform.StartsWith(email2, "."))
+                {
+                    if (WithinDomain(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+                // email2 specifies a particular host
+                else
+                {
+                    if (Platform.EqualsIgnoreCase(email1, email2))
+                    {
+                        intersect.Add(email1);
+                    }
+                }
+            }
+        }
+
+        private ISet<string> UnionUri(ISet<string> excluded, string uri)
+        {
+            if (excluded.Count < 1)
+            {
+                if (uri == null)
+                    return excluded;
+
+                excluded.Add(uri);
+                return excluded;
+            }
+
+            var union = new HashSet<string>();
+            foreach (string _excluded in excluded)
+            {
+                UnionUri(_excluded, uri, union);
+            }
+            return union;
+        }
+
         private void UnionUri(string email1, string email2, ISet<string> union)
         {
             // email1 is a particular address
@@ -1041,303 +1394,6 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        private ISet<string> IntersectDns(ISet<string> permitted, ISet<GeneralSubtree> dnss)
-        {
-            var intersect = new HashSet<string>();
-            foreach (GeneralSubtree subtree in dnss)
-            {
-                string dns = ExtractNameAsString(subtree.Base);
-                if (permitted == null)
-                {
-                    if (dns != null)
-                    {
-                        intersect.Add(dns);
-                    }
-                }
-                else
-                {
-                    foreach (string _permitted in permitted)
-                    {
-                        if (WithinDomain(_permitted, dns))
-                        {
-                            intersect.Add(_permitted);
-                        }
-                        else if (WithinDomain(dns, _permitted))
-                        {
-                            intersect.Add(dns);
-                        }
-                    }
-                }
-            }
-            return intersect;
-        }
-
-        private ISet<string> UnionDns(ISet<string> excluded, string dns)
-        {
-            if (excluded.Count < 1)
-            {
-                if (dns == null)
-                    return excluded;
-
-                excluded.Add(dns);
-                return excluded;
-            }
-
-            var union = new HashSet<string>();
-            foreach (string _excluded in excluded)
-            {
-                if (WithinDomain(_excluded, dns))
-                {
-                    union.Add(dns);
-                }
-                else if (WithinDomain(dns, _excluded))
-                {
-                    union.Add(_excluded);
-                }
-                else
-                {
-                    union.Add(_excluded);
-                    union.Add(dns);
-                }
-            }
-            return union;
-        }
-
-        /**
-         * The most restricting part from <code>email1</code> and
-         * <code>email2</code> is added to the intersection <code>intersect</code>.
-         *
-         * @param email1    Email address constraint 1.
-         * @param email2    Email address constraint 2.
-         * @param intersect The intersection.
-         */
-        private void IntersectEmail(string email1, string email2, ISet<string> intersect)
-        {
-            // email1 is a particular address
-            if (email1.IndexOf('@') != -1)
-            {
-                string _sub = email1.Substring(email1.IndexOf('@') + 1);
-                // both are a particular mailbox
-                if (email2.IndexOf('@') != -1)
-                {
-                    if (Platform.EqualsIgnoreCase(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-                // email2 specifies a domain
-                else if (Platform.StartsWith(email2, "."))
-                {
-                    if (WithinDomain(_sub, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-                // email2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(_sub, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-            }
-            // email specifies a domain
-            else if (Platform.StartsWith(email1, "."))
-            {
-                if (email2.IndexOf('@') != -1)
-                {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
-                    if (WithinDomain(_sub, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-                // email2 specifies a domain
-                else if (Platform.StartsWith(email2, "."))
-                {
-                    if (WithinDomain(email1, email2) || Platform.EqualsIgnoreCase(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                    else if (WithinDomain(email2, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-                else
-                {
-                    if (WithinDomain(email2, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-            }
-            // email1 specifies a host
-            else
-            {
-                if (email2.IndexOf('@') != -1)
-                {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
-                    if (Platform.EqualsIgnoreCase(_sub, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-                // email2 specifies a domain
-                else if (Platform.StartsWith(email2, "."))
-                {
-                    if (WithinDomain(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-                // email2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-            }
-        }
-
-        private ISet<string> IntersectUri(ISet<string> permitted, ISet<GeneralSubtree> uris)
-        {
-            var intersect = new HashSet<string>();
-            foreach (GeneralSubtree subtree in uris)
-            {
-                string uri = ExtractNameAsString(subtree.Base);
-                if (permitted == null)
-                {
-                    if (uri != null)
-                    {
-                        intersect.Add(uri);
-                    }
-                }
-                else
-                {
-                    foreach (string _permitted in permitted)
-                    {
-                        IntersectUri(_permitted, uri, intersect);
-                    }
-                }
-            }
-            return intersect;
-        }
-
-        private ISet<string> UnionUri(ISet<string> excluded, string uri)
-        {
-            if (excluded.Count < 1)
-            {
-                if (uri == null)
-                    return excluded;
-
-                excluded.Add(uri);
-                return excluded;
-            }
-
-            var union = new HashSet<string>();
-            foreach (string _excluded in excluded)
-            {
-                UnionUri(_excluded, uri, union);
-            }
-            return union;
-        }
-
-        private void IntersectUri(string email1, string email2, ISet<string> intersect)
-        {
-            // email1 is a particular address
-            if (email1.IndexOf('@') != -1)
-            {
-                string _sub = email1.Substring(email1.IndexOf('@') + 1);
-                // both are a particular mailbox
-                if (email2.IndexOf('@') != -1)
-                {
-                    if (Platform.EqualsIgnoreCase(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-                // email2 specifies a domain
-                else if (Platform.StartsWith(email2, "."))
-                {
-                    if (WithinDomain(_sub, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-                // email2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(_sub, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-            }
-            // email specifies a domain
-            else if (Platform.StartsWith(email1, "."))
-            {
-                if (email2.IndexOf('@') != -1)
-                {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
-                    if (WithinDomain(_sub, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-                // email2 specifies a domain
-                else if (Platform.StartsWith(email2, "."))
-                {
-                    if (WithinDomain(email1, email2) || Platform.EqualsIgnoreCase(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                    else if (WithinDomain(email2, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-                else
-                {
-                    if (WithinDomain(email2, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-            }
-            // email1 specifies a host
-            else
-            {
-                if (email2.IndexOf('@') != -1)
-                {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
-                    if (Platform.EqualsIgnoreCase(_sub, email1))
-                    {
-                        intersect.Add(email2);
-                    }
-                }
-                // email2 specifies a domain
-                else if (Platform.StartsWith(email2, "."))
-                {
-                    if (WithinDomain(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-                // email2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(email1, email2))
-                    {
-                        intersect.Add(email1);
-                    }
-                }
-            }
-        }
-
         private static string ExtractHostFromURL(string url)
         {
             // see RFC 1738
@@ -1363,6 +1419,39 @@ namespace Org.BouncyCastle.Pkix
                 sub = sub.Substring(0, sub.IndexOf('/'));
             }
             return sub;
+        }
+
+        #endregion
+
+        private bool WithinDomain(string testDomain, string domain)
+        {
+            string tempDomain = domain;
+            if (Platform.StartsWith(tempDomain, "."))
+            {
+                tempDomain = tempDomain.Substring(1);
+            }
+
+            string[] domainParts = tempDomain.Split('.'); // Strings.split(tempDomain, '.');
+            string[] testDomainParts = testDomain.Split('.'); // Strings.split(testDomain, '.');
+
+            // must have at least one subdomain
+            if (testDomainParts.Length <= domainParts.Length)
+                return false;
+
+            int d = testDomainParts.Length - domainParts.Length;
+            for (int i = -1; i < domainParts.Length; i++)
+            {
+                if (i == -1)
+                {
+                    if (testDomainParts[i + d].Length < 1)
+                        return false;
+                }
+                else if (!Platform.EqualsIgnoreCase(testDomainParts[i + d], domainParts[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <exception cref="PkixNameConstraintValidatorException"/>
@@ -1567,84 +1656,6 @@ namespace Org.BouncyCastle.Pkix
                     Asn1OctetString.GetInstance(subTreeBase.Name).GetOctets());
                 break;
             }
-        }
-
-        /**
-         * Returns the maximum IP address.
-         *
-         * @param ip1 The first IP address.
-         * @param ip2 The second IP address.
-         * @return The maximum IP address.
-         */
-        private static byte[] Max(byte[] ip1, byte[] ip2)
-        {
-            for (int i = 0; i < ip1.Length; i++)
-            {
-                if ((ip1[i] & 0xFFFF) > (ip2[i] & 0xFFFF))
-                {
-                    return ip1;
-                }
-            }
-            return ip2;
-        }
-
-        /**
-         * Returns the minimum IP address.
-         *
-         * @param ip1 The first IP address.
-         * @param ip2 The second IP address.
-         * @return The minimum IP address.
-         */
-        private static byte[] Min(byte[] ip1, byte[] ip2)
-        {
-            for (int i = 0; i < ip1.Length; i++)
-            {
-                if ((ip1[i] & 0xFFFF) < (ip2[i] & 0xFFFF))
-                {
-                    return ip1;
-                }
-            }
-            return ip2;
-        }
-
-        /**
-         * Compares IP address <code>ip1</code> with <code>ip2</code>. If ip1
-         * is equal to ip2 0 is returned. If ip1 is bigger 1 is returned, -1
-         * otherwise.
-         *
-         * @param ip1 The first IP address.
-         * @param ip2 The second IP address.
-         * @return 0 if ip1 is equal to ip2, 1 if ip1 is bigger, -1 otherwise.
-         */
-        private static int CompareTo(byte[] ip1, byte[] ip2)
-        {
-            if (Org.BouncyCastle.Utilities.Arrays.AreEqual(ip1, ip2))
-            {
-                return 0;
-            }
-            if (Org.BouncyCastle.Utilities.Arrays.AreEqual(Max(ip1, ip2), ip1))
-            {
-                return 1;
-            }
-            return -1;
-        }
-
-        /**
-         * Returns the logical OR of the IP addresses <code>ip1</code> and
-         * <code>ip2</code>.
-         *
-         * @param ip1 The first IP address.
-         * @param ip2 The second IP address.
-         * @return The OR of <code>ip1</code> and <code>ip2</code>.
-         */
-        private static byte[] Or(byte[] ip1, byte[] ip2)
-        {
-            byte[] temp = new byte[ip1.Length];
-            for (int i = 0; i < ip1.Length; i++)
-            {
-                temp[i] = (byte)(ip1[i] | ip2[i]);
-            }
-            return temp;
         }
 
 		public override int GetHashCode()
