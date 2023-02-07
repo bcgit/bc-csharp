@@ -47,6 +47,12 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new PopoPrivKey(Asn1TaggedObject.GetInstance(tagged, true));
         }
 
+        public PopoPrivKey(PKMacValue pkMacValue)
+        {
+            this.tagNo = agreeMAC;
+            this.obj = pkMacValue;
+        }
+
         public PopoPrivKey(SubsequentMessage msg)
         {
             this.tagNo = subsequentMessage;
