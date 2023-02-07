@@ -28,11 +28,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public static DistributionPointName GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
-            return GetInstance(Asn1TaggedObject.GetInstance(obj, true));
+            return Asn1Utilities.GetInstanceFromChoice(obj, explicitly, GetInstance);
         }
 
-        private readonly Asn1Encodable m_name;
         private readonly int m_type;
+        private readonly Asn1Encodable m_name;
 
         public DistributionPointName(GeneralNames name)
             : this(FullName, name)
