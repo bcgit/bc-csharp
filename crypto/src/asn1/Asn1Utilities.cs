@@ -66,6 +66,8 @@ namespace Org.BouncyCastle.Asn1
 
                 throw new ArgumentException(message, nameof(declaredExplicit));
             }
+            if (taggedObject == null)
+                throw new ArgumentNullException(nameof(taggedObject));
 
             return constructor(taggedObject.GetExplicitBaseObject());
         }
