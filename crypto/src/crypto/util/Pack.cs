@@ -3,7 +3,9 @@ using System;
 using System.Buffers.Binary;
 #endif
 using System.Diagnostics;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -124,6 +126,24 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+        internal static void UInt32_To_BE_High(uint n, byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 4);
+
+            int pos = 24;
+            bs[off] = (byte)(n >> pos);
+            for (int i = 1; i < len; ++i)
+            {
+                pos -= 8;
+                bs[off + i] = (byte)(n >> pos);
+            }
+        }
+
+        internal static void UInt32_To_BE_Low(uint n, byte[] bs, int off, int len)
+        {
+            UInt32_To_BE_High(n << ((4 - len) << 3), bs, off, len);
+        }
+
         internal static void UInt32_To_BE(uint[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -180,7 +200,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
-        internal static uint BE_To_UInt32_Partial(byte[] bs, int off, int len)
+        internal static uint BE_To_UInt32_High(byte[] bs, int off, int len)
+        {
+            return BE_To_UInt32_Low(bs, off, len) << ((4 - len) << 3);
+        }
+
+        internal static uint BE_To_UInt32_Low(byte[] bs, int off, int len)
         {
             Debug.Assert(1 <= len && len <= 4);
 
@@ -238,6 +263,24 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+        internal static void UInt64_To_BE_High(ulong n, byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 8);
+
+            int pos = 56;
+            bs[off] = (byte)(n >> pos);
+            for (int i = 1; i < len; ++i)
+            {
+                pos -= 8;
+                bs[off + i] = (byte)(n >> pos);
+            }
+        }
+
+        internal static void UInt64_To_BE_Low(ulong n, byte[] bs, int off, int len)
+        {
+            UInt64_To_BE_High(n << ((8 - len) << 3), bs, off, len);
+        }
+
         internal static byte[] UInt64_To_BE(ulong[] ns)
         {
             byte[] bs = new byte[8 * ns.Length];
@@ -285,7 +328,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
-        internal static ulong BE_To_UInt64_Partial(byte[] bs, int off, int len)
+        internal static ulong BE_To_UInt64_High(byte[] bs, int off, int len)
+        {
+            return BE_To_UInt64_Low(bs, off, len) << ((8 - len) << 3);
+        }
+
+        internal static ulong BE_To_UInt64_Low(byte[] bs, int off, int len)
         {
             Debug.Assert(1 <= len && len <= 8);
 
@@ -591,7 +639,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static uint BE_To_UInt32_Partial(ReadOnlySpan<byte> bs)
+        internal static uint BE_To_UInt32_High(ReadOnlySpan<byte> bs)
+        {
+            return BE_To_UInt32_Low(bs) << ((4 - bs.Length) << 3);
+        }
+
+        internal static uint BE_To_UInt32_Low(ReadOnlySpan<byte> bs)
         {
             int len = bs.Length;
             Debug.Assert(1 <= len && len <= 4);
@@ -622,7 +675,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ulong BE_To_UInt64_Partial(ReadOnlySpan<byte> bs)
+        internal static ulong BE_To_UInt64_High(ReadOnlySpan<byte> bs)
+        {
+            return BE_To_UInt64_Low(bs) << ((8 - bs.Length) << 3);
+        }
+
+        internal static ulong BE_To_UInt64_Low(ReadOnlySpan<byte> bs)
         {
             int len = bs.Length;
             Debug.Assert(1 <= len && len <= 8);
@@ -692,6 +750,26 @@ namespace Org.BouncyCastle.Crypto.Utilities
             BinaryPrimitives.WriteUInt32BigEndian(bs, n);
         }
 
+        internal static void UInt32_To_BE_High(uint n, Span<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 4);
+
+            int pos = 24;
+            bs[0] = (byte)(n >> pos);
+            for (int i = 1; i < len; ++i)
+            {
+                pos -= 8;
+                bs[i] = (byte)(n >> pos);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt32_To_BE_Low(uint n, Span<byte> bs)
+        {
+            UInt32_To_BE_High(n << ((4 - bs.Length) << 3), bs);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_BE(ReadOnlySpan<uint> ns, Span<byte> bs)
         {
@@ -722,6 +800,26 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static void UInt64_To_BE(ulong n, Span<byte> bs)
         {
             BinaryPrimitives.WriteUInt64BigEndian(bs, n);
+        }
+
+        internal static void UInt64_To_BE_High(ulong n, Span<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 8);
+
+            int pos = 56;
+            bs[0] = (byte)(n >> pos);
+            for (int i = 1; i < len; ++i)
+            {
+                pos -= 8;
+                bs[i] = (byte)(n >> pos);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt64_To_BE_Low(ulong n, Span<byte> bs)
+        {
+            UInt64_To_BE_High(n << ((8 - bs.Length) << 3), bs);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
