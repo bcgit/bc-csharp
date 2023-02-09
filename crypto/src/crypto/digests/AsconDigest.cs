@@ -16,40 +16,32 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public AsconDigest(AsconParameters parameters)
         {
+            asconParameters = parameters;
             switch (parameters)
             {
                 case AsconParameters.AsconHash:
                     ASCON_PB_ROUNDS = 12;
-                    ASCON_IV = (((ulong)(ASCON_HASH_RATE * 8) << 48) |
-                    ((ulong)(ASCON_PA_ROUNDS) << 40) |
-                    ((ulong)(ASCON_HASH_BYTES * 8)));
                     algorithmName = "Ascon-Hash";
                     break;
                 case AsconParameters.AsconHashA:
                     ASCON_PB_ROUNDS = 8;
-                    ASCON_IV = (((ulong)(ASCON_HASH_RATE * 8) << 48) |
-                    ((ulong)(ASCON_PA_ROUNDS) << 40) |
-                    ((ulong)(ASCON_PA_ROUNDS - ASCON_PB_ROUNDS) << 32) |
-                    ((ulong)(ASCON_HASH_BYTES * 8)));
                     algorithmName = "Ascon-HashA";
                     break;
                 case AsconParameters.AsconXof:
                     ASCON_PB_ROUNDS = 12;
-                    ASCON_IV = (((ulong)(ASCON_HASH_RATE * 8) << 48) |
-                    ((ulong)(ASCON_PA_ROUNDS) << 40));
                     algorithmName = "Ascon-Xof";
                     break;
                 case AsconParameters.AsconXofA:
                     ASCON_PB_ROUNDS = 8;
-                    ASCON_IV = (((ulong)(ASCON_HASH_RATE * 8) << 48) |
-                    ((ulong)(ASCON_PA_ROUNDS) << 40) |
-                    ((ulong)(ASCON_PA_ROUNDS - ASCON_PB_ROUNDS) << 32));
                     algorithmName = "Ascon-XofA";
                     break;
                 default:
                     throw new ArgumentException("Invalid parameter settings for Ascon Hash");
             }
+            Reset();
         }
+
+        private AsconParameters asconParameters;
 
         private string algorithmName;
 
@@ -60,13 +52,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private ulong x3;
         private ulong x4;
         private readonly int CRYPTO_BYTES = 32;
-        private readonly ulong ASCON_IV;
-        private readonly int ASCON_HASH_RATE = 8;
-        private readonly int ASCON_PA_ROUNDS = 12;
         private int ASCON_PB_ROUNDS;
-
-
-        private uint ASCON_HASH_BYTES = 32;
 
         public string AlgorithmName => algorithmName;
 
@@ -165,14 +151,15 @@ namespace Org.BouncyCastle.Crypto.Digests
             byte[] input = buffer.GetBuffer();
             int len = (int)buffer.Length;
             int inOff = 0;
-            /* initialize */
-            x0 = ASCON_IV;
-            x1 = 0;
-            x2 = 0;
-            x3 = 0;
-            x4 = 0;
-            P(ASCON_PA_ROUNDS);
+            ///* initialize */
+            //x0 = ASCON_IV;
+            //x1 = 0;
+            //x2 = 0;
+            //x3 = 0;
+            //x4 = 0;
+            //P(ASCON_PA_ROUNDS);
             /* absorb full plaintext blocks */
+            int ASCON_HASH_RATE = 8;
             while (len >= ASCON_HASH_RATE)
             {
                 x0 ^= LOADBYTES(input, inOff, 8);
@@ -183,6 +170,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             /* absorb readonly plaintext block */
             x0 ^= LOADBYTES(input, inOff, len);
             x0 ^= PAD(len);
+            int ASCON_PA_ROUNDS = 12;
             P(ASCON_PA_ROUNDS);
             /* squeeze full output blocks */
             len = CRYPTO_BYTES;
@@ -195,6 +183,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             /* squeeze readonly output block */
             STOREBYTES(output, outOff, x0, len);
+            Reset();
             return CRYPTO_BYTES;
         }
 
@@ -202,6 +191,38 @@ namespace Org.BouncyCastle.Crypto.Digests
         public void Reset()
         {
             buffer.SetLength(0);
+            /* initialize */
+            switch (asconParameters)
+            {
+                case AsconParameters.AsconHashA:
+                    x0 = 92044056785660070UL;
+                    x1 = 8326807761760157607UL;
+                    x2 = 3371194088139667532UL;
+                    x3 = 15489749720654559101UL;
+                    x4 = 11618234402860862855UL;
+                    break;
+                case AsconParameters.AsconHash:
+                    x0 = 17191252062196199485UL;
+                    x1 = 10066134719181819906UL;
+                    x2 = 13009371945472744034UL;
+                    x3 = 4834782570098516968UL;
+                    x4 = 3787428097924915520UL;
+                    break;
+                case AsconParameters.AsconXof:
+                    x0 = 13077933504456348694UL;
+                    x1 = 3121280575360345120UL;
+                    x2 = 7395939140700676632UL;
+                    x3 = 6533890155656471820UL;
+                    x4 = 5710016986865767350UL;
+                    break;
+                case AsconParameters.AsconXofA:
+                    x0 = 4940560291654768690UL;
+                    x1 = 14811614245468591410UL;
+                    x2 = 17849209150987444521UL;
+                    x3 = 2623493988082852443UL;
+                    x4 = 12162917349548726079UL;
+                    break;
+            }
         }
 
         public int GetByteLength()
