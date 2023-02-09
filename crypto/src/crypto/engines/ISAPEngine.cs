@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
 
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -14,8 +19,8 @@ namespace Org.BouncyCastle.Crypto.Engines
      * ISAP AEAD v2 with reference to C Reference Impl from: https://github.com/isap-lwc/isap-code-package
      * </p>
      */
-    public class ISAPEngine
-        : IAeadBlockCipher
+    public sealed class IsapEngine
+        : IAeadCipher
     {
         public enum IsapType
         {
@@ -25,42 +30,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             ISAP_K_128
         }
 
-        public ISAPEngine(IsapType isapType)
-        {
-            switch (isapType)
-            {
-                case IsapType.ISAP_A_128A:
-                    ISAPAEAD = new ISAPAEAD_A_128A();
-                    ISAP_rH = 64;
-                    algorithmName = "ISAP-A-128A AEAD";
-                    break;
-                case IsapType.ISAP_K_128A:
-                    ISAPAEAD = new ISAPAEAD_K_128A();
-                    ISAP_rH = 144;
-                    algorithmName = "ISAP-K-128A AEAD";
-                    break;
-                case IsapType.ISAP_A_128:
-                    ISAPAEAD = new ISAPAEAD_A_128();
-                    ISAP_rH = 64;
-                    algorithmName = "ISAP-A-128 AEAD";
-                    break;
-                case IsapType.ISAP_K_128:
-                    ISAPAEAD = new ISAPAEAD_K_128();
-                    ISAP_rH = 144;
-                    algorithmName = "ISAP-K-128 AEAD";
-                    break;
-            }
-            ISAP_rH_SZ = (ISAP_rH + 7) >> 3;
-        }
+        private const int CRYPTO_KEYBYTES = 16;
+        private const int CRYPTO_NPUBBYTES = 16;
+        private const int ISAP_STATE_SZ = 40;
 
         private string algorithmName;
         private bool forEncryption;
         private bool initialised;
-        const int CRYPTO_KEYBYTES = 16;
-        const int CRYPTO_NPUBBYTES = 16;
-        const int ISAP_STATE_SZ = 40;
-        private byte[] c;
-        private byte[] ad;
         private byte[] mac;
         private MemoryStream aadData = new MemoryStream();
         private MemoryStream message = new MemoryStream();
@@ -69,18 +45,58 @@ namespace Org.BouncyCastle.Crypto.Engines
         private int ISAP_rH;
         private int ISAP_rH_SZ;
 
-        public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
+        public IsapEngine(IsapType isapType)
+        {
+            switch (isapType)
+            {
+            case IsapType.ISAP_A_128A:
+                ISAPAEAD = new ISAPAEAD_A_128A();
+                ISAP_rH = 64;
+                algorithmName = "ISAP-A-128A AEAD";
+                break;
+            case IsapType.ISAP_K_128A:
+                ISAPAEAD = new ISAPAEAD_K_128A();
+                ISAP_rH = 144;
+                algorithmName = "ISAP-K-128A AEAD";
+                break;
+            case IsapType.ISAP_A_128:
+                ISAPAEAD = new ISAPAEAD_A_128();
+                ISAP_rH = 64;
+                algorithmName = "ISAP-A-128 AEAD";
+                break;
+            case IsapType.ISAP_K_128:
+                ISAPAEAD = new ISAPAEAD_K_128();
+                ISAP_rH = 144;
+                algorithmName = "ISAP-K-128 AEAD";
+                break;
+            }
+            ISAP_rH_SZ = (ISAP_rH + 7) >> 3;
+        }
+
+        public int GetKeyBytesSize()
+        {
+            return CRYPTO_KEYBYTES;
+        }
+
+        public int GetIVBytesSize()
+        {
+            return CRYPTO_NPUBBYTES;
+        }
 
         public string AlgorithmName => algorithmName;
 
-        protected abstract class ISAP_AEAD
+        private abstract class ISAP_AEAD
         {
             protected byte[] k;
             protected byte[] npub;
             protected int ISAP_rH;
             protected int ISAP_rH_SZ;
 
-            public abstract void isap_enc(byte[] m, int mOff, int mlen, byte[] c, int cOff, int clen);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public abstract void isap_enc(ReadOnlySpan<byte> m, Span<byte> c);
+#else
+            public abstract void isap_enc(byte[] m, int mOff, int mlen, byte[] c, int cOff);
+#endif
 
             public abstract void init(byte[] k, byte[] npub, int ISAP_rH, int ISAP_rH_SZ);
 
@@ -89,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             public abstract void reset();
         }
 
-        protected abstract class ISAPAEAD_A : ISAP_AEAD
+        private abstract class ISAPAEAD_A : ISAP_AEAD
         {
             protected ulong[] k64;
             protected ulong[] npub64;
@@ -104,14 +120,10 @@ namespace Org.BouncyCastle.Crypto.Engines
                 this.npub = npub;
                 this.ISAP_rH = ISAP_rH;
                 this.ISAP_rH_SZ = ISAP_rH_SZ;
-                npub64 = new ulong[getulongSize(npub.Length)];
-                Pack.LE_To_UInt64(npub, 0, npub64, 0, npub64.Length);
-                npub64[0] = U64BIG(npub64[0]);
-                npub64[1] = U64BIG(npub64[1]);
-                k64 = new ulong[getulongSize(k.Length)];
-                Pack.LE_To_UInt64(k, 0, k64, 0, k64.Length);
-                k64[0] = U64BIG(k64[0]);
-                k64[1] = U64BIG(k64[1]);
+                npub64 = new ulong[(npub.Length + 7) / 8];
+                Pack.BE_To_UInt64(npub, 0, npub64, 0, npub64.Length);
+                k64 = new ulong[(k.Length + 7) / 8];
+                Pack.BE_To_UInt64(k, 0, k64, 0, k64.Length);
                 reset();
             }
 
@@ -121,21 +133,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             protected void ABSORB_MAC(byte[] src, int len)
             {
-                ulong[] src64 = new ulong[src.Length >> 3];
-                Pack.LE_To_UInt64(src, 0, src64, 0, src64.Length);
-                int idx = 0;
-                while (len >= ISAP_rH_SZ)
+                int off = 0;
+                while (len >= 8)
                 {
-                    x0 ^= U64BIG(src64[idx++]);
+                    x0 ^= Pack.BE_To_UInt64(src, off);
+                    off += 8;
+                    len -= 8;
                     P12();
-                    len -= ISAP_rH_SZ;
                 }
-                /* Absorb const ad block */
-                for (int i = 0; i < len; ++i)
+                if (len > 0)
                 {
-                    x0 ^= (src[(idx << 3) + i] & 0xFFUL) << ((7 - i) << 3);
+                    x0 ^= Pack.BE_To_UInt64_High(src, off, len);
                 }
-                x0 ^= 0x80UL << ((7 - len) << 3);
+                x0 ^= 0x8000000000000000UL >> (len << 3);
                 P12();
             }
 
@@ -152,8 +162,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 x4 ^= 1L;
                 ABSORB_MAC(c, clen);
                 // Derive K*
-                Pack.UInt64_To_LE(U64BIG(x0), tag, 0);
-                Pack.UInt64_To_LE(U64BIG(x1), tag, 8);
+                Pack.UInt64_To_BE(x0, tag, 0);
+                Pack.UInt64_To_BE(x1, tag, 8);
                 ulong tmp_x2 = x2, tmp_x3 = x3, tmp_x4 = x4;
                 isap_rk(ISAP_IV2_64, tag, CRYPTO_KEYBYTES);
                 x2 = tmp_x2;
@@ -161,8 +171,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 x4 = tmp_x4;
                 // Squeeze tag
                 P12();
-                Pack.UInt64_To_LE(U64BIG(x0), tag, tagOff);
-                Pack.UInt64_To_LE(U64BIG(x1), tag, tagOff + 8);
+                Pack.UInt64_To_BE(x0, tag, tagOff);
+                Pack.UInt64_To_BE(x1, tag, tagOff + 8);
             }
 
             public void isap_rk(ulong iv64, byte[] y, int ylen)
@@ -183,28 +193,46 @@ namespace Org.BouncyCastle.Crypto.Engines
                 P12();
             }
 
-            public override void isap_enc(byte[] m, int mOff, int mlen, byte[] c, int cOff, int clen)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void isap_enc(ReadOnlySpan<byte> m, Span<byte> c)
             {
-                /* Encrypt m */
-                ulong[] m64 = new ulong[mlen >> 3];
-                Pack.LE_To_UInt64(m, mOff, m64, 0, m64.Length);
-                ulong[] c64 = new ulong[m64.Length];
-                int idx = 0;
-                while (mlen >= ISAP_rH_SZ)
+                while (m.Length >= 8)
                 {
-                    c64[idx] = U64BIG(x0) ^ m64[idx];
+                    ulong t = Pack.BE_To_UInt64(m);
+                    t ^= x0;
+                    Pack.UInt64_To_BE(t, c);
+                    m = m[8..];
+                    c = c[8..];
                     PX1();
-                    idx++;
-                    mlen -= ISAP_rH_SZ;
                 }
-                Pack.UInt64_To_LE(c64, 0, c64.Length, c, cOff);
-                /* Encrypt const m block */
-                byte[] xo = Pack.UInt64_To_LE(x0);
-                while (mlen > 0)
+                if (!m.IsEmpty)
                 {
-                    c[(idx << 3) + cOff + mlen - 1] = (byte)(xo[ISAP_rH_SZ - mlen] ^ m[(idx << 3) + mOff + --mlen]);
+                    ulong t = Pack.BE_To_UInt64_High(m);
+                    t ^= x0;
+                    Pack.UInt64_To_BE_High(t, c[..m.Length]);
                 }
             }
+#else
+            public override void isap_enc(byte[] m, int mOff, int mlen, byte[] c, int cOff)
+            {
+                while (mlen >= 8)
+                {
+                    ulong t = Pack.BE_To_UInt64(m, mOff);
+                    t ^= x0;
+                    Pack.UInt64_To_BE(t, c, cOff);
+                    mOff += 8;
+                    mlen -= 8;
+                    cOff += 8;
+                    PX1();
+                }
+                if (mlen > 0)
+                {
+                    ulong t = Pack.BE_To_UInt64_High(m, mOff, mlen);
+                    t ^= x0;
+                    Pack.UInt64_To_BE_High(t, c, cOff, mlen);
+                }
+            }
+#endif
 
             public override void reset()
             {
@@ -215,22 +243,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 PX1();
             }
 
-            private int getulongSize(int x)
-            {
-                return (x >> 3) + ((x & 7) != 0 ? 1 : 0);
-            }
-
-            private ulong ROTR(ulong x, int n)
-            {
-                return (x >> n) | (x << (64 - n));
-            }
-
-            protected ulong U64BIG(ulong x)
-            {
-                return ((ROTR(x, 8) & (0xFF000000FF000000UL)) | (ROTR(x, 24) & (0x00FF000000FF0000UL)) |
-                    (ROTR(x, 40) & (0x0000FF000000FF00UL)) | (ROTR(x, 56) & (0x000000FF000000FFUL)));
-            }
-
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
             protected void ROUND(ulong C)
             {
                 t0 = x0 ^ x1 ^ x2 ^ x3 ^ C ^ (x1 & (x0 ^ x2 ^ x4 ^ C));
@@ -238,11 +253,11 @@ namespace Org.BouncyCastle.Crypto.Engines
                 t2 = x1 ^ x2 ^ x4 ^ C ^ (x3 & x4);
                 t3 = x0 ^ x1 ^ x2 ^ C ^ ((~x0) & (x3 ^ x4));
                 t4 = x1 ^ x3 ^ x4 ^ ((x0 ^ x4) & x1);
-                x0 = t0 ^ ROTR(t0, 19) ^ ROTR(t0, 28);
-                x1 = t1 ^ ROTR(t1, 39) ^ ROTR(t1, 61);
-                x2 = ~(t2 ^ ROTR(t2, 1) ^ ROTR(t2, 6));
-                x3 = t3 ^ ROTR(t3, 10) ^ ROTR(t3, 17);
-                x4 = t4 ^ ROTR(t4, 7) ^ ROTR(t4, 41);
+                x0 = t0 ^ Longs.RotateRight(t0, 19) ^ Longs.RotateRight(t0, 28);
+                x1 = t1 ^ Longs.RotateRight(t1, 39) ^ Longs.RotateRight(t1, 61);
+                x2 = ~(t2 ^ Longs.RotateRight(t2, 1) ^ Longs.RotateRight(t2, 6));
+                x3 = t3 ^ Longs.RotateRight(t3, 10) ^ Longs.RotateRight(t3, 17);
+                x4 = t4 ^ Longs.RotateRight(t4, 7) ^ Longs.RotateRight(t4, 41);
             }
 
             public void P12()
@@ -315,8 +330,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             protected ushort[] ISAP_IV3_16;
             protected ushort[] k16;
             protected ushort[] iv16;
-            private readonly int[] KeccakF400RoundConstants = {0x0001, 0x8082, 0x808a, 0x8000, 0x808b, 0x0001, 0x8081, 0x8009,
-            0x008a, 0x0088, 0x8009, 0x000a, 0x808b, 0x008b, 0x8089, 0x8003, 0x8002, 0x0080, 0x800a, 0x000a};
+            private readonly int[] KeccakF400RoundConstants = {
+                0x0001, 0x8082, 0x808a, 0x8000, 0x808b, 0x0001, 0x8081, 0x8009, 0x008a, 0x0088, 0x8009, 0x000a, 0x808b,
+                0x008b, 0x8089, 0x8003, 0x8002, 0x0080, 0x800a, 0x000a };
             protected ushort[] SX = new ushort[25];
             protected ushort[] E = new ushort[25];
             protected ushort[] C = new ushort[5];
@@ -328,9 +344,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 this.ISAP_rH = ISAP_rH;
                 this.ISAP_rH_SZ = ISAP_rH_SZ;
                 k16 = new ushort[k.Length >> 1];
-                byteToushort(k, k16, k16.Length);
+                Pack.LE_To_UInt16(k, 0, k16);
                 iv16 = new ushort[npub.Length >> 1];
-                byteToushort(npub, iv16, iv16.Length);
+                Pack.LE_To_UInt16(npub, 0, iv16);
                 reset();
             }
 
@@ -355,33 +371,28 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 int rem_bytes = len;
                 int idx = 0;
-                while (true)
+                while (rem_bytes > ISAP_rH_SZ)
                 {
-                    if (rem_bytes > ISAP_rH_SZ)
+                    byteToushortXor(src, SX, ISAP_rH_SZ >> 1);
+                    idx += ISAP_rH_SZ;
+                    rem_bytes -= ISAP_rH_SZ;
+                    PermuteRoundsHX(SX, E, C);
+                }
+                if (rem_bytes == ISAP_rH_SZ)
+                {
+                    byteToushortXor(src, SX, ISAP_rH_SZ >> 1);
+                    PermuteRoundsHX(SX, E, C);
+                    SX[0] ^= 0x80;
+                    PermuteRoundsHX(SX, E, C);
+                }
+                else
+                {
+                    for (int i = 0; i < rem_bytes; i++)
                     {
-                        byteToushortXor(src, SX, ISAP_rH_SZ >> 1);
-                        idx += ISAP_rH_SZ;
-                        rem_bytes -= ISAP_rH_SZ;
-                        PermuteRoundsHX(SX, E, C);
+                        SX[i >> 1] ^= (ushort)((src[idx++] & 0xFFU) << ((i & 1) << 3));
                     }
-                    else if (rem_bytes == ISAP_rH_SZ)
-                    {
-                        byteToushortXor(src, SX, ISAP_rH_SZ >> 1);
-                        PermuteRoundsHX(SX, E, C);
-                        SX[0] ^= 0x80;
-                        PermuteRoundsHX(SX, E, C);
-                        break;
-                    }
-                    else
-                    {
-                        for (int i = 0; i < rem_bytes; i++)
-                        {
-                            SX[i >> 1] ^= (ushort)((src[idx++] & 0xFFU) << ((i & 1) << 3));
-                        }
-                        SX[rem_bytes >> 1] ^= (ushort)(0x80U << ((rem_bytes & 1) << 3));
-                        PermuteRoundsHX(SX, E, C);
-                        break;
-                    }
+                    SX[rem_bytes >> 1] ^= (ushort)(0x80U << ((rem_bytes & 1) << 3));
+                    PermuteRoundsHX(SX, E, C);
                 }
             }
 
@@ -419,61 +430,64 @@ namespace Org.BouncyCastle.Crypto.Engines
                 // Absorb C
                 ABSORB_MAC(SX, c, clen, E, C);
                 // Derive K*
-                ushortToByte(SX, tag, tagOff);
+                Pack.UInt16_To_LE(SX, 0, 8, tag, tagOff);
                 isap_rk(ISAP_IV2_16, tag, CRYPTO_KEYBYTES, SX, CRYPTO_KEYBYTES, C);
                 // Squeeze tag
                 PermuteRoundsHX(SX, E, C);
-                ushortToByte(SX, tag, tagOff);
+                Pack.UInt16_To_LE(SX, 0, 8, tag, tagOff);
             }
 
-            public override void isap_enc(byte[] m, int mOff, int mlen, byte[] c, int cOff, int clen)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void isap_enc(ReadOnlySpan<byte> m, Span<byte> c)
             {
+                int off = 0, len = m.Length;
+
                 // Squeeze key stream
-                while (true)
+                while (len >= ISAP_rH_SZ)
                 {
-                    if (mlen >= ISAP_rH_SZ)
+                    // Squeeze full lane and continue
+                    for (int i = 0; i < ISAP_rH_SZ; ++i)
                     {
-                        // Squeeze full lane and continue
-                        for (int i = 0; i < ISAP_rH_SZ; ++i)
-                        {
-                            c[cOff++] = (byte)((SX[i >> 1] >> ((i & 1) << 3)) ^ m[mOff++]);
-                        }
-                        mlen -= ISAP_rH_SZ;
-                        PermuteRoundsKX(SX, E, C);
+                        c[off] = (byte)((SX[i >> 1] >> ((i & 1) << 3)) ^ m[off]);
+                        ++off;
                     }
-                    else
-                    {
-                        // Squeeze full or partial lane and stop
-                        for (int i = 0; i < mlen; ++i)
-                        {
-                            c[cOff++] = (byte)((SX[i >> 1] >> ((i & 1) << 3)) ^ m[mOff++]);
-                        }
-                        break;
-                    }
+                    len -= ISAP_rH_SZ;
+                    PermuteRoundsKX(SX, E, C);
+                }
+                // Squeeze partial lane and stop
+                for (int i = 0; i < len; ++i)
+                {
+                    c[off] = (byte)((SX[i >> 1] >> ((i & 1) << 3)) ^ m[off]);
+                    ++off;
                 }
             }
+#else
+            public override void isap_enc(byte[] m, int mOff, int mlen, byte[] c, int cOff)
+            {
+                // Squeeze key stream
+                while (mlen >= ISAP_rH_SZ)
+                {
+                    // Squeeze full lane and continue
+                    for (int i = 0; i < ISAP_rH_SZ; ++i)
+                    {
+                        c[cOff++] = (byte)((SX[i >> 1] >> ((i & 1) << 3)) ^ m[mOff++]);
+                    }
+                    mlen -= ISAP_rH_SZ;
+                    PermuteRoundsKX(SX, E, C);
+                }
+                // Squeeze partial lane and stop
+                for (int i = 0; i < mlen; ++i)
+                {
+                    c[cOff++] = (byte)((SX[i >> 1] >> ((i & 1) << 3)) ^ m[mOff++]);
+                }
+            }
+#endif
 
             private void byteToushortXor(byte[] input, ushort[] output, int outLen)
             {
                 for (int i = 0; i < outLen; ++i)
                 {
                     output[i] ^= Pack.LE_To_UInt16(input, (i << 1));
-                }
-            }
-
-            private void byteToushort(byte[] input, ushort[] output, int outLen)
-            {
-                for (int i = 0; i < outLen; ++i)
-                {
-                    output[i] = Pack.LE_To_UInt16(input, (i << 1));
-                }
-            }
-
-            private void ushortToByte(ushort[] input, byte[] output, int outOff)
-            {
-                for (int i = 0; i < 8; ++i)
-                {
-                    shortToLittleEndian(input[i], output, outOff + (i << 1));
                 }
             }
 
@@ -522,28 +536,23 @@ namespace Org.BouncyCastle.Crypto.Engines
                 C[4] = (ushort)(SX[4] ^ SX[9] ^ SX[14] ^ SX[19] ^ SX[24]);
             }
 
-            private ushort ROL16(ushort a, int offset)
-            {
-                return (ushort)(((a & 0xFFFF) << offset) ^ ((a & 0xFFFF) >> (16 - offset)));
-            }
-
             protected void thetaRhoPiChiIotaPrepareTheta(int i, ushort[] A, ushort[] E, ushort[] C)
             {
-                ushort Da = (ushort)(C[4] ^ ROL16(C[1], 1));
-                ushort De = (ushort)(C[0] ^ ROL16(C[2], 1));
-                ushort Di = (ushort)(C[1] ^ ROL16(C[3], 1));
-                ushort Do = (ushort)(C[2] ^ ROL16(C[4], 1));
-                ushort Du = (ushort)(C[3] ^ ROL16(C[0], 1));
+                ushort Da = (ushort)(C[4] ^ Shorts.RotateLeft(C[1], 1));
+                ushort De = (ushort)(C[0] ^ Shorts.RotateLeft(C[2], 1));
+                ushort Di = (ushort)(C[1] ^ Shorts.RotateLeft(C[3], 1));
+                ushort Do = (ushort)(C[2] ^ Shorts.RotateLeft(C[4], 1));
+                ushort Du = (ushort)(C[3] ^ Shorts.RotateLeft(C[0], 1));
 
                 ushort Ba = A[0] ^= Da;
                 A[6] ^= De;
-                ushort Be = ROL16(A[6], 12);
+                ushort Be = Shorts.RotateLeft(A[6], 12);
                 A[12] ^= Di;
-                ushort Bi = ROL16(A[12], 11);
+                ushort Bi = Shorts.RotateLeft(A[12], 11);
                 A[18] ^= Do;
-                ushort Bo = ROL16(A[18], 5);
+                ushort Bo = Shorts.RotateLeft(A[18], 5);
                 A[24] ^= Du;
-                ushort Bu = ROL16(A[24], 14);
+                ushort Bu = Shorts.RotateLeft(A[24], 14);
                 C[0] = E[0] = (ushort)(Ba ^ ((~Be) & Bi) ^ KeccakF400RoundConstants[i]);
                 C[1] = E[1] = (ushort)(Be ^ ((~Bi) & Bo));
                 C[2] = E[2] = (ushort)(Bi ^ ((~Bo) & Bu));
@@ -551,15 +560,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 C[4] = E[4] = (ushort)(Bu ^ ((~Ba) & Be));
 
                 A[3] ^= Do;
-                Ba = ROL16(A[3], 12);
+                Ba = Shorts.RotateLeft(A[3], 12);
                 A[9] ^= Du;
-                Be = ROL16(A[9], 4);
+                Be = Shorts.RotateLeft(A[9], 4);
                 A[10] ^= Da;
-                Bi = ROL16(A[10], 3);
+                Bi = Shorts.RotateLeft(A[10], 3);
                 A[16] ^= De;
-                Bo = ROL16(A[16], 13);
+                Bo = Shorts.RotateLeft(A[16], 13);
                 A[22] ^= Di;
-                Bu = ROL16(A[22], 13);
+                Bu = Shorts.RotateLeft(A[22], 13);
                 E[5] = (ushort)(Ba ^ ((~Be) & Bi));
                 C[0] ^= E[5];
                 E[6] = (ushort)(Be ^ ((~Bi) & Bo));
@@ -572,15 +581,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 C[4] ^= E[9];
 
                 A[1] ^= De;
-                Ba = ROL16(A[1], 1);
+                Ba = Shorts.RotateLeft(A[1], 1);
                 A[7] ^= Di;
-                Be = ROL16(A[7], 6);
+                Be = Shorts.RotateLeft(A[7], 6);
                 A[13] ^= Do;
-                Bi = ROL16(A[13], 9);
+                Bi = Shorts.RotateLeft(A[13], 9);
                 A[19] ^= Du;
-                Bo = ROL16(A[19], 8);
+                Bo = Shorts.RotateLeft(A[19], 8);
                 A[20] ^= Da;
-                Bu = ROL16(A[20], 2);
+                Bu = Shorts.RotateLeft(A[20], 2);
                 E[10] = (ushort)(Ba ^ ((~Be) & Bi));
                 C[0] ^= E[10];
                 E[11] = (ushort)(Be ^ ((~Bi) & Bo));
@@ -593,15 +602,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 C[4] ^= E[14];
 
                 A[4] ^= Du;
-                Ba = ROL16(A[4], 11);
+                Ba = Shorts.RotateLeft(A[4], 11);
                 A[5] ^= Da;
-                Be = ROL16(A[5], 4);
+                Be = Shorts.RotateLeft(A[5], 4);
                 A[11] ^= De;
-                Bi = ROL16(A[11], 10);
+                Bi = Shorts.RotateLeft(A[11], 10);
                 A[17] ^= Di;
-                Bo = ROL16(A[17], 15);
+                Bo = Shorts.RotateLeft(A[17], 15);
                 A[23] ^= Do;
-                Bu = ROL16(A[23], 8);
+                Bu = Shorts.RotateLeft(A[23], 8);
                 E[15] = (ushort)(Ba ^ ((~Be) & Bi));
                 C[0] ^= E[15];
                 E[16] = (ushort)(Be ^ ((~Bi) & Bo));
@@ -614,15 +623,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 C[4] ^= E[19];
 
                 A[2] ^= Di;
-                Ba = ROL16(A[2], 14);
+                Ba = Shorts.RotateLeft(A[2], 14);
                 A[8] ^= Do;
-                Be = ROL16(A[8], 7);
+                Be = Shorts.RotateLeft(A[8], 7);
                 A[14] ^= Du;
-                Bi = ROL16(A[14], 7);
+                Bi = Shorts.RotateLeft(A[14], 7);
                 A[15] ^= Da;
-                Bo = ROL16(A[15], 9);
+                Bo = Shorts.RotateLeft(A[15], 9);
                 A[21] ^= De;
-                Bu = ROL16(A[21], 2);
+                Bu = Shorts.RotateLeft(A[21], 2);
                 E[20] = (ushort)(Ba ^ ((~Be) & Bi));
                 C[0] ^= E[20];
                 E[21] = (ushort)(Be ^ ((~Bi) & Bo));
@@ -637,21 +646,21 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             protected void thetaRhoPiChiIota(ushort[] A, ushort[] E, ushort[] C)
             {
-                ushort Da = (ushort)(C[4] ^ ROL16(C[1], 1));
-                ushort De = (ushort)(C[0] ^ ROL16(C[2], 1));
-                ushort Di = (ushort)(C[1] ^ ROL16(C[3], 1));
-                ushort Do = (ushort)(C[2] ^ ROL16(C[4], 1));
-                ushort Du = (ushort)(C[3] ^ ROL16(C[0], 1));
+                ushort Da = (ushort)(C[4] ^ Shorts.RotateLeft(C[1], 1));
+                ushort De = (ushort)(C[0] ^ Shorts.RotateLeft(C[2], 1));
+                ushort Di = (ushort)(C[1] ^ Shorts.RotateLeft(C[3], 1));
+                ushort Do = (ushort)(C[2] ^ Shorts.RotateLeft(C[4], 1));
+                ushort Du = (ushort)(C[3] ^ Shorts.RotateLeft(C[0], 1));
 
                 ushort Ba = A[0] ^= Da;
                 A[6] ^= De;
-                ushort Be = ROL16(A[6], 12);
+                ushort Be = Shorts.RotateLeft(A[6], 12);
                 A[12] ^= Di;
-                ushort Bi = ROL16(A[12], 11);
+                ushort Bi = Shorts.RotateLeft(A[12], 11);
                 A[18] ^= Do;
-                ushort Bo = ROL16(A[18], 5);
+                ushort Bo = Shorts.RotateLeft(A[18], 5);
                 A[24] ^= Du;
-                ushort Bu = ROL16(A[24], 14);
+                ushort Bu = Shorts.RotateLeft(A[24], 14);
                 E[0] = (ushort)(Ba ^ ((~Be) & Bi) ^ KeccakF400RoundConstants[19]);
                 E[1] = (ushort)(Be ^ ((~Bi) & Bo));
                 E[2] = (ushort)(Bi ^ ((~Bo) & Bu));
@@ -659,15 +668,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 E[4] = (ushort)(Bu ^ ((~Ba) & Be));
 
                 A[3] ^= Do;
-                Ba = ROL16(A[3], 12);
+                Ba = Shorts.RotateLeft(A[3], 12);
                 A[9] ^= Du;
-                Be = ROL16(A[9], 4);
+                Be = Shorts.RotateLeft(A[9], 4);
                 A[10] ^= Da;
-                Bi = ROL16(A[10], 3);
+                Bi = Shorts.RotateLeft(A[10], 3);
                 A[16] ^= De;
-                Bo = ROL16(A[16], 13);
+                Bo = Shorts.RotateLeft(A[16], 13);
                 A[22] ^= Di;
-                Bu = ROL16(A[22], 13);
+                Bu = Shorts.RotateLeft(A[22], 13);
                 E[5] = (ushort)(Ba ^ ((~Be) & Bi));
                 E[6] = (ushort)(Be ^ ((~Bi) & Bo));
                 E[7] = (ushort)(Bi ^ ((~Bo) & Bu));
@@ -675,15 +684,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 E[9] = (ushort)(Bu ^ ((~Ba) & Be));
 
                 A[1] ^= De;
-                Ba = ROL16(A[1], 1);
+                Ba = Shorts.RotateLeft(A[1], 1);
                 A[7] ^= Di;
-                Be = ROL16(A[7], 6);
+                Be = Shorts.RotateLeft(A[7], 6);
                 A[13] ^= Do;
-                Bi = ROL16(A[13], 9);
+                Bi = Shorts.RotateLeft(A[13], 9);
                 A[19] ^= Du;
-                Bo = ROL16(A[19], 8);
+                Bo = Shorts.RotateLeft(A[19], 8);
                 A[20] ^= Da;
-                Bu = ROL16(A[20], 2);
+                Bu = Shorts.RotateLeft(A[20], 2);
                 E[10] = (ushort)(Ba ^ ((~Be) & Bi));
                 E[11] = (ushort)(Be ^ ((~Bi) & Bo));
                 E[12] = (ushort)(Bi ^ ((~Bo) & Bu));
@@ -691,15 +700,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 E[14] = (ushort)(Bu ^ ((~Ba) & Be));
 
                 A[4] ^= Du;
-                Ba = ROL16(A[4], 11);
+                Ba = Shorts.RotateLeft(A[4], 11);
                 A[5] ^= Da;
-                Be = ROL16(A[5], 4);
+                Be = Shorts.RotateLeft(A[5], 4);
                 A[11] ^= De;
-                Bi = ROL16(A[11], 10);
+                Bi = Shorts.RotateLeft(A[11], 10);
                 A[17] ^= Di;
-                Bo = ROL16(A[17], 15);
+                Bo = Shorts.RotateLeft(A[17], 15);
                 A[23] ^= Do;
-                Bu = ROL16(A[23], 8);
+                Bu = Shorts.RotateLeft(A[23], 8);
                 E[15] = (ushort)(Ba ^ ((~Be) & Bi));
                 E[16] = (ushort)(Be ^ ((~Bi) & Bo));
                 E[17] = (ushort)(Bi ^ ((~Bo) & Bu));
@@ -707,15 +716,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 E[19] = (ushort)(Bu ^ ((~Ba) & Be));
 
                 A[2] ^= Di;
-                Ba = ROL16(A[2], 14);
+                Ba = Shorts.RotateLeft(A[2], 14);
                 A[8] ^= Do;
-                Be = ROL16(A[8], 7);
+                Be = Shorts.RotateLeft(A[8], 7);
                 A[14] ^= Du;
-                Bi = ROL16(A[14], 7);
+                Bi = Shorts.RotateLeft(A[14], 7);
                 A[15] ^= Da;
-                Bo = ROL16(A[15], 9);
+                Bo = Shorts.RotateLeft(A[15], 9);
                 A[21] ^= De;
-                Bu = ROL16(A[21], 2);
+                Bu = Shorts.RotateLeft(A[21], 2);
                 E[20] = (ushort)(Ba ^ ((~Be) & Bi));
                 E[21] = (ushort)(Be ^ ((~Bi) & Bo));
                 E[22] = (ushort)(Bi ^ ((~Bo) & Bu));
@@ -728,9 +737,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             public ISAPAEAD_K_128A()
             {
-                ISAP_IV1_16 = new ushort[] { 32769, 400, 272, 2056 };
-                ISAP_IV2_16 = new ushort[] { 32770, 400, 272, 2056 };
-                ISAP_IV3_16 = new ushort[] { 32771, 400, 272, 2056 };
+                ISAP_IV1_16 = new ushort[]{ 32769, 400, 272, 2056 };
+                ISAP_IV2_16 = new ushort[]{ 32770, 400, 272, 2056 };
+                ISAP_IV3_16 = new ushort[]{ 32771, 400, 272, 2056 };
             }
 
             protected override void PermuteRoundsHX(ushort[] SX, ushort[] E, ushort[] C)
@@ -758,9 +767,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             public ISAPAEAD_K_128()
             {
-                ISAP_IV1_16 = new ushort[] { 32769, 400, 3092, 3084 };
-                ISAP_IV2_16 = new ushort[] { 32770, 400, 3092, 3084 };
-                ISAP_IV3_16 = new ushort[] { 32771, 400, 3092, 3084 };
+                ISAP_IV1_16 = new ushort[]{ 32769, 400, 3092, 3084 };
+                ISAP_IV2_16 = new ushort[]{ 32770, 400, 3092, 3084 };
+                ISAP_IV3_16 = new ushort[]{ 32771, 400, 3092, 3084 };
             }
 
             protected override void PermuteRoundsHX(ushort[] SX, ushort[] E, ushort[] C)
@@ -784,200 +793,41 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-
-
         public void Init(bool forEncryption, ICipherParameters param)
         {
             this.forEncryption = forEncryption;
-            if (!(param is ParametersWithIV))
-            {
-                throw new ArgumentException(
-                    "ISAP AEAD init parameters must include an IV");
-            }
+            if (!(param is ParametersWithIV withIV))
+                throw new ArgumentException("ISAP AEAD init parameters must include an IV");
 
-            ParametersWithIV ivParams = (ParametersWithIV)param;
-
-            byte[] iv = ivParams.GetIV();
-
+            byte[] iv = withIV.GetIV();
             if (iv == null || iv.Length != 16)
-            {
-                throw new ArgumentException(
-                    "ISAP AEAD requires exactly 12 bytes of IV");
-            }
+                throw new ArgumentException("ISAP AEAD requires exactly 12 bytes of IV");
 
-            if (!(ivParams.Parameters is KeyParameter))
-            {
-                throw new ArgumentException(
-                    "ISAP AEAD init parameters must include a key");
-            }
+            if (!(withIV.Parameters is KeyParameter key))
+                throw new ArgumentException("ISAP AEAD init parameters must include a key");
 
-            KeyParameter key = (KeyParameter)ivParams.Parameters;
             byte[] keyBytes = key.GetKey();
             if (keyBytes.Length != 16)
-            {
-                throw new ArgumentException(
-                    "ISAP AEAD key must be 128 bits ulong");
-            }
+                throw new ArgumentException("ISAP AEAD key must be 128 bits ulong");
 
             /*
              * Initialize variables.
              */
-            byte[] npub = new byte[iv.Length];
-            byte[] k = new byte[keyBytes.Length];
-            Array.Copy(iv, 0, npub, 0, iv.Length);
-            Array.Copy(keyBytes, 0, k, 0, keyBytes.Length);
             initialised = true;
-            ISAPAEAD.init(k, npub, ISAP_rH, ISAP_rH_SZ);
+            ISAPAEAD.init(keyBytes, iv, ISAP_rH, ISAP_rH_SZ);
             Reset();
         }
 
         public void ProcessAadByte(byte input)
         {
-            aadData.Write(new byte[] { input }, 0, 1);
+            aadData.WriteByte(input);
         }
 
-
-        public void ProcessAadBytes(byte[] input, int inOff, int len)
+        public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
-            if ((inOff + len) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short" + (forEncryption ? "encryption" : "decryption"));
-            }
-            aadData.Write(input, inOff, len);
-        }
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
 
-
-        public int ProcessByte(byte input, byte[] output, int outOff)
-        {
-
-            return ProcessBytes(new byte[] { input }, 0, 1, output, outOff);
-        }
-
-
-        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
-        {
-            if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
-            if ((inOff + len) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            message.Write(input, inOff, len);
-            if (forEncryption)
-            {
-                if (message.Length >= ISAP_rH_SZ)
-                {
-                    len = (int)message.Length / ISAP_rH_SZ * ISAP_rH_SZ;
-                    if (outOff + len > output.Length)
-                    {
-                        throw new OutputLengthException("output buffer is too short");
-                    }
-                    byte[] enc_input = message.GetBuffer();
-                    ISAPAEAD.isap_enc(enc_input, 0, len, output, outOff, output.Length);
-                    outputStream.Write(output, outOff, len);
-                    int enc_input_len = (int)message.Length;
-                    message.SetLength(0);
-                    message.Write(enc_input, len, enc_input_len - len);
-                    return len;
-                }
-            }
-            return 0;
-        }
-
-
-        public int DoFinal(byte[] output, int outOff)
-        {
-            if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
-            int len;
-            if (forEncryption)
-            {
-                byte[] enc_input = message.GetBuffer();
-                len = (int)message.Length;
-                if (outOff + len + 16 > output.Length)
-                {
-                    throw new OutputLengthException("output buffer is too short");
-                }
-                ISAPAEAD.isap_enc(enc_input, 0, len, output, outOff, output.Length);
-                outputStream.Write(output, outOff, len);
-                outOff += len;
-                ad = aadData.GetBuffer();
-                c = outputStream.GetBuffer();
-                mac = new byte[16];
-                ISAPAEAD.isap_mac(ad, (int)aadData.Length, c, (int)outputStream.Length, mac, 0);
-                Array.Copy(mac, 0, output, outOff, 16);
-                len += 16;
-            }
-            else
-            {
-                ad = aadData.GetBuffer();
-                int adlen = (int)aadData.Length;
-                c = message.GetBuffer();
-                int clen = (int)message.Length;
-                mac = new byte[16];
-                len = clen - mac.Length;
-                if (len + outOff > output.Length)
-                {
-                    throw new OutputLengthException("output buffer is too short");
-                }
-                ISAPAEAD.isap_mac(ad, adlen, c, len, mac, 0);
-                ISAPAEAD.reset();
-                for (int i = 0; i < 16; ++i)
-                {
-                    if (mac[i] != c[len + i])
-                    {
-                        throw new ArgumentException("Mac does not match");
-                    }
-                }
-                ISAPAEAD.isap_enc(c, 0, len, output, outOff, output.Length);
-            }
-            return len;
-        }
-
-
-        public byte[] GetMac()
-        {
-            return mac;
-        }
-
-
-        public int GetUpdateOutputSize(int len)
-        {
-            return len;
-        }
-
-
-        public int GetOutputSize(int len)
-        {
-            return len + 16;
-        }
-
-
-        public void Reset()
-        {
-            if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
-            aadData.SetLength(0);
-            ISAPAEAD.reset();
-            message.SetLength(0);
-            outputStream.SetLength(0);
-        }
-
-        private static void shortToLittleEndian(ushort n, byte[] bs, int off)
-        {
-            bs[off] = (byte)(n);
-            bs[++off] = (byte)(n >> 8);
-        }
-
-        public int GetBlockSize()
-        {
-            return ISAP_rH_SZ;
+            aadData.Write(inBytes, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -985,50 +835,199 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             aadData.Write(input);
         }
+#endif
 
+        public int ProcessByte(byte input, byte[] outBytes, int outOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessByte(input, Spans.FromNullable(outBytes, outOff));
+#else
+            return ProcessBytes(new byte[]{ input }, 0, 1, outBytes, outOff);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int ProcessByte(byte input, Span<byte> output)
         {
-            byte[] rv = new byte[1];
-            int len = ProcessBytes(new byte[] { input }, 0, 1, rv, 0);
-            rv.AsSpan(0, len).CopyTo(output);
-            return len;
-        }
+            Span<byte> singleByte = stackalloc byte[1]{ input };
 
-        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
-        {
-            byte[] rv = new byte[input.Length];
-            int len = ProcessBytes(input.ToArray(), 0, rv.Length, rv, 0);
-            rv.AsSpan(0, len).CopyTo(output);
-            return len;
-        }
-
-        public int DoFinal(Span<byte> output)
-        {
-            byte[] rv;
-            if (forEncryption)
-            {
-                rv = new byte[message.Length + 16];
-            }
-            else
-            {
-                rv = new byte[message.Length];
-            }
-            int len = DoFinal(rv, 0);
-            rv.AsSpan(0, len).CopyTo(output);
-            return rv.Length;
+            return ProcessBytes(singleByte, output);
         }
 #endif
 
-        public int GetKeyBytesSize()
+        public int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
-            return CRYPTO_KEYBYTES;
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
+#else
+            if (!initialised)
+                throw new ArgumentException("Need to call Init function before encryption/decryption");
+
+            message.Write(inBytes, inOff, len);
+
+            if (forEncryption)
+            {
+                int msgLen = Convert.ToInt32(message.Length);
+                if (msgLen >= ISAP_rH_SZ)
+                {
+                    int outLen = msgLen / ISAP_rH_SZ * ISAP_rH_SZ;
+                    Check.OutputLength(outBytes, outOff, outLen, "output buffer is too short");
+                    byte[] enc_input = message.GetBuffer();
+                    ISAPAEAD.isap_enc(enc_input, 0, outLen, outBytes, outOff);
+                    outputStream.Write(outBytes, outOff, outLen);
+                    int enc_input_len = msgLen;
+                    message.SetLength(0);
+                    message.Write(enc_input, outLen, enc_input_len - outLen);
+                    return outLen;
+                }
+            }
+            return 0;
+#endif
         }
 
-        public int GetIVBytesSize()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            return CRYPTO_NPUBBYTES;
+            if (!initialised)
+                throw new ArgumentException("Need to call Init function before encryption/decryption");
+
+            message.Write(input);
+
+            if (forEncryption)
+            {
+                int msgLen = Convert.ToInt32(message.Length);
+                if (msgLen >= ISAP_rH_SZ)
+                {
+                    int outLen = msgLen / ISAP_rH_SZ * ISAP_rH_SZ;
+                    Check.OutputLength(output, outLen, "output buffer is too short");
+                    byte[] enc_input = message.GetBuffer();
+                    ISAPAEAD.isap_enc(enc_input.AsSpan(0, outLen), output);
+                    outputStream.Write(output[..outLen]);
+                    int enc_input_len = msgLen;
+                    message.SetLength(0);
+                    message.Write(enc_input, outLen, enc_input_len - outLen);
+                    return outLen;
+                }
+            }
+            return 0;
+        }
+#endif
+
+        public int DoFinal(byte[] outBytes, int outOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(outBytes.AsSpan(outOff));
+#else
+            if (!initialised)
+                throw new ArgumentException("Need call init function before encryption/decryption");
+
+            byte[] aad = aadData.GetBuffer();
+            byte[] msg = message.GetBuffer();
+
+            int aadLen = Convert.ToInt32(aadData.Length);
+            int msgLen = Convert.ToInt32(message.Length);
+            int outLen;
+            if (forEncryption)
+            {
+                outLen = msgLen + 16;
+                Check.OutputLength(outBytes, outOff, outLen, "output buffer is too short");
+                ISAPAEAD.isap_enc(msg, 0, msgLen, outBytes, outOff);
+                outputStream.Write(outBytes, outOff, msgLen);
+                outOff += msgLen;
+                byte[] c = outputStream.GetBuffer();
+                mac = new byte[16];
+                ISAPAEAD.isap_mac(aad, aadLen, c, Convert.ToInt32(outputStream.Length), mac, 0);
+                Array.Copy(mac, 0, outBytes, outOff, 16);
+            }
+            else
+            {
+                outLen = msgLen - 16;
+                Check.OutputLength(outBytes, outOff, outLen, "output buffer is too short");
+                mac = new byte[16];
+                ISAPAEAD.isap_mac(aad, aadLen, msg, outLen, mac, 0);
+                ISAPAEAD.reset();
+                if (!Arrays.FixedTimeEquals(16, mac, 0, msg, outLen))
+                    throw new ArgumentException("Mac does not match");
+                ISAPAEAD.isap_enc(msg, 0, outLen, outBytes, outOff);
+            }
+            return outLen;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            if (!initialised)
+                throw new ArgumentException("Need call init function before encryption/decryption");
+
+            byte[] aad = aadData.GetBuffer();
+            byte[] msg = message.GetBuffer();
+
+            int aadLen = Convert.ToInt32(aadData.Length);
+            int msgLen = Convert.ToInt32(message.Length);
+            int outLen;
+            if (forEncryption)
+            {
+                outLen = msgLen + 16;
+                Check.OutputLength(output, outLen, "output buffer is too short");
+                ISAPAEAD.isap_enc(msg.AsSpan(0, msgLen), output);
+                outputStream.Write(output[..msgLen]);
+                output = output[msgLen..];
+                byte[] c = outputStream.GetBuffer();
+                mac = new byte[16];
+                ISAPAEAD.isap_mac(aad, aadLen, c, Convert.ToInt32(outputStream.Length), mac, 0);
+                mac.CopyTo(output);
+            }
+            else
+            {
+                outLen = msgLen - 16;
+                Check.OutputLength(output, outLen, "output buffer is too short");
+                mac = new byte[16];
+                ISAPAEAD.isap_mac(aad, aadLen, msg, outLen, mac, 0);
+                ISAPAEAD.reset();
+                if (!Arrays.FixedTimeEquals(16, mac, 0, msg, outLen))
+                    throw new ArgumentException("Mac does not match");
+                ISAPAEAD.isap_enc(msg.AsSpan(0, outLen), output);
+            }
+            return outLen;
+        }
+#endif
+
+        public byte[] GetMac()
+        {
+            return mac;
+        }
+
+        public int GetUpdateOutputSize(int len)
+        {
+            if (!forEncryption)
+                return 0;
+
+            int totalData = Convert.ToInt32(message.Length + len);
+            return totalData - totalData % ISAP_rH_SZ;
+        }
+
+        public int GetOutputSize(int len)
+        {
+            int totalData = Convert.ToInt32(message.Length + len);
+
+            if (forEncryption)
+                return totalData + 16;
+
+            return System.Math.Max(0, totalData - 16);
+        }
+
+        public void Reset()
+        {
+            if (!initialised)
+                throw new ArgumentException("Need call init function before encryption/decryption");
+
+            aadData.SetLength(0);
+            ISAPAEAD.reset();
+            message.SetLength(0);
+            outputStream.SetLength(0);
         }
     }
 }
-
-

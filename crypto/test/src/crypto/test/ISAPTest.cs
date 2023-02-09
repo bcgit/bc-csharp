@@ -6,63 +6,55 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
-using static Org.BouncyCastle.Crypto.Engines.ISAPEngine;
-
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class ISAPTest : SimpleTest
+    public class IsapTest
+        : SimpleTest
     {
-        public override string Name
-        {
-            get { return "ISAP"; }
-        }
+        public override string Name => "ISAP";
 
         [Test]
         public override void PerformTest()
         {
-            ISAPEngine ISAP = new ISAPEngine(IsapType.ISAP_K_128A);
-            testExceptions(ISAP, ISAP.GetKeyBytesSize(), ISAP.GetIVBytesSize(), ISAP.GetBlockSize());
-            testParameters(ISAP, 16, 16, 16, 18);
-            ISAP = new ISAPEngine(IsapType.ISAP_K_128);
-            testExceptions(ISAP, ISAP.GetKeyBytesSize(), ISAP.GetIVBytesSize(), ISAP.GetBlockSize());
-            testParameters(ISAP, 16, 16, 16, 18);
-            ISAP = new ISAPEngine(IsapType.ISAP_A_128A);
-            testExceptions(ISAP, ISAP.GetKeyBytesSize(), ISAP.GetIVBytesSize(), ISAP.GetBlockSize());
-            testParameters(ISAP, 16, 16, 16, 8);
-            ISAP = new ISAPEngine(IsapType.ISAP_A_128);
-            testExceptions(ISAP, ISAP.GetKeyBytesSize(), ISAP.GetIVBytesSize(), ISAP.GetBlockSize());
-            testParameters(ISAP, 16, 16, 16, 8);
-            testExceptions(new ISAPDigest(), 32);
-            testVectors("isapa128av20", IsapType.ISAP_A_128A);
-            testVectors("isapa128v20", IsapType.ISAP_A_128);
-            testVectors("isapk128av20", IsapType.ISAP_K_128A);
-            testVectors("isapk128v20", IsapType.ISAP_K_128);
-            testVectors();
+            IsapEngine isapEngine = new IsapEngine(IsapEngine.IsapType.ISAP_K_128A);
+            ImplTestExceptions(isapEngine);
+            ImplTestParameters(isapEngine, 16, 16, 16);
+            isapEngine = new IsapEngine(IsapEngine.IsapType.ISAP_K_128);
+            ImplTestExceptions(isapEngine);
+            ImplTestParameters(isapEngine, 16, 16, 16);
+            isapEngine = new IsapEngine(IsapEngine.IsapType.ISAP_A_128A);
+            ImplTestExceptions(isapEngine);
+            ImplTestParameters(isapEngine, 16, 16, 16);
+            isapEngine = new IsapEngine(IsapEngine.IsapType.ISAP_A_128);
+            ImplTestExceptions(isapEngine);
+            ImplTestParameters(isapEngine, 16, 16, 16);
+            ImplTestExceptions(new ISAPDigest(), 32);
+            ImplTestVectors("isapa128av20", IsapEngine.IsapType.ISAP_A_128A);
+            ImplTestVectors("isapa128v20", IsapEngine.IsapType.ISAP_A_128);
+            ImplTestVectors("isapk128av20", IsapEngine.IsapType.ISAP_K_128A);
+            ImplTestVectors("isapk128v20", IsapEngine.IsapType.ISAP_K_128);
+            ImplTestVectors();
         }
 
-
-        private void testVectors(string filename, IsapType isapType)
+        private void ImplTestVectors(string filename, IsapEngine.IsapType isapType)
         {
-            ISAPEngine isap = new ISAPEngine(isapType);
-            ICipherParameters param;
+            Random random = new Random();
+            IsapEngine isapEngine = new IsapEngine(isapType);
             var buf = new Dictionary<string, string>();
             //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.isap." + filename + "_LWC_AEAD_KAT_128_128.txt")))
             {
-                string line;
-                string[] data;
-                byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
-                    data = line.Split(' ');
+                    var data = line.Split(' ');
                     if (data.Length == 1)
                     {
                         byte[] key = Hex.Decode(map["Key"]);
@@ -70,37 +62,37 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] ad = Hex.Decode(map["AD"]);
                         byte[] pt = Hex.Decode(map["PT"]);
                         byte[] ct = Hex.Decode(map["CT"]);
-                        param = new ParametersWithIV(new KeyParameter(key), nonce);
-                        isap.Init(true, param);
-                        isap.ProcessAadBytes(ad, 0, ad.Length);
-                        rv = new byte[isap.GetOutputSize(pt.Length)];
-                        int len = isap.ProcessBytes(pt, 0, pt.Length, rv, 0);
-                        //byte[] mac = new byte[16];
-                        isap.DoFinal(rv, len);
-                        //foreach(byte b in Hex.Decode(map["CT"]))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
-                        //foreach (byte b in Arrays.Concatenate(rv, mac))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
-                        Assert.True(Arrays.AreEqual(rv, ct));
-                        isap.Reset();
-                        isap.Init(false, param);
-                        //Decrypt
-                        isap.ProcessAadBytes(ad, 0, ad.Length);
-                        rv = new byte[pt.Length + 16];
-                        len = isap.ProcessBytes(ct, 0, ct.Length, rv, 0);
-                        isap.DoFinal(rv, len);
-                        byte[] pt_recovered = new byte[pt.Length];
-                        Array.Copy(rv, 0, pt_recovered, 0, pt.Length);
-                        Assert.True(Arrays.AreEqual(pt, pt_recovered));
-                        //Console.WriteLine(map["Count"] + " pass");
                         map.Clear();
-                        isap.Reset();
+
+                        var parameters = new ParametersWithIV(new KeyParameter(key), nonce);
+
+                        // Encrypt
+                        {
+                            isapEngine.Init(true, parameters);
+
+                            var rv = new byte[isapEngine.GetOutputSize(pt.Length)];
+                            random.NextBytes(rv); // should overwrite any existing data
+
+                            isapEngine.ProcessAadBytes(ad, 0, ad.Length);
+                            int len = isapEngine.ProcessBytes(pt, 0, pt.Length, rv, 0);
+                            len += isapEngine.DoFinal(rv, len);
+
+                            Assert.True(Arrays.AreEqual(rv, 0, len, ct, 0, ct.Length));
+                        }
+
+                        // Decrypt
+                        {
+                            isapEngine.Init(false, parameters);
+
+                            var rv = new byte[isapEngine.GetOutputSize(ct.Length)];
+                            random.NextBytes(rv); // should overwrite any existing data
+
+                            isapEngine.ProcessAadBytes(ad, 0, ad.Length);
+                            int len = isapEngine.ProcessBytes(ct, 0, ct.Length, rv, 0);
+                            len += isapEngine.DoFinal(rv, len);
+
+                            Assert.True(Arrays.AreEqual(rv, 0, len, pt, 0, pt.Length));
+                        }
                     }
                     else
                     {
@@ -112,12 +104,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                         {
                             map[data[0].Trim()] = "";
                         }
-
                     }
                 }
             }
         }
-        private void testVectors()
+
+        private void ImplTestVectors()
         {
             ISAPDigest isap = new ISAPDigest();
             var buf = new Dictionary<string, string>();
@@ -138,7 +130,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] hash = new byte[32];
                         isap.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(hash, Hex.Decode(map["MD"])));
-                        //Console.WriteLine(map["Count"] + " pass");
                         map.Clear();
                         isap.Reset();
                     }
@@ -158,18 +149,18 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testExceptions(IAeadBlockCipher aeadBlockCipher, int keysize, int ivsize, int blocksize)
+        private void ImplTestExceptions(IsapEngine isapEngine)
         {
-            ICipherParameters param;
+            int keysize = isapEngine.GetKeyBytesSize(), ivsize = isapEngine.GetIVBytesSize();
+            int offset;
             byte[] k = new byte[keysize];
             byte[] iv = new byte[ivsize];
-            byte[] m = new byte[0];
-            byte[] c1 = new byte[aeadBlockCipher.GetOutputSize(m.Length)];
-            param = new ParametersWithIV(new KeyParameter(k), iv);
+            byte[] m = Array.Empty<byte>();
+            ICipherParameters param = new ParametersWithIV(new KeyParameter(k), iv);
             try
             {
-                aeadBlockCipher.ProcessBytes(m, 0, m.Length, c1, 0);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before ProcessBytes");
+                isapEngine.ProcessBytes(m, 0, m.Length, null, 0);
+                Assert.Fail(isapEngine.AlgorithmName + " need to be initialized before ProcessBytes");
             }
             catch (ArgumentException)
             {
@@ -178,8 +169,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                aeadBlockCipher.ProcessByte((byte)0, c1, 0);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before ProcessByte");
+                isapEngine.ProcessByte((byte)0, null, 0);
+                Assert.Fail(isapEngine.AlgorithmName + " need to be initialized before ProcessByte");
             }
             catch (ArgumentException)
             {
@@ -188,8 +179,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                aeadBlockCipher.Reset();
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before Reset");
+                isapEngine.Reset();
+                Assert.Fail(isapEngine.AlgorithmName + " need to be initialized before Reset");
             }
             catch (ArgumentException)
             {
@@ -198,8 +189,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                aeadBlockCipher.DoFinal(c1, m.Length);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialized before Dofinal");
+                isapEngine.DoFinal(null, m.Length);
+                Assert.Fail(isapEngine.AlgorithmName + " need to be initialized before Dofinal");
             }
             catch (ArgumentException)
             {
@@ -208,13 +199,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                aeadBlockCipher.GetMac();
-                aeadBlockCipher.GetOutputSize(0);
-                aeadBlockCipher.GetUpdateOutputSize(0);
+                isapEngine.GetMac();
+                isapEngine.GetOutputSize(0);
+                isapEngine.GetUpdateOutputSize(0);
             }
             catch (ArgumentException)
             {
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialization");
+                Assert.Fail(isapEngine.AlgorithmName + " functions can be called before initialization");
             }
             Random rand = new Random();
             int randomNum;
@@ -224,8 +215,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] iv1 = new byte[randomNum];
             try
             {
-                aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " k size does not match");
+                isapEngine.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
+                Assert.Fail(isapEngine.AlgorithmName + " k size does not match");
             }
             catch (ArgumentException)
             {
@@ -233,25 +224,25 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
-                Assert.Fail(aeadBlockCipher.AlgorithmName + "iv size does not match");
+                isapEngine.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
+                Assert.Fail(isapEngine.AlgorithmName + "iv size does not match");
             }
             catch (ArgumentException)
             {
                 //expected
             }
 
-
-            aeadBlockCipher.Init(true, param);
+            isapEngine.Init(true, param);
+            byte[] c1 = new byte[isapEngine.GetOutputSize(m.Length)];
             try
             {
-                aeadBlockCipher.DoFinal(c1, m.Length);
+                isapEngine.DoFinal(c1, m.Length);
             }
             catch (Exception)
             {
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " allows no input for AAD and plaintext");
+                Assert.Fail(isapEngine.AlgorithmName + " allows no input for AAD and plaintext");
             }
-            byte[] mac2 = aeadBlockCipher.GetMac();
+            byte[] mac2 = isapEngine.GetMac();
             if (mac2 == null)
             {
                 Assert.Fail("mac should not be empty after Dofinal");
@@ -260,15 +251,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("mac should be equal when calling Dofinal and GetMac");
             }
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            byte[] mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            aeadBlockCipher.DoFinal(mac1, 0);
+            isapEngine.ProcessAadByte(0x00);
+            byte[] mac1 = new byte[isapEngine.GetOutputSize(0)];
+            isapEngine.DoFinal(mac1, 0);
             if (Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should not match");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessBytes(new byte[16], 0, 16, new byte[16], 0);
+            isapEngine.Reset();
+            isapEngine.ProcessBytes(new byte[16], 0, 16, new byte[16], 0);
             //try
             //{
             //    aeadBlockCipher.ProcessAadByte((byte)0);
@@ -288,10 +279,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             //    //expected
             //}
 
-            aeadBlockCipher.Reset();
+            isapEngine.Reset();
             try
             {
-                aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 1, 1);
+                isapEngine.ProcessAadBytes(new byte[] { 0 }, 1, 1);
                 Assert.Fail("input for ProcessAadBytes is too short");
             }
             catch (DataLengthException)
@@ -300,7 +291,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                aeadBlockCipher.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
+                isapEngine.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
                 Assert.Fail("input for ProcessBytes is too short");
             }
             catch (DataLengthException)
@@ -309,7 +300,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                aeadBlockCipher.ProcessBytes(new byte[blocksize], 0, blocksize, new byte[blocksize], blocksize >> 1);
+                int inputSize = rand.Next(32, 64);
+                int outputSize = isapEngine.GetUpdateOutputSize(inputSize);
+                isapEngine.ProcessBytes(new byte[inputSize], 0, inputSize, new byte[outputSize], 1);
                 Assert.Fail("output for ProcessBytes is too short");
             }
             catch (OutputLengthException)
@@ -318,7 +311,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                aeadBlockCipher.DoFinal(new byte[2], 2);
+                isapEngine.DoFinal(new byte[2], 2);
                 Assert.Fail("output for dofinal is too short");
             }
             catch (DataLengthException)
@@ -326,59 +319,58 @@ namespace Org.BouncyCastle.Crypto.Tests
                 //expected
             }
 
-            mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            mac2 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
-            aeadBlockCipher.DoFinal(mac1, 0);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            aeadBlockCipher.DoFinal(mac2, 0);
+            mac1 = new byte[isapEngine.GetOutputSize(0)];
+            mac2 = new byte[isapEngine.GetOutputSize(0)];
+            isapEngine.Reset();
+            isapEngine.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
+            isapEngine.DoFinal(mac1, 0);
+            isapEngine.Reset();
+            isapEngine.ProcessAadByte((byte)0);
+            isapEngine.ProcessAadByte((byte)0);
+            isapEngine.DoFinal(mac2, 0);
             if (!Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should match for the same AAD with different ways of inputing");
             }
 
-            byte[] c2 = new byte[aeadBlockCipher.GetOutputSize(10)];
-            byte[] c3 = new byte[aeadBlockCipher.GetOutputSize(10) + 2];
+            byte[] c2 = new byte[isapEngine.GetOutputSize(10)];
+            byte[] c3 = new byte[isapEngine.GetOutputSize(10) + 2];
             byte[] aad2 = { 0, 1, 2, 3, 4 };
             byte[] aad3 = { 0, 0, 1, 2, 3, 4, 5 };
             byte[] m2 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             byte[] m3 = { 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
             byte[] m4 = new byte[m2.Length];
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            int offset = aeadBlockCipher.ProcessBytes(m2, 0, m2.Length, c2, 0);
-            aeadBlockCipher.DoFinal(c2, offset);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad3, 1, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m3, 1, m2.Length, c3, 1);
-            aeadBlockCipher.DoFinal(c3, offset + 1);
+            isapEngine.Reset();
+            isapEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = isapEngine.ProcessBytes(m2, 0, m2.Length, c2, 0);
+            isapEngine.DoFinal(c2, offset);
+            isapEngine.Reset();
+            isapEngine.ProcessAadBytes(aad3, 1, aad2.Length);
+            offset = isapEngine.ProcessBytes(m3, 1, m2.Length, c3, 1);
+            isapEngine.DoFinal(c3, offset + 1);
             byte[] c3_partial = new byte[c2.Length];
             Array.Copy(c3, 1, c3_partial, 0, c2.Length);
             if (!Arrays.AreEqual(c2, c3_partial))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(c2, 0, c2.Length, m4, 0);
-            aeadBlockCipher.DoFinal(m4, offset);
+            isapEngine.Reset();
+            isapEngine.Init(false, param);
+            isapEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = isapEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
+            offset += isapEngine.DoFinal(m4, offset);
             if (!Arrays.AreEqual(m2, m4))
             {
                 Assert.Fail("The encryption and decryption does not recover the plaintext");
             }
-            //Console.WriteLine(aeadBlockCipher.AlgorithmName + " test Exceptions pass");
             c2[c2.Length - 1] ^= 1;
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(c2, 0, c2.Length, m4, 0);
+            isapEngine.Reset();
+            isapEngine.Init(false, param);
+            isapEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = isapEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
             try
             {
-                aeadBlockCipher.DoFinal(m4, offset);
+                offset += isapEngine.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
             catch (ArgumentException)
@@ -387,26 +379,27 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             c2[c2.Length - 1] ^= 1;
 
-            byte[] m7 = new byte[blocksize * 2];
+            byte[] m7 = new byte[32 + rand.Next(32)];
             rand.NextBytes(m7);
-            byte[] c7 = new byte[aeadBlockCipher.GetOutputSize(m7.Length)];
+
+            isapEngine.Init(true, param);
+            byte[] c7 = new byte[isapEngine.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
             byte[] c9 = new byte[c7.Length];
-            aeadBlockCipher.Init(true, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, m7.Length, c7, 0);
-            aeadBlockCipher.DoFinal(c7, offset);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, blocksize, c8, 0);
-            offset += aeadBlockCipher.ProcessBytes(m7, blocksize, m7.Length - blocksize, c8, offset);
-            aeadBlockCipher.DoFinal(c8, offset);
-            aeadBlockCipher.Reset();
-            int split = rand.Next(blocksize * 2);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, split, c9, 0);
-            offset += aeadBlockCipher.ProcessBytes(m7, split, m7.Length - split, c9, offset);
-            aeadBlockCipher.DoFinal(c9, offset);
+            isapEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = isapEngine.ProcessBytes(m7, 0, m7.Length, c7, 0);
+            offset += isapEngine.DoFinal(c7, offset);
+            isapEngine.Reset();
+            isapEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = isapEngine.ProcessBytes(m7, 0, m7.Length / 2, c8, 0);
+            offset += isapEngine.ProcessBytes(m7, m7.Length / 2, m7.Length - m7.Length / 2, c8, offset);
+            offset += isapEngine.DoFinal(c8, offset);
+            isapEngine.Reset();
+            int split = rand.Next(1, m7.Length);
+            isapEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = isapEngine.ProcessBytes(m7, 0, split, c9, 0);
+            offset += isapEngine.ProcessBytes(m7, split, m7.Length - split, c9, offset);
+            isapEngine.DoFinal(c9, offset);
             if (!Arrays.AreEqual(c7, c8) || !Arrays.AreEqual(c7, c9))
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
@@ -418,10 +411,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             Span<byte> c4_2 = new byte[c2.Length];
             ReadOnlySpan<byte> m5 = new ReadOnlySpan<byte>(m2);
             ReadOnlySpan<byte> aad4 = new ReadOnlySpan<byte>(aad2);
-            aeadBlockCipher.Init(true, param);
-            aeadBlockCipher.ProcessAadBytes(aad4);
-            offset = aeadBlockCipher.ProcessBytes(m5, c4_1);
-            aeadBlockCipher.DoFinal(c4_2);
+            isapEngine.Init(true, param);
+            isapEngine.ProcessAadBytes(aad4);
+            offset = isapEngine.ProcessBytes(m5, c4_1);
+            isapEngine.DoFinal(c4_2);
             byte[] c5 = new byte[c2.Length];
             Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
             Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
@@ -429,14 +422,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
+            isapEngine.Reset();
+            isapEngine.Init(false, param);
             Span<byte> m6_1 = new byte[m2.Length];
             Span<byte> m6_2 = new byte[m2.Length];
             ReadOnlySpan<byte> c6 = new ReadOnlySpan<byte>(c2);
-            aeadBlockCipher.ProcessAadBytes(aad4);
-            offset = aeadBlockCipher.ProcessBytes(c6, m6_1);
-            aeadBlockCipher.DoFinal(m6_2);
+            isapEngine.ProcessAadBytes(aad4);
+            offset = isapEngine.ProcessBytes(c6, m6_1);
+            isapEngine.DoFinal(m6_2);
             byte[] m6 = new byte[m2.Length];
             Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
             Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
@@ -447,28 +440,25 @@ namespace Org.BouncyCastle.Crypto.Tests
 #endif
         }
 
-        private void testParameters(ISAPEngine ascon, int keySize, int ivSize, int macSize, int blockSize)
+        private void ImplTestParameters(IsapEngine isapEngine, int keySize, int ivSize, int macSize)
         {
-            if (ascon.GetKeyBytesSize() != keySize)
-            {
-                Assert.Fail("key bytes of " + ascon.AlgorithmName + " is not correct");
-            }
-            if (ascon.GetIVBytesSize() != ivSize)
-            {
-                Assert.Fail("iv bytes of " + ascon.AlgorithmName + " is not correct");
-            }
-            if (ascon.GetOutputSize(0) != macSize)
-            {
-                Assert.Fail("mac bytes of " + ascon.AlgorithmName + " is not correct");
-            }
-            if (ascon.GetBlockSize() != blockSize)
-            {
-                Assert.Fail("block size of " + ascon.AlgorithmName + " is not correct");
-            }
-            //Console.WriteLine(ascon.AlgorithmName + " test Parameters pass");
+            Assert.AreEqual(keySize, isapEngine.GetKeyBytesSize(),
+                "key bytes of " + isapEngine.AlgorithmName + " is not correct");
+            Assert.AreEqual(ivSize, isapEngine.GetIVBytesSize(),
+                "iv bytes of " + isapEngine.AlgorithmName + " is not correct");
+
+            var parameters = new ParametersWithIV(new KeyParameter(new byte[keySize]), new byte[ivSize]);
+
+            isapEngine.Init(true, parameters);
+            Assert.AreEqual(macSize, isapEngine.GetOutputSize(0),
+                "GetOutputSize of " + isapEngine.AlgorithmName + " is incorrect for encryption");
+
+            isapEngine.Init(false, parameters);
+            Assert.AreEqual(0, isapEngine.GetOutputSize(macSize),
+                "GetOutputSize of " + isapEngine.AlgorithmName + " is incorrect for decryption");
         }
 
-        private void testExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(IDigest digest, int digestsize)
         {
             if (digest.GetDigestSize() != digestsize)
             {
@@ -493,7 +483,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 //expected
             }
-            //Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
         }
     }
 }
