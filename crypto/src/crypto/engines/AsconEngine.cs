@@ -331,12 +331,25 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int GetUpdateOutputSize(int len)
         {
-            return len;
+            int totalData = Convert.ToInt32(message.Length + len);
+            if (!forEncryption)
+            {
+                if (totalData < CRYPTO_ABYTES)
+                    return 0;
+
+                totalData -= CRYPTO_ABYTES;
+            }
+            return totalData - totalData % ASCON_AEAD_RATE;
         }
 
         public int GetOutputSize(int len)
         {
-            return len + CRYPTO_ABYTES;
+            int totalData = Convert.ToInt32(message.Length + len);
+
+            if (forEncryption)
+                return totalData + CRYPTO_ABYTES;
+
+            return System.Math.Max(0, totalData - CRYPTO_ABYTES);
         }
 
         public void Reset()
@@ -423,35 +436,35 @@ namespace Org.BouncyCastle.Crypto.Engines
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private int ProcessBytes(Span<byte> output)
         {
-            int len_orig = Convert.ToInt32(message.Length);
-            int len = 0;
+            int msgLen = Convert.ToInt32(message.Length);
+            int outLen = 0;
             if (forEncryption)
             {
-                if (len_orig >= ASCON_AEAD_RATE)
+                if (msgLen >= ASCON_AEAD_RATE)
                 {
                     ProcessAad();
                     byte[] input = message.GetBuffer();
-                    len = (len_orig / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, len, "output buffer is too short");
-                    ascon_encrypt(output, input.AsSpan(0, len));
+                    outLen = (msgLen / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
+                    Check.OutputLength(output, outLen, "output buffer is too short");
+                    ascon_encrypt(output, input.AsSpan(0, outLen));
                     message.SetLength(0);
-                    message.Write(input, len, len_orig - len);
+                    message.Write(input, outLen, msgLen - outLen);
                 }
             }
             else
             {
-                if (len_orig - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
+                if (msgLen - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
                 {
                     ProcessAad();
                     byte[] input = message.GetBuffer();
-                    len = ((len_orig - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, len, "output buffer is too short");
-                    ascon_decrypt(output, input.AsSpan(0, len));
+                    outLen = ((msgLen - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
+                    Check.OutputLength(output, outLen, "output buffer is too short");
+                    ascon_decrypt(output, input.AsSpan(0, outLen));
                     message.SetLength(0);
-                    message.Write(input, len, len_orig - len);
+                    message.Write(input, outLen, msgLen - outLen);
                 }
             }
-            return len;
+            return outLen;
         }
 
         private void ascon_adata(ReadOnlySpan<byte> aad)
@@ -620,35 +633,35 @@ namespace Org.BouncyCastle.Crypto.Engines
 #else
         private int ProcessBytes(byte[] output, int outOff)
         {
-            int len_orig = Convert.ToInt32(message.Length);
-            int len = 0;
+            int msgLen = Convert.ToInt32(message.Length);
+            int outLen = 0;
             if (forEncryption)
             {
-                if (len_orig >= ASCON_AEAD_RATE)
+                if (msgLen >= ASCON_AEAD_RATE)
                 {
                     ProcessAad();
                     byte[] input = message.GetBuffer();
-                    len = (len_orig / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, outOff, len, "output buffer is too short");
-                    ascon_encrypt(output, outOff, input, 0, len);
+                    outLen = (msgLen / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
+                    Check.OutputLength(output, outOff, outLen, "output buffer is too short");
+                    ascon_encrypt(output, outOff, input, 0, outLen);
                     message.SetLength(0);
-                    message.Write(input, len, len_orig - len);
+                    message.Write(input, outLen, msgLen - outLen);
                 }
             }
             else
             {
-                if (len_orig - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
+                if (msgLen - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
                 {
                     ProcessAad();
                     byte[] input = message.GetBuffer();
-                    len = ((len_orig - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, outOff, len, "output buffer is too short");
-                    ascon_decrypt(output, outOff, input, 0, len);
+                    outLen = ((msgLen - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
+                    Check.OutputLength(output, outOff, outLen, "output buffer is too short");
+                    ascon_decrypt(output, outOff, input, 0, outLen);
                     message.SetLength(0);
-                    message.Write(input, len, len_orig - len);
+                    message.Write(input, outLen, msgLen - outLen);
                 }
             }
-            return len;
+            return outLen;
         }
 
         private void ascon_adata(byte[] ad, int adOff, int adlen)

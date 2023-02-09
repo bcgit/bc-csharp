@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -21,15 +22,15 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public override void PerformTest()
         {
-            testVectorsHash(AsconDigest.AsconParameters.AsconHashA, "asconhasha");
-            testVectorsHash(AsconDigest.AsconParameters.AsconHash, "asconhash");
-            testVectorsHash(AsconDigest.AsconParameters.AsconXof, "asconxof");
-            testVectorsHash(AsconDigest.AsconParameters.AsconXofA, "asconxofa");
+            ImplTestVectorsHash(AsconDigest.AsconParameters.AsconHashA, "asconhasha");
+            ImplTestVectorsHash(AsconDigest.AsconParameters.AsconHash, "asconhash");
+            ImplTestVectorsHash(AsconDigest.AsconParameters.AsconXof, "asconxof");
+            ImplTestVectorsHash(AsconDigest.AsconParameters.AsconXofA, "asconxofa");
 
-            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHashA), 32);
-            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHash), 32);
-            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXof), 32);
-            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXofA), 32);
+            ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHashA), 32);
+            ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHash), 32);
+            ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXof), 32);
+            ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXofA), 32);
 
             AsconEngine asconEngine = new AsconEngine(AsconEngine.AsconParameters.ascon80pq);
             ImplTestExceptions(asconEngine);
@@ -51,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         private void ImplTestVectors(AsconEngine.AsconParameters asconParameters, string filename)
         {
             Random random = new Random();
-            AsconEngine Ascon = new AsconEngine(asconParameters);
+            AsconEngine asconEngine = new AsconEngine(asconParameters);
             var buf = new Dictionary<string, string>();
             //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.ascon.LWC_AEAD_KAT_" + filename + ".txt")))
@@ -70,32 +71,32 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] ct = Hex.Decode(map["CT"]);
                         map.Clear();
 
-                        var param = new ParametersWithIV(new KeyParameter(key), nonce);
+                        var parameters = new ParametersWithIV(new KeyParameter(key), nonce);
 
                         // Encrypt
                         {
-                            Ascon.Init(true, param);
+                            asconEngine.Init(true, parameters);
 
-                            var rv = new byte[Ascon.GetOutputSize(pt.Length)];
+                            var rv = new byte[asconEngine.GetOutputSize(pt.Length)];
                             random.NextBytes(rv); // should overwrite any existing data
 
-                            Ascon.ProcessAadBytes(ad, 0, ad.Length);
-                            int len = Ascon.ProcessBytes(pt, 0, pt.Length, rv, 0);
-                            len += Ascon.DoFinal(rv, len);
+                            asconEngine.ProcessAadBytes(ad, 0, ad.Length);
+                            int len = asconEngine.ProcessBytes(pt, 0, pt.Length, rv, 0);
+                            len += asconEngine.DoFinal(rv, len);
 
                             Assert.True(Arrays.AreEqual(rv, 0, len, ct, 0, ct.Length));
                         }
 
                         // Decrypt
                         {
-                            Ascon.Init(false, param);
+                            asconEngine.Init(false, parameters);
 
-                            var rv = new byte[Ascon.GetOutputSize(ct.Length)];
+                            var rv = new byte[asconEngine.GetOutputSize(ct.Length)];
                             random.NextBytes(rv); // should overwrite any existing data
 
-                            Ascon.ProcessAadBytes(ad, 0, ad.Length);
-                            int len = Ascon.ProcessBytes(ct, 0, ct.Length, rv, 0);
-                            len += Ascon.DoFinal(rv, len);
+                            asconEngine.ProcessAadBytes(ad, 0, ad.Length);
+                            int len = asconEngine.ProcessBytes(ct, 0, ct.Length, rv, 0);
+                            len += asconEngine.DoFinal(rv, len);
 
                             Assert.True(Arrays.AreEqual(rv, 0, len, pt, 0, pt.Length));
                         }
@@ -118,15 +119,15 @@ namespace Org.BouncyCastle.Crypto.Tests
         private void ImplTestExceptions(AsconEngine asconEngine)
         {
             int keySize = asconEngine.GetKeyBytesSize(), ivSize = asconEngine.GetIVBytesSize();
+            int offset;
             byte[] k = new byte[keySize];
             byte[] iv = new byte[ivSize];
-            byte[] m = new byte[0];
-            byte[] c1 = new byte[asconEngine.GetOutputSize(m.Length)];
+            byte[] m = Array.Empty<byte>();
             var param = new ParametersWithIV(new KeyParameter(k), iv);
             try
             {
-                asconEngine.ProcessBytes(m, 0, m.Length, c1, 0);
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialed before ProcessBytes");
+                asconEngine.ProcessBytes(m, 0, m.Length, null, 0);
+                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before ProcessBytes");
             }
             catch (ArgumentException)
             {
@@ -135,8 +136,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                asconEngine.ProcessByte((byte)0, c1, 0);
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialed before ProcessByte");
+                asconEngine.ProcessByte((byte)0, null, 0);
+                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before ProcessByte");
             }
             catch (ArgumentException)
             {
@@ -146,7 +147,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 asconEngine.Reset();
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialed before reset");
+                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before reset");
             }
             catch (ArgumentException)
             {
@@ -155,8 +156,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                asconEngine.DoFinal(c1, m.Length);
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialed before dofinal");
+                asconEngine.DoFinal(null, m.Length);
+                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before Dofinal");
             }
             catch (ArgumentException)
             {
@@ -201,6 +202,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             asconEngine.Init(true, param);
+            byte[] c1 = new byte[asconEngine.GetOutputSize(m.Length)];
             try
             {
                 asconEngine.DoFinal(c1, m.Length);
@@ -267,7 +269,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                asconEngine.ProcessBytes(new byte[16], 0, 16, new byte[16], 8);
+                int inputSize = rand.Next(32, 64);
+                int outputSize = asconEngine.GetUpdateOutputSize(inputSize);
+                asconEngine.ProcessBytes(new byte[inputSize], 0, inputSize, new byte[outputSize], 1);
                 Assert.Fail("output for ProcessBytes is too short");
             }
             catch (OutputLengthException)
@@ -307,7 +311,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] m4 = new byte[m2.Length];
             asconEngine.Reset();
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
-            int offset = asconEngine.ProcessBytes(m2, 0, m2.Length, c2, 0);
+            offset = asconEngine.ProcessBytes(m2, 0, m2.Length, c2, 0);
             asconEngine.DoFinal(c2, offset);
             asconEngine.Reset();
             asconEngine.ProcessAadBytes(aad3, 1, aad2.Length);
@@ -344,26 +348,27 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             c2[c2.Length - 1] ^= 1;
 
-            byte[] m7 = new byte[32 + rand.Next(16)];
+            byte[] m7 = new byte[32 + rand.Next(32)];
             rand.NextBytes(m7);
 
+            asconEngine.Init(true, param);
             byte[] c7 = new byte[asconEngine.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
             byte[] c9 = new byte[c7.Length];
-            asconEngine.Init(true, param);
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, m7.Length, c7, 0);
             asconEngine.DoFinal(c7, offset);
             asconEngine.Reset();
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = asconEngine.ProcessBytes(m7, 0, m7.Length, c8, 0);
+            offset = asconEngine.ProcessBytes(m7, 0, m7.Length / 2, c8, 0);
+            offset += asconEngine.ProcessBytes(m7, m7.Length / 2, m7.Length - m7.Length / 2, c8, offset);
             offset += asconEngine.DoFinal(c8, offset);
             asconEngine.Reset();
             int split = rand.Next(1, m7.Length);
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, split, c9, 0);
             offset += asconEngine.ProcessBytes(m7, split, m7.Length - split, c9, offset);
-            asconEngine.DoFinal(c9, offset);
+            offset += asconEngine.DoFinal(c9, offset);
             if (!Arrays.AreEqual(c7, c8) || !Arrays.AreEqual(c7, c9))
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
@@ -410,11 +415,19 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "key bytes of " + asconEngine.AlgorithmName + " is not correct");
             Assert.AreEqual(ivSize, asconEngine.GetIVBytesSize(),
                 "iv bytes of " + asconEngine.AlgorithmName + " is not correct");
+
+            var parameters = new ParametersWithIV(new KeyParameter(new byte[keySize]), new byte[ivSize]);
+
+            asconEngine.Init(true, parameters);
             Assert.AreEqual(macSize, asconEngine.GetOutputSize(0),
-                "mac bytes of " + asconEngine.AlgorithmName + " is not correct");
+                "GetOutputSize of " + asconEngine.AlgorithmName + " is incorrect for encryption");
+
+            asconEngine.Init(false, parameters);
+            Assert.AreEqual(0, asconEngine.GetOutputSize(macSize),
+                "GetOutputSize of " + asconEngine.AlgorithmName + " is incorrect for decryption");
         }
 
-        private void testVectorsHash(AsconDigest.AsconParameters AsconParameters, String filename)
+        private void ImplTestVectorsHash(AsconDigest.AsconParameters AsconParameters, String filename)
         {
             AsconDigest Ascon = new AsconDigest(AsconParameters);
             var buf = new Dictionary<string, string>();
@@ -455,7 +468,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(IDigest digest, int digestsize)
         {
             if (digest.GetDigestSize() != digestsize)
             {
