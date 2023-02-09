@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
-
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -16,11 +16,21 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class AsconTest
         : SimpleTest
     {
-        public override string Name => "ASCON AEAD";
+        public override string Name => "ASCON";
 
         [Test]
         public override void PerformTest()
         {
+            testVectorsHash(AsconDigest.AsconParameters.AsconHashA, "asconhasha");
+            testVectorsHash(AsconDigest.AsconParameters.AsconHash, "asconhash");
+            testVectorsHash(AsconDigest.AsconParameters.AsconXof, "asconxof");
+            testVectorsHash(AsconDigest.AsconParameters.AsconXofA, "asconxofa");
+
+            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHashA), 32);
+            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHash), 32);
+            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXof), 32);
+            testExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXofA), 32);
+
             AsconEngine asconEngine = new AsconEngine(AsconEngine.AsconParameters.ascon80pq);
             ImplTestExceptions(asconEngine);
             ImplTestParameters(asconEngine, 20, 16, 16);
@@ -402,6 +412,75 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "iv bytes of " + asconEngine.AlgorithmName + " is not correct");
             Assert.AreEqual(macSize, asconEngine.GetOutputSize(0),
                 "mac bytes of " + asconEngine.AlgorithmName + " is not correct");
+        }
+
+        private void testVectorsHash(AsconDigest.AsconParameters AsconParameters, String filename)
+        {
+            AsconDigest Ascon = new AsconDigest(AsconParameters);
+            var buf = new Dictionary<string, string>();
+            //TestSampler sampler = new TestSampler();
+            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.ascon."+filename+"_LWC_HASH_KAT_256.txt")))
+            {
+                string line;
+                string[] data;
+                byte[] ptByte;
+                Dictionary<string, string> map = new Dictionary<string, string>();
+                while ((line = src.ReadLine()) != null)
+                {
+                    data = line.Split(' ');
+                    if (data.Length == 1)
+                    {
+                        ptByte = Hex.Decode(map["Msg"]);
+                        Ascon.BlockUpdate(ptByte, 0, ptByte.Length);
+                        byte[] hash = new byte[Ascon.GetDigestSize()];
+                        Ascon.DoFinal(hash, 0);
+                        Assert.True(Arrays.AreEqual(hash, Hex.Decode(map["MD"])));
+                        //Console.WriteLine(map["Count"] + " pass");
+                        map.Clear();
+                        Ascon.Reset();
+                    }
+                    else
+                    {
+                        if (data.Length >= 3)
+                        {
+                            map[data[0].Trim()] = data[2].Trim();
+                        }
+                        else
+                        {
+                            map[data[0].Trim()] = "";
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private void testExceptions(IDigest digest, int digestsize)
+        {
+            if (digest.GetDigestSize() != digestsize)
+            {
+                Assert.Fail(digest.AlgorithmName + ": digest size is not correct");
+            }
+
+            try
+            {
+                digest.BlockUpdate(new byte[1], 1, 1);
+                Assert.Fail(digest.AlgorithmName + ": input for update is too short");
+            }
+            catch (DataLengthException)
+            {
+                //expected
+            }
+            try
+            {
+                digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
+                Assert.Fail(digest.AlgorithmName + ": output for dofinal is too short");
+            }
+            catch (DataLengthException)
+            {
+                //expected
+            }
+            //Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
         }
     }
 }
