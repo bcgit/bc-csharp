@@ -252,529 +252,547 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Decrypt128(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
-            state = Sse2.Xor(state, roundKeys[0]);
-            state = Aes.Decrypt(state, roundKeys[1]);
-            state = Aes.Decrypt(state, roundKeys[2]);
-            state = Aes.Decrypt(state, roundKeys[3]);
-            state = Aes.Decrypt(state, roundKeys[4]);
-            state = Aes.Decrypt(state, roundKeys[5]);
-            state = Aes.Decrypt(state, roundKeys[6]);
-            state = Aes.Decrypt(state, roundKeys[7]);
-            state = Aes.Decrypt(state, roundKeys[8]);
-            state = Aes.Decrypt(state, roundKeys[9]);
-            state = Aes.DecryptLast(state, roundKeys[10]);
+            var bounds = roundKeys[10];
+            var value = Sse2.Xor(state, roundKeys[0]);
+            value = Aes.Decrypt(value, roundKeys[1]);
+            value = Aes.Decrypt(value, roundKeys[2]);
+            value = Aes.Decrypt(value, roundKeys[3]);
+            value = Aes.Decrypt(value, roundKeys[4]);
+            value = Aes.Decrypt(value, roundKeys[5]);
+            value = Aes.Decrypt(value, roundKeys[6]);
+            value = Aes.Decrypt(value, roundKeys[7]);
+            value = Aes.Decrypt(value, roundKeys[8]);
+            value = Aes.Decrypt(value, roundKeys[9]);
+            state = Aes.DecryptLast(value, roundKeys[10]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Decrypt192(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
-            state = Sse2.Xor(state, roundKeys[0]);
-            state = Aes.Decrypt(state, roundKeys[1]);
-            state = Aes.Decrypt(state, roundKeys[2]);
-            state = Aes.Decrypt(state, roundKeys[3]);
-            state = Aes.Decrypt(state, roundKeys[4]);
-            state = Aes.Decrypt(state, roundKeys[5]);
-            state = Aes.Decrypt(state, roundKeys[6]);
-            state = Aes.Decrypt(state, roundKeys[7]);
-            state = Aes.Decrypt(state, roundKeys[8]);
-            state = Aes.Decrypt(state, roundKeys[9]);
-            state = Aes.Decrypt(state, roundKeys[10]);
-            state = Aes.Decrypt(state, roundKeys[11]);
-            state = Aes.DecryptLast(state, roundKeys[12]);
+            var bounds = roundKeys[12];
+            var value = Sse2.Xor(state, roundKeys[0]);
+            value = Aes.Decrypt(value, roundKeys[1]);
+            value = Aes.Decrypt(value, roundKeys[2]);
+            value = Aes.Decrypt(value, roundKeys[3]);
+            value = Aes.Decrypt(value, roundKeys[4]);
+            value = Aes.Decrypt(value, roundKeys[5]);
+            value = Aes.Decrypt(value, roundKeys[6]);
+            value = Aes.Decrypt(value, roundKeys[7]);
+            value = Aes.Decrypt(value, roundKeys[8]);
+            value = Aes.Decrypt(value, roundKeys[9]);
+            value = Aes.Decrypt(value, roundKeys[10]);
+            value = Aes.Decrypt(value, roundKeys[11]);
+            state = Aes.DecryptLast(value, roundKeys[12]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Decrypt256(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
-            state = Sse2.Xor(state, roundKeys[0]);
-            state = Aes.Decrypt(state, roundKeys[1]);
-            state = Aes.Decrypt(state, roundKeys[2]);
-            state = Aes.Decrypt(state, roundKeys[3]);
-            state = Aes.Decrypt(state, roundKeys[4]);
-            state = Aes.Decrypt(state, roundKeys[5]);
-            state = Aes.Decrypt(state, roundKeys[6]);
-            state = Aes.Decrypt(state, roundKeys[7]);
-            state = Aes.Decrypt(state, roundKeys[8]);
-            state = Aes.Decrypt(state, roundKeys[9]);
-            state = Aes.Decrypt(state, roundKeys[10]);
-            state = Aes.Decrypt(state, roundKeys[11]);
-            state = Aes.Decrypt(state, roundKeys[12]);
-            state = Aes.Decrypt(state, roundKeys[13]);
-            state = Aes.DecryptLast(state, roundKeys[14]);
+            var bounds = roundKeys[14];
+            var value = Sse2.Xor(state, roundKeys[0]);
+            value = Aes.Decrypt(value, roundKeys[1]);
+            value = Aes.Decrypt(value, roundKeys[2]);
+            value = Aes.Decrypt(value, roundKeys[3]);
+            value = Aes.Decrypt(value, roundKeys[4]);
+            value = Aes.Decrypt(value, roundKeys[5]);
+            value = Aes.Decrypt(value, roundKeys[6]);
+            value = Aes.Decrypt(value, roundKeys[7]);
+            value = Aes.Decrypt(value, roundKeys[8]);
+            value = Aes.Decrypt(value, roundKeys[9]);
+            value = Aes.Decrypt(value, roundKeys[10]);
+            value = Aes.Decrypt(value, roundKeys[11]);
+            value = Aes.Decrypt(value, roundKeys[12]);
+            value = Aes.Decrypt(value, roundKeys[13]);
+            state = Aes.DecryptLast(value, roundKeys[14]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void DecryptFour128(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
-            s1 = Sse2.Xor(s1, rk[0]);
-            s2 = Sse2.Xor(s2, rk[0]);
-            s3 = Sse2.Xor(s3, rk[0]);
-            s4 = Sse2.Xor(s4, rk[0]);
+            var bounds = rk[10];
 
-            s1 = Aes.Decrypt(s1, rk[1]);
-            s2 = Aes.Decrypt(s2, rk[1]);
-            s3 = Aes.Decrypt(s3, rk[1]);
-            s4 = Aes.Decrypt(s4, rk[1]);
+            var v1 = Sse2.Xor(s1, rk[0]);
+            var v2 = Sse2.Xor(s2, rk[0]);
+            var v3 = Sse2.Xor(s3, rk[0]);
+            var v4 = Sse2.Xor(s4, rk[0]);
 
-            s1 = Aes.Decrypt(s1, rk[2]);
-            s2 = Aes.Decrypt(s2, rk[2]);
-            s3 = Aes.Decrypt(s3, rk[2]);
-            s4 = Aes.Decrypt(s4, rk[2]);
+            v1 = Aes.Decrypt(v1, rk[1]);
+            v2 = Aes.Decrypt(v2, rk[1]);
+            v3 = Aes.Decrypt(v3, rk[1]);
+            v4 = Aes.Decrypt(v4, rk[1]);
 
-            s1 = Aes.Decrypt(s1, rk[3]);
-            s2 = Aes.Decrypt(s2, rk[3]);
-            s3 = Aes.Decrypt(s3, rk[3]);
-            s4 = Aes.Decrypt(s4, rk[3]);
+            v1 = Aes.Decrypt(v1, rk[2]);
+            v2 = Aes.Decrypt(v2, rk[2]);
+            v3 = Aes.Decrypt(v3, rk[2]);
+            v4 = Aes.Decrypt(v4, rk[2]);
 
-            s1 = Aes.Decrypt(s1, rk[4]);
-            s2 = Aes.Decrypt(s2, rk[4]);
-            s3 = Aes.Decrypt(s3, rk[4]);
-            s4 = Aes.Decrypt(s4, rk[4]);
+            v1 = Aes.Decrypt(v1, rk[3]);
+            v2 = Aes.Decrypt(v2, rk[3]);
+            v3 = Aes.Decrypt(v3, rk[3]);
+            v4 = Aes.Decrypt(v4, rk[3]);
 
-            s1 = Aes.Decrypt(s1, rk[5]);
-            s2 = Aes.Decrypt(s2, rk[5]);
-            s3 = Aes.Decrypt(s3, rk[5]);
-            s4 = Aes.Decrypt(s4, rk[5]);
+            v1 = Aes.Decrypt(v1, rk[4]);
+            v2 = Aes.Decrypt(v2, rk[4]);
+            v3 = Aes.Decrypt(v3, rk[4]);
+            v4 = Aes.Decrypt(v4, rk[4]);
 
-            s1 = Aes.Decrypt(s1, rk[6]);
-            s2 = Aes.Decrypt(s2, rk[6]);
-            s3 = Aes.Decrypt(s3, rk[6]);
-            s4 = Aes.Decrypt(s4, rk[6]);
+            v1 = Aes.Decrypt(v1, rk[5]);
+            v2 = Aes.Decrypt(v2, rk[5]);
+            v3 = Aes.Decrypt(v3, rk[5]);
+            v4 = Aes.Decrypt(v4, rk[5]);
 
-            s1 = Aes.Decrypt(s1, rk[7]);
-            s2 = Aes.Decrypt(s2, rk[7]);
-            s3 = Aes.Decrypt(s3, rk[7]);
-            s4 = Aes.Decrypt(s4, rk[7]);
+            v1 = Aes.Decrypt(v1, rk[6]);
+            v2 = Aes.Decrypt(v2, rk[6]);
+            v3 = Aes.Decrypt(v3, rk[6]);
+            v4 = Aes.Decrypt(v4, rk[6]);
 
-            s1 = Aes.Decrypt(s1, rk[8]);
-            s2 = Aes.Decrypt(s2, rk[8]);
-            s3 = Aes.Decrypt(s3, rk[8]);
-            s4 = Aes.Decrypt(s4, rk[8]);
+            v1 = Aes.Decrypt(v1, rk[7]);
+            v2 = Aes.Decrypt(v2, rk[7]);
+            v3 = Aes.Decrypt(v3, rk[7]);
+            v4 = Aes.Decrypt(v4, rk[7]);
 
-            s1 = Aes.Decrypt(s1, rk[9]);
-            s2 = Aes.Decrypt(s2, rk[9]);
-            s3 = Aes.Decrypt(s3, rk[9]);
-            s4 = Aes.Decrypt(s4, rk[9]);
+            v1 = Aes.Decrypt(v1, rk[8]);
+            v2 = Aes.Decrypt(v2, rk[8]);
+            v3 = Aes.Decrypt(v3, rk[8]);
+            v4 = Aes.Decrypt(v4, rk[8]);
 
-            s1 = Aes.DecryptLast(s1, rk[10]);
-            s2 = Aes.DecryptLast(s2, rk[10]);
-            s3 = Aes.DecryptLast(s3, rk[10]);
-            s4 = Aes.DecryptLast(s4, rk[10]);
+            v1 = Aes.Decrypt(v1, rk[9]);
+            v2 = Aes.Decrypt(v2, rk[9]);
+            v3 = Aes.Decrypt(v3, rk[9]);
+            v4 = Aes.Decrypt(v4, rk[9]);
+
+            s1 = Aes.DecryptLast(v1, rk[10]);
+            s2 = Aes.DecryptLast(v2, rk[10]);
+            s3 = Aes.DecryptLast(v3, rk[10]);
+            s4 = Aes.DecryptLast(v4, rk[10]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void DecryptFour192(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
-            s1 = Sse2.Xor(s1, rk[0]);
-            s2 = Sse2.Xor(s2, rk[0]);
-            s3 = Sse2.Xor(s3, rk[0]);
-            s4 = Sse2.Xor(s4, rk[0]);
+            var bounds = rk[12];
 
-            s1 = Aes.Decrypt(s1, rk[1]);
-            s2 = Aes.Decrypt(s2, rk[1]);
-            s3 = Aes.Decrypt(s3, rk[1]);
-            s4 = Aes.Decrypt(s4, rk[1]);
+            var v1 = Sse2.Xor(s1, rk[0]);
+            var v2 = Sse2.Xor(s2, rk[0]);
+            var v3 = Sse2.Xor(s3, rk[0]);
+            var v4 = Sse2.Xor(s4, rk[0]);
 
-            s1 = Aes.Decrypt(s1, rk[2]);
-            s2 = Aes.Decrypt(s2, rk[2]);
-            s3 = Aes.Decrypt(s3, rk[2]);
-            s4 = Aes.Decrypt(s4, rk[2]);
+            v1 = Aes.Decrypt(v1, rk[1]);
+            v2 = Aes.Decrypt(v2, rk[1]);
+            v3 = Aes.Decrypt(v3, rk[1]);
+            v4 = Aes.Decrypt(v4, rk[1]);
 
-            s1 = Aes.Decrypt(s1, rk[3]);
-            s2 = Aes.Decrypt(s2, rk[3]);
-            s3 = Aes.Decrypt(s3, rk[3]);
-            s4 = Aes.Decrypt(s4, rk[3]);
+            v1 = Aes.Decrypt(v1, rk[2]);
+            v2 = Aes.Decrypt(v2, rk[2]);
+            v3 = Aes.Decrypt(v3, rk[2]);
+            v4 = Aes.Decrypt(v4, rk[2]);
 
-            s1 = Aes.Decrypt(s1, rk[4]);
-            s2 = Aes.Decrypt(s2, rk[4]);
-            s3 = Aes.Decrypt(s3, rk[4]);
-            s4 = Aes.Decrypt(s4, rk[4]);
+            v1 = Aes.Decrypt(v1, rk[3]);
+            v2 = Aes.Decrypt(v2, rk[3]);
+            v3 = Aes.Decrypt(v3, rk[3]);
+            v4 = Aes.Decrypt(v4, rk[3]);
 
-            s1 = Aes.Decrypt(s1, rk[5]);
-            s2 = Aes.Decrypt(s2, rk[5]);
-            s3 = Aes.Decrypt(s3, rk[5]);
-            s4 = Aes.Decrypt(s4, rk[5]);
+            v1 = Aes.Decrypt(v1, rk[4]);
+            v2 = Aes.Decrypt(v2, rk[4]);
+            v3 = Aes.Decrypt(v3, rk[4]);
+            v4 = Aes.Decrypt(v4, rk[4]);
 
-            s1 = Aes.Decrypt(s1, rk[6]);
-            s2 = Aes.Decrypt(s2, rk[6]);
-            s3 = Aes.Decrypt(s3, rk[6]);
-            s4 = Aes.Decrypt(s4, rk[6]);
+            v1 = Aes.Decrypt(v1, rk[5]);
+            v2 = Aes.Decrypt(v2, rk[5]);
+            v3 = Aes.Decrypt(v3, rk[5]);
+            v4 = Aes.Decrypt(v4, rk[5]);
 
-            s1 = Aes.Decrypt(s1, rk[7]);
-            s2 = Aes.Decrypt(s2, rk[7]);
-            s3 = Aes.Decrypt(s3, rk[7]);
-            s4 = Aes.Decrypt(s4, rk[7]);
+            v1 = Aes.Decrypt(v1, rk[6]);
+            v2 = Aes.Decrypt(v2, rk[6]);
+            v3 = Aes.Decrypt(v3, rk[6]);
+            v4 = Aes.Decrypt(v4, rk[6]);
 
-            s1 = Aes.Decrypt(s1, rk[8]);
-            s2 = Aes.Decrypt(s2, rk[8]);
-            s3 = Aes.Decrypt(s3, rk[8]);
-            s4 = Aes.Decrypt(s4, rk[8]);
+            v1 = Aes.Decrypt(v1, rk[7]);
+            v2 = Aes.Decrypt(v2, rk[7]);
+            v3 = Aes.Decrypt(v3, rk[7]);
+            v4 = Aes.Decrypt(v4, rk[7]);
 
-            s1 = Aes.Decrypt(s1, rk[9]);
-            s2 = Aes.Decrypt(s2, rk[9]);
-            s3 = Aes.Decrypt(s3, rk[9]);
-            s4 = Aes.Decrypt(s4, rk[9]);
+            v1 = Aes.Decrypt(v1, rk[8]);
+            v2 = Aes.Decrypt(v2, rk[8]);
+            v3 = Aes.Decrypt(v3, rk[8]);
+            v4 = Aes.Decrypt(v4, rk[8]);
 
-            s1 = Aes.Decrypt(s1, rk[10]);
-            s2 = Aes.Decrypt(s2, rk[10]);
-            s3 = Aes.Decrypt(s3, rk[10]);
-            s4 = Aes.Decrypt(s4, rk[10]);
+            v1 = Aes.Decrypt(v1, rk[9]);
+            v2 = Aes.Decrypt(v2, rk[9]);
+            v3 = Aes.Decrypt(v3, rk[9]);
+            v4 = Aes.Decrypt(v4, rk[9]);
 
-            s1 = Aes.Decrypt(s1, rk[11]);
-            s2 = Aes.Decrypt(s2, rk[11]);
-            s3 = Aes.Decrypt(s3, rk[11]);
-            s4 = Aes.Decrypt(s4, rk[11]);
+            v1 = Aes.Decrypt(v1, rk[10]);
+            v2 = Aes.Decrypt(v2, rk[10]);
+            v3 = Aes.Decrypt(v3, rk[10]);
+            v4 = Aes.Decrypt(v4, rk[10]);
 
-            s1 = Aes.DecryptLast(s1, rk[12]);
-            s2 = Aes.DecryptLast(s2, rk[12]);
-            s3 = Aes.DecryptLast(s3, rk[12]);
-            s4 = Aes.DecryptLast(s4, rk[12]);
+            v1 = Aes.Decrypt(v1, rk[11]);
+            v2 = Aes.Decrypt(v2, rk[11]);
+            v3 = Aes.Decrypt(v3, rk[11]);
+            v4 = Aes.Decrypt(v4, rk[11]);
+
+            s1 = Aes.DecryptLast(v1, rk[12]);
+            s2 = Aes.DecryptLast(v2, rk[12]);
+            s3 = Aes.DecryptLast(v3, rk[12]);
+            s4 = Aes.DecryptLast(v4, rk[12]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void DecryptFour256(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
-            s1 = Sse2.Xor(s1, rk[0]);
-            s2 = Sse2.Xor(s2, rk[0]);
-            s3 = Sse2.Xor(s3, rk[0]);
-            s4 = Sse2.Xor(s4, rk[0]);
+            var bounds = rk[14];
 
-            s1 = Aes.Decrypt(s1, rk[1]);
-            s2 = Aes.Decrypt(s2, rk[1]);
-            s3 = Aes.Decrypt(s3, rk[1]);
-            s4 = Aes.Decrypt(s4, rk[1]);
+            var v1 = Sse2.Xor(s1, rk[0]);
+            var v2 = Sse2.Xor(s2, rk[0]);
+            var v3 = Sse2.Xor(s3, rk[0]);
+            var v4 = Sse2.Xor(s4, rk[0]);
 
-            s1 = Aes.Decrypt(s1, rk[2]);
-            s2 = Aes.Decrypt(s2, rk[2]);
-            s3 = Aes.Decrypt(s3, rk[2]);
-            s4 = Aes.Decrypt(s4, rk[2]);
+            v1 = Aes.Decrypt(v1, rk[1]);
+            v2 = Aes.Decrypt(v2, rk[1]);
+            v3 = Aes.Decrypt(v3, rk[1]);
+            v4 = Aes.Decrypt(v4, rk[1]);
 
-            s1 = Aes.Decrypt(s1, rk[3]);
-            s2 = Aes.Decrypt(s2, rk[3]);
-            s3 = Aes.Decrypt(s3, rk[3]);
-            s4 = Aes.Decrypt(s4, rk[3]);
+            v1 = Aes.Decrypt(v1, rk[2]);
+            v2 = Aes.Decrypt(v2, rk[2]);
+            v3 = Aes.Decrypt(v3, rk[2]);
+            v4 = Aes.Decrypt(v4, rk[2]);
 
-            s1 = Aes.Decrypt(s1, rk[4]);
-            s2 = Aes.Decrypt(s2, rk[4]);
-            s3 = Aes.Decrypt(s3, rk[4]);
-            s4 = Aes.Decrypt(s4, rk[4]);
+            v1 = Aes.Decrypt(v1, rk[3]);
+            v2 = Aes.Decrypt(v2, rk[3]);
+            v3 = Aes.Decrypt(v3, rk[3]);
+            v4 = Aes.Decrypt(v4, rk[3]);
 
-            s1 = Aes.Decrypt(s1, rk[5]);
-            s2 = Aes.Decrypt(s2, rk[5]);
-            s3 = Aes.Decrypt(s3, rk[5]);
-            s4 = Aes.Decrypt(s4, rk[5]);
+            v1 = Aes.Decrypt(v1, rk[4]);
+            v2 = Aes.Decrypt(v2, rk[4]);
+            v3 = Aes.Decrypt(v3, rk[4]);
+            v4 = Aes.Decrypt(v4, rk[4]);
 
-            s1 = Aes.Decrypt(s1, rk[6]);
-            s2 = Aes.Decrypt(s2, rk[6]);
-            s3 = Aes.Decrypt(s3, rk[6]);
-            s4 = Aes.Decrypt(s4, rk[6]);
+            v1 = Aes.Decrypt(v1, rk[5]);
+            v2 = Aes.Decrypt(v2, rk[5]);
+            v3 = Aes.Decrypt(v3, rk[5]);
+            v4 = Aes.Decrypt(v4, rk[5]);
 
-            s1 = Aes.Decrypt(s1, rk[7]);
-            s2 = Aes.Decrypt(s2, rk[7]);
-            s3 = Aes.Decrypt(s3, rk[7]);
-            s4 = Aes.Decrypt(s4, rk[7]);
+            v1 = Aes.Decrypt(v1, rk[6]);
+            v2 = Aes.Decrypt(v2, rk[6]);
+            v3 = Aes.Decrypt(v3, rk[6]);
+            v4 = Aes.Decrypt(v4, rk[6]);
 
-            s1 = Aes.Decrypt(s1, rk[8]);
-            s2 = Aes.Decrypt(s2, rk[8]);
-            s3 = Aes.Decrypt(s3, rk[8]);
-            s4 = Aes.Decrypt(s4, rk[8]);
+            v1 = Aes.Decrypt(v1, rk[7]);
+            v2 = Aes.Decrypt(v2, rk[7]);
+            v3 = Aes.Decrypt(v3, rk[7]);
+            v4 = Aes.Decrypt(v4, rk[7]);
 
-            s1 = Aes.Decrypt(s1, rk[9]);
-            s2 = Aes.Decrypt(s2, rk[9]);
-            s3 = Aes.Decrypt(s3, rk[9]);
-            s4 = Aes.Decrypt(s4, rk[9]);
+            v1 = Aes.Decrypt(v1, rk[8]);
+            v2 = Aes.Decrypt(v2, rk[8]);
+            v3 = Aes.Decrypt(v3, rk[8]);
+            v4 = Aes.Decrypt(v4, rk[8]);
 
-            s1 = Aes.Decrypt(s1, rk[10]);
-            s2 = Aes.Decrypt(s2, rk[10]);
-            s3 = Aes.Decrypt(s3, rk[10]);
-            s4 = Aes.Decrypt(s4, rk[10]);
+            v1 = Aes.Decrypt(v1, rk[9]);
+            v2 = Aes.Decrypt(v2, rk[9]);
+            v3 = Aes.Decrypt(v3, rk[9]);
+            v4 = Aes.Decrypt(v4, rk[9]);
 
-            s1 = Aes.Decrypt(s1, rk[11]);
-            s2 = Aes.Decrypt(s2, rk[11]);
-            s3 = Aes.Decrypt(s3, rk[11]);
-            s4 = Aes.Decrypt(s4, rk[11]);
+            v1 = Aes.Decrypt(v1, rk[10]);
+            v2 = Aes.Decrypt(v2, rk[10]);
+            v3 = Aes.Decrypt(v3, rk[10]);
+            v4 = Aes.Decrypt(v4, rk[10]);
 
-            s1 = Aes.Decrypt(s1, rk[12]);
-            s2 = Aes.Decrypt(s2, rk[12]);
-            s3 = Aes.Decrypt(s3, rk[12]);
-            s4 = Aes.Decrypt(s4, rk[12]);
+            v1 = Aes.Decrypt(v1, rk[11]);
+            v2 = Aes.Decrypt(v2, rk[11]);
+            v3 = Aes.Decrypt(v3, rk[11]);
+            v4 = Aes.Decrypt(v4, rk[11]);
 
-            s1 = Aes.Decrypt(s1, rk[13]);
-            s2 = Aes.Decrypt(s2, rk[13]);
-            s3 = Aes.Decrypt(s3, rk[13]);
-            s4 = Aes.Decrypt(s4, rk[13]);
+            v1 = Aes.Decrypt(v1, rk[12]);
+            v2 = Aes.Decrypt(v2, rk[12]);
+            v3 = Aes.Decrypt(v3, rk[12]);
+            v4 = Aes.Decrypt(v4, rk[12]);
 
-            s1 = Aes.DecryptLast(s1, rk[14]);
-            s2 = Aes.DecryptLast(s2, rk[14]);
-            s3 = Aes.DecryptLast(s3, rk[14]);
-            s4 = Aes.DecryptLast(s4, rk[14]);
+            v1 = Aes.Decrypt(v1, rk[13]);
+            v2 = Aes.Decrypt(v2, rk[13]);
+            v3 = Aes.Decrypt(v3, rk[13]);
+            v4 = Aes.Decrypt(v4, rk[13]);
+
+            s1 = Aes.DecryptLast(v1, rk[14]);
+            s2 = Aes.DecryptLast(v2, rk[14]);
+            s3 = Aes.DecryptLast(v3, rk[14]);
+            s4 = Aes.DecryptLast(v4, rk[14]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Encrypt128(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
-            state = Sse2.Xor(state, roundKeys[0]);
-            state = Aes.Encrypt(state, roundKeys[1]);
-            state = Aes.Encrypt(state, roundKeys[2]);
-            state = Aes.Encrypt(state, roundKeys[3]);
-            state = Aes.Encrypt(state, roundKeys[4]);
-            state = Aes.Encrypt(state, roundKeys[5]);
-            state = Aes.Encrypt(state, roundKeys[6]);
-            state = Aes.Encrypt(state, roundKeys[7]);
-            state = Aes.Encrypt(state, roundKeys[8]);
-            state = Aes.Encrypt(state, roundKeys[9]);
-            state = Aes.EncryptLast(state, roundKeys[10]);
+            var bounds = roundKeys[10];
+            var value = Sse2.Xor(state, roundKeys[0]);
+            value = Aes.Encrypt(value, roundKeys[1]);
+            value = Aes.Encrypt(value, roundKeys[2]);
+            value = Aes.Encrypt(value, roundKeys[3]);
+            value = Aes.Encrypt(value, roundKeys[4]);
+            value = Aes.Encrypt(value, roundKeys[5]);
+            value = Aes.Encrypt(value, roundKeys[6]);
+            value = Aes.Encrypt(value, roundKeys[7]);
+            value = Aes.Encrypt(value, roundKeys[8]);
+            value = Aes.Encrypt(value, roundKeys[9]);
+            state = Aes.EncryptLast(value, roundKeys[10]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Encrypt192(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
-            state = Sse2.Xor(state, roundKeys[0]);
-            state = Aes.Encrypt(state, roundKeys[1]);
-            state = Aes.Encrypt(state, roundKeys[2]);
-            state = Aes.Encrypt(state, roundKeys[3]);
-            state = Aes.Encrypt(state, roundKeys[4]);
-            state = Aes.Encrypt(state, roundKeys[5]);
-            state = Aes.Encrypt(state, roundKeys[6]);
-            state = Aes.Encrypt(state, roundKeys[7]);
-            state = Aes.Encrypt(state, roundKeys[8]);
-            state = Aes.Encrypt(state, roundKeys[9]);
-            state = Aes.Encrypt(state, roundKeys[10]);
-            state = Aes.Encrypt(state, roundKeys[11]);
-            state = Aes.EncryptLast(state, roundKeys[12]);
+            var bounds = roundKeys[12];
+            var value = Sse2.Xor(state, roundKeys[0]);
+            value = Aes.Encrypt(value, roundKeys[1]);
+            value = Aes.Encrypt(value, roundKeys[2]);
+            value = Aes.Encrypt(value, roundKeys[3]);
+            value = Aes.Encrypt(value, roundKeys[4]);
+            value = Aes.Encrypt(value, roundKeys[5]);
+            value = Aes.Encrypt(value, roundKeys[6]);
+            value = Aes.Encrypt(value, roundKeys[7]);
+            value = Aes.Encrypt(value, roundKeys[8]);
+            value = Aes.Encrypt(value, roundKeys[9]);
+            value = Aes.Encrypt(value, roundKeys[10]);
+            value = Aes.Encrypt(value, roundKeys[11]);
+            state = Aes.EncryptLast(value, roundKeys[12]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Encrypt256(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
         {
-            state = Sse2.Xor(state, roundKeys[0]);
-            state = Aes.Encrypt(state, roundKeys[1]);
-            state = Aes.Encrypt(state, roundKeys[2]);
-            state = Aes.Encrypt(state, roundKeys[3]);
-            state = Aes.Encrypt(state, roundKeys[4]);
-            state = Aes.Encrypt(state, roundKeys[5]);
-            state = Aes.Encrypt(state, roundKeys[6]);
-            state = Aes.Encrypt(state, roundKeys[7]);
-            state = Aes.Encrypt(state, roundKeys[8]);
-            state = Aes.Encrypt(state, roundKeys[9]);
-            state = Aes.Encrypt(state, roundKeys[10]);
-            state = Aes.Encrypt(state, roundKeys[11]);
-            state = Aes.Encrypt(state, roundKeys[12]);
-            state = Aes.Encrypt(state, roundKeys[13]);
-            state = Aes.EncryptLast(state, roundKeys[14]);
+            var bounds = roundKeys[14];
+            var value = Sse2.Xor(state, roundKeys[0]);
+            value = Aes.Encrypt(value, roundKeys[1]);
+            value = Aes.Encrypt(value, roundKeys[2]);
+            value = Aes.Encrypt(value, roundKeys[3]);
+            value = Aes.Encrypt(value, roundKeys[4]);
+            value = Aes.Encrypt(value, roundKeys[5]);
+            value = Aes.Encrypt(value, roundKeys[6]);
+            value = Aes.Encrypt(value, roundKeys[7]);
+            value = Aes.Encrypt(value, roundKeys[8]);
+            value = Aes.Encrypt(value, roundKeys[9]);
+            value = Aes.Encrypt(value, roundKeys[10]);
+            value = Aes.Encrypt(value, roundKeys[11]);
+            value = Aes.Encrypt(value, roundKeys[12]);
+            value = Aes.Encrypt(value, roundKeys[13]);
+            state = Aes.EncryptLast(value, roundKeys[14]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EncryptFour128(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
-            s1 = Sse2.Xor(s1, rk[0]);
-            s2 = Sse2.Xor(s2, rk[0]);
-            s3 = Sse2.Xor(s3, rk[0]);
-            s4 = Sse2.Xor(s4, rk[0]);
+            var bounds = rk[10];
 
-            s1 = Aes.Encrypt(s1, rk[1]);
-            s2 = Aes.Encrypt(s2, rk[1]);
-            s3 = Aes.Encrypt(s3, rk[1]);
-            s4 = Aes.Encrypt(s4, rk[1]);
+            var v1 = Sse2.Xor(s1, rk[0]);
+            var v2 = Sse2.Xor(s2, rk[0]);
+            var v3 = Sse2.Xor(s3, rk[0]);
+            var v4 = Sse2.Xor(s4, rk[0]);
 
-            s1 = Aes.Encrypt(s1, rk[2]);
-            s2 = Aes.Encrypt(s2, rk[2]);
-            s3 = Aes.Encrypt(s3, rk[2]);
-            s4 = Aes.Encrypt(s4, rk[2]);
+            v1 = Aes.Encrypt(v1, rk[1]);
+            v2 = Aes.Encrypt(v2, rk[1]);
+            v3 = Aes.Encrypt(v3, rk[1]);
+            v4 = Aes.Encrypt(v4, rk[1]);
 
-            s1 = Aes.Encrypt(s1, rk[3]);
-            s2 = Aes.Encrypt(s2, rk[3]);
-            s3 = Aes.Encrypt(s3, rk[3]);
-            s4 = Aes.Encrypt(s4, rk[3]);
+            v1 = Aes.Encrypt(v1, rk[2]);
+            v2 = Aes.Encrypt(v2, rk[2]);
+            v3 = Aes.Encrypt(v3, rk[2]);
+            v4 = Aes.Encrypt(v4, rk[2]);
 
-            s1 = Aes.Encrypt(s1, rk[4]);
-            s2 = Aes.Encrypt(s2, rk[4]);
-            s3 = Aes.Encrypt(s3, rk[4]);
-            s4 = Aes.Encrypt(s4, rk[4]);
+            v1 = Aes.Encrypt(v1, rk[3]);
+            v2 = Aes.Encrypt(v2, rk[3]);
+            v3 = Aes.Encrypt(v3, rk[3]);
+            v4 = Aes.Encrypt(v4, rk[3]);
 
-            s1 = Aes.Encrypt(s1, rk[5]);
-            s2 = Aes.Encrypt(s2, rk[5]);
-            s3 = Aes.Encrypt(s3, rk[5]);
-            s4 = Aes.Encrypt(s4, rk[5]);
+            v1 = Aes.Encrypt(v1, rk[4]);
+            v2 = Aes.Encrypt(v2, rk[4]);
+            v3 = Aes.Encrypt(v3, rk[4]);
+            v4 = Aes.Encrypt(v4, rk[4]);
 
-            s1 = Aes.Encrypt(s1, rk[6]);
-            s2 = Aes.Encrypt(s2, rk[6]);
-            s3 = Aes.Encrypt(s3, rk[6]);
-            s4 = Aes.Encrypt(s4, rk[6]);
+            v1 = Aes.Encrypt(v1, rk[5]);
+            v2 = Aes.Encrypt(v2, rk[5]);
+            v3 = Aes.Encrypt(v3, rk[5]);
+            v4 = Aes.Encrypt(v4, rk[5]);
 
-            s1 = Aes.Encrypt(s1, rk[7]);
-            s2 = Aes.Encrypt(s2, rk[7]);
-            s3 = Aes.Encrypt(s3, rk[7]);
-            s4 = Aes.Encrypt(s4, rk[7]);
+            v1 = Aes.Encrypt(v1, rk[6]);
+            v2 = Aes.Encrypt(v2, rk[6]);
+            v3 = Aes.Encrypt(v3, rk[6]);
+            v4 = Aes.Encrypt(v4, rk[6]);
 
-            s1 = Aes.Encrypt(s1, rk[8]);
-            s2 = Aes.Encrypt(s2, rk[8]);
-            s3 = Aes.Encrypt(s3, rk[8]);
-            s4 = Aes.Encrypt(s4, rk[8]);
+            v1 = Aes.Encrypt(v1, rk[7]);
+            v2 = Aes.Encrypt(v2, rk[7]);
+            v3 = Aes.Encrypt(v3, rk[7]);
+            v4 = Aes.Encrypt(v4, rk[7]);
 
-            s1 = Aes.Encrypt(s1, rk[9]);
-            s2 = Aes.Encrypt(s2, rk[9]);
-            s3 = Aes.Encrypt(s3, rk[9]);
-            s4 = Aes.Encrypt(s4, rk[9]);
+            v1 = Aes.Encrypt(v1, rk[8]);
+            v2 = Aes.Encrypt(v2, rk[8]);
+            v3 = Aes.Encrypt(v3, rk[8]);
+            v4 = Aes.Encrypt(v4, rk[8]);
 
-            s1 = Aes.EncryptLast(s1, rk[10]);
-            s2 = Aes.EncryptLast(s2, rk[10]);
-            s3 = Aes.EncryptLast(s3, rk[10]);
-            s4 = Aes.EncryptLast(s4, rk[10]);
+            v1 = Aes.Encrypt(v1, rk[9]);
+            v2 = Aes.Encrypt(v2, rk[9]);
+            v3 = Aes.Encrypt(v3, rk[9]);
+            v4 = Aes.Encrypt(v4, rk[9]);
+
+            s1 = Aes.EncryptLast(v1, rk[10]);
+            s2 = Aes.EncryptLast(v2, rk[10]);
+            s3 = Aes.EncryptLast(v3, rk[10]);
+            s4 = Aes.EncryptLast(v4, rk[10]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EncryptFour192(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
-            s1 = Sse2.Xor(s1, rk[0]);
-            s2 = Sse2.Xor(s2, rk[0]);
-            s3 = Sse2.Xor(s3, rk[0]);
-            s4 = Sse2.Xor(s4, rk[0]);
+            var bounds = rk[12];
 
-            s1 = Aes.Encrypt(s1, rk[1]);
-            s2 = Aes.Encrypt(s2, rk[1]);
-            s3 = Aes.Encrypt(s3, rk[1]);
-            s4 = Aes.Encrypt(s4, rk[1]);
+            var v1 = Sse2.Xor(s1, rk[0]);
+            var v2 = Sse2.Xor(s2, rk[0]);
+            var v3 = Sse2.Xor(s3, rk[0]);
+            var v4 = Sse2.Xor(s4, rk[0]);
 
-            s1 = Aes.Encrypt(s1, rk[2]);
-            s2 = Aes.Encrypt(s2, rk[2]);
-            s3 = Aes.Encrypt(s3, rk[2]);
-            s4 = Aes.Encrypt(s4, rk[2]);
+            v1 = Aes.Encrypt(v1, rk[1]);
+            v2 = Aes.Encrypt(v2, rk[1]);
+            v3 = Aes.Encrypt(v3, rk[1]);
+            v4 = Aes.Encrypt(v4, rk[1]);
 
-            s1 = Aes.Encrypt(s1, rk[3]);
-            s2 = Aes.Encrypt(s2, rk[3]);
-            s3 = Aes.Encrypt(s3, rk[3]);
-            s4 = Aes.Encrypt(s4, rk[3]);
+            v1 = Aes.Encrypt(v1, rk[2]);
+            v2 = Aes.Encrypt(v2, rk[2]);
+            v3 = Aes.Encrypt(v3, rk[2]);
+            v4 = Aes.Encrypt(v4, rk[2]);
 
-            s1 = Aes.Encrypt(s1, rk[4]);
-            s2 = Aes.Encrypt(s2, rk[4]);
-            s3 = Aes.Encrypt(s3, rk[4]);
-            s4 = Aes.Encrypt(s4, rk[4]);
+            v1 = Aes.Encrypt(v1, rk[3]);
+            v2 = Aes.Encrypt(v2, rk[3]);
+            v3 = Aes.Encrypt(v3, rk[3]);
+            v4 = Aes.Encrypt(v4, rk[3]);
 
-            s1 = Aes.Encrypt(s1, rk[5]);
-            s2 = Aes.Encrypt(s2, rk[5]);
-            s3 = Aes.Encrypt(s3, rk[5]);
-            s4 = Aes.Encrypt(s4, rk[5]);
+            v1 = Aes.Encrypt(v1, rk[4]);
+            v2 = Aes.Encrypt(v2, rk[4]);
+            v3 = Aes.Encrypt(v3, rk[4]);
+            v4 = Aes.Encrypt(v4, rk[4]);
 
-            s1 = Aes.Encrypt(s1, rk[6]);
-            s2 = Aes.Encrypt(s2, rk[6]);
-            s3 = Aes.Encrypt(s3, rk[6]);
-            s4 = Aes.Encrypt(s4, rk[6]);
+            v1 = Aes.Encrypt(v1, rk[5]);
+            v2 = Aes.Encrypt(v2, rk[5]);
+            v3 = Aes.Encrypt(v3, rk[5]);
+            v4 = Aes.Encrypt(v4, rk[5]);
 
-            s1 = Aes.Encrypt(s1, rk[7]);
-            s2 = Aes.Encrypt(s2, rk[7]);
-            s3 = Aes.Encrypt(s3, rk[7]);
-            s4 = Aes.Encrypt(s4, rk[7]);
+            v1 = Aes.Encrypt(v1, rk[6]);
+            v2 = Aes.Encrypt(v2, rk[6]);
+            v3 = Aes.Encrypt(v3, rk[6]);
+            v4 = Aes.Encrypt(v4, rk[6]);
 
-            s1 = Aes.Encrypt(s1, rk[8]);
-            s2 = Aes.Encrypt(s2, rk[8]);
-            s3 = Aes.Encrypt(s3, rk[8]);
-            s4 = Aes.Encrypt(s4, rk[8]);
+            v1 = Aes.Encrypt(v1, rk[7]);
+            v2 = Aes.Encrypt(v2, rk[7]);
+            v3 = Aes.Encrypt(v3, rk[7]);
+            v4 = Aes.Encrypt(v4, rk[7]);
 
-            s1 = Aes.Encrypt(s1, rk[9]);
-            s2 = Aes.Encrypt(s2, rk[9]);
-            s3 = Aes.Encrypt(s3, rk[9]);
-            s4 = Aes.Encrypt(s4, rk[9]);
+            v1 = Aes.Encrypt(v1, rk[8]);
+            v2 = Aes.Encrypt(v2, rk[8]);
+            v3 = Aes.Encrypt(v3, rk[8]);
+            v4 = Aes.Encrypt(v4, rk[8]);
 
-            s1 = Aes.Encrypt(s1, rk[10]);
-            s2 = Aes.Encrypt(s2, rk[10]);
-            s3 = Aes.Encrypt(s3, rk[10]);
-            s4 = Aes.Encrypt(s4, rk[10]);
+            v1 = Aes.Encrypt(v1, rk[9]);
+            v2 = Aes.Encrypt(v2, rk[9]);
+            v3 = Aes.Encrypt(v3, rk[9]);
+            v4 = Aes.Encrypt(v4, rk[9]);
 
-            s1 = Aes.Encrypt(s1, rk[11]);
-            s2 = Aes.Encrypt(s2, rk[11]);
-            s3 = Aes.Encrypt(s3, rk[11]);
-            s4 = Aes.Encrypt(s4, rk[11]);
+            v1 = Aes.Encrypt(v1, rk[10]);
+            v2 = Aes.Encrypt(v2, rk[10]);
+            v3 = Aes.Encrypt(v3, rk[10]);
+            v4 = Aes.Encrypt(v4, rk[10]);
 
-            s1 = Aes.EncryptLast(s1, rk[12]);
-            s2 = Aes.EncryptLast(s2, rk[12]);
-            s3 = Aes.EncryptLast(s3, rk[12]);
-            s4 = Aes.EncryptLast(s4, rk[12]);
+            v1 = Aes.Encrypt(v1, rk[11]);
+            v2 = Aes.Encrypt(v2, rk[11]);
+            v3 = Aes.Encrypt(v3, rk[11]);
+            v4 = Aes.Encrypt(v4, rk[11]);
+
+            s1 = Aes.EncryptLast(v1, rk[12]);
+            s2 = Aes.EncryptLast(v2, rk[12]);
+            s3 = Aes.EncryptLast(v3, rk[12]);
+            s4 = Aes.EncryptLast(v4, rk[12]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EncryptFour256(Vector128<byte>[] rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
-            s1 = Sse2.Xor(s1, rk[0]);
-            s2 = Sse2.Xor(s2, rk[0]);
-            s3 = Sse2.Xor(s3, rk[0]);
-            s4 = Sse2.Xor(s4, rk[0]);
+            var bounds = rk[14];
 
-            s1 = Aes.Encrypt(s1, rk[1]);
-            s2 = Aes.Encrypt(s2, rk[1]);
-            s3 = Aes.Encrypt(s3, rk[1]);
-            s4 = Aes.Encrypt(s4, rk[1]);
+            var v1 = Sse2.Xor(s1, rk[0]);
+            var v2 = Sse2.Xor(s2, rk[0]);
+            var v3 = Sse2.Xor(s3, rk[0]);
+            var v4 = Sse2.Xor(s4, rk[0]);
 
-            s1 = Aes.Encrypt(s1, rk[2]);
-            s2 = Aes.Encrypt(s2, rk[2]);
-            s3 = Aes.Encrypt(s3, rk[2]);
-            s4 = Aes.Encrypt(s4, rk[2]);
+            v1 = Aes.Encrypt(v1, rk[1]);
+            v2 = Aes.Encrypt(v2, rk[1]);
+            v3 = Aes.Encrypt(v3, rk[1]);
+            v4 = Aes.Encrypt(v4, rk[1]);
 
-            s1 = Aes.Encrypt(s1, rk[3]);
-            s2 = Aes.Encrypt(s2, rk[3]);
-            s3 = Aes.Encrypt(s3, rk[3]);
-            s4 = Aes.Encrypt(s4, rk[3]);
+            v1 = Aes.Encrypt(v1, rk[2]);
+            v2 = Aes.Encrypt(v2, rk[2]);
+            v3 = Aes.Encrypt(v3, rk[2]);
+            v4 = Aes.Encrypt(v4, rk[2]);
 
-            s1 = Aes.Encrypt(s1, rk[4]);
-            s2 = Aes.Encrypt(s2, rk[4]);
-            s3 = Aes.Encrypt(s3, rk[4]);
-            s4 = Aes.Encrypt(s4, rk[4]);
+            v1 = Aes.Encrypt(v1, rk[3]);
+            v2 = Aes.Encrypt(v2, rk[3]);
+            v3 = Aes.Encrypt(v3, rk[3]);
+            v4 = Aes.Encrypt(v4, rk[3]);
 
-            s1 = Aes.Encrypt(s1, rk[5]);
-            s2 = Aes.Encrypt(s2, rk[5]);
-            s3 = Aes.Encrypt(s3, rk[5]);
-            s4 = Aes.Encrypt(s4, rk[5]);
+            v1 = Aes.Encrypt(v1, rk[4]);
+            v2 = Aes.Encrypt(v2, rk[4]);
+            v3 = Aes.Encrypt(v3, rk[4]);
+            v4 = Aes.Encrypt(v4, rk[4]);
 
-            s1 = Aes.Encrypt(s1, rk[6]);
-            s2 = Aes.Encrypt(s2, rk[6]);
-            s3 = Aes.Encrypt(s3, rk[6]);
-            s4 = Aes.Encrypt(s4, rk[6]);
+            v1 = Aes.Encrypt(v1, rk[5]);
+            v2 = Aes.Encrypt(v2, rk[5]);
+            v3 = Aes.Encrypt(v3, rk[5]);
+            v4 = Aes.Encrypt(v4, rk[5]);
 
-            s1 = Aes.Encrypt(s1, rk[7]);
-            s2 = Aes.Encrypt(s2, rk[7]);
-            s3 = Aes.Encrypt(s3, rk[7]);
-            s4 = Aes.Encrypt(s4, rk[7]);
+            v1 = Aes.Encrypt(v1, rk[6]);
+            v2 = Aes.Encrypt(v2, rk[6]);
+            v3 = Aes.Encrypt(v3, rk[6]);
+            v4 = Aes.Encrypt(v4, rk[6]);
 
-            s1 = Aes.Encrypt(s1, rk[8]);
-            s2 = Aes.Encrypt(s2, rk[8]);
-            s3 = Aes.Encrypt(s3, rk[8]);
-            s4 = Aes.Encrypt(s4, rk[8]);
+            v1 = Aes.Encrypt(v1, rk[7]);
+            v2 = Aes.Encrypt(v2, rk[7]);
+            v3 = Aes.Encrypt(v3, rk[7]);
+            v4 = Aes.Encrypt(v4, rk[7]);
 
-            s1 = Aes.Encrypt(s1, rk[9]);
-            s2 = Aes.Encrypt(s2, rk[9]);
-            s3 = Aes.Encrypt(s3, rk[9]);
-            s4 = Aes.Encrypt(s4, rk[9]);
+            v1 = Aes.Encrypt(v1, rk[8]);
+            v2 = Aes.Encrypt(v2, rk[8]);
+            v3 = Aes.Encrypt(v3, rk[8]);
+            v4 = Aes.Encrypt(v4, rk[8]);
 
-            s1 = Aes.Encrypt(s1, rk[10]);
-            s2 = Aes.Encrypt(s2, rk[10]);
-            s3 = Aes.Encrypt(s3, rk[10]);
-            s4 = Aes.Encrypt(s4, rk[10]);
+            v1 = Aes.Encrypt(v1, rk[9]);
+            v2 = Aes.Encrypt(v2, rk[9]);
+            v3 = Aes.Encrypt(v3, rk[9]);
+            v4 = Aes.Encrypt(v4, rk[9]);
 
-            s1 = Aes.Encrypt(s1, rk[11]);
-            s2 = Aes.Encrypt(s2, rk[11]);
-            s3 = Aes.Encrypt(s3, rk[11]);
-            s4 = Aes.Encrypt(s4, rk[11]);
+            v1 = Aes.Encrypt(v1, rk[10]);
+            v2 = Aes.Encrypt(v2, rk[10]);
+            v3 = Aes.Encrypt(v3, rk[10]);
+            v4 = Aes.Encrypt(v4, rk[10]);
 
-            s1 = Aes.Encrypt(s1, rk[12]);
-            s2 = Aes.Encrypt(s2, rk[12]);
-            s3 = Aes.Encrypt(s3, rk[12]);
-            s4 = Aes.Encrypt(s4, rk[12]);
+            v1 = Aes.Encrypt(v1, rk[11]);
+            v2 = Aes.Encrypt(v2, rk[11]);
+            v3 = Aes.Encrypt(v3, rk[11]);
+            v4 = Aes.Encrypt(v4, rk[11]);
 
-            s1 = Aes.Encrypt(s1, rk[13]);
-            s2 = Aes.Encrypt(s2, rk[13]);
-            s3 = Aes.Encrypt(s3, rk[13]);
-            s4 = Aes.Encrypt(s4, rk[13]);
+            v1 = Aes.Encrypt(v1, rk[12]);
+            v2 = Aes.Encrypt(v2, rk[12]);
+            v3 = Aes.Encrypt(v3, rk[12]);
+            v4 = Aes.Encrypt(v4, rk[12]);
 
-            s1 = Aes.EncryptLast(s1, rk[14]);
-            s2 = Aes.EncryptLast(s2, rk[14]);
-            s3 = Aes.EncryptLast(s3, rk[14]);
-            s4 = Aes.EncryptLast(s4, rk[14]);
+            v1 = Aes.Encrypt(v1, rk[13]);
+            v2 = Aes.Encrypt(v2, rk[13]);
+            v3 = Aes.Encrypt(v3, rk[13]);
+            v4 = Aes.Encrypt(v4, rk[13]);
+
+            s1 = Aes.EncryptLast(v1, rk[14]);
+            s2 = Aes.EncryptLast(v2, rk[14]);
+            s3 = Aes.EncryptLast(v3, rk[14]);
+            s4 = Aes.EncryptLast(v4, rk[14]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

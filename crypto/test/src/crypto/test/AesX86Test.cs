@@ -149,6 +149,150 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Assert.IsTrue(fourBlockOutput.SequenceEqual(singleBlockOutput));
             }
         }
+
+        [Test, Explicit]
+        public void BenchDecrypt128()
+        {
+            byte[] data = new byte[16];
+            var engine = new AesEngine_X86();
+            engine.Init(false, new KeyParameter(new byte[16]));
+            for (int i = 0; i < 1000000000; ++i)
+            {
+                engine.ProcessBlock(data, 0, data, 0);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchDecrypt192()
+        {
+            byte[] data = new byte[16];
+            var engine = new AesEngine_X86();
+            engine.Init(false, new KeyParameter(new byte[24]));
+            for (int i = 0; i < 1000000000; ++i)
+            {
+                engine.ProcessBlock(data, 0, data, 0);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchDecrypt256()
+        {
+            byte[] data = new byte[16];
+            var engine = new AesEngine_X86();
+            engine.Init(false, new KeyParameter(new byte[32]));
+            for (int i = 0; i < 1000000000; ++i)
+            {
+                engine.ProcessBlock(data, 0, data, 0);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncrypt128()
+        {
+            byte[] data = new byte[16];
+            var engine = new AesEngine_X86();
+            engine.Init(true, new KeyParameter(new byte[16]));
+            for (int i = 0; i < 1000000000; ++i)
+            {
+                engine.ProcessBlock(data, 0, data, 0);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchDecryptFour128()
+        {
+            byte[] data = new byte[64];
+            var engine = new AesEngine_X86();
+            engine.Init(false, new KeyParameter(new byte[16]));
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchDecryptFour192()
+        {
+            byte[] data = new byte[64];
+            var engine = new AesEngine_X86();
+            engine.Init(false, new KeyParameter(new byte[24]));
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchDecryptFour256()
+        {
+            byte[] data = new byte[64];
+            var engine = new AesEngine_X86();
+            engine.Init(false, new KeyParameter(new byte[32]));
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncrypt192()
+        {
+            byte[] data = new byte[16];
+            var engine = new AesEngine_X86();
+            engine.Init(true, new KeyParameter(new byte[24]));
+            for (int i = 0; i < 1000000000; ++i)
+            {
+                engine.ProcessBlock(data, 0, data, 0);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncrypt256()
+        {
+            byte[] data = new byte[16];
+            var engine = new AesEngine_X86();
+            engine.Init(true, new KeyParameter(new byte[32]));
+            for (int i = 0; i < 1000000000; ++i)
+            {
+                engine.ProcessBlock(data, 0, data, 0);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncryptFour128()
+        {
+            byte[] data = new byte[64];
+            var engine = new AesEngine_X86();
+            engine.Init(true, new KeyParameter(new byte[16]));
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncryptFour192()
+        {
+            byte[] data = new byte[64];
+            var engine = new AesEngine_X86();
+            engine.Init(true, new KeyParameter(new byte[24]));
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncryptFour256()
+        {
+            byte[] data = new byte[64];
+            var engine = new AesEngine_X86();
+            engine.Init(true, new KeyParameter(new byte[32]));
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
+        }
     }
 }
 #endif
