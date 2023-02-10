@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
             IDigest digest = CreateDigest(cryptoHashAlgorithm);
 
-            int seedLength = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+            int seedLength = TlsCryptoUtilities.GetHashInternalSize(cryptoHashAlgorithm);
             byte[] seed = new byte[seedLength];
             SecureRandom.NextBytes(seed);
 
@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
             IDigest digest = CreateDigest(cryptoHashAlgorithm);
 
-            int seedLength = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+            int seedLength = TlsCryptoUtilities.GetHashInternalSize(cryptoHashAlgorithm);
             Span<byte> seed = seedLength <= 128
                 ? stackalloc byte[seedLength]
                 : new byte[seedLength];

@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Security
             DigestRandomGenerator prng = new DigestRandomGenerator(digest);
             if (autoSeed)
             {
-                AutoSeed(prng, digest.GetDigestSize());
+                AutoSeed(prng, digest.GetByteLength());
             }
             return prng;
         }
