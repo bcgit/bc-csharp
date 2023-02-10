@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Crypto;
+
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
-using System.Collections.Generic;
-using System.IO;
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Modes;
 
-namespace BouncyCastle.Crypto.Tests
+namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class SparkleTest : SimpleTest
