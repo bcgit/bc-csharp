@@ -15,54 +15,48 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class SparkleTest : SimpleTest
+    public class SparkleTest
+        : SimpleTest
     {
-        public override string Name
-        {
-            get { return "Sparkle"; }
-        }
+        public override string Name => "Sparkle";
 
         [Test]
         public override void PerformTest()
         {
-            SparkleEngine sparkle = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM128_128);
-            testExceptions(sparkle, sparkle.GetKeyBytesSize(), sparkle.GetIVBytesSize(), sparkle.GetBlockSize());
-            testParameters(sparkle, 16, 16, 16, 16);
-            sparkle = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM192_192);
-            testExceptions(sparkle, sparkle.GetKeyBytesSize(), sparkle.GetIVBytesSize(), sparkle.GetBlockSize());
-            testParameters(sparkle, 24, 24, 24, 24);
-            sparkle = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM256_128);
-            testExceptions(sparkle, sparkle.GetKeyBytesSize(), sparkle.GetIVBytesSize(), sparkle.GetBlockSize());
-            testParameters(sparkle, 16, 32, 16, 32);
-            sparkle = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM256_256);
-            testExceptions(sparkle, sparkle.GetKeyBytesSize(), sparkle.GetIVBytesSize(), sparkle.GetBlockSize());
-            testParameters(sparkle, 32, 32, 32, 32);
-            testExceptions(new SparkleDigest(SparkleDigest.SparkleParameters.ESCH256), 32);
-            testExceptions(new SparkleDigest(SparkleDigest.SparkleParameters.ESCH384), 48);
-            testVectors("128_128", SparkleEngine.SparkleParameters.SCHWAEMM128_128);
-            testVectors("192_192", SparkleEngine.SparkleParameters.SCHWAEMM192_192);
-            testVectors("128_256", SparkleEngine.SparkleParameters.SCHWAEMM256_128);
-            testVectors("256_256", SparkleEngine.SparkleParameters.SCHWAEMM256_256);
-            testVectors("256", SparkleDigest.SparkleParameters.ESCH256);
-            testVectors("384", SparkleDigest.SparkleParameters.ESCH384);
+            SparkleEngine sparkleEngine = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM128_128);
+            ImplTestExceptions(sparkleEngine);
+            ImplTestParameters(sparkleEngine, 16, 16, 16, 16);
+            sparkleEngine = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM192_192);
+            ImplTestExceptions(sparkleEngine);
+            ImplTestParameters(sparkleEngine, 24, 24, 24, 24);
+            sparkleEngine = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM256_128);
+            ImplTestExceptions(sparkleEngine);
+            ImplTestParameters(sparkleEngine, 16, 32, 16, 32);
+            sparkleEngine = new SparkleEngine(SparkleEngine.SparkleParameters.SCHWAEMM256_256);
+            ImplTestExceptions(sparkleEngine);
+            ImplTestParameters(sparkleEngine, 32, 32, 32, 32);
+            ImplTestExceptions(new SparkleDigest(SparkleDigest.SparkleParameters.ESCH256), 32);
+            ImplTestExceptions(new SparkleDigest(SparkleDigest.SparkleParameters.ESCH384), 48);
+            ImplTestVectors("128_128", SparkleEngine.SparkleParameters.SCHWAEMM128_128);
+            ImplTestVectors("192_192", SparkleEngine.SparkleParameters.SCHWAEMM192_192);
+            ImplTestVectors("128_256", SparkleEngine.SparkleParameters.SCHWAEMM256_128);
+            ImplTestVectors("256_256", SparkleEngine.SparkleParameters.SCHWAEMM256_256);
+            ImplTestVectors("256", SparkleDigest.SparkleParameters.ESCH256);
+            ImplTestVectors("384", SparkleDigest.SparkleParameters.ESCH384);
         }
 
-        private void testVectors(string filename, SparkleEngine.SparkleParameters SparkleType)
+        private void ImplTestVectors(string filename, SparkleEngine.SparkleParameters SparkleType)
         {
             SparkleEngine Sparkle = new SparkleEngine(SparkleType);
             ICipherParameters param;
             var buf = new Dictionary<string, string>();
-            //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.sparkle.LWC_AEAD_KAT_" + filename + ".txt")))
             {
-                string line;
-                string[] data;
-                byte[] ptByte, adByte;
-                byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
-                    data = line.Split(' ');
+                    var data = line.Split(' ');
                     if (data.Length == 1)
                     {
                         //if (!map["Count"].Equals("562"))
@@ -77,20 +71,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                         param = new ParametersWithIV(new KeyParameter(key), nonce);
                         Sparkle.Init(true, param);
                         Sparkle.ProcessAadBytes(ad, 0, ad.Length);
-                        rv = new byte[Sparkle.GetOutputSize(pt.Length)];
+                        byte[] rv = new byte[Sparkle.GetOutputSize(pt.Length)];
                         int len = Sparkle.ProcessBytes(pt, 0, pt.Length, rv, 0);
-                        //byte[] mac = new byte[16];
                         Sparkle.DoFinal(rv, len);
-                        //foreach(byte b in Hex.Decode(map["CT"]))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
-                        //foreach (byte b in Arrays.Concatenate(rv, mac))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
                         Assert.True(Arrays.AreEqual(rv, ct));
                         Sparkle.Reset();
                         Sparkle.Init(false, param);
@@ -102,7 +85,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] pt_recovered = new byte[pt.Length];
                         Array.Copy(rv, 0, pt_recovered, 0, pt.Length);
                         Assert.True(Arrays.AreEqual(pt, pt_recovered));
-                        //Console.WriteLine(map["Count"] + " pass");
                         map.Clear();
                         Sparkle.Reset();
 
@@ -121,32 +103,27 @@ namespace Org.BouncyCastle.Crypto.Tests
                     }
                 }
             }
-            Console.WriteLine("Sparkle AEAD pass");
         }
 
-        private void testVectors(String filename, SparkleDigest.SparkleParameters SparkleType)
+        private void ImplTestVectors(String filename, SparkleDigest.SparkleParameters SparkleType)
         {
             SparkleDigest Sparkle = new SparkleDigest(SparkleType);
             var buf = new Dictionary<string, string>();
             //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.sparkle.LWC_HASH_KAT_" + filename + ".txt")))
             {
-                string line;
-                string[] data;
-                byte[] ptByte, adByte;
-                byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
-                    data = line.Split(' ');
+                    var data = line.Split(' ');
                     if (data.Length == 1)
                     {
-                        ptByte = Hex.Decode(map["Msg"]);
+                       var ptByte = Hex.Decode(map["Msg"]);
                         Sparkle.BlockUpdate(ptByte, 0, ptByte.Length);
                         byte[] hash = new byte[Sparkle.GetDigestSize()];
                         Sparkle.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(hash, Hex.Decode(map["MD"])));
-                        //Console.WriteLine(map["Count"] + " pass");
                         map.Clear();
                         Sparkle.Reset();
                     }
@@ -164,67 +141,67 @@ namespace Org.BouncyCastle.Crypto.Tests
                     }
                 }
             }
-            Console.WriteLine("Sparkle Hash pass");
         }
 
-        private void testExceptions(IAeadBlockCipher aeadBlockCipher, int keysize, int ivsize, int blocksize)
+        private void ImplTestExceptions(SparkleEngine sparkleEngine)
         {
-            ICipherParameters param;
+            int blocksize = sparkleEngine.GetBlockSize();
+            int keysize = sparkleEngine.GetKeyBytesSize(), ivsize = sparkleEngine.GetIVBytesSize();
             byte[] k = new byte[keysize];
             byte[] iv = new byte[ivsize];
             byte[] m = new byte[0];
-            byte[] c1 = new byte[aeadBlockCipher.GetOutputSize(m.Length)];
-            param = new ParametersWithIV(new KeyParameter(k), iv);
+            byte[] c1 = new byte[sparkleEngine.GetOutputSize(m.Length)];
+            var param = new ParametersWithIV(new KeyParameter(k), iv);
             try
             {
-                aeadBlockCipher.ProcessBytes(m, 0, m.Length, c1, 0);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessBytes");
+                sparkleEngine.ProcessBytes(m, 0, m.Length, c1, 0);
+                Assert.Fail(sparkleEngine.AlgorithmName + " needs to be initialized before ProcessBytes");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
 
             try
             {
-                aeadBlockCipher.ProcessByte((byte)0, c1, 0);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessByte");
+                sparkleEngine.ProcessByte((byte)0, c1, 0);
+                Assert.Fail(sparkleEngine.AlgorithmName + " needs to be initialized before ProcessByte");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
 
             try
             {
-                aeadBlockCipher.Reset();
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before reset");
+                sparkleEngine.Reset();
+                Assert.Fail(sparkleEngine.AlgorithmName + " needs to be initialized before Reset");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
 
             try
             {
-                aeadBlockCipher.DoFinal(c1, m.Length);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before dofinal");
+                sparkleEngine.DoFinal(c1, m.Length);
+                Assert.Fail(sparkleEngine.AlgorithmName + " needs to be initialized before DoFinal");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
 
             try
             {
-                aeadBlockCipher.GetMac();
-                aeadBlockCipher.GetOutputSize(0);
-                aeadBlockCipher.GetUpdateOutputSize(0);
+                sparkleEngine.GetMac();
+                sparkleEngine.GetOutputSize(0);
+                sparkleEngine.GetUpdateOutputSize(0);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialisation");
+                Assert.Fail(sparkleEngine.AlgorithmName + " functions can be called before initialization");
             }
             Random rand = new Random();
             int randomNum;
@@ -234,164 +211,163 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] iv1 = new byte[randomNum];
             try
             {
-                aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " k size does not match");
+                sparkleEngine.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
+                Assert.Fail(sparkleEngine.AlgorithmName + " k size does not match");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
             try
             {
-                aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
-                Assert.Fail(aeadBlockCipher.AlgorithmName + "iv size does not match");
+                sparkleEngine.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
+                Assert.Fail(sparkleEngine.AlgorithmName + "iv size does not match");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
 
 
-            aeadBlockCipher.Init(true, param);
+            sparkleEngine.Init(true, param);
             try
             {
-                aeadBlockCipher.DoFinal(c1, m.Length);
+                sparkleEngine.DoFinal(c1, m.Length);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " allows no input for AAD and plaintext");
+                Assert.Fail(sparkleEngine.AlgorithmName + " allows no input for AAD and plaintext");
             }
-            byte[] mac2 = aeadBlockCipher.GetMac();
+            byte[] mac2 = sparkleEngine.GetMac();
             if (mac2 == null)
             {
-                Assert.Fail("mac should not be empty after dofinal");
+                Assert.Fail("mac should not be empty after DoFinal");
             }
             if (!Arrays.AreEqual(mac2, c1))
             {
-                Assert.Fail("mac should be equal when calling dofinal and getMac");
+                Assert.Fail("mac should be equal when calling DoFinal and GetMac");
             }
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            byte[] mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            aeadBlockCipher.DoFinal(mac1, 0);
+            sparkleEngine.ProcessAadByte((byte)0);
+            byte[] mac1 = new byte[sparkleEngine.GetOutputSize(0)];
+            sparkleEngine.DoFinal(mac1, 0);
             if (Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should not match");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessBytes(new byte[blocksize+1], 0, blocksize+1, new byte[blocksize+1], 0);
+            sparkleEngine.Reset();
+            sparkleEngine.ProcessBytes(new byte[blocksize+1], 0, blocksize+1, new byte[blocksize+1], 0);
             try
             {
-                aeadBlockCipher.ProcessAadByte((byte)0);
+                sparkleEngine.ProcessAadByte((byte)0);
                 Assert.Fail("ProcessAadByte(s) cannot be called after encryption/decryption");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
             try
             {
-                aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 0, 1);
+                sparkleEngine.ProcessAadBytes(new byte[] { 0 }, 0, 1);
                 Assert.Fail("ProcessAadByte(s) cannot be called once only");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //expected
             }
 
-            aeadBlockCipher.Reset();
+            sparkleEngine.Reset();
             try
             {
-                aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 1, 1);
+                sparkleEngine.ProcessAadBytes(new byte[] { 0 }, 1, 1);
                 Assert.Fail("input for ProcessAadBytes is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
             try
             {
-                aeadBlockCipher.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
+                sparkleEngine.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
                 Assert.Fail("input for ProcessBytes is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
             try
             {
-                aeadBlockCipher.ProcessBytes(new byte[blocksize+1], 0, blocksize+1, new byte[blocksize+1], blocksize >> 1);
+                sparkleEngine.ProcessBytes(new byte[blocksize+1], 0, blocksize+1, new byte[blocksize+1], blocksize >> 1);
                 Assert.Fail("output for ProcessBytes is too short");
             }
-            catch (OutputLengthException e)
+            catch (OutputLengthException)
             {
                 //expected
             }
             try
             {
-                aeadBlockCipher.DoFinal(new byte[2], 2);
-                Assert.Fail("output for dofinal is too short");
+                sparkleEngine.DoFinal(new byte[2], 2);
+                Assert.Fail("output for DoFinal is too short");
             }
-            catch (DataLengthException e)
+            catch (OutputLengthException)
             {
                 //expected
             }
 
-            mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            mac2 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
-            aeadBlockCipher.DoFinal(mac1, 0);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            aeadBlockCipher.DoFinal(mac2, 0);
+            mac1 = new byte[sparkleEngine.GetOutputSize(0)];
+            mac2 = new byte[sparkleEngine.GetOutputSize(0)];
+            sparkleEngine.Reset();
+            sparkleEngine.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
+            sparkleEngine.DoFinal(mac1, 0);
+            sparkleEngine.Reset();
+            sparkleEngine.ProcessAadByte((byte)0);
+            sparkleEngine.ProcessAadByte((byte)0);
+            sparkleEngine.DoFinal(mac2, 0);
             if (!Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should match for the same AAD with different ways of inputing");
             }
 
-            byte[] c2 = new byte[aeadBlockCipher.GetOutputSize(10)];
-            byte[] c3 = new byte[aeadBlockCipher.GetOutputSize(10) + 2];
+            byte[] c2 = new byte[sparkleEngine.GetOutputSize(10)];
+            byte[] c3 = new byte[sparkleEngine.GetOutputSize(10) + 2];
             byte[] aad2 = { 0, 1, 2, 3, 4 };
             byte[] aad3 = { 0, 0, 1, 2, 3, 4, 5 };
             byte[] m2 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             byte[] m3 = { 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
             byte[] m4 = new byte[m2.Length];
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            int offset = aeadBlockCipher.ProcessBytes(m2, 0, m2.Length, c2, 0);
-            aeadBlockCipher.DoFinal(c2, offset);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad3, 1, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m3, 1, m2.Length, c3, 1);
-            aeadBlockCipher.DoFinal(c3, offset + 1);
+            sparkleEngine.Reset();
+            sparkleEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            int offset = sparkleEngine.ProcessBytes(m2, 0, m2.Length, c2, 0);
+            sparkleEngine.DoFinal(c2, offset);
+            sparkleEngine.Reset();
+            sparkleEngine.ProcessAadBytes(aad3, 1, aad2.Length);
+            offset = sparkleEngine.ProcessBytes(m3, 1, m2.Length, c3, 1);
+            sparkleEngine.DoFinal(c3, offset + 1);
             byte[] c3_partial = new byte[c2.Length];
             Array.Copy(c3, 1, c3_partial, 0, c2.Length);
             if (!Arrays.AreEqual(c2, c3_partial))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(c2, 0, c2.Length, m4, 0);
-            aeadBlockCipher.DoFinal(m4, offset);
+            sparkleEngine.Reset();
+            sparkleEngine.Init(false, param);
+            sparkleEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = sparkleEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
+            sparkleEngine.DoFinal(m4, offset);
             if (!Arrays.AreEqual(m2, m4))
             {
                 Assert.Fail("The encryption and decryption does not recover the plaintext");
             }
-            Console.WriteLine(aeadBlockCipher.AlgorithmName + " test Exceptions pass");
             c2[c2.Length - 1] ^= 1;
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(c2, 0, c2.Length, m4, 0);
+            sparkleEngine.Reset();
+            sparkleEngine.Init(false, param);
+            sparkleEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = sparkleEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
             try
             {
-                aeadBlockCipher.DoFinal(m4, offset);
+                sparkleEngine.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException e)
+            catch (InvalidCipherTextException)
             {
                 //expected;
             }
@@ -402,24 +378,24 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 m7[i] = (byte)rand.Next();
             }
-            byte[] c7 = new byte[aeadBlockCipher.GetOutputSize(m7.Length)];
+            byte[] c7 = new byte[sparkleEngine.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
             byte[] c9 = new byte[c7.Length];
-            aeadBlockCipher.Init(true, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, m7.Length, c7, 0);
-            aeadBlockCipher.DoFinal(c7, offset);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, blocksize, c8, 0);
-            offset += aeadBlockCipher.ProcessBytes(m7, blocksize, m7.Length - blocksize, c8, offset);
-            aeadBlockCipher.DoFinal(c8, offset);
-            aeadBlockCipher.Reset();
+            sparkleEngine.Init(true, param);
+            sparkleEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = sparkleEngine.ProcessBytes(m7, 0, m7.Length, c7, 0);
+            sparkleEngine.DoFinal(c7, offset);
+            sparkleEngine.Reset();
+            sparkleEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = sparkleEngine.ProcessBytes(m7, 0, blocksize, c8, 0);
+            offset += sparkleEngine.ProcessBytes(m7, blocksize, m7.Length - blocksize, c8, offset);
+            sparkleEngine.DoFinal(c8, offset);
+            sparkleEngine.Reset();
             int split = rand.Next(blocksize * 2);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, split, c9, 0);
-            offset += aeadBlockCipher.ProcessBytes(m7, split, m7.Length - split, c9, offset);
-            aeadBlockCipher.DoFinal(c9, offset);
+            sparkleEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = sparkleEngine.ProcessBytes(m7, 0, split, c9, 0);
+            offset += sparkleEngine.ProcessBytes(m7, split, m7.Length - split, c9, offset);
+            sparkleEngine.DoFinal(c9, offset);
             if (!Arrays.AreEqual(c7, c8) || !Arrays.AreEqual(c7, c9))
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
@@ -429,10 +405,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             Span<byte> c4_2 = new byte[c2.Length];
             ReadOnlySpan<byte> m5 = new ReadOnlySpan<byte>(m2);
             ReadOnlySpan<byte> aad4 = new ReadOnlySpan<byte>(aad2);
-            aeadBlockCipher.Init(true, param);
-            aeadBlockCipher.ProcessAadBytes(aad4);
-            offset = aeadBlockCipher.ProcessBytes(m5, c4_1);
-            aeadBlockCipher.DoFinal(c4_2);
+            sparkleEngine.Init(true, param);
+            sparkleEngine.ProcessAadBytes(aad4);
+            offset = sparkleEngine.ProcessBytes(m5, c4_1);
+            sparkleEngine.DoFinal(c4_2);
             byte[] c5 = new byte[c2.Length];
             Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
             Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
@@ -440,14 +416,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
+            sparkleEngine.Reset();
+            sparkleEngine.Init(false, param);
             Span<byte> m6_1 = new byte[m2.Length];
             Span<byte> m6_2 = new byte[m2.Length];
             ReadOnlySpan<byte> c6 = new ReadOnlySpan<byte>(c2);
-            aeadBlockCipher.ProcessAadBytes(aad4);
-            offset = aeadBlockCipher.ProcessBytes(c6, m6_1);
-            aeadBlockCipher.DoFinal(m6_2);
+            sparkleEngine.ProcessAadBytes(aad4);
+            offset = sparkleEngine.ProcessBytes(c6, m6_1);
+            sparkleEngine.DoFinal(m6_2);
             byte[] m6 = new byte[m2.Length];
             Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
             Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
@@ -456,57 +432,53 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
 #endif
-
         }
 
-        private void testParameters(SparkleEngine Sparkle, int keySize, int ivSize, int macSize, int blockSize)
+        private void ImplTestParameters(SparkleEngine sparkleEngine, int keySize, int ivSize, int macSize, int blockSize)
         {
-            if (Sparkle.GetKeyBytesSize() != keySize)
+            if (sparkleEngine.GetKeyBytesSize() != keySize)
             {
-                Assert.Fail("key bytes of " + Sparkle.AlgorithmName + " is not correct");
+                Assert.Fail("key bytes of " + sparkleEngine.AlgorithmName + " is not correct");
             }
-            if (Sparkle.GetIVBytesSize() != ivSize)
+            if (sparkleEngine.GetIVBytesSize() != ivSize)
             {
-                Assert.Fail("iv bytes of " + Sparkle.AlgorithmName + " is not correct");
+                Assert.Fail("iv bytes of " + sparkleEngine.AlgorithmName + " is not correct");
             }
-            if (Sparkle.GetOutputSize(0) != macSize)
+            if (sparkleEngine.GetOutputSize(0) != macSize)
             {
-                Assert.Fail("mac bytes of " + Sparkle.AlgorithmName + " is not correct");
+                Assert.Fail("mac bytes of " + sparkleEngine.AlgorithmName + " is not correct");
             }
-            if (Sparkle.GetBlockSize() != blockSize)
+            if (sparkleEngine.GetBlockSize() != blockSize)
             {
-                Assert.Fail("block size of " + Sparkle.AlgorithmName + " is not correct");
+                Assert.Fail("block size of " + sparkleEngine.AlgorithmName + " is not correct");
             }
-            Console.WriteLine(Sparkle.AlgorithmName + " test Parameters pass");
         }
 
-        private void testExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(SparkleDigest sparkleDigest, int digestsize)
         {
-            if (digest.GetDigestSize() != digestsize)
+            if (sparkleDigest.GetDigestSize() != digestsize)
             {
-                Assert.Fail(digest.AlgorithmName + ": digest size is not correct");
+                Assert.Fail(sparkleDigest.AlgorithmName + ": digest size is not correct");
             }
 
             try
             {
-                digest.BlockUpdate(new byte[1], 1, 1);
-                Assert.Fail(digest.AlgorithmName + ": input for update is too short");
+                sparkleDigest.BlockUpdate(new byte[1], 1, 1);
+                Assert.Fail(sparkleDigest.AlgorithmName + ": input for BlockUpdate is too short");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 //expected
             }
             try
             {
-                digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
-                Assert.Fail(digest.AlgorithmName + ": output for dofinal is too short");
+                sparkleDigest.DoFinal(new byte[sparkleDigest.GetDigestSize() - 1], 2);
+                Assert.Fail(sparkleDigest.AlgorithmName + ": output for DoFinal is too short");
             }
-            catch (DataLengthException e)
+            catch (OutputLengthException)
             {
                 //expected
             }
-            Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
         }
-
     }
 }

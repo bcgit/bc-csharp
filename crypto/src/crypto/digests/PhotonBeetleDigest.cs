@@ -67,18 +67,18 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public String AlgorithmName => "Photon-Beetle Hash";
 
+        public int GetDigestSize() => TAG_INBYTES;
 
-        public int GetDigestSize()
+        public int GetByteLength()
         {
-            return TAG_INBYTES;
+            // TODO
+            throw new NotImplementedException();
         }
-
 
         public void Update(byte input)
         {
-            buffer.Write(new byte[] { input }, 0, 1);
+            buffer.WriteByte(input);
         }
-
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
@@ -223,10 +223,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        public int GetByteLength()
-        {
-            throw new NotImplementedException();
-        }
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 
         public int DoFinal(Span<byte> output)

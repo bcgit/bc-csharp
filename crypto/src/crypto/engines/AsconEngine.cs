@@ -224,7 +224,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return DoFinal(outBytes.AsSpan(outOff));
 #else
             if (!initialised)
-                throw new ArgumentException("Need call init function before encryption/decryption");
+                throw new ArgumentException("Need to call Init before encryption/decryption");
 
             if (!aadFinished)
             {
@@ -265,7 +265,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Reset(true);
 
                 if (result != 0UL)
-                    throw new ArgumentException("Mac does not match");
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
 
                 return len;
             }
@@ -276,7 +276,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int DoFinal(Span<byte> output)
         {
             if (!initialised)
-                throw new ArgumentException("Need call init function before encryption/decryption");
+                throw new ArgumentException("Need to call Init before encryption/decryption");
 
             if (!aadFinished)
             {
@@ -317,7 +317,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Reset(true);
 
                 if (result != 0UL)
-                    throw new ArgumentException("Mac does not match");
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
 
                 return len;
             }
@@ -838,7 +838,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private void Reset(bool clearMac)
         {
             if (!initialised)
-                throw new ArgumentException("Need call init function before encryption/decryption");
+                throw new ArgumentException("Need to call Init function before encryption/decryption");
 
             x0 = x1 = x2 = x3 = x4 = 0;
             ascon_aeadinit();

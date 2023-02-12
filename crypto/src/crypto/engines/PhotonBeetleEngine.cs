@@ -3,6 +3,7 @@ using System.IO;
 
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -150,37 +151,32 @@ namespace Org.BouncyCastle.Crypto.Engines
             aadData.Write(new byte[] { input }, 0, 1);
         }
 
-        public void ProcessAadBytes(byte[] input, int inOff, int len)
+        public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            aadData.Write(input, inOff, len);
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
+
+            aadData.Write(inBytes, inOff, len);
         }
 
-        public int ProcessByte(byte input, byte[] output, int outOff)
+        public int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
-            message.Write(new byte[] { input }, 0, 1);
+            message.WriteByte(input);
             return 0;
         }
 
-        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
+        public int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            message.Write(input, inOff, len);
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
+
+            message.Write(inBytes, inOff, len);
             return 0;
         }
 
         public void Reset()
         {
             if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
+                throw new ArgumentException("Need to call Init before encryption/decryption");
+
             reset(true);
         }
 
@@ -323,9 +319,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int DoFinal(byte[] output, int outOff)
         {
             if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
+                throw new ArgumentException("Need to call Init before encryption/decryption");
+
             int len = (int)message.Length - (forEncryption ? 0 : TAG_INBYTES);
             if ((forEncryption && len + TAG_INBYTES + outOff > output.Length) ||
                 (!forEncryption && len + outOff > output.Length))
@@ -392,13 +387,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             else
             {
-                for (i = 0; i < TAG_INBYTES; ++i)
-                {
-                    if (T[i] != input[len + i])
-                    {
-                        throw new ArgumentException("Mac does not match");
-                    }
-                }
+                if (!Arrays.FixedTimeEquals(TAG_INBYTES, T, 0, input, len))
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
             }
             reset(false);
             return len;

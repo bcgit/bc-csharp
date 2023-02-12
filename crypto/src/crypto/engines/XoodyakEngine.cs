@@ -126,27 +126,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
+                throw new ArgumentException("Need to call Init before encryption/decryption");
+
             if (mode != MODE.ModeKeyed)
-            {
                 throw new ArgumentException("Xoodyak has not been initialised");
-            }
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
             message.Write(input, inOff, len);
             int blockLen = (int)message.Length - (forEncryption ? 0 : TAGLEN);
             if (blockLen >= GetBlockSize())
             {
                 byte[] blocks = message.GetBuffer();
                 len = blockLen / GetBlockSize() * GetBlockSize();
-                if (len + outOff > output.Length)
-                {
-                    throw new OutputLengthException("output buffer is too short");
-                }
+                Check.OutputLength(output, outOff, len, "output buffer is too short");
                 processAAD();
                 encrypt(blocks, 0, len, output, outOff);
                 int messageLen = (int)message.Length;
@@ -196,9 +189,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int DoFinal(byte[] output, int outOff)
         {
             if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
+                throw new ArgumentException("Need to call Init before encryption/decryption");
 
             byte[] blocks = message.GetBuffer();
             int len = (int)message.Length;
@@ -225,43 +216,34 @@ namespace Org.BouncyCastle.Crypto.Engines
                 encrypt(blocks, 0, inOff, output, outOff);
                 tag = new byte[TAGLEN];
                 Up(tag, TAGLEN, 0x40);
-                for (int i = 0; i < TAGLEN; ++i)
-                {
-                    if (tag[i] != blocks[inOff++])
-                    {
-                        throw new ArgumentException("Mac does not match");
-                    }
-                }
+
+                if (!Arrays.FixedTimeEquals(TAGLEN, tag, 0, blocks, inOff))
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
             }
             reset(false);
             return rv;
         }
-
 
         public byte[] GetMac()
         {
             return tag;
         }
 
-
         public int GetUpdateOutputSize(int len)
         {
             return len;
         }
-
 
         public int GetOutputSize(int len)
         {
             return len + TAGLEN;
         }
 
-
         public void Reset()
         {
             if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
+                throw new ArgumentException("Need to call Init before encryption/decryption");
+
             reset(true);
         }
 

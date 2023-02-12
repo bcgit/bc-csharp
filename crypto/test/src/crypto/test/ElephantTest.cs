@@ -13,73 +13,55 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
-    public class ElephantTest : SimpleTest
+    public class ElephantTest
+        : SimpleTest
     {
-        public override string Name
-        {
-            get { return "Photon-Beetle"; }
-        }
+        public override string Name => "Elephant";
 
         [Test]
         public override void PerformTest()
         {
-            testVectors(ElephantEngine.ElephantParameters.elephant160, "v160");
-            testVectors(ElephantEngine.ElephantParameters.elephant176, "v176");
-            testVectors(ElephantEngine.ElephantParameters.elephant200, "v200");
-            ElephantEngine elephant = new ElephantEngine(ElephantEngine.ElephantParameters.elephant160);
-            testExceptions(elephant, elephant.GetKeyBytesSize(), elephant.GetIVBytesSize(), elephant.GetBlockSize());
-            testParameters(elephant, 16, 12, 8, 20);
-            elephant = new ElephantEngine(ElephantEngine.ElephantParameters.elephant176);
-            testExceptions(elephant, elephant.GetKeyBytesSize(), elephant.GetIVBytesSize(), elephant.GetBlockSize());
-            testParameters(elephant, 16, 12, 8, 22);
-            elephant = new ElephantEngine(ElephantEngine.ElephantParameters.elephant200);
-            testExceptions(elephant, elephant.GetKeyBytesSize(), elephant.GetIVBytesSize(), elephant.GetBlockSize());
-            testParameters(elephant, 16, 12, 16, 25);
+            ImplTestVectors(ElephantEngine.ElephantParameters.elephant160, "v160");
+            ImplTestVectors(ElephantEngine.ElephantParameters.elephant176, "v176");
+            ImplTestVectors(ElephantEngine.ElephantParameters.elephant200, "v200");
+            ElephantEngine elephantEngine = new ElephantEngine(ElephantEngine.ElephantParameters.elephant160);
+            ImplTestExceptions(elephantEngine, elephantEngine.GetKeyBytesSize(), elephantEngine.GetIVBytesSize(), elephantEngine.GetBlockSize());
+            ImplTestParameters(elephantEngine, 16, 12, 8, 20);
+            elephantEngine = new ElephantEngine(ElephantEngine.ElephantParameters.elephant176);
+            ImplTestExceptions(elephantEngine, elephantEngine.GetKeyBytesSize(), elephantEngine.GetIVBytesSize(), elephantEngine.GetBlockSize());
+            ImplTestParameters(elephantEngine, 16, 12, 8, 22);
+            elephantEngine = new ElephantEngine(ElephantEngine.ElephantParameters.elephant200);
+            ImplTestExceptions(elephantEngine, elephantEngine.GetKeyBytesSize(), elephantEngine.GetIVBytesSize(), elephantEngine.GetBlockSize());
+            ImplTestParameters(elephantEngine, 16, 12, 16, 25);
         }
 
-        private void testVectors(ElephantEngine.ElephantParameters pbp, String filename)
+        private void ImplTestVectors(ElephantEngine.ElephantParameters pbp, String filename)
         {
             ElephantEngine Elephant = new ElephantEngine(pbp);
             ICipherParameters param;
             var buf = new Dictionary<string, string>();
-            //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.elephant." + filename + "_LWC_AEAD_KAT_128_96.txt")))
             {
-                string line;
-                string[] data;
-                byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
-                    data = line.Split(' ');
+                    var data = line.Split(' ');
                     if (data.Length == 1)
                     {
-                        //if (!map["Count"].Equals("2"))
-                        //{
-                        //    continue;
-                        //}
                         byte[] key = Hex.Decode(map["Key"]);
                         byte[] nonce = Hex.Decode(map["Nonce"]);
                         byte[] ad = Hex.Decode(map["AD"]);
                         byte[] pt = Hex.Decode(map["PT"]);
                         byte[] ct = Hex.Decode(map["CT"]);
+                        map.Clear();
+
                         param = new ParametersWithIV(new KeyParameter(key), nonce);
                         Elephant.Init(true, param);
                         Elephant.ProcessAadBytes(ad, 0, ad.Length);
-                        rv = new byte[Elephant.GetOutputSize(pt.Length)];
+                        byte[] rv = new byte[Elephant.GetOutputSize(pt.Length)];
                         int len = Elephant.ProcessBytes(pt, 0, pt.Length, rv, 0);
-                        //byte[] mac = new byte[16];
                         Elephant.DoFinal(rv, len);
-                        //foreach(byte b in Hex.Decode(map["CT"]))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
-                        //foreach (byte b in Arrays.Concatenate(rv, mac))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
                         Assert.True(Arrays.AreEqual(rv, ct));
                         Elephant.Reset();
                         Elephant.Init(false, param);
@@ -91,10 +73,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] pt_recovered = new byte[pt.Length];
                         Array.Copy(rv, 0, pt_recovered, 0, pt.Length);
                         Assert.True(Arrays.AreEqual(pt, pt_recovered));
-                        //Console.WriteLine(map["Count"] + " pass");
-                        map.Clear();
                         Elephant.Reset();
-
                     }
                     else
                     {
@@ -112,18 +91,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testExceptions(IAeadBlockCipher aeadBlockCipher, int keysize, int ivsize, int blocksize)
+        private void ImplTestExceptions(ElephantEngine elephantEngine, int keysize, int ivsize, int blocksize)
         {
-            ICipherParameters param;
             byte[] k = new byte[keysize];
             byte[] iv = new byte[ivsize];
             byte[] m = new byte[0];
-            byte[] c1 = new byte[aeadBlockCipher.GetOutputSize(m.Length)];
-            param = new ParametersWithIV(new KeyParameter(k), iv);
+            byte[] c1 = new byte[elephantEngine.GetOutputSize(m.Length)];
+            var param = new ParametersWithIV(new KeyParameter(k), iv);
             //try
             //{
             //    aeadBlockCipher.ProcessBytes(m, 0, m.Length, c1, 0);
-            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessBytes");
+            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before ProcessBytes");
             //}
             //catch (ArgumentException e)
             //{
@@ -133,7 +111,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             //try
             //{
             //    aeadBlockCipher.ProcessByte((byte)0, c1, 0);
-            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessByte");
+            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before ProcessByte");
             //}
             //catch (ArgumentException e)
             //{
@@ -143,7 +121,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             //try
             //{
             //    aeadBlockCipher.Reset();
-            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before reset");
+            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before Reset");
             //}
             //catch (ArgumentException e)
             //{
@@ -152,8 +130,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                aeadBlockCipher.DoFinal(c1, m.Length);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before dofinal");
+                elephantEngine.DoFinal(c1, m.Length);
+                Assert.Fail(elephantEngine.AlgorithmName + " needs to be initialized before DoFinal");
             }
             catch (ArgumentException)
             {
@@ -162,14 +140,14 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                aeadBlockCipher.GetMac();
-                aeadBlockCipher.GetOutputSize(0);
-                aeadBlockCipher.GetUpdateOutputSize(0);
+                elephantEngine.GetMac();
+                elephantEngine.GetOutputSize(0);
+                elephantEngine.GetUpdateOutputSize(0);
             }
             catch (ArgumentException)
             {
                 //expected
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialisation");
+                Assert.Fail(elephantEngine.AlgorithmName + " functions can be called before initialization");
             }
             Random rand = new Random();
             int randomNum;
@@ -179,8 +157,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] iv1 = new byte[randomNum];
             try
             {
-                aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " k size does not match");
+                elephantEngine.Init(true, new ParametersWithIV(new KeyParameter(k1), iv));
+                Assert.Fail(elephantEngine.AlgorithmName + " k size does not match");
             }
             catch (ArgumentException)
             {
@@ -188,8 +166,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                aeadBlockCipher.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
-                Assert.Fail(aeadBlockCipher.AlgorithmName + "iv size does not match");
+                elephantEngine.Init(true, new ParametersWithIV(new KeyParameter(k), iv1));
+                Assert.Fail(elephantEngine.AlgorithmName + "iv size does not match");
             }
             catch (ArgumentException)
             {
@@ -197,16 +175,16 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
 
-            aeadBlockCipher.Init(true, param);
+            elephantEngine.Init(true, param);
             try
             {
-                aeadBlockCipher.DoFinal(c1, m.Length);
+                elephantEngine.DoFinal(c1, m.Length);
             }
             catch (Exception)
             {
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " allows no input for AAD and plaintext");
+                Assert.Fail(elephantEngine.AlgorithmName + " allows no input for AAD and plaintext");
             }
-            byte[] mac2 = aeadBlockCipher.GetMac();
+            byte[] mac2 = elephantEngine.GetMac();
             if (mac2 == null)
             {
                 Assert.Fail("mac should not be empty after dofinal");
@@ -215,9 +193,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("mac should be equal when calling dofinal and getMac");
             }
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            byte[] mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            aeadBlockCipher.DoFinal(mac1, 0);
+            elephantEngine.ProcessAadByte((byte)0);
+            byte[] mac1 = new byte[elephantEngine.GetOutputSize(0)];
+            elephantEngine.DoFinal(mac1, 0);
             if (Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should not match");
@@ -243,10 +221,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             //    //expected
             //}
 
-            aeadBlockCipher.Reset();
+            elephantEngine.Reset();
             try
             {
-                aeadBlockCipher.ProcessAadBytes(new byte[] { 0 }, 1, 1);
+                elephantEngine.ProcessAadBytes(new byte[] { 0 }, 1, 1);
                 Assert.Fail("input for ProcessAadBytes is too short");
             }
             catch (DataLengthException)
@@ -255,7 +233,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                aeadBlockCipher.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
+                elephantEngine.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
                 Assert.Fail("input for ProcessBytes is too short");
             }
             catch (DataLengthException)
@@ -267,76 +245,76 @@ namespace Org.BouncyCastle.Crypto.Tests
             //    aeadBlockCipher.ProcessBytes(new byte[blocksize], 0, blocksize, new byte[blocksize], blocksize >> 1);
             //    Assert.Fail("output for ProcessBytes is too short");
             //}
-            //catch (OutputLengthException e)
+            //catch (OutputLengthException)
             //{
             //    //expected
             //}
             try
             {
-                aeadBlockCipher.DoFinal(new byte[2], 2);
-                Assert.Fail("output for dofinal is too short");
+                elephantEngine.DoFinal(new byte[2], 2);
+                Assert.Fail("output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
 
-            mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            mac2 = new byte[aeadBlockCipher.GetOutputSize(0)];
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
-            aeadBlockCipher.DoFinal(mac1, 0);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            aeadBlockCipher.ProcessAadByte((byte)0);
-            aeadBlockCipher.DoFinal(mac2, 0);
+            mac1 = new byte[elephantEngine.GetOutputSize(0)];
+            mac2 = new byte[elephantEngine.GetOutputSize(0)];
+            elephantEngine.Reset();
+            elephantEngine.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
+            elephantEngine.DoFinal(mac1, 0);
+            elephantEngine.Reset();
+            elephantEngine.ProcessAadByte((byte)0);
+            elephantEngine.ProcessAadByte((byte)0);
+            elephantEngine.DoFinal(mac2, 0);
             if (!Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should match for the same AAD with different ways of inputing");
             }
 
-            byte[] c2 = new byte[aeadBlockCipher.GetOutputSize(10)];
-            byte[] c3 = new byte[aeadBlockCipher.GetOutputSize(10) + 2];
+            byte[] c2 = new byte[elephantEngine.GetOutputSize(10)];
+            byte[] c3 = new byte[elephantEngine.GetOutputSize(10) + 2];
             byte[] aad2 = { 0, 1, 2, 3, 4 };
             byte[] aad3 = { 0, 0, 1, 2, 3, 4, 5 };
             byte[] m2 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             byte[] m3 = { 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
             byte[] m4 = new byte[m2.Length];
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            int offset = aeadBlockCipher.ProcessBytes(m2, 0, m2.Length, c2, 0);
-            aeadBlockCipher.DoFinal(c2, offset);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad3, 1, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m3, 1, m2.Length, c3, 1);
-            aeadBlockCipher.DoFinal(c3, offset + 1);
+            elephantEngine.Reset();
+            elephantEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            int offset = elephantEngine.ProcessBytes(m2, 0, m2.Length, c2, 0);
+            elephantEngine.DoFinal(c2, offset);
+            elephantEngine.Reset();
+            elephantEngine.ProcessAadBytes(aad3, 1, aad2.Length);
+            offset = elephantEngine.ProcessBytes(m3, 1, m2.Length, c3, 1);
+            elephantEngine.DoFinal(c3, offset + 1);
             byte[] c3_partial = new byte[c2.Length];
             Array.Copy(c3, 1, c3_partial, 0, c2.Length);
             if (!Arrays.AreEqual(c2, c3_partial))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(c2, 0, c2.Length, m4, 0);
-            aeadBlockCipher.DoFinal(m4, offset);
+            elephantEngine.Reset();
+            elephantEngine.Init(false, param);
+            elephantEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = elephantEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
+            elephantEngine.DoFinal(m4, offset);
             if (!Arrays.AreEqual(m2, m4))
             {
                 Assert.Fail("The encryption and decryption does not recover the plaintext");
             }
-            Console.WriteLine(aeadBlockCipher.AlgorithmName + " test Exceptions pass");
+            Console.WriteLine(elephantEngine.AlgorithmName + " test Exceptions pass");
             c2[c2.Length - 1] ^= 1;
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(c2, 0, c2.Length, m4, 0);
+            elephantEngine.Reset();
+            elephantEngine.Init(false, param);
+            elephantEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = elephantEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
             try
             {
-                aeadBlockCipher.DoFinal(m4, offset);
+                elephantEngine.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException)
+            catch (InvalidCipherTextException)
             {
                 //expected;
             }
@@ -347,24 +325,24 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 m7[i] = (byte)rand.Next();
             }
-            byte[] c7 = new byte[aeadBlockCipher.GetOutputSize(m7.Length)];
+            byte[] c7 = new byte[elephantEngine.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
             byte[] c9 = new byte[c7.Length];
-            aeadBlockCipher.Init(true, param);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, m7.Length, c7, 0);
-            aeadBlockCipher.DoFinal(c7, offset);
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, blocksize, c8, 0);
-            offset += aeadBlockCipher.ProcessBytes(m7, blocksize, m7.Length - blocksize, c8, offset);
-            aeadBlockCipher.DoFinal(c8, offset);
-            aeadBlockCipher.Reset();
+            elephantEngine.Init(true, param);
+            elephantEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = elephantEngine.ProcessBytes(m7, 0, m7.Length, c7, 0);
+            elephantEngine.DoFinal(c7, offset);
+            elephantEngine.Reset();
+            elephantEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = elephantEngine.ProcessBytes(m7, 0, blocksize, c8, 0);
+            offset += elephantEngine.ProcessBytes(m7, blocksize, m7.Length - blocksize, c8, offset);
+            elephantEngine.DoFinal(c8, offset);
+            elephantEngine.Reset();
             int split = rand.Next(blocksize * 2);
-            aeadBlockCipher.ProcessAadBytes(aad2, 0, aad2.Length);
-            offset = aeadBlockCipher.ProcessBytes(m7, 0, split, c9, 0);
-            offset += aeadBlockCipher.ProcessBytes(m7, split, m7.Length - split, c9, offset);
-            aeadBlockCipher.DoFinal(c9, offset);
+            elephantEngine.ProcessAadBytes(aad2, 0, aad2.Length);
+            offset = elephantEngine.ProcessBytes(m7, 0, split, c9, 0);
+            offset += elephantEngine.ProcessBytes(m7, split, m7.Length - split, c9, offset);
+            elephantEngine.DoFinal(c9, offset);
             if (!Arrays.AreEqual(c7, c8) || !Arrays.AreEqual(c7, c9))
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
@@ -374,28 +352,28 @@ namespace Org.BouncyCastle.Crypto.Tests
             Span<byte> c4_2 = new byte[c2.Length];
             ReadOnlySpan<byte> m5 = new ReadOnlySpan<byte>(m2);
             ReadOnlySpan<byte> aad4 = new ReadOnlySpan<byte>(aad2);
-            aeadBlockCipher.Init(true, param);
-            aeadBlockCipher.ProcessAadBytes(aad4);
-            offset = aeadBlockCipher.ProcessBytes(m5, c4_1);
-            aeadBlockCipher.DoFinal(c4_2);
+            elephantEngine.Init(true, param);
+            elephantEngine.ProcessAadBytes(aad4);
+            offset = elephantEngine.ProcessBytes(m5, c4_1);
+            elephantEngine.DoFinal(c4_2);
             byte[] c5 = new byte[c2.Length];
-            Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
-            Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
+            c4_1[..offset].CopyTo(c5);
+            c4_2[..(c5.Length - offset)].CopyTo(c5.AsSpan(offset));
             if (!Arrays.AreEqual(c2, c5))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            aeadBlockCipher.Reset();
-            aeadBlockCipher.Init(false, param);
+            elephantEngine.Reset();
+            elephantEngine.Init(false, param);
             Span<byte> m6_1 = new byte[m2.Length];
             Span<byte> m6_2 = new byte[m2.Length];
             ReadOnlySpan<byte> c6 = new ReadOnlySpan<byte>(c2);
-            aeadBlockCipher.ProcessAadBytes(aad4);
-            offset = aeadBlockCipher.ProcessBytes(c6, m6_1);
-            aeadBlockCipher.DoFinal(m6_2);
+            elephantEngine.ProcessAadBytes(aad4);
+            offset = elephantEngine.ProcessBytes(c6, m6_1);
+            elephantEngine.DoFinal(m6_2);
             byte[] m6 = new byte[m2.Length];
-            Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
-            Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
+            m6_1[..offset].CopyTo(m6);
+            m6_2[..(m6.Length - offset)].CopyTo(m6.AsSpan(offset));
             if (!Arrays.AreEqual(m2, m6))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
@@ -404,7 +382,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         }
 
-        private void testParameters(ElephantEngine Elephant, int keySize, int ivSize, int macSize, int blockSize)
+        private void ImplTestParameters(ElephantEngine Elephant, int keySize, int ivSize, int macSize, int blockSize)
         {
             if (Elephant.GetKeyBytesSize() != keySize)
             {

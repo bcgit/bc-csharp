@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             isapEngine = new IsapEngine(IsapEngine.IsapType.ISAP_A_128);
             ImplTestExceptions(isapEngine);
             ImplTestParameters(isapEngine, 16, 16, 16);
-            ImplTestExceptions(new ISAPDigest(), 32);
+            ImplTestExceptions(new IsapDigest(), 32);
             ImplTestVectors("isapa128av20", IsapEngine.IsapType.ISAP_A_128A);
             ImplTestVectors("isapa128v20", IsapEngine.IsapType.ISAP_A_128);
             ImplTestVectors("isapk128av20", IsapEngine.IsapType.ISAP_K_128A);
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void ImplTestVectors()
         {
-            ISAPDigest isap = new ISAPDigest();
+            IsapDigest isap = new IsapDigest();
             var buf = new Dictionary<string, string>();
             //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.isap.LWC_HASH_KAT_256.txt")))
@@ -151,10 +151,10 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void ImplTestExceptions(IsapEngine isapEngine)
         {
-            int keysize = isapEngine.GetKeyBytesSize(), ivsize = isapEngine.GetIVBytesSize();
+            int keySize = isapEngine.GetKeyBytesSize(), ivSize = isapEngine.GetIVBytesSize();
             int offset;
-            byte[] k = new byte[keysize];
-            byte[] iv = new byte[ivsize];
+            byte[] k = new byte[keySize];
+            byte[] iv = new byte[ivSize];
             byte[] m = Array.Empty<byte>();
             ICipherParameters param = new ParametersWithIV(new KeyParameter(k), iv);
             try
@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 isapEngine.DoFinal(null, m.Length);
-                Assert.Fail(isapEngine.AlgorithmName + " need to be initialized before Dofinal");
+                Assert.Fail(isapEngine.AlgorithmName + " need to be initialized before DoFinal");
             }
             catch (ArgumentException)
             {
@@ -209,9 +209,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             Random rand = new Random();
             int randomNum;
-            while ((randomNum = rand.Next(100)) == keysize) ;
+            while ((randomNum = rand.Next(100)) == keySize) ;
             byte[] k1 = new byte[randomNum];
-            while ((randomNum = rand.Next(100)) == ivsize) ;
+            while ((randomNum = rand.Next(100)) == ivSize) ;
             byte[] iv1 = new byte[randomNum];
             try
             {
@@ -312,9 +312,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 isapEngine.DoFinal(new byte[2], 2);
-                Assert.Fail("output for dofinal is too short");
+                Assert.Fail("output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
@@ -373,7 +373,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 offset += isapEngine.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException)
+            catch (InvalidCipherTextException)
             {
                 //expected;
             }
@@ -416,8 +416,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = isapEngine.ProcessBytes(m5, c4_1);
             isapEngine.DoFinal(c4_2);
             byte[] c5 = new byte[c2.Length];
-            Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
-            Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
+            c4_1[..offset].CopyTo(c5);
+            c4_2[..(c5.Length - offset)].CopyTo(c5.AsSpan(offset));
             if (!Arrays.AreEqual(c2, c5))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
@@ -431,8 +431,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = isapEngine.ProcessBytes(c6, m6_1);
             isapEngine.DoFinal(m6_2);
             byte[] m6 = new byte[m2.Length];
-            Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
-            Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
+            m6_1[..offset].CopyTo(m6);
+            m6_2[..(m6.Length - offset)].CopyTo(m6.AsSpan(offset));
             if (!Arrays.AreEqual(m2, m6))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
@@ -458,17 +458,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "GetOutputSize of " + isapEngine.AlgorithmName + " is incorrect for decryption");
         }
 
-        private void ImplTestExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(IsapDigest isapDigest, int digestsize)
         {
-            if (digest.GetDigestSize() != digestsize)
+            if (isapDigest.GetDigestSize() != digestsize)
             {
-                Assert.Fail(digest.AlgorithmName + ": digest size is not correct");
+                Assert.Fail(isapDigest.AlgorithmName + ": digest size is not correct");
             }
 
             try
             {
-                digest.BlockUpdate(new byte[1], 1, 1);
-                Assert.Fail(digest.AlgorithmName + ": input for BlockUpdate is too short");
+                isapDigest.BlockUpdate(new byte[1], 1, 1);
+                Assert.Fail(isapDigest.AlgorithmName + ": input for BlockUpdate is too short");
             }
             catch (DataLengthException)
             {
@@ -476,10 +476,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
-                Assert.Fail(digest.AlgorithmName + ": output for Dofinal is too short");
+                isapDigest.DoFinal(new byte[isapDigest.GetDigestSize() - 1], 2);
+                Assert.Fail(isapDigest.AlgorithmName + ": output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }

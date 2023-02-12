@@ -1,19 +1,21 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
-/**
- * Sparkle v1.2, based on the current round 3 submission, https://sparkle-lwc.github.io/
- * Reference C implementation: https://github.com/cryptolu/sparkle
- * Specification: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/sparkle-spec-final.pdf
- */
-
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class SparkleEngine : IAeadBlockCipher
+    /// <summary>Sparkle v1.2, based on the current round 3 submission, https://sparkle-lwc.github.io/ .</summary>
+    /// <remarks>
+    /// Reference C implementation: https://github.com/cryptolu/sparkle.<br/>
+    /// Specification:
+    /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/sparkle-spec-final.pdf .
+    /// </remarks>
+    public class SparkleEngine
+        : IAeadBlockCipher
     {
         public enum SparkleParameters
         {
@@ -481,13 +483,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             else
             {
-                for (i = 0; i < TAG_BYTES; ++i)
-                {
-                    if (tag[i] != input[inlen + i])
-                    {
-                        throw new ArgumentException(algorithmName + " mac does not match");
-                    }
-                }
+                if (!Arrays.FixedTimeEquals(TAG_BYTES, tag, 0, input, inlen))
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
             }
             reset(false);
             return inlen;

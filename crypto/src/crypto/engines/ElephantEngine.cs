@@ -70,32 +70,32 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             switch (parameters)
             {
-                case ElephantParameters.elephant160:
-                    BLOCK_SIZE = 20;
-                    nBits = 160;
-                    nSBox = 20;
-                    nRounds = 80;
-                    lfsrIV = 0x75;
-                    CRYPTO_ABYTES = 8;
-                    algorithmName = "Elephant 160 AEAD";
-                    break;
-                case ElephantParameters.elephant176:
-                    BLOCK_SIZE = 22;
-                    nBits = 176;
-                    nSBox = 22;
-                    nRounds = 90;
-                    lfsrIV = 0x45;
-                    CRYPTO_ABYTES = 8;
-                    algorithmName = "Elephant 176 AEAD";
-                    break;
-                case ElephantParameters.elephant200:
-                    BLOCK_SIZE = 25;
-                    nRounds = 18;
-                    CRYPTO_ABYTES = 16;
-                    algorithmName = "Elephant 200 AEAD";
-                    break;
-                default:
-                    throw new ArgumentException("Invalid parameter settings for Elephant");
+            case ElephantParameters.elephant160:
+                BLOCK_SIZE = 20;
+                nBits = 160;
+                nSBox = 20;
+                nRounds = 80;
+                lfsrIV = 0x75;
+                CRYPTO_ABYTES = 8;
+                algorithmName = "Elephant 160 AEAD";
+                break;
+            case ElephantParameters.elephant176:
+                BLOCK_SIZE = 22;
+                nBits = 176;
+                nSBox = 22;
+                nRounds = 90;
+                lfsrIV = 0x45;
+                CRYPTO_ABYTES = 8;
+                algorithmName = "Elephant 176 AEAD";
+                break;
+            case ElephantParameters.elephant200:
+                BLOCK_SIZE = 25;
+                nRounds = 18;
+                CRYPTO_ABYTES = 16;
+                algorithmName = "Elephant 200 AEAD";
+                break;
+            default:
+                throw new ArgumentException("Invalid parameter settings for Elephant");
             }
             this.parameters = parameters;
             initialised = false;
@@ -316,40 +316,25 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-
-
         public void Init(bool forEncryption, ICipherParameters param)
         {
             this.forEncryption = forEncryption;
-            if (!(param is ParametersWithIV))
-            {
-                throw new ArgumentException(
-                    "Elephant init parameters must include an IV");
-            }
 
-            ParametersWithIV ivParams = (ParametersWithIV)param;
+            if (!(param is ParametersWithIV ivParams))
+                throw new ArgumentException("Elephant init parameters must include an IV");
 
             npub = ivParams.GetIV();
 
             if (npub == null || npub.Length != 12)
-            {
-                throw new ArgumentException(
-                    "Elephant requires exactly 12 bytes of IV");
-            }
+                throw new ArgumentException("Elephant requires exactly 12 bytes of IV");
 
-            if (!(ivParams.Parameters is KeyParameter))
-            {
-                throw new ArgumentException(
-                    "Elephant init parameters must include a key");
-            }
+            if (!(ivParams.Parameters is KeyParameter key))
+                throw new ArgumentException("Elephant init parameters must include a key");
 
-            KeyParameter key = (KeyParameter)ivParams.Parameters;
             byte[] k = key.GetKey();
             if (k.Length != 16)
-            {
-                throw new ArgumentException(
-                    "Elephant key must be 128 bits long");
-            }
+                throw new ArgumentException("Elephant key must be 128 bits long");
+
             // Storage for the expanded key L
             expanded_key = new byte[BLOCK_SIZE];
             Array.Copy(k, 0, expanded_key, 0, CRYPTO_KEYBYTES);
@@ -365,44 +350,35 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void ProcessAadByte(byte input)
         {
-            aadData.Write(new byte[] { input }, 0, 1);
+            aadData.WriteByte(input);
         }
 
-
-        public void ProcessAadBytes(byte[] input, int inOff, int len)
+        public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            aadData.Write(input, inOff, len);
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
+
+            aadData.Write(inBytes, inOff, len);
         }
 
-
-        public int ProcessByte(byte input, byte[] output, int outOff)
+        public int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
-            message.Write(new byte[] { input }, 0, 1);
+            message.Write(new byte[]{ input }, 0, 1);
             return 0;
         }
 
-
-        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
+        public int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            message.Write(input, inOff, len);
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
+
+            message.Write(inBytes, inOff, len);
             return 0;
         }
-
 
         public int DoFinal(byte[] output, int outOff)
         {
             if (!initialised)
-            {
-                throw new ArgumentException("Need call init function before encryption/decryption");
-            }
+                throw new ArgumentException("Need to call Init function before encryption/decryption");
+
             int mlen = (int)message.Length - (forEncryption ? 0 : CRYPTO_ABYTES);
             if ((forEncryption && mlen + outOff + CRYPTO_ABYTES > output.Length) ||
             (!forEncryption && mlen + outOff - CRYPTO_ABYTES > output.Length))
@@ -493,36 +469,27 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             else
             {
-                for (int i = 0; i < CRYPTO_ABYTES; ++i)
-                {
-                    if (tag_buffer[i] != m[mlen + i])
-                    {
-                        throw new ArgumentException("Mac does not match");
-                    }
-                }
+                if (!Arrays.FixedTimeEquals(CRYPTO_ABYTES, tag_buffer, 0, m, mlen))
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
             }
             reset(false);
             return mlen;
         }
-
 
         public byte[] GetMac()
         {
             return tag;
         }
 
-
         public int GetUpdateOutputSize(int len)
         {
             return len;
         }
 
-
         public int GetOutputSize(int len)
         {
             return len + CRYPTO_ABYTES;
         }
-
 
         public void Reset()
         {
@@ -547,7 +514,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int ProcessByte(byte input, Span<byte> output)
         {
-            message.Write(new byte[] { input });
+            message.Write(new byte[]{ input });
             return 0;
         }
 

@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 asconEngine.ProcessBytes(m, 0, m.Length, null, 0);
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before ProcessBytes");
+                Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before ProcessBytes");
             }
             catch (ArgumentException)
             {
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 asconEngine.ProcessByte((byte)0, null, 0);
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before ProcessByte");
+                Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before ProcessByte");
             }
             catch (ArgumentException)
             {
@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 asconEngine.Reset();
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before reset");
+                Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before Reset");
             }
             catch (ArgumentException)
             {
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 asconEngine.DoFinal(null, m.Length);
-                Assert.Fail(asconEngine.AlgorithmName + " need to be initialized before Dofinal");
+                Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before DoFinal");
             }
             catch (ArgumentException)
             {
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             catch (ArgumentException)
             {
                 //expected
-                Assert.Fail(asconEngine.AlgorithmName + " functions can be called before initialisation");
+                Assert.Fail(asconEngine.AlgorithmName + " functions can be called before initialization");
             }
 
             Random rand = new Random();
@@ -214,11 +214,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] mac2 = asconEngine.GetMac();
             if (mac2 == null)
             {
-                Assert.Fail("mac should not be empty after dofinal");
+                Assert.Fail("mac should not be empty after DoFinal");
             }
             if (!Arrays.AreEqual(mac2, c1))
             {
-                Assert.Fail("mac should be equal when calling dofinal and getMac");
+                Assert.Fail("mac should be equal when calling DoFinal and GetMac");
             }
             asconEngine.ProcessAadByte((byte)0);
             byte[] mac1 = new byte[asconEngine.GetOutputSize(0)];
@@ -281,9 +281,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 asconEngine.DoFinal(new byte[2], 2);
-                Assert.Fail("output for dofinal is too short");
+                Assert.Fail("output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
@@ -342,7 +342,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 asconEngine.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException)
+            catch (InvalidCipherTextException)
             {
                 //expected;
             }
@@ -357,7 +357,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] c9 = new byte[c7.Length];
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, m7.Length, c7, 0);
-            asconEngine.DoFinal(c7, offset);
+            offset += asconEngine.DoFinal(c7, offset);
             asconEngine.Reset();
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, m7.Length / 2, c8, 0);
@@ -385,8 +385,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = asconEngine.ProcessBytes(m5, c4_1);
             asconEngine.DoFinal(c4_2);
             byte[] c5 = new byte[c2.Length];
-            Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
-            Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
+            c4_1[..offset].CopyTo(c5);
+            c4_2[..(c5.Length - offset)].CopyTo(c5.AsSpan(offset));
             if (!Arrays.AreEqual(c2, c5))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
@@ -400,8 +400,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = asconEngine.ProcessBytes(c6, m6_1);
             asconEngine.DoFinal(m6_2);
             byte[] m6 = new byte[m2.Length];
-            Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
-            Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
+            m6_1[..offset].CopyTo(m6);
+            m6_2[..(m6.Length - offset)].CopyTo(m6.AsSpan(offset));
             if (!Arrays.AreEqual(m2, m6))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
@@ -427,29 +427,27 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "GetOutputSize of " + asconEngine.AlgorithmName + " is incorrect for decryption");
         }
 
-        private void ImplTestVectorsHash(AsconDigest.AsconParameters AsconParameters, String filename)
+        private void ImplTestVectorsHash(AsconDigest.AsconParameters AsconParameters, string filename)
         {
             AsconDigest Ascon = new AsconDigest(AsconParameters);
             var buf = new Dictionary<string, string>();
-            //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.ascon."+filename+"_LWC_HASH_KAT_256.txt")))
             {
-                string line;
-                string[] data;
-                byte[] ptByte;
                 Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
-                    data = line.Split(' ');
+                    var data = line.Split(' ');
                     if (data.Length == 1)
                     {
-                        ptByte = Hex.Decode(map["Msg"]);
+                        byte[] ptByte = Hex.Decode(map["Msg"]);
+                        byte[] expected = Hex.Decode(map["MD"]);
+                        map.Clear();
+
                         Ascon.BlockUpdate(ptByte, 0, ptByte.Length);
                         byte[] hash = new byte[Ascon.GetDigestSize()];
                         Ascon.DoFinal(hash, 0);
-                        Assert.True(Arrays.AreEqual(hash, Hex.Decode(map["MD"])));
-                        //Console.WriteLine(map["Count"] + " pass");
-                        map.Clear();
+                        Assert.True(Arrays.AreEqual(expected, hash));
                         Ascon.Reset();
                     }
                     else
@@ -468,17 +466,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void ImplTestExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(AsconDigest asconDigest, int digestSize)
         {
-            if (digest.GetDigestSize() != digestsize)
+            if (asconDigest.GetDigestSize() != digestSize)
             {
-                Assert.Fail(digest.AlgorithmName + ": digest size is not correct");
+                Assert.Fail(asconDigest.AlgorithmName + ": digest size is not correct");
             }
 
             try
             {
-                digest.BlockUpdate(new byte[1], 1, 1);
-                Assert.Fail(digest.AlgorithmName + ": input for update is too short");
+                asconDigest.BlockUpdate(new byte[1], 1, 1);
+                Assert.Fail(asconDigest.AlgorithmName + ": input for BlockUpdate is too short");
             }
             catch (DataLengthException)
             {
@@ -486,14 +484,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
-                Assert.Fail(digest.AlgorithmName + ": output for dofinal is too short");
+                asconDigest.DoFinal(new byte[digestSize - 1], 2);
+                Assert.Fail(asconDigest.AlgorithmName + ": output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
-            //Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
         }
     }
 }

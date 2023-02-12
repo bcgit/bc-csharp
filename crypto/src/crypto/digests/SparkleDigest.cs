@@ -1,23 +1,26 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
-/**
- * Sparkle v1.2, based on the current round 3 submission, https://sparkle-lwc.github.io/
- * Reference C implementation: https://github.com/cryptolu/sparkle
- * Specification: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/sparkle-spec-final.pdf
- */
-
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public class SparkleDigest : IDigest
+    /// <summary>Sparkle v1.2, based on the current round 3 submission, https://sparkle-lwc.github.io/ .</summary>
+    /// <remarks>
+    /// Reference C implementation: https://github.com/cryptolu/sparkle.<br/>
+    /// Specification:
+    /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/sparkle-spec-final.pdf .
+    /// </remarks>
+    public class SparkleDigest
+        : IDigest
     {
         public enum SparkleParameters
         {
             ESCH256,
             ESCH384
         }
+
         private string algorithmName;
         private readonly uint[] state;
         private MemoryStream message = new MemoryStream();
@@ -36,22 +39,22 @@ namespace Org.BouncyCastle.Crypto.Digests
             int SPARKLE_RATE = 128;
             switch (sparkleParameters)
             {
-                case SparkleParameters.ESCH256:
-                    ESCH_DIGEST_LEN = 256;
-                    SPARKLE_STATE = 384;
-                    SPARKLE_STEPS_SLIM = 7;
-                    SPARKLE_STEPS_BIG = 11;
-                    algorithmName = "ESCH-256";
-                    break;
-                case SparkleParameters.ESCH384:
-                    ESCH_DIGEST_LEN = 384;
-                    SPARKLE_STATE = 512;
-                    SPARKLE_STEPS_SLIM = 8;
-                    SPARKLE_STEPS_BIG = 12;
-                    algorithmName = "ESCH-384";
-                    break;
-                default:
-                    throw new ArgumentException("Invalid definition of SCHWAEMM instance");
+            case SparkleParameters.ESCH256:
+                ESCH_DIGEST_LEN = 256;
+                SPARKLE_STATE = 384;
+                SPARKLE_STEPS_SLIM = 7;
+                SPARKLE_STEPS_BIG = 11;
+                algorithmName = "ESCH-256";
+                break;
+            case SparkleParameters.ESCH384:
+                ESCH_DIGEST_LEN = 384;
+                SPARKLE_STATE = 512;
+                SPARKLE_STEPS_SLIM = 8;
+                SPARKLE_STEPS_BIG = 12;
+                algorithmName = "ESCH-384";
+                break;
+            default:
+                throw new ArgumentException("Invalid definition of SCHWAEMM instance");
             }
             STATE_BRANS = SPARKLE_STATE >> 6;
             STATE_WORDS = SPARKLE_STATE >> 5;
@@ -61,14 +64,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             state = new uint[STATE_WORDS];
         }
 
-        private uint ROT(uint x, int n)
-        {
-            return (((x) >> n) | ((x) << (32 - n)));
-        }
-
         private uint ELL(uint x)
         {
-            return ROT(((x) ^ ((x) << 16)), 16);
+            return Integers.RotateRight(x ^ (x << 16), 16);
         }
 
         private static readonly uint[] RCON = {0xB7E15162, 0xBF715880, 0x38B4DA56, 0x324E7738, 0xBB1185EB, 0x4F7C7B57,
@@ -86,17 +84,17 @@ namespace Org.BouncyCastle.Crypto.Digests
                 for (j = 0; j < 2 * brans; j += 2)
                 {
                     rc = RCON[j >> 1];
-                    state[j] += ROT(state[j + 1], 31);
-                    state[j + 1] ^= ROT(state[j], 24);
+                    state[j] += Integers.RotateRight(state[j + 1], 31);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 24);
                     state[j] ^= rc;
-                    state[j] += ROT(state[j + 1], 17);
-                    state[j + 1] ^= ROT(state[j], 17);
+                    state[j] += Integers.RotateRight(state[j + 1], 17);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 17);
                     state[j] ^= rc;
                     state[j] += state[j + 1];
-                    state[j + 1] ^= ROT(state[j], 31);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 31);
                     state[j] ^= rc;
-                    state[j] += ROT(state[j + 1], 24);
-                    state[j + 1] ^= ROT(state[j], 16);
+                    state[j] += Integers.RotateRight(state[j + 1], 24);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 16);
                     state[j] ^= rc;
                 }
                 // Linear layer
@@ -226,7 +224,6 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public string AlgorithmName => algorithmName;
 
-
         public void Update(byte input)
         {
             message.Write(new byte[] { input }, 0, 1);
@@ -240,7 +237,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public int GetByteLength()
         {
-            return STATE_WORDS;
+            return RATE_BYTES;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -258,7 +255,5 @@ namespace Org.BouncyCastle.Crypto.Digests
             return DIGEST_BYTES;
         }
 #endif
-
     }
 }
-

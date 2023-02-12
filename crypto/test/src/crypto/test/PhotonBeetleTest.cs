@@ -15,71 +15,52 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class PhotonBeetleTest : SimpleTest
+    public class PhotonBeetleTest
+        : SimpleTest
     {
-        public override string Name
-        {
-            get { return "Photon-Beetle"; }
-        }
+        public override string Name => "Photon-Beetle";
 
         [Test]
         public override void PerformTest()
         {
-            testVectors("v32", PhotonBeetleEngine.PhotonBeetleParameters.pb32);
-            testVectors("v128", PhotonBeetleEngine.PhotonBeetleParameters.pb128);
-            testVectors();
-            PhotonBeetleEngine pb = new PhotonBeetleEngine(PhotonBeetleEngine.PhotonBeetleParameters.pb32);
-            testExceptions(pb, pb.GetKeyBytesSize(), pb.GetIVBytesSize(), pb.GetBlockSize());
-            testParameters(pb, 16, 16, 16, 4);
-            pb = new PhotonBeetleEngine(PhotonBeetleEngine.PhotonBeetleParameters.pb128);
-            testExceptions(pb, pb.GetKeyBytesSize(), pb.GetIVBytesSize(), pb.GetBlockSize());
-            testParameters(pb, 16, 16, 16, 16);
-            testExceptions(new PhotonBeetleDigest(), 32);
+            ImplTestVectors("v32", PhotonBeetleEngine.PhotonBeetleParameters.pb32);
+            ImplTestVectors("v128", PhotonBeetleEngine.PhotonBeetleParameters.pb128);
+            ImplTestVectors();
+            PhotonBeetleEngine photonBeetleEngine = new PhotonBeetleEngine(PhotonBeetleEngine.PhotonBeetleParameters.pb32);
+            ImplTestExceptions(photonBeetleEngine, photonBeetleEngine.GetKeyBytesSize(), photonBeetleEngine.GetIVBytesSize(), photonBeetleEngine.GetBlockSize());
+            ImplTestParameters(photonBeetleEngine, 16, 16, 16, 4);
+            photonBeetleEngine = new PhotonBeetleEngine(PhotonBeetleEngine.PhotonBeetleParameters.pb128);
+            ImplTestExceptions(photonBeetleEngine, photonBeetleEngine.GetKeyBytesSize(), photonBeetleEngine.GetIVBytesSize(), photonBeetleEngine.GetBlockSize());
+            ImplTestParameters(photonBeetleEngine, 16, 16, 16, 16);
+            ImplTestExceptions(new PhotonBeetleDigest(), 32);
         }
 
-        private void testVectors(String filename, PhotonBeetleEngine.PhotonBeetleParameters PhotonBeetleType)
+        private void ImplTestVectors(String filename, PhotonBeetleEngine.PhotonBeetleParameters PhotonBeetleType)
         {
             PhotonBeetleEngine PhotonBeetle = new PhotonBeetleEngine(PhotonBeetleType);
-            ICipherParameters param;
             var buf = new Dictionary<string, string>();
-            //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.photonbeetle." + filename + "_LWC_AEAD_KAT_128_128.txt")))
             {
-                string line;
-                string[] data;
-                byte[] rv;
                 Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
-                    data = line.Split(' ');
+                    var data = line.Split(' ');
                     if (data.Length == 1)
                     {
-                        //if (!map["Count"].Equals("34"))
-                        //{
-                        //    continue;
-                        //}
                         byte[] key = Hex.Decode(map["Key"]);
                         byte[] nonce = Hex.Decode(map["Nonce"]);
                         byte[] ad = Hex.Decode(map["AD"]);
                         byte[] pt = Hex.Decode(map["PT"]);
                         byte[] ct = Hex.Decode(map["CT"]);
-                        param = new ParametersWithIV(new KeyParameter(key), nonce);
+                        map.Clear();
+
+                        var param = new ParametersWithIV(new KeyParameter(key), nonce);
                         PhotonBeetle.Init(true, param);
                         PhotonBeetle.ProcessAadBytes(ad, 0, ad.Length);
-                        rv = new byte[PhotonBeetle.GetOutputSize(pt.Length)];
+                        byte[] rv = new byte[PhotonBeetle.GetOutputSize(pt.Length)];
                         int len = PhotonBeetle.ProcessBytes(pt, 0, pt.Length, rv, 0);
-                        //byte[] mac = new byte[16];
                         PhotonBeetle.DoFinal(rv, len);
-                        //foreach(byte b in Hex.Decode(map["CT"]))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
-                        //foreach (byte b in Arrays.Concatenate(rv, mac))
-                        //{
-                        //    Console.Write(b.ToString("X2"));
-                        //}
-                        //Console.WriteLine();
                         Assert.True(Arrays.AreEqual(rv, ct));
                         PhotonBeetle.Reset();
                         PhotonBeetle.Init(false, param);
@@ -91,8 +72,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] pt_recovered = new byte[pt.Length];
                         Array.Copy(rv, 0, pt_recovered, 0, pt.Length);
                         Assert.True(Arrays.AreEqual(pt, pt_recovered));
-                        //Console.WriteLine(map["Count"] + " pass");
-                        map.Clear();
                         PhotonBeetle.Reset();
                     }
                     else
@@ -109,10 +88,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                     }
                 }
             }
-            Console.WriteLine(PhotonBeetle.AlgorithmName + " test pass");
         }
 
-        private void testVectors()
+        private void ImplTestVectors()
         {
             PhotonBeetleDigest PhotonBeetle = new PhotonBeetleDigest();
             var buf = new Dictionary<string, string>();
@@ -133,7 +111,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] hash = new byte[32];
                         PhotonBeetle.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(hash, Hex.Decode(map["MD"])));
-                        //Console.WriteLine(map["Count"] + " pass");
                         map.Clear();
                         PhotonBeetle.Reset();
                     }
@@ -153,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testExceptions(IAeadBlockCipher aeadBlockCipher, int keysize, int ivsize, int blocksize)
+        private void ImplTestExceptions(IAeadBlockCipher aeadBlockCipher, int keysize, int ivsize, int blocksize)
         {
             ICipherParameters param;
             byte[] k = new byte[keysize];
@@ -164,7 +141,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             //try
             //{
             //    aeadBlockCipher.ProcessBytes(m, 0, m.Length, c1, 0);
-            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessBytes");
+            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before ProcessBytes");
             //}
             //catch (ArgumentException e)
             //{
@@ -174,7 +151,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             //try
             //{
             //    aeadBlockCipher.ProcessByte((byte)0, c1, 0);
-            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before ProcessByte");
+            //    Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before ProcessByte");
             //}
             //catch (ArgumentException e)
             //{
@@ -184,7 +161,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.Reset();
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before reset");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before Reset");
             }
             catch (ArgumentException)
             {
@@ -194,7 +171,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.DoFinal(c1, m.Length);
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " need to be initialed before dofinal");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " needs to be initialized before DoFinal");
             }
             catch (ArgumentException)
             {
@@ -210,7 +187,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             catch (ArgumentException)
             {
                 //expected
-                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialisation");
+                Assert.Fail(aeadBlockCipher.AlgorithmName + " functions can be called before initialization");
             }
             Random rand = new Random();
             int randomNum;
@@ -250,11 +227,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] mac2 = aeadBlockCipher.GetMac();
             if (mac2 == null)
             {
-                Assert.Fail("mac should not be empty after dofinal");
+                Assert.Fail("mac should not be empty after DoFinal");
             }
             if (!Arrays.AreEqual(mac2, c1))
             {
-                Assert.Fail("mac should be equal when calling dofinal and getMac");
+                Assert.Fail("mac should be equal when calling DoFinal and GetMac");
             }
             aeadBlockCipher.ProcessAadByte((byte)0);
             byte[] mac1 = new byte[aeadBlockCipher.GetOutputSize(0)];
@@ -315,9 +292,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 aeadBlockCipher.DoFinal(new byte[2], 2);
-                Assert.Fail("output for dofinal is too short");
+                Assert.Fail("output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
@@ -366,7 +343,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("The encryption and decryption does not recover the plaintext");
             }
-            Console.WriteLine(aeadBlockCipher.AlgorithmName + " test Exceptions pass");
             c2[c2.Length - 1] ^= 1;
             aeadBlockCipher.Reset();
             aeadBlockCipher.Init(false, param);
@@ -377,7 +353,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 aeadBlockCipher.DoFinal(m4, offset);
                 Assert.Fail("The decryption should fail");
             }
-            catch (ArgumentException)
+            catch (InvalidCipherTextException)
             {
                 //expected;
             }
@@ -420,8 +396,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = aeadBlockCipher.ProcessBytes(m5, c4_1);
             aeadBlockCipher.DoFinal(c4_2);
             byte[] c5 = new byte[c2.Length];
-            Array.Copy(c4_1.ToArray(), 0, c5, 0, offset);
-            Array.Copy(c4_2.ToArray(), 0, c5, offset, c5.Length - offset);
+            c4_1[..offset].CopyTo(c5);
+            c4_2[..(c5.Length - offset)].CopyTo(c5.AsSpan(offset));
             if (!Arrays.AreEqual(c2, c5))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
@@ -435,38 +411,36 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = aeadBlockCipher.ProcessBytes(c6, m6_1);
             aeadBlockCipher.DoFinal(m6_2);
             byte[] m6 = new byte[m2.Length];
-            Array.Copy(m6_1.ToArray(), 0, m6, 0, offset);
-            Array.Copy(m6_2.ToArray(), 0, m6, offset, m6.Length - offset);
+            m6_1[..offset].CopyTo(m6);
+            m6_2[..(m6.Length - offset)].CopyTo(m6.AsSpan(offset));
             if (!Arrays.AreEqual(m2, m6))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
 #endif
-
         }
 
-        private void testParameters(PhotonBeetleEngine PhotonBeetle, int keySize, int ivSize, int macSize, int blockSize)
+        private void ImplTestParameters(PhotonBeetleEngine photonBeetleEngine, int keySize, int ivSize, int macSize, int blockSize)
         {
-            if (PhotonBeetle.GetKeyBytesSize() != keySize)
+            if (photonBeetleEngine.GetKeyBytesSize() != keySize)
             {
-                Assert.Fail("key bytes of " + PhotonBeetle.AlgorithmName + " is not correct");
+                Assert.Fail("key bytes of " + photonBeetleEngine.AlgorithmName + " is not correct");
             }
-            if (PhotonBeetle.GetIVBytesSize() != ivSize)
+            if (photonBeetleEngine.GetIVBytesSize() != ivSize)
             {
-                Assert.Fail("iv bytes of " + PhotonBeetle.AlgorithmName + " is not correct");
+                Assert.Fail("iv bytes of " + photonBeetleEngine.AlgorithmName + " is not correct");
             }
-            if (PhotonBeetle.GetOutputSize(0) != macSize)
+            if (photonBeetleEngine.GetOutputSize(0) != macSize)
             {
-                Assert.Fail("mac bytes of " + PhotonBeetle.AlgorithmName + " is not correct");
+                Assert.Fail("mac bytes of " + photonBeetleEngine.AlgorithmName + " is not correct");
             }
-            if (PhotonBeetle.GetBlockSize() != blockSize)
+            if (photonBeetleEngine.GetBlockSize() != blockSize)
             {
-                Assert.Fail("block size of " + PhotonBeetle.AlgorithmName + " is not correct");
+                Assert.Fail("block size of " + photonBeetleEngine.AlgorithmName + " is not correct");
             }
-            Console.WriteLine(PhotonBeetle.AlgorithmName + " test Parameters pass");
         }
 
-        private void testExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(IDigest digest, int digestsize)
         {
             if (digest.GetDigestSize() != digestsize)
             {
@@ -476,7 +450,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 digest.BlockUpdate(new byte[1], 1, 1);
-                Assert.Fail(digest.AlgorithmName + ": input for update is too short");
+                Assert.Fail(digest.AlgorithmName + ": input for BlockUpdate is too short");
             }
             catch (DataLengthException)
             {
@@ -485,14 +459,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
-                Assert.Fail(digest.AlgorithmName + ": output for dofinal is too short");
+                Assert.Fail(digest.AlgorithmName + ": output for DoFinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
-            Console.WriteLine(digest.AlgorithmName + " test Exceptions pass");
         }
-
     }
 }

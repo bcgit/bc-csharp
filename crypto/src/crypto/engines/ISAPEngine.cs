@@ -921,7 +921,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return DoFinal(outBytes.AsSpan(outOff));
 #else
             if (!initialised)
-                throw new ArgumentException("Need call init function before encryption/decryption");
+                throw new ArgumentException("Need to call Init before encryption/decryption");
 
             byte[] aad = aadData.GetBuffer();
             byte[] msg = message.GetBuffer();
@@ -949,7 +949,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 ISAPAEAD.isap_mac(aad, aadLen, msg, outLen, mac, 0);
                 ISAPAEAD.reset();
                 if (!Arrays.FixedTimeEquals(16, mac, 0, msg, outLen))
-                    throw new ArgumentException("Mac does not match");
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
+
                 ISAPAEAD.isap_enc(msg, 0, outLen, outBytes, outOff);
             }
             return outLen;
@@ -960,7 +961,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int DoFinal(Span<byte> output)
         {
             if (!initialised)
-                throw new ArgumentException("Need call init function before encryption/decryption");
+                throw new ArgumentException("Need to call Init before encryption/decryption");
 
             byte[] aad = aadData.GetBuffer();
             byte[] msg = message.GetBuffer();
@@ -988,7 +989,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 ISAPAEAD.isap_mac(aad, aadLen, msg, outLen, mac, 0);
                 ISAPAEAD.reset();
                 if (!Arrays.FixedTimeEquals(16, mac, 0, msg, outLen))
-                    throw new ArgumentException("Mac does not match");
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
+
                 ISAPAEAD.isap_enc(msg.AsSpan(0, outLen), output);
             }
             return outLen;
@@ -1022,7 +1024,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         public void Reset()
         {
             if (!initialised)
-                throw new ArgumentException("Need call init function before encryption/decryption");
+                throw new ArgumentException("Need to call Init before encryption/decryption");
 
             aadData.SetLength(0);
             ISAPAEAD.reset();
