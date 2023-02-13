@@ -8,6 +8,11 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>ASCON v1.2 Hash, https://ascon.iaik.tugraz.at/ .</summary>
+    /// <remarks>
+    /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/ascon-spec-final.pdf<br/>
+    /// ASCON v1.2 Hash with reference to C Reference Impl from: https://github.com/ascon/ascon-c .
+    /// </remarks>
     public sealed class AsconDigest
         : IDigest
     {
@@ -247,15 +252,18 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private void P(int nr)
         {
-            if (nr == 12)
+            //if (nr >= 8)
             {
-                ROUND(0xf0UL);
-                ROUND(0xe1UL);
-                ROUND(0xd2UL);
-                ROUND(0xc3UL);
+                if (nr == 12)
+                {
+                    ROUND(0xf0UL);
+                    ROUND(0xe1UL);
+                    ROUND(0xd2UL);
+                    ROUND(0xc3UL);
+                }
+                ROUND(0xb4UL);
+                ROUND(0xa5UL);
             }
-            ROUND(0xb4UL);
-            ROUND(0xa5UL);
             ROUND(0x96UL);
             ROUND(0x87UL);
             ROUND(0x78UL);
@@ -267,12 +275,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        private void ROUND(ulong C)
+        private void ROUND(ulong c)
         {
-            ulong t0 = x0 ^ x1 ^ x2 ^ x3 ^ C ^ (x1 & (x0 ^ x2 ^ x4 ^ C));
-            ulong t1 = x0 ^ x2 ^ x3 ^ x4 ^ C ^ ((x1 ^ x2 ^ C) & (x1 ^ x3));
-            ulong t2 = x1 ^ x2 ^ x4 ^ C ^ (x3 & x4);
-            ulong t3 = x0 ^ x1 ^ x2 ^ C ^ (~x0 & (x3 ^ x4));
+            ulong t0 = x0 ^ x1 ^ x2 ^ x3 ^ c ^ (x1 & (x0 ^ x2 ^ x4 ^ c));
+            ulong t1 = x0 ^ x2 ^ x3 ^ x4 ^ c ^ ((x1 ^ x2 ^ c) & (x1 ^ x3));
+            ulong t2 = x1 ^ x2 ^ x4 ^ c ^ (x3 & x4);
+            ulong t3 = x0 ^ x1 ^ x2 ^ c ^ (~x0 & (x3 ^ x4));
             ulong t4 = x1 ^ x3 ^ x4 ^ ((x0 ^ x4) & x1);
             x0 = t0 ^ Longs.RotateRight(t0, 19) ^ Longs.RotateRight(t0, 28);
             x1 = t1 ^ Longs.RotateRight(t1, 39) ^ Longs.RotateRight(t1, 61);

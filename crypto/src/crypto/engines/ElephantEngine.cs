@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
@@ -13,6 +15,7 @@ namespace Org.BouncyCastle.Crypto.Engines
      * Specification: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/elephant-spec-final.pdf
      */
     public class ElephantEngine
+        // TODO IAeadCipher only
         : IAeadBlockCipher
     {
         public enum ElephantParameters
@@ -22,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             elephant200
         }
 
-        private bool forEncryption;
+        private bool forEncryption = true; // Safe output sizes before initialization
         private readonly string algorithmName;
         private ElephantParameters parameters;
         private int BLOCK_SIZE;
@@ -226,26 +229,18 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             switch (parameters)
             {
-                case ElephantParameters.elephant160:
-                    output[BLOCK_SIZE - 1] = (byte)((((input[0] & 0xFF) << 3) | ((input[0] & 0xFF) >> 5)) ^
-                        ((input[3] & 0xFF) << 7) ^ ((input[13] & 0xFF) >> 7));
-                    break;
-                case ElephantParameters.elephant176:
-                    output[BLOCK_SIZE - 1] = (byte)(rotl(input[0]) ^ ((input[3] & 0xFF) << 7) ^ ((input[19] & 0xFF) >> 7));
-                    break;
-                case ElephantParameters.elephant200:
-                    output[BLOCK_SIZE - 1] = (byte)(rotl(input[0]) ^ rotl(input[2]) ^ (input[13] << 1));
-                    break;
+            case ElephantParameters.elephant160:
+                output[BLOCK_SIZE - 1] = (byte)((((input[0] & 0xFF) << 3) | ((input[0] & 0xFF) >> 5)) ^
+                    ((input[3] & 0xFF) << 7) ^ ((input[13] & 0xFF) >> 7));
+                break;
+            case ElephantParameters.elephant176:
+                output[BLOCK_SIZE - 1] = (byte)(rotl(input[0]) ^ ((input[3] & 0xFF) << 7) ^ ((input[19] & 0xFF) >> 7));
+                break;
+            case ElephantParameters.elephant200:
+                output[BLOCK_SIZE - 1] = (byte)(rotl(input[0]) ^ rotl(input[2]) ^ (input[13] << 1));
+                break;
             }
             Array.Copy(input, 1, output, 0, BLOCK_SIZE - 1);
-        }
-
-        private void xor_block(byte[] state, byte[] block, int bOff, int size)
-        {
-            for (int i = 0; i < size; ++i)
-            {
-                state[i] ^= block[i + bOff];
-            }
         }
 
         // Write the ith assocated data block to "output".
@@ -412,14 +407,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                     // Compute ciphertext block
                     Array.Copy(npub, 0, buffer, 0, CRYPTO_NPUBBYTES);
                     Arrays.Fill(buffer, CRYPTO_NPUBBYTES, BLOCK_SIZE, (byte)0);
-                    xor_block(buffer, current_mask, 0, BLOCK_SIZE);
-                    xor_block(buffer, next_mask, 0, BLOCK_SIZE);
+                    Bytes.XorTo(BLOCK_SIZE, current_mask, buffer);
+                    Bytes.XorTo(BLOCK_SIZE, next_mask, buffer);
                     permutation(buffer);
-                    xor_block(buffer, current_mask, 0, BLOCK_SIZE);
-                    xor_block(buffer, next_mask, 0, BLOCK_SIZE);
+                    Bytes.XorTo(BLOCK_SIZE, current_mask, buffer);
+                    Bytes.XorTo(BLOCK_SIZE, next_mask, buffer);
                     int r_size = (i == nblocks_m - 1) ? mlen - offset : BLOCK_SIZE;
-                    xor_block(buffer, m, offset, r_size);
-                    Array.Copy(buffer, 0, output, offset + outOff, r_size);
+                    Bytes.Xor(r_size, m, offset, buffer, 0, output, outOff + offset);
                 }
                 if (i > 0 && i <= nblocks_c)
                 {
@@ -432,21 +426,21 @@ namespace Org.BouncyCastle.Crypto.Engines
                     {
                         get_c_block(buffer, m, 0, mlen, i - 1);
                     }
-                    xor_block(buffer, previous_mask, 0, BLOCK_SIZE);
-                    xor_block(buffer, next_mask, 0, BLOCK_SIZE);
+                    Bytes.XorTo(BLOCK_SIZE, previous_mask, buffer);
+                    Bytes.XorTo(BLOCK_SIZE, next_mask, buffer);
                     permutation(buffer);
-                    xor_block(buffer, previous_mask, 0, BLOCK_SIZE);
-                    xor_block(buffer, next_mask, 0, BLOCK_SIZE);
-                    xor_block(tag_buffer, buffer, 0, BLOCK_SIZE);
+                    Bytes.XorTo(BLOCK_SIZE, previous_mask, buffer);
+                    Bytes.XorTo(BLOCK_SIZE, next_mask, buffer);
+                    Bytes.XorTo(BLOCK_SIZE, buffer, tag_buffer);
                 }
                 // If there is any AD left, compute tag for AD block
                 if (i + 1 < nblocks_ad)
                 {
                     get_ad_block(buffer, ad, adlen, npub, i + 1);
-                    xor_block(buffer, next_mask, 0, BLOCK_SIZE);
+                    Bytes.XorTo(BLOCK_SIZE, next_mask, buffer);
                     permutation(buffer);
-                    xor_block(buffer, next_mask, 0, BLOCK_SIZE);
-                    xor_block(tag_buffer, buffer, 0, BLOCK_SIZE);
+                    Bytes.XorTo(BLOCK_SIZE, next_mask, buffer);
+                    Bytes.XorTo(BLOCK_SIZE, buffer, tag_buffer);
                 }
                 // Cyclically shift the mask buffers
                 // Value of next_mask will be computed in the next iteration
@@ -458,9 +452,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             outOff += mlen;
             tag = new byte[CRYPTO_ABYTES];
-            xor_block(tag_buffer, expanded_key, 0, BLOCK_SIZE);
+            Bytes.XorTo(BLOCK_SIZE, expanded_key, tag_buffer);
             permutation(tag_buffer);
-            xor_block(tag_buffer, expanded_key, 0, BLOCK_SIZE);
+            Bytes.XorTo(BLOCK_SIZE, expanded_key, tag_buffer);
             if (forEncryption)
             {
                 Array.Copy(tag_buffer, 0, tag, 0, CRYPTO_ABYTES);
@@ -483,11 +477,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int GetUpdateOutputSize(int len)
         {
+            // TODO
             return len;
         }
 
         public int GetOutputSize(int len)
         {
+            // TODO
             return len + CRYPTO_ABYTES;
         }
 
@@ -514,13 +510,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int ProcessByte(byte input, Span<byte> output)
         {
-            message.Write(new byte[]{ input });
+            message.WriteByte(input);
             return 0;
         }
 
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            message.Write(input.ToArray());
+            message.Write(input);
             return 0;
         }
 
@@ -558,4 +554,3 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
     }
 }
-

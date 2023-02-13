@@ -13,11 +13,23 @@ namespace Org.BouncyCastle.Crypto.Engines
     * <p>
     * Xoodyak with reference to C Reference Impl from: https://github.com/XKCP/XKCP
     * </p>
-*/
+    */
     public sealed class XoodyakEngine
+        // TODO IAeadCipher only
         : IAeadBlockCipher
     {
-        private bool forEncryption;
+        private enum MODE
+        {
+            ModeHash,
+            ModeKeyed
+        }
+
+        private const int Rkin = 44;
+
+        private static readonly uint[] RC = { 0x00000058U, 0x00000038U, 0x000003C0U, 0x000000D0U, 0x00000120U,
+            0x00000014U, 0x00000060U, 0x0000002CU, 0x00000380U, 0x000000F0U, 0x000001A0U, 0x00000012U };
+
+        private bool forEncryption = true; // Safe output sizes before initialization
         private byte[] state;
         private int phase;
         private MODE mode;
@@ -33,49 +45,36 @@ namespace Org.BouncyCastle.Crypto.Engines
         private const int NCOLUMS = 4;
         private const int MAXROUNDS = 12;
         private const int TAGLEN = 16;
-        const int Rkin = 44;
         private byte[] tag;
-        private readonly uint[] RC = {0x00000058, 0x00000038, 0x000003C0, 0x000000D0, 0x00000120, 0x00000014, 0x00000060,
-        0x0000002C, 0x00000380, 0x000000F0, 0x000001A0, 0x00000012};
         private bool aadFinished;
         private bool encrypted;
         private bool initialised = false;
-        public string AlgorithmName => "Xoodak AEAD";
-
-        public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
 
         private MemoryStream aadData = new MemoryStream();
         private MemoryStream message = new MemoryStream();
 
-        enum MODE
-        {
-            ModeHash,
-            ModeKeyed
-        }
+        public string AlgorithmName => "Xoodak AEAD";
 
-        public void Init(bool forEncryption, ICipherParameters param)
+        public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
+
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
-            if (!(param is ParametersWithIV))
-            {
+
+            if (!(parameters is ParametersWithIV ivParams))
                 throw new ArgumentException("Xoodyak init parameters must include an IV");
-            }
-            ParametersWithIV ivParams = (ParametersWithIV)param;
+
             iv = ivParams.GetIV();
             if (iv == null || iv.Length != 16)
-            {
                 throw new ArgumentException("Xoodyak requires exactly 16 bytes of IV");
-            }
-            if (!(ivParams.Parameters is KeyParameter))
-            {
+
+            if (!(ivParams.Parameters is KeyParameter key))
                 throw new ArgumentException("Xoodyak init parameters must include a key");
-            }
-            KeyParameter key = (KeyParameter)ivParams.Parameters;
+
             K = key.GetKey();
             if (K.Length != 16)
-            {
                 throw new ArgumentException("Xoodyak key must be 128 bits long");
-            }
+
             state = new byte[48];
             tag = new byte[TAGLEN];
             initialised = true;
@@ -89,9 +88,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("AAD cannot be added after reading a full block(" + GetBlockSize() +
                     " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
             }
-            aadData.Write(new byte[] { input }, 0, 1);
-        }
 
+            aadData.WriteByte(input);
+        }
 
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
@@ -100,17 +99,15 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("AAD cannot be added after reading a full block(" + GetBlockSize() +
                     " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
             }
-            if ((inOff + len) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
             aadData.Write(input, inOff, len);
         }
 
-
-        public int ProcessByte(byte input, byte[] output, int outOff)
+        public int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
-            return ProcessBytes(new byte[] { input }, 0, 1, output, outOff);
+            return ProcessBytes(new byte[]{ input }, 0, 1, outBytes, outOff);
         }
 
         private void processAAD()
@@ -123,7 +120,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
+        public int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             if (!initialised)
                 throw new ArgumentException("Need to call Init before encryption/decryption");
@@ -131,17 +128,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (mode != MODE.ModeKeyed)
                 throw new ArgumentException("Xoodyak has not been initialised");
 
-            Check.DataLength(input, inOff, len, "input buffer too short");
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
 
-            message.Write(input, inOff, len);
+            message.Write(inBytes, inOff, len);
             int blockLen = (int)message.Length - (forEncryption ? 0 : TAGLEN);
             if (blockLen >= GetBlockSize())
             {
                 byte[] blocks = message.GetBuffer();
                 len = blockLen / GetBlockSize() * GetBlockSize();
-                Check.OutputLength(output, outOff, len, "output buffer is too short");
+                Check.OutputLength(outBytes, outOff, len, "output buffer is too short");
                 processAAD();
-                encrypt(blocks, 0, len, output, outOff);
+                encrypt(blocks, 0, len, outBytes, outOff);
                 int messageLen = (int)message.Length;
                 message.SetLength(0);
                 message.Write(blocks, len, messageLen - len);
@@ -186,15 +183,15 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 
-        public int DoFinal(byte[] output, int outOff)
+        public int DoFinal(byte[] outBytes, int outOff)
         {
             if (!initialised)
                 throw new ArgumentException("Need to call Init before encryption/decryption");
 
             byte[] blocks = message.GetBuffer();
             int len = (int)message.Length;
-            if ((forEncryption && len + TAGLEN + outOff > output.Length) ||
-                (!forEncryption && len - TAGLEN + outOff > output.Length))
+            if ((forEncryption && len + TAGLEN + outOff > outBytes.Length) ||
+                (!forEncryption && len - TAGLEN + outOff > outBytes.Length))
             {
                 throw new OutputLengthException("output buffer too short");
             }
@@ -202,18 +199,18 @@ namespace Org.BouncyCastle.Crypto.Engines
             int rv = 0;
             if (forEncryption)
             {
-                encrypt(blocks, 0, len, output, outOff);
+                encrypt(blocks, 0, len, outBytes, outOff);
                 outOff += len;
                 tag = new byte[TAGLEN];
                 Up(tag, TAGLEN, 0x40);
-                Array.Copy(tag, 0, output, outOff, TAGLEN);
+                Array.Copy(tag, 0, outBytes, outOff, TAGLEN);
                 rv = len + TAGLEN;
             }
             else
             {
                 int inOff = len - TAGLEN;
                 rv = inOff;
-                encrypt(blocks, 0, inOff, output, outOff);
+                encrypt(blocks, 0, inOff, outBytes, outOff);
                 tag = new byte[TAGLEN];
                 Up(tag, TAGLEN, 0x40);
 
@@ -231,11 +228,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int GetUpdateOutputSize(int len)
         {
+            // TODO
             return len;
         }
 
         public int GetOutputSize(int len)
         {
+            // TODO
             return len + TAGLEN;
         }
 
@@ -427,8 +426,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             rv.AsSpan(0, len).CopyTo(output);
             return rv.Length;
         }
-
 #endif
-
     }
 }

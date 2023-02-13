@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private const int ISAP_STATE_SZ = 40;
 
         private string algorithmName;
-        private bool forEncryption;
+        private bool forEncryption = true; // Safe output sizes before initialization
         private bool initialised;
         private byte[] mac;
         private MemoryStream aadData = new MemoryStream();
@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             protected ulong ISAP_IV1_64;
             protected ulong ISAP_IV2_64;
             protected ulong ISAP_IV3_64;
-            protected ulong x0, x1, x2, x3, x4, t0, t1, t2, t3, t4;
+            protected ulong x0, x1, x2, x3, x4;
 
             public override void init(byte[] k, byte[] npub, int ISAP_rH, int ISAP_rH_SZ)
             {
@@ -248,11 +248,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 #endif
             protected void ROUND(ulong C)
             {
-                t0 = x0 ^ x1 ^ x2 ^ x3 ^ C ^ (x1 & (x0 ^ x2 ^ x4 ^ C));
-                t1 = x0 ^ x2 ^ x3 ^ x4 ^ C ^ ((x1 ^ x2 ^ C) & (x1 ^ x3));
-                t2 = x1 ^ x2 ^ x4 ^ C ^ (x3 & x4);
-                t3 = x0 ^ x1 ^ x2 ^ C ^ ((~x0) & (x3 ^ x4));
-                t4 = x1 ^ x3 ^ x4 ^ ((x0 ^ x4) & x1);
+                ulong t0 = x0 ^ x1 ^ x2 ^ x3 ^ C ^ (x1 & (x0 ^ x2 ^ x4 ^ C));
+                ulong t1 = x0 ^ x2 ^ x3 ^ x4 ^ C ^ ((x1 ^ x2 ^ C) & (x1 ^ x3));
+                ulong t2 = x1 ^ x2 ^ x4 ^ C ^ (x3 & x4);
+                ulong t3 = x0 ^ x1 ^ x2 ^ C ^ ((~x0) & (x3 ^ x4));
+                ulong t4 = x1 ^ x3 ^ x4 ^ ((x0 ^ x4) & x1);
                 x0 = t0 ^ Longs.RotateRight(t0, 19) ^ Longs.RotateRight(t0, 28);
                 x1 = t1 ^ Longs.RotateRight(t1, 39) ^ Longs.RotateRight(t1, 61);
                 x2 = ~(t2 ^ Longs.RotateRight(t2, 1) ^ Longs.RotateRight(t2, 6));

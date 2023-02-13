@@ -14,7 +14,8 @@ namespace Org.BouncyCastle.Crypto.Engines
      * Photon-Beetle with reference to C Reference Impl from: https://github.com/PHOTON-Beetle/Software
      * </p>
      */
-    public class PhotonBeetleEngine
+    public sealed class PhotonBeetleEngine
+        // TODO IAeadCipher only
         : IAeadBlockCipher
     {
         public enum PhotonBeetleParameters
@@ -24,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         private bool input_empty;
-        private bool forEncryption;
+        private bool forEncryption = true; // Safe output sizes before initialization
         private bool initialised;
         private byte[] K;
         private byte[] N;
@@ -94,6 +95,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public string AlgorithmName => "Photon-Beetle AEAD";
 
+        // TODO
         public IBlockCipher UnderlyingCipher => throw new NotImplementedException();
 
         public byte[] GetMac()
@@ -103,37 +105,33 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int GetOutputSize(int len)
         {
+            // TODO
             return len + TAG_INBYTES;
         }
 
         public int GetUpdateOutputSize(int len)
         {
+            // TODO
             return len;
         }
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
-            if (!(parameters is ParametersWithIV param))
-            {
+
+            if (!(parameters is ParametersWithIV ivParams))
                 throw new ArgumentException("Photon-Beetle AEAD init parameters must include an IV");
-            }
-            ParametersWithIV ivParams = param;
+
             N = ivParams.GetIV();
             if (N == null || N.Length != CRYPTO_NPUBBYTES)
-            {
                 throw new ArgumentException("Photon-Beetle AEAD requires exactly 16 bytes of IV");
-            }
-            if (!(ivParams.Parameters is KeyParameter))
-            {
+
+            if (!(ivParams.Parameters is KeyParameter key))
                 throw new ArgumentException("Photon-Beetle AEAD init parameters must include a key");
-            }
-            KeyParameter key = (KeyParameter)ivParams.Parameters;
+
             K = key.GetKey();
             if (K.Length != CRYPTO_KEYBYTES)
-            {
                 throw new ArgumentException("Photon-Beetle AEAD key must be 128 bits long");
-            }
 
             state = new byte[STATE_INBYTES];
             state_2d = new byte[D][];
@@ -148,7 +146,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void ProcessAadByte(byte input)
         {
-            aadData.Write(new byte[] { input }, 0, 1);
+            aadData.WriteByte(input);
         }
 
         public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
@@ -300,19 +298,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             if (forEncryption)
             {
-                XOR(plaintext, inOff, DBlen_inbytes);
+                Bytes.XorTo(DBlen_inbytes, plaintext, inOff, state, 0);
             }
             else
             {
-                XOR(ciphertext, inOff, DBlen_inbytes);
-            }
-        }
-
-        void XOR(byte[] in_right, int rOff, int iolen_inbytes)
-        {
-            for (int i = 0; i < iolen_inbytes; i++)
-            {
-                state[i] ^= in_right[rOff++];
+                Bytes.XorTo(DBlen_inbytes, ciphertext, inOff, state, 0);
             }
         }
 
@@ -344,11 +334,11 @@ namespace Org.BouncyCastle.Crypto.Engines
                 for (i = 0; i < Dlen_inblocks - 1; i++)
                 {
                     PHOTON_Permutation();
-                    XOR(A, i * RATE_INBYTES, RATE_INBYTES);
+                    Bytes.XorTo(RATE_INBYTES, A, i * RATE_INBYTES, state, 0);
                 }
                 PHOTON_Permutation();
                 LastDBlocklen = adlen - i * RATE_INBYTES;
-                XOR(A, i * RATE_INBYTES, LastDBlocklen);
+                Bytes.XorTo(LastDBlocklen, A, i * RATE_INBYTES, state, 0);
                 if (LastDBlocklen < RATE_INBYTES)
                 {
                     state[LastDBlocklen] ^= 0x01; // ozs

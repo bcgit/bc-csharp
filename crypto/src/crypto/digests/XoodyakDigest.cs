@@ -1,11 +1,25 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public class XoodyakDigest : IDigest
+    public sealed class XoodyakDigest
+        : IDigest
     {
+        private enum MODE
+        {
+            ModeHash,
+            ModeKeyed
+        }
+
+        private const int Rkin = 44;
+
+        private static readonly uint[] RC = { 0x00000058U, 0x00000038U, 0x000003C0U, 0x000000D0U, 0x00000120U,
+            0x00000014U, 0x00000060U, 0x0000002CU, 0x00000380U, 0x000000F0U, 0x000001A0U, 0x00000012U };
+
         private byte[] state;
         private int phase;
         private MODE mode;
@@ -16,19 +30,11 @@ namespace Org.BouncyCastle.Crypto.Digests
         private const int PhaseUp = 2;
         private const int NLANES = 12;
         private const int NROWS = 3;
-        private const int NCOLUMS = 4;
+        private const int NCOLUMNS = 4;
         private const int MAXROUNDS = 12;
         private const int TAGLEN = 16;
         private const int Rhash = 16;
-        const int Rkin = 44;
-        private readonly uint[] RC = {0x00000058, 0x00000038, 0x000003C0, 0x000000D0, 0x00000120, 0x00000014, 0x00000060,
-        0x0000002C, 0x00000380, 0x000000F0, 0x000001A0, 0x00000012};
-        private MemoryStream buffer = new MemoryStream();
-        enum MODE
-        {
-            ModeHash,
-            ModeKeyed
-        }
+        private readonly MemoryStream buffer = new MemoryStream();
 
         public XoodyakDigest()
         {
@@ -37,6 +43,78 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         public string AlgorithmName => "Xoodyak Hash";
+
+        public int GetDigestSize() => 32;
+
+        public int GetByteLength() => Rabsorb;
+
+        public void Update(byte input)
+        {
+            buffer.WriteByte(input);
+        }
+
+        public void BlockUpdate(byte[] input, int inOff, int inLen)
+        {
+            Check.DataLength(input, inOff, inLen, "input buffer too short");
+
+            buffer.Write(input, inOff, inLen);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            buffer.Write(input);
+        }
+#endif
+
+        public int DoFinal(byte[] output, int outOff)
+        {
+            Check.OutputLength(output, outOff, 32, "output buffer is too short");
+
+            byte[] input = buffer.GetBuffer();
+            int inLen = (int)buffer.Length;
+            int inOff = 0;
+            uint Cd = 0x03;
+            int splitLen;
+            do
+            {
+                if (phase != PhaseUp)
+                {
+                    Up(null, 0, 0, 0);
+                }
+                splitLen = System.Math.Min(inLen, Rabsorb);
+                Down(input, inOff, splitLen, Cd);
+                Cd = 0;
+                inOff += splitLen;
+                inLen -= splitLen;
+            }
+            while (inLen != 0);
+            Up(output, outOff, TAGLEN, 0x40);
+            Down(null, 0, 0, 0);
+            Up(output, outOff + TAGLEN, TAGLEN, 0);
+            return 32;
+
+            // TODO Reset?
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            byte[] rv = new byte[32];
+            int rlt = DoFinal(rv, 0);
+            rv.AsSpan(0, 32).CopyTo(output);
+            return rlt;
+        }
+#endif
+
+        public void Reset()
+        {
+            Array.Clear(state, 0, state.Length);
+            phase = PhaseUp;
+            mode = MODE.ModeHash;
+            Rabsorb = Rhash;
+            buffer.SetLength(0);
+        }
 
         private void Up(byte[] Yi, int YiOff, int YiLen, uint Cu)
         {
@@ -48,21 +126,21 @@ namespace Org.BouncyCastle.Crypto.Digests
             Pack.LE_To_UInt32(state, 0, a, 0, a.Length);
             uint x, y;
             uint[] b = new uint[NLANES];
-            uint[] p = new uint[NCOLUMS];
-            uint[] e = new uint[NCOLUMS];
+            uint[] p = new uint[NCOLUMNS];
+            uint[] e = new uint[NCOLUMNS];
             for (int i = 0; i < MAXROUNDS; ++i)
             {
                 /* Theta: Column Parity Mixer */
-                for (x = 0; x < NCOLUMS; ++x)
+                for (x = 0; x < NCOLUMNS; ++x)
                 {
                     p[x] = a[index(x, 0)] ^ a[index(x, 1)] ^ a[index(x, 2)];
                 }
-                for (x = 0; x < NCOLUMS; ++x)
+                for (x = 0; x < NCOLUMNS; ++x)
                 {
                     y = p[(x + 3) & 3];
-                    e[x] = ROTL32(y, 5) ^ ROTL32(y, 14);
+                    e[x] = Integers.RotateLeft(y, 5) ^ Integers.RotateLeft(y, 14);
                 }
-                for (x = 0; x < NCOLUMS; ++x)
+                for (x = 0; x < NCOLUMNS; ++x)
                 {
                     for (y = 0; y < NROWS; ++y)
                     {
@@ -70,16 +148,16 @@ namespace Org.BouncyCastle.Crypto.Digests
                     }
                 }
                 /* Rho-west: plane shift */
-                for (x = 0; x < NCOLUMS; ++x)
+                for (x = 0; x < NCOLUMNS; ++x)
                 {
                     b[index(x, 0)] = a[index(x, 0)];
                     b[index(x, 1)] = a[index(x + 3, 1)];
-                    b[index(x, 2)] = ROTL32(a[index(x, 2)], 11);
+                    b[index(x, 2)] = Integers.RotateLeft(a[index(x, 2)], 11);
                 }
                 /* Iota: round ant */
                 b[0] ^= RC[i];
                 /* Chi: non linear layer */
-                for (x = 0; x < NCOLUMS; ++x)
+                for (x = 0; x < NCOLUMNS; ++x)
                 {
                     for (y = 0; y < NROWS; ++y)
                     {
@@ -87,11 +165,11 @@ namespace Org.BouncyCastle.Crypto.Digests
                     }
                 }
                 /* Rho-east: plane shift */
-                for (x = 0; x < NCOLUMS; ++x)
+                for (x = 0; x < NCOLUMNS; ++x)
                 {
                     b[index(x, 0)] = a[index(x, 0)];
-                    b[index(x, 1)] = ROTL32(a[index(x, 1)], 1);
-                    b[index(x, 2)] = ROTL32(a[index(x + 2, 2)], 8);
+                    b[index(x, 1)] = Integers.RotateLeft(a[index(x, 1)], 1);
+                    b[index(x, 2)] = Integers.RotateLeft(a[index(x + 2, 2)], 8);
                 }
                 Array.Copy(b, 0, a, 0, NLANES);
             }
@@ -116,92 +194,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private uint index(uint x, uint y)
         {
-            return (((y % NROWS) * NCOLUMS) + ((x) % NCOLUMS));
+            return (((y % NROWS) * NCOLUMNS) + ((x) % NCOLUMNS));
         }
-
-        private uint ROTL32(uint a, int offset)
-        {
-            return (a << (offset & 31)) ^ (a >> ((32 - (offset)) & 31));
-        }
-
-        public void BlockUpdate(byte[] input, int inOff, int inLen)
-        {
-            if (inOff + inLen > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            buffer.Write(input, inOff, inLen);
-        }
-
-        public int DoFinal(byte[] output, int outOff)
-        {
-            if (32 + outOff > output.Length)
-            {
-                throw new OutputLengthException("output buffer is too short");
-            }
-            byte[] input = buffer.GetBuffer();
-            int inLen = (int)buffer.Length;
-            int inOff = 0;
-            uint Cd = 0x03;
-            int splitLen;
-            do
-            {
-                if (phase != PhaseUp)
-                {
-                    Up(null, 0, 0, 0);
-                }
-                splitLen = System.Math.Min(inLen, Rabsorb);
-                Down(input, inOff, splitLen, Cd);
-                Cd = 0;
-                inOff += splitLen;
-                inLen -= splitLen;
-            }
-            while (inLen != 0);
-            Up(output, outOff, TAGLEN, 0x40);
-            Down(null, 0, 0, 0);
-            Up(output, outOff + TAGLEN, TAGLEN, 0);
-            return 32;
-        }
-
-        public int GetByteLength()
-        {
-            throw new NotImplementedException();
-        }
-
-        public int GetDigestSize()
-        {
-            return 32;
-        }
-
-        public void Reset()
-        {
-            for (int i = 0; i < state.Length; ++i)
-            {
-                state[i] = 0;
-            }
-            phase = PhaseUp;
-            mode = MODE.ModeHash;
-            Rabsorb = Rhash;
-            buffer.SetLength(0);
-        }
-
-        public void Update(byte input)
-        {
-            buffer.Write(new byte[] { input }, 0, 1);
-        }
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int DoFinal(Span<byte> output)
-        {
-            byte[] rv = new byte[32];
-            int rlt = DoFinal(rv, 0);
-            rv.AsSpan(0, 32).CopyTo(output);
-            return rlt;
-        }
-
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            buffer.Write(input.ToArray(), 0, input.Length);
-        }
-#endif
     }
 }

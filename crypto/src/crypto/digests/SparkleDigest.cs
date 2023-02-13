@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     /// Specification:
     /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/sparkle-spec-final.pdf .
     /// </remarks>
-    public class SparkleDigest
+    public sealed class SparkleDigest
         : IDigest
     {
         public enum SparkleParameters
@@ -21,9 +21,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             ESCH384
         }
 
+        private static readonly uint[] RCON = { 0xB7E15162U, 0xBF715880U, 0x38B4DA56U, 0x324E7738U, 0xBB1185EBU,
+            0x4F7C7B57U, 0xCFBFA1C8U, 0xC2B3293DU };
+
         private string algorithmName;
         private readonly uint[] state;
-        private MemoryStream message = new MemoryStream();
+        private readonly MemoryStream message = new MemoryStream();
         private readonly int DIGEST_BYTES;
         private readonly int SPARKLE_STEPS_SLIM;
         private readonly int SPARKLE_STEPS_BIG;
@@ -64,85 +67,35 @@ namespace Org.BouncyCastle.Crypto.Digests
             state = new uint[STATE_WORDS];
         }
 
-        private uint ELL(uint x)
+        public string AlgorithmName => algorithmName;
+
+        public int GetDigestSize() => DIGEST_BYTES;
+
+        public int GetByteLength() => RATE_BYTES;
+
+        public void Update(byte input)
         {
-            return Integers.RotateRight(x ^ (x << 16), 16);
+            message.WriteByte(input);
         }
 
-        private static readonly uint[] RCON = {0xB7E15162, 0xBF715880, 0x38B4DA56, 0x324E7738, 0xBB1185EB, 0x4F7C7B57,
-        0xCFBFA1C8, 0xC2B3293D};
-
-        void sparkle_opt(uint[] state, int brans, int steps)
+        public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            uint i, j, rc, tmpx, tmpy, x0, y0;
-            for (i = 0; i < steps; i++)
-            {
-                // Add round ant
-                state[1] ^= RCON[i & 7];
-                state[3] ^= i;
-                // ARXBOX layer
-                for (j = 0; j < 2 * brans; j += 2)
-                {
-                    rc = RCON[j >> 1];
-                    state[j] += Integers.RotateRight(state[j + 1], 31);
-                    state[j + 1] ^= Integers.RotateRight(state[j], 24);
-                    state[j] ^= rc;
-                    state[j] += Integers.RotateRight(state[j + 1], 17);
-                    state[j + 1] ^= Integers.RotateRight(state[j], 17);
-                    state[j] ^= rc;
-                    state[j] += state[j + 1];
-                    state[j + 1] ^= Integers.RotateRight(state[j], 31);
-                    state[j] ^= rc;
-                    state[j] += Integers.RotateRight(state[j + 1], 24);
-                    state[j + 1] ^= Integers.RotateRight(state[j], 16);
-                    state[j] ^= rc;
-                }
-                // Linear layer
-                tmpx = x0 = state[0];
-                tmpy = y0 = state[1];
-                for (j = 2; j < brans; j += 2)
-                {
-                    tmpx ^= state[j];
-                    tmpy ^= state[j + 1];
-                }
-                tmpx = ELL(tmpx);
-                tmpy = ELL(tmpy);
-                for (j = 2; j < brans; j += 2)
-                {
-                    state[j - 2] = state[j + brans] ^ state[j] ^ tmpy;
-                    state[j + brans] = state[j];
-                    state[j - 1] = state[j + brans + 1] ^ state[j + 1] ^ tmpx;
-                    state[j + brans + 1] = state[j + 1];
-                }
-                state[brans - 2] = state[brans] ^ x0 ^ tmpy;
-                state[brans] = x0;
-                state[brans - 1] = state[brans + 1] ^ y0 ^ tmpx;
-                state[brans + 1] = y0;
-            }
+            Check.DataLength(input, inOff, inLen, "input buffer too short");
+
+            message.Write(input, inOff, inLen);
         }
 
-        public int GetDigestSize()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            return DIGEST_BYTES;
+            message.Write(input);
         }
-
-
-        public void BlockUpdate(byte[] input, int inOff, int len)
-        {
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException(algorithmName + " input buffer too short");
-            }
-            message.Write(input, inOff, len);
-        }
-
+#endif
 
         public int DoFinal(byte[] output, int outOff)
         {
-            if (outOff + DIGEST_BYTES > output.Length)
-            {
-                throw new OutputLengthException(algorithmName + " input buffer too short");
-            }
+            Check.OutputLength(output, outOff, DIGEST_BYTES, "output buffer too short");
+
             byte[] input = message.GetBuffer();
             int inlen = (int)message.Length, i, inOff = 0;
             uint tmpx, tmpy;
@@ -220,40 +173,80 @@ namespace Org.BouncyCastle.Crypto.Digests
                 outOff += RATE_BYTES;
             }
             return DIGEST_BYTES;
-        }
 
-        public string AlgorithmName => algorithmName;
-
-        public void Update(byte input)
-        {
-            message.Write(new byte[] { input }, 0, 1);
-        }
-
-        public void Reset()
-        {
-            message.SetLength(0);
-            Arrays.Fill(state, (byte)0);
-        }
-
-        public int GetByteLength()
-        {
-            return RATE_BYTES;
+            // TODO Reset?
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            message.Write(input);
-        }
-
         public int DoFinal(Span<byte> output)
         {
-            byte[] rv=new byte[DIGEST_BYTES];
+            byte[] rv = new byte[DIGEST_BYTES];
             DoFinal(rv, 0);
+            // TODO Remove duplicate if added in other DoFinal
             Reset();
             rv.AsSpan(0, rv.Length).CopyTo(output);
             return DIGEST_BYTES;
         }
 #endif
+
+        public void Reset()
+        {
+            message.SetLength(0);
+            Arrays.Fill(state, 0U);
+        }
+
+        private void sparkle_opt(uint[] state, int brans, int steps)
+        {
+            uint i, j, rc, tmpx, tmpy, x0, y0;
+            for (i = 0; i < steps; i++)
+            {
+                // Add round ant
+                state[1] ^= RCON[i & 7];
+                state[3] ^= i;
+                // ARXBOX layer
+                for (j = 0; j < 2 * brans; j += 2)
+                {
+                    rc = RCON[j >> 1];
+                    state[j] += Integers.RotateRight(state[j + 1], 31);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 24);
+                    state[j] ^= rc;
+                    state[j] += Integers.RotateRight(state[j + 1], 17);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 17);
+                    state[j] ^= rc;
+                    state[j] += state[j + 1];
+                    state[j + 1] ^= Integers.RotateRight(state[j], 31);
+                    state[j] ^= rc;
+                    state[j] += Integers.RotateRight(state[j + 1], 24);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 16);
+                    state[j] ^= rc;
+                }
+                // Linear layer
+                tmpx = x0 = state[0];
+                tmpy = y0 = state[1];
+                for (j = 2; j < brans; j += 2)
+                {
+                    tmpx ^= state[j];
+                    tmpy ^= state[j + 1];
+                }
+                tmpx = ELL(tmpx);
+                tmpy = ELL(tmpy);
+                for (j = 2; j < brans; j += 2)
+                {
+                    state[j - 2] = state[j + brans] ^ state[j] ^ tmpy;
+                    state[j + brans] = state[j];
+                    state[j - 1] = state[j + brans + 1] ^ state[j + 1] ^ tmpx;
+                    state[j + brans + 1] = state[j + 1];
+                }
+                state[brans - 2] = state[brans] ^ x0 ^ tmpy;
+                state[brans] = x0;
+                state[brans - 1] = state[brans + 1] ^ y0 ^ tmpx;
+                state[brans + 1] = y0;
+            }
+        }
+
+        private static uint ELL(uint x)
+        {
+            return Integers.RotateRight(x ^ (x << 16), 16);
+        }
     }
 }

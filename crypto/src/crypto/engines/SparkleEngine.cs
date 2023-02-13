@@ -14,7 +14,8 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// Specification:
     /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/sparkle-spec-final.pdf .
     /// </remarks>
-    public class SparkleEngine
+    public sealed class SparkleEngine
+        // TODO IAeadCipher only
         : IAeadBlockCipher
     {
         public enum SparkleParameters
@@ -24,8 +25,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             SCHWAEMM192_192,
             SCHWAEMM256_256
         }
+
         private string algorithmName;
-        private bool forEncryption;
+        private bool forEncryption = true; // Safe output sizes before initialization
         private readonly uint[] state;
         private readonly uint[] k;
         private readonly uint[] npub;
@@ -60,48 +62,48 @@ namespace Org.BouncyCastle.Crypto.Engines
             int SPARKLE_CAPACITY;
             switch (sparkleParameters)
             {
-                case SparkleParameters.SCHWAEMM128_128:
-                    SCHWAEMM_KEY_LEN = 128;
-                    SCHWAEMM_NONCE_LEN = 128;
-                    SCHWAEMM_TAG_LEN = 128;
-                    SPARKLE_STATE = 256;
-                    SPARKLE_CAPACITY = 128;
-                    SPARKLE_STEPS_SLIM = 7;
-                    SPARKLE_STEPS_BIG = 10;
-                    algorithmName = "SCHWAEMM128-128";
-                    break;
-                case SparkleParameters.SCHWAEMM256_128:
-                    SCHWAEMM_KEY_LEN = 128;
-                    SCHWAEMM_NONCE_LEN = 256;
-                    SCHWAEMM_TAG_LEN = 128;
-                    SPARKLE_STATE = 384;
-                    SPARKLE_CAPACITY = 128;
-                    SPARKLE_STEPS_SLIM = 7;
-                    SPARKLE_STEPS_BIG = 11;
-                    algorithmName = "SCHWAEMM256-128";
-                    break;
-                case SparkleParameters.SCHWAEMM192_192:
-                    SCHWAEMM_KEY_LEN = 192;
-                    SCHWAEMM_NONCE_LEN = 192;
-                    SCHWAEMM_TAG_LEN = 192;
-                    SPARKLE_STATE = 384;
-                    SPARKLE_CAPACITY = 192;
-                    SPARKLE_STEPS_SLIM = 7;
-                    SPARKLE_STEPS_BIG = 11;
-                    algorithmName = "SCHWAEMM192-192";
-                    break;
-                case SparkleParameters.SCHWAEMM256_256:
-                    SCHWAEMM_KEY_LEN = 256;
-                    SCHWAEMM_NONCE_LEN = 256;
-                    SCHWAEMM_TAG_LEN = 256;
-                    SPARKLE_STATE = 512;
-                    SPARKLE_CAPACITY = 256;
-                    SPARKLE_STEPS_SLIM = 8;
-                    SPARKLE_STEPS_BIG = 12;
-                    algorithmName = "SCHWAEMM256-256";
-                    break;
-                default:
-                    throw new ArgumentException("Invalid definition of SCHWAEMM instance");
+            case SparkleParameters.SCHWAEMM128_128:
+                SCHWAEMM_KEY_LEN = 128;
+                SCHWAEMM_NONCE_LEN = 128;
+                SCHWAEMM_TAG_LEN = 128;
+                SPARKLE_STATE = 256;
+                SPARKLE_CAPACITY = 128;
+                SPARKLE_STEPS_SLIM = 7;
+                SPARKLE_STEPS_BIG = 10;
+                algorithmName = "SCHWAEMM128-128";
+                break;
+            case SparkleParameters.SCHWAEMM256_128:
+                SCHWAEMM_KEY_LEN = 128;
+                SCHWAEMM_NONCE_LEN = 256;
+                SCHWAEMM_TAG_LEN = 128;
+                SPARKLE_STATE = 384;
+                SPARKLE_CAPACITY = 128;
+                SPARKLE_STEPS_SLIM = 7;
+                SPARKLE_STEPS_BIG = 11;
+                algorithmName = "SCHWAEMM256-128";
+                break;
+            case SparkleParameters.SCHWAEMM192_192:
+                SCHWAEMM_KEY_LEN = 192;
+                SCHWAEMM_NONCE_LEN = 192;
+                SCHWAEMM_TAG_LEN = 192;
+                SPARKLE_STATE = 384;
+                SPARKLE_CAPACITY = 192;
+                SPARKLE_STEPS_SLIM = 7;
+                SPARKLE_STEPS_BIG = 11;
+                algorithmName = "SCHWAEMM192-192";
+                break;
+            case SparkleParameters.SCHWAEMM256_256:
+                SCHWAEMM_KEY_LEN = 256;
+                SCHWAEMM_NONCE_LEN = 256;
+                SCHWAEMM_TAG_LEN = 256;
+                SPARKLE_STATE = 512;
+                SPARKLE_CAPACITY = 256;
+                SPARKLE_STEPS_SLIM = 8;
+                SPARKLE_STEPS_BIG = 12;
+                algorithmName = "SCHWAEMM256-256";
+                break;
+            default:
+                throw new ArgumentException("Invalid definition of SCHWAEMM instance");
             }
             KEY_WORDS = SCHWAEMM_KEY_LEN >> 5;
             KEY_BYTES = SCHWAEMM_KEY_LEN >> 3;
@@ -124,14 +126,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             initialised = false;
         }
 
-        private uint ROT(uint x, int n)
-        {
-            return (((x) >> n) | ((x) << (32 - n)));
-        }
-
         private uint ELL(uint x)
         {
-            return ROT(((x) ^ ((x) << 16)), 16);
+            return Integers.RotateRight(x ^ (x << 16), 16);
         }
 
         private static readonly uint[] RCON = {0xB7E15162, 0xBF715880, 0x38B4DA56, 0x324E7738, 0xBB1185EB, 0x4F7C7B57,
@@ -149,17 +146,17 @@ namespace Org.BouncyCastle.Crypto.Engines
                 for (j = 0; j < 2 * brans; j += 2)
                 {
                     rc = RCON[j >> 1];
-                    state[j] += ROT(state[j + 1], 31);
-                    state[j + 1] ^= ROT(state[j], 24);
+                    state[j] += Integers.RotateRight(state[j + 1], 31);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 24);
                     state[j] ^= rc;
-                    state[j] += ROT(state[j + 1], 17);
-                    state[j + 1] ^= ROT(state[j], 17);
+                    state[j] += Integers.RotateRight(state[j + 1], 17);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 17);
                     state[j] ^= rc;
                     state[j] += state[j + 1];
-                    state[j + 1] ^= ROT(state[j], 31);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 31);
                     state[j] ^= rc;
-                    state[j] += ROT(state[j + 1], 24);
-                    state[j + 1] ^= ROT(state[j], 16);
+                    state[j] += Integers.RotateRight(state[j + 1], 24);
+                    state[j + 1] ^= Integers.RotateRight(state[j], 16);
                     state[j] ^= rc;
                 }
                 // Linear layer
@@ -308,31 +305,22 @@ namespace Org.BouncyCastle.Crypto.Engines
         public void Init(bool forEncryption, ICipherParameters param)
         {
             this.forEncryption = forEncryption;
-            if (!(param is ParametersWithIV))
-            {
+            if (!(param is ParametersWithIV ivParams))
                 throw new ArgumentException(algorithmName + " init parameters must include an IV");
-            }
 
-            ParametersWithIV ivParams = (ParametersWithIV)param;
             byte[] iv = ivParams.GetIV();
-
             if (iv == null || iv.Length != SCHWAEMM_NONCE_LEN >> 3)
-            {
                 throw new ArgumentException(algorithmName + " requires exactly 16 bytes of IV");
-            }
+
             Pack.LE_To_UInt32(iv, 0, npub, 0, RATE_WORDS);
 
-            if (!(ivParams.Parameters is KeyParameter))
-            {
+            if (!(ivParams.Parameters is KeyParameter key))
                 throw new ArgumentException(algorithmName + " init parameters must include a key");
-            }
 
-            KeyParameter key = (KeyParameter)ivParams.Parameters;
             byte[] key8 = key.GetKey();
             if (key8.Length != SCHWAEMM_KEY_LEN >> 3)
-            {
                 throw new ArgumentException(algorithmName + " key must be 128 bits long");
-            }
+
             Pack.LE_To_UInt32(key8, 0, k, 0, KEY_WORDS);
             initialised = true;
             reset(false);
@@ -345,9 +333,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException(algorithmName + ": AAD cannot be added after reading a full block(" +
                     GetBlockSize() + " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
             }
-            aadData.Write(new byte[] { input }, 0, 1);
-        }
 
+            aadData.WriteByte(input);
+        }
 
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
@@ -356,61 +344,53 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException(algorithmName + ": AAD cannot be added after reading a full block(" +
                     GetBlockSize() + " bytes) of input for " + (forEncryption ? "encryption" : "decryption"));
             }
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException(algorithmName + " input buffer too short");
-            }
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
             aadData.Write(input, inOff, len);
         }
 
-
         public int ProcessByte(byte input, byte[] output, int outOff)
         {
-            return ProcessBytes(new byte[] { input }, 0, 1, output, outOff);
+            return ProcessBytes(new byte[]{ input }, 0, 1, output, outOff);
         }
-
 
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             if (!initialised)
-            {
                 throw new ArgumentException(algorithmName + " Need call init function before encryption/decryption");
-            }
-            if (inOff + len > input.Length)
-            {
-                throw new DataLengthException(algorithmName + " input buffer too short");
-            }
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
             message.Write(input, inOff, len);
+
+            int msgLen = Convert.ToInt32(message.Length);
+
             len = 0;
-            if ((forEncryption && (int)message.Length > GetBlockSize()) ||
-                (!forEncryption && (int)message.Length - TAG_BYTES > GetBlockSize()))
+            if ((forEncryption && msgLen > GetBlockSize()) ||
+                (!forEncryption && msgLen - TAG_BYTES > GetBlockSize()))
             {
-                len = ((int)message.Length - (forEncryption ? 0 : TAG_BYTES));
-                if (len / RATE_BYTES * RATE_BYTES + outOff > output.Length)
-                {
-                    throw new OutputLengthException(algorithmName + " output buffer is too short");
-                }
+                len = msgLen - (forEncryption ? 0 : TAG_BYTES);
+                Check.OutputLength(output, outOff, len / RATE_BYTES * RATE_BYTES, "output buffer is too short");
                 byte[] m = message.GetBuffer();
                 ProcessAssocData(state);
                 if (len != 0)
                 {
                     len = ProcessPlainText(state, output, m, 0, len);
                 }
-                int mlen = (int)message.Length;
                 message.SetLength(0);
-                message.Write(m, len, mlen - len);
+                // TODO Sketchy writing back to the buffer after setting length to 0
+                message.Write(m, len, msgLen - len);
             }
             return len;
         }
 
-
         public int DoFinal(byte[] output, int outOff)
         {
             if (!initialised)
-            {
-                throw new ArgumentException(algorithmName + " needs call init function before dofinal");
-            }
-            int inlen = (int)message.Length - (forEncryption ? 0 : TAG_BYTES);
+                throw new ArgumentException(algorithmName + " needs to call Init before DoFinal");
+
+            int inlen = Convert.ToInt32(message.Length) - (forEncryption ? 0 : TAG_BYTES);
             if ((forEncryption && inlen + TAG_BYTES + outOff > output.Length) ||
                 (!forEncryption && inlen + outOff > output.Length))
             {
@@ -495,25 +475,23 @@ namespace Org.BouncyCastle.Crypto.Engines
             return tag;
         }
 
-
         public int GetUpdateOutputSize(int len)
         {
+            // TODO
             return len;
         }
 
-
         public int GetOutputSize(int len)
         {
+            // TODO
             return len + TAG_BYTES;
         }
-
 
         public void Reset()
         {
             if (!initialised)
-            {
-                throw new ArgumentException(algorithmName + " needs call init function before reset");
-            }
+                throw new ArgumentException(algorithmName + " needs to call Init before Reset");
+
             reset(true);
         }
 

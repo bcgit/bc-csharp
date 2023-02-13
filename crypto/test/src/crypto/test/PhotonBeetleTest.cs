@@ -310,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             aeadBlockCipher.DoFinal(mac2, 0);
             if (!Arrays.AreEqual(mac1, mac2))
             {
-                Assert.Fail("mac should match for the same AAD with different ways of inputing");
+                Assert.Fail("mac should match for the same AAD with different ways of inputting");
             }
 
             byte[] c2 = new byte[aeadBlockCipher.GetOutputSize(10)];

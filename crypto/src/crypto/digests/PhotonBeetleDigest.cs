@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Digests
      * Photon-Beetle with reference to C Reference Impl from: https://github.com/PHOTON-Beetle/Software
      * </p>
      */
-    public class PhotonBeetleDigest
+    public sealed class PhotonBeetleDigest
         : IDigest
     {
         private byte[] state;
@@ -64,7 +64,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-
         public String AlgorithmName => "Photon-Beetle Hash";
 
         public int GetDigestSize() => TAG_INBYTES;
@@ -80,22 +79,24 @@ namespace Org.BouncyCastle.Crypto.Digests
             buffer.WriteByte(input);
         }
 
-        public void BlockUpdate(byte[] input, int inOff, int len)
+        public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            if ((inOff + len) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            buffer.Write(input, inOff, len);
+            Check.DataLength(input, inOff, inLen, "input buffer too short");
+
+            buffer.Write(input, inOff, inLen);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            buffer.Write(input);
+        }
+#endif
 
         public int DoFinal(byte[] output, int outOff)
         {
-            if (32 + outOff > output.Length)
-            {
-                throw new OutputLengthException("output buffer is too short");
-            }
+            Check.OutputLength(output, outOff, 32, "output buffer is too short");
+
             byte[] input = buffer.GetBuffer();
             int inlen = (int)buffer.Length;
             if (inlen == 0)
@@ -120,11 +121,11 @@ namespace Org.BouncyCastle.Crypto.Digests
                 for (i = 0; i < Dlen_inblocks - 1; i++)
                 {
                     PHOTON_Permutation();
-                    XOR(input, INITIAL_RATE_INBYTES + i * RATE_INBYTES, RATE_INBYTES);
+                    Bytes.XorTo(RATE_INBYTES, input, INITIAL_RATE_INBYTES + i * RATE_INBYTES, state, 0);
                 }
                 PHOTON_Permutation();
                 LastDBlocklen = inlen - i * RATE_INBYTES;
-                XOR(input, INITIAL_RATE_INBYTES + i * RATE_INBYTES, LastDBlocklen);
+                Bytes.XorTo(LastDBlocklen, input, INITIAL_RATE_INBYTES + i * RATE_INBYTES, state, 0);
                 if (LastDBlocklen < RATE_INBYTES)
                 {
                     state[LastDBlocklen] ^= 0x01; // ozs
@@ -138,14 +139,15 @@ namespace Org.BouncyCastle.Crypto.Digests
             return TAG_INBYTES;
         }
 
-        void XOR(byte[] in_right, int rOff, int iolen_inbytes)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
         {
-            for (int i = 0; i < iolen_inbytes; i++)
-            {
-                state[i] ^= in_right[i + rOff];
-            }
+            byte[] rv = new byte[32];
+            int rlt = DoFinal(rv, 0);
+            rv.AsSpan(0, 32).CopyTo(output);
+            return rlt;
         }
-
+#endif
 
         public void Reset()
         {
@@ -153,7 +155,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             Arrays.Fill(state, (byte)0);
         }
 
-        void PHOTON_Permutation()
+        private void PHOTON_Permutation()
         {
             int i, j, k, l;
             for (i = 0; i < DSquare; i++)
@@ -222,22 +224,5 @@ namespace Org.BouncyCastle.Crypto.Digests
                 state[i >> 1] = (byte)(((state_2d[i >> Dq][i & Dr] & 0xf)) | ((state_2d[i >> Dq][(i + 1) & Dr] & 0xf) << 4));
             }
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-
-        public int DoFinal(Span<byte> output)
-        {
-            byte[] rv = new byte[32];
-            int rlt = DoFinal(rv, 0);
-            rv.AsSpan(0, 32).CopyTo(output);
-            return rlt;
-        }
-
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            buffer.Write(input.ToArray(), 0, input.Length);
-        }
-
-#endif
     }
 }
