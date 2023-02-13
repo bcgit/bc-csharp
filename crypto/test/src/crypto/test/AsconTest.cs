@@ -129,17 +129,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                 asconEngine.ProcessBytes(m, 0, m.Length, null, 0);
                 Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before ProcessBytes");
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
             }
 
             try
             {
-                asconEngine.ProcessByte((byte)0, null, 0);
+                asconEngine.ProcessByte(0x00, null, 0);
                 Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before ProcessByte");
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
             }
@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 asconEngine.Reset();
                 Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before Reset");
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
             }
@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 asconEngine.DoFinal(null, m.Length);
                 Assert.Fail(asconEngine.AlgorithmName + " needs to be initialized before DoFinal");
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
             }
@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 asconEngine.GetOutputSize(0);
                 asconEngine.GetUpdateOutputSize(0);
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
                 Assert.Fail(asconEngine.AlgorithmName + " functions can be called before initialization");
@@ -220,38 +220,44 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("mac should be equal when calling DoFinal and GetMac");
             }
-            asconEngine.ProcessAadByte((byte)0);
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
+            asconEngine.ProcessAadByte(0x00);
             byte[] mac1 = new byte[asconEngine.GetOutputSize(0)];
             asconEngine.DoFinal(mac1, 0);
             if (Arrays.AreEqual(mac1, mac2))
             {
                 Assert.Fail("mac should not match");
             }
-            asconEngine.Reset();
-            asconEngine.ProcessBytes(new byte[16], 0, 16, new byte[16], 0);
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
+            asconEngine.ProcessByte(0, null, 0);
             try
             {
-                asconEngine.ProcessAadByte((byte)0);
-                Assert.Fail("ProcessAadByte(s) cannot be called after encryption/decryption");
+                asconEngine.ProcessAadByte(0x00);
+                Assert.Fail("ProcessAadByte cannot be called after encryption/decryption");
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
             }
             try
             {
-                asconEngine.ProcessAadBytes(new byte[] { 0 }, 0, 1);
-                Assert.Fail("ProcessAadByte(s) cannot be called once only");
+                asconEngine.ProcessAadBytes(new byte[1], 0, 1);
+                Assert.Fail("ProcessAadBytes cannot be called after encryption/decryption");
             }
-            catch (ArgumentException)
+            catch (InvalidOperationException)
             {
                 //expected
             }
 
-            asconEngine.Reset();
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
             try
             {
-                asconEngine.ProcessAadBytes(new byte[] { 0 }, 1, 1);
+                asconEngine.ProcessAadBytes(new byte[1], 1, 1);
                 Assert.Fail("input for ProcessAadBytes is too short");
             }
             catch (DataLengthException)
@@ -260,13 +266,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                asconEngine.ProcessBytes(new byte[] { 0 }, 1, 1, c1, 0);
+                asconEngine.ProcessBytes(new byte[1], 1, 1, c1, 0);
                 Assert.Fail("input for ProcessBytes is too short");
             }
             catch (DataLengthException)
             {
                 //expected
             }
+
             try
             {
                 int inputSize = rand.Next(32, 64);
@@ -290,40 +297,50 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             mac1 = new byte[asconEngine.GetOutputSize(0)];
             mac2 = new byte[asconEngine.GetOutputSize(0)];
-            asconEngine.Reset();
-            asconEngine.ProcessAadBytes(new byte[] { 0, 0 }, 0, 2);
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
+            asconEngine.ProcessAadBytes(new byte[2], 0, 2);
             asconEngine.DoFinal(mac1, 0);
-            asconEngine.Reset();
-            asconEngine.ProcessAadByte((byte)0);
-            asconEngine.ProcessAadByte((byte)0);
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
+            asconEngine.ProcessAadByte(0x00);
+            asconEngine.ProcessAadByte(0x00);
             asconEngine.DoFinal(mac2, 0);
+
             if (!Arrays.AreEqual(mac1, mac2))
             {
-                Assert.Fail("mac should match for the same AAD with different ways of inputing");
+                Assert.Fail("mac should match for the same AAD with different ways of inputting");
             }
 
-            byte[] c2 = new byte[asconEngine.GetOutputSize(10)];
-            byte[] c3 = new byte[asconEngine.GetOutputSize(10) + 2];
             byte[] aad2 = { 0, 1, 2, 3, 4 };
             byte[] aad3 = { 0, 0, 1, 2, 3, 4, 5 };
             byte[] m2 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             byte[] m3 = { 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
             byte[] m4 = new byte[m2.Length];
-            asconEngine.Reset();
+            byte[] c2 = new byte[asconEngine.GetOutputSize(m2.Length)];
+            byte[] c3 = new byte[asconEngine.GetOutputSize(m3.Length)];
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m2, 0, m2.Length, c2, 0);
             asconEngine.DoFinal(c2, offset);
-            asconEngine.Reset();
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
             asconEngine.ProcessAadBytes(aad3, 1, aad2.Length);
             offset = asconEngine.ProcessBytes(m3, 1, m2.Length, c3, 1);
             asconEngine.DoFinal(c3, offset + 1);
+
             byte[] c3_partial = new byte[c2.Length];
             Array.Copy(c3, 1, c3_partial, 0, c2.Length);
             if (!Arrays.AreEqual(c2, c3_partial))
             {
                 Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
             }
-            asconEngine.Reset();
+
             asconEngine.Init(false, param);
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
@@ -332,9 +349,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Assert.Fail("The encryption and decryption does not recover the plaintext");
             }
+
             c2[c2.Length - 1] ^= 1;
-            asconEngine.Reset();
-            asconEngine.Init(false, param);
+
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(c2, 0, c2.Length, m4, 0);
             try
@@ -351,6 +368,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] m7 = new byte[32 + rand.Next(32)];
             rand.NextBytes(m7);
 
+            // TODO Maybe use a different IV for this
             asconEngine.Init(true, param);
             byte[] c7 = new byte[asconEngine.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
@@ -358,12 +376,16 @@ namespace Org.BouncyCastle.Crypto.Tests
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, m7.Length, c7, 0);
             offset += asconEngine.DoFinal(c7, offset);
-            asconEngine.Reset();
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, m7.Length / 2, c8, 0);
             offset += asconEngine.ProcessBytes(m7, m7.Length / 2, m7.Length - m7.Length / 2, c8, offset);
             offset += asconEngine.DoFinal(c8, offset);
-            asconEngine.Reset();
+
+            // TODO Maybe use a different IV for this
+            asconEngine.Init(true, param);
             int split = rand.Next(1, m7.Length);
             asconEngine.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = asconEngine.ProcessBytes(m7, 0, split, c9, 0);
@@ -374,37 +396,27 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
             }
             // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> c4_1 = new byte[c2.Length];
-            Span<byte> c4_2 = new byte[c2.Length];
-            ReadOnlySpan<byte> m5 = new ReadOnlySpan<byte>(m2);
-            ReadOnlySpan<byte> aad4 = new ReadOnlySpan<byte>(aad2);
+            // TODO Maybe use a different IV for this
             asconEngine.Init(true, param);
-            asconEngine.ProcessAadBytes(aad4);
-            offset = asconEngine.ProcessBytes(m5, c4_1);
-            asconEngine.DoFinal(c4_2);
-            byte[] c5 = new byte[c2.Length];
-            c4_1[..offset].CopyTo(c5);
-            c4_2[..(c5.Length - offset)].CopyTo(c5.AsSpan(offset));
-            if (!Arrays.AreEqual(c2, c5))
+            Span<byte> c4 = new byte[asconEngine.GetOutputSize(m2.Length)];
+            asconEngine.ProcessAadBytes(aad2);
+            offset = asconEngine.ProcessBytes(m2, c4);
+            offset += asconEngine.DoFinal(c4[offset..]);
+            if (!c4[..offset].SequenceEqual(c2))
             {
-                Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
+                Assert.Fail("Encryption should match for the same AAD and message with/without Span-based API");
             }
-            asconEngine.Reset();
+
             asconEngine.Init(false, param);
-            Span<byte> m6_1 = new byte[m2.Length];
-            Span<byte> m6_2 = new byte[m2.Length];
-            ReadOnlySpan<byte> c6 = new ReadOnlySpan<byte>(c2);
-            asconEngine.ProcessAadBytes(aad4);
-            offset = asconEngine.ProcessBytes(c6, m6_1);
-            asconEngine.DoFinal(m6_2);
-            byte[] m6 = new byte[m2.Length];
-            m6_1[..offset].CopyTo(m6);
-            m6_2[..(m6.Length - offset)].CopyTo(m6.AsSpan(offset));
-            if (!Arrays.AreEqual(m2, m6))
+            Span<byte> m6 = new byte[m2.Length];
+            asconEngine.ProcessAadBytes(aad2);
+            offset = asconEngine.ProcessBytes(c2, m6);
+            offset += asconEngine.DoFinal(m6[offset..]);
+            if (!m6[..offset].SequenceEqual(m2))
             {
-                Assert.Fail("mac should match for the same AAD and message with different offset for both input and output");
+                Assert.Fail("Decryption should match for the same AAD and message with/without Span-based API");
             }
 #endif
         }
@@ -460,7 +472,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         {
                             map[data[0].Trim()] = "";
                         }
-
                     }
                 }
             }
@@ -468,10 +479,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void ImplTestExceptions(AsconDigest asconDigest, int digestSize)
         {
-            if (asconDigest.GetDigestSize() != digestSize)
-            {
-                Assert.Fail(asconDigest.AlgorithmName + ": digest size is not correct");
-            }
+            Assert.AreEqual(digestSize, asconDigest.GetDigestSize(),
+                asconDigest.AlgorithmName + ": digest size is not correct");
 
             try
             {
