@@ -458,12 +458,10 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "GetOutputSize of " + isapEngine.AlgorithmName + " is incorrect for decryption");
         }
 
-        private void ImplTestExceptions(IsapDigest isapDigest, int digestsize)
+        private void ImplTestExceptions(IsapDigest isapDigest, int digestSize)
         {
-            if (isapDigest.GetDigestSize() != digestsize)
-            {
-                Assert.Fail(isapDigest.AlgorithmName + ": digest size is not correct");
-            }
+            Assert.AreEqual(digestSize, isapDigest.GetDigestSize(),
+                isapDigest.AlgorithmName + ": digest size is not correct");
 
             try
             {

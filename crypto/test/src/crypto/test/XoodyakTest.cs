@@ -431,12 +431,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void ImplTestExceptions(XoodyakDigest xoodyakDigest, int digestsize)
+        private void ImplTestExceptions(XoodyakDigest xoodyakDigest, int digestSize)
         {
-            if (xoodyakDigest.GetDigestSize() != digestsize)
-            {
-                Assert.Fail(xoodyakDigest.AlgorithmName + ": digest size is not correct");
-            }
+            Assert.AreEqual(digestSize, xoodyakDigest.GetDigestSize(),
+                xoodyakDigest.AlgorithmName + ": digest size is not correct");
 
             try
             {

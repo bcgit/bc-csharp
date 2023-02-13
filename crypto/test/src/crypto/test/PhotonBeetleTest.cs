@@ -440,17 +440,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void ImplTestExceptions(IDigest digest, int digestsize)
+        private void ImplTestExceptions(PhotonBeetleDigest photonBeetleDigest, int digestSize)
         {
-            if (digest.GetDigestSize() != digestsize)
-            {
-                Assert.Fail(digest.AlgorithmName + ": digest size is not correct");
-            }
+            Assert.AreEqual(digestSize, photonBeetleDigest.GetDigestSize(),
+                photonBeetleDigest.AlgorithmName + ": digest size is not correct");
 
             try
             {
-                digest.BlockUpdate(new byte[1], 1, 1);
-                Assert.Fail(digest.AlgorithmName + ": input for BlockUpdate is too short");
+                photonBeetleDigest.BlockUpdate(new byte[1], 1, 1);
+                Assert.Fail(photonBeetleDigest.AlgorithmName + ": input for BlockUpdate is too short");
             }
             catch (DataLengthException)
             {
@@ -458,8 +456,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             try
             {
-                digest.DoFinal(new byte[digest.GetDigestSize() - 1], 2);
-                Assert.Fail(digest.AlgorithmName + ": output for DoFinal is too short");
+                photonBeetleDigest.DoFinal(new byte[digestSize - 1], 2);
+                Assert.Fail(photonBeetleDigest.AlgorithmName + ": output for DoFinal is too short");
             }
             catch (OutputLengthException)
             {
