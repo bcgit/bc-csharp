@@ -24,13 +24,13 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             ImplTestVectorsHash(AsconDigest.AsconParameters.AsconHashA, "asconhasha");
             ImplTestVectorsHash(AsconDigest.AsconParameters.AsconHash, "asconhash");
-            ImplTestVectorsHash(AsconDigest.AsconParameters.AsconXof, "asconxof");
-            ImplTestVectorsHash(AsconDigest.AsconParameters.AsconXofA, "asconxofa");
+            ImplTestVectorsXof(AsconXof.AsconParameters.AsconXof, "asconxof");
+            ImplTestVectorsXof(AsconXof.AsconParameters.AsconXofA, "asconxofa");
 
             ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHashA), 32);
             ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconHash), 32);
-            ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXof), 32);
-            ImplTestExceptions(new AsconDigest(AsconDigest.AsconParameters.AsconXofA), 32);
+            ImplTestExceptions(new AsconXof(AsconXof.AsconParameters.AsconXof), 32);
+            ImplTestExceptions(new AsconXof(AsconXof.AsconParameters.AsconXofA), 32);
 
             AsconEngine asconEngine = new AsconEngine(AsconEngine.AsconParameters.ascon80pq);
             ImplTestExceptions(asconEngine);
@@ -439,11 +439,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "GetOutputSize of " + asconEngine.AlgorithmName + " is incorrect for decryption");
         }
 
-        private void ImplTestVectorsHash(AsconDigest.AsconParameters AsconParameters, string filename)
+        private void ImplTestVectorsHash(AsconDigest.AsconParameters asconParameters, string filename)
         {
-            AsconDigest Ascon = new AsconDigest(AsconParameters);
+            AsconDigest ascon = new AsconDigest(asconParameters);
             var buf = new Dictionary<string, string>();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.ascon."+filename+"_LWC_HASH_KAT_256.txt")))
+            using (var src = new StreamReader(
+                SimpleTest.GetTestDataAsStream("crypto.ascon." + filename + "_LWC_HASH_KAT_256.txt")))
             {
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 string line;
@@ -456,11 +457,50 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
 
-                        Ascon.BlockUpdate(ptByte, 0, ptByte.Length);
-                        byte[] hash = new byte[Ascon.GetDigestSize()];
-                        Ascon.DoFinal(hash, 0);
+                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
+                        byte[] hash = new byte[ascon.GetDigestSize()];
+                        ascon.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(expected, hash));
-                        Ascon.Reset();
+                        ascon.Reset();
+                    }
+                    else
+                    {
+                        if (data.Length >= 3)
+                        {
+                            map[data[0].Trim()] = data[2].Trim();
+                        }
+                        else
+                        {
+                            map[data[0].Trim()] = "";
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ImplTestVectorsXof(AsconXof.AsconParameters asconParameters, string filename)
+        {
+            AsconXof ascon = new AsconXof(asconParameters);
+            var buf = new Dictionary<string, string>();
+            using (var src = new StreamReader(
+                SimpleTest.GetTestDataAsStream("crypto.ascon." + filename + "_LWC_HASH_KAT_256.txt")))
+            {
+                Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
+                while ((line = src.ReadLine()) != null)
+                {
+                    var data = line.Split(' ');
+                    if (data.Length == 1)
+                    {
+                        byte[] ptByte = Hex.Decode(map["Msg"]);
+                        byte[] expected = Hex.Decode(map["MD"]);
+                        map.Clear();
+
+                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
+                        byte[] hash = new byte[ascon.GetDigestSize()];
+                        ascon.DoFinal(hash, 0);
+                        Assert.True(Arrays.AreEqual(expected, hash));
+                        ascon.Reset();
                     }
                     else
                     {
@@ -495,6 +535,31 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 asconDigest.DoFinal(new byte[digestSize - 1], 2);
                 Assert.Fail(asconDigest.AlgorithmName + ": output for DoFinal is too short");
+            }
+            catch (OutputLengthException)
+            {
+                //expected
+            }
+        }
+
+        private void ImplTestExceptions(AsconXof asconXof, int digestSize)
+        {
+            Assert.AreEqual(digestSize, asconXof.GetDigestSize(),
+                asconXof.AlgorithmName + ": digest size is not correct");
+
+            try
+            {
+                asconXof.BlockUpdate(new byte[1], 1, 1);
+                Assert.Fail(asconXof.AlgorithmName + ": input for BlockUpdate is too short");
+            }
+            catch (DataLengthException)
+            {
+                //expected
+            }
+            try
+            {
+                asconXof.DoFinal(new byte[digestSize - 1], 2);
+                Assert.Fail(asconXof.AlgorithmName + ": output for DoFinal is too short");
             }
             catch (OutputLengthException)
             {
