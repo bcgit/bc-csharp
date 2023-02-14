@@ -56,6 +56,11 @@ namespace Org.BouncyCastle.Utilities
             return InvariantCompareInfo.IsPrefix(source, prefix, CompareOptions.Ordinal);
         }
 
+        internal static bool StartsWithIgnoreCase(string source, string prefix)
+        {
+            return InvariantCompareInfo.IsPrefix(source, prefix, CompareOptions.OrdinalIgnoreCase);
+        }
+
         internal static bool EndsWith(string source, string suffix)
         {
             return InvariantCompareInfo.IsSuffix(source, suffix, CompareOptions.Ordinal);

@@ -575,7 +575,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				if (algorithm.Equals("RSA"))
 				{
-					IBufferedCipher c = CmsEnvelopedHelper.Instance.CreateAsymmetricCipher("RSA/ECB/PKCS1Padding");
+					IBufferedCipher c = CipherUtilities.GetCipher(Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption);
 
 					c.Init(false, key);
 

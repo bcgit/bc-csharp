@@ -44,10 +44,10 @@ namespace Org.BouncyCastle.Cms
 			byte[] keyBytes = contentEncryptionKey.GetKey();
 
 			string rfc3211WrapperName = Helper.GetRfc3211WrapperName(keyEncryptionKeyOID);
-			IWrapper keyWrapper = Helper.CreateWrapper(rfc3211WrapperName);
+			IWrapper keyWrapper = WrapperUtilities.GetWrapper(rfc3211WrapperName);
 
 			// Note: In Java build, the IV is automatically generated in JCE layer
-			int ivLength = Platform.StartsWith(rfc3211WrapperName, "DESEDE") ? 8 : 16;
+			int ivLength = Platform.StartsWithIgnoreCase(rfc3211WrapperName, "DES") ? 8 : 16;
 			byte[] iv = new byte[ivLength];
 			random.NextBytes(iv);
 

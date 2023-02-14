@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -74,14 +75,21 @@ namespace Org.BouncyCastle.Cms
 //		};
 
 
-		// TODO Create named constants for all of these
+		public static readonly string DesCbc			= OiwObjectIdentifiers.DesCbc.Id;
 		public static readonly string DesEde3Cbc		= PkcsObjectIdentifiers.DesEde3Cbc.Id;
 		public static readonly string RC2Cbc			= PkcsObjectIdentifiers.RC2Cbc.Id;
+		// TODO[api] Change these to static readonly (and ideally find actual OIDs)
 		public const string IdeaCbc						= "1.3.6.1.4.1.188.7.1.1.2";
 		public const string Cast5Cbc					= "1.2.840.113533.7.66.10";
 		public static readonly string Aes128Cbc			= NistObjectIdentifiers.IdAes128Cbc.Id;
 		public static readonly string Aes192Cbc			= NistObjectIdentifiers.IdAes192Cbc.Id;
 		public static readonly string Aes256Cbc			= NistObjectIdentifiers.IdAes256Cbc.Id;
+		public static readonly string Aes128Ccm			= NistObjectIdentifiers.IdAes128Ccm.Id;
+		public static readonly string Aes192Ccm			= NistObjectIdentifiers.IdAes192Ccm.Id;
+		public static readonly string Aes256Ccm			= NistObjectIdentifiers.IdAes256Ccm.Id;
+		public static readonly string Aes128Gcm			= NistObjectIdentifiers.IdAes128Gcm.Id;
+		public static readonly string Aes192Gcm			= NistObjectIdentifiers.IdAes192Gcm.Id;
+		public static readonly string Aes256Gcm			= NistObjectIdentifiers.IdAes256Gcm.Id;
 		public static readonly string Camellia128Cbc	= NttObjectIdentifiers.IdCamellia128Cbc.Id;
 		public static readonly string Camellia192Cbc	= NttObjectIdentifiers.IdCamellia192Cbc.Id;
 		public static readonly string Camellia256Cbc	= NttObjectIdentifiers.IdCamellia256Cbc.Id;

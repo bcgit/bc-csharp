@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Cms
 					keyEncryptionOID, keyEncryptionKeyBytes);
 
 				// Wrap the content encryption key with the agreement key
-				IWrapper keyWrapper = Helper.CreateWrapper(keyEncryptionOID.Id);
+				IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyEncryptionOID.Id);
 				keyWrapper.Init(true, new ParametersWithRandom(keyEncryptionKey, random));
 				byte[] encryptedKeyBytes = keyWrapper.Wrap(keyBytes, 0, keyBytes.Length);
 
