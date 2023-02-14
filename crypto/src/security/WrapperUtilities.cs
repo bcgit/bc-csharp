@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Nsri;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
@@ -18,8 +19,20 @@ namespace Org.BouncyCastle.Security
     /// </remarks>
     public static class WrapperUtilities
     {
-        private enum WrapAlgorithm { AESWRAP, CAMELLIAWRAP, DESEDEWRAP, RC2WRAP, SEEDWRAP,
-            DESEDERFC3211WRAP, AESRFC3211WRAP, CAMELLIARFC3211WRAP };
+        private enum WrapAlgorithm
+        {
+            AESRFC3211WRAP,
+            AESWRAP,
+            ARIARFC3211WRAP,
+            ARIAWRAP,
+            CAMELLIARFC3211WRAP,
+            CAMELLIAWRAP,
+            DESRFC3211WRAP,
+            DESEDERFC3211WRAP,
+            DESEDEWRAP,
+            RC2WRAP,
+            SEEDWRAP,
+        };
 
         private static readonly IDictionary<string, string> Algorithms =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -29,19 +42,27 @@ namespace Org.BouncyCastle.Security
             // Signal to obfuscation tools not to change enum constants
             Enums.GetArbitraryValue<WrapAlgorithm>().ToString();
 
+            Algorithms["AESKW"] = "AESWRAP";
             Algorithms[NistObjectIdentifiers.IdAes128Wrap.Id] = "AESWRAP";
             Algorithms[NistObjectIdentifiers.IdAes192Wrap.Id] = "AESWRAP";
             Algorithms[NistObjectIdentifiers.IdAes256Wrap.Id] = "AESWRAP";
+
+            Algorithms["ARIAKW"] = "ARIAWRAP";
+            Algorithms[NsriObjectIdentifiers.id_aria128_kw.Id] = "ARIAWRAP";
+            Algorithms[NsriObjectIdentifiers.id_aria192_kw.Id] = "ARIAWRAP";
+            Algorithms[NsriObjectIdentifiers.id_aria256_kw.Id] = "ARIAWRAP";
 
             Algorithms[NttObjectIdentifiers.IdCamellia128Wrap.Id] = "CAMELLIAWRAP";
             Algorithms[NttObjectIdentifiers.IdCamellia192Wrap.Id] = "CAMELLIAWRAP";
             Algorithms[NttObjectIdentifiers.IdCamellia256Wrap.Id] = "CAMELLIAWRAP";
 
-            Algorithms[PkcsObjectIdentifiers.IdAlgCms3DesWrap.Id] = "DESEDEWRAP";
+            Algorithms["DESEDERFC3217WRAP"] = "DESEDEWRAP";
             Algorithms["TDEAWRAP"] = "DESEDEWRAP";
+            Algorithms[PkcsObjectIdentifiers.IdAlgCms3DesWrap.Id] = "DESEDEWRAP";
 
             Algorithms[PkcsObjectIdentifiers.IdAlgCmsRC2Wrap.Id] = "RC2WRAP";
 
+            Algorithms["SEEDKW"] = "SEEDWRAP";
             Algorithms[KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap.Id] = "SEEDWRAP";
         }
 
@@ -60,14 +81,28 @@ namespace Org.BouncyCastle.Security
 
                 switch (wrapAlgorithm)
                 {
-                case WrapAlgorithm.AESWRAP:				return new AesWrapEngine();
-                case WrapAlgorithm.CAMELLIAWRAP:		return new CamelliaWrapEngine();
-                case WrapAlgorithm.DESEDEWRAP:			return new DesEdeWrapEngine();
-                case WrapAlgorithm.RC2WRAP:				return new RC2WrapEngine();
-                case WrapAlgorithm.SEEDWRAP:			return new SeedWrapEngine();
-                case WrapAlgorithm.DESEDERFC3211WRAP:	return new Rfc3211WrapEngine(new DesEdeEngine());
-                case WrapAlgorithm.AESRFC3211WRAP:		return new Rfc3211WrapEngine(AesUtilities.CreateEngine());
-                case WrapAlgorithm.CAMELLIARFC3211WRAP:	return new Rfc3211WrapEngine(new CamelliaEngine());
+                case WrapAlgorithm.AESRFC3211WRAP:
+                    return new Rfc3211WrapEngine(AesUtilities.CreateEngine());
+                case WrapAlgorithm.AESWRAP:
+                    return new AesWrapEngine();
+                case WrapAlgorithm.ARIARFC3211WRAP:
+                    return new Rfc3211WrapEngine(new AriaEngine());
+                case WrapAlgorithm.ARIAWRAP:
+                    return new AriaWrapEngine();
+                case WrapAlgorithm.CAMELLIARFC3211WRAP:
+                    return new Rfc3211WrapEngine(new CamelliaEngine());
+                case WrapAlgorithm.CAMELLIAWRAP:
+                    return new CamelliaWrapEngine();
+                case WrapAlgorithm.DESRFC3211WRAP:
+                    return new Rfc3211WrapEngine(new DesEngine());
+                case WrapAlgorithm.DESEDERFC3211WRAP:
+                    return new Rfc3211WrapEngine(new DesEdeEngine());
+                case WrapAlgorithm.DESEDEWRAP:
+                    return new DesEdeWrapEngine();
+                case WrapAlgorithm.RC2WRAP:
+                    return new RC2WrapEngine();
+                case WrapAlgorithm.SEEDWRAP:
+                    return new SeedWrapEngine();
                 }
             }
             catch (ArgumentException)
