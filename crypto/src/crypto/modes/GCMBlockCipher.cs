@@ -1084,14 +1084,14 @@ namespace Org.BouncyCastle.Crypto.Modes
                 InitCipher();
             }
 
-            Span<byte> ctrBlock = stackalloc byte[BlockSize];
+            Span<byte> ctrBlocks = stackalloc byte[BlockSize * 2];
+            GetNextCtrBlocks2(ctrBlocks);
 
-            GetNextCtrBlock(ctrBlock);
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
                 var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
-                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks);
                 var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
@@ -1105,10 +1105,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 for (int i = 0; i < BlockSize; i += 4)
                 {
-                    byte c0 = (byte)(ctrBlock[i + 0] ^ input[i + 0]);
-                    byte c1 = (byte)(ctrBlock[i + 1] ^ input[i + 1]);
-                    byte c2 = (byte)(ctrBlock[i + 2] ^ input[i + 2]);
-                    byte c3 = (byte)(ctrBlock[i + 3] ^ input[i + 3]);
+                    byte c0 = (byte)(ctrBlocks[i + 0] ^ input[i + 0]);
+                    byte c1 = (byte)(ctrBlocks[i + 1] ^ input[i + 1]);
+                    byte c2 = (byte)(ctrBlocks[i + 2] ^ input[i + 2]);
+                    byte c3 = (byte)(ctrBlocks[i + 3] ^ input[i + 3]);
 
                     S[i + 0] ^= c0;
                     S[i + 1] ^= c1;
@@ -1125,13 +1125,13 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             input = input[BlockSize..];
             output = output[BlockSize..];
+            ctrBlocks = ctrBlocks[BlockSize..];
 
-            GetNextCtrBlock(ctrBlock);
 #if NETCOREAPP3_0_OR_GREATER
             if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
                 var t0 = MemoryMarshal.Read<Vector128<byte>>(input);
-                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlock);
+                var t1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks);
                 var t2 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
 
                 t1 = Sse2.Xor(t1, t0);
@@ -1145,10 +1145,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 for (int i = 0; i < BlockSize; i += 4)
                 {
-                    byte c0 = (byte)(ctrBlock[i + 0] ^ input[i + 0]);
-                    byte c1 = (byte)(ctrBlock[i + 1] ^ input[i + 1]);
-                    byte c2 = (byte)(ctrBlock[i + 2] ^ input[i + 2]);
-                    byte c3 = (byte)(ctrBlock[i + 3] ^ input[i + 3]);
+                    byte c0 = (byte)(ctrBlocks[i + 0] ^ input[i + 0]);
+                    byte c1 = (byte)(ctrBlocks[i + 1] ^ input[i + 1]);
+                    byte c2 = (byte)(ctrBlocks[i + 2] ^ input[i + 2]);
+                    byte c3 = (byte)(ctrBlocks[i + 3] ^ input[i + 3]);
 
                     S[i + 0] ^= c0;
                     S[i + 1] ^= c1;
@@ -1177,6 +1177,21 @@ namespace Org.BouncyCastle.Crypto.Modes
             Pack.UInt32_To_BE(++counter32, counter, 12);
 
             cipher.ProcessBlock(counter, block);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void GetNextCtrBlocks2(Span<byte> blocks)
+        {
+            if (blocksRemaining < 2)
+                throw new InvalidOperationException("Attempt to process too many blocks");
+
+            blocksRemaining -= 2;
+
+            Pack.UInt32_To_BE(++counter32, counter, 12);
+            cipher.ProcessBlock(counter, blocks);
+
+            Pack.UInt32_To_BE(++counter32, counter, 12);
+            cipher.ProcessBlock(counter, blocks[BlockSize..]);
         }
 
         private void ProcessPartial(Span<byte> partialBlock, Span<byte> output)
