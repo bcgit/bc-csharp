@@ -109,21 +109,9 @@ namespace Org.BouncyCastle.Cms
 			Asn1EncodableVector recipientEncryptedKeys = new Asn1EncodableVector();
 			foreach (X509Certificate recipientCert in recipientCerts)
 			{
-				TbsCertificateStructure tbsCert;
-				try
-				{
-					tbsCert = TbsCertificateStructure.GetInstance(
-						Asn1Object.FromByteArray(recipientCert.GetTbsCertificate()));
-				}
-				catch (Exception)
-				{
-					throw new ArgumentException("can't extract TBS structure from certificate");
-				}
-
 				// TODO Should there be a SubjectKeyIdentifier-based alternative?
-				IssuerAndSerialNumber issuerSerial = new IssuerAndSerialNumber(
-					tbsCert.Issuer, tbsCert.SerialNumber.Value);
-				KeyAgreeRecipientIdentifier karid = new KeyAgreeRecipientIdentifier(issuerSerial);
+                KeyAgreeRecipientIdentifier karid = new KeyAgreeRecipientIdentifier(
+					CmsUtilities.GetIssuerAndSerialNumber(recipientCert));
 
 				ICipherParameters recipientPublicParams = recipientCert.GetPublicKey();
 				if (keyAgreementOID.Id.Equals(CmsEnvelopedGenerator.ECMqvSha1Kdf))

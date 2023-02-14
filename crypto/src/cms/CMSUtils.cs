@@ -178,7 +178,7 @@ namespace Org.BouncyCastle.Cms
 
 		internal static TbsCertificateStructure GetTbsCertificateStructure(X509Certificate cert)
 		{
-			return TbsCertificateStructure.GetInstance(Asn1Object.FromByteArray(cert.GetTbsCertificate()));
+			return cert.CertificateStructure.TbsCertificate;
 		}
 
 		internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509Certificate cert)

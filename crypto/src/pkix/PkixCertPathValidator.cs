@@ -425,6 +425,7 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void CheckCertificate(X509Certificate cert)
         {
+            // TODO What check is this method trying to achieve?
             try
             {
                 TbsCertificateStructure.GetInstance(cert.CertificateStructure.TbsCertificate);
