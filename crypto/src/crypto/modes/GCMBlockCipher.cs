@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else if (this.H == null)
             {
-                throw new ArgumentException("Key must be specified in initial init");
+                throw new ArgumentException("Key must be specified in initial Init");
             }
 
             this.J0 = new byte[BlockSize];
