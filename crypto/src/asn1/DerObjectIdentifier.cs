@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -205,19 +206,26 @@ namespace Org.BouncyCastle.Asn1
 
         internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
         {
-            int hashCode = Arrays.GetHashCode(contents);
-            int first = hashCode & 1023;
+            int index = Arrays.GetHashCode(contents);
 
-            lock (Cache)
+            index ^= index >> 20;
+            index ^= index >> 10;
+            index &= 1023;
+
+            var originalEntry = Cache[index];
+            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.GetContents()))
+                return originalEntry;
+
+            var newEntry = new DerObjectIdentifier(contents, clone);
+
+            var exchangedEntry = Interlocked.CompareExchange(ref Cache[index], newEntry, originalEntry);
+            if (exchangedEntry != originalEntry)
             {
-                DerObjectIdentifier entry = Cache[first];
-                if (entry != null && Arrays.AreEqual(contents, entry.GetContents()))
-                {
-                    return entry;
-                }
-
-                return Cache[first] = new DerObjectIdentifier(contents, clone);
+                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.GetContents()))
+                    return exchangedEntry;
             }
+
+            return newEntry;
         }
 
         private static bool IsValidIdentifier(string identifier)
