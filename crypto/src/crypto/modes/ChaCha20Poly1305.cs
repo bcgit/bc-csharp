@@ -143,43 +143,47 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int GetOutputSize(int len)
         {
-            int total = System.Math.Max(0, len) + mBufPos;
+            int total = System.Math.Max(0, len);
 
             switch (mState)
             {
             case State.DecInit:
             case State.DecAad:
-            case State.DecData:
                 return System.Math.Max(0, total - MacSize);
-            case State.EncInit:
-            case State.EncAad:
+            case State.DecData:
+            case State.DecFinal:
+                return System.Math.Max(0, total + mBufPos - MacSize);
             case State.EncData:
-                return total + MacSize;
+            case State.EncFinal:
+                return total + mBufPos + MacSize;
             default:
-                throw new InvalidOperationException();
+                return total + MacSize;
             }
         }
 
         public virtual int GetUpdateOutputSize(int len)
         {
-            int total = System.Math.Max(0, len) + mBufPos;
+            int total = System.Math.Max(0, len);
 
             switch (mState)
             {
             case State.DecInit:
             case State.DecAad:
-            case State.DecData:
                 total = System.Math.Max(0, total - MacSize);
                 break;
-            case State.EncInit:
-            case State.EncAad:
+            case State.DecData:
+            case State.DecFinal:
+                total = System.Math.Max(0, total + mBufPos - MacSize);
+                break;
             case State.EncData:
+            case State.EncFinal:
+                total += mBufPos;
                 break;
             default:
-                throw new InvalidOperationException();
+                break;
             }
 
-            return total - (total % BufSize);
+            return total - total % BufSize;
         }
 
         public virtual void ProcessAadByte(byte input)
