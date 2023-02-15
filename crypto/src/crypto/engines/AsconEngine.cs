@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
@@ -24,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             ascon80pq,
             ascon128a,
-            ascon128
+            ascon128,
         }
 
         private enum State
@@ -39,8 +38,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             DecData        = 7,
             DecFinal       = 8,
         }
-
-        private readonly MemoryStream message = new MemoryStream();
 
         private readonly AsconParameters asconParameters;
         private readonly int CRYPTO_KEYBYTES;
@@ -61,7 +58,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         private ulong x4;
         private string algorithmName;
         private State m_state = State.Uninitialized;
+        private byte[] initialAssociatedText;
 
+        private readonly int m_bufferSizeDecrypt;
         private readonly byte[] m_buf;
         private int m_bufPos = 0;
 
@@ -96,7 +95,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             nr = (ASCON_AEAD_RATE == 8) ? 6 : 8;
 
-            m_buf = new byte[ASCON_AEAD_RATE];
+            m_bufferSizeDecrypt = ASCON_AEAD_RATE + CRYPTO_ABYTES;
+            m_buf = new byte[m_bufferSizeDecrypt];
         }
 
         public int GetKeyBytesSize()
@@ -113,15 +113,34 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (!(parameters is ParametersWithIV withIV))
-                throw new ArgumentException("ASCON Init parameters must include an IV");
+            KeyParameter key;
+            byte[] npub;
 
-            byte[] npub = withIV.GetIV();
+            if (parameters is AeadParameters aeadParameters)
+            {
+                key = aeadParameters.Key;
+                npub = aeadParameters.GetNonce();
+                initialAssociatedText = aeadParameters.GetAssociatedText();
+
+                int macSizeBits = aeadParameters.MacSize;
+                if (macSizeBits != CRYPTO_ABYTES * 8)
+                    throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
+            }
+            else if (parameters is ParametersWithIV withIV)
+            {
+                key = withIV.Parameters as KeyParameter;
+                npub = withIV.GetIV();
+                initialAssociatedText = null;
+            }
+            else
+            {
+                throw new ArgumentException("invalid parameters passed to Ascon");
+            }
+
+            if (key == null)
+                throw new ArgumentException("Ascon Init parameters must include a key");
             if (npub == null || npub.Length != CRYPTO_ABYTES)
                 throw new ArgumentException(asconParameters + " requires exactly " + CRYPTO_ABYTES + " bytes of IV");
-
-            if (!(withIV.Parameters is KeyParameter key))
-                throw new ArgumentException("ASCON Init parameters must include a key");
 
             byte[] k = key.GetKey();
             if (k.Length != CRYPTO_KEYBYTES)
@@ -147,7 +166,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             m_state = forEncryption ? State.EncInit : State.DecInit;
 
-            Reset(false);
+            Reset(true);
         }
 
         public void ProcessAadByte(byte input)
@@ -204,7 +223,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 len -= ASCON_AEAD_RATE;
             }
 
-            Array.Copy(inBytes, inOff, m_buf, m_bufPos, len);
+            Array.Copy(inBytes, inOff, m_buf, 0, len);
             m_bufPos = len;
 #endif
         }
@@ -273,9 +292,84 @@ namespace Org.BouncyCastle.Crypto.Engines
 #else
             bool forEncryption = CheckData();
 
-            message.Write(inBytes, inOff, len);
+            int resultLength = 0;
 
-            return ProcessBytes(forEncryption, outBytes, outOff);
+            if (forEncryption)
+            {
+                if (m_bufPos > 0)
+                {
+                    int available = ASCON_AEAD_RATE - m_bufPos;
+                    if (len < available)
+                    {
+                        Array.Copy(inBytes, inOff, m_buf, m_bufPos, len);
+                        m_bufPos += len;
+                        return 0;
+                    }
+
+                    Array.Copy(inBytes, inOff, m_buf, m_bufPos, available);
+                    inOff += available;
+                    len -= available;
+
+                    ProcessBufferEncrypt(m_buf, 0, outBytes, outOff);
+                    resultLength = ASCON_AEAD_RATE;
+                    //m_bufPos = 0;
+                }
+
+                while (len >= ASCON_AEAD_RATE)
+                {
+                    ProcessBufferEncrypt(inBytes, inOff, outBytes, outOff + resultLength);
+                    inOff += ASCON_AEAD_RATE;
+                    len -= ASCON_AEAD_RATE;
+                    resultLength += ASCON_AEAD_RATE;
+                }
+            }
+            else
+            {
+                int available = m_bufferSizeDecrypt - m_bufPos;
+                if (len < available)
+                {
+                    Array.Copy(inBytes, inOff, m_buf, m_bufPos, len);
+                    m_bufPos += len;
+                    return 0;
+                }
+
+                if (m_bufPos >= ASCON_AEAD_RATE)
+                {
+                    ProcessBufferDecrypt(m_buf, 0, outBytes, outOff);
+                    m_bufPos -= ASCON_AEAD_RATE;
+                    Array.Copy(m_buf, ASCON_AEAD_RATE, m_buf, 0, m_bufPos);
+                    resultLength = ASCON_AEAD_RATE;
+
+                    available += ASCON_AEAD_RATE;
+                    if (len < available)
+                    {
+                        Array.Copy(inBytes, inOff, m_buf, m_bufPos, len);
+                        m_bufPos += len;
+                        return resultLength;
+                    }
+                }
+
+                available = ASCON_AEAD_RATE - m_bufPos;
+                Array.Copy(inBytes, inOff, m_buf, m_bufPos, available);
+                inOff += available;
+                len -= available;
+                ProcessBufferDecrypt(m_buf, 0, outBytes, outOff + resultLength);
+                resultLength += ASCON_AEAD_RATE;
+                //m_bufPos = 0;
+
+                while (len >= m_bufferSizeDecrypt)
+                {
+                    ProcessBufferDecrypt(inBytes, inOff, outBytes, outOff + resultLength);
+                    inOff += ASCON_AEAD_RATE;
+                    len -= ASCON_AEAD_RATE;
+                    resultLength += ASCON_AEAD_RATE;
+                }
+            }
+
+            Array.Copy(inBytes, inOff, m_buf, 0, len);
+            m_bufPos = len;
+
+            return resultLength;
 #endif
         }
 
@@ -284,9 +378,80 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             bool forEncryption = CheckData();
 
-            message.Write(input);
+            int resultLength = 0;
 
-            return ProcessBytes(forEncryption, output);
+            if (forEncryption)
+            {
+                if (m_bufPos > 0)
+                {
+                    int available = ASCON_AEAD_RATE - m_bufPos;
+                    if (input.Length < available)
+                    {
+                        input.CopyTo(m_buf.AsSpan(m_bufPos));
+                        m_bufPos += input.Length;
+                        return 0;
+                    }
+
+                    input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
+                    input = input[available..];
+
+                    ProcessBufferEncrypt(m_buf, output);
+                    resultLength = ASCON_AEAD_RATE;
+                    //m_bufPos = 0;
+                }
+
+                while (input.Length >= ASCON_AEAD_RATE)
+                {
+                    ProcessBufferEncrypt(input, output[resultLength..]);
+                    input = input[ASCON_AEAD_RATE..];
+                    resultLength += ASCON_AEAD_RATE;
+                }
+            }
+            else
+            {
+                int available = m_bufferSizeDecrypt - m_bufPos;
+                if (input.Length < available)
+                {
+                    input.CopyTo(m_buf.AsSpan(m_bufPos));
+                    m_bufPos += input.Length;
+                    return 0;
+                }
+
+                if (m_bufPos >= ASCON_AEAD_RATE)
+                {
+                    ProcessBufferDecrypt(m_buf, output);
+                    m_bufPos -= ASCON_AEAD_RATE;
+                    m_buf.AsSpan(0, m_bufPos).CopyFrom(m_buf.AsSpan(ASCON_AEAD_RATE));
+                    resultLength = ASCON_AEAD_RATE;
+
+                    available += ASCON_AEAD_RATE;
+                    if (input.Length < available)
+                    {
+                        input.CopyTo(m_buf.AsSpan(m_bufPos));
+                        m_bufPos += input.Length;
+                        return resultLength;
+                    }
+                }
+
+                available = ASCON_AEAD_RATE - m_bufPos;
+                input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
+                input = input[available..];
+                ProcessBufferDecrypt(m_buf, output[resultLength..]);
+                resultLength += ASCON_AEAD_RATE;
+                //m_bufPos = 0;
+
+                while (input.Length >= m_bufferSizeDecrypt)
+                {
+                    ProcessBufferDecrypt(input, output[resultLength..]);
+                    input = input[ASCON_AEAD_RATE..];
+                    resultLength += ASCON_AEAD_RATE;
+                }
+            }
+
+            input.CopyTo(m_buf);
+            m_bufPos = input.Length;
+
+            return resultLength;
         }
 #endif
 
@@ -297,36 +462,41 @@ namespace Org.BouncyCastle.Crypto.Engines
 #else
             bool forEncryption = CheckData();
 
-            byte[] input = message.GetBuffer();
-            int len = Convert.ToInt32(message.Length);
-
+            int resultLength;
             if (forEncryption)
             {
-                Check.OutputLength(outBytes, outOff, len + CRYPTO_ABYTES, "output buffer too short");
-                ascon_final(true, outBytes, outOff, input, 0, len);
-                mac = new byte[16];
+                resultLength = m_bufPos + CRYPTO_ABYTES;
+                Check.OutputLength(outBytes, outOff, resultLength, "output buffer too short");
+
+                ProcessFinalEncrypt(m_buf, 0, m_bufPos, outBytes, outOff);
+
+                mac = new byte[CRYPTO_ABYTES];
                 Pack.UInt64_To_BE(x3, mac, 0);
                 Pack.UInt64_To_BE(x4, mac, 8);
-                Array.Copy(mac, 0, outBytes, len + outOff, 16);
+                Array.Copy(mac, 0, outBytes, outOff + m_bufPos, CRYPTO_ABYTES);
+
                 Reset(false);
-                return len + CRYPTO_ABYTES;
             }
             else
             {
-                // TODO Check for underflow i.e. total input < CRYPTO_ABYTES
-                Check.OutputLength(outBytes, outOff, len - CRYPTO_ABYTES, "output buffer too short");
-                len -= CRYPTO_ABYTES;
-                ascon_final(false, outBytes, outOff, input, 0, len);
-                x3 ^= Pack.BE_To_UInt64(input, len);
-                x4 ^= Pack.BE_To_UInt64(input, len + 8);
-                ulong result = x3 | x4;
+                if (m_bufPos < CRYPTO_ABYTES)
+                    throw new InvalidCipherTextException("data too short");
 
-                if (result != 0UL)
+                m_bufPos -= CRYPTO_ABYTES;
+
+                resultLength = m_bufPos;
+                Check.OutputLength(outBytes, outOff, resultLength, "output buffer too short");
+
+                ProcessFinalDecrypt(m_buf, 0, m_bufPos, outBytes, outOff);
+
+                x3 ^= Pack.BE_To_UInt64(m_buf, m_bufPos);
+                x4 ^= Pack.BE_To_UInt64(m_buf, m_bufPos + 8);
+                if ((x3 | x4) != 0UL)
                     throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
 
                 Reset(true);
-                return len;
             }
+            return resultLength;
 #endif
         }
 
@@ -335,41 +505,41 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             bool forEncryption = CheckData();
 
-            byte[] input = message.GetBuffer();
-            int len = Convert.ToInt32(message.Length);
-
+            int resultLength;
             if (forEncryption)
             {
-                Check.OutputLength(output, len + CRYPTO_ABYTES, "output buffer too short");
-                ascon_final(true, output, input.AsSpan(0, len));
+                resultLength = m_bufPos + CRYPTO_ABYTES;
+                Check.OutputLength(output, resultLength, "output buffer too short");
+
+                ProcessFinalEncrypt(m_buf.AsSpan(0, m_bufPos), output);
+
                 mac = new byte[CRYPTO_ABYTES];
-                Pack.UInt64_To_BE(x3, mac, 0);
-                Pack.UInt64_To_BE(x4, mac, 8);
+                Pack.UInt64_To_BE(x3, mac.AsSpan());
+                Pack.UInt64_To_BE(x4, mac.AsSpan(8));
+                mac.CopyTo(output[m_bufPos..]);
 
-                FinishData(State.EncFinal);
-
-                mac.AsSpan(0, CRYPTO_ABYTES).CopyTo(output[len..]);
                 Reset(false);
-                return len + CRYPTO_ABYTES;
             }
             else
             {
-                // TODO Check for underflow i.e. total input < CRYPTO_ABYTES
-                Check.OutputLength(output, len - CRYPTO_ABYTES, "output buffer too short");
-                len -= CRYPTO_ABYTES;
-                ascon_final(false, output, input.AsSpan(0, len));
-                x3 ^= Pack.BE_To_UInt64(input, len);
-                x4 ^= Pack.BE_To_UInt64(input, len + 8);
-                ulong result = x3 | x4;
+                if (m_bufPos < CRYPTO_ABYTES)
+                    throw new InvalidCipherTextException("data too short");
 
-                FinishData(State.DecFinal);
+                m_bufPos -= CRYPTO_ABYTES;
 
-                if (result != 0UL)
+                resultLength = m_bufPos;
+                Check.OutputLength(output, resultLength, "output buffer too short");
+
+                ProcessFinalDecrypt(m_buf.AsSpan(0, m_bufPos), output);
+
+                x3 ^= Pack.BE_To_UInt64(m_buf.AsSpan(m_bufPos));
+                x4 ^= Pack.BE_To_UInt64(m_buf.AsSpan(m_bufPos + 8));
+                if ((x3 | x4) != 0UL)
                     throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
 
                 Reset(true);
-                return len;
             }
+            return resultLength;
         }
 #endif
 
@@ -380,15 +550,21 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int GetUpdateOutputSize(int len)
         {
-            int total = Convert.ToInt32(message.Length + System.Math.Max(0, len));
+            int total = System.Math.Max(0, len);
 
             switch (m_state)
             {
             case State.DecInit:
             case State.DecAad:
+                total = System.Math.Max(0, total - CRYPTO_ABYTES);
+                break;
             case State.DecData:
             case State.DecFinal:
-                total = System.Math.Max(0, total - CRYPTO_ABYTES);
+                total = System.Math.Max(0, total + m_bufPos - CRYPTO_ABYTES);
+                break;
+            case State.EncData:
+            case State.EncFinal:
+                total += m_bufPos;
                 break;
             default:
                 break;
@@ -399,15 +575,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int GetOutputSize(int len)
         {
-            int total = Convert.ToInt32(message.Length + System.Math.Max(0, len));
+            int total = System.Math.Max(0, len);
 
             switch (m_state)
             {
             case State.DecInit:
             case State.DecAad:
+                return System.Math.Max(0, total - CRYPTO_ABYTES);
             case State.DecData:
             case State.DecFinal:
-                return System.Math.Max(0, total - CRYPTO_ABYTES);
+                return System.Math.Max(0, total + m_bufPos - CRYPTO_ABYTES);
+            case State.EncData:
+            case State.EncFinal:
+                return total + m_bufPos + CRYPTO_ABYTES;
             default:
                 return total + CRYPTO_ABYTES;
             }
@@ -495,6 +675,28 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void FinishData(State nextState)
         {
+            switch (asconParameters)
+            {
+            case AsconParameters.ascon128:
+                x1 ^= K1;
+                x2 ^= K2;
+                break;
+            case AsconParameters.ascon128a:
+                x2 ^= K1;
+                x3 ^= K2;
+                break;
+            case AsconParameters.ascon80pq:
+                x1 ^= (K0 << 32 | K1 >> 32);
+                x2 ^= (K1 << 32 | K2 >> 32);
+                x3 ^=  K2 << 32;
+                break;
+            default:
+                throw new InvalidOperationException();
+            }
+            P(12);
+            x3 ^= K1;
+            x4 ^= K2;
+
             m_state = nextState;
         }
 
@@ -558,342 +760,244 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private int ProcessBytes(bool forEncryption, Span<byte> output)
+        private void ProcessBufferAad(ReadOnlySpan<byte> buffer)
         {
-            int msgLen = Convert.ToInt32(message.Length);
-            int outLen = 0;
-            if (forEncryption)
-            {
-                if (msgLen >= ASCON_AEAD_RATE)
-                {
-                    byte[] input = message.GetBuffer();
-                    outLen = (msgLen / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, outLen, "output buffer is too short");
-                    ascon_encrypt(output, input.AsSpan(0, outLen));
-                    message.SetLength(0);
-                    message.Write(input, outLen, msgLen - outLen);
-                }
-            }
-            else
-            {
-                if (msgLen - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
-                {
-                    byte[] input = message.GetBuffer();
-                    outLen = ((msgLen - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, outLen, "output buffer is too short");
-                    ascon_decrypt(output, input.AsSpan(0, outLen));
-                    message.SetLength(0);
-                    message.Write(input, outLen, msgLen - outLen);
-                }
-            }
-            return outLen;
-        }
+            Debug.Assert(buffer.Length >= ASCON_AEAD_RATE);
 
-        private void ProcessBufferAad(ReadOnlySpan<byte> aad)
-        {
-            Debug.Assert(aad.Length >= ASCON_AEAD_RATE);
-
-            x0 ^= Pack.BE_To_UInt64(aad);
+            x0 ^= Pack.BE_To_UInt64(buffer);
             if (ASCON_AEAD_RATE == 16)
             {
-                x1 ^= Pack.BE_To_UInt64(aad[8..]);
+                x1 ^= Pack.BE_To_UInt64(buffer[8..]);
             }
             P(nr);
         }
 
-        private void ascon_encrypt(Span<byte> c, ReadOnlySpan<byte> m)
+        private void ProcessBufferDecrypt(ReadOnlySpan<byte> buffer, Span<byte> output)
         {
-            /* full plaintext blocks */
-            while (m.Length >= ASCON_AEAD_RATE)
+            Debug.Assert(buffer.Length >= ASCON_AEAD_RATE);
+
+            Check.OutputLength(output, ASCON_AEAD_RATE, "output buffer too short");
+
             {
-                x0 ^= Pack.BE_To_UInt64(m);
-                Pack.UInt64_To_BE(x0, c);
-                if (ASCON_AEAD_RATE == 16)
-                {
-                    x1 ^= Pack.BE_To_UInt64(m[8..]);
-                    Pack.UInt64_To_BE(x1, c[8..]);
-                }
-                P(nr);
-                m = m[ASCON_AEAD_RATE..];
-                c = c[ASCON_AEAD_RATE..];
+                ulong c0 = Pack.BE_To_UInt64(buffer);
+                Pack.UInt64_To_BE(x0 ^ c0, output);
+                x0 = c0;
             }
+            if (ASCON_AEAD_RATE == 16)
+            {
+                ulong c1 = Pack.BE_To_UInt64(buffer[8..]);
+                Pack.UInt64_To_BE(x1 ^ c1, output[8..]);
+                x1 = c1;
+            }
+            P(nr);
         }
 
-        private void ascon_decrypt(Span<byte> m, ReadOnlySpan<byte> c)
+        private void ProcessBufferEncrypt(ReadOnlySpan<byte> buffer, Span<byte> output)
         {
-            /* full ciphertext blocks */
-            while (c.Length >= ASCON_AEAD_RATE)
+            Debug.Assert(buffer.Length >= ASCON_AEAD_RATE);
+
+            Check.OutputLength(output, ASCON_AEAD_RATE, "output buffer too short");
+
             {
-                ulong cx = Pack.BE_To_UInt64(c);
+                x0 ^= Pack.BE_To_UInt64(buffer);
+                Pack.UInt64_To_BE(x0, output);
+            }
+            if (ASCON_AEAD_RATE == 16)
+            {
+                x1 ^= Pack.BE_To_UInt64(buffer[8..]);
+                Pack.UInt64_To_BE(x1, output[8..]);
+            }
+            P(nr);
+        }
+
+        private void ProcessFinalDecrypt(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Debug.Assert(input.Length < ASCON_AEAD_RATE);
+
+            if (input.Length >= 8) // ASCON_AEAD_RATE == 16 is implied
+            {
+                ulong cx = Pack.BE_To_UInt64(input);
                 x0 ^= cx;
-                Pack.UInt64_To_BE(x0, m);
+                Pack.UInt64_To_BE(x0, output);
                 x0 = cx;
-                if (ASCON_AEAD_RATE == 16)
+                input = input[8..];
+                output = output[8..];
+                x1 ^= PAD(input.Length);
+                if (!input.IsEmpty)
                 {
-                    cx = Pack.BE_To_UInt64(c[8..]);
+                    cx = Pack.BE_To_UInt64_High(input);
                     x1 ^= cx;
-                    Pack.UInt64_To_BE(x1, m[8..]);
-                    x1 = cx;
-                }
-                P(nr);
-                c = c[ASCON_AEAD_RATE..];
-                m = m[ASCON_AEAD_RATE..];
-            }
-        }
-
-        private void ascon_final(bool forEncryption, Span<byte> output, ReadOnlySpan<byte> input)
-        {
-            if (forEncryption)
-            {
-                /* final plaintext block */
-                if (ASCON_AEAD_RATE == 16 && input.Length >= 8)
-                {
-                    x0 ^= Pack.BE_To_UInt64(input);
-                    Pack.UInt64_To_BE(x0, output);
-                    input = input[8..];
-                    output = output[8..];
-                    x1 ^= PAD(input.Length);
-                    if (!input.IsEmpty)
-                    {
-                        x1 ^= Pack.BE_To_UInt64_High(input);
-                        Pack.UInt64_To_BE_High(x1, output[..input.Length]);
-                    }
-                }
-                else
-                {
-                    x0 ^= PAD(input.Length);
-                    if (!input.IsEmpty)
-                    {
-                        x0 ^= Pack.BE_To_UInt64_High(input);
-                        Pack.UInt64_To_BE_High(x0, output[..input.Length]);
-                    }
+                    Pack.UInt64_To_BE_High(x1, output[..input.Length]);
+                    x1 &= ulong.MaxValue >> (input.Length << 3);
+                    x1 ^= cx;
                 }
             }
             else
             {
-                /* final ciphertext block */
-                if (ASCON_AEAD_RATE == 16 && input.Length >= 8)
+                x0 ^= PAD(input.Length);
+                if (!input.IsEmpty)
                 {
-                    ulong cx = Pack.BE_To_UInt64(input);
+                    ulong cx = Pack.BE_To_UInt64_High(input);
                     x0 ^= cx;
-                    Pack.UInt64_To_BE(x0, output);
-                    x0 = cx;
-                    input = input[8..];
-                    output = output[8..];
-                    x1 ^= PAD(input.Length);
-                    if (!input.IsEmpty)
-                    {
-                        cx = Pack.BE_To_UInt64_High(input);
-                        x1 ^= cx;
-                        Pack.UInt64_To_BE_High(x1, output[..input.Length]);
-                        x1 &= ulong.MaxValue >> (input.Length << 3);
-                        x1 ^= cx;
-                    }
-                }
-                else
-                {
-                    x0 ^= PAD(input.Length);
-                    if (!input.IsEmpty)
-                    {
-                        ulong cx = Pack.BE_To_UInt64_High(input);
-                        x0 ^= cx;
-                        Pack.UInt64_To_BE_High(x0, output[..input.Length]);
-                        x0 &= ulong.MaxValue >> (input.Length << 3);
-                        x0 ^= cx;
-                    }
+                    Pack.UInt64_To_BE_High(x0, output[..input.Length]);
+                    x0 &= ulong.MaxValue >> (input.Length << 3);
+                    x0 ^= cx;
                 }
             }
-            /* finalize */
-            switch (asconParameters)
+
+            FinishData(State.DecFinal);
+        }
+
+        private void ProcessFinalEncrypt(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Debug.Assert(input.Length < ASCON_AEAD_RATE);
+
+            if (input.Length >= 8) // ASCON_AEAD_RATE == 16 is implied
             {
-            case AsconParameters.ascon128:
-                x1 ^= K1;
-                x2 ^= K2;
-                break;
-            case AsconParameters.ascon128a:
-                x2 ^= K1;
-                x3 ^= K2;
-                break;
-            case AsconParameters.ascon80pq:
-                x1 ^= (K0 << 32 | K1 >> 32);
-                x2 ^= (K1 << 32 | K2 >> 32);
-                x3 ^=  K2 << 32;
-                break;
+                x0 ^= Pack.BE_To_UInt64(input);
+                Pack.UInt64_To_BE(x0, output);
+                input = input[8..];
+                output = output[8..];
+                x1 ^= PAD(input.Length);
+                if (!input.IsEmpty)
+                {
+                    x1 ^= Pack.BE_To_UInt64_High(input);
+                    Pack.UInt64_To_BE_High(x1, output[..input.Length]);
+                }
             }
-            P(12);
-            x3 ^= K1;
-            x4 ^= K2;
+            else
+            {
+                x0 ^= PAD(input.Length);
+                if (!input.IsEmpty)
+                {
+                    x0 ^= Pack.BE_To_UInt64_High(input);
+                    Pack.UInt64_To_BE_High(x0, output[..input.Length]);
+                }
+            }
+
+            FinishData(State.EncFinal);
         }
 #else
-        private int ProcessBytes(bool forEncryption, byte[] output, int outOff)
+        private void ProcessBufferAad(byte[] buffer, int bufOff)
         {
-            int msgLen = Convert.ToInt32(message.Length);
-            int outLen = 0;
-            if (forEncryption)
-            {
-                if (msgLen >= ASCON_AEAD_RATE)
-                {
-                    byte[] input = message.GetBuffer();
-                    outLen = (msgLen / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, outOff, outLen, "output buffer is too short");
-                    ascon_encrypt(output, outOff, input, 0, outLen);
-                    message.SetLength(0);
-                    message.Write(input, outLen, msgLen - outLen);
-                }
-            }
-            else
-            {
-                if (msgLen - CRYPTO_ABYTES >= ASCON_AEAD_RATE)
-                {
-                    byte[] input = message.GetBuffer();
-                    outLen = ((msgLen - CRYPTO_ABYTES) / ASCON_AEAD_RATE) * ASCON_AEAD_RATE;
-                    Check.OutputLength(output, outOff, outLen, "output buffer is too short");
-                    ascon_decrypt(output, outOff, input, 0, outLen);
-                    message.SetLength(0);
-                    message.Write(input, outLen, msgLen - outLen);
-                }
-            }
-            return outLen;
-        }
+            Debug.Assert(bufOff <= buffer.Length - ASCON_AEAD_RATE);
 
-        private void ProcessBufferAad(byte[] aad, int aadOff)
-        {
-            Debug.Assert(aad.Length - ASCON_AEAD_RATE >= aadOff);
+            x0 ^= Pack.BE_To_UInt64(buffer, bufOff);
 
-            x0 ^= Pack.BE_To_UInt64(aad, aadOff);
             if (ASCON_AEAD_RATE == 16)
             {
-                x1 ^= Pack.BE_To_UInt64(aad, aadOff + 8);
+                x1 ^= Pack.BE_To_UInt64(buffer, bufOff + 8);
             }
+
             P(nr);
         }
 
-        private void ascon_encrypt(byte[] c, int cOff, byte[] m, int mOff, int mlen)
+        private void ProcessBufferDecrypt(byte[] buffer, int bufOff, byte[] output, int outOff)
         {
-            /* full plaintext blocks */
-            while (mlen >= ASCON_AEAD_RATE)
+            Debug.Assert(bufOff <= buffer.Length - ASCON_AEAD_RATE);
+
+            Check.OutputLength(output, outOff, ASCON_AEAD_RATE, "output buffer too short");
+
+            ulong t0 = Pack.BE_To_UInt64(buffer, bufOff);
+            Pack.UInt64_To_BE(x0 ^ t0, output, outOff);
+            x0 = t0;
+
+            if (ASCON_AEAD_RATE == 16)
             {
-                x0 ^= Pack.BE_To_UInt64(m, mOff);
-                Pack.UInt64_To_BE(x0, c, cOff);
-                if (ASCON_AEAD_RATE == 16)
-                {
-                    x1 ^= Pack.BE_To_UInt64(m, mOff + 8);
-                    Pack.UInt64_To_BE(x1, c, cOff + 8);
-                }
-                P(nr);
-                mOff += ASCON_AEAD_RATE;
-                cOff += ASCON_AEAD_RATE;
-                mlen -= ASCON_AEAD_RATE;
+                ulong t1 = Pack.BE_To_UInt64(buffer, bufOff + 8);
+                Pack.UInt64_To_BE(x1 ^ t1, output, outOff + 8);
+                x1 = t1;
             }
+
+            P(nr);
         }
 
-        private void ascon_decrypt(byte[] m, int mOff, byte[] c, int cOff, int clen)
+        private void ProcessBufferEncrypt(byte[] buffer, int bufOff, byte[] output, int outOff)
         {
-            /* full ciphertext blocks */
-            while (clen >= ASCON_AEAD_RATE)
+            Debug.Assert(bufOff <= buffer.Length - ASCON_AEAD_RATE);
+
+            Check.OutputLength(output, outOff, ASCON_AEAD_RATE, "output buffer too short");
+
+            x0 ^= Pack.BE_To_UInt64(buffer, bufOff);
+            Pack.UInt64_To_BE(x0, output, outOff);
+
+            if (ASCON_AEAD_RATE == 16)
             {
-                ulong cx = Pack.BE_To_UInt64(c, cOff);
-                x0 ^= cx;
-                Pack.UInt64_To_BE(x0, m, mOff);
-                x0 = cx;
-                if (ASCON_AEAD_RATE == 16)
-                {
-                    cx = Pack.BE_To_UInt64(c, cOff + 8);
-                    x1 ^= cx;
-                    Pack.UInt64_To_BE(x1, m, mOff + 8);
-                    x1 = cx;
-                }
-                P(nr);
-                mOff += ASCON_AEAD_RATE;
-                cOff += ASCON_AEAD_RATE;
-                clen -= ASCON_AEAD_RATE;
+                x1 ^= Pack.BE_To_UInt64(buffer, bufOff + 8);
+                Pack.UInt64_To_BE(x1, output, outOff + 8);
             }
+
+            P(nr);
         }
 
-        private void ascon_final(bool forEncryption, byte[] c, int cOff, byte[] m, int mOff, int mlen)
+        private void ProcessFinalDecrypt(byte[] input, int inOff, int inLen, byte[] output, int outOff)
         {
-            if (forEncryption)
+            Debug.Assert(inLen < ASCON_AEAD_RATE);
+
+            if (inLen >= 8) // ASCON_AEAD_RATE == 16 is implied
             {
-                /* final plaintext block */
-                if (ASCON_AEAD_RATE == 16 && mlen >= 8)
+                ulong c0 = Pack.BE_To_UInt64(input, inOff);
+                x0 ^= c0;
+                Pack.UInt64_To_BE(x0, output, outOff);
+                x0 = c0;
+                inOff += 8;
+                outOff += 8;
+                inLen -= 8;
+                x1 ^= PAD(inLen);
+                if (inLen != 0)
                 {
-                    x0 ^= Pack.BE_To_UInt64(m, mOff);
-                    Pack.UInt64_To_BE(x0, c, cOff);
-                    mOff += 8;
-                    cOff += 8;
-                    mlen -= 8;
-                    x1 ^= PAD(mlen);
-                    if (mlen != 0)
-                    {
-                        x1 ^= Pack.BE_To_UInt64_High(m, mOff, mlen);
-                        Pack.UInt64_To_BE_High(x1, c, cOff, mlen);
-                    }
-                }
-                else
-                {
-                    x0 ^= PAD(mlen);
-                    if (mlen != 0)
-                    {
-                        x0 ^= Pack.BE_To_UInt64_High(m, mOff, mlen);
-                        Pack.UInt64_To_BE_High(x0, c, cOff, mlen);
-                    }
+                    ulong c1 = Pack.BE_To_UInt64_High(input, inOff, inLen);
+                    x1 ^= c1;
+                    Pack.UInt64_To_BE_High(x1, output, outOff, inLen);
+                    x1 &= ulong.MaxValue >> (inLen << 3);
+                    x1 ^= c1;
                 }
             }
             else
             {
-                /* final ciphertext block */
-                if (ASCON_AEAD_RATE == 16 && mlen >= 8)
+                x0 ^= PAD(inLen);
+                if (inLen != 0)
                 {
-                    ulong cx = Pack.BE_To_UInt64(m, mOff);
-                    x0 ^= cx;
-                    Pack.UInt64_To_BE(x0, c, cOff);
-                    x0 = cx;
-                    mOff += 8;
-                    cOff += 8;
-                    mlen -= 8;
-                    x1 ^= PAD(mlen);
-                    if (mlen != 0)
-                    {
-                        cx = Pack.BE_To_UInt64_High(m, mOff, mlen);
-                        x1 ^= cx;
-                        Pack.UInt64_To_BE_High(x1, c, cOff, mlen);
-                        x1 &= ulong.MaxValue >> (mlen << 3);
-                        x1 ^= cx;
-                    }
-                }
-                else
-                {
-                    x0 ^= PAD(mlen);
-                    if (mlen != 0)
-                    {
-                        ulong cx = Pack.BE_To_UInt64_High(m, mOff, mlen);
-                        x0 ^= cx;
-                        Pack.UInt64_To_BE_High(x0, c, cOff, mlen);
-                        x0 &= ulong.MaxValue >> (mlen << 3);
-                        x0 ^= cx;
-                    }
+                    ulong c0 = Pack.BE_To_UInt64_High(input, inOff, inLen);
+                    x0 ^= c0;
+                    Pack.UInt64_To_BE_High(x0, output, outOff, inLen);
+                    x0 &= ulong.MaxValue >> (inLen << 3);
+                    x0 ^= c0;
                 }
             }
-            /* finalize */
-            switch (asconParameters)
+
+            FinishData(State.DecFinal);
+        }
+
+        private void ProcessFinalEncrypt(byte[] input, int inOff, int inLen, byte[] output, int outOff)
+        {
+            Debug.Assert(inLen < ASCON_AEAD_RATE);
+
+            if (inLen >= 8) // ASCON_AEAD_RATE == 16 is implied
             {
-            case AsconParameters.ascon128:
-                x1 ^= K1;
-                x2 ^= K2;
-                break;
-            case AsconParameters.ascon128a:
-                x2 ^= K1;
-                x3 ^= K2;
-                break;
-            case AsconParameters.ascon80pq:
-                x1 ^= (K0 << 32 | K1 >> 32);
-                x2 ^= (K1 << 32 | K2 >> 32);
-                x3 ^=  K2 << 32;
-                break;
+                x0 ^= Pack.BE_To_UInt64(input, inOff);
+                Pack.UInt64_To_BE(x0, output, outOff);
+                inOff += 8;
+                outOff += 8;
+                inLen -= 8;
+                x1 ^= PAD(inLen);
+                if (inLen != 0)
+                {
+                    x1 ^= Pack.BE_To_UInt64_High(input, inOff, inLen);
+                    Pack.UInt64_To_BE_High(x1, output, outOff, inLen);
+                }
             }
-            P(12);
-            x3 ^= K1;
-            x4 ^= K2;
+            else
+            {
+                x0 ^= PAD(inLen);
+                if (inLen != 0)
+                {
+                    x0 ^= Pack.BE_To_UInt64_High(input, inOff, inLen);
+                    Pack.UInt64_To_BE_High(x0, output, outOff, inLen);
+                }
+            }
+
+            FinishData(State.EncFinal);
         }
 #endif
 
@@ -903,8 +1007,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 mac = null;
             }
-
-            message.SetLength(0);
 
             Arrays.Clear(m_buf);
             m_bufPos = 0;
@@ -929,6 +1031,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             ascon_aeadinit();
+
+            if (initialAssociatedText != null)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessAadBytes(initialAssociatedText);
+#else
+                ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+#endif
+            }
         }
 
         private static ulong PAD(int i)

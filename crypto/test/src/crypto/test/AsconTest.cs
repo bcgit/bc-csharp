@@ -19,6 +19,60 @@ namespace Org.BouncyCastle.Crypto.Tests
     {
         public override string Name => "ASCON";
 
+        [Test, Explicit]
+        public void BenchAuth80pq()
+        {
+            var parameters = new AeadParameters(new KeyParameter(new byte[20]), 128, new byte[16], null);
+            var engine = new AsconEngine(AsconEngine.AsconParameters.ascon80pq);
+            engine.Init(false, parameters);
+
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024 * 1024; ++i)
+            {
+#if NET6_0_OR_GREATER
+                engine.ProcessAadBytes(data.AsSpan(0, 1024));
+#else
+                engine.ProcessAadBytes(data, 0, 1024);
+#endif
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchDecrypt80pq()
+        {
+            var parameters = new AeadParameters(new KeyParameter(new byte[20]), 128, new byte[16], null);
+            var engine = new AsconEngine(AsconEngine.AsconParameters.ascon80pq);
+            engine.Init(false, parameters);
+
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024 * 1024; ++i)
+            {
+#if NET6_0_OR_GREATER
+                engine.ProcessBytes(data.AsSpan(0, 1024), data);
+#else
+                engine.ProcessBytes(data, 0, 1024, data, 0);
+#endif
+            }
+        }
+
+        [Test, Explicit]
+        public void BenchEncrypt80pq()
+        {
+            var parameters = new AeadParameters(new KeyParameter(new byte[20]), 128, new byte[16], null);
+            var engine = new AsconEngine(AsconEngine.AsconParameters.ascon80pq);
+            engine.Init(true, parameters);
+
+            byte[] data = new byte[engine.GetUpdateOutputSize(1024)];
+            for (int i = 0; i < 1024 * 1024; ++i)
+            {
+#if NET6_0_OR_GREATER
+                engine.ProcessBytes(data.AsSpan(0, 1024), data);
+#else
+                engine.ProcessBytes(data, 0, 1024, data, 0);
+#endif
+            }
+        }
+
         [Test]
         public override void PerformTest()
         {
