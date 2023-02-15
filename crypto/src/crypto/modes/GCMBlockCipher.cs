@@ -566,7 +566,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (bufOff >= BlockSize)
                 {
                     DecryptBlock(bufBlock, output);
-                    Array.Copy(bufBlock, BlockSize, bufBlock, 0, bufOff -= BlockSize);
+                    bufOff -= BlockSize;
+                    bufBlock.AsSpan(0, bufOff).CopyFrom(bufBlock.AsSpan(BlockSize));
                     resultLen = BlockSize;
 
                     available += BlockSize;
