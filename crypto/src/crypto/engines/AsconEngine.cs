@@ -195,34 +195,22 @@ namespace Org.BouncyCastle.Crypto.Engines
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
 #else
-            CheckData();
+            bool forEncryption = CheckData();
 
             message.Write(inBytes, inOff, len);
 
-            switch (m_state)
-            {
-            case State.DecData:     return ProcessBytes(false, outBytes, outOff);
-            case State.EncData:     return ProcessBytes(true, outBytes, outOff);
-            default:
-                throw new InvalidOperationException();
-            }
+            return ProcessBytes(forEncryption, outBytes, outOff);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            CheckData();
+            bool forEncryption = CheckData();
 
             message.Write(input);
 
-            switch (m_state)
-            {
-            case State.DecData:     return ProcessBytes(false, output);
-            case State.EncData:     return ProcessBytes(true, output);
-            default:
-                throw new InvalidOperationException();
-            }
+            return ProcessBytes(forEncryption, output);
         }
 #endif
 
@@ -231,14 +219,23 @@ namespace Org.BouncyCastle.Crypto.Engines
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(outBytes.AsSpan(outOff));
 #else
-            CheckData();
+            bool forEncryption = CheckData();
 
             byte[] input = message.GetBuffer();
             int len = Convert.ToInt32(message.Length);
 
-            switch (m_state)
+            if (forEncryption)
             {
-            case State.DecData:
+                Check.OutputLength(outBytes, outOff, len + CRYPTO_ABYTES, "output buffer too short");
+                ascon_final(true, outBytes, outOff, input, 0, len);
+                mac = new byte[16];
+                Pack.UInt64_To_BE(x3, mac, 0);
+                Pack.UInt64_To_BE(x4, mac, 8);
+                Array.Copy(mac, 0, outBytes, len + outOff, 16);
+                Reset(false);
+                return len + CRYPTO_ABYTES;
+            }
+            else
             {
                 // TODO Check for underflow i.e. total input < CRYPTO_ABYTES
                 Check.OutputLength(outBytes, outOff, len - CRYPTO_ABYTES, "output buffer too short");
@@ -254,34 +251,32 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Reset(true);
                 return len;
             }
-            case State.EncData:
-            {
-                Check.OutputLength(outBytes, outOff, len + CRYPTO_ABYTES, "output buffer too short");
-                ascon_final(true, outBytes, outOff, input, 0, len);
-                mac = new byte[16];
-                Pack.UInt64_To_BE(x3, mac, 0);
-                Pack.UInt64_To_BE(x4, mac, 8);
-                Array.Copy(mac, 0, outBytes, len + outOff, 16);
-                Reset(false);
-                return len + CRYPTO_ABYTES;
-            }
-            default:
-                throw new InvalidOperationException();
-            }
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-            CheckData();
+            bool forEncryption = CheckData();
 
             byte[] input = message.GetBuffer();
             int len = Convert.ToInt32(message.Length);
 
-            switch (m_state)
+            if (forEncryption)
             {
-            case State.DecData:
+                Check.OutputLength(output, len + CRYPTO_ABYTES, "output buffer too short");
+                ascon_final(true, output, input.AsSpan(0, len));
+                mac = new byte[CRYPTO_ABYTES];
+                Pack.UInt64_To_BE(x3, mac, 0);
+                Pack.UInt64_To_BE(x4, mac, 8);
+
+                FinishData(State.EncFinal);
+
+                mac.AsSpan(0, CRYPTO_ABYTES).CopyTo(output[len..]);
+                Reset(false);
+                return len + CRYPTO_ABYTES;
+            }
+            else
             {
                 // TODO Check for underflow i.e. total input < CRYPTO_ABYTES
                 Check.OutputLength(output, len - CRYPTO_ABYTES, "output buffer too short");
@@ -298,23 +293,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 Reset(true);
                 return len;
-            }
-            case State.EncData:
-            {
-                Check.OutputLength(output, len + CRYPTO_ABYTES, "output buffer too short");
-                ascon_final(true, output, input.AsSpan(0, len));
-                mac = new byte[CRYPTO_ABYTES];
-                Pack.UInt64_To_BE(x3, mac, 0);
-                Pack.UInt64_To_BE(x4, mac, 8);
-
-                FinishData(State.EncFinal);
-
-                mac.AsSpan(0, CRYPTO_ABYTES).CopyTo(output[len..]);
-                Reset(false);
-                return len + CRYPTO_ABYTES;
-            }
-            default:
-                throw new InvalidOperationException();
             }
         }
 #endif
@@ -384,21 +362,22 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        private void CheckData()
+        private bool CheckData()
         {
             switch (m_state)
             {
             case State.DecInit:
             case State.DecAad:
                 FinishAad(State.DecData);
-                break;
+                return false;
             case State.EncInit:
             case State.EncAad:
                 FinishAad(State.EncData);
-                break;
+                return true;
             case State.DecData:
+                return false;
             case State.EncData:
-                break;
+                return true;
             case State.EncFinal:
                 throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
             default:
