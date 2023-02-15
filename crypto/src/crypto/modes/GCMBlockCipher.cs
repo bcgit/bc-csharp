@@ -15,13 +15,14 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     /// <summary>
     /// Implements the Galois/Counter mode (GCM) detailed in NIST Special Publication 800-38D.
     /// </summary>
     public sealed class GcmBlockCipher
         : IAeadBlockCipher
     {
-        private static IGcmMultiplier CreateGcmMultiplier()
+        internal static IGcmMultiplier CreateGcmMultiplier()
         {
 #if NETCOREAPP3_0_OR_GREATER
             // TODO Prefer more tightly coupled test
@@ -70,6 +71,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
         }
 
+        [Obsolete("Will be removed")]
         public GcmBlockCipher(
             IBlockCipher	c,
             IGcmMultiplier	m)
@@ -1496,4 +1498,5 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    [Obsolete("Will be removed")]
     public class Tables1kGcmExponentiator
         : IGcmExponentiator
     {

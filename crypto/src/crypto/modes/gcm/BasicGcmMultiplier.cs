@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    [Obsolete("Will be removed")]
     public class BasicGcmMultiplier
         : IGcmMultiplier
     {
