@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
@@ -39,7 +40,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             DecFinal       = 8,
         }
 
-        private readonly MemoryStream aadData = new MemoryStream();
         private readonly MemoryStream message = new MemoryStream();
 
         private readonly AsconParameters asconParameters;
@@ -61,6 +61,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         private ulong x4;
         private string algorithmName;
         private State m_state = State.Uninitialized;
+
+        private readonly byte[] m_buf;
+        private int m_bufPos = 0;
 
         public AsconEngine(AsconParameters asconParameters)
         {
@@ -92,6 +95,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("invalid parameter setting for ASCON AEAD");
             }
             nr = (ASCON_AEAD_RATE == 8) ? 6 : 8;
+
+            m_buf = new byte[ASCON_AEAD_RATE];
         }
 
         public int GetKeyBytesSize()
@@ -149,24 +154,95 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             CheckAad();
 
-            aadData.WriteByte(input);
+            m_buf[m_bufPos] = input;
+            if (++m_bufPos == ASCON_AEAD_RATE)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessBufferAad(m_buf);
+#else
+                ProcessBufferAad(m_buf, 0);
+#endif
+                m_bufPos = 0;
+            }
         }
 
         public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ProcessAadBytes(inBytes.AsSpan(inOff, len));
+#else
+            // Don't enter AAD state until we actually get input
+            if (len <= 0)
+                return;
+
             CheckAad();
 
-            aadData.Write(inBytes, inOff, len);
+            if (m_bufPos > 0)
+            {
+                int available = ASCON_AEAD_RATE - m_bufPos;
+                if (len < available)
+                {
+                    Array.Copy(inBytes, inOff, m_buf, m_bufPos, len);
+                    m_bufPos += len;
+                    return;
+                }
+
+                Array.Copy(inBytes, inOff, m_buf, m_bufPos, available);
+                inOff += available;
+                len -= available;
+
+                ProcessBufferAad(m_buf, 0);
+                //m_bufPos = 0;
+            }
+
+            while (len >= ASCON_AEAD_RATE)
+            {
+                ProcessBufferAad(inBytes, inOff);
+                inOff += ASCON_AEAD_RATE;
+                len -= ASCON_AEAD_RATE;
+            }
+
+            Array.Copy(inBytes, inOff, m_buf, m_bufPos, len);
+            m_bufPos = len;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
+            // Don't enter AAD state until we actually get input
+            if (input.IsEmpty)
+                return;
+
             CheckAad();
 
-            aadData.Write(input);
+            if (m_bufPos > 0)
+            {
+                int available = ASCON_AEAD_RATE - m_bufPos;
+                if (input.Length < available)
+                {
+                    input.CopyTo(m_buf.AsSpan(m_bufPos));
+                    m_bufPos += input.Length;
+                    return;
+                }
+
+                input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
+                input = input[available..];
+
+                ProcessBufferAad(m_buf);
+                //m_bufPos = 0;
+            }
+
+            while (input.Length >= ASCON_AEAD_RATE)
+            {
+                ProcessBufferAad(input);
+                input = input[ASCON_AEAD_RATE..];
+            }
+
+            input.CopyTo(m_buf);
+            m_bufPos = input.Length;
         }
 #endif
 
@@ -387,15 +463,33 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void FinishAad(State nextState)
         {
-            byte[] aad = aadData.GetBuffer();
-            int aadLen = Convert.ToInt32(aadData.Length);
+            // State indicates whether we ever received AAD
+            switch (m_state)
+            {
+            case State.DecAad:
+            case State.EncAad:
+            {
+                m_buf[m_bufPos] = 0x80;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ascon_adata(aad.AsSpan(0, aadLen));
-#else
-            ascon_adata(aad, 0, aadLen);
-#endif
+                if (m_bufPos >= 8) // ASCON_AEAD_RATE == 16 is implied
+                {
+                    x0 ^= Pack.BE_To_UInt64(m_buf, 0);
+                    x1 ^= Pack.BE_To_UInt64(m_buf, 8) & (ulong.MaxValue << (56 - ((m_bufPos - 8) << 3)));
+                }
+                else
+                {
+                    x0 ^= Pack.BE_To_UInt64(m_buf, 0) & (ulong.MaxValue << (56 - (m_bufPos << 3)));
+                }
 
+                P(nr);
+                break;
+            }
+            }
+
+            // domain separation
+            x4 ^= 1UL;
+
+            m_bufPos = 0;
             m_state = nextState;
         }
 
@@ -495,44 +589,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             return outLen;
         }
 
-        private void ascon_adata(ReadOnlySpan<byte> aad)
+        private void ProcessBufferAad(ReadOnlySpan<byte> aad)
         {
-            if (!aad.IsEmpty)
+            Debug.Assert(aad.Length >= ASCON_AEAD_RATE);
+
+            x0 ^= Pack.BE_To_UInt64(aad);
+            if (ASCON_AEAD_RATE == 16)
             {
-                /* full associated data blocks */
-                while (aad.Length >= ASCON_AEAD_RATE)
-                {
-                    x0 ^= Pack.BE_To_UInt64(aad);
-                    if (ASCON_AEAD_RATE == 16)
-                    {
-                        x1 ^= Pack.BE_To_UInt64(aad[8..]);
-                    }
-                    P(nr);
-                    aad = aad[ASCON_AEAD_RATE..];
-                }
-                /* final associated data block */
-                if (ASCON_AEAD_RATE == 16 && aad.Length >= 8)
-                {
-                    x0 ^= Pack.BE_To_UInt64(aad);
-                    aad = aad[8..];
-                    x1 ^= PAD(aad.Length);
-                    if (!aad.IsEmpty)
-                    {
-                        x1 ^= Pack.BE_To_UInt64_High(aad);
-                    }
-                }
-                else
-                {
-                    x0 ^= PAD(aad.Length);
-                    if (!aad.IsEmpty)
-                    {
-                        x0 ^= Pack.BE_To_UInt64_High(aad);
-                    }
-                }
-                P(nr);
+                x1 ^= Pack.BE_To_UInt64(aad[8..]);
             }
-            /* domain separation */
-            x4 ^= 1UL;
+            P(nr);
         }
 
         private void ascon_encrypt(Span<byte> c, ReadOnlySpan<byte> m)
@@ -690,46 +756,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             return outLen;
         }
 
-        private void ascon_adata(byte[] aad, int aadOff, int aadLen)
+        private void ProcessBufferAad(byte[] aad, int aadOff)
         {
-            if (aadLen != 0)
+            Debug.Assert(aad.Length - ASCON_AEAD_RATE >= aadOff);
+
+            x0 ^= Pack.BE_To_UInt64(aad, aadOff);
+            if (ASCON_AEAD_RATE == 16)
             {
-                /* full associated data blocks */
-                while (aadLen >= ASCON_AEAD_RATE)
-                {
-                    x0 ^= Pack.BE_To_UInt64(aad, aadOff);
-                    if (ASCON_AEAD_RATE == 16)
-                    {
-                        x1 ^= Pack.BE_To_UInt64(aad, aadOff + 8);
-                    }
-                    P(nr);
-                    aadOff += ASCON_AEAD_RATE;
-                    aadLen -= ASCON_AEAD_RATE;
-                }
-                /* final associated data block */
-                if (ASCON_AEAD_RATE == 16 && aadLen >= 8)
-                {
-                    x0 ^= Pack.BE_To_UInt64(aad, aadOff);
-                    aadOff += 8;
-                    aadLen -= 8;
-                    x1 ^= PAD(aadLen);
-                    if (aadLen != 0)
-                    {
-                        x1 ^= Pack.BE_To_UInt64_High(aad, aadOff, aadLen);
-                    }
-                }
-                else
-                {
-                    x0 ^= PAD(aadLen);
-                    if (aadLen != 0)
-                    {
-                        x0 ^= Pack.BE_To_UInt64_High(aad, aadOff, aadLen);
-                    }
-                }
-                P(nr);
+                x1 ^= Pack.BE_To_UInt64(aad, aadOff + 8);
             }
-            /* domain separation */
-            x4 ^= 1UL;
+            P(nr);
         }
 
         private void ascon_encrypt(byte[] c, int cOff, byte[] m, int mOff, int mlen)
@@ -868,8 +904,10 @@ namespace Org.BouncyCastle.Crypto.Engines
                 mac = null;
             }
 
-            aadData.SetLength(0);
             message.SetLength(0);
+
+            Arrays.Clear(m_buf);
+            m_bufPos = 0;
 
             switch (m_state)
             {
