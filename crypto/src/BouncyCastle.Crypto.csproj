@@ -11,7 +11,7 @@
     <AssemblyTitle>BouncyCastle.NET Cryptography ($(TargetFramework))</AssemblyTitle>
     <Authors>Legion of the Bouncy Castle Inc.</Authors>
     <Company>Legion of the Bouncy Castle Inc.</Company>
-    <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2022</Copyright>
+    <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2023</Copyright>
     <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageIconUrl>https://www.bouncycastle.org/images/nuget_packageIcon.png</PackageIconUrl>
