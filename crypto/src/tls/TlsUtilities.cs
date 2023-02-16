@@ -2847,6 +2847,10 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA384:
                 return EncryptionAlgorithm.NULL;
 
+            case CipherSuite.TLS_RSA_WITH_RC4_128_MD5:
+            case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
+                return EncryptionAlgorithm.RC4_128;
+
             case CipherSuite.TLS_DH_anon_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_DH_RSA_WITH_SEED_CBC_SHA:
@@ -3204,6 +3208,8 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_RSA_WITH_NULL_SHA:
             case CipherSuite.TLS_RSA_WITH_NULL_SHA256:
+            case CipherSuite.TLS_RSA_WITH_RC4_128_MD5:
+            case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
             case CipherSuite.TLS_RSA_WITH_SEED_CBC_SHA:
                 return KeyExchangeAlgorithm.RSA;
 
@@ -3384,6 +3390,9 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_SM4_GCM_SM3:
                 return MacAlgorithm.cls_null;
 
+            case CipherSuite.TLS_RSA_WITH_RC4_128_MD5:
+                return MacAlgorithm.hmac_md5;
+
             case CipherSuite.TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA:
             case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA:
@@ -3456,6 +3465,7 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_128_CBC_SHA:
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_CBC_SHA:
             case CipherSuite.TLS_RSA_WITH_NULL_SHA:
+            case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
             case CipherSuite.TLS_RSA_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
