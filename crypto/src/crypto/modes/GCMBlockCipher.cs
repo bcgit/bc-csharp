@@ -14,7 +14,6 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
