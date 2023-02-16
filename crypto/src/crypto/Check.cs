@@ -1,4 +1,7 @@
 ﻿using System;
+#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -42,7 +45,14 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [DoesNotReturn]
+#endif
         internal static void ThrowDataLengthException(string message) => throw new DataLengthException(message);
+
+#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [DoesNotReturn]
+#endif
         internal static void ThrowOutputLengthException(string message) => throw new OutputLengthException(message);
     }
 }
