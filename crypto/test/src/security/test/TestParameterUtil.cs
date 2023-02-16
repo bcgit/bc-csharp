@@ -3,6 +3,7 @@ using System;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -29,7 +30,47 @@ namespace Org.BouncyCastle.Security.Tests
 				128, typeof(RC2Parameters), random);
 		}
 
-		private void doTestCreateKeyParameter(
+        [Test]
+        public void TestGetCipherParameters()
+        {
+            var aes128Ccm = ParameterUtilities.GetCipherParameters(
+                NistObjectIdentifiers.IdAes128Ccm,
+                new KeyParameter(new byte[16]),
+                new CcmParameters(new byte[12], 16).ToAsn1Object());
+            Assert.IsInstanceOf(typeof(AeadParameters), aes128Ccm);
+
+            var aes192Ccm = ParameterUtilities.GetCipherParameters(
+                NistObjectIdentifiers.IdAes192Ccm,
+                new KeyParameter(new byte[24]),
+                new CcmParameters(new byte[12], 16).ToAsn1Object());
+            Assert.IsInstanceOf(typeof(AeadParameters), aes192Ccm);
+
+            var aes256Ccm = ParameterUtilities.GetCipherParameters(
+                NistObjectIdentifiers.IdAes256Ccm,
+                new KeyParameter(new byte[32]),
+                new CcmParameters(new byte[12], 16).ToAsn1Object());
+            Assert.IsInstanceOf(typeof(AeadParameters), aes256Ccm);
+
+            var aes128Gcm = ParameterUtilities.GetCipherParameters(
+                NistObjectIdentifiers.IdAes128Gcm,
+                new KeyParameter(new byte[16]),
+                new GcmParameters(new byte[12], 16).ToAsn1Object());
+            Assert.IsInstanceOf(typeof(AeadParameters), aes128Gcm);
+
+            var aes192Gcm = ParameterUtilities.GetCipherParameters(
+                NistObjectIdentifiers.IdAes192Gcm,
+                new KeyParameter(new byte[24]),
+                new GcmParameters(new byte[12], 16).ToAsn1Object());
+            Assert.IsInstanceOf(typeof(AeadParameters), aes192Gcm);
+
+            var aes256Gcm = ParameterUtilities.GetCipherParameters(
+				NistObjectIdentifiers.IdAes256Gcm,
+				new KeyParameter(new byte[32]),
+				new GcmParameters(new byte[12], 16).ToAsn1Object());
+            Assert.IsInstanceOf(typeof(AeadParameters), aes256Gcm);
+        }
+
+        private void doTestCreateKeyParameter(
 			string				algorithm,
 			DerObjectIdentifier	oid,
 			int					keyBits,

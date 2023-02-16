@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Misc;
@@ -245,6 +246,30 @@ namespace Org.BouncyCastle.Security
         {
             if (algorithm == null)
                 throw new ArgumentNullException("algorithm");
+
+            if (NistObjectIdentifiers.IdAes128Gcm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes192Gcm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes256Gcm.Id.Equals(algorithm))
+            {
+                if (!(key is KeyParameter keyParameter))
+                    throw new ArgumentException("key data must be accessible for GCM operation");
+
+                var gcmParameters = GcmParameters.GetInstance(asn1Params);
+
+                return new AeadParameters(keyParameter, gcmParameters.IcvLen * 8, gcmParameters.GetNonce());
+            }
+
+            if (NistObjectIdentifiers.IdAes128Ccm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes192Ccm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes256Ccm.Id.Equals(algorithm))
+            {
+                if (!(key is KeyParameter keyParameter))
+                    throw new ArgumentException("key data must be accessible for CCM operation");
+
+                var ccmParameters = CcmParameters.GetInstance(asn1Params);
+
+                return new AeadParameters(keyParameter, ccmParameters.IcvLen * 8, ccmParameters.GetNonce());
+            }
 
             string canonical = GetCanonicalAlgorithmName(algorithm);
 
