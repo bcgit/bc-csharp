@@ -225,11 +225,10 @@ namespace Org.BouncyCastle.Cms
 			X509Certificate			recipientCert,
 			string					cekWrapAlgorithm)
 		{
-            var recipientCerts = new List<X509Certificate>(1);
-			recipientCerts.Add(recipientCert);
+            var recipientCerts = new List<X509Certificate>(1){ recipientCert };
 
-			AddKeyAgreementRecipients(agreementAlgorithm, senderPrivateKey, senderPublicKey,
-				recipientCerts, cekWrapAlgorithm);
+			AddKeyAgreementRecipients(agreementAlgorithm, senderPrivateKey, senderPublicKey, recipientCerts,
+				cekWrapAlgorithm);
 		}
 
 		/**
@@ -251,23 +250,45 @@ namespace Org.BouncyCastle.Cms
 			string					cekWrapAlgorithm)
 		{
 			if (!senderPrivateKey.IsPrivate)
-				throw new ArgumentException("Expected private key", "senderPrivateKey");
+				throw new ArgumentException("Expected private key", nameof(senderPrivateKey));
 			if (senderPublicKey.IsPrivate)
-				throw new ArgumentException("Expected public key", "senderPublicKey");
+				throw new ArgumentException("Expected public key", nameof(senderPublicKey));
 
 			/* TODO
 			 * "a recipient X.509 version 3 certificate that contains a key usage extension MUST
 			 * assert the keyAgreement bit."
 			 */
 
-			KeyAgreeRecipientInfoGenerator karig = new KeyAgreeRecipientInfoGenerator();
-			karig.KeyAgreementOID = new DerObjectIdentifier(agreementAlgorithm);
-			karig.KeyEncryptionOID = new DerObjectIdentifier(cekWrapAlgorithm);
-			karig.RecipientCerts = new List<X509Certificate>(recipientCerts);
-			karig.SenderKeyPair = new AsymmetricCipherKeyPair(senderPublicKey, senderPrivateKey);
-
-			recipientInfoGenerators.Add(karig);
+			recipientInfoGenerators.Add(new KeyAgreeRecipientInfoGenerator(recipientCerts)
+            {
+                KeyAgreementOid = new DerObjectIdentifier(agreementAlgorithm),
+                KeyEncryptionOid = new DerObjectIdentifier(cekWrapAlgorithm),
+                SenderKeyPair = new AsymmetricCipherKeyPair(senderPublicKey, senderPrivateKey),
+            });
 		}
+
+        public void AddKeyAgreementRecipient(
+			string agreementAlgorithm,
+            AsymmetricKeyParameter senderPrivateKey,
+            AsymmetricKeyParameter senderPublicKey,
+			byte[] recipientKeyID,
+            AsymmetricKeyParameter recipientPublicKey,
+            string cekWrapAlgorithm)
+        {
+            if (!senderPrivateKey.IsPrivate)
+                throw new ArgumentException("Expected private key", nameof(senderPrivateKey));
+            if (senderPublicKey.IsPrivate)
+                throw new ArgumentException("Expected public key", nameof(senderPublicKey));
+            if (recipientPublicKey.IsPrivate)
+                throw new ArgumentException("Expected public key", nameof(recipientPublicKey));
+
+            recipientInfoGenerators.Add(new KeyAgreeRecipientInfoGenerator(recipientKeyID, recipientPublicKey)
+            {
+                KeyAgreementOid = new DerObjectIdentifier(agreementAlgorithm),
+                KeyEncryptionOid = new DerObjectIdentifier(cekWrapAlgorithm),
+                SenderKeyPair = new AsymmetricCipherKeyPair(senderPublicKey, senderPrivateKey),
+            });
+        }
 
         /// <summary>
         /// Add a generator to produce the recipient info required.
