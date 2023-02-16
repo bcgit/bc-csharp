@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             _matrixToHex = new Dictionary<string, string>();
             Stream input = typeof(LowmcConstants).Assembly
-                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.picnic.lowmcL5.properties");
+                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.picnic.lowmcL5.bz2");
             input = Bzip2.DecompressInput(input);
 
             using (StreamReader sr = new StreamReader(input))

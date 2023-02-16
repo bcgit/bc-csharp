@@ -113,7 +113,7 @@ internal class P434
             // Import compression tables from properties
             var props = new Dictionary<string, string>(); 
             Stream input = typeof(P434).Assembly
-                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p434.properties");
+                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p434.bz2");
             input = Bzip2.DecompressInput(input);
 
             using (StreamReader sr = new StreamReader(input))

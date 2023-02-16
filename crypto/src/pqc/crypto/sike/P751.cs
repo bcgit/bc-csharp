@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             // Import compression tables from properties
             var props = new Dictionary<string, string>(); 
             Stream input = typeof(P751).Assembly
-                    .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p751.properties");
+                    .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p751.bz2");
             input = Bzip2.DecompressInput(input);
 
             using (StreamReader sr = new StreamReader(input))
