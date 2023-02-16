@@ -404,6 +404,7 @@ namespace Org.BouncyCastle.Pkix
                 criticalExtensions.Remove(X509Extensions.SubjectAlternativeName.Id);
                 criticalExtensions.Remove(X509Extensions.NameConstraints.Id);
                 criticalExtensions.Remove(X509Extensions.CrlDistributionPoints.Id);
+                criticalExtensions.Remove(X509Extensions.ExtendedKeyUsage.Id);
             }
             else
             {
