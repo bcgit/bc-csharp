@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
+using System.Threading;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
@@ -63,7 +63,6 @@ namespace Org.BouncyCastle.X509
 		private readonly byte[] sigAlgParams;
 		private readonly bool isIndirect;
 
-        private readonly object cacheLock = new object();
         private CachedEncoding cachedEncoding;
 
         private volatile bool hashValueSet;
@@ -450,11 +449,9 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-            lock (cacheLock)
-            {
-                if (null != cachedEncoding)
-                    return cachedEncoding;
-            }
+			CachedEncoding localCacheEncoding = cachedEncoding;
+            if (null != localCacheEncoding)
+                return localCacheEncoding;
 
             byte[] encoding = null;
             CrlException exception = null;
@@ -469,15 +466,8 @@ namespace Org.BouncyCastle.X509
 
             CachedEncoding temp = new CachedEncoding(encoding, exception);
 
-            lock (cacheLock)
-            {
-                if (null == cachedEncoding)
-                {
-                    cachedEncoding = temp;
-                }
-
-                return cachedEncoding;
-            }
+			Interlocked.CompareExchange(ref cachedEncoding, temp, null);
+            return cachedEncoding;
         }
     }
 }

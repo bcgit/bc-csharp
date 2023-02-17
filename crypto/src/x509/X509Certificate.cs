@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Misc;
@@ -63,7 +64,6 @@ namespace Org.BouncyCastle.X509
         private readonly BasicConstraints basicConstraints;
         private readonly bool[] keyUsage;
 
-        private readonly object cacheLock = new object();
         private AsymmetricKeyParameter publicKeyValue;
         private CachedEncoding cachedEncoding;
 
@@ -471,23 +471,14 @@ namespace Org.BouncyCastle.X509
         public virtual AsymmetricKeyParameter GetPublicKey()
         {
             // Cache the public key to support repeated-use optimizations
-            lock (cacheLock)
-            {
-                if (null != publicKeyValue)
-                    return publicKeyValue;
-            }
+            AsymmetricKeyParameter localPublicKeyValue = publicKeyValue;
+            if (null != localPublicKeyValue)
+                return localPublicKeyValue;
 
             AsymmetricKeyParameter temp = PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
 
-            lock (cacheLock)
-            {
-                if (null == publicKeyValue)
-                {
-                    publicKeyValue = temp;
-                }
-
-                return publicKeyValue;
-            }
+            Interlocked.CompareExchange(ref publicKeyValue, temp, null);
+            return publicKeyValue;
         }
 
         /// <summary>
@@ -691,11 +682,9 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-            lock (cacheLock)
-            {
-                if (null != cachedEncoding)
-                    return cachedEncoding;
-            }
+            CachedEncoding localCachedEncoding = cachedEncoding;
+            if (null != localCachedEncoding)
+                return localCachedEncoding;
 
             byte[] encoding = null;
             CertificateEncodingException exception = null;
@@ -710,15 +699,8 @@ namespace Org.BouncyCastle.X509
 
             CachedEncoding temp = new CachedEncoding(encoding, exception);
 
-            lock (cacheLock)
-            {
-                if (null == cachedEncoding)
-                {
-                    cachedEncoding = temp;
-                }
-
-                return cachedEncoding;
-            }
+            Interlocked.CompareExchange(ref cachedEncoding, temp, null);
+            return cachedEncoding;
         }
 
         private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
