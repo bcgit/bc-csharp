@@ -12,7 +12,7 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    internal class CmsUtilities
+	internal static class CmsUtilities
     {
 		// TODO Is there a .NET equivalent to this?
 //		private static readonly Runtime RUNTIME = Runtime.getRuntime();
@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Cms
 				v.Add(element);
 			}
 
-			return new BerSet(v);
+			return BerSet.FromVector(v);
 		}
 
 		internal static Asn1Set CreateDerSetFromList(IEnumerable<Asn1Encodable> elements)
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Cms
 				v.Add(element);
 			}
 
-			return new DerSet(v);
+            return DerSet.FromVector(v);
 		}
 
 		internal static TbsCertificateStructure GetTbsCertificateStructure(X509Certificate cert)
@@ -186,6 +186,21 @@ namespace Org.BouncyCastle.Cms
 			TbsCertificateStructure tbsCert = GetTbsCertificateStructure(cert);
 			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber.Value);
 		}
+
+        internal static Asn1.Cms.AttributeTable ParseAttributeTable(Asn1SetParser parser)
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+
+            IAsn1Convertible o;
+            while ((o = parser.ReadObject()) != null)
+            {
+                Asn1SequenceParser seq = (Asn1SequenceParser)o;
+
+                v.Add(seq.ToAsn1Object());
+            }
+
+            return new Asn1.Cms.AttributeTable(new DerSet(v));
+        }
 
         internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
         {
