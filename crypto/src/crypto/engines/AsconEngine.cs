@@ -614,7 +614,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             case State.EncFinal:
                 throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
         }
 
@@ -637,7 +637,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             case State.EncFinal:
                 throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
         }
 
@@ -1027,7 +1027,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 m_state = State.EncFinal;
                 return;
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
 
             ascon_aeadinit();

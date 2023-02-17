@@ -234,7 +234,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (initialAssociatedText != null)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessAadBytes(initialAssociatedText);
+#else
                 ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+#endif
             }
         }
 
@@ -916,12 +920,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 initialised = false;
             }
-            else
+            else if (initialAssociatedText != null)
             {
-                if (initialAssociatedText != null)
-                {
-                    ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
-                }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessAadBytes(initialAssociatedText);
+#else
+                ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+#endif
             }
         }
 
@@ -1728,7 +1733,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (forEncryption)
                     throw new InvalidOperationException("GCM cipher cannot be reused for encryption");
 
-                throw new InvalidOperationException("GCM cipher needs to be initialised");
+                throw new InvalidOperationException("GCM cipher needs to be initialized");
             }
         }
     }

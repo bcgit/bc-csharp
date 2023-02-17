@@ -708,9 +708,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             case State.EncAad:
                 break;
             case State.EncFinal:
-                throw new InvalidOperationException("ChaCha20Poly1305 cannot be reused for encryption");
+                throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
         }
 
@@ -730,9 +730,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             case State.EncData:
                 break;
             case State.EncFinal:
-                throw new InvalidOperationException("ChaCha20Poly1305 cannot be reused for encryption");
+                throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
         }
 
@@ -886,7 +886,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 this.mState = State.EncFinal;
                 return;
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
 
             if (resetCipher)
@@ -898,7 +898,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (null != mInitialAad)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessAadBytes(mInitialAad);
+#else
                 ProcessAadBytes(mInitialAad, 0, mInitialAad.Length);
+#endif
             }
         }
     }
