@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Asn1
 {
+    // TODO[api] Should only be Asn1Encodable
     public class CmcePublicKey
         : Asn1Object
     {
@@ -23,9 +24,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         public Asn1Object ToAsn1Primitive()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
-            v.Add(new DerOctetString(t));
-            return new DerSequence(v);
+            return new DerSequence(new DerOctetString(t));
         }
 
         public static CmcePublicKey GetInstance(Object o)

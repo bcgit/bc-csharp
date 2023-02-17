@@ -649,7 +649,7 @@ namespace Org.BouncyCastle.Pkcs
             //
             // handle the keys
             //
-            Asn1EncodableVector keyBags = new Asn1EncodableVector();
+            Asn1EncodableVector keyBags = new Asn1EncodableVector(m_keys.Count);
             foreach (var keyEntry in m_keys)
             {
                 var name = keyEntry.Key;
@@ -732,7 +732,7 @@ namespace Org.BouncyCastle.Pkcs
 
             random.NextBytes(cSalt);
 
-            Asn1EncodableVector certBags = new Asn1EncodableVector();
+            Asn1EncodableVector certBags = new Asn1EncodableVector(m_keys.Count);
             Pkcs12PbeParams     cParams = new Pkcs12PbeParams(cSalt, MinIterations);
             AlgorithmIdentifier cAlgId = new AlgorithmIdentifier(certAlgorithm, cParams.ToAsn1Object());
             var doneCerts = new HashSet<X509Certificate>();
@@ -836,8 +836,8 @@ namespace Org.BouncyCastle.Pkcs
                     if (ext != null)
                     {
                         ExtendedKeyUsage usage = ExtendedKeyUsage.GetInstance(ext.GetOctets());
-                        Asn1EncodableVector v = new Asn1EncodableVector();
                         IList<DerObjectIdentifier> usages = usage.GetAllUsages();
+                        Asn1EncodableVector v = new Asn1EncodableVector(usages.Count);
                         for (int i = 0; i != usages.Count; i++)
                         {
                             v.Add(usages[i]);

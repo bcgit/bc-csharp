@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptionalTagged(true, 0, m_crlVals);
             v.AddOptionalTagged(true, 1, m_ocspVals);
 

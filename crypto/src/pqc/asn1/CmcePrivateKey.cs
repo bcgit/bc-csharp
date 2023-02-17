@@ -18,6 +18,7 @@ using Org.BouncyCastle.Utilities;
 // </pre>
 namespace Org.BouncyCastle.Pqc.Asn1
 {
+    // TODO[api] Should only be Asn1Encodable
     public class CmcePrivateKey
         : Asn1Object
     {
@@ -84,7 +85,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         public Asn1Object ToAsn1Primitive()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(7);
 
             v.Add(new DerInteger(version));
             v.Add(new DerOctetString(delta));
@@ -94,9 +95,9 @@ namespace Org.BouncyCastle.Pqc.Asn1
             v.Add(new DerOctetString(s));
 
             // todo optional publickey
-            if(PublicKey != null)
+            if (publicKey != null)
             {
-                v.Add(new CmcePublicKey(PublicKey.T));
+                v.Add(new CmcePublicKey(publicKey.T));
             }
 
             return new DerSequence(v);

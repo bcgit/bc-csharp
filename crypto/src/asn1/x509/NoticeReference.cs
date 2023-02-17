@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private static Asn1EncodableVector ConvertVector(IList<object> numbers)
         {
-            Asn1EncodableVector av = new Asn1EncodableVector();
+            Asn1EncodableVector av = new Asn1EncodableVector(numbers.Count);
 
             foreach (object o in numbers)
             {

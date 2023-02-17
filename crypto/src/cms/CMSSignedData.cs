@@ -276,10 +276,10 @@ namespace Org.BouncyCastle.Cms
 			//
 			// replace the signers in the SignedData object
 			//
-			Asn1EncodableVector digestAlgs = new Asn1EncodableVector();
-			Asn1EncodableVector vec = new Asn1EncodableVector();
-
-			foreach (SignerInformation signer in signerInformationStore.GetSigners())
+			var storeSigners = signerInformationStore.GetSigners();
+            Asn1EncodableVector digestAlgs = new Asn1EncodableVector(storeSigners.Count);
+            Asn1EncodableVector vec = new Asn1EncodableVector(storeSigners.Count);
+            foreach (SignerInformation signer in storeSigners)
 			{
 				digestAlgs.Add(Helper.FixAlgID(signer.DigestAlgorithmID));
 				vec.Add(signer.ToSignerInfo());
@@ -292,9 +292,9 @@ namespace Org.BouncyCastle.Cms
 			//
 			// signers are the last item in the sequence.
 			//
-			vec = new Asn1EncodableVector(
-				sD[0], // version
-				digests);
+			vec = new Asn1EncodableVector(sD.Count);
+			vec.Add(sD[0]); // version
+			vec.Add(digests);
 
 			for (int i = 2; i != sD.Count - 1; i++)
 			{

@@ -784,12 +784,12 @@ namespace Org.BouncyCastle.Cms
 			}
 			else
 			{
-				v = new Asn1EncodableVector();
+				v = new Asn1EncodableVector(1);
 			}
 
-			Asn1EncodableVector sigs = new Asn1EncodableVector();
-
-			foreach (SignerInformation sigInf in counterSigners.GetSigners())
+			var signers = counterSigners.GetSigners();
+            Asn1EncodableVector sigs = new Asn1EncodableVector(signers.Count);
+            foreach (SignerInformation sigInf in signers)
 			{
 				sigs.Add(sigInf.ToSignerInfo());
 			}

@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Asn1.X509
             if (null == property || Platform.EqualsIgnoreCase("true", property))
                 return seq;
 
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(8);
 
             // DEFAULT Zero
             if (!version.HasValue(0))

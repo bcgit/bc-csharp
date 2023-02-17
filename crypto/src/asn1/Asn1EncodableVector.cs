@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1
         public Asn1EncodableVector(int initialCapacity)
         {
             if (initialCapacity < 0)
-                throw new ArgumentException("must not be negative", "initialCapacity");
+                throw new ArgumentException("must not be negative", nameof(initialCapacity));
 
             this.elements = (initialCapacity == 0) ? EmptyElements : new Asn1Encodable[initialCapacity];
             this.elementCount = 0;
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1
         public void Add(Asn1Encodable element)
         {
             if (null == element)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
 
             int capacity = elements.Length;
             int minCapacity = elementCount + 1;
@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.Asn1
         public void AddAll(Asn1EncodableVector other)
         {
             if (null == other)
-                throw new ArgumentNullException("other");
+                throw new ArgumentNullException(nameof(other));
 
             int otherElementCount = other.Count;
             if (otherElementCount < 1)
@@ -182,10 +182,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        public int Count
-        {
-            get { return elementCount; }
-        }
+        public int Count => elementCount;
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {

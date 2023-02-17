@@ -126,26 +126,14 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			return this;
 		}
 
-		private static Asn1Sequence MakeGeneralInfoSeq(
-			InfoTypeAndValue generalInfo)
+		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue generalInfo)
 		{
 			return new DerSequence(generalInfo);
 		}
-		
-		private static Asn1Sequence MakeGeneralInfoSeq(
-			InfoTypeAndValue[] generalInfos)
+
+		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue[] generalInfos)
 		{
-			Asn1Sequence genInfoSeq = null;
-			if (generalInfos != null)
-			{
-				Asn1EncodableVector v = new Asn1EncodableVector();
-				for (int i = 0; i < generalInfos.Length; ++i)
-				{
-					v.Add(generalInfos[i]);
-				}
-				genInfoSeq = new DerSequence(v);
-			}
-			return genInfoSeq;
+			return generalInfos == null ? null : new DerSequence(generalInfos);
 		}
 
 		/**

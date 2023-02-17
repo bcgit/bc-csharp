@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			this._onlyContainsUserCerts = onlyContainsUserCerts;
 			this._onlySomeReasons = onlySomeReasons;
 
-			Asn1EncodableVector vec = new Asn1EncodableVector();
+			Asn1EncodableVector vec = new Asn1EncodableVector(6);
 			if (distributionPoint != null)
 			{	// CHOICE item so explicitly tagged
 				vec.Add(new DerTaggedObject(true, 0, distributionPoint));

@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Cms
 			DerSequence paramSeq = new DerSequence(m_keyEncryptionOid, DerNull.Instance);
 			AlgorithmIdentifier keyEncAlg = new AlgorithmIdentifier(m_keyAgreementOid, paramSeq);
 
-			Asn1EncodableVector recipientEncryptedKeys = new Asn1EncodableVector();
+			Asn1EncodableVector recipientEncryptedKeys = new Asn1EncodableVector(m_recipientIDs.Count);
             for (int i = 0; i < m_recipientIDs.Count; ++i)
 			{
 				var recipientID = m_recipientIDs[i];

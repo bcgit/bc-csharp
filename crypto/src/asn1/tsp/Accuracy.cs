@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		 */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptional(seconds);
             v.AddOptionalTagged(false, 0, millis);
             v.AddOptionalTagged(false, 1, micros);

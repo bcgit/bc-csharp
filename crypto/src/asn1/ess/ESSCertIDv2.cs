@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Asn1.Ess
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
 
             if (!hashAlgorithm.Equals(DefaultAlgID))
             {

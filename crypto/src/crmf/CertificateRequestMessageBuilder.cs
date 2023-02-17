@@ -201,7 +201,7 @@ namespace Org.BouncyCastle.Crmf
 
             if (m_controls.Count > 0)
             {
-                Asn1EncodableVector controlV = new Asn1EncodableVector();
+                Asn1EncodableVector controlV = new Asn1EncodableVector(m_controls.Count);
 
                 foreach (var control in m_controls)
                 {

@@ -296,7 +296,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(5);
             v.AddOptionalTagged(true, 0, namingAuthority);
             v.Add(professionItems);
             v.AddOptional(professionOids);

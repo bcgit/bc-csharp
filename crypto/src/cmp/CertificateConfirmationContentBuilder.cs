@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Cmp
 
         public CertificateConfirmationContent Build()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(m_acceptedCerts.Count);
             for (int i = 0; i != m_acceptedCerts.Count; i++)
             {
                 X509Certificate cert = m_acceptedCerts[i];

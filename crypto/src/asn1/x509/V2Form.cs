@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptional(issuerName);
             v.AddOptionalTagged(false, 0, baseCertificateID);
             v.AddOptionalTagged(false, 1, objectDigestInfo);
