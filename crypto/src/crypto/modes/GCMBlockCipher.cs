@@ -133,14 +133,14 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
                     throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
 
-                macSize = macSizeBits / 8; 
+                macSize = macSizeBits / 8;
                 keyParam = aeadParameters.Key;
             }
             else if (parameters is ParametersWithIV withIV)
             {
                 newNonce = withIV.GetIV();
                 initialAssociatedText = null;
-                macSize = 16; 
+                macSize = 16;
                 keyParam = (KeyParameter)withIV.Parameters;
             }
             else
@@ -385,6 +385,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             bufBlock[bufOff] = input;
             if (++bufOff == bufBlock.Length)
             {
+                Check.OutputLength(output, outOff, BlockSize, "output buffer too short");
+
+                if (totalLength == 0)
+                {
+                    InitCipher();
+                }
+
                 if (forEncryption)
                 {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -404,6 +411,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                     Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
                     bufOff = macSize;
                 }
+
+                totalLength += BlockSize;
                 return BlockSize;
             }
             return 0;
@@ -417,6 +426,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             bufBlock[bufOff] = input;
             if (++bufOff == bufBlock.Length)
             {
+                Check.OutputLength(output, BlockSize, "output buffer too short");
+
+                if (totalLength == 0)
+                {
+                    InitCipher();
+                }
+
                 if (forEncryption)
                 {
                     EncryptBlock(bufBlock, output);
@@ -428,6 +444,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                     Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
                     bufOff = macSize;
                 }
+
+                totalLength += BlockSize;
                 return BlockSize;
             }
             return 0;
@@ -443,10 +461,21 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(input.AsSpan(inOff, len), Spans.FromNullable(output, outOff));
 #else
-            int resultLen = 0;
+            int resultLen = bufOff + len;
 
             if (forEncryption)
             {
+                resultLen &= -BlockSize;
+                if (resultLen > 0)
+                {
+                    Check.OutputLength(output, outOff, resultLen, "output buffer too short");
+
+                    if (totalLength == 0)
+                    {
+                        InitCipher();
+                    }
+                }
+
                 if (bufOff > 0)
                 {
                     int available = BlockSize - bufOff;
@@ -458,10 +487,12 @@ namespace Org.BouncyCastle.Crypto.Modes
                     }
 
                     Array.Copy(input, inOff, bufBlock, bufOff, available);
-                    EncryptBlock(bufBlock, 0, output, outOff);
                     inOff += available;
                     len -= available;
-                    resultLen = BlockSize;
+
+                    EncryptBlock(bufBlock, 0, output, outOff);
+                    outOff += BlockSize;
+
                     //bufOff = 0;
                 }
 
@@ -470,16 +501,16 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 while (inOff <= inLimit2)
                 {
-                    EncryptBlocks2(input, inOff, output, outOff + resultLen);
+                    EncryptBlocks2(input, inOff, output, outOff);
                     inOff += BlockSize * 2;
-                    resultLen += BlockSize * 2;
+                    outOff += BlockSize * 2;
                 }
 
                 if (inOff <= inLimit1)
                 {
-                    EncryptBlock(input, inOff, output, outOff + resultLen);
+                    EncryptBlock(input, inOff, output, outOff);
                     inOff += BlockSize;
-                    resultLen += BlockSize;
+                    //outOff += BlockSize;
                 }
 
                 bufOff = BlockSize + inLimit1 - inOff;
@@ -487,6 +518,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else
             {
+                resultLen -= macSize;
+                resultLen &= -BlockSize;
+                if (resultLen > 0)
+                {
+                    Check.OutputLength(output, outOff, resultLen, "output buffer too short");
+
+                    if (totalLength == 0)
+                    {
+                        InitCipher();
+                    }
+                }
+
                 int available = bufBlock.Length - bufOff;
                 if (len < available)
                 {
@@ -498,15 +541,19 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (bufOff >= BlockSize)
                 {
                     DecryptBlock(bufBlock, 0, output, outOff);
-                    Array.Copy(bufBlock, BlockSize, bufBlock, 0, bufOff -= BlockSize);
-                    resultLen = BlockSize;
+                    outOff += BlockSize;
+
+                    bufOff -= BlockSize;
+                    Array.Copy(bufBlock, BlockSize, bufBlock, 0, bufOff);
 
                     available += BlockSize;
                     if (len < available)
                     {
                         Array.Copy(input, inOff, bufBlock, bufOff, len);
                         bufOff += len;
-                        return resultLen;
+
+                        totalLength += BlockSize;
+                        return BlockSize;
                     }
                 }
 
@@ -515,29 +562,31 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 available = BlockSize - bufOff;
                 Array.Copy(input, inOff, bufBlock, bufOff, available);
-                DecryptBlock(bufBlock, 0, output, outOff + resultLen);
                 inOff += available;
-                resultLen += BlockSize;
+
+                DecryptBlock(bufBlock, 0, output, outOff);
+                outOff += BlockSize;
                 //bufOff = 0;
 
                 while (inOff <= inLimit2)
                 {
-                    DecryptBlocks2(input, inOff, output, outOff + resultLen);
+                    DecryptBlocks2(input, inOff, output, outOff);
                     inOff += BlockSize * 2;
-                    resultLen += BlockSize * 2;
+                    outOff += BlockSize * 2;
                 }
 
                 if (inOff <= inLimit1)
                 {
-                    DecryptBlock(input, inOff, output, outOff + resultLen);
+                    DecryptBlock(input, inOff, output, outOff);
                     inOff += BlockSize;
-                    resultLen += BlockSize;
+                    //outOff += BlockSize;
                 }
 
                 bufOff = bufBlock.Length + inLimit1 - inOff;
                 Array.Copy(input, inOff, bufBlock, 0, bufOff);
             }
 
+            totalLength += (uint)resultLen;
             return resultLen;
 #endif
         }
@@ -547,10 +596,21 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             CheckStatus();
 
-            int resultLen = 0;
+            int resultLen = bufOff + input.Length;
 
             if (forEncryption)
             {
+                resultLen &= -BlockSize;
+                if (resultLen > 0)
+                {
+                    Check.OutputLength(output, resultLen, "output buffer too short");
+
+                    if (totalLength == 0)
+                    {
+                        InitCipher();
+                    }
+                }
+
                 if (bufOff > 0)
                 {
                     int available = BlockSize - bufOff;
@@ -562,31 +622,42 @@ namespace Org.BouncyCastle.Crypto.Modes
                     }
 
                     input[..available].CopyTo(bufBlock.AsSpan(bufOff));
-                    EncryptBlock(bufBlock, output);
                     input = input[available..];
-                    resultLen = BlockSize;
+
+                    EncryptBlock(bufBlock, output);
+                    output = output[BlockSize..];
+
                     //bufOff = 0;
                 }
 
-                while (input.Length >= BlockSize * 4)
+#if NETCOREAPP3_0_OR_GREATER
+                if (IsFourWaySupported && input.Length >= BlockSize * 4)
                 {
-                    EncryptBlocks4(input, output[resultLen..]);
-                    input = input[(BlockSize * 4)..];
-                    resultLen += BlockSize * 4;
-                }
+                    EncryptBlocks4(ref input, ref output);
 
-                if (input.Length >= BlockSize * 2)
+                    if (input.Length >= BlockSize * 2)
+                    {
+                        EncryptBlocks2(input, output);
+                        input = input[(BlockSize * 2)..];
+                        output = output[(BlockSize * 2)..];
+                    }
+                }
+                else
+#endif
                 {
-                    EncryptBlocks2(input, output[resultLen..]);
-                    input = input[(BlockSize * 2)..];
-                    resultLen += BlockSize * 2;
+                    while (input.Length >= BlockSize * 2)
+                    {
+                        EncryptBlocks2(input, output);
+                        input = input[(BlockSize * 2)..];
+                        output = output[(BlockSize * 2)..];
+                    }
                 }
 
                 if (input.Length >= BlockSize)
                 {
-                    EncryptBlock(input, output[resultLen..]);
+                    EncryptBlock(input, output);
                     input = input[BlockSize..];
-                    resultLen += BlockSize;
+                    //output = output[BlockSize..];
                 }
 
                 bufOff = input.Length;
@@ -594,6 +665,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else
             {
+                resultLen -= macSize;
+                resultLen &= -BlockSize;
+                if (resultLen > 0)
+                {
+                    Check.OutputLength(output, resultLen, "output buffer too short");
+
+                    if (totalLength == 0)
+                    {
+                        InitCipher();
+                    }
+                }
+
                 int available = bufBlock.Length - bufOff;
                 if (input.Length < available)
                 {
@@ -605,16 +688,19 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (bufOff >= BlockSize)
                 {
                     DecryptBlock(bufBlock, output);
+                    output = output[BlockSize..];
+
                     bufOff -= BlockSize;
                     bufBlock.AsSpan(0, bufOff).CopyFrom(bufBlock.AsSpan(BlockSize));
-                    resultLen = BlockSize;
 
                     available += BlockSize;
                     if (input.Length < available)
                     {
                         input.CopyTo(bufBlock.AsSpan(bufOff));
                         bufOff += input.Length;
-                        return resultLen;
+
+                        totalLength += BlockSize;
+                        return BlockSize;
                     }
                 }
 
@@ -624,36 +710,47 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 available = BlockSize - bufOff;
                 input[..available].CopyTo(bufBlock.AsSpan(bufOff));
-                DecryptBlock(bufBlock, output[resultLen..]);
                 input = input[available..];
-                resultLen += BlockSize;
+
+                DecryptBlock(bufBlock, output);
+                output = output[BlockSize..];
                 //bufOff = 0;
 
-                while (input.Length >= inLimit4)
+#if NETCOREAPP3_0_OR_GREATER
+                if (IsFourWaySupported && input.Length >= inLimit4)
                 {
-                    DecryptBlocks4(input, output[resultLen..]);
-                    input = input[(BlockSize * 4)..];
-                    resultLen += BlockSize * 4;
-                }
+                    DecryptBlocks4(ref input, ref output, inLimit4);
 
-                if (input.Length >= inLimit2)
+                    if (input.Length >= inLimit2)
+                    {
+                        DecryptBlocks2(input, output);
+                        input = input[(BlockSize * 2)..];
+                        output = output[(BlockSize * 2)..];
+                    }
+                }
+                else
+#endif
                 {
-                    DecryptBlocks2(input, output[resultLen..]);
-                    input = input[(BlockSize * 2)..];
-                    resultLen += BlockSize * 2;
+                    while (input.Length >= inLimit2)
+                    {
+                        DecryptBlocks2(input, output);
+                        input = input[(BlockSize * 2)..];
+                        output = output[(BlockSize * 2)..];
+                    }
                 }
 
                 if (input.Length >= inLimit1)
                 {
-                    DecryptBlock(input, output[resultLen..]);
+                    DecryptBlock(input, output);
                     input = input[BlockSize..];
-                    resultLen += BlockSize;
+                    //output = output[BlockSize..];
                 }
 
                 bufOff = input.Length;
                 input.CopyTo(bufBlock);
             }
 
+            totalLength += (uint)resultLen;
             return resultLen;
         }
 #endif
@@ -664,11 +761,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             return DoFinal(output.AsSpan(outOff));
 #else
             CheckStatus();
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
 
             int extra = bufOff;
 
@@ -684,6 +776,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 extra -= macSize;
 
                 Check.OutputLength(output, outOff, extra, "output buffer too short");
+            }
+
+            if (totalLength == 0)
+            {
+                InitCipher();
             }
 
             if (extra > 0)
@@ -777,11 +874,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             CheckStatus();
 
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             int extra = bufOff;
 
             if (forEncryption)
@@ -796,6 +888,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 extra -= macSize;
 
                 Check.OutputLength(output, extra, "output buffer too short");
+            }
+
+            if (totalLength == 0)
+            {
+                InitCipher();
             }
 
             if (extra > 0)
@@ -933,13 +1030,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            Check.OutputLength(output, BlockSize, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             Span<byte> ctrBlock = stackalloc byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -978,19 +1068,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize;
         }
 
         private void DecryptBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            Check.OutputLength(output, BlockSize * 2, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             Span<byte> ctrBlock = stackalloc byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -1069,23 +1150,24 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize * 2;
         }
 
-        private void DecryptBlocks4(ReadOnlySpan<byte> input, Span<byte> output)
-        {
 #if NETCOREAPP3_0_OR_GREATER
-            if (IsFourWaySupported)
+        private void DecryptBlocks4(ref ReadOnlySpan<byte> input, ref Span<byte> output, int limit)
+        {
+            if (!IsFourWaySupported)
+                throw new PlatformNotSupportedException(nameof(DecryptBlocks4));
+            if (limit < BlockSize * 4)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
+            Span<Vector128<byte>> counters = stackalloc Vector128<byte>[4];
+            var ctrBlocks = MemoryMarshal.AsBytes(counters);
+
+            Vector128<byte> S128 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
+            S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
+
+            while (input.Length >= limit)
             {
-                Check.OutputLength(output, BlockSize * 4, "output buffer too short");
-
-                if (totalLength == 0)
-                {
-                    InitCipher();
-                }
-
-                Span<byte> ctrBlocks = stackalloc byte[BlockSize * 4];
                 GetNextCtrBlocks4(ctrBlocks);
 
                 var c0 = MemoryMarshal.Read<Vector128<byte>>(input);
@@ -1093,28 +1175,22 @@ namespace Org.BouncyCastle.Crypto.Modes
                 var c2 = MemoryMarshal.Read<Vector128<byte>>(input[(BlockSize * 2)..]);
                 var c3 = MemoryMarshal.Read<Vector128<byte>>(input[(BlockSize * 3)..]);
 
-                var n0 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks);
-                var n1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks[BlockSize..]);
-                var n2 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks[(BlockSize * 2)..]);
-                var n3 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks[(BlockSize * 3)..]);
-
-                var p0 = Sse2.Xor(c0, n0);
-                var p1 = Sse2.Xor(c1, n1);
-                var p2 = Sse2.Xor(c2, n2);
-                var p3 = Sse2.Xor(c3, n3);
+                var p0 = Sse2.Xor(c0, counters[0]);
+                var p1 = Sse2.Xor(c1, counters[1]);
+                var p2 = Sse2.Xor(c2, counters[2]);
+                var p3 = Sse2.Xor(c3, counters[3]);
 
                 MemoryMarshal.Write(output, ref p0);
                 MemoryMarshal.Write(output[BlockSize..], ref p1);
                 MemoryMarshal.Write(output[(BlockSize * 2)..], ref p2);
                 MemoryMarshal.Write(output[(BlockSize * 3)..], ref p3);
 
-                var t0 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
-                c0 = Sse2.Xor(c0, t0);
-
                 c0 = Ssse3.Shuffle(c0, ReverseBytesMask);
                 c1 = Ssse3.Shuffle(c1, ReverseBytesMask);
                 c2 = Ssse3.Shuffle(c2, ReverseBytesMask);
                 c3 = Ssse3.Shuffle(c3, ReverseBytesMask);
+
+                c0 = Sse2.Xor(c0, S128);
 
                 GcmUtilities.MultiplyExt(c0.AsUInt64(), HPow[0], out var U0, out var U1, out var U2);
                 GcmUtilities.MultiplyExt(c1.AsUInt64(), HPow[1], out var V0, out var V1, out var V2);
@@ -1133,29 +1209,19 @@ namespace Org.BouncyCastle.Crypto.Modes
                 U1 = Sse2.Xor(U1, X1);
                 U2 = Sse2.Xor(U2, X2);
 
-                var t2 = GcmUtilities.Reduce3(U0, U1, U2).AsByte();
+                S128 = GcmUtilities.Reduce3(U0, U1, U2).AsByte();
 
-                t2 = Ssse3.Shuffle(t2, ReverseBytesMask);
-                MemoryMarshal.Write(S.AsSpan(), ref t2);
-
-                totalLength += BlockSize * 4;
-                return;
+                input = input[(BlockSize * 4)..];
+                output = output[(BlockSize * 4)..];
             }
-#endif
 
-            DecryptBlocks2(input, output);
-            DecryptBlocks2(input[(BlockSize * 2)..], output[(BlockSize * 2)..]);
+            S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
+            MemoryMarshal.Write(S.AsSpan(), ref S128);
         }
+#endif
 
         private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            Check.OutputLength(output, BlockSize, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             Span<byte> ctrBlock = stackalloc byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -1194,19 +1260,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize;
         }
 
         private void EncryptBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            Check.OutputLength(output, BlockSize * 2, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             Span<byte> ctrBlocks = stackalloc byte[BlockSize * 2];
             GetNextCtrBlocks2(ctrBlocks);
 
@@ -1285,23 +1342,22 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize * 2;
         }
 
-        private void EncryptBlocks4(ReadOnlySpan<byte> input, Span<byte> output)
-        {
 #if NETCOREAPP3_0_OR_GREATER
-            if (IsFourWaySupported)
+        private void EncryptBlocks4(ref ReadOnlySpan<byte> input, ref Span<byte> output)
+        {
+            if (!IsFourWaySupported)
+                throw new PlatformNotSupportedException(nameof(EncryptBlocks4));
+
+            Span<Vector128<byte>> counters = stackalloc Vector128<byte>[4];
+            var ctrBlocks = MemoryMarshal.AsBytes(counters);
+
+            Vector128<byte> S128 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
+            S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
+
+            while (input.Length >= BlockSize * 4)
             {
-                Check.OutputLength(output, BlockSize * 4, "output buffer too short");
-
-                if (totalLength == 0)
-                {
-                    InitCipher();
-                }
-
-                Span<byte> ctrBlocks = stackalloc byte[BlockSize * 4];
                 GetNextCtrBlocks4(ctrBlocks);
 
                 var p0 = MemoryMarshal.Read<Vector128<byte>>(input);
@@ -1309,28 +1365,22 @@ namespace Org.BouncyCastle.Crypto.Modes
                 var p2 = MemoryMarshal.Read<Vector128<byte>>(input[(BlockSize * 2)..]);
                 var p3 = MemoryMarshal.Read<Vector128<byte>>(input[(BlockSize * 3)..]);
 
-                var n0 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks);
-                var n1 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks[BlockSize..]);
-                var n2 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks[(BlockSize * 2)..]);
-                var n3 = MemoryMarshal.Read<Vector128<byte>>(ctrBlocks[(BlockSize * 3)..]);
-
-                var c0 = Sse2.Xor(p0, n0);
-                var c1 = Sse2.Xor(p1, n1);
-                var c2 = Sse2.Xor(p2, n2);
-                var c3 = Sse2.Xor(p3, n3);
+                var c0 = Sse2.Xor(p0, counters[0]);
+                var c1 = Sse2.Xor(p1, counters[1]);
+                var c2 = Sse2.Xor(p2, counters[2]);
+                var c3 = Sse2.Xor(p3, counters[3]);
 
                 MemoryMarshal.Write(output, ref c0);
                 MemoryMarshal.Write(output[BlockSize..], ref c1);
                 MemoryMarshal.Write(output[(BlockSize * 2)..], ref c2);
                 MemoryMarshal.Write(output[(BlockSize * 3)..], ref c3);
 
-                var t0 = MemoryMarshal.Read<Vector128<byte>>(S.AsSpan());
-                c0 = Sse2.Xor(c0, t0);
-
                 c0 = Ssse3.Shuffle(c0, ReverseBytesMask);
                 c1 = Ssse3.Shuffle(c1, ReverseBytesMask);
                 c2 = Ssse3.Shuffle(c2, ReverseBytesMask);
                 c3 = Ssse3.Shuffle(c3, ReverseBytesMask);
+
+                c0 = Sse2.Xor(c0, S128);
 
                 GcmUtilities.MultiplyExt(c0.AsUInt64(), HPow[0], out var U0, out var U1, out var U2);
                 GcmUtilities.MultiplyExt(c1.AsUInt64(), HPow[1], out var V0, out var V1, out var V2);
@@ -1349,19 +1399,16 @@ namespace Org.BouncyCastle.Crypto.Modes
                 U1 = Sse2.Xor(U1, X1);
                 U2 = Sse2.Xor(U2, X2);
 
-                var t2 = GcmUtilities.Reduce3(U0, U1, U2).AsByte();
+                S128 = GcmUtilities.Reduce3(U0, U1, U2).AsByte();
 
-                t2 = Ssse3.Shuffle(t2, ReverseBytesMask);
-                MemoryMarshal.Write(S.AsSpan(), ref t2);
-
-                totalLength += BlockSize * 4;
-                return;
+                input = input[(BlockSize * 4)..];
+                output = output[(BlockSize * 4)..];
             }
-#endif
 
-            EncryptBlocks2(input, output);
-            EncryptBlocks2(input[(BlockSize * 2)..], output[(BlockSize * 2)..]);
+            S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
+            MemoryMarshal.Write(S.AsSpan(), ref S128);
         }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextCtrBlock(Span<byte> block)
@@ -1458,13 +1505,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 #else
         private void DecryptBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-            Check.OutputLength(outBuf, outOff, BlockSize, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             byte[] ctrBlock = new byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -1488,19 +1528,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize;
         }
 
         private void DecryptBlocks2(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-            Check.OutputLength(outBuf, outOff, BlockSize * 2, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             byte[] ctrBlock = new byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -1549,19 +1580,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize * 2;
         }
 
         private void EncryptBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-            Check.OutputLength(outBuf, outOff, BlockSize, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             byte[] ctrBlock = new byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -1585,19 +1607,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize;
         }
 
         private void EncryptBlocks2(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-            Check.OutputLength(outBuf, outOff, BlockSize * 2, "output buffer too short");
-
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-
             byte[] ctrBlock = new byte[BlockSize];
 
             GetNextCtrBlock(ctrBlock);
@@ -1646,8 +1659,6 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
             multiplier.MultiplyH(S);
-
-            totalLength += BlockSize * 2;
         }
 
         private void GetNextCtrBlock(byte[] block)
