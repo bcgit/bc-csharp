@@ -477,8 +477,7 @@ namespace Org.BouncyCastle.X509
 
             AsymmetricKeyParameter temp = PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
 
-            Interlocked.CompareExchange(ref publicKeyValue, temp, null);
-            return publicKeyValue;
+            return Interlocked.CompareExchange(ref publicKeyValue, temp, null) ?? temp;
         }
 
         /// <summary>
@@ -699,8 +698,7 @@ namespace Org.BouncyCastle.X509
 
             CachedEncoding temp = new CachedEncoding(encoding, exception);
 
-            Interlocked.CompareExchange(ref cachedEncoding, temp, null);
-            return cachedEncoding;
+           return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
         }
 
         private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)

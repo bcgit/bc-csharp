@@ -466,8 +466,7 @@ namespace Org.BouncyCastle.X509
 
             CachedEncoding temp = new CachedEncoding(encoding, exception);
 
-			Interlocked.CompareExchange(ref cachedEncoding, temp, null);
-            return cachedEncoding;
+			return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
         }
     }
 }
