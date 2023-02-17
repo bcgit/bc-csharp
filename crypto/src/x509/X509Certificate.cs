@@ -698,7 +698,7 @@ namespace Org.BouncyCastle.X509
 
             CachedEncoding temp = new CachedEncoding(encoding, exception);
 
-           return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
+            return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
         }
 
         private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)

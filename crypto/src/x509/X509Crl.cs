@@ -449,7 +449,7 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-			CachedEncoding localCacheEncoding = cachedEncoding;
+            CachedEncoding localCacheEncoding = cachedEncoding;
             if (null != localCacheEncoding)
                 return localCacheEncoding;
 
@@ -466,7 +466,7 @@ namespace Org.BouncyCastle.X509
 
             CachedEncoding temp = new CachedEncoding(encoding, exception);
 
-			return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
+            return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
         }
     }
 }
