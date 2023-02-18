@@ -22,23 +22,26 @@
     <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
     <PackageTags>bouncycastle cryptography dtls encryption open-source openpgp post-quantum security tls</PackageTags>
 	<Product>BouncyCastle.NET</Product>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/bcgit/bc-csharp</RepositoryUrl>
+	<PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Title>BouncyCastle.NET Cryptography</Title>
   </PropertyGroup>
 
-  <!-- Debugging-->
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-      <DebugType>full</DebugType>
-      <DebugSymbols>true</DebugSymbols>
-      <IncludeSymbols>true</IncludeSymbols>
-      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  <!-- CI systems other than GitLab might need different conditions -->
+  <PropertyGroup Condition="'$(CI)' != ''">
+    <!-- Deterministic build. -->
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-      <DebugType>pdbonly</DebugType>
-      <DebugSymbols>true</DebugSymbols>
-      <IncludeSymbols>true</IncludeSymbols>
-      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+  <!--Source-Level Debugging-->
+  <PropertyGroup>
+	<!-- Any custom target adding things to the Compile item group needs BeforeTargets="BeforeCompile".	-->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- Tell SourceLink to use this remote to derive the published git repository URL and source links. -->
+    <GitRepositoryRemoteName>public</GitRepositoryRemoteName>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <!--Package Validation-->
@@ -81,6 +84,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
