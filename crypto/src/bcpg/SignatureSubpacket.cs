@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the generic data making up the packet.</summary>
         public byte[] GetData()
         {
-            return (byte[]) data.Clone();
+            return (byte[])data.Clone();
         }
 
 		public void Encode(

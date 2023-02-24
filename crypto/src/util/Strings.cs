@@ -78,6 +78,11 @@ namespace Org.BouncyCastle.Utilities
             return Encoding.UTF8.GetString(bytes);
         }
 
+        public static string FromUtf8ByteArray(byte[] bytes, int index, int count)
+        {
+            return Encoding.UTF8.GetString(bytes, index, count);
+        }
+
         public static byte[] ToUtf8ByteArray(char[] cs)
         {
             return Encoding.UTF8.GetBytes(cs);
