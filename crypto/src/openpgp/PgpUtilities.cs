@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -17,7 +20,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>Basic utility class.</remarks>
+    /// <remarks>Basic utility class.</remarks>
     public sealed class PgpUtilities
     {
         private static readonly IDictionary<string, HashAlgorithmTag> NameToHashID = CreateNameToHashID();
@@ -406,51 +409,55 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>Write out the passed in file as a literal data packet.</summary>
-        public static void WriteFileToLiteralData(
-            Stream		output,
-            char		fileType,
-            FileInfo	file)
+        public static void WriteFileToLiteralData(Stream output, char fileType, FileInfo file)
         {
             PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
-			Stream pOut = lData.Open(output, fileType, file.Name, file.Length, file.LastWriteTime);
-			PipeFileContents(file, pOut, 32768);
+            using (var pOut = lData.Open(output, fileType, file.Name, file.Length, file.LastWriteTime))
+            {
+                PipeFileContents(file, pOut, 32768);
+            }
         }
 
 		/// <summary>Write out the passed in file as a literal data packet in partial packet format.</summary>
-        public static void WriteFileToLiteralData(
-            Stream		output,
-            char		fileType,
-            FileInfo	file,
-            byte[]		buffer)
+        public static void WriteFileToLiteralData(Stream output, char fileType, FileInfo file, byte[] buffer)
         {
             PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
-            Stream pOut = lData.Open(output, fileType, file.Name, file.LastWriteTime, buffer);
-			PipeFileContents(file, pOut, buffer.Length);
+            using (var pOut = lData.Open(output, fileType, file.Name, file.LastWriteTime, buffer))
+            {
+                PipeFileContents(file, pOut, buffer.Length);
+            }
         }
 
 		private static void PipeFileContents(FileInfo file, Stream pOut, int bufSize)
 		{
-			FileStream inputStream = file.OpenRead();
-			byte[] buf = new byte[bufSize];
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            byte[] buf = ArrayPool<byte>.Shared.Rent(bufSize);
+#else
+            byte[] buf = new byte[bufSize];
+#endif
 
             try
             {
-			    int len;
-                while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
+                using (var fileStream = file.OpenRead())
                 {
-                    pOut.Write(buf, 0, len);
+                    int len;
+                    while ((len = fileStream.Read(buf, 0, buf.Length)) > 0)
+                    {
+                        pOut.Write(buf, 0, len);
+                    }
                 }
             }
             finally
             {
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ArrayPool<byte>.Shared.Return(buf, clearArray: true);
+#else
                 Array.Clear(buf, 0, buf.Length);
-
-                pOut.Dispose();
-                inputStream.Dispose();
+#endif
             }
         }
 
-		private const int ReadAhead = 60;
+        private const int ReadAhead = 60;
 
 		private static bool IsPossiblyBase64(int ch)
         {
