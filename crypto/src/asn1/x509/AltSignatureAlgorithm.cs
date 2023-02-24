@@ -55,6 +55,11 @@ namespace Org.BouncyCastle.Asn1.X509
             m_algorithm = algorithm;
         }
 
+        public AltSignatureAlgorithm(DerObjectIdentifier algorithm)
+            : this(algorithm, null)
+        {
+        }
+
         public AltSignatureAlgorithm(DerObjectIdentifier algorithm, Asn1Encodable parameters)
         {
             m_algorithm = new AlgorithmIdentifier(algorithm, parameters);
