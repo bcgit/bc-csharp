@@ -173,50 +173,62 @@ namespace Org.BouncyCastle.Crypto.IO
 
             Streams.ValidateBufferArguments(buffer, offset, count);
 
-            if (count > 0)
+            if (count < 1)
+                return;
+
+            int outputSize = m_writeCipher.GetUpdateOutputSize(count);
+
+            byte[] output = null;
+            if (outputSize > 0)
             {
 #if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                int outputSize = m_writeCipher.GetUpdateOutputSize(count);
-                byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
-                try
-                {
-                    int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
-                    if (length > 0)
-                    {
-                        m_stream.Write(output, 0, length);
-                    }
-                }
-                finally
-                {
-                    if (output != null)
-                    {
-                        ArrayPool<byte>.Shared.Return(output);
-                    }
-                }
+                output = ArrayPool<byte>.Shared.Rent(outputSize);
 #else
-                byte[] output = m_writeCipher.ProcessBytes(buffer, offset, count);
+                output = new byte[outputSize];
+#endif
+            }
+
+            try
+            {
+                int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
+                if (length > 0)
+                {
+                    m_stream.Write(output, 0, length);
+                }
+            }
+            finally
+            {
                 if (output != null)
                 {
-                    m_stream.Write(output, 0, output.Length);
-                }
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    ArrayPool<byte>.Shared.Return(output, clearArray: true);
+#else
+                    Array.Clear(output, 0, output.Length);
 #endif
+                }
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void Write(ReadOnlySpan<byte> buffer)
         {
-            if (buffer.IsEmpty)
-                return;
-
             if (m_writeCipher == null)
             {
                 m_stream.Write(buffer);
                 return;
             }
 
+            if (buffer.IsEmpty)
+                return;
+
             int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
-            byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
+
+            byte[] output = null;
+            if (outputSize > 0)
+            {
+                output = ArrayPool<byte>.Shared.Rent(outputSize);
+            }
+
             try
             {
                 int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output));
@@ -229,7 +241,7 @@ namespace Org.BouncyCastle.Crypto.IO
             {
                 if (output != null)
                 {
-                    ArrayPool<byte>.Shared.Return(output);
+                    ArrayPool<byte>.Shared.Return(output, clearArray: true);
                 }
             }
         }
@@ -256,18 +268,22 @@ namespace Org.BouncyCastle.Crypto.IO
             {
 			    if (m_writeCipher != null)
 			    {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     int outputSize = m_writeCipher.GetOutputSize(0);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     Span<byte> output = outputSize <= 256
                         ? stackalloc byte[outputSize]
                         : new byte[outputSize];
                     int len = m_writeCipher.DoFinal(output);
                     m_stream.Write(output[..len]);
+                    output.Fill(0x00);
 #else
-                    byte[] data = m_writeCipher.DoFinal();
-                    m_stream.Write(data, 0, data.Length);
+                    byte[] output = new byte[outputSize];
+                    int len = m_writeCipher.DoFinal(output, 0);
+                    m_stream.Write(output, 0, len);
+                    Array.Clear(output, 0, output.Length);
 #endif
-			    }
+                }
                 m_stream.Dispose();
             }
             base.Dispose(disposing);
