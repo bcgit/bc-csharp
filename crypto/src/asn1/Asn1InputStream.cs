@@ -340,12 +340,13 @@ namespace Org.BouncyCastle.Asn1
             return length;
         }
 
-        private static byte[] GetBuffer(DefiniteLengthInputStream defIn, byte[][] tmpBuffers)
+        private static bool GetBuffer(DefiniteLengthInputStream defIn, byte[][] tmpBuffers, out byte[] contents)
         {
             int len = defIn.Remaining;
             if (len >= tmpBuffers.Length)
             {
-                return defIn.ToArray();
+                contents = defIn.ToArray();
+                return false;
             }
 
             byte[] buf = tmpBuffers[len];
@@ -356,7 +357,8 @@ namespace Org.BouncyCastle.Asn1
 
             defIn.ReadAllIntoByteArray(buf);
 
-            return buf;
+            contents = buf;
+            return true;
         }
 
         internal static Asn1Object CreatePrimitiveDerObject(int tagNo, DefiniteLengthInputStream defIn,
@@ -367,13 +369,20 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.BmpString:
                 return CreateDerBmpString(defIn);
             case Asn1Tags.Boolean:
-                return DerBoolean.CreatePrimitive(GetBuffer(defIn, tmpBuffers));
+            {
+                GetBuffer(defIn, tmpBuffers, out var contents);
+                return DerBoolean.CreatePrimitive(contents);
+            }
             case Asn1Tags.Enumerated:
-                // TODO Ideally only clone if we used a buffer
-                return DerEnumerated.CreatePrimitive(GetBuffer(defIn, tmpBuffers), true);
+            {
+                bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
+                return DerEnumerated.CreatePrimitive(contents, clone: usedBuffer);
+            }
             case Asn1Tags.ObjectIdentifier:
-                // TODO Ideally only clone if we used a buffer
-                return DerObjectIdentifier.CreatePrimitive(GetBuffer(defIn, tmpBuffers), true);
+            {
+                bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
+                return DerObjectIdentifier.CreatePrimitive(contents, clone: usedBuffer);
+            }
             }
 
             byte[] bytes = defIn.ToArray();
