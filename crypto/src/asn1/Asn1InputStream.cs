@@ -359,56 +359,13 @@ namespace Org.BouncyCastle.Asn1
             return buf;
         }
 
-        private static char[] GetBmpCharBuffer(DefiniteLengthInputStream defIn)
-        {
-            int remainingBytes = defIn.Remaining;
-            if (0 != (remainingBytes & 1))
-                throw new IOException("malformed BMPString encoding encountered");
-
-            char[] str = new char[remainingBytes / 2];
-            int stringPos = 0;
-
-            byte[] buf = new byte[8];
-            while (remainingBytes >= 8)
-            {
-                if (Streams.ReadFully(defIn, buf, 0, 8) != 8)
-                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
-
-                str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
-                str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
-                str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
-                str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
-                stringPos += 4;
-                remainingBytes -= 8;
-            }
-            if (remainingBytes > 0)
-            {
-                if (Streams.ReadFully(defIn, buf, 0, remainingBytes) != remainingBytes)
-                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
-
-                int bufPos = 0;
-                do
-                {
-                    int b1 = buf[bufPos++] << 8;
-                    int b2 = buf[bufPos++] & 0xFF;
-                    str[stringPos++] = (char)(b1 | b2);
-                }
-                while (bufPos < remainingBytes);
-            }
-
-            if (0 != defIn.Remaining || str.Length != stringPos)
-                throw new InvalidOperationException();
-
-            return str;
-        }
-
         internal static Asn1Object CreatePrimitiveDerObject(int tagNo, DefiniteLengthInputStream defIn,
             byte[][] tmpBuffers)
         {
             switch (tagNo)
             {
             case Asn1Tags.BmpString:
-                return DerBmpString.CreatePrimitive(GetBmpCharBuffer(defIn));
+                return CreateDerBmpString(defIn);
             case Asn1Tags.Boolean:
                 return DerBoolean.CreatePrimitive(GetBuffer(defIn, tmpBuffers));
             case Asn1Tags.Enumerated:
@@ -462,6 +419,89 @@ namespace Org.BouncyCastle.Asn1
             default:
                 throw new IOException("unknown tag " + tagNo + " encountered");
             }
+        }
+
+        private static DerBmpString CreateDerBmpString(DefiniteLengthInputStream defIn)
+        {
+            int remainingBytes = defIn.Remaining;
+            if (0 != (remainingBytes & 1))
+                throw new IOException("malformed BMPString encoding encountered");
+
+            int length = remainingBytes / 2;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DerBmpString.CreatePrimitive(length, defIn, (str, defIn) =>
+            {
+                int stringPos = 0;
+
+                Span<byte> buf = stackalloc byte[8];
+                while (remainingBytes >= 8)
+                {
+                    if (Streams.ReadFully(defIn, buf) != 8)
+                        throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                    str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
+                    str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
+                    str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
+                    str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
+                    stringPos += 4;
+                    remainingBytes -= 8;
+                }
+                if (remainingBytes > 0)
+                {
+                    if (Streams.ReadFully(defIn, buf) != remainingBytes)
+                        throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                    int bufPos = 0;
+                    do
+                    {
+                        int b1 = buf[bufPos++] << 8;
+                        int b2 = buf[bufPos++] & 0xFF;
+                        str[stringPos++] = (char)(b1 | b2);
+                    }
+                    while (bufPos < remainingBytes);
+                }
+
+                if (0 != defIn.Remaining || str.Length != stringPos)
+                    throw new InvalidOperationException();
+            });
+#else
+            char[] str = new char[length];
+            int stringPos = 0;
+
+            byte[] buf = new byte[8];
+            while (remainingBytes >= 8)
+            {
+                if (Streams.ReadFully(defIn, buf, 0, 8) != 8)
+                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
+                str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
+                str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
+                str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
+                stringPos += 4;
+                remainingBytes -= 8;
+            }
+            if (remainingBytes > 0)
+            {
+                if (Streams.ReadFully(defIn, buf, 0, remainingBytes) != remainingBytes)
+                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                int bufPos = 0;
+                do
+                {
+                    int b1 = buf[bufPos++] << 8;
+                    int b2 = buf[bufPos++] & 0xFF;
+                    str[stringPos++] = (char)(b1 | b2);
+                }
+                while (bufPos < remainingBytes);
+            }
+
+            if (0 != defIn.Remaining || str.Length != stringPos)
+                throw new InvalidOperationException();
+
+            return DerBmpString.CreatePrimitive(str);
+#endif
         }
     }
 }
