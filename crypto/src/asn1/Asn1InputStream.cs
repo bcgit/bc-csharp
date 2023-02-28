@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers.Binary;
+#endif
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -457,10 +460,10 @@ namespace Org.BouncyCastle.Asn1
                     if (Streams.ReadFully(defIn, buf) != 8)
                         throw new EndOfStreamException("EOF encountered in middle of BMPString");
 
-                    str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
-                    str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
-                    str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
-                    str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
+                    str[stringPos    ] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[0..]);
+                    str[stringPos + 1] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[2..]);
+                    str[stringPos + 2] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[4..]);
+                    str[stringPos + 3] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[6..]);
                     stringPos += 4;
                     remainingBytes -= 8;
                 }
