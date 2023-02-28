@@ -425,6 +425,14 @@ namespace Org.BouncyCastle.Asn1
                 return DerVideotexString.CreatePrimitive(bytes);
             case Asn1Tags.VisibleString:
                 return DerVisibleString.CreatePrimitive(bytes);
+            case Asn1Tags.Time:
+            case Asn1Tags.Date:
+            case Asn1Tags.TimeOfDay:
+            case Asn1Tags.DateTime:
+            case Asn1Tags.Duration:
+            case Asn1Tags.OidIri:
+            case Asn1Tags.RelativeOidIri:
+                throw new IOException("unsupported tag " + tagNo + " encountered");
             default:
                 throw new IOException("unknown tag " + tagNo + " encountered");
             }

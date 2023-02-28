@@ -4,6 +4,7 @@ namespace Org.BouncyCastle.Asn1
 {
     public class Asn1Tags
     {
+        // 0x00: Reserved for use by the encoding rules
         public const int Boolean = 0x01;
         public const int Integer = 0x02;
         public const int BitString = 0x03;
@@ -17,12 +18,12 @@ namespace Org.BouncyCastle.Asn1
         public const int EmbeddedPdv = 0x0b;
         public const int Utf8String = 0x0c;
         public const int RelativeOid = 0x0d;
-                                                        // NOTE: 14-15 are reserved.
+        public const int Time = 0x0e;
+        // 0x0f: Reserved for future editions of this Recommendation | International Standard
         public const int Sequence = 0x10;
         public const int SequenceOf = 0x10; // for completeness
         public const int Set = 0x11;
         public const int SetOf = 0x11; // for completeness
-
         public const int NumericString = 0x12;
         public const int PrintableString = 0x13;
         public const int T61String = 0x14;
@@ -36,6 +37,13 @@ namespace Org.BouncyCastle.Asn1
         public const int UniversalString = 0x1c;
         public const int UnrestrictedString = 0x1d;
         public const int BmpString = 0x1e;
+        public const int Date = 0x1f;
+        public const int TimeOfDay = 0x20;
+        public const int DateTime = 0x21;
+        public const int Duration = 0x22;
+        public const int OidIri = 0x23;
+        public const int RelativeOidIri = 0x24;
+        // 0x25..: Reserved for addenda to this Recommendation | International Standard
 
         public const int Constructed = 0x20;
 
