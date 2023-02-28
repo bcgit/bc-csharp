@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -396,34 +397,28 @@ namespace Org.BouncyCastle.Bcpg
                         newLineFound = false;
                     }
                 }
-            
+
                 lastC = c;
 
                 if (c < 0)
                 {
                     isEndOfStream = true;
                 }
-            
+
                 return c;
             }
 
             if (bufPtr > 2 || crcFound)
             {
                 c = ReadIgnoreSpace();
-            
+
                 if (c == '\r' || c == '\n')
                 {
                     c = ReadIgnoreSpace();
-                
+
                     while (c == '\n' || c == '\r')
                     {
                         c = ReadIgnoreSpace();
-                    }
-
-                    if (c < 0)                // EOF
-                    {
-                        isEndOfStream = true;
-                        return -1;
                     }
 
                     if (c == '=')            // crc reached
@@ -434,28 +429,23 @@ namespace Org.BouncyCastle.Bcpg
 
                         crcFound = true;
 
-                        int i = ((outBuf[0] & 0xff) << 16)
-                              | ((outBuf[1] & 0xff) << 8)
-                              | (outBuf[2] & 0xff);
+                        int i = (int)Pack.BE_To_UInt24(outBuf);
                         if (i != crc.Value)
                             throw new IOException("crc check failed in armored message.");
 
                         return ReadByte();
                     }
-                    else if (c == '-')        // end of record reached
+
+                    if (c == '-')        // end of record reached
                     {
                         while ((c = input.ReadByte()) >= 0)
                         {
                             if (c == '\n' || c == '\r')
-                            {
                                 break;
-                            }
                         }
 
                         if (!crcFound && detectMissingChecksum)
-                        {
                             throw new IOException("crc check not found");
-                        }
 
                         crcFound = false;
                         start = true;
@@ -468,30 +458,30 @@ namespace Org.BouncyCastle.Bcpg
 
                         return -1;
                     }
-                    else                   // data
-                    {
-                        bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-                    }
+                }
+
+                if (c < 0)
+                {
+                    isEndOfStream = true;
+                    return -1;
+                }
+
+                bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
+
+                if (bufPtr == 0)
+                {
+                    crc.Update3(outBuf, 0);
                 }
                 else
                 {
-                    if (c >= 0)
+                    for (int i = bufPtr; i < 3; ++i)
                     {
-                        bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-                    }
-                    else
-                    {
-                        isEndOfStream = true;
-                        return -1;
+                        crc.Update(outBuf[i]);
                     }
                 }
             }
 
-            c = outBuf[bufPtr++];
-
-            crc.Update((byte)c);
-
-            return c;
+            return (int)outBuf[bufPtr++];
         }
 
         protected override void Dispose(bool disposing)

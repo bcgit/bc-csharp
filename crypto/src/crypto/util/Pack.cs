@@ -102,6 +102,34 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return ns;
         }
 
+        internal static void UInt24_To_BE(uint n, byte[] bs)
+        {
+            bs[0] = (byte)(n >> 16);
+            bs[1] = (byte)(n >> 8);
+            bs[2] = (byte)n;
+        }
+
+        internal static void UInt24_To_BE(uint n, byte[] bs, int off)
+        {
+            bs[off + 0] = (byte)(n >> 16);
+            bs[off + 1] = (byte)(n >> 8);
+            bs[off + 2] = (byte)n;
+        }
+
+        internal static uint BE_To_UInt24(byte[] bs)
+        {
+            return (uint)bs[0] << 16
+                | (uint)bs[1] << 8
+                | bs[2];
+        }
+
+        internal static uint BE_To_UInt24(byte[] bs, int off)
+        {
+            return (uint)bs[off] << 16
+                | (uint)bs[off + 1] << 8
+                | bs[off + 2];
+        }
+
         internal static void UInt32_To_BE(uint n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
