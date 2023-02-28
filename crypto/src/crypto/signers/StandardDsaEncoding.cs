@@ -46,10 +46,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual int GetMaxEncodingSize(BigInteger n)
         {
-            int encodingLength = BigIntegers.GetByteLength(n);
-            int derIntegerLength = Asn1OutputStream.GetLengthOfDL(encodingLength) + encodingLength;
-            int seqContentsLength = 2 * derIntegerLength;
-            return Asn1OutputStream.GetLengthOfDL(seqContentsLength) + seqContentsLength;
+            return DerSequence.GetEncodingLength(DerInteger.GetEncodingLength(n) * 2);
         }
 
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)

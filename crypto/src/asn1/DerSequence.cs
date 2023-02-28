@@ -86,5 +86,10 @@ namespace Org.BouncyCastle.Asn1
             // NOTE: DLSet is intentional, we don't want sorting
             return new DLSet(false, elements);
         }
+
+        internal static int GetEncodingLength(int contentsLength)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(Asn1Tags.Sequence, contentsLength);
+        }
     }
 }

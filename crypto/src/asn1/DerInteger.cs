@@ -220,6 +220,11 @@ namespace Org.BouncyCastle.Asn1
             return new DerInteger(contents, false);
         }
 
+        internal static int GetEncodingLength(BigInteger x)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(Asn1Tags.Integer, BigIntegers.GetByteLength(x));
+        }
+
         internal static int IntValue(byte[] bytes, int start, int signExt)
         {
             int length = bytes.Length;

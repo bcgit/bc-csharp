@@ -103,11 +103,11 @@ namespace Org.BouncyCastle.Asn1
 #endif
         }
 
-        internal void WriteIdentifier(int tagClass, int tagNo)
+        internal void WriteIdentifier(int flags, int tagNo)
         {
             if (tagNo < 31)
             {
-                WriteByte((byte)(tagClass | tagNo));
+                WriteByte((byte)(flags | tagNo));
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Asn1
                 stack[--pos] = (byte)(tagNo & 0x7F | 0x80);
             }
 
-            stack[--pos] = (byte)(tagClass | 0x1F);
+            stack[--pos] = (byte)(flags | 0x1F);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Write(stack[pos..]);
@@ -166,6 +166,11 @@ namespace Org.BouncyCastle.Asn1
                 ++length;
             }
             return length;
+        }
+
+        internal static int GetLengthOfEncodingDL(int tagNo, int contentsLength)
+        {
+            return GetLengthOfIdentifier(tagNo) + GetLengthOfDL(contentsLength) + contentsLength;
         }
 
         internal static int GetLengthOfIdentifier(int tagNo)
