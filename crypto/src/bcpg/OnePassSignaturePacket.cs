@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Bcpg
 				pOut.WriteByte((byte)nested);
 			}
 
-			bcpgOut.WritePacket(PacketTag.OnePassSignature, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.OnePassSignature, bOut.ToArray());
 		}
 	}
 }

@@ -103,8 +103,7 @@ namespace Org.BouncyCastle.Bcpg
             if (obj == this)
                 return true;
 
-            SignatureSubpacket other = obj as SignatureSubpacket;
-            if (null == other)
+            if (!(obj is SignatureSubpacket other))
                 return false;
 
             return this.type == other.type

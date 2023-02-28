@@ -479,6 +479,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return pub.KeyId; }
         }
 
+        /// <summary>The fingerprint of the public key associated with this key.</summary>
+        public byte[] GetFingerprint()
+        {
+            return pub.GetFingerprint();
+        }
+
         /// <summary>Return the S2K usage associated with this key.</summary>
         public int S2kUsage
         {
@@ -832,10 +838,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 for (int i = 0; i != pub.ids.Count; i++)
                 {
-                    object pubID = pub.ids[i];
-                    if (pubID is string id)
+                    var pubID = pub.ids[i];
+                    if (pubID is UserIdPacket id)
                     {
-                        bcpgOut.WritePacket(new UserIdPacket(id));
+                        bcpgOut.WritePacket(id);
                     }
                     else if (pubID is PgpUserAttributeSubpacketVector v)
                     {

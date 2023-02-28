@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.Bcpg
             {
                 c = input.ReadByte();
             }
-            while (c == ' ' || c == '\t' || c == '\f' || c == '\u000B'); // \u000B ~ \v
+            while (c == ' ' || c == '\t' || c == '\f' || c == '\v');
 
             if (c >= 128)
                 throw new IOException("invalid armor");

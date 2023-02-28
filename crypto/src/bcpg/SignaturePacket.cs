@@ -392,7 +392,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray());
         }
 
 		private static void EncodeLengthAndData(

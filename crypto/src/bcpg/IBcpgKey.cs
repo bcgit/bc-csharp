@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Bcpg
 {
+	// TODO[api] Extend IEncodable
 	/// <remarks>Base interface for a PGP key.</remarks>
     public interface IBcpgKey
     {
