@@ -429,27 +429,18 @@ namespace Org.BouncyCastle.Bcpg
                     if (c == '=')            // crc reached
                     {
                         bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-                        if (bufPtr == 0)
-                        {
-                            int i = ((outBuf[0] & 0xff) << 16)
-                                    | ((outBuf[1] & 0xff) << 8)
-                                    | (outBuf[2] & 0xff);
+                        if (bufPtr != 0)
+                            throw new IOException("malformed crc in armored message.");
 
-                            crcFound = true;
+                        crcFound = true;
 
-                            if (i != crc.Value)
-                            {
-                                throw new IOException("crc check failed in armored message.");
-                            }
-                            return ReadByte();
-                        }
-                        else
-                        {
-                            if (detectMissingChecksum)
-                            {
-                                throw new IOException("no crc found in armored message");
-                            }
-                        }
+                        int i = ((outBuf[0] & 0xff) << 16)
+                              | ((outBuf[1] & 0xff) << 8)
+                              | (outBuf[2] & 0xff);
+                        if (i != crc.Value)
+                            throw new IOException("crc check failed in armored message.");
+
+                        return ReadByte();
                     }
                     else if (c == '-')        // end of record reached
                     {
