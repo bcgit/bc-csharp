@@ -176,7 +176,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             dataQueue[bitsInQueue >> 3] = data;
             if ((bitsInQueue += 8) == rate)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                KeccakAbsorb(dataQueue);
+#else
                 KeccakAbsorb(dataQueue, 0);
+#endif
                 bitsInQueue = 0;
             }
         }
@@ -204,13 +208,21 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 Array.Copy(data, off, dataQueue, bytesInQueue, available);
                 count += available;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                KeccakAbsorb(dataQueue);
+#else
                 KeccakAbsorb(dataQueue, 0);
+#endif
             }
 
             int remaining;
             while ((remaining = (len - count)) >= rateBytes)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                KeccakAbsorb(data.AsSpan(off + count));
+#else
                 KeccakAbsorb(data, off + count);
+#endif
                 count += rateBytes;
             }
 
@@ -243,7 +255,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 data[..available].CopyTo(dataQueue.AsSpan(bytesInQueue));
                 count += available;
-                KeccakAbsorb(dataQueue, 0);
+                KeccakAbsorb(dataQueue);
             }
 
             int remaining;
@@ -282,7 +294,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (++bitsInQueue == rate)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                KeccakAbsorb(dataQueue);
+#else
                 KeccakAbsorb(dataQueue, 0);
+#endif
             }
             else
             {
@@ -353,18 +369,6 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        private void KeccakAbsorb(byte[] data, int off)
-        {
-            int count = rate >> 6;
-            for (int i = 0; i < count; ++i)
-            {
-                state[i] ^= Pack.LE_To_UInt64(data, off);
-                off += 8;
-            }
-
-            KeccakPermutation();
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void KeccakAbsorb(ReadOnlySpan<byte> data)
         {
@@ -372,6 +376,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             for (int i = 0; i < count; ++i)
             {
                 state[i] ^= Pack.LE_To_UInt64(data[off..]);
+                off += 8;
+            }
+
+            KeccakPermutation();
+        }
+#else
+        private void KeccakAbsorb(byte[] data, int off)
+        {
+            int count = rate >> 6;
+            for (int i = 0; i < count; ++i)
+            {
+                state[i] ^= Pack.LE_To_UInt64(data, off);
                 off += 8;
             }
 
