@@ -18,28 +18,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return hammingWeight;
         }
 
-        internal static void FromByteArrayToBitArray(byte[] output, byte[] input)
-        {
-            int max = (output.Length / 8);
-            for (int i = 0; i < max; i++)
-            {
-                for (int j = 0; j != 8; j++)
-                {
-                    output[i * 8 + j] = (byte)((input[i] >> j) & 1);
-                }
-            }
-            if (output.Length % 8 != 0)
-            {
-                int off = max * 8;
-                int count = 0;
-                while (off < output.Length)
-                {
-                    output[off++] = (byte)((input[max] >> count) & 1);
-                    count++;
-                }
-            }
-        }
-
         internal static void FromBitArrayToByteArray(byte[] output, byte[] input, int inputOff, int inputLen)
         {
             int count = 0;

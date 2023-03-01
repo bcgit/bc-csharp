@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] FunctionH(byte[] seed)
         {
-            byte[] res = new byte[R2_BYTE];
+            byte[] res = new byte[2 * R_BYTE];
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(seed, 0, seed.Length);
             BikeUtilities.GenerateRandomByteArray(res, 2 * r, t, digest);
@@ -186,14 +186,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             // 2. Calculate e0, e1
             byte[] eBytes = FunctionH(m);
 
-            byte[] eBits = new byte[2 * r];
-            BikeUtilities.FromByteArrayToBitArray(eBits, eBytes);
-
             byte[] e0Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e0Bytes, eBits, 0, r);
-
             byte[] e1Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e1Bytes, eBits, r, r);
+            SplitEBytes(eBytes, e0Bytes, e1Bytes);
 
             ulong[] e0Element = bikeRing.Create();
             ulong[] e1Element = bikeRing.Create();
@@ -243,13 +238,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             // 1. Compute e'
             byte[] ePrimeBits = BGFDecoder(syndromeBits, h0Compact, h1Compact);
-            byte[] ePrimeBytes = new byte[R2_BYTE];
+            byte[] ePrimeBytes = new byte[2 * R_BYTE];
             BikeUtilities.FromBitArrayToByteArray(ePrimeBytes, ePrimeBits, 0, 2 * r);
 
             byte[] e0Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e0Bytes, ePrimeBits, 0, r);
             byte[] e1Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e1Bytes, ePrimeBits, r, r);
+            SplitEBytes(ePrimeBytes, e0Bytes, e1Bytes);
 
             // 2. Compute m'
             byte[] mPrime = new byte[L_BYTE];
@@ -671,6 +665,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                         syndrome[r - h1Compact[i] + (index - r)] ^= 1;
                     }
                 }
+            }
+        }
+
+        private void SplitEBytes(byte[] e, byte[] e0, byte[] e1)
+        {
+            int partial = r & 7;
+            Array.Copy(e, 0, e0, 0, R_BYTE - 1);
+            byte split = e[R_BYTE - 1];
+            byte mask = (byte)(uint.MaxValue << partial);
+            e0[R_BYTE - 1] = (byte)(split & ~mask);
+
+            byte c = (byte)(split & mask);
+            for (int i = 0; i < R_BYTE; ++i)
+            {
+                byte next = e[R_BYTE + i];
+                e1[i] = (byte)((next << (8 - partial)) | (c >> partial));
+                c = next;
             }
         }
     }
