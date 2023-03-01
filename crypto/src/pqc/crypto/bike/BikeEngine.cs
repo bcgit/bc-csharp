@@ -37,6 +37,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private readonly BikeRing bikeRing;
         private readonly int L_BYTE;
         private readonly int R_BYTE;
+        private readonly int R2_BYTE;
+        //private readonly int R_UINT;
+        private readonly int R2_UINT;
 
         internal BikeEngine(int r, int w, int t, int l, int nbIter, int tau)
         {
@@ -48,7 +51,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.tau = tau;
             this.hw = this.w / 2;
             this.L_BYTE = l / 8;
-            this.R_BYTE = (r + 7) / 8;
+            this.R_BYTE = (r + 7) >> 3;
+            this.R2_BYTE = (2 * r + 7) >> 3;
+            //this.R_UINT = (r + 31) >> 5;
+            this.R2_UINT = (2 * r + 31) >> 5;
             this.bikeRing = new BikeRing(r);
         }
 
@@ -56,10 +62,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] FunctionH(byte[] seed)
         {
-            byte[] res = new byte[r * 2];
+            byte[] res = new byte[R2_BYTE];
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(seed, 0, seed.Length);
-            BikeUtilities.GenerateRandomByteArray(res, (uint)r * 2, (uint)t, digest);
+            BikeUtilities.GenerateRandomByteArray(res, (uint)(2 * r), (uint)t, digest);
             return res;
         }
 
@@ -237,7 +243,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             // 1. Compute e'
             byte[] ePrimeBits = BGFDecoder(syndromeBits, h0Compact, h1Compact);
-            byte[] ePrimeBytes = new byte[2 * R_BYTE];
+            byte[] ePrimeBytes = new byte[R2_BYTE];
             BikeUtilities.FromBitArrayToByteArray(ePrimeBytes, ePrimeBits, 0, 2 * r);
 
             byte[] e0Bytes = new byte[R_BYTE];
@@ -252,7 +258,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             // 3. Compute K
             byte[] wlist = FunctionH(mPrime);
-            if (Arrays.AreEqual(ePrimeBytes, 0, ePrimeBytes.Length, wlist, 0, ePrimeBytes.Length))
+            if (Arrays.AreEqual(ePrimeBytes, 0, R2_BYTE, wlist, 0, R2_BYTE))
             {
                 FunctionK(mPrime, c0, c1, k);
             }
@@ -281,11 +287,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             int[] h0CompactCol = GetColumnFromCompactVersion(h0Compact);
             int[] h1CompactCol = GetColumnFromCompactVersion(h1Compact);
 
-            uint[] black = new uint[(2 * r + 31) >> 5];
+            uint[] black = new uint[R2_UINT];
             byte[] ctrs = new byte[r];
 
             {
-                uint[] gray = new uint[(2 * r + 31) >> 5];
+                uint[] gray = new uint[R2_UINT];
 
                 int T = Threshold(BikeUtilities.GetHammingWeight(s), r);
 
@@ -419,7 +425,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private void BFMaskedIter(byte[] s, byte[] e, uint[] mask, int T, int[] h0Compact, int[] h1Compact,
             int[] h0CompactCol, int[] h1CompactCol)
         {
-            uint[] updatedIndices = new uint[(2 * r + 31) >> 5];
+            uint[] updatedIndices = new uint[R2_UINT];
 
             for (int j = 0; j < r; j++)
             {
