@@ -75,9 +75,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         internal void DecodeBytes(byte[] bs, ulong[] z)
         {
             int partialBits = m_bits & 63;
+            int partialBytes = (partialBits + 7) >> 3;
             Pack.LE_To_UInt64(bs, 0, z, 0, Size - 1);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> last = stackalloc byte[8];
+            bs.AsSpan((Size - 1) << 3, partialBytes).CopyTo(last);
+#else
             byte[] last = new byte[8];
-            Array.Copy(bs, (Size - 1) << 3, last, 0, (partialBits + 7) >> 3);
+            Array.Copy(bs, (Size - 1) << 3, last, 0, partialBytes);
+#endif
             z[Size - 1] = Pack.LE_To_UInt64(last);
             Debug.Assert((z[Size - 1] >> partialBits) == 0UL);
         }
@@ -96,13 +102,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         internal void EncodeBytes(ulong[] x, byte[] bs)
         {
             int partialBits = m_bits & 63;
+            int partialBytes = (partialBits + 7) >> 3;
             Debug.Assert((x[Size - 1] >> partialBits) == 0UL);
             Pack.UInt64_To_LE(x, 0, Size - 1, bs, 0);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> last = stackalloc byte[8];
+            Pack.UInt64_To_LE(x[Size - 1], last);
+            last[..partialBytes].CopyTo(bs.AsSpan((Size - 1) << 3));
+#else
             byte[] last = new byte[8];
             Pack.UInt64_To_LE(x[Size - 1], last);
-            Array.Copy(last, 0, bs, (Size - 1) << 3, (partialBits + 7) >> 3);
+            Array.Copy(last, 0, bs, (Size - 1) << 3, partialBytes);
+#endif
         }
-        
+
         internal void Inv(ulong[] a, ulong[] z)
         {
             ulong[] f = Create();

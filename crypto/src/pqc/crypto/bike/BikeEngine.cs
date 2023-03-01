@@ -154,10 +154,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             bikeRing.DecodeBytes(h1, h1Element);
 
             // 2. Compute h
-            ulong[] hElement = bikeRing.Create();
-            bikeRing.Inv(h0Element, hElement);
-            bikeRing.Multiply(hElement, h1Element, hElement);
-            bikeRing.EncodeBytes(hElement, h);
+            ulong[] t = bikeRing.Create();
+            bikeRing.Inv(h0Element, t);
+            bikeRing.Multiply(t, h1Element, t);
+            bikeRing.EncodeBytes(t, h);
 
             //3. Parse seed2 as sigma
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -192,19 +192,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             ulong[] e0Element = bikeRing.Create();
             ulong[] e1Element = bikeRing.Create();
-
             bikeRing.DecodeBytes(e0Bytes, e0Element);
             bikeRing.DecodeBytes(e1Bytes, e1Element);
 
-            ulong[] hElement = bikeRing.Create();
-            bikeRing.DecodeBytes(h, hElement);
-
             // 3. Calculate c
-            // calculate c0
-            ulong[] c0Element = bikeRing.Create();
-            bikeRing.Multiply(e1Element, hElement, c0Element);
-            bikeRing.Add(c0Element, e0Element, c0Element);
-            bikeRing.EncodeBytes(c0Element, c0);
+            ulong[] t = bikeRing.Create();
+            bikeRing.DecodeBytes(h, t);
+            bikeRing.Multiply(t, e1Element, t);
+            bikeRing.Add(t, e0Element, t);
+            bikeRing.EncodeBytes(t, c0);
 
             //calculate c1
             FunctionL(e0Bytes, e1Bytes, c1);
@@ -264,13 +260,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] ComputeSyndrome(byte[] c0, byte[] h0)
         {
-            ulong[] c0Element = bikeRing.Create();
-            ulong[] h0Element = bikeRing.Create();
-            bikeRing.DecodeBytes(c0, c0Element);
-            bikeRing.DecodeBytes(h0, h0Element);
-            ulong[] sElement = bikeRing.Create();
-            bikeRing.Multiply(c0Element, h0Element, sElement);
-            return bikeRing.EncodeBitsTransposed(sElement);
+            ulong[] t = bikeRing.Create();
+            ulong[] u = bikeRing.Create();
+            bikeRing.DecodeBytes(c0, t);
+            bikeRing.DecodeBytes(h0, u);
+            bikeRing.Multiply(t, u, t);
+            return bikeRing.EncodeBitsTransposed(t);
         }
 
         private byte[] BGFDecoder(byte[] s, int[] h0Compact, int[] h1Compact)
