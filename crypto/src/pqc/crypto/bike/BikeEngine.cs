@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             bikeRing.DecodeBytes(h0, h0Element);
             ulong[] sElement = bikeRing.Create();
             bikeRing.Multiply(c0Element, h0Element, sElement);
-            return Transpose(bikeRing.EncodeBits(sElement));
+            return bikeRing.EncodeBitsTransposed(sElement);
         }
 
         private byte[] BGFDecoder(byte[] s, int[] h0Compact, int[] h1Compact)
@@ -306,17 +306,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 return e;
 
             return null;
-        }
-
-        private byte[] Transpose(byte[] input)
-        {
-            byte[] output = new byte[r];
-            output[0] = input[0];
-            for (int i = 1; i < r; i++)
-            {
-                output[i] = input[r - i];
-            }
-            return output;
         }
 
         private void BFIter(byte[] s, byte[] e, int T, int[] h0Compact, int[] h1Compact, int[] h0CompactCol,

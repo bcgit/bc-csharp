@@ -82,12 +82,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             Debug.Assert((z[Size - 1] >> partialBits) == 0UL);
         }
 
-        internal byte[] EncodeBits(ulong[] x)
+        internal byte[] EncodeBitsTransposed(ulong[] x)
         {
             byte[] bs = new byte[m_bits];
-            for (int i = 0; i < m_bits; ++i)
+            bs[0] = (byte)(x[0] & 1UL);
+            for (int i = 1; i < m_bits; ++i)
             {
-                bs[i] = (byte)((x[i >> 6] >> (i & 63)) & 1UL);
+                bs[m_bits - i] = (byte)((x[i >> 6] >> (i & 63)) & 1UL);
             }
             return bs;
         }
