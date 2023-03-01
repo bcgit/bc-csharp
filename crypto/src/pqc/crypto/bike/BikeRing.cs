@@ -34,11 +34,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             m_size = (r + 63) >> 6;
             m_sizeExt = m_size * 2;
 
+            uint r32 = Mod.Inverse32((uint)-r);
             foreach (int n in EnumerateSquarePowersInv(r))
             {
                 if (n >= PermutationCutoff && !m_halfPowers.ContainsKey(n))
                 {
-                    m_halfPowers[n] = GenerateHalfPower(r, n);
+                    m_halfPowers[n] = GenerateHalfPower((uint)r, r32, n);
                 }
             }
         }
@@ -193,15 +194,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         {
             int t = x + y - m;
             return t + ((t >> 31) & m);
-        }
-
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private static int ImplModHalf(int m, int x)
-        {
-            int t = -(x & 1);
-            return (x + (m & t)) >> 1;
         }
 
         private void ImplMultiplyAcc(ulong[] x, ulong[] y, ulong[] zz)
@@ -377,14 +369,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        private static int GenerateHalfPower(int r, int n)
+        private static int GenerateHalfPower(uint r, uint r32, int n)
         {
-            int p = 1;
-            for (int k = 0; k < n; ++k)
+            uint p = 1;
+            int k = n;
+            while (k >= 32)
             {
-                p = ImplModHalf(r, p);
+                uint y = r32 * p;
+                ulong t = (ulong)y * r;
+                ulong u = t + p;
+                Debug.Assert((uint)u == 0U);
+                p = (uint)(u >> 32);
+                k -= 32;
             }
-            return p;
+            if (k > 0)
+            {
+                uint mk = uint.MaxValue >> -k;
+                uint y = (r32 * p) & mk;
+                ulong t = (ulong)y * r;
+                ulong u = t + p;
+                Debug.Assert(((uint)u & mk) == 0U);
+                p = (uint)(u >> k);
+            }
+            return (int)p;
         }
 
         private static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
