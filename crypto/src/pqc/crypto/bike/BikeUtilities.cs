@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        internal static void GenerateRandomByteArray(byte[] res, uint size, uint weight, IXof digest)
+        internal static void GenerateRandomByteArray(byte[] res, int size, int weight, IXof digest)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buf = stackalloc byte[4];
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] buf = new byte[4];
 #endif
 
-            for (int i = (int)weight - 1; i >= 0; i--)
+            for (int i = weight - 1; i >= 0; i--)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 digest.Output(buf);
@@ -88,8 +88,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 ulong temp = Pack.LE_To_UInt32(buf, 0);
 #endif
 
-                temp = temp * (size - (uint)i) >> 32;
-                uint rand_pos = (uint)i + (uint)temp;
+                temp *= (uint)(size - i);
+                uint rand_pos = (uint)i + (uint)(temp >> 32);
 
                 if (CheckBit(res, rand_pos) != 0)
                 {

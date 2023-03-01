@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] res = new byte[R2_BYTE];
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(seed, 0, seed.Length);
-            BikeUtilities.GenerateRandomByteArray(res, (uint)(2 * r), (uint)t, digest);
+            BikeUtilities.GenerateRandomByteArray(res, 2 * r, t, digest);
             return res;
         }
 
@@ -145,8 +145,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 #endif
 
             // 1. Randomly generate h0, h1
-            BikeUtilities.GenerateRandomByteArray(h0, (uint)r, (uint)hw, digest);
-            BikeUtilities.GenerateRandomByteArray(h1, (uint)r, (uint)hw, digest);
+            BikeUtilities.GenerateRandomByteArray(h0, r, hw, digest);
+            BikeUtilities.GenerateRandomByteArray(h1, r, hw, digest);
 
             ulong[] h0Element = bikeRing.Create();
             ulong[] h1Element = bikeRing.Create();
