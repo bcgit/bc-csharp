@@ -355,7 +355,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 PgpSignatureSubpacketGenerator spGen = new PgpSignatureSubpacketGenerator(hashedPackets);
 
-                spGen.SetEmbeddedSignature(false,
+                spGen.AddEmbeddedSignature(false,
                         pGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
                 
                 sGen.SetHashedSubpackets(spGen.Generate());
