@@ -404,7 +404,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.bitsInQueue = rate;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void KeccakPermutation(Span<ulong> A)
+#else
         internal static void KeccakPermutation(ulong[] A)
+#endif
         {
             var bounds = A[24];
 
