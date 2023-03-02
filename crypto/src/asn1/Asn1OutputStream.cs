@@ -173,6 +173,11 @@ namespace Org.BouncyCastle.Asn1
             return GetLengthOfIdentifier(tagNo) + GetLengthOfDL(contentsLength) + contentsLength;
         }
 
+        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding[] contentsEncodings)
+        {
+            return GetLengthOfIdentifier(tagNo) + 3 + GetLengthOfContents(contentsEncodings);
+        }
+
         internal static int GetLengthOfIdentifier(int tagNo)
         {
             if (tagNo < 31)
