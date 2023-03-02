@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             0x8000000080008081UL, 0x8000000000008080UL, 0x0000000080000001UL, 0x8000000080008008UL
         };
 
-        private ulong[] state = new ulong[25];
+        private readonly ulong[] state = new ulong[25];
         protected byte[] dataQueue = new byte[192];
         protected int rate;
         protected int bitsInQueue;
@@ -379,7 +379,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 off += 8;
             }
 
-            KeccakPermutation();
+            KeccakPermutation(state);
         }
 #else
         private void KeccakAbsorb(byte[] data, int off)
@@ -391,22 +391,22 @@ namespace Org.BouncyCastle.Crypto.Digests
                 off += 8;
             }
 
-            KeccakPermutation();
+            KeccakPermutation(state);
         }
 #endif
 
         private void KeccakExtract()
         {
-            KeccakPermutation();
+            KeccakPermutation(state);
 
             Pack.UInt64_To_LE(state, 0, rate >> 6, dataQueue, 0);
 
             this.bitsInQueue = rate;
         }
 
-        private void KeccakPermutation()
+        internal static void KeccakPermutation(ulong[] A)
         {
-            ulong[] A = state;
+            var bounds = A[24];
 
             ulong a00 = A[ 0], a01 = A[ 1], a02 = A[ 2], a03 = A[ 3], a04 = A[ 4];
             ulong a05 = A[ 5], a06 = A[ 6], a07 = A[ 7], a08 = A[ 8], a09 = A[ 9];
