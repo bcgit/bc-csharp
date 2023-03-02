@@ -97,6 +97,24 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        [CLSCompliant(false)]
+        public static bool AreEqual(ulong[] a, int aFromIndex, int aToIndex, ulong[] b, int bFromIndex, int bToIndex)
+        {
+            int aLength = aToIndex - aFromIndex;
+            int bLength = bToIndex - bFromIndex;
+
+            if (aLength != bLength)
+                return false;
+
+            for (int i = 0; i < aLength; ++i)
+            {
+                if (a[aFromIndex + i] != b[bFromIndex + i])
+                    return false;
+            }
+
+            return true;
+        }
+
         [Obsolete("Use 'FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(byte[] a, byte[] b)
         {
