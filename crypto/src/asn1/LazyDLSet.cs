@@ -7,15 +7,15 @@ namespace Org.BouncyCastle.Asn1
     internal class LazyDLSet
         : DLSet
     {
-        private byte[] encoded;
+        private byte[] m_encoded;
 
         internal LazyDLSet(byte[] encoded)
             : base()
         {
             if (null == encoded)
-                throw new ArgumentNullException("encoded");
+                throw new ArgumentNullException(nameof(encoded));
 
-            this.encoded = encoded;
+            m_encoded = encoded;
         }
 
         public override Asn1Encodable this[int index]
@@ -97,16 +97,16 @@ namespace Org.BouncyCastle.Asn1
         {
             lock (this)
             {
-                if (null != encoded)
+                if (null != m_encoded)
                 {
-                    Asn1InputStream input = new LazyAsn1InputStream(encoded);
+                    Asn1InputStream input = new LazyAsn1InputStream(m_encoded);
                     try
                     {
                         Asn1EncodableVector v = input.ReadVector();
 
-                        this.elements = v.TakeElements();
-                        this.isSorted = elements.Length < 2;
-                        this.encoded = null;
+                        m_elements = v.TakeElements();
+                        m_sortedElements = m_elements.Length <= 1 ? m_elements : null;
+                        m_encoded = null;
                     }
                     catch (IOException e)
                     {
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Asn1
 
         private byte[] GetContents()
         {
-            lock (this) return encoded;
+            lock (this) return m_encoded;
         }
     }
 }

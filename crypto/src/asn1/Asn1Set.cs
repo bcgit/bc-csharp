@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         /**
@@ -78,22 +78,22 @@ namespace Org.BouncyCastle.Asn1
         }
 
         // NOTE: Only non-readonly to support LazyDLSet
-        internal Asn1Encodable[] elements;
-        internal bool isSorted;
+        internal Asn1Encodable[] m_elements;
+        internal Asn1Encodable[] m_sortedElements;
 
         protected internal Asn1Set()
         {
-            this.elements = Asn1EncodableVector.EmptyElements;
-            this.isSorted = true;
+            m_elements = Asn1EncodableVector.EmptyElements;
+            m_sortedElements = m_elements;
         }
 
         protected internal Asn1Set(Asn1Encodable element)
         {
             if (null == element)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
 
-            this.elements = new Asn1Encodable[]{ element };
-            this.isSorted = true;
+            m_elements = new Asn1Encodable[]{ element };
+            m_sortedElements = m_elements;
         }
 
         protected internal Asn1Set(Asn1Encodable[] elements, bool doSort)
@@ -101,39 +101,41 @@ namespace Org.BouncyCastle.Asn1
             if (Arrays.IsNullOrContainsNull(elements))
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
-            Asn1Encodable[] tmp = Asn1EncodableVector.CloneElements(elements);
-            if (doSort && tmp.Length >= 2)
+            elements = Asn1EncodableVector.CloneElements(elements);
+
+            if (doSort && elements.Length > 1)
             {
-                tmp = Sort(tmp);
+                Sort(elements);
             }
 
-            this.elements = tmp;
-            this.isSorted = doSort || tmp.Length < 2;
+            m_elements = elements;
+            m_sortedElements = doSort || elements.Length <= 1 ? elements : null;
         }
 
         protected internal Asn1Set(Asn1EncodableVector elementVector, bool doSort)
         {
             if (null == elementVector)
-                throw new ArgumentNullException("elementVector");
+                throw new ArgumentNullException(nameof(elementVector));
 
-            Asn1Encodable[] tmp;
-            if (doSort && elementVector.Count >= 2)
+            Asn1Encodable[] elements;
+            if (doSort && elementVector.Count > 1)
             {
-                tmp = Sort(elementVector.CopyElements());
+                elements = elementVector.CopyElements();
+                Sort(elements);
             }
             else
             {
-                tmp = elementVector.TakeElements();
+                elements = elementVector.TakeElements();
             }
 
-            this.elements = tmp;
-            this.isSorted = doSort || tmp.Length < 2;
+            m_elements = elements;
+            m_sortedElements = doSort || elementVector.Count <= 1 ? elements : null;
         }
 
         protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
         {
-            this.elements = elements;
-            this.isSorted = isSorted || elements.Length < 2;
+            m_elements = elements;
+            m_sortedElements = isSorted || elements.Length <= 1 ? elements : null;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -143,7 +145,7 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
-            IEnumerable<Asn1Encodable> e = elements;
+            IEnumerable<Asn1Encodable> e = m_elements;
             return e.GetEnumerator();
         }
 
@@ -155,12 +157,12 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual Asn1Encodable this[int index]
         {
-            get { return elements[index]; }
+            get { return m_elements[index]; }
         }
 
         public virtual int Count
         {
-            get { return elements.Length; }
+            get { return m_elements.Length; }
         }
 
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
@@ -170,14 +172,14 @@ namespace Org.BouncyCastle.Asn1
             T[] result = new T[count];
             for (int i = 0; i < count; ++i)
             {
-                result[i] = func(elements[i]);
+                result[i] = func(m_elements[i]);
             }
             return result;
         }
 
         public virtual Asn1Encodable[] ToArray()
         {
-            return Asn1EncodableVector.CloneElements(elements);
+            return Asn1EncodableVector.CloneElements(m_elements);
         }
 
         private class Asn1SetParserImpl
@@ -234,7 +236,7 @@ namespace Org.BouncyCastle.Asn1
             while (--i >= 0)
             {
                 hc *= 257;
-                hc ^= elements[i].ToAsn1Object().CallAsn1GetHashCode();
+                hc ^= m_elements[i].ToAsn1Object().CallAsn1GetHashCode();
             }
 
             return hc;
@@ -242,8 +244,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            Asn1Set that = asn1Object as Asn1Set;
-            if (null == that)
+            if (!(asn1Object is Asn1Set that))
                 return false;
 
             // NOTE: Call Count here (on both) to 'force' a LazyDerSet
@@ -253,8 +254,8 @@ namespace Org.BouncyCastle.Asn1
 
             for (int i = 0; i < count; ++i)
             {
-                Asn1Object o1 = this.elements[i].ToAsn1Object();
-                Asn1Object o2 = that.elements[i].ToAsn1Object();
+                Asn1Object o1 = this.m_elements[i].ToAsn1Object();
+                Asn1Object o2 = that.m_elements[i].ToAsn1Object();
 
                 if (!o1.Equals(o2))
                     return false;
@@ -265,27 +266,32 @@ namespace Org.BouncyCastle.Asn1
 
         public override string ToString()
         {
-            return CollectionUtilities.ToString(elements);
+            return CollectionUtilities.ToString(m_elements);
         }
 
-        internal static Asn1Encodable[] Sort(Asn1Encodable[] elements)
+        internal static void Sort(Asn1Encodable[] elements)
         {
             int count = elements.Length;
-            if (count < 2)
-                return elements;
-
-            byte[][] keys = new byte[count][];
-            for (int i = 0; i < count; ++i)
+            if (count > 1)
             {
-                keys[i] = elements[i].GetEncoded(Der);
+                byte[][] keys = new byte[count][];
+                for (int i = 0; i < count; ++i)
+                {
+                    keys[i] = elements[i].GetEncoded(Der);
+                }
+                Array.Sort(keys, elements, DerComparer.Instance);
             }
-            Array.Sort(keys, elements, new DerComparer());
-            return elements;
         }
 
         private class DerComparer
             : IComparer<byte[]>
         {
+            internal static DerComparer Instance = new DerComparer();
+
+            private DerComparer()
+            {
+            }
+
             public int Compare(byte[] a, byte[] b)
             {
                 Debug.Assert(a.Length >= 2 && b.Length >= 2);

@@ -73,17 +73,19 @@ namespace Org.BouncyCastle.Asn1
 
         private Asn1Encodable[] GetSortedElements()
         {
-            if (isSorted)
-                return elements;
-
-            int count = elements.Length;
-            Asn1Object[] asn1Objects = new Asn1Object[count];
-            for (int i = 0; i < count; ++i)
-            {
-                asn1Objects[i] = elements[i].ToAsn1Object();
+			if (m_sortedElements == null)
+			{
+                int count = m_elements.Length;
+                Asn1Object[] asn1Objects = new Asn1Object[count];
+                for (int i = 0; i < count; ++i)
+                {
+                    asn1Objects[i] = m_elements[i].ToAsn1Object();
+                }
+				Sort(asn1Objects);
+                m_sortedElements = asn1Objects;
             }
 
-            return Sort(asn1Objects);
+			return m_sortedElements;
         }
     }
 }
