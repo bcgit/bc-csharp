@@ -56,6 +56,12 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         public void AddSeedMaterial(byte[] seed) 
         {
+            if (seed == null)
+                return;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            AddSeedMaterial(seed.AsSpan());
+#else
             for (int m = 0; m < seed.Length; m++) 
             {
                 byte pn = P[n];
@@ -64,6 +70,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                 P[s] = pn;
                 n = (byte)(n + 1);
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
