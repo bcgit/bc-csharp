@@ -142,22 +142,39 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (npub == null || npub.Length != CRYPTO_ABYTES)
                 throw new ArgumentException(asconParameters + " requires exactly " + CRYPTO_ABYTES + " bytes of IV");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var k = key.Key;
+#else
             byte[] k = key.GetKey();
+#endif
+
             if (k.Length != CRYPTO_KEYBYTES)
                 throw new ArgumentException(asconParameters + " key must be " + CRYPTO_KEYBYTES + " bytes long");
 
             N0 = Pack.BE_To_UInt64(npub, 0);
             N1 = Pack.BE_To_UInt64(npub, 8);
+
             if (CRYPTO_KEYBYTES == 16)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                K1 = Pack.BE_To_UInt64(k);
+                K2 = Pack.BE_To_UInt64(k[8..]);
+#else
                 K1 = Pack.BE_To_UInt64(k, 0);
                 K2 = Pack.BE_To_UInt64(k, 8);
+#endif
             }
             else if (CRYPTO_KEYBYTES == 20)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                K0 = Pack.BE_To_UInt32(k);
+                K1 = Pack.BE_To_UInt64(k[4..]);
+                K2 = Pack.BE_To_UInt64(k[12..]);
+#else
                 K0 = Pack.BE_To_UInt32(k, 0);
                 K1 = Pack.BE_To_UInt64(k, 4);
                 K2 = Pack.BE_To_UInt64(k, 12);
+#endif
             }
             else
             {

@@ -39,5 +39,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
 			return (byte[])m_key.Clone();
         }
+
+        public int KeyLength => m_key.Length;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> Key => m_key;
+#endif
     }
 }

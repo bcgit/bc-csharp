@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     {
         public static bool IsSupported => Aes.IsSupported;
 
-        private static Vector128<byte>[] CreateRoundKeys(byte[] key, bool forEncryption)
+        private static Vector128<byte>[] CreateRoundKeys(ReadOnlySpan<byte> key, bool forEncryption)
         {
             Vector128<byte>[] K;
 
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 K = new Vector128<byte>[11];
 
-                var s = Load128(key.AsSpan(0, 16));
+                var s = Load128(key[..16]);
                 K[0] = s;
 
                 for (int round = 0; round < 10;)
@@ -49,8 +49,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 K = new Vector128<byte>[13];
 
-                var s1 = Load128(key.AsSpan(0, 16));
-                var s2 = Load64(key.AsSpan(16, 8)).ToVector128();
+                var s1 = Load128(key[..16]);
+                var s2 = Load64(key[16..24]).ToVector128();
                 K[0] = s1;
 
                 byte rcon = 0x01;
@@ -95,8 +95,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 K = new Vector128<byte>[15];
 
-                var s1 = Load128(key.AsSpan(0, 16));
-                var s2 = Load128(key.AsSpan(16, 16));
+                var s1 = Load128(key[..16]);
+                var s2 = Load128(key[16..32]);
                 K[0] = s1;
                 K[1] = s2;
 
@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("invalid type: " + Platform.GetTypeName(parameters), nameof(parameters));
             }
 
-            m_roundKeys = CreateRoundKeys(keyParameter.GetKey(), forEncryption);
+            m_roundKeys = CreateRoundKeys(keyParameter.Key, forEncryption);
 
             if (m_roundKeys.Length == 11)
             {

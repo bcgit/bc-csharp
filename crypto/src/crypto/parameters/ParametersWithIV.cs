@@ -49,6 +49,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return (byte[])m_iv.Clone();
         }
 
+        public int IVLength => m_iv.Length;
+
         public ICipherParameters Parameters => m_parameters;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> IV => m_iv;
+#endif
     }
 }
