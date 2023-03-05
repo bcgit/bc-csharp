@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Asn1
         public const int TimeOfDay = 0x20;
         public const int DateTime = 0x21;
         public const int Duration = 0x22;
-        public const int OidIri = 0x23;
+        public const int ObjectIdentifierIri = 0x23;
         public const int RelativeOidIri = 0x24;
         // 0x25..: Reserved for addenda to this Recommendation | International Standard
 

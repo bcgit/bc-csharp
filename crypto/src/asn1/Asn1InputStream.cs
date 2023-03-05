@@ -456,7 +456,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.TimeOfDay:
             case Asn1Tags.DateTime:
             case Asn1Tags.Duration:
-            case Asn1Tags.OidIri:
+            case Asn1Tags.ObjectIdentifierIri:
             case Asn1Tags.RelativeOidIri:
                 throw new IOException("unsupported tag " + tagNo + " encountered");
             default:
