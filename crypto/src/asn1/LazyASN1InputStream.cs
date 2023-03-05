@@ -16,8 +16,18 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal LazyAsn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
-            : base(input, limit, tmpBuffers)
+        public LazyAsn1InputStream(Stream input, int limit)
+            : base(input, limit)
+        {
+        }
+
+        public LazyAsn1InputStream(Stream input, int limit, bool leaveOpen)
+            : base(input, limit, leaveOpen)
+        {
+        }
+
+        internal LazyAsn1InputStream(Stream input, int limit, bool leaveOpen, byte[][] tmpBuffers)
+            : base(input, limit, leaveOpen, tmpBuffers)
         {
         }
 
@@ -37,7 +47,10 @@ namespace Org.BouncyCastle.Asn1
             if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            return new LazyAsn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
+            using (var sub = new LazyAsn1InputStream(defIn, remaining, leaveOpen: true, tmpBuffers))
+            {
+                return sub.ReadVector();
+            }
         }
     }
 }

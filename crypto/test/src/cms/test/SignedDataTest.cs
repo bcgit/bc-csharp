@@ -1057,12 +1057,12 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(3, s.Version);
 
-			MemoryStream bIn = new MemoryStream(s.GetEncoded(), false);
-			Asn1InputStream aIn = new Asn1InputStream(bIn);
+			using (var aIn = new Asn1InputStream(s.GetEncoded()))
+			{
+                s = new CmsSignedData(ContentInfo.GetInstance(aIn.ReadObject()));
+            }
 
-			s = new CmsSignedData(ContentInfo.GetInstance(aIn.ReadObject()));
-
-			x509Certs = s.GetCertificates();
+            x509Certs = s.GetCertificates();
 			x509Crls = s.GetCrls();
 
 			SignerInformationStore signers = s.GetSignerInfos();
@@ -1101,12 +1101,12 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = gen.Generate(msg, true);
 
-			bIn = new MemoryStream(s.GetEncoded(), false);
-			aIn = new Asn1InputStream(bIn);
+			using (var aIn = new Asn1InputStream(s.GetEncoded()))
+			{
+                s = new CmsSignedData(ContentInfo.GetInstance(aIn.ReadObject()));
+            }
 
-			s = new CmsSignedData(ContentInfo.GetInstance(aIn.ReadObject()));
-
-			x509Certs = s.GetCertificates();
+            x509Certs = s.GetCertificates();
 			x509Crls = s.GetCrls();
 
 			signers = s.GetSignerInfos();

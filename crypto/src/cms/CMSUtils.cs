@@ -33,26 +33,27 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		internal static ContentInfo ReadContentInfo(
-			byte[] input)
+		internal static ContentInfo ReadContentInfo(byte[] input)
 		{
-			// enforce limit checking as from a byte array
-			return ReadContentInfo(new Asn1InputStream(input));
+            using (var asn1In = new Asn1InputStream(input))
+			{
+                return ReadContentInfo(asn1In);
+            }
+        }
+
+		internal static ContentInfo ReadContentInfo(Stream input)
+		{
+            using (var asn1In = new Asn1InputStream(input, MaximumMemory, leaveOpen: true))
+            {
+                return ReadContentInfo(asn1In);
+            }
 		}
 
-		internal static ContentInfo ReadContentInfo(
-			Stream input)
-		{
-			// enforce some limit checking
-			return ReadContentInfo(new Asn1InputStream(input, MaximumMemory));
-		}
-
-		private static ContentInfo ReadContentInfo(
-			Asn1InputStream aIn)
+		private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
 		{
 			try
 			{
-				return ContentInfo.GetInstance(aIn.ReadObject());
+				return ContentInfo.GetInstance(asn1In.ReadObject());
 			}
 			catch (IOException e)
 			{

@@ -131,11 +131,14 @@ namespace Org.BouncyCastle.X509
 					return ReadPemCrl(inStream);
 
 				Asn1InputStream asn1 = lazyAsn1
-					?	new LazyAsn1InputStream(inStream)
-					:	new Asn1InputStream(inStream);
+					?	new LazyAsn1InputStream(inStream, int.MaxValue, leaveOpen: true)
+					:	new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true);
 
-				return ReadDerCrl(asn1);
-			}
+                using (asn1)
+                {
+                    return ReadDerCrl(asn1);
+                }
+            }
 			catch (CrlException e)
 			{
 				throw e;

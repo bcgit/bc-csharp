@@ -54,26 +54,28 @@ namespace Org.BouncyCastle.Asn1.Tests
             };
 
 			MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
-
-            for (int i = 0; i != values.Length; i++)
+            using (var asn1Out = Asn1OutputStream.Create(bOut))
             {
-                aOut.WriteObject(values[i]);
+                for (int i = 0; i != values.Length; i++)
+                {
+                    asn1Out.WriteObject(values[i]);
+                }
             }
 
-			Asn1InputStream aIn = new Asn1InputStream(bOut.ToArray());
-
-			for (int i = 0; i != values.Length; i++)
+            byte[] output = bOut.ToArray();
+            using (var asn1In = new Asn1InputStream(output))
             {
-                Asn1Object o = aIn.ReadObject();
-                if (!o.Equals(values[i]))
+                for (int i = 0; i != values.Length; i++)
                 {
-                    Fail("Failed equality test for " + o.GetType().Name);
-                }
-
-                if (o.GetHashCode() != values[i].GetHashCode())
-                {
-                    Fail("Failed hashCode test for " + o.GetType().Name);
+                    Asn1Object o = asn1In.ReadObject();
+                    if (!o.Equals(values[i]))
+                    {
+                        Fail("Failed equality test for " + o.GetType().Name);
+                    }
+                    if (o.GetHashCode() != values[i].GetHashCode())
+                    {
+                        Fail("Failed hashCode test for " + o.GetType().Name);
+                    }
                 }
             }
         }

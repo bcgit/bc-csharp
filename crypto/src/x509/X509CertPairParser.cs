@@ -13,13 +13,12 @@ namespace Org.BouncyCastle.X509
 	{
 		private Stream currentStream;
 
-		private X509CertificatePair ReadDerCrossCertificatePair(
-			Stream inStream)
+		private X509CertificatePair ReadDerCrossCertificatePair(Stream inStream)
 		{
-			Asn1InputStream dIn = new Asn1InputStream(inStream);//, ProviderUtil.getReadLimit(in));
-			Asn1Sequence seq = (Asn1Sequence)dIn.ReadObject();
-			CertificatePair pair = CertificatePair.GetInstance(seq);
-			return new X509CertificatePair(pair);
+            using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
+            {
+                return new X509CertificatePair(CertificatePair.GetInstance(asn1In.ReadObject()));
+            }
 		}
 
 		/// <summary>

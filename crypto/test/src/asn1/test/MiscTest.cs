@@ -105,32 +105,33 @@ namespace Org.BouncyCastle.Asn1.Tests
             byte[] data = Base64.Decode("MA4ECAECAwQFBgcIAgIAgAMCBSAWBWhlbGxvMAoECAECAwQFBgcIFgtodHRwOi8vdGVzdA==");
 
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
-
-            for (int i = 0; i != values.Length; i++)
+            using (var asn1Out = Asn1OutputStream.Create(bOut))
             {
-                aOut.WriteObject(values[i]);
+                for (int i = 0; i != values.Length; i++)
+                {
+                    asn1Out.WriteObject(values[i]);
+                }
             }
 
-            if (!Arrays.AreEqual(bOut.ToArray(), data))
+            byte[] output = bOut.ToArray();
+            if (!Arrays.AreEqual(output, data))
             {
                 Fail("Failed data check");
             }
 
-            Asn1InputStream aIn = new Asn1InputStream(bOut.ToArray());
-
-            for (int i = 0; i != values.Length; i++)
+            using (var asn1In = new Asn1InputStream(output))
             {
-                Asn1Object o = aIn.ReadObject();
-
-                if (!values[i].Equals(o))
+                for (int i = 0; i != values.Length; i++)
                 {
-                    Fail("Failed equality test for " + o);
-                }
-
-                if (o.GetHashCode() != values[i].GetHashCode())
-                {
-                    Fail("Failed hashCode test for " + o);
+                    Asn1Object o = asn1In.ReadObject();
+                    if (!values[i].Equals(o))
+                    {
+                        Fail("Failed equality test for " + o);
+                    }
+                    if (o.GetHashCode() != values[i].GetHashCode())
+                    {
+                        Fail("Failed hashCode test for " + o);
+                    }
                 }
             }
 

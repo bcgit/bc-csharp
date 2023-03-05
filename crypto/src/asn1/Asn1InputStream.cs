@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Asn1
         : FilterStream
     {
         private readonly int limit;
+        private readonly bool m_leaveOpen;
 
         internal byte[][] tmpBuffers;
 
@@ -36,11 +37,6 @@ namespace Org.BouncyCastle.Asn1
             return int.MaxValue;
         }
 
-        public Asn1InputStream(Stream input)
-            : this(input, FindLimit(input))
-        {
-        }
-
         /**
          * Create an ASN1InputStream based on the input byte array. The length of DER objects in
          * the stream is automatically limited to the length of the input array.
@@ -52,6 +48,11 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public Asn1InputStream(Stream input)
+            : this(input, FindLimit(input))
+        {
+        }
+
         /**
          * Create an ASN1InputStream where no DER object will be longer than limit.
          *
@@ -59,22 +60,41 @@ namespace Org.BouncyCastle.Asn1
          * @param limit maximum size of a DER encoded object.
          */
         public Asn1InputStream(Stream input, int limit)
-            : this(input, limit, new byte[16][])
+            : this(input, limit, false)
         {
         }
 
-        internal Asn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
+        public Asn1InputStream(Stream input, int limit, bool leaveOpen)
+            : this(input, limit, leaveOpen, new byte[16][])
+        {
+        }
+
+        internal Asn1InputStream(Stream input, int limit, bool leaveOpen, byte[][] tmpBuffers)
             : base(input)
         {
+            if (!input.CanRead)
+                throw new ArgumentException("Expected stream to be readable", nameof(input));
+
             this.limit = limit;
+            m_leaveOpen = leaveOpen;
             this.tmpBuffers = tmpBuffers;
         }
 
         protected override void Dispose(bool disposing)
         {
-            tmpBuffers = null;
+            if (disposing)
+            {
+                tmpBuffers = null;
+            }
 
-            base.Dispose(disposing);
+            if (m_leaveOpen)
+            {
+                base.Detach(disposing);
+            }
+            else
+            {
+                base.Dispose(disposing);
+            }
         }
 
         /**
@@ -146,7 +166,10 @@ namespace Org.BouncyCastle.Asn1
             if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            return new Asn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
+            using (var sub = new Asn1InputStream(defIn, remaining, leaveOpen: true, tmpBuffers))
+            {
+                return sub.ReadVector();
+            }
         }
 
         internal virtual Asn1Sequence CreateDLSequence(DefiniteLengthInputStream defIn)

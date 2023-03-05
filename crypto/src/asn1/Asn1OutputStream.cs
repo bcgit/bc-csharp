@@ -18,20 +18,56 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1OutputStream Create(Stream output)
         {
-            return new Asn1OutputStream(output);
+            return Create(output, Asn1Encodable.Ber);
         }
 
         public static Asn1OutputStream Create(Stream output, string encoding)
         {
-            if (Asn1Encodable.Der.Equals(encoding))
-                return new DerOutputStream(output);
-
-            return new Asn1OutputStream(output);
+            return Create(output, encoding, false);
         }
 
-        internal Asn1OutputStream(Stream os)
-            : base(os)
+        public static Asn1OutputStream Create(Stream output, string encoding, bool leaveOpen)
         {
+            if (Asn1Encodable.Der.Equals(encoding))
+                return new DerOutputStream(output, leaveOpen);
+
+            return new Asn1OutputStream(output, leaveOpen);
+        }
+
+        internal static int GetEncodingType(string encoding)
+        {
+            if (Asn1Encodable.Der.Equals(encoding))
+                return EncodingDer;
+
+            return EncodingBer;
+        }
+
+        private readonly bool m_leaveOpen;
+
+        internal Asn1OutputStream(Stream output, bool leaveOpen)
+            : base(output)
+        {
+            if (!output.CanWrite)
+                throw new ArgumentException("Expected stream to be writable", nameof(output));
+
+            m_leaveOpen = leaveOpen;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                FlushInternal();
+            }
+
+            if (m_leaveOpen)
+            {
+                base.Detach(disposing);
+            }
+            else
+            {
+                base.Dispose(disposing);
+            }
         }
 
         public virtual void WriteObject(Asn1Encodable asn1Encodable)

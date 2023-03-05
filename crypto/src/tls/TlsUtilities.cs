@@ -966,14 +966,15 @@ namespace Org.BouncyCastle.Tls
 
         public static Asn1Object ReadAsn1Object(byte[] encoding)
         {
-            Asn1InputStream asn1 = new Asn1InputStream(encoding);
-            Asn1Object result = asn1.ReadObject();
-            if (null == result)
-                throw new TlsFatalAlert(AlertDescription.decode_error);
-            if (null != asn1.ReadObject())
-                throw new TlsFatalAlert(AlertDescription.decode_error);
-
-            return result;
+            using (var asn1In = new Asn1InputStream(encoding))
+            {
+                Asn1Object result = asn1In.ReadObject();
+                if (null == result)
+                    throw new TlsFatalAlert(AlertDescription.decode_error);
+                if (asn1In.Length != asn1In.Position)
+                    throw new TlsFatalAlert(AlertDescription.decode_error);
+                return result;
+            }
         }
 
         /// <exception cref="IOException"/>
