@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Utilities.IO.Compression
             return new DeflateStream(stream, CompressionMode.Decompress, leaveOpen);
 #else
             return leaveOpen
-                ? new ZInputStreamLeaveOpen(stream, true)
-                : new ZInputStream(stream, true);
+                ?   new ZInputStreamLeaveOpen(stream, true)
+                :   new ZInputStream(stream, true);
 #endif
         }
     }
