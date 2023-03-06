@@ -11,11 +11,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         public LowmcConstantsL5()
         {
             _matrixToHex = new Dictionary<string, string>();
-            Stream input = typeof(LowmcConstants).Assembly
-                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.picnic.lowmcL5.bz2");
-            input = Bzip2.DecompressInput(input);
-
-            using (StreamReader sr = new StreamReader(input))
+            using (var input = typeof(LowmcConstants).Assembly.GetManifestResourceStream(
+                "Org.BouncyCastle.pqc.crypto.picnic.lowmcL5.bz2"))
+            using (var sr = new StreamReader(Bzip2.DecompressInput(input)))
             {
                 // load a properties file
                 string line = sr.ReadLine();

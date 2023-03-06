@@ -160,35 +160,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             PLEN_3 = 81;
 
             // Import compression tables from properties
-            var props = new Dictionary<string, string>(); 
-            Stream input = typeof(P751).Assembly
-                    .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p751.bz2");
-            input = Bzip2.DecompressInput(input);
-
-            using (StreamReader sr = new StreamReader(input))
+            var props = new Dictionary<string, string>();
+            using (var input = typeof(P751).Assembly.GetManifestResourceStream(
+                "Org.BouncyCastle.pqc.crypto.sike.p751.bz2"))
+            using (var sr = new StreamReader(Bzip2.DecompressInput(input)))
             {
-                    // load a properties file
-                    string line = sr.ReadLine();
-                    string matrix, hexString;
-                    int i = 0;
-                    while (line != null)
+                // load a properties file
+                string line = sr.ReadLine();
+                string matrix, hexString;
+                int i = 0;
+                while (line != null)
+                {
+                    string header = line;
+                    if (header != "")
                     {
-                            string header = line;
-                            if (header != "")
-                            {
-                                    if (i > 1)
-                                    {
-                                            header = header.Replace(",", "");
-                                    }
-                                    int index = header.IndexOf('=');
-                                    matrix = header.Substring(0, index).Trim();
-                                    hexString = header.Substring(index + 1).Trim();
-                                    props.Add(matrix, hexString);
-                            }
-
-                            line = sr.ReadLine();
-                            i++;
+                        if (i > 1)
+                        {
+                            header = header.Replace(",", "");
+                        }
+                        int index = header.IndexOf('=');
+                        matrix = header.Substring(0, index).Trim();
+                        hexString = header.Substring(index + 1).Trim();
+                        props.Add(matrix, hexString);
                     }
+
+                    line = sr.ReadLine();
+                    i++;
+                }
             }
             ph2_path = ReadIntsFromProperty(props, "ph2_path", PLEN_2);
             ph3_path = ReadIntsFromProperty(props, "ph3_path", PLEN_3);
