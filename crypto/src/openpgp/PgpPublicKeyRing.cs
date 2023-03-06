@@ -185,10 +185,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         internal static PublicKeyPacket ReadPublicKeyPacket(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();
-            if (!(packet is PublicKeyPacket))
+            if (!(packet is PublicKeyPacket publicKeyPacket))
                 throw new IOException("unexpected packet in stream: " + packet);
 
-            return (PublicKeyPacket)packet;
+            return publicKeyPacket;
         }
 
         internal static PgpPublicKey ReadSubkey(BcpgInputStream bcpgInput)

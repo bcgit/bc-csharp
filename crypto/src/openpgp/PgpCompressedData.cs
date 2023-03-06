@@ -10,14 +10,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly CompressedDataPacket data;
 
-		public PgpCompressedData(
-            BcpgInputStream bcpgInput)
+		public PgpCompressedData(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();
-            if (!(packet is CompressedDataPacket))
+            if (!(packet is CompressedDataPacket compressedDataPacket))
                 throw new IOException("unexpected packet in stream: " + packet);
 
-            this.data = (CompressedDataPacket)packet;
+            this.data = compressedDataPacket;
         }
 
 		/// <summary>The algorithm used for compression</summary>
