@@ -13,9 +13,11 @@ namespace Org.BouncyCastle.Utilities.IO.Compression
                 :   new Impl.CBZip2OutputStream(stream);
         }
 
-        internal static Stream DecompressInput(Stream stream)
+        internal static Stream DecompressInput(Stream stream, bool leaveOpen = false)
         {
-            return new Impl.CBZip2InputStream(stream);
+            return leaveOpen
+                ?   new Impl.CBZip2InputStreamLeaveOpen(stream)
+                :   new Impl.CBZip2InputStream(stream);
         }
     }
 }

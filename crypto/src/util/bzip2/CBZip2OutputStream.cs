@@ -424,11 +424,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         {
             if (disposing)
             {
-                if (!closed)
-                {
-                    Finish();
-                    closed = true;
-                }
+                ImplDisposing(disposeOutput: false);
             }
             base.Dispose(disposing);
         }
@@ -437,14 +433,22 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         {
             if (disposing)
             {
-                if (!closed)
+                ImplDisposing(disposeOutput: true);
+            }
+            base.Dispose(disposing);
+        }
+
+        private void ImplDisposing(bool disposeOutput)
+        {
+            if (!closed)
+            {
+                Finish();
+                closed = true;
+                if (disposeOutput)
                 {
-                    Finish();
-                    closed = true;
                     this.bsStream.Dispose();
                 }
             }
-            base.Dispose(disposing);
         }
 
         public void Finish()
