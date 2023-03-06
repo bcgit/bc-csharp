@@ -191,20 +191,22 @@ namespace Org.BouncyCastle.Pkix
 			{
 				if (Platform.EqualsIgnoreCase("PkiPath", encoding))
 				{
-					Asn1InputStream derInStream = new Asn1InputStream(inStream);
-                    if (!(derInStream.ReadObject() is Asn1Sequence asn1Sequence))
-                    {
-                        throw new CertificateException(
-							"input stream does not contain a ASN1 SEQUENCE while reading PkiPath encoded data to load CertPath");
-					}
+					using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
+					{
+                        if (!(asn1In.ReadObject() is Asn1Sequence asn1Sequence))
+                        {
+                            throw new CertificateException(
+                                "input stream does not contain a ASN1 SEQUENCE while reading PkiPath encoded data to load CertPath");
+                        }
 
-					var certArray = asn1Sequence.MapElements(
-						element => new X509Certificate(X509CertificateStructure.GetInstance(element.ToAsn1Object())));
+                        var certArray = asn1Sequence.MapElements(
+                            element => new X509Certificate(X509CertificateStructure.GetInstance(element.ToAsn1Object())));
 
-					Array.Reverse(certArray);
+                        Array.Reverse(certArray);
 
-					certs = new List<X509Certificate>(certArray);
-				}
+                        certs = new List<X509Certificate>(certArray);
+                    }
+                }
 				else if (Platform.EqualsIgnoreCase("PEM", encoding) ||
 					     Platform.EqualsIgnoreCase("PKCS7", encoding))
 				{

@@ -101,10 +101,13 @@ namespace Org.BouncyCastle.Asn1
             {
                 if (null != encoded)
                 {
-                    Asn1InputStream input = new LazyAsn1InputStream(encoded);
                     try
                     {
-                        Asn1EncodableVector v = input.ReadVector();
+                        Asn1EncodableVector v;
+                        using (var input = new LazyAsn1InputStream(encoded))
+                        {
+                            v = input.ReadVector();
+                        }
 
                         this.elements = v.TakeElements();
                         this.encoded = null;

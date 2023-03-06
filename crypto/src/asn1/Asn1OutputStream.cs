@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly bool m_leaveOpen;
 
-        internal Asn1OutputStream(Stream output, bool leaveOpen)
+        protected internal Asn1OutputStream(Stream output, bool leaveOpen)
             : base(output)
         {
             if (!output.CanWrite)
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Asn1
             get { return EncodingBer; }
         }
 
-        internal void FlushInternal()
+        private void FlushInternal()
         {
             // Placeholder to support future internal buffering
         }

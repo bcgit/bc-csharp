@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1
             using (var asn1Out = Asn1OutputStream.Create(new MemoryStream(result, true), encoding))
             {
                 asn1Encoding.Encode(asn1Out);
-                Debug.Assert(result.Length == Convert.ToInt32(asn1Out.Position));
+                Debug.Assert(result.Length == asn1Out.Position);
             }
             return result;
         }
@@ -73,7 +73,10 @@ namespace Org.BouncyCastle.Asn1
 		{
 			try
 			{
-				return new Asn1InputStream(inStr).ReadObject();
+                using (var asn1In = new Asn1InputStream(inStr, int.MaxValue, leaveOpen: true))
+                {
+                    return asn1In.ReadObject();
+                }
 			}
 			catch (InvalidCastException)
 			{

@@ -971,7 +971,7 @@ namespace Org.BouncyCastle.Tls
                 Asn1Object result = asn1In.ReadObject();
                 if (null == result)
                     throw new TlsFatalAlert(AlertDescription.decode_error);
-                if (asn1In.Length != asn1In.Position)
+                if (encoding.Length != asn1In.Position)
                     throw new TlsFatalAlert(AlertDescription.decode_error);
                 return result;
             }
