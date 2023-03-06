@@ -1105,17 +1105,8 @@ namespace Org.BouncyCastle.Pkix
 					 * omitted and a distribution point name of the certificate
 					 * issuer.
 					 */
-					X509Name issuer;
-					try
-					{
-						issuer = X509Name.GetInstance(cert.IssuerDN.GetEncoded());
-					}
-					catch (Exception e)
-					{
-						throw new Exception("Issuer from certificate for CRL could not be reencoded.", e);
-					}
 					DistributionPoint dp = new DistributionPoint(new DistributionPointName(0, new GeneralNames(
-						new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
+						new GeneralName(GeneralName.DirectoryName, cert.IssuerDN))), null, null);
 					PkixParameters paramsPKIXClone = (PkixParameters)paramsPKIX.Clone();
 
 					CheckCrl(dp, paramsPKIXClone, cert, validDate, sign, workingPublicKey, certStatus, reasonsMask,
