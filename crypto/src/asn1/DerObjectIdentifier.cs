@@ -212,7 +212,7 @@ namespace Org.BouncyCastle.Asn1
             index ^= index >> 10;
             index &= 1023;
 
-            var originalEntry = Cache[index];
+            var originalEntry = Volatile.Read(ref Cache[index]);
             if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.GetContents()))
                 return originalEntry;
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
@@ -17,7 +17,7 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
 {
-	/**
+    /**
 	 * The following extensions are listed in RFC 2459 as relevant to CRLs
 	 *
 	 * Authority Key Identifier
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.X509
 	 * Delta CRL Indicator (critical)
 	 * Issuing Distribution Point (critical)
 	 */
-	public class X509Crl
+    public class X509Crl
 		: X509ExtensionBase
 		// TODO Add interface Crl?
 	{
@@ -449,10 +449,11 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-			CachedEncoding localCacheEncoding = cachedEncoding;
-            if (null != localCacheEncoding)
-                return localCacheEncoding;
+			return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+        }
 
+		private static CachedEncoding CreateCachedEncoding(CertificateList c)
+		{
             byte[] encoding = null;
             CrlException exception = null;
             try
@@ -464,9 +465,7 @@ namespace Org.BouncyCastle.X509
                 exception = new CrlException("Failed to DER-encode CRL", e);
             }
 
-            CachedEncoding temp = new CachedEncoding(encoding, exception);
-
-			return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
+            return new CachedEncoding(encoding, exception);
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Misc;
@@ -471,13 +470,7 @@ namespace Org.BouncyCastle.X509
         public virtual AsymmetricKeyParameter GetPublicKey()
         {
             // Cache the public key to support repeated-use optimizations
-            AsymmetricKeyParameter localPublicKeyValue = publicKeyValue;
-            if (null != localPublicKeyValue)
-                return localPublicKeyValue;
-
-            AsymmetricKeyParameter temp = PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-
-            return Interlocked.CompareExchange(ref publicKeyValue, temp, null) ?? temp;
+            return Objects.EnsureSingletonInitialized(ref publicKeyValue, c, CreatePublicKey);
         }
 
         /// <summary>
@@ -681,10 +674,11 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-            CachedEncoding localCachedEncoding = cachedEncoding;
-            if (null != localCachedEncoding)
-                return localCachedEncoding;
+            return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+        }
 
+        private static CachedEncoding CreateCachedEncoding(X509CertificateStructure c)
+        {
             byte[] encoding = null;
             CertificateEncodingException exception = null;
             try
@@ -696,9 +690,12 @@ namespace Org.BouncyCastle.X509
                 exception = new CertificateEncodingException("Failed to DER-encode certificate", e);
             }
 
-            CachedEncoding temp = new CachedEncoding(encoding, exception);
+            return new CachedEncoding(encoding, exception);
+        }
 
-           return Interlocked.CompareExchange(ref cachedEncoding, temp, null) ?? temp;
+        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
+        {
+            return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
         }
 
         private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
