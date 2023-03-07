@@ -71,12 +71,12 @@ namespace Org.BouncyCastle.Asn1
             return new ConstructedDLEncoding(tagClass, tagNo, GetSortedDerEncodings());
         }
 
-        internal override DerEncoding GetEncodingDer()
+        internal sealed override DerEncoding GetEncodingDer()
         {
             return new ConstructedDerEncoding(Asn1Tags.Universal, Asn1Tags.Set, GetSortedDerEncodings());
         }
 
-        internal override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
         {
             return new ConstructedDerEncoding(tagClass, tagNo, GetSortedDerEncodings());
         }
