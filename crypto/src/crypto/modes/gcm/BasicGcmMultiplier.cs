@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
@@ -6,6 +9,12 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
     public class BasicGcmMultiplier
         : IGcmMultiplier
     {
+#if NETCOREAPP3_0_OR_GREATER
+        internal static bool IsHardwareAccelerated => Pclmulqdq.IsSupported;
+#else
+        internal static bool IsHardwareAccelerated => false;
+#endif
+
         private GcmUtilities.FieldElement H;
 
         public void Init(byte[] H)

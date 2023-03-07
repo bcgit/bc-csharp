@@ -35,13 +35,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         internal static IGcmMultiplier CreateGcmMultiplier()
         {
-#if NETCOREAPP3_0_OR_GREATER
-            // TODO Prefer more tightly coupled test
-            if (Pclmulqdq.IsSupported)
-            {
+            if (BasicGcmMultiplier.IsHardwareAccelerated)
                 return new BasicGcmMultiplier();
-            }
-#endif
 
             return new Tables4kGcmMultiplier();
         }
