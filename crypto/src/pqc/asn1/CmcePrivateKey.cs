@@ -123,6 +123,16 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return ToAsn1Primitive().GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return ToAsn1Primitive().GetEncodingDer();
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return ToAsn1Primitive().GetEncodingDerImplicit(tagClass, tagNo);
+        }
+
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return ToAsn1Primitive().CallAsn1Equals(asn1Object);

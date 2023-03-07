@@ -69,6 +69,26 @@ namespace Org.BouncyCastle.Asn1
             return new ConstructedDLEncoding(tagClass, tagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            Asn1Object baseObject = GetBaseObject().ToAsn1Object();
+
+            if (!IsExplicit())
+                return baseObject.GetEncodingDerImplicit(TagClass, TagNo);
+
+            return new ConstructedDerEncoding(TagClass, TagNo, new DerEncoding[]{ baseObject.GetEncodingDer() });
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            Asn1Object baseObject = GetBaseObject().ToAsn1Object();
+
+            if (!IsExplicit())
+                return baseObject.GetEncodingDerImplicit(tagClass, tagNo);
+
+            return new ConstructedDerEncoding(tagClass, tagNo, new DerEncoding[]{ baseObject.GetEncodingDer() });
+        }
+
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
         {
             return new DerSequence(asn1Object);

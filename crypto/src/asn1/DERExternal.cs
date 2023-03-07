@@ -156,6 +156,16 @@ namespace Org.BouncyCastle.Asn1
             return BuildSequence().GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return BuildSequence().GetEncodingDerImplicit(Asn1Tags.Universal, Asn1Tags.External);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return BuildSequence().GetEncodingDerImplicit(tagClass, tagNo);
+        }
+
         protected override int Asn1GetHashCode()
 		{
             return Objects.GetHashCode(this.directReference)

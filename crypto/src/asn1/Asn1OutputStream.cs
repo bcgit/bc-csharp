@@ -181,6 +181,17 @@ namespace Org.BouncyCastle.Asn1
             return contentsEncodings;
         }
 
+        internal static DerEncoding[] GetContentsEncodingsDer(Asn1Encodable[] elements)
+        {
+            int count = elements.Length;
+            DerEncoding[] contentsEncodings = new DerEncoding[count];
+            for (int i = 0; i < count; ++i)
+            {
+                contentsEncodings[i] = elements[i].ToAsn1Object().GetEncodingDer();
+            }
+            return contentsEncodings;
+        }
+
         internal static int GetLengthOfContents(IAsn1Encoding[] contentsEncodings)
         {
             int contentsLength = 0;

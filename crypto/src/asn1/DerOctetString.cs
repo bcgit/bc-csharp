@@ -31,6 +31,16 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, contents);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, contents);
+        }
+
         internal static void Encode(Asn1OutputStream asn1Out, byte[] buf, int off, int len)
 		{
             asn1Out.WriteIdentifier(Asn1Tags.Universal, Asn1Tags.OctetString);

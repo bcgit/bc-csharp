@@ -77,13 +77,13 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Set)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        internal Asn1Encodable[] m_sortedElements;
         internal readonly Asn1Encodable[] m_elements;
+        internal DerEncoding[] m_sortedDerEncodings;
 
         protected internal Asn1Set()
         {
             m_elements = Asn1EncodableVector.EmptyElements;
-            m_sortedElements = m_elements;
+            m_sortedDerEncodings = null;
         }
 
         protected internal Asn1Set(Asn1Encodable element)
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Asn1
                 throw new ArgumentNullException(nameof(element));
 
             m_elements = new Asn1Encodable[]{ element };
-            m_sortedElements = m_elements;
+            m_sortedDerEncodings = null;
         }
 
         protected internal Asn1Set(Asn1Encodable[] elements, bool doSort)
@@ -101,14 +101,15 @@ namespace Org.BouncyCastle.Asn1
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
             elements = Asn1EncodableVector.CloneElements(elements);
+            DerEncoding[] sortedDerEncodings = null;
 
             if (doSort && elements.Length > 1)
             {
-                Sort(elements);
+                sortedDerEncodings = SortElements(elements);
             }
 
             m_elements = elements;
-            m_sortedElements = doSort || elements.Length <= 1 ? elements : null;
+            m_sortedDerEncodings = sortedDerEncodings;
         }
 
         protected internal Asn1Set(Asn1EncodableVector elementVector, bool doSort)
@@ -117,24 +118,28 @@ namespace Org.BouncyCastle.Asn1
                 throw new ArgumentNullException(nameof(elementVector));
 
             Asn1Encodable[] elements;
+            DerEncoding[] sortedDerEncodings;
+
             if (doSort && elementVector.Count > 1)
             {
                 elements = elementVector.CopyElements();
-                Sort(elements);
+                sortedDerEncodings = SortElements(elements);
             }
             else
             {
                 elements = elementVector.TakeElements();
+                sortedDerEncodings = null;
             }
 
             m_elements = elements;
-            m_sortedElements = doSort || elementVector.Count <= 1 ? elements : null;
+            m_sortedDerEncodings = sortedDerEncodings;
         }
 
         protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
         {
+            Debug.Assert(!isSorted);
             m_elements = elements;
-            m_sortedElements = isSorted || elements.Length <= 1 ? elements : null;
+            m_sortedDerEncodings = null;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -264,65 +269,11 @@ namespace Org.BouncyCastle.Asn1
             return CollectionUtilities.ToString(m_elements);
         }
 
-        internal static void Sort(Asn1Encodable[] elements)
+        private static DerEncoding[] SortElements(Asn1Encodable[] elements)
         {
-            int count = elements.Length;
-            if (count > 1)
-            {
-                byte[][] keys = new byte[count][];
-                for (int i = 0; i < count; ++i)
-                {
-                    keys[i] = elements[i].GetEncoded(Der);
-                }
-                Array.Sort(keys, elements, DerComparer.Instance);
-            }
-        }
-
-        private class DerComparer
-            : IComparer<byte[]>
-        {
-            internal static DerComparer Instance = new DerComparer();
-
-            private DerComparer()
-            {
-            }
-
-            public int Compare(byte[] a, byte[] b)
-            {
-                Debug.Assert(a.Length >= 2 && b.Length >= 2);
-
-                /*
-                 * NOTE: Set elements in DER encodings are ordered first according to their tags (class and
-                 * number); the CONSTRUCTED bit is not part of the tag.
-                 * 
-                 * For SET-OF, this is unimportant. All elements have the same tag and DER requires them to
-                 * either all be in constructed form or all in primitive form, according to that tag. The
-                 * elements are effectively ordered according to their content octets.
-                 * 
-                 * For SET, the elements will have distinct tags, and each will be in constructed or
-                 * primitive form accordingly. Failing to ignore the CONSTRUCTED bit could therefore lead to
-                 * ordering inversions.
-                 */
-                int a0 = a[0] & ~Asn1Tags.Constructed;
-                int b0 = b[0] & ~Asn1Tags.Constructed;
-                if (a0 != b0)
-                    return a0 < b0 ? -1 : 1;
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                int compareLength = System.Math.Min(a.Length, b.Length) - 1;
-                return a.AsSpan(1, compareLength).SequenceCompareTo(b.AsSpan(1, compareLength));
-#else
-                int len = System.Math.Min(a.Length, b.Length);
-                for (int i = 1; i < len; ++i)
-                {
-                    byte ai = a[i], bi = b[i];
-                    if (ai != bi)
-                        return ai < bi ? -1 : 1;
-                }
-                Debug.Assert(a.Length == b.Length);
-                return 0;
-#endif
-            }
+            var derEncodings = Asn1OutputStream.GetContentsEncodingsDer(elements);
+            Array.Sort(derEncodings, elements);
+            return derEncodings;
         }
     }
 }

@@ -266,6 +266,38 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, contents);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            int padBits = contents[0];
+            if (padBits != 0)
+            {
+                int last = contents.Length - 1;
+                byte lastBer = contents[last];
+                byte lastDer = (byte)(lastBer & (0xFF << padBits));
+
+                if (lastBer != lastDer)
+                    return new PrimitiveDerEncodingSuffixed(Asn1Tags.Universal, Asn1Tags.BitString, contents, lastDer);
+            }
+
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.BitString, contents);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            int padBits = contents[0];
+            if (padBits != 0)
+            {
+                int last = contents.Length - 1;
+                byte lastBer = contents[last];
+                byte lastDer = (byte)(lastBer & (0xFF << padBits));
+
+                if (lastBer != lastDer)
+                    return new PrimitiveDerEncodingSuffixed(tagClass, tagNo, contents, lastDer);
+            }
+
+            return new PrimitiveDerEncoding(tagClass, tagNo, contents);
+        }
+
         protected override int Asn1GetHashCode()
 		{
             if (contents.Length < 2)

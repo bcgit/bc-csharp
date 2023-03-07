@@ -93,6 +93,10 @@ namespace Org.BouncyCastle.Asn1
 
         internal abstract IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo);
 
+        internal abstract DerEncoding GetEncodingDer();
+
+        internal abstract DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo);
+
         protected abstract bool Asn1Equals(Asn1Object asn1Object);
 		protected abstract int Asn1GetHashCode();
 

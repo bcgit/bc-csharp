@@ -66,6 +66,18 @@ namespace Org.BouncyCastle.Asn1
                 Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, elements));
         }
 
+        internal override DerEncoding GetEncodingDer()
+        {
+            return new ConstructedDerEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
+                Asn1OutputStream.GetContentsEncodingsDer(elements));
+        }
+
+        internal override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new ConstructedDerEncoding(tagClass, tagNo,
+                Asn1OutputStream.GetContentsEncodingsDer(elements));
+        }
+
         internal override DerBitString ToAsn1BitString()
         {
             return new DerBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
