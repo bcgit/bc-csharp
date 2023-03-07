@@ -77,11 +77,10 @@ namespace Org.BouncyCastle.Asn1
             return new DLBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
         }
 
-        // TODO[asn1] DLExternal
-        //internal override DerExternal ToAsn1External()
-        //{
-        //    return new DLExternal(this);
-        //}
+        internal override DerExternal ToAsn1External()
+        {
+            return new DLExternal(this);
+        }
 
         internal override Asn1Set ToAsn1Set()
         {

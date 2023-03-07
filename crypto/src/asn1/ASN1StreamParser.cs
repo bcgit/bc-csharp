@@ -122,13 +122,16 @@ namespace Org.BouncyCastle.Asn1
                 // TODO[asn1] DLConstructedBitStringParser
                 return new BerBitStringParser(this);
             case Asn1Tags.External:
+                // TODO[asn1] DLExternalParser
                 return new DerExternalParser(this);
             case Asn1Tags.OctetString:
                 // TODO[asn1] DLConstructedOctetStringParser
                 return new BerOctetStringParser(this);
             case Asn1Tags.Set:
+                // TODO[asn1] DLSetParser
                 return new DerSetParser(this);
             case Asn1Tags.Sequence:
+                // TODO[asn1] DLSequenceParser
                 return new DerSequenceParser(this);
             default:
 				throw new Asn1Exception("unknown DL object encountered: 0x" + univTagNo.ToString("X"));
