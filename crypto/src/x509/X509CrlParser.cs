@@ -14,15 +14,18 @@ namespace Org.BouncyCastle.X509
 	{
 		private static readonly PemParser PemCrlParser = new PemParser("CRL");
 
-		private readonly bool lazyAsn1;
-
 		private Asn1Set sCrlData;
 		private int sCrlDataObjectCount;
 		private Stream currentCrlStream;
 
-		public X509CrlParser(bool lazyAsn1 = false)
+        public X509CrlParser()
 		{
-			this.lazyAsn1 = lazyAsn1;
+		}
+
+		/// <remarks>Value of <paramref name="lazyAsn1"/> is ignored.</remarks>
+		[Obsolete("Will be removed")]
+        public X509CrlParser(bool lazyAsn1)
+		{
 		}
 
 		private X509Crl ReadDerCrl(Asn1InputStream dIn)
@@ -130,11 +133,7 @@ namespace Org.BouncyCastle.X509
                 if (tag != 0x30)	// assume ascii PEM encoded.
 					return ReadPemCrl(inStream);
 
-				Asn1InputStream asn1 = lazyAsn1
-					?	new LazyAsn1InputStream(inStream, int.MaxValue, leaveOpen: true)
-					:	new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true);
-
-                using (asn1)
+                using (var asn1 = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
                 {
                     return ReadDerCrl(asn1);
                 }

@@ -77,9 +77,8 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Set)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        // NOTE: Only non-readonly to support LazyDLSet
-        internal Asn1Encodable[] m_elements;
         internal Asn1Encodable[] m_sortedElements;
+        internal readonly Asn1Encodable[] m_elements;
 
         protected internal Asn1Set()
         {
@@ -167,7 +166,6 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
         {
-            // NOTE: Call Count here to 'force' a LazyDerSet
             int count = Count;
             T[] result = new T[count];
             for (int i = 0; i < count; ++i)
@@ -193,7 +191,6 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Set outer)
             {
                 this.outer = outer;
-                // NOTE: Call Count here to 'force' a LazyDerSet
                 this.max = outer.Count;
             }
 
@@ -229,7 +226,6 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
         {
-            // NOTE: Call Count here to 'force' a LazyDerSet
             int i = Count;
             int hc = i + 1;
 
@@ -247,7 +243,6 @@ namespace Org.BouncyCastle.Asn1
             if (!(asn1Object is Asn1Set that))
                 return false;
 
-            // NOTE: Call Count here (on both) to 'force' a LazyDerSet
             int count = this.Count;
             if (that.Count != count)
                 return false;

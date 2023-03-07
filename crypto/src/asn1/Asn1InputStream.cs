@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1
                 return limited.Limit;
 
             if (input is Asn1InputStream asn1)
-                return asn1.Limit;
+                return asn1.limit;
 
             if (input is MemoryStream memory)
                 return Convert.ToInt32(memory.Length - memory.Position);
@@ -123,9 +123,9 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.OctetString:
                 return BuildConstructedOctetString(ReadVector(defIn));
             case Asn1Tags.Sequence:
-                return CreateDLSequence(defIn);
+                return DLSequence.FromVector(ReadVector(defIn));
             case Asn1Tags.Set:
-                return CreateDLSet(defIn);
+                return DLSet.FromVector(ReadVector(defIn));
             case Asn1Tags.External:
                 return DLSequence.FromVector(ReadVector(defIn)).ToAsn1External();
             default:
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Asn1
             return Asn1TaggedObject.CreateConstructedDL(tagClass, tagNo, contentsElements);
         }
 
-        internal virtual Asn1EncodableVector ReadVector()
+        private Asn1EncodableVector ReadVector()
         {
             Asn1Object o = ReadObject();
             if (null == o)
@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
-        internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
+        private Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
         {
             int remaining = defIn.Remaining;
             if (remaining < 1)
@@ -170,16 +170,6 @@ namespace Org.BouncyCastle.Asn1
             {
                 return sub.ReadVector();
             }
-        }
-
-        internal virtual Asn1Sequence CreateDLSequence(DefiniteLengthInputStream defIn)
-        {
-            return DLSequence.FromVector(ReadVector(defIn));
-        }
-
-        internal virtual Asn1Set CreateDLSet(DefiniteLengthInputStream defIn)
-        {
-            return DLSet.FromVector(ReadVector(defIn));
         }
 
         public Asn1Object ReadObject()
@@ -239,7 +229,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal virtual DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
+        private DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
         {
             DerBitString[] bitStrings = new DerBitString[contentsElements.Count];
 
@@ -256,7 +246,7 @@ namespace Org.BouncyCastle.Asn1
             return new DLBitString(BerBitString.FlattenBitStrings(bitStrings), false);
         }
 
-        internal virtual Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
+        private Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
         {
             Asn1OctetString[] octetStrings = new Asn1OctetString[contentsElements.Count];
 
@@ -272,11 +262,6 @@ namespace Org.BouncyCastle.Asn1
 
             // Note: No DLOctetString available
             return new DerOctetString(BerOctetString.FlattenOctetStrings(octetStrings));
-        }
-
-        internal virtual int Limit
-        {
-            get { return limit; }
         }
 
         internal static int ReadTagNumber(Stream s, int tagHdr)
