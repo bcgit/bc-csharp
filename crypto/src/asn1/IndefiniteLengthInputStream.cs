@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-	class IndefiniteLengthInputStream
+	internal class IndefiniteLengthInputStream
 		: LimitedInputStream
 	{
         private int _lookAhead;
