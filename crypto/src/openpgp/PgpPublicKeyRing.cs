@@ -206,7 +206,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
          * Join two copies of the same certificate.
          * The certificates must have the same primary key, but may carry different subkeys, user-ids and signatures.
          * The resulting certificate will carry the sum of both certificates subkeys, user-ids and signatures.
-         * <p>
+         * <br/>
          * This method will ignore trust packets on the second copy of the certificate and instead
          * copy the local certificate's trust packets to the joined certificate.
          *
@@ -224,7 +224,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
          * Join two copies of the same certificate.
          * The certificates must have the same primary key, but may carry different subkeys, user-ids and signatures.
          * The resulting certificate will carry the sum of both certificates subkeys, user-ids and signatures.
-         * <p>
+         * <br/>
          * For each subkey holds: If joinTrustPackets is set to true and the second key is carrying a trust packet,
          * the trust packet will be copied to the joined key.
          * Otherwise, the joined key will carry the trust packet of the local copy.

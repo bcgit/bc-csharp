@@ -1145,21 +1145,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return found ? returnKey : null;
         }
 
-        /**
-         * Merge this the given local public key with another, potentially fresher copy.
-         * The resulting {@link PGPPublicKey} contains the sum of both keys user-ids and signatures.
-         * <p>
-         * If joinTrustPackets is set to true and the copy carries a trust packet,
-         * the joined key will copy the trust-packet from the copy.
-         * Otherwise, it will carry the trust packet of the local key.
-         *
-         * @param key                        local public key
-         * @param copy                       copy of the public key (e.g. from a key server)
-         * @param joinTrustPackets           if true, trust packets from the copy are copied over into the resulting key
-         * @param allowSubkeySigsOnNonSubkey if true, subkey signatures on the copy will be present in the merged key, even if key was not a subkey before.
-         * @return joined key
-         * @throws PGPException
-         */
+        /// <summary>
+        /// Merge the given local public key with another, potentially fresher copy. The resulting public key
+        /// contains the sum of both keys' user-ids and signatures.
+        /// </summary>
+        /// <remarks>
+        /// If joinTrustPackets is set to true and the copy carries a trust packet, the joined key will copy the
+        /// trust-packet from the copy. Otherwise, it will carry the trust packet of the local key.
+        /// </remarks>
+        /// <param name="key">local public key.</param>
+        /// <param name="copy">copy of the public key (e.g. from a key server).</param>
+        /// <param name="joinTrustPackets">if true, trust packets from the copy are copied over into the resulting key.
+        /// </param>
+        /// <param name="allowSubkeySigsOnNonSubkey">if true, subkey signatures on the copy will be present in the
+        /// merged key, even if key was not a subkey before.</param>
+        /// <returns>joined key.</returns>
         public static PgpPublicKey Join(PgpPublicKey key, PgpPublicKey copy, bool joinTrustPackets,
             bool allowSubkeySigsOnNonSubkey)
         {

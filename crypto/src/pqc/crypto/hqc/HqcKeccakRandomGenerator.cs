@@ -20,7 +20,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private readonly ulong[] state = new ulong[26];
         private readonly byte[] dataQueue = new byte[192];
         private int rate;
-        private int bitsInQueue;
         private int fixedOutputLength;
 
         public HqcKeccakRandomGenerator()
@@ -58,7 +57,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             this.rate = rate;
             Arrays.Fill(state, 0UL);
             Arrays.Fill(dataQueue, 0);
-            bitsInQueue = 0;
             fixedOutputLength = (1600 - rate) / 2;
         }
 
