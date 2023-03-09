@@ -63,9 +63,9 @@ namespace Org.BouncyCastle.Utilities.IO
 				await WriteAsync(destination, new ReadOnlyMemory<byte>(buffer, 0, bytesRead), cancellationToken).ConfigureAwait(false);
 			}
 #else
-			while ((bytesRead = await ReadAsync(source, buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) != 0)
+			while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) != 0)
 			{
-				await WriteAsync(destination, buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+				await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
 			}
 #endif
 		}
@@ -140,17 +140,6 @@ namespace Org.BouncyCastle.Utilities.IO
 			return buf.ToArray();
 		}
 
-        public static Task<int> ReadAsync(Stream source, byte[] buffer, int offset, int count)
-        {
-            return source.ReadAsync(buffer, offset, count);
-        }
-
-        public static Task<int> ReadAsync(Stream source, byte[] buffer, int offset, int count,
-            CancellationToken cancellationToken)
-        {
-            return source.ReadAsync(buffer, offset, count, cancellationToken);
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ValueTask<int> ReadAsync(Stream source, Memory<byte> buffer,
 			CancellationToken cancellationToken = default)
@@ -158,11 +147,11 @@ namespace Org.BouncyCastle.Utilities.IO
             if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> array))
             {
                 return new ValueTask<int>(
-                    ReadAsync(source, array.Array!, array.Offset, array.Count, cancellationToken));
+                    source.ReadAsync(array.Array!, array.Offset, array.Count, cancellationToken));
             }
 
             byte[] sharedBuffer = new byte[buffer.Length];
-			var readTask = ReadAsync(source, sharedBuffer, 0, buffer.Length, cancellationToken);
+			var readTask = source.ReadAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
             return FinishReadAsync(readTask, sharedBuffer, buffer);
         }
 
@@ -227,17 +216,6 @@ namespace Org.BouncyCastle.Utilities.IO
 				throw new ArgumentOutOfRangeException("count");
 		}
 
-        public static Task WriteAsync(Stream destination, byte[] buffer, int offset, int count)
-        {
-            return destination.WriteAsync(buffer, offset, count);
-        }
-
-        public static Task WriteAsync(Stream destination, byte[] buffer, int offset, int count,
-            CancellationToken cancellationToken)
-        {
-            return destination.WriteAsync(buffer, offset, count, cancellationToken);
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ValueTask WriteAsync(Stream destination, ReadOnlyMemory<byte> buffer,
             CancellationToken cancellationToken = default)
@@ -245,11 +223,11 @@ namespace Org.BouncyCastle.Utilities.IO
             if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> array))
             {
                 return new ValueTask(
-                    WriteAsync(destination, array.Array!, array.Offset, array.Count, cancellationToken));
+                    destination.WriteAsync(array.Array!, array.Offset, array.Count, cancellationToken));
             }
 
             byte[] sharedBuffer = buffer.ToArray();
-            var writeTask = WriteAsync(destination, sharedBuffer, 0, buffer.Length, cancellationToken);
+            var writeTask = destination.WriteAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
             return new ValueTask(FinishWriteAsync(writeTask, sharedBuffer));
         }
 
