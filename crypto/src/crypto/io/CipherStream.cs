@@ -1,9 +1,8 @@
 using System;
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
@@ -58,16 +57,14 @@ namespace Org.BouncyCastle.Crypto.IO
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (m_readCipher == null)
-            {
-                m_stream.CopyTo(destination, bufferSize);
-            }
-            else
-            {
-                base.CopyTo(destination, bufferSize);
-            }
+            Streams.CopyTo(ReadSource, destination, bufferSize);
         }
 #endif
+
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
+        }
 
         public override void Flush()
         {
@@ -137,6 +134,11 @@ namespace Org.BouncyCastle.Crypto.IO
 
             return num;
         }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
+        }
 #endif
 
         public override int ReadByte()
@@ -181,11 +183,7 @@ namespace Org.BouncyCastle.Crypto.IO
             byte[] output = null;
             if (outputSize > 0)
             {
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                output = ArrayPool<byte>.Shared.Rent(outputSize);
-#else
                 output = new byte[outputSize];
-#endif
             }
 
             try
@@ -200,11 +198,7 @@ namespace Org.BouncyCastle.Crypto.IO
             {
                 if (output != null)
                 {
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    ArrayPool<byte>.Shared.Return(output, clearArray: true);
-#else
                     Array.Clear(output, 0, output.Length);
-#endif
                 }
             }
         }
@@ -226,7 +220,7 @@ namespace Org.BouncyCastle.Crypto.IO
             byte[] output = null;
             if (outputSize > 0)
             {
-                output = ArrayPool<byte>.Shared.Rent(outputSize);
+                output = new byte[outputSize];
             }
 
             try
@@ -241,9 +235,14 @@ namespace Org.BouncyCastle.Crypto.IO
             {
                 if (output != null)
                 {
-                    ArrayPool<byte>.Shared.Return(output, clearArray: true);
+                    Array.Clear(output, 0, output.Length);
                 }
             }
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.WriteAsync(WriteDestination, buffer, cancellationToken);
         }
 #endif
 
@@ -337,5 +336,8 @@ namespace Org.BouncyCastle.Crypto.IO
 
             return bytes;
         }
+
+        private Stream ReadSource => m_readCipher == null ? m_stream : this;
+        private Stream WriteDestination => m_writeCipher == null ? m_stream : this;
     }
 }

@@ -1,7 +1,4 @@
 using System;
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -17,6 +14,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -414,7 +412,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
             using (var pOut = lData.Open(output, fileType, file.Name, file.Length, file.LastWriteTime))
             {
-                PipeFileContents(file, pOut, 32768);
+                PipeFileContents(file, pOut);
             }
         }
 
@@ -428,32 +426,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-		private static void PipeFileContents(FileInfo file, Stream pOut, int bufSize)
-		{
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            byte[] buf = ArrayPool<byte>.Shared.Rent(bufSize);
-#else
-            byte[] buf = new byte[bufSize];
-#endif
+        private static void PipeFileContents(FileInfo file, Stream pOut)
+        {
+            PipeFileContents(file, pOut, Streams.DefaultBufferSize);
+        }
 
-            try
+        private static void PipeFileContents(FileInfo file, Stream pOut, int bufferSize)
+		{
+            using (var fileStream = file.OpenRead())
             {
-                using (var fileStream = file.OpenRead())
-                {
-                    int len;
-                    while ((len = fileStream.Read(buf, 0, buf.Length)) > 0)
-                    {
-                        pOut.Write(buf, 0, len);
-                    }
-                }
-            }
-            finally
-            {
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                ArrayPool<byte>.Shared.Return(buf, clearArray: true);
-#else
-                Array.Clear(buf, 0, buf.Length);
-#endif
+                Streams.CopyTo(fileStream, pOut, bufferSize);
             }
         }
 
