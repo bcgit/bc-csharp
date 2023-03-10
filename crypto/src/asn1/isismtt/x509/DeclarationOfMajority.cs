@@ -33,20 +33,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 			DateOfBirth = 2
 		};
 
-		private readonly Asn1TaggedObject declaration;
+		private readonly Asn1TaggedObject m_declaration;
 
-		public DeclarationOfMajority(
-			int notYoungerThan)
+		public DeclarationOfMajority(int notYoungerThan)
 		{
-			declaration = new DerTaggedObject(false, 0, new DerInteger(notYoungerThan));
+			m_declaration = new DerTaggedObject(false, 0, new DerInteger(notYoungerThan));
 		}
 
-		public DeclarationOfMajority(
-			bool	fullAge,
-			string	country)
+		public DeclarationOfMajority(bool fullAge, string country)
 		{
 			if (country.Length > 2)
-				throw new ArgumentException("country can only be 2 characters");
+				throw new ArgumentException("country can only be 2 characters", nameof(country));
 
 			DerPrintableString countryString = new DerPrintableString(country, true);
 
@@ -60,38 +57,34 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 				seq = new DerSequence(DerBoolean.False, countryString);
 			}
 
-			this.declaration = new DerTaggedObject(false, 1, seq);
+			m_declaration = new DerTaggedObject(false, 1, seq);
 		}
 
-		public DeclarationOfMajority(
-            Asn1GeneralizedTime dateOfBirth)
+		public DeclarationOfMajority(Asn1GeneralizedTime dateOfBirth)
 		{
-			this.declaration = new DerTaggedObject(false, 2, dateOfBirth);
+			m_declaration = new DerTaggedObject(false, 2, dateOfBirth);
 		}
 
-		public static DeclarationOfMajority GetInstance(
-			object obj)
+		public static DeclarationOfMajority GetInstance(object obj)
 		{
-			if (obj == null || obj is DeclarationOfMajority)
-			{
-				return (DeclarationOfMajority) obj;
-			}
+			if (obj == null)
+				return null;
 
-			if (obj is Asn1TaggedObject)
-			{
-				return new DeclarationOfMajority((Asn1TaggedObject) obj);
-			}
+			if (obj is DeclarationOfMajority declarationOfMajority)
+				return declarationOfMajority;
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+			if (obj is Asn1TaggedObject asn1TaggedObject)
+				return new DeclarationOfMajority(asn1TaggedObject);
+
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
 		}
 
-		private DeclarationOfMajority(
-			Asn1TaggedObject o)
+		private DeclarationOfMajority(Asn1TaggedObject o)
 		{
 			if (o.TagNo > 2)
 				throw new ArgumentException("Bad tag number: " + o.TagNo);
 
-			this.declaration = o;
+			m_declaration = o;
 		}
 
 		/**
@@ -116,12 +109,12 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			return declaration;
+			return m_declaration;
 		}
 
 		public Choice Type
 		{
-			get { return (Choice) declaration.TagNo; }
+			get { return (Choice)m_declaration.TagNo; }
 		}
 
 		/**
@@ -131,12 +124,12 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		{
 			get
 			{
-				switch ((Choice) declaration.TagNo)
+				switch (Type)
 				{
-					case Choice.NotYoungerThan:
-                        return DerInteger.GetInstance(declaration, false).IntValueExact;
-					default:
-						return -1;
+				case Choice.NotYoungerThan:
+                    return DerInteger.GetInstance(m_declaration, false).IntValueExact;
+				default:
+					return -1;
 				}
 			}
 		}
@@ -145,12 +138,12 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		{
 			get
 			{
-				switch ((Choice) declaration.TagNo)
+				switch (Type)
 				{
-					case Choice.FullAgeAtCountry:
-						return Asn1Sequence.GetInstance(declaration, false);
-					default:
-						return null;
+				case Choice.FullAgeAtCountry:
+					return Asn1Sequence.GetInstance(m_declaration, false);
+				default:
+					return null;
 				}
 			}
 		}
@@ -159,12 +152,12 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		{
 			get
 			{
-				switch ((Choice) declaration.TagNo)
+				switch (Type)
 				{
-					case Choice.DateOfBirth:
-						return Asn1GeneralizedTime.GetInstance(declaration, false);
-					default:
-						return null;
+				case Choice.DateOfBirth:
+					return Asn1GeneralizedTime.GetInstance(m_declaration, false);
+				default:
+					return null;
 				}
 			}
 		}

@@ -603,7 +603,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         protected virtual void ProcessMainBlock(Span<byte> output)
         {
-            Check.DataLength(output, BLOCK_SIZE, "output buffer too short");
+            Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
 
             /*
              * OCB-ENCRYPT/OCB-DECRYPT: Process any whole blocks

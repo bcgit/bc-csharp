@@ -13,91 +13,36 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-	class CmsEnvelopedHelper
+	// TODO[api] Make static
+	internal class CmsEnvelopedHelper
 	{
 		internal static readonly CmsEnvelopedHelper Instance = new CmsEnvelopedHelper();
 
-		private static readonly IDictionary<string, int> KeySizes = new Dictionary<string, int>();
-		private static readonly IDictionary<string, string> BaseCipherNames = new Dictionary<string, string>();
+		private static readonly Dictionary<string, int> KeySizes = new Dictionary<string, int>();
+		private static readonly Dictionary<string, string> Rfc3211WrapperNames = new Dictionary<string, string>();
 
 		static CmsEnvelopedHelper()
 		{
-			KeySizes.Add(CmsEnvelopedGenerator.DesEde3Cbc, 192);
 			KeySizes.Add(CmsEnvelopedGenerator.Aes128Cbc, 128);
 			KeySizes.Add(CmsEnvelopedGenerator.Aes192Cbc, 192);
 			KeySizes.Add(CmsEnvelopedGenerator.Aes256Cbc, 256);
+            KeySizes.Add(CmsEnvelopedGenerator.Camellia128Cbc, 128);
+            KeySizes.Add(CmsEnvelopedGenerator.Camellia192Cbc, 192);
+            KeySizes.Add(CmsEnvelopedGenerator.Camellia256Cbc, 256);
+            KeySizes.Add(CmsEnvelopedGenerator.DesCbc, 64);
+            KeySizes.Add(CmsEnvelopedGenerator.DesEde3Cbc, 192);
 
-			BaseCipherNames.Add(CmsEnvelopedGenerator.DesEde3Cbc,  "DESEDE");
-			BaseCipherNames.Add(CmsEnvelopedGenerator.Aes128Cbc,  "AES");
-			BaseCipherNames.Add(CmsEnvelopedGenerator.Aes192Cbc,  "AES");
-			BaseCipherNames.Add(CmsEnvelopedGenerator.Aes256Cbc,  "AES");
-		}
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes128Cbc, "AESRFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes192Cbc, "AESRFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes256Cbc, "AESRFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Camellia128Cbc, "CAMELLIARFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Camellia192Cbc, "CAMELLIARFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Camellia256Cbc, "CAMELLIARFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.DesCbc, "DESRFC3211WRAP");
+            Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.DesEde3Cbc, "DESEDERFC3211WRAP");
+        }
 
-		private string GetAsymmetricEncryptionAlgName(
-			string encryptionAlgOid)
-		{
-			if (Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption.Id.Equals(encryptionAlgOid))
-			{
-				return "RSA/ECB/PKCS1Padding";
-			}
-
-			return encryptionAlgOid;
-		}
-
-		internal IBufferedCipher CreateAsymmetricCipher(
-			string encryptionOid)
-		{
-			string asymName = GetAsymmetricEncryptionAlgName(encryptionOid);
-			if (!asymName.Equals(encryptionOid))
-			{
-				try
-				{
-					return CipherUtilities.GetCipher(asymName);
-				}
-				catch (SecurityUtilityException)
-				{
-					// Ignore
-				}
-			}
-			return CipherUtilities.GetCipher(encryptionOid);
-		}
-
-		internal IWrapper CreateWrapper(
-			string encryptionOid)
-		{
-			try
-			{
-				return WrapperUtilities.GetWrapper(encryptionOid);
-			}
-			catch (SecurityUtilityException)
-			{
-				return WrapperUtilities.GetWrapper(GetAsymmetricEncryptionAlgName(encryptionOid));
-			}
-		}
-
-		internal string GetRfc3211WrapperName(string oid)
-		{
-			if (oid == null)
-				throw new ArgumentNullException(nameof(oid));
-
-			if (!BaseCipherNames.TryGetValue(oid, out var alg))
-				throw new ArgumentException("no name for " + oid, nameof(oid));
-
-			return alg + "RFC3211Wrap";
-		}
-
-		internal int GetKeySize(string oid)
-		{
-			if (oid == null)
-				throw new ArgumentNullException(nameof(oid));
-
-			if (!KeySizes.TryGetValue(oid, out var keySize))
-				throw new ArgumentException("no keysize for " + oid, "oid");
-
-			return keySize;
-		}
-
-		internal static RecipientInformationStore BuildRecipientInformationStore(
+        internal static RecipientInformationStore BuildRecipientInformationStore(
 			Asn1Set recipientInfos, CmsSecureReadable secureReadable)
 		{
 			var infos = new List<RecipientInformation>();
@@ -110,7 +55,29 @@ namespace Org.BouncyCastle.Cms
 			return new RecipientInformationStore(infos);
 		}
 
-		private static void ReadRecipientInfo(IList<RecipientInformation> infos, RecipientInfo info,
+        internal int GetKeySize(string oid)
+        {
+            if (oid == null)
+                throw new ArgumentNullException(nameof(oid));
+
+            if (!KeySizes.TryGetValue(oid, out var keySize))
+                throw new ArgumentException("no key size for " + oid, nameof(oid));
+
+            return keySize;
+        }
+
+        internal string GetRfc3211WrapperName(string oid)
+        {
+            if (oid == null)
+                throw new ArgumentNullException(nameof(oid));
+
+            if (!Rfc3211WrapperNames.TryGetValue(oid, out var name))
+                throw new ArgumentException("no name for " + oid, nameof(oid));
+
+            return name;
+        }
+
+        private static void ReadRecipientInfo(IList<RecipientInformation> infos, RecipientInfo info,
 			CmsSecureReadable secureReadable)
 		{
 			Asn1Encodable recipInfo = info.Info;

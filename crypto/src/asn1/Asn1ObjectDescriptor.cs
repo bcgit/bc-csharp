@@ -101,6 +101,16 @@ namespace Org.BouncyCastle.Asn1
             return m_baseGraphicString.GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return m_baseGraphicString.GetEncodingDerImplicit(Asn1Tags.Universal, Asn1Tags.ObjectDescriptor);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return m_baseGraphicString.GetEncodingDerImplicit(tagClass, tagNo);
+        }
+
         protected override int Asn1GetHashCode()
         {
             return ~m_baseGraphicString.CallAsn1GetHashCode();

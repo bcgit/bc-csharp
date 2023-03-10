@@ -161,10 +161,9 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
-        public override void Encode(
-            BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut)
         {
-            bcpgOut.WritePacket(PacketTag.SecretKey, GetEncodedContents(), true);
+            bcpgOut.WritePacket(PacketTag.SecretKey, GetEncodedContents());
         }
     }
 }

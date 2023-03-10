@@ -21,19 +21,18 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.other = other;
         }
 
-		public KekIdentifier(
-            Asn1Sequence seq)
+		public KekIdentifier(Asn1Sequence seq)
         {
-            keyIdentifier = (Asn1OctetString) seq[0];
+            keyIdentifier = (Asn1OctetString)seq[0];
 
 			switch (seq.Count)
             {
             case 1:
 				break;
             case 2:
-				if (seq[1] is Asn1GeneralizedTime)
+				if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
 				{
-					date = (Asn1GeneralizedTime) seq[1];
+					date = asn1GeneralizedTime;
 				}
 				else
 				{
@@ -41,7 +40,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 				}
 				break;
             case 3:
-				date  = (Asn1GeneralizedTime) seq[1];
+				date = (Asn1GeneralizedTime)seq[1];
 				other = OtherKeyAttribute.GetInstance(seq[2]);
 				break;
             default:

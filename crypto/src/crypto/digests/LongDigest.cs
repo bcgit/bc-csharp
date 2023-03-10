@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     public abstract class LongDigest
         : IDigest, IMemoable
     {
-        private int MyByteLength = 128;
+        private const int MyByteLength = 128;
 
         private byte[] xBuf;
         private int xBufOff;

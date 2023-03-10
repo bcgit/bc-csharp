@@ -42,20 +42,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
 		}
 
-		internal static void ReadUserIDs(BcpgInputStream pIn, out IList<object> ids, out IList<TrustPacket> idTrusts,
-			out IList<IList<PgpSignature>> idSigs)
+		internal static void ReadUserIDs(BcpgInputStream pIn, out IList<IUserDataPacket> ids,
+			out IList<TrustPacket> idTrusts, out IList<IList<PgpSignature>> idSigs)
 		{
-			ids = new List<object>();
+			ids = new List<IUserDataPacket>();
 			idTrusts = new List<TrustPacket>();
 			idSigs = new List<IList<PgpSignature>>();
 
             while (IsUserTag(pIn.SkipMarkerPackets()))
 			{
 				Packet obj = pIn.ReadPacket();
-				if (obj is UserIdPacket)
+				if (obj is UserIdPacket id)
 				{
-					UserIdPacket id = (UserIdPacket)obj;
-					ids.Add(id.GetId());
+					ids.Add(id);
 				}
 				else
 				{

@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
     /// <summary>
     /// Encapsulated secret encapsulated by NTRU.
     /// </summary>
-    internal class NtruEncapsulation : ISecretWithEncapsulation
+    internal sealed class NtruEncapsulation : ISecretWithEncapsulation
     {
         private readonly byte[] _sharedKey;
         private readonly byte[] _ciphertext;
@@ -27,6 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
                 Array.Clear(_ciphertext, 0, _ciphertext.Length);
                 _hasBeenDestroyed = true;
             }
+            GC.SuppressFinalize(this);
         }
 
         public byte[] GetSecret()

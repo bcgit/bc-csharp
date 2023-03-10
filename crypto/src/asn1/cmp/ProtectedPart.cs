@@ -5,13 +5,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static ProtectedPart GetInstance(object obj)
         {
-			if (obj is ProtectedPart protectedPart)
-				return protectedPart;
+            if (obj == null)
+                return null;
+            if (obj is ProtectedPart popoDecKeyRespContent)
+                return popoDecKeyRespContent;
+            return new ProtectedPart(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new ProtectedPart(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static ProtectedPart GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiHeader m_header;

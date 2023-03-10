@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Prng
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             int IEntropySource.GetEntropy(Span<byte> output)
             {
-                int length = (mEntropySize + 7) / 8;
+                int length = System.Math.Min(output.Length, (mEntropySize + 7) / 8);
                 mSecureRandom.NextBytes(output[..length]);
                 return length;
             }

@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptional(contentDescription);
 			v.Add(contentType);
 			return new DerSequence(v);

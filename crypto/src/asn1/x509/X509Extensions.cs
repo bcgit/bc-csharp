@@ -169,18 +169,33 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static readonly DerObjectIdentifier ExpiredCertsOnCrl = new DerObjectIdentifier("2.5.29.60");
 
+        /**
+         * the subject’s alternative public key information
+         */
+        public static readonly DerObjectIdentifier SubjectAltPublicKeyInfo = new DerObjectIdentifier("2.5.29.72");
+
+        /**
+         * the algorithm identifier for the alternative digital signature algorithm.
+         */
+        public static readonly DerObjectIdentifier AltSignatureAlgorithm = new DerObjectIdentifier("2.5.29.73");
+
+        /**
+         * alternative signature shall be created by the issuer using its alternative private key.
+         */
+        public static readonly DerObjectIdentifier AltSignatureValue = new DerObjectIdentifier("2.5.29.74");
+
         private readonly Dictionary<DerObjectIdentifier, X509Extension> m_extensions =
             new Dictionary<DerObjectIdentifier, X509Extension>();
         private readonly List<DerObjectIdentifier> m_ordering;
 
         public static X509Extension GetExtension(X509Extensions extensions, DerObjectIdentifier oid)
         {
-            return null == extensions ? null : extensions.GetExtension(oid);
+            return extensions?.GetExtension(oid);
         }
 
         public static Asn1Encodable GetExtensionParsedValue(X509Extensions extensions, DerObjectIdentifier oid)
         {
-            return null == extensions ? null : extensions.GetExtensionParsedValue(oid);
+            return extensions?.GetExtensionParsedValue(oid);
         }
 
 		public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)

@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected readonly SecP192K1Point m_infinity;
 
         public SecP192K1Curve()
-            : base(q)
+            : base(q, true)
         {
             this.m_infinity = new SecP192K1Point(this, null, null);
 

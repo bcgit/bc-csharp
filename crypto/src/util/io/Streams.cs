@@ -1,15 +1,78 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-	public static class Streams
+    public static class Streams
 	{
-		private const int BufferSize = 4096;
+        private static readonly int MaxStackAlloc = Environment.Is64BitProcess ? 4096 : 1024;
 
-		public static void Drain(Stream inStr)
+		public static int DefaultBufferSize => MaxStackAlloc;
+
+        public static void CopyTo(Stream source, Stream destination)
+        {
+			CopyTo(source, destination, DefaultBufferSize);
+        }
+
+        public static void CopyTo(Stream source, Stream destination, int bufferSize)
+        {
+            int bytesRead;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buffer = bufferSize <= MaxStackAlloc
+				? stackalloc byte[bufferSize]
+				: new byte[bufferSize];
+			while ((bytesRead = source.Read(buffer)) != 0)
+			{
+				destination.Write(buffer[..bytesRead]);
+			}
+#else
+			byte[] buffer = new byte[bufferSize];
+			while ((bytesRead = source.Read(buffer, 0, buffer.Length)) != 0)
+			{
+			    destination.Write(buffer, 0, bytesRead);
+			}
+#endif
+		}
+
+        public static Task CopyToAsync(Stream source, Stream destination)
+        {
+            return CopyToAsync(source, destination, DefaultBufferSize);
+        }
+
+        public static Task CopyToAsync(Stream source, Stream destination, int bufferSize)
+        {
+            return CopyToAsync(source, destination, bufferSize, CancellationToken.None);
+        }
+
+        public static Task CopyToAsync(Stream source, Stream destination, CancellationToken cancellationToken)
+        {
+            return CopyToAsync(source, destination, DefaultBufferSize, cancellationToken);
+        }
+
+        public static async Task CopyToAsync(Stream source, Stream destination, int bufferSize,
+			CancellationToken cancellationToken)
+        {
+            int bytesRead;
+            byte[] buffer = new byte[bufferSize];
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            while ((bytesRead = await ReadAsync(source, new Memory<byte>(buffer), cancellationToken).ConfigureAwait(false)) != 0)
+			{
+				await WriteAsync(destination, new ReadOnlyMemory<byte>(buffer, 0, bytesRead), cancellationToken).ConfigureAwait(false);
+			}
+#else
+			while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) != 0)
+			{
+				await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+			}
+#endif
+		}
+
+        public static void Drain(Stream inStr)
 		{
-			inStr.CopyTo(Stream.Null, BufferSize);
+			CopyTo(inStr, Stream.Null, DefaultBufferSize);
 		}
 
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
@@ -18,7 +81,7 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <exception cref="IOException">In case of IO failure.</exception>
         public static void PipeAll(Stream inStr, Stream outStr)
 		{
-			inStr.CopyTo(outStr, BufferSize);
+            PipeAll(inStr, outStr, DefaultBufferSize);
         }
 
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
@@ -28,7 +91,7 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <exception cref="IOException">In case of IO failure.</exception>
         public static void PipeAll(Stream inStr, Stream outStr, int bufferSize)
         {
-            inStr.CopyTo(outStr, bufferSize);
+            CopyTo(inStr, outStr, bufferSize);
 		}
 
 		/// <summary>
@@ -48,12 +111,17 @@ namespace Org.BouncyCastle.Utilities.IO
 		/// <exception cref="IOException"></exception>
 		public static long PipeAllLimited(Stream inStr, long limit, Stream outStr)
 		{
-			var limited = new LimitedInputStream(inStr, limit);
-            limited.CopyTo(outStr, BufferSize);
-			return limit - limited.CurrentLimit;
+			return PipeAllLimited(inStr, limit, outStr, DefaultBufferSize);
 		}
 
-		public static byte[] ReadAll(Stream inStr)
+        public static long PipeAllLimited(Stream inStr, long limit, Stream outStr, int bufferSize)
+        {
+            var limited = new LimitedInputStream(inStr, limit);
+            CopyTo(limited, outStr, bufferSize);
+            return limit - limited.CurrentLimit;
+        }
+
+        public static byte[] ReadAll(Stream inStr)
 		{
 			MemoryStream buf = new MemoryStream();
 			PipeAll(inStr, buf);
@@ -71,6 +139,37 @@ namespace Org.BouncyCastle.Utilities.IO
 			PipeAllLimited(inStr, limit, buf);
 			return buf.ToArray();
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ValueTask<int> ReadAsync(Stream source, Memory<byte> buffer,
+			CancellationToken cancellationToken = default)
+        {
+            if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> array))
+            {
+                return new ValueTask<int>(
+                    source.ReadAsync(array.Array!, array.Offset, array.Count, cancellationToken));
+            }
+
+            byte[] sharedBuffer = new byte[buffer.Length];
+			var readTask = source.ReadAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
+            return FinishReadAsync(readTask, sharedBuffer, buffer);
+        }
+
+        private static async ValueTask<int> FinishReadAsync(Task<int> readTask, byte[] localBuffer,
+			Memory<byte> localDestination)
+        {
+            try
+            {
+                int result = await readTask.ConfigureAwait(false);
+                new ReadOnlySpan<byte>(localBuffer, 0, result).CopyTo(localDestination.Span);
+                return result;
+            }
+            finally
+            {
+                Array.Fill<byte>(localBuffer, 0x00);
+            }
+        }
+#endif
 
 		public static int ReadFully(Stream inStr, byte[] buf)
 		{
@@ -116,6 +215,34 @@ namespace Org.BouncyCastle.Utilities.IO
 			if ((count | remaining) < 0)
 				throw new ArgumentOutOfRangeException("count");
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ValueTask WriteAsync(Stream destination, ReadOnlyMemory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> array))
+            {
+                return new ValueTask(
+                    destination.WriteAsync(array.Array!, array.Offset, array.Count, cancellationToken));
+            }
+
+            byte[] sharedBuffer = buffer.ToArray();
+            var writeTask = destination.WriteAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
+            return new ValueTask(FinishWriteAsync(writeTask, sharedBuffer));
+        }
+
+        private static async Task FinishWriteAsync(Task writeTask, byte[] localBuffer)
+        {
+            try
+            {
+                await writeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                Array.Fill<byte>(localBuffer, 0x00);
+            }
+        }
+#endif
 
         /// <exception cref="IOException"></exception>
         public static int WriteBufTo(MemoryStream buf, byte[] output, int offset)

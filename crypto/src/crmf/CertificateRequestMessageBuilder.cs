@@ -201,7 +201,7 @@ namespace Org.BouncyCastle.Crmf
 
             if (m_controls.Count > 0)
             {
-                Asn1EncodableVector controlV = new Asn1EncodableVector();
+                Asn1EncodableVector controlV = new Asn1EncodableVector(m_controls.Count);
 
                 foreach (var control in m_controls)
                 {
@@ -251,9 +251,7 @@ namespace Org.BouncyCastle.Crmf
             }
             else if (_agreeMac != null)
             {
-                v.Add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT,
-                        PopoPrivKey.GetInstance(new DerTaggedObject(false, PopoPrivKey.agreeMAC, _agreeMac), true)));
-
+                v.Add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT, new PopoPrivKey(_agreeMac)));
             }
             else if (_popRaVerified != null)
             {

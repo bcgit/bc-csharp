@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Tsp
                 v.Add(new FailInfo(failInfo));
             }
 
-            return new PkiStatusInfo(new DerSequence(v));
+            return PkiStatusInfo.GetInstance(new DerSequence(v));
         }
 
         /**

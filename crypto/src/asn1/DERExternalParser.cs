@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal static DerExternal Parse(Asn1StreamParser sp)
         {
-            return new DerExternal(sp.ReadVector());
+            return new DLExternal(sp.ReadVector());
         }
     }
 }

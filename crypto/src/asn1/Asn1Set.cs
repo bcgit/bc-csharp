@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         /**
@@ -77,23 +77,22 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Set)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        // NOTE: Only non-readonly to support LazyDLSet
-        internal Asn1Encodable[] elements;
-        internal bool isSorted;
+        internal readonly Asn1Encodable[] m_elements;
+        internal DerEncoding[] m_sortedDerEncodings;
 
         protected internal Asn1Set()
         {
-            this.elements = Asn1EncodableVector.EmptyElements;
-            this.isSorted = true;
+            m_elements = Asn1EncodableVector.EmptyElements;
+            m_sortedDerEncodings = null;
         }
 
         protected internal Asn1Set(Asn1Encodable element)
         {
             if (null == element)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
 
-            this.elements = new Asn1Encodable[]{ element };
-            this.isSorted = true;
+            m_elements = new Asn1Encodable[]{ element };
+            m_sortedDerEncodings = null;
         }
 
         protected internal Asn1Set(Asn1Encodable[] elements, bool doSort)
@@ -101,39 +100,46 @@ namespace Org.BouncyCastle.Asn1
             if (Arrays.IsNullOrContainsNull(elements))
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
-            Asn1Encodable[] tmp = Asn1EncodableVector.CloneElements(elements);
-            if (doSort && tmp.Length >= 2)
+            elements = Asn1EncodableVector.CloneElements(elements);
+            DerEncoding[] sortedDerEncodings = null;
+
+            if (doSort && elements.Length > 1)
             {
-                tmp = Sort(tmp);
+                sortedDerEncodings = SortElements(elements);
             }
 
-            this.elements = tmp;
-            this.isSorted = doSort || tmp.Length < 2;
+            m_elements = elements;
+            m_sortedDerEncodings = sortedDerEncodings;
         }
 
         protected internal Asn1Set(Asn1EncodableVector elementVector, bool doSort)
         {
             if (null == elementVector)
-                throw new ArgumentNullException("elementVector");
+                throw new ArgumentNullException(nameof(elementVector));
 
-            Asn1Encodable[] tmp;
-            if (doSort && elementVector.Count >= 2)
+            Asn1Encodable[] elements;
+            DerEncoding[] sortedDerEncodings;
+
+            if (doSort && elementVector.Count > 1)
             {
-                tmp = Sort(elementVector.CopyElements());
+                elements = elementVector.CopyElements();
+                sortedDerEncodings = SortElements(elements);
             }
             else
             {
-                tmp = elementVector.TakeElements();
+                elements = elementVector.TakeElements();
+                sortedDerEncodings = null;
             }
 
-            this.elements = tmp;
-            this.isSorted = doSort || tmp.Length < 2;
+            m_elements = elements;
+            m_sortedDerEncodings = sortedDerEncodings;
         }
 
         protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
         {
-            this.elements = elements;
-            this.isSorted = isSorted || elements.Length < 2;
+            Debug.Assert(!isSorted);
+            m_elements = elements;
+            m_sortedDerEncodings = null;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -143,7 +149,7 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
-            IEnumerable<Asn1Encodable> e = elements;
+            IEnumerable<Asn1Encodable> e = m_elements;
             return e.GetEnumerator();
         }
 
@@ -155,29 +161,28 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual Asn1Encodable this[int index]
         {
-            get { return elements[index]; }
+            get { return m_elements[index]; }
         }
 
         public virtual int Count
         {
-            get { return elements.Length; }
+            get { return m_elements.Length; }
         }
 
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
         {
-            // NOTE: Call Count here to 'force' a LazyDerSet
             int count = Count;
             T[] result = new T[count];
             for (int i = 0; i < count; ++i)
             {
-                result[i] = func(elements[i]);
+                result[i] = func(m_elements[i]);
             }
             return result;
         }
 
         public virtual Asn1Encodable[] ToArray()
         {
-            return Asn1EncodableVector.CloneElements(elements);
+            return Asn1EncodableVector.CloneElements(m_elements);
         }
 
         private class Asn1SetParserImpl
@@ -191,7 +196,6 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Set outer)
             {
                 this.outer = outer;
-                // NOTE: Call Count here to 'force' a LazyDerSet
                 this.max = outer.Count;
             }
 
@@ -227,14 +231,13 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
         {
-            // NOTE: Call Count here to 'force' a LazyDerSet
             int i = Count;
             int hc = i + 1;
 
             while (--i >= 0)
             {
                 hc *= 257;
-                hc ^= elements[i].ToAsn1Object().CallAsn1GetHashCode();
+                hc ^= m_elements[i].ToAsn1Object().CallAsn1GetHashCode();
             }
 
             return hc;
@@ -242,19 +245,17 @@ namespace Org.BouncyCastle.Asn1
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            Asn1Set that = asn1Object as Asn1Set;
-            if (null == that)
+            if (!(asn1Object is Asn1Set that))
                 return false;
 
-            // NOTE: Call Count here (on both) to 'force' a LazyDerSet
             int count = this.Count;
             if (that.Count != count)
                 return false;
 
             for (int i = 0; i < count; ++i)
             {
-                Asn1Object o1 = this.elements[i].ToAsn1Object();
-                Asn1Object o2 = that.elements[i].ToAsn1Object();
+                Asn1Object o1 = this.m_elements[i].ToAsn1Object();
+                Asn1Object o2 = that.m_elements[i].ToAsn1Object();
 
                 if (!o1.Equals(o2))
                     return false;
@@ -265,63 +266,14 @@ namespace Org.BouncyCastle.Asn1
 
         public override string ToString()
         {
-            return CollectionUtilities.ToString(elements);
+            return CollectionUtilities.ToString(m_elements);
         }
 
-        internal static Asn1Encodable[] Sort(Asn1Encodable[] elements)
+        private static DerEncoding[] SortElements(Asn1Encodable[] elements)
         {
-            int count = elements.Length;
-            if (count < 2)
-                return elements;
-
-            byte[][] keys = new byte[count][];
-            for (int i = 0; i < count; ++i)
-            {
-                keys[i] = elements[i].GetEncoded(Der);
-            }
-            Array.Sort(keys, elements, new DerComparer());
-            return elements;
-        }
-
-        private class DerComparer
-            : IComparer<byte[]>
-        {
-            public int Compare(byte[] a, byte[] b)
-            {
-                Debug.Assert(a.Length >= 2 && b.Length >= 2);
-
-                /*
-                 * NOTE: Set elements in DER encodings are ordered first according to their tags (class and
-                 * number); the CONSTRUCTED bit is not part of the tag.
-                 * 
-                 * For SET-OF, this is unimportant. All elements have the same tag and DER requires them to
-                 * either all be in constructed form or all in primitive form, according to that tag. The
-                 * elements are effectively ordered according to their content octets.
-                 * 
-                 * For SET, the elements will have distinct tags, and each will be in constructed or
-                 * primitive form accordingly. Failing to ignore the CONSTRUCTED bit could therefore lead to
-                 * ordering inversions.
-                 */
-                int a0 = a[0] & ~Asn1Tags.Constructed;
-                int b0 = b[0] & ~Asn1Tags.Constructed;
-                if (a0 != b0)
-                    return a0 < b0 ? -1 : 1;
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                int compareLength = System.Math.Min(a.Length, b.Length) - 1;
-                return a.AsSpan(1, compareLength).SequenceCompareTo(b.AsSpan(1, compareLength));
-#else
-                int len = System.Math.Min(a.Length, b.Length);
-                for (int i = 1; i < len; ++i)
-                {
-                    byte ai = a[i], bi = b[i];
-                    if (ai != bi)
-                        return ai < bi ? -1 : 1;
-                }
-                Debug.Assert(a.Length == b.Length);
-                return 0;
-#endif
-            }
+            var derEncodings = Asn1OutputStream.GetContentsEncodingsDer(elements);
+            Array.Sort(derEncodings, elements);
+            return derEncodings;
         }
     }
 }

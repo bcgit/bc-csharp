@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Rfc8032;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -74,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] msg = new byte[Ed448.PrehashSize];
             if (Ed448.PrehashSize != prehash.OutputFinal(msg, 0, Ed448.PrehashSize))
-                throw new InvalidOperationException("Prehash digest failed");
+                throw new InvalidOperationException("Prehash calculation failed");
 
             byte[] signature = new byte[Ed448PrivateKeyParameters.SignatureSize];
             privateKey.Sign(Ed448.Algorithm.Ed448ph, context, msg, 0, Ed448.PrehashSize, signature, 0);
@@ -93,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] msg = new byte[Ed448.PrehashSize];
             if (Ed448.PrehashSize != prehash.OutputFinal(msg, 0, Ed448.PrehashSize))
-                throw new InvalidOperationException("Prehash digest failed");
+                throw new InvalidOperationException("Prehash calculation failed");
 
             return publicKey.Verify(Ed448.Algorithm.Ed448ph, context, msg, 0, Ed448.PrehashSize, signature, 0);
         }

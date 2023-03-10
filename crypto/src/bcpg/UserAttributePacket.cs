@@ -37,8 +37,7 @@ namespace Org.BouncyCastle.Bcpg
             return subpackets;
         }
 
-        public override void Encode(
-            BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut)
         {
             MemoryStream bOut = new MemoryStream();
 

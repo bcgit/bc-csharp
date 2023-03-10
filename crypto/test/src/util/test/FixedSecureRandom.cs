@@ -213,6 +213,15 @@ namespace Org.BouncyCastle.Utilities.Test
             return GetNextBytes(this, numBytes);
         }
 
+        // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void GenerateSeed(Span<byte> seed)
+        {
+            NextBytes(seed);
+        }
+#endif
+
         public override void NextBytes(byte[] buf)
 		{
             NextBytes(buf, 0, buf.Length);

@@ -111,10 +111,11 @@ namespace Org.BouncyCastle.Cmp
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
             PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
-
             pkMacBuilder.SetParameters(parameter);
 
-            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
+            var macFactory = pkMacBuilder.Build(password);
+
+            IBlockResult result = Process(macFactory.CreateCalculator());
 
             return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
         }
@@ -126,10 +127,11 @@ namespace Org.BouncyCastle.Cmp
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
             PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
-
             pkMacBuilder.SetParameters(parameter);
 
-            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
+            var macFactory = pkMacBuilder.Build(password);
+
+            IBlockResult result = Process(macFactory.CreateCalculator());
 
             return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
         }
@@ -137,14 +139,9 @@ namespace Org.BouncyCastle.Cmp
 
         private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)
         {
-            Asn1EncodableVector avec = new Asn1EncodableVector();
-            avec.Add(m_pkiMessage.Header);
-            avec.Add(m_pkiMessage.Body);
-            byte[] enc = new DerSequence(avec).GetDerEncoded();
-
-            using (var stream = streamCalculator.Stream)
+            using (var s = streamCalculator.Stream)
             {
-                stream.Write(enc, 0, enc.Length);
+                new DerSequence(m_pkiMessage.Header, m_pkiMessage.Body).EncodeTo(s, Asn1Encodable.Der);
             }
 
             return streamCalculator.GetResult();

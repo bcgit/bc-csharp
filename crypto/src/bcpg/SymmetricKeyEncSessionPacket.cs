@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-			bcpgOut.WritePacket(PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray());
         }
     }
 }

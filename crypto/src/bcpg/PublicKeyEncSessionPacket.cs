@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Bcpg
 				}
 			}
 
-			bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession, bOut.ToArray());
 		}
 	}
 }

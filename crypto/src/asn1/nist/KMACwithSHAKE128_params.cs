@@ -86,7 +86,7 @@ public class KMacWithShake128Params : Asn1Encodable
 
     public override Asn1Object ToAsn1Object()
     {
-        Asn1EncodableVector v = new Asn1EncodableVector();
+        Asn1EncodableVector v = new Asn1EncodableVector(2);
         if (outputLength != DEF_LENGTH)
         {
             v.Add(new DerInteger(outputLength));

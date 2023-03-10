@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
 using System.Numerics;
@@ -18,24 +18,56 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1OutputStream Create(Stream output)
         {
-            return new Asn1OutputStream(output);
+            return Create(output, Asn1Encodable.Ber);
         }
 
         public static Asn1OutputStream Create(Stream output, string encoding)
         {
+            return Create(output, encoding, false);
+        }
+
+        public static Asn1OutputStream Create(Stream output, string encoding, bool leaveOpen)
+        {
             if (Asn1Encodable.Der.Equals(encoding))
+                return new DerOutputStream(output, leaveOpen);
+
+            return new Asn1OutputStream(output, leaveOpen);
+        }
+
+        internal static int GetEncodingType(string encoding)
+        {
+            if (Asn1Encodable.Der.Equals(encoding))
+                return EncodingDer;
+
+            return EncodingBer;
+        }
+
+        private readonly bool m_leaveOpen;
+
+        protected internal Asn1OutputStream(Stream output, bool leaveOpen)
+            : base(output)
+        {
+            if (!output.CanWrite)
+                throw new ArgumentException("Expected stream to be writable", nameof(output));
+
+            m_leaveOpen = leaveOpen;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                return new DerOutputStream(output);
+                FlushInternal();
+            }
+
+            if (m_leaveOpen)
+            {
+                base.Detach(disposing);
             }
             else
             {
-                return new Asn1OutputStream(output);
+                base.Dispose(disposing);
             }
-        }
-
-        internal Asn1OutputStream(Stream os)
-            : base(os)
-        {
         }
 
         public virtual void WriteObject(Asn1Encodable asn1Encodable)
@@ -69,7 +101,7 @@ namespace Org.BouncyCastle.Asn1
             get { return EncodingBer; }
         }
 
-        internal void FlushInternal()
+        private void FlushInternal()
         {
             // Placeholder to support future internal buffering
         }
@@ -107,11 +139,11 @@ namespace Org.BouncyCastle.Asn1
 #endif
         }
 
-        internal void WriteIdentifier(int tagClass, int tagNo)
+        internal void WriteIdentifier(int flags, int tagNo)
         {
             if (tagNo < 31)
             {
-                WriteByte((byte)(tagClass | tagNo));
+                WriteByte((byte)(flags | tagNo));
                 return;
             }
 
@@ -129,7 +161,7 @@ namespace Org.BouncyCastle.Asn1
                 stack[--pos] = (byte)(tagNo & 0x7F | 0x80);
             }
 
-            stack[--pos] = (byte)(tagClass | 0x1F);
+            stack[--pos] = (byte)(flags | 0x1F);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Write(stack[pos..]);
@@ -145,6 +177,17 @@ namespace Org.BouncyCastle.Asn1
             for (int i = 0; i < count; ++i)
             {
                 contentsEncodings[i] = elements[i].ToAsn1Object().GetEncoding(encoding);
+            }
+            return contentsEncodings;
+        }
+
+        internal static DerEncoding[] GetContentsEncodingsDer(Asn1Encodable[] elements)
+        {
+            int count = elements.Length;
+            DerEncoding[] contentsEncodings = new DerEncoding[count];
+            for (int i = 0; i < count; ++i)
+            {
+                contentsEncodings[i] = elements[i].ToAsn1Object().GetEncodingDer();
             }
             return contentsEncodings;
         }
@@ -170,6 +213,16 @@ namespace Org.BouncyCastle.Asn1
                 ++length;
             }
             return length;
+        }
+
+        internal static int GetLengthOfEncodingDL(int tagNo, int contentsLength)
+        {
+            return GetLengthOfIdentifier(tagNo) + GetLengthOfDL(contentsLength) + contentsLength;
+        }
+
+        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding[] contentsEncodings)
+        {
+            return GetLengthOfIdentifier(tagNo) + 3 + GetLengthOfContents(contentsEncodings);
         }
 
         internal static int GetLengthOfIdentifier(int tagNo)

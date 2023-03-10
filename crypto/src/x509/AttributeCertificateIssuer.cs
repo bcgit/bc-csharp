@@ -149,25 +149,18 @@ namespace Org.BouncyCastle.X509
 				return MatchesDN(x509Cert.SubjectDN, issuer.IssuerName);
 			}
 
-			return MatchesDN(x509Cert.SubjectDN, (GeneralNames) form);
+			return MatchesDN(x509Cert.SubjectDN, (GeneralNames)form);
 		}
 
-		public override bool Equals(
-			object obj)
+		public override bool Equals(object obj)
 		{
 			if (obj == this)
-			{
 				return true;
-			}
 
-			if (!(obj is AttributeCertificateIssuer))
-			{
+			if (!(obj is AttributeCertificateIssuer that))
 				return false;
-			}
 
-			AttributeCertificateIssuer other = (AttributeCertificateIssuer)obj;
-
-			return this.form.Equals(other.form);
+			return this.form.Equals(that.form);
 		}
 
 		public override int GetHashCode()

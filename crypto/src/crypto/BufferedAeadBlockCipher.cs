@@ -14,14 +14,10 @@ namespace Org.BouncyCastle.Crypto
 	{
 		private readonly IAeadBlockCipher cipher;
 
-		public BufferedAeadBlockCipher(
-			IAeadBlockCipher cipher)
+		public BufferedAeadBlockCipher(IAeadBlockCipher cipher)
 		{
-			if (cipher == null)
-				throw new ArgumentNullException("cipher");
-
-			this.cipher = cipher;
-		}
+            this.cipher = cipher ?? throw new ArgumentNullException(nameof(cipher));
+        }
 
 		public override string AlgorithmName
 		{

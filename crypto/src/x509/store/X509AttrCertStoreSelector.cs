@@ -72,8 +72,7 @@ namespace Org.BouncyCastle.X509.Store
 
 			if (targetNames.Count > 0 || targetGroups.Count > 0)
 			{
-				Asn1OctetString targetInfoExt = attrCert.GetExtensionValue(
-					X509Extensions.TargetInformation);
+				Asn1OctetString targetInfoExt = attrCert.GetExtensionValue(X509Extensions.TargetInformation);
 
 				if (targetInfoExt != null)
 				{
@@ -109,10 +108,9 @@ namespace Org.BouncyCastle.X509.Store
 								}
 							}
 						}
+
 						if (!found)
-						{
 							return false;
-						}
 					}
 
 					if (targetGroups.Count > 0)
@@ -136,9 +134,7 @@ namespace Org.BouncyCastle.X509.Store
 						}
 
 						if (!found)
-						{
 							return false;
-						}
 					}
 				}
 			}
@@ -204,8 +200,7 @@ namespace Org.BouncyCastle.X509.Store
 		*
 		* @param name The name as a GeneralName (not <code>null</code>)
 		*/
-		public void AddTargetName(
-			GeneralName name)
+		public void AddTargetName(GeneralName name)
 		{
 			targetNames.Add(name);
 		}
@@ -338,18 +333,7 @@ namespace Org.BouncyCastle.X509.Store
 			{
 				foreach (object o in names)
 				{
-					if (o is GeneralName gn)
-					{
-						result.Add(gn);
-					}
-					else if (o is byte[] bs)
-					{
-						result.Add(GeneralName.GetInstance(Asn1Object.FromByteArray(bs)));
-					}
-					else
-                    {
-						throw new InvalidOperationException();
-                    }
+                    result.Add(GeneralName.GetInstance(o));
 				}
 			}
 

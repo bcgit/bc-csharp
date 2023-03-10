@@ -35,13 +35,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static Challenge GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is Challenge challenge)
                 return challenge;
+            return new Challenge(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new Challenge(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_owf;
@@ -108,7 +111,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
         public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(2);
 			v.AddOptional(m_owf);
 			v.Add(m_witness, m_challenge);
 			return new DerSequence(v);
@@ -122,13 +125,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
         {
             public static Rand GetInstance(object obj)
             {
+                if (obj == null)
+                    return null;
                 if (obj is Rand rand)
                     return rand;
+                return new Rand(Asn1Sequence.GetInstance(obj));
+            }
 
-                if (obj != null)
-                    return new Rand(Asn1Sequence.GetInstance(obj));
-
-                return null;
+            public static Rand GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+            {
+                return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
             }
 
             private readonly DerInteger m_intVal;
@@ -143,7 +149,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             public Rand(Asn1Sequence seq)
             {
                 if (seq.Count != 2)
-                    throw new ArgumentException("expected sequence size of 2");
+                    throw new ArgumentException("expected sequence size of 2", nameof(seq));
 
                 m_intVal = DerInteger.GetInstance(seq[0]);
                 m_sender = GeneralName.GetInstance(seq[1]);

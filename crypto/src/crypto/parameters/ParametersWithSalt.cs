@@ -1,8 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.Parameters
 {
 
@@ -14,19 +11,30 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly byte[] m_salt;
 
         public ParametersWithSalt(ICipherParameters parameters, byte[] salt)
-            : this(parameters, salt, 0, salt.Length)
         {
+            // NOTE: 'parameters' may be null to imply key re-use
+            if (salt == null)
+                throw new ArgumentNullException(nameof(salt));
+
+            m_parameters = parameters;
+            m_salt = (byte[])salt.Clone();
         }
 
         public ParametersWithSalt(ICipherParameters parameters, byte[] salt, int saltOff, int saltLen)
         {
+            // NOTE: 'parameters' may be null to imply key re-use
+            if (salt == null)
+                throw new ArgumentNullException(nameof(salt));
+
             m_parameters = parameters;
-            m_salt = Arrays.CopyOfRange(salt, saltOff, saltOff + saltLen);
+            m_salt = new byte[saltLen];
+            Array.Copy(salt, saltOff, m_salt, 0, saltLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public ParametersWithSalt(ICipherParameters parameters, ReadOnlySpan<byte> salt)
         {
+            // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_salt = salt.ToArray();
         }
@@ -34,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetSalt()
         {
-            return m_salt;
+            return (byte[])m_salt.Clone();
         }
 
         public ICipherParameters Parameters => m_parameters;

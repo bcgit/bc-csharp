@@ -249,9 +249,11 @@ namespace Org.BouncyCastle.Pkix
 		* @see X509CertStoreSelector
 		* @see X509AttributeCertStoreSelector
 		*/
-		public virtual void SetTargetConstraintsAttrCert(ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
+		public virtual void SetTargetConstraintsAttrCert(
+			ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
 		{
-			this.m_targetConstraintsAttrCert = (ISelector<X509V2AttributeCertificate>)targetConstraintsAttrCert?.Clone();
+			this.m_targetConstraintsAttrCert = (ISelector<X509V2AttributeCertificate>)
+				targetConstraintsAttrCert?.Clone();
 		}
 
 		/**
@@ -542,19 +544,25 @@ namespace Org.BouncyCastle.Pkix
 			return new List<IStore<X509Crl>>(m_storesCrl);
 		}
 
+		[Obsolete("Use 'SetStoresAttrCert' instead")]
 		public virtual void SetAttrStoresCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
 		{
-			if (storesAttrCert == null)
-			{
-				m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
-			}
-			else
-			{
-				m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>(storesAttrCert);
-			}
+			SetStoresAttrCert(storesAttrCert);
 		}
 
-		public virtual void SetStoresCert(IList<IStore<X509Certificate>> storesCert)
+        public virtual void SetStoresAttrCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
+        {
+            if (storesAttrCert == null)
+            {
+                m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
+            }
+            else
+            {
+                m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>(storesAttrCert);
+            }
+        }
+
+        public virtual void SetStoresCert(IList<IStore<X509Certificate>> storesCert)
 		{
 			if (storesCert == null)
 			{
@@ -619,8 +627,7 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @param enabled <code>true</code> if additional stores are used.
 		*/
-		public virtual void SetAdditionalLocationsEnabled(
-			bool enabled)
+		public virtual void SetAdditionalLocationsEnabled(bool enabled)
 		{
 			additionalLocationsEnabled = enabled;
 		}

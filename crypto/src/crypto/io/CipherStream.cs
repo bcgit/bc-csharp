@@ -1,9 +1,8 @@
 using System;
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
@@ -45,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.IO
             get { return m_stream.CanRead; }
         }
 
-        public sealed override bool CanSeek
+        public override bool CanSeek
         {
             get { return false; }
         }
@@ -58,28 +57,26 @@ namespace Org.BouncyCastle.Crypto.IO
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (m_readCipher == null)
-            {
-                m_stream.CopyTo(destination, bufferSize);
-            }
-            else
-            {
-                base.CopyTo(destination, bufferSize);
-            }
+            Streams.CopyTo(ReadSource, destination, bufferSize);
         }
 #endif
+
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
+        }
 
         public override void Flush()
         {
             m_stream.Flush();
         }
 
-        public sealed override long Length
+        public override long Length
         {
             get { throw new NotSupportedException(); }
         }
 
-        public sealed override long Position
+        public override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
@@ -137,6 +134,11 @@ namespace Org.BouncyCastle.Crypto.IO
 
             return num;
         }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
+        }
 #endif
 
         public override int ReadByte()
@@ -153,12 +155,12 @@ namespace Org.BouncyCastle.Crypto.IO
             return m_readBuf[m_readBufPos++];
         }
 
-        public sealed override long Seek(long offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
         }
 
-        public sealed override void SetLength(long length)
+        public override void SetLength(long length)
         {
             throw new NotSupportedException();
         }
@@ -173,50 +175,54 @@ namespace Org.BouncyCastle.Crypto.IO
 
             Streams.ValidateBufferArguments(buffer, offset, count);
 
-            if (count > 0)
+            if (count < 1)
+                return;
+
+            int outputSize = m_writeCipher.GetUpdateOutputSize(count);
+
+            byte[] output = null;
+            if (outputSize > 0)
             {
-#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                int outputSize = m_writeCipher.GetUpdateOutputSize(count);
-                byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
-                try
+                output = new byte[outputSize];
+            }
+
+            try
+            {
+                int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
+                if (length > 0)
                 {
-                    int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
-                    if (length > 0)
-                    {
-                        m_stream.Write(output, 0, length);
-                    }
+                    m_stream.Write(output, 0, length);
                 }
-                finally
-                {
-                    if (output != null)
-                    {
-                        ArrayPool<byte>.Shared.Return(output);
-                    }
-                }
-#else
-                byte[] output = m_writeCipher.ProcessBytes(buffer, offset, count);
+            }
+            finally
+            {
                 if (output != null)
                 {
-                    m_stream.Write(output, 0, output.Length);
+                    Array.Clear(output, 0, output.Length);
                 }
-#endif
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void Write(ReadOnlySpan<byte> buffer)
         {
-            if (buffer.IsEmpty)
-                return;
-
             if (m_writeCipher == null)
             {
                 m_stream.Write(buffer);
                 return;
             }
 
+            if (buffer.IsEmpty)
+                return;
+
             int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
-            byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
+
+            byte[] output = null;
+            if (outputSize > 0)
+            {
+                output = new byte[outputSize];
+            }
+
             try
             {
                 int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output));
@@ -229,9 +235,14 @@ namespace Org.BouncyCastle.Crypto.IO
             {
                 if (output != null)
                 {
-                    ArrayPool<byte>.Shared.Return(output);
+                    Array.Clear(output, 0, output.Length);
                 }
             }
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.WriteAsync(WriteDestination, buffer, cancellationToken);
         }
 #endif
 
@@ -256,18 +267,22 @@ namespace Org.BouncyCastle.Crypto.IO
             {
 			    if (m_writeCipher != null)
 			    {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     int outputSize = m_writeCipher.GetOutputSize(0);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     Span<byte> output = outputSize <= 256
                         ? stackalloc byte[outputSize]
                         : new byte[outputSize];
                     int len = m_writeCipher.DoFinal(output);
                     m_stream.Write(output[..len]);
+                    output.Fill(0x00);
 #else
-                    byte[] data = m_writeCipher.DoFinal();
-                    m_stream.Write(data, 0, data.Length);
+                    byte[] output = new byte[outputSize];
+                    int len = m_writeCipher.DoFinal(output, 0);
+                    m_stream.Write(output, 0, len);
+                    Array.Clear(output, 0, output.Length);
 #endif
-			    }
+                }
                 m_stream.Dispose();
             }
             base.Dispose(disposing);
@@ -321,5 +336,8 @@ namespace Org.BouncyCastle.Crypto.IO
 
             return bytes;
         }
+
+        private Stream ReadSource => m_readCipher == null ? m_stream : this;
+        private Stream WriteDestination => m_writeCipher == null ? m_stream : this;
     }
 }

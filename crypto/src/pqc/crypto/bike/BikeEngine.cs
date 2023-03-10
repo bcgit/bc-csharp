@@ -6,6 +6,7 @@ using System.Numerics;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -37,6 +38,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private readonly BikeRing bikeRing;
         private readonly int L_BYTE;
         private readonly int R_BYTE;
+        private readonly int R2_UINT;
+        private readonly int R_ULONG;
+        private readonly int R2_ULONG;
 
         internal BikeEngine(int r, int w, int t, int l, int nbIter, int tau)
         {
@@ -48,29 +52,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.tau = tau;
             this.hw = this.w / 2;
             this.L_BYTE = l / 8;
-            this.R_BYTE = (r + 7) / 8;
+            this.R_BYTE = (r + 7) >> 3;
+            this.R2_UINT = (2 * r + 31) >> 5;
+            this.R_ULONG = (r + 63) >> 6;
+            this.R2_ULONG = (2 * r + 63) >> 6;
             this.bikeRing = new BikeRing(r);
         }
 
         internal int SessionKeySize => L_BYTE;
 
-        private byte[] FunctionH(byte[] seed)
+        private ulong[] FunctionH(byte[] seed)
         {
-            byte[] res = new byte[r * 2];
             IXof digest = new ShakeDigest(256);
             digest.BlockUpdate(seed, 0, seed.Length);
-            BikeUtilities.GenerateRandomByteArray(res, (uint)r * 2, (uint)t, digest);
+            ulong[] res = new ulong[2 * R_ULONG];
+            BikeUtilities.GenerateRandomUlongs(res, 2 * r, t, digest);
             return res;
         }
 
-        private void FunctionL(byte[] e0, byte[] e1, byte[] result)
+        private void FunctionL(ulong[] e01, byte[] c1, int c1Off)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> hashRes = stackalloc byte[48];
+            Sha3Digest.CalculateDigest(e01, 16 * R_BYTE, hashRes, 384);
+            hashRes[..L_BYTE].CopyTo(c1.AsSpan(c1Off));
+#else
+            byte[] hashRes = new byte[48];
+            Sha3Digest.CalculateDigest(e01, 0, 16 * R_BYTE, hashRes, 0, 384);
+            Array.Copy(hashRes, 0, c1, c1Off, L_BYTE);
+#endif
+        }
+
+        private void FunctionK(byte[] m, byte[] c01, byte[] result)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> hashRes = stackalloc byte[48];
 
             var digest = new Sha3Digest(384);
-            digest.BlockUpdate(e0);
-            digest.BlockUpdate(e1);
+            digest.BlockUpdate(m);
+            digest.BlockUpdate(c01);
             digest.DoFinal(hashRes);
 
             hashRes[..L_BYTE].CopyTo(result);
@@ -78,8 +98,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] hashRes = new byte[48];
 
             var digest = new Sha3Digest(384);
-            digest.BlockUpdate(e0, 0, e0.Length);
-            digest.BlockUpdate(e1, 0, e1.Length);
+            digest.BlockUpdate(m, 0, m.Length);
+            digest.BlockUpdate(c01, 0, c01.Length);
             digest.DoFinal(hashRes, 0);
 
             Array.Copy(hashRes, 0, result, 0, L_BYTE);
@@ -139,19 +159,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 #endif
 
             // 1. Randomly generate h0, h1
-            BikeUtilities.GenerateRandomByteArray(h0, (uint)r, (uint)hw, digest);
-            BikeUtilities.GenerateRandomByteArray(h1, (uint)r, (uint)hw, digest);
-
             ulong[] h0Element = bikeRing.Create();
             ulong[] h1Element = bikeRing.Create();
-            bikeRing.DecodeBytes(h0, h0Element);
-            bikeRing.DecodeBytes(h1, h1Element);
+            BikeUtilities.GenerateRandomUlongs(h0Element, r, hw, digest);
+            BikeUtilities.GenerateRandomUlongs(h1Element, r, hw, digest);
+            bikeRing.EncodeBytes(h0Element, h0);
+            bikeRing.EncodeBytes(h1Element, h1);
 
             // 2. Compute h
-            ulong[] hElement = bikeRing.Create();
-            bikeRing.Inv(h0Element, hElement);
-            bikeRing.Multiply(hElement, h1Element, hElement);
-            bikeRing.EncodeBytes(hElement, h);
+            bikeRing.Inv(h0Element, h0Element);
+            bikeRing.Multiply(h0Element, h1Element, h0Element);
+            bikeRing.EncodeBytes(h0Element, h);
 
             //3. Parse seed2 as sigma
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -171,46 +189,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
          * @param h             public key
          * @param random        Secure Random
          **/
-        internal void Encaps(byte[] c0, byte[] c1, byte[] k, byte[] h, SecureRandom random)
+        internal void Encaps(byte[] c01, byte[] k, byte[] h, SecureRandom random)
         {
             // 1. Randomly generate m by using seed1
             byte[] m = new byte[L_BYTE];
             random.NextBytes(m);
 
             // 2. Calculate e0, e1
-            byte[] eBytes = FunctionH(m);
-
-            byte[] eBits = new byte[2 * r];
-            BikeUtilities.FromByteArrayToBitArray(eBits, eBytes);
-
-            byte[] e0Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e0Bytes, eBits, 0, r);
-
-            byte[] e1Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e1Bytes, eBits, r, r);
-
-            ulong[] e0Element = bikeRing.Create();
-            ulong[] e1Element = bikeRing.Create();
-
-            bikeRing.DecodeBytes(e0Bytes, e0Element);
-            bikeRing.DecodeBytes(e1Bytes, e1Element);
-
-            ulong[] hElement = bikeRing.Create();
-            bikeRing.DecodeBytes(h, hElement);
+            ulong[] e01 = FunctionH(m);
 
             // 3. Calculate c
-            // calculate c0
-            ulong[] c0Element = bikeRing.Create();
-            bikeRing.Multiply(e1Element, hElement, c0Element);
-            bikeRing.Add(c0Element, e0Element, c0Element);
-            bikeRing.EncodeBytes(c0Element, c0);
+            AlignE01From1To64(e01);
+            ulong[] t = bikeRing.Create();
+            bikeRing.DecodeBytes(h, t);
+            bikeRing.Multiply(t, 0, e01, R_ULONG, t);
+            bikeRing.Add(t, e01, t);
+            bikeRing.EncodeBytes(t, c01);
 
             //calculate c1
-            FunctionL(e0Bytes, e1Bytes, c1);
-            Bytes.XorTo(L_BYTE, m, c1);
+            AlignE01From64To8(e01);
+            FunctionL(e01, c01, R_BYTE);
+            Bytes.XorTo(L_BYTE, m, 0, c01, R_BYTE);
 
             // 4. Calculate K
-            FunctionK(m, c0, c1, k);
+            FunctionK(m, c01, k);
         }
 
         /**
@@ -236,23 +238,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] syndromeBits = ComputeSyndrome(c0, h0);
 
             // 1. Compute e'
+            // TODO Produce e01 directly
             byte[] ePrimeBits = BGFDecoder(syndromeBits, h0Compact, h1Compact);
-            byte[] ePrimeBytes = new byte[2 * R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(ePrimeBytes, ePrimeBits, 0, 2 * r);
-
-            byte[] e0Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e0Bytes, ePrimeBits, 0, r);
-            byte[] e1Bytes = new byte[R_BYTE];
-            BikeUtilities.FromBitArrayToByteArray(e1Bytes, ePrimeBits, r, r);
+            ulong[] e01 = new ulong[2 * R_ULONG];
+            BikeUtilities.FromBitsToUlongs(e01, ePrimeBits, 0, 2 * r);
 
             // 2. Compute m'
+            // TODO Merge (or produce aligned to 64)
+            AlignE01From1To64(e01);
+            AlignE01From64To8(e01);
             byte[] mPrime = new byte[L_BYTE];
-            FunctionL(e0Bytes, e1Bytes, mPrime);
+            FunctionL(e01, mPrime, 0);
             Bytes.XorTo(L_BYTE, c1, mPrime);
 
             // 3. Compute K
-            byte[] wlist = FunctionH(mPrime);
-            if (Arrays.AreEqual(ePrimeBytes, 0, ePrimeBytes.Length, wlist, 0, ePrimeBytes.Length))
+            AlignE01From8To1(e01);
+            ulong[] wlist = FunctionH(mPrime);
+            if (Arrays.AreEqual(e01, 0, R2_ULONG, wlist, 0, R2_ULONG))
             {
                 FunctionK(mPrime, c0, c1, k);
             }
@@ -264,13 +266,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private byte[] ComputeSyndrome(byte[] c0, byte[] h0)
         {
-            ulong[] c0Element = bikeRing.Create();
-            ulong[] h0Element = bikeRing.Create();
-            bikeRing.DecodeBytes(c0, c0Element);
-            bikeRing.DecodeBytes(h0, h0Element);
-            ulong[] sElement = bikeRing.Create();
-            bikeRing.Multiply(c0Element, h0Element, sElement);
-            return Transpose(bikeRing.EncodeBits(sElement));
+            ulong[] t = bikeRing.Create();
+            ulong[] u = bikeRing.Create();
+            bikeRing.DecodeBytes(c0, t);
+            bikeRing.DecodeBytes(h0, u);
+            bikeRing.Multiply(t, u, t);
+            return bikeRing.EncodeBitsTransposed(t);
         }
 
         private byte[] BGFDecoder(byte[] s, int[] h0Compact, int[] h1Compact)
@@ -281,17 +282,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             int[] h0CompactCol = GetColumnFromCompactVersion(h0Compact);
             int[] h1CompactCol = GetColumnFromCompactVersion(h1Compact);
 
-            uint[] black = new uint[(2 * r + 31) >> 5];
+            uint[] black = new uint[R2_UINT];
             byte[] ctrs = new byte[r];
 
             {
-                uint[] gray = new uint[(2 * r + 31) >> 5];
+                uint[] gray = new uint[R2_UINT];
 
                 int T = Threshold(BikeUtilities.GetHammingWeight(s), r);
 
                 BFIter(s, e, T, h0Compact, h1Compact, h0CompactCol, h1CompactCol, black, gray, ctrs);
-                BFMaskedIter(s, e, black, (hw + 1) / 2 + 1, h0Compact, h1Compact, h0CompactCol, h1CompactCol);
-                BFMaskedIter(s, e, gray, (hw + 1) / 2 + 1, h0Compact, h1Compact, h0CompactCol, h1CompactCol);
+                BFMaskedIter(s, e, black, (hw + 3) / 2, h0Compact, h1Compact, h0CompactCol, h1CompactCol);
+                BFMaskedIter(s, e, gray, (hw + 3) / 2, h0Compact, h1Compact, h0CompactCol, h1CompactCol);
             }
             for (int i = 1; i < nbIter; i++)
             {
@@ -306,17 +307,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 return e;
 
             return null;
-        }
-
-        private byte[] Transpose(byte[] input)
-        {
-            byte[] output = new byte[r];
-            output[0] = input[0];
-            for (int i = 1; i < r; i++)
-            {
-                output[i] = input[r - i];
-            }
-            return output;
         }
 
         private void BFIter(byte[] s, byte[] e, int T, int[] h0Compact, int[] h1Compact, int[] h0CompactCol,
@@ -430,7 +420,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private void BFMaskedIter(byte[] s, byte[] e, uint[] mask, int T, int[] h0Compact, int[] h1Compact,
             int[] h0CompactCol, int[] h1CompactCol)
         {
-            uint[] updatedIndices = new uint[(2 * r + 31) >> 5];
+            uint[] updatedIndices = new uint[R2_UINT];
 
             for (int j = 0; j < r; j++)
             {
@@ -479,10 +469,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         {
             switch (r)
             {
-                case 12323: return ThresholdFromParameters(hammingWeight, 0.0069722, 13.530, 36);
-                case 24659: return ThresholdFromParameters(hammingWeight, 0.005265, 15.2588, 52);
-                case 40973: return ThresholdFromParameters(hammingWeight, 0.00402312, 17.8785, 69);
-                default:    throw new ArgumentException();
+            case 12323: return ThresholdFromParameters(hammingWeight, 0.0069722, 13.530, 36);
+            case 24659: return ThresholdFromParameters(hammingWeight, 0.005265, 15.2588, 52);
+            case 40973: return ThresholdFromParameters(hammingWeight, 0.00402312, 17.8785, 69);
+            default:    throw new ArgumentException();
             }
         }
 
@@ -677,6 +667,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                     }
                 }
             }
+        }
+
+        private void AlignE01From1To64(ulong[] e01)
+        {
+            int partial = r & 63;
+            int shift = 64 - partial;
+            ulong mask = ulong.MaxValue << partial;
+            Debug.Assert(partial != 0);
+            Debug.Assert(shift != 0);
+
+            ulong split = e01[R_ULONG - 1];
+            ulong c = split & mask;
+            Nat.ShiftUpBits64(R_ULONG, e01, R_ULONG, shift, c);
+            e01[R_ULONG - 1] = split & ~mask;
+        }
+
+        private void AlignE01From64To8(ulong[] e01)
+        {
+            int partial = (8 * R_BYTE) & 63;
+            int shift = 64 - partial;
+            ulong mask = ulong.MaxValue << partial;
+            Debug.Assert(partial != 0);
+            Debug.Assert(shift != 0);
+
+            ulong c = Nat.ShiftDownBits64(R_ULONG, e01, R_ULONG, shift, 0UL);
+            e01[R_ULONG - 1] |= c;
+        }
+
+        private void AlignE01From8To1(ulong[] e01)
+        {
+            int partial = r & 63;
+            int shift = 8 * R_BYTE - r;
+            ulong mask = ulong.MaxValue << partial;
+            Debug.Assert(partial != 0);
+            Debug.Assert(shift != 0);
+
+            ulong split = e01[R_ULONG - 1];
+            ulong c = Nat.ShiftDownBits64(R_ULONG, e01, R_ULONG, shift, 0UL);
+            e01[R_ULONG - 1] = (split & ~mask) | ((split >> shift) & mask) | c;
         }
     }
 }

@@ -50,10 +50,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             // direct signatures and revocations
             var keySigs = ReadSignaturesAndTrust(bcpgInput);
 
-            IList<object> ids;
-            IList<TrustPacket> idTrusts;
-            IList<IList<PgpSignature>> idSigs;
-            ReadUserIDs(bcpgInput, out ids, out idTrusts, out idSigs);
+            ReadUserIDs(bcpgInput, out var ids, out var idTrusts, out var idSigs);
 
             keys.Add(new PgpPublicKey(pubPk, trustPk, keySigs, ids, idTrusts, idSigs));
 
@@ -188,10 +185,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         internal static PublicKeyPacket ReadPublicKeyPacket(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();
-            if (!(packet is PublicKeyPacket))
+            if (!(packet is PublicKeyPacket publicKeyPacket))
                 throw new IOException("unexpected packet in stream: " + packet);
 
-            return (PublicKeyPacket)packet;
+            return publicKeyPacket;
         }
 
         internal static PgpPublicKey ReadSubkey(BcpgInputStream bcpgInput)
@@ -203,6 +200,75 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             var sigList = ReadSignaturesAndTrust(bcpgInput);
 
             return new PgpPublicKey(pk, kTrust, sigList);
+        }
+
+        /**
+         * Join two copies of the same certificate.
+         * The certificates must have the same primary key, but may carry different subkeys, user-ids and signatures.
+         * The resulting certificate will carry the sum of both certificates subkeys, user-ids and signatures.
+         * <br/>
+         * This method will ignore trust packets on the second copy of the certificate and instead
+         * copy the local certificate's trust packets to the joined certificate.
+         *
+         * @param first  local copy of the certificate
+         * @param second remote copy of the certificate (e.g. from a key server)
+         * @return joined key ring
+         * @throws PGPException
+         */
+        public static PgpPublicKeyRing Join(PgpPublicKeyRing first, PgpPublicKeyRing second)
+        {
+            return Join(first, second, false, false);
+        }
+
+        /**
+         * Join two copies of the same certificate.
+         * The certificates must have the same primary key, but may carry different subkeys, user-ids and signatures.
+         * The resulting certificate will carry the sum of both certificates subkeys, user-ids and signatures.
+         * <br/>
+         * For each subkey holds: If joinTrustPackets is set to true and the second key is carrying a trust packet,
+         * the trust packet will be copied to the joined key.
+         * Otherwise, the joined key will carry the trust packet of the local copy.
+         *
+         * @param first                      local copy of the certificate
+         * @param second                     remote copy of the certificate (e.g. from a key server)
+         * @param joinTrustPackets           if true, trust packets from the second certificate copy will be carried over into the joined certificate
+         * @param allowSubkeySigsOnNonSubkey if true, the resulting joined certificate may carry subkey signatures on its primary key
+         * @return joined certificate
+         * @throws PGPException
+         */
+        public static PgpPublicKeyRing Join(PgpPublicKeyRing first, PgpPublicKeyRing second, bool joinTrustPackets,
+            bool allowSubkeySigsOnNonSubkey)
+        {
+            if (!Arrays.AreEqual(first.GetPublicKey().GetFingerprint(), second.GetPublicKey().GetFingerprint()))
+                throw new ArgumentException("Cannot merge certificates with differing primary keys.");
+
+            var secondKeys = new HashSet<long>();
+            foreach (var key in second.GetPublicKeys())
+            {
+                secondKeys.Add(key.KeyId);
+            }
+
+            var merged = new List<PgpPublicKey>();
+            foreach (var key in first.GetPublicKeys())
+            {
+                var copy = second.GetPublicKey(key.KeyId);
+                if (copy != null)
+                {
+                    merged.Add(PgpPublicKey.Join(key, copy, joinTrustPackets, allowSubkeySigsOnNonSubkey));
+                    secondKeys.Remove(key.KeyId);
+                }
+                else
+                {
+                    merged.Add(key);
+                }
+            }
+
+            foreach (var additionalKeyId in secondKeys)
+            {
+                merged.Add(second.GetPublicKey(additionalKeyId));
+            }
+
+            return new PgpPublicKeyRing(merged);
         }
     }
 }

@@ -64,14 +64,14 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
 					switch (tagged.TagNo)
 					{
-						case 0:
-							tsa = GeneralName.GetInstance(tagged, true);
-							break;
-						case 1:
-							extensions = X509Extensions.GetInstance(tagged, false);
-							break;
-						default:
-							throw new ArgumentException("Unknown tag value " + tagged.TagNo);
+					case 0:
+						tsa = GeneralName.GetInstance(tagged, true);
+						break;
+					case 1:
+						extensions = X509Extensions.GetInstance(tagged, false);
+						break;
+					default:
+						throw new ArgumentException("Unknown tag value " + tagged.TagNo);
 					}
 				}
 

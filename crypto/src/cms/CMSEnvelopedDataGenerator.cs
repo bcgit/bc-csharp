@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Cms
 			}
 
 
-			Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+			Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
             foreach (RecipientInfoGenerator rig in recipientInfoGenerators)
             {
@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Cms
             }
 
 
-            Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+            Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
             foreach (RecipientInfoGenerator rig in recipientInfoGenerators)
             {

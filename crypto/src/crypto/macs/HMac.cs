@@ -26,10 +26,18 @@ namespace Org.BouncyCastle.Crypto.Macs
         private readonly byte[] outputBuf;
 
         public HMac(IDigest digest)
+            : this(digest, digest.GetByteLength())
         {
+        }
+
+        public HMac(IDigest digest, int blockLength)
+        {
+            if (blockLength < 16)
+                throw new ArgumentException("must be at least 16 bytes", nameof(blockLength));
+
             this.digest = digest;
             this.digestSize = digest.GetDigestSize();
-            this.blockLength = digest.GetByteLength();
+            this.blockLength = blockLength;
             this.inputPad = new byte[blockLength];
             this.outputBuf = new byte[blockLength + digestSize];
         }

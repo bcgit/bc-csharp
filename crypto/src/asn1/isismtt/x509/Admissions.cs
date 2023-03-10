@@ -70,13 +70,13 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 				switch (tagged1.TagNo)
 				{
 				case 0:
-					admissionAuthority = GeneralName.GetInstance((Asn1TaggedObject)o, true);
+					admissionAuthority = GeneralName.GetInstance(tagged1, true);
 					break;
 				case 1:
-					namingAuthority = NamingAuthority.GetInstance((Asn1TaggedObject)o, true);
+					namingAuthority = NamingAuthority.GetInstance(tagged1, true);
 					break;
 				default:
-					throw new ArgumentException("Bad tag number: " + ((Asn1TaggedObject)o).TagNo);
+					throw new ArgumentException("Bad tag number: " + tagged1.TagNo);
 				}
 				e.MoveNext();
 				o = e.Current;
@@ -86,10 +86,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 				switch (tagged2.TagNo)
 				{
 				case 1:
-					namingAuthority = NamingAuthority.GetInstance((Asn1TaggedObject)o, true);
+					namingAuthority = NamingAuthority.GetInstance(tagged2, true);
 					break;
 				default:
-					throw new ArgumentException("Bad tag number: " + ((Asn1TaggedObject)o).TagNo);
+					throw new ArgumentException("Bad tag number: " + tagged2.TagNo);
 				}
 				e.MoveNext();
 				o = e.Current;
@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptionalTagged(true, 0, admissionAuthority);
             v.AddOptionalTagged(true, 1, namingAuthority);
 			v.Add(professionInfos);

@@ -113,26 +113,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
         {
             if (disposing)
             {
-                if (!closed)
-                {
-                    try
-                    {
-                        try
-                        {
-                            Finish();
-                        }
-                        catch (IOException)
-                        {
-                            // Ignore
-                        }
-                    }
-                    finally
-                    {
-                        this.closed = true;
-                        End();
-                        output = null;
-                    }
-                }
+                ImplDisposing(disposeOutput: false);
             }
             base.Dispose(disposing);
         }
@@ -141,29 +122,37 @@ namespace Org.BouncyCastle.Utilities.Zlib
         {
             if (disposing)
             {
-			    if (!closed)
+                ImplDisposing(disposeOutput: true);
+            }
+            base.Dispose(disposing);
+        }
+
+        private void ImplDisposing(bool disposeOutput)
+        {
+            if (!closed)
+            {
+                try
                 {
                     try
                     {
-                        try
-                        {
-                            Finish();
-                        }
-                        catch (IOException)
-                        {
-                            // Ignore
-                        }
+                        Finish();
                     }
-                    finally
+                    catch (IOException)
                     {
-                        this.closed = true;
-                        End();
-                        output.Dispose();
-                        output = null;
+                        // Ignore
                     }
                 }
+                finally
+                {
+                    this.closed = true;
+                    End();
+                    if (disposeOutput)
+                    {
+                        output.Dispose();
+                    }
+                    output = null;
+                }
             }
-            base.Dispose(disposing);
         }
 
         public virtual void End()

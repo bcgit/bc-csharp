@@ -20,13 +20,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static RevDetails GetInstance(object obj)
         {
-			if (obj is RevDetails revDetails)
-				return revDetails;
+            if (obj == null)
+                return null;
+            if (obj is RevDetails revDetails)
+                return revDetails;
+            return new RevDetails(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new RevDetails(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static RevDetails GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CertTemplate m_certDetails;

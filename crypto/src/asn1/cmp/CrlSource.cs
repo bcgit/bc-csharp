@@ -19,13 +19,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static CrlSource GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is CrlSource crlSource)
                 return crlSource;
+            return new CrlSource(Asn1TaggedObject.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new CrlSource(Asn1TaggedObject.GetInstance(obj));
-
-            return null;
+        public static CrlSource GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly DistributionPointName m_dpn;
@@ -65,8 +68,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         {
             if (m_dpn != null)
                 return new DerTaggedObject(true, 0, m_dpn);
-
-            return new DerTaggedObject(true, 1, m_issuer);
+            if (m_issuer != null)
+                return new DerTaggedObject(true, 1, m_issuer);
+            throw new InvalidOperationException();
         }
     }
 }

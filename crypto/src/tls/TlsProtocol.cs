@@ -1007,7 +1007,6 @@ namespace Org.BouncyCastle.Tls
 #endif
         }
 
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual void WriteApplicationData(ReadOnlySpan<byte> buffer)
         {

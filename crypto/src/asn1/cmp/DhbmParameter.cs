@@ -17,13 +17,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static DhbmParameter GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is DhbmParameter dhbmParameter)
                 return dhbmParameter;
+            return new DhbmParameter(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new DhbmParameter(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static DhbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_owf;

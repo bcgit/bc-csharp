@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     return new BigInteger[]{ r, s };
             }
 
-            throw new ArgumentException("Malformed signature", "encoding");
+            throw new ArgumentException("Malformed signature", nameof(encoding));
         }
 
         public virtual byte[] Encode(BigInteger n, BigInteger r, BigInteger s)
@@ -46,16 +46,13 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual int GetMaxEncodingSize(BigInteger n)
         {
-            int encodingLength = BigIntegers.GetByteLength(n);
-            int derIntegerLength = Asn1OutputStream.GetLengthOfDL(encodingLength) + encodingLength;
-            int seqContentsLength = 2 * derIntegerLength;
-            return Asn1OutputStream.GetLengthOfDL(seqContentsLength) + seqContentsLength;
+            return DerSequence.GetEncodingLength(DerInteger.GetEncodingLength(n) * 2);
         }
 
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)
         {
             if (x.SignValue < 0 || (null != n && x.CompareTo(n) >= 0))
-                throw new ArgumentException("Value out of range", "x");
+                throw new ArgumentException("Value out of range", nameof(x));
 
             return x;
         }

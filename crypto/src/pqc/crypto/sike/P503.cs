@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Utilities.IO.Compression;
 using System.Collections.Generic;
 using System.IO;
 
@@ -146,11 +147,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             this.PLEN_3 = 54;
 
             // Import compression tables from properties
-            var props = new Dictionary<string, string>(); 
-            Stream input = typeof(P503).Assembly
-                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p503.properties");
-            
-            using (StreamReader sr = new StreamReader(input))
+            var props = new Dictionary<string, string>();
+            using (var input = typeof(P503).Assembly
+                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p503.bz2"))
+            using (var sr = new StreamReader(Bzip2.DecompressInput(input)))
             {
                 // load a properties file
                 string line = sr.ReadLine();

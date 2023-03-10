@@ -196,6 +196,16 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, bytes);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Integer, bytes);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, bytes);
+        }
+
         protected override int Asn1GetHashCode()
 		{
 			return Arrays.GetHashCode(bytes);
@@ -218,6 +228,11 @@ namespace Org.BouncyCastle.Asn1
         internal static DerInteger CreatePrimitive(byte[] contents)
         {
             return new DerInteger(contents, false);
+        }
+
+        internal static int GetEncodingLength(BigInteger x)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(Asn1Tags.Integer, BigIntegers.GetByteLength(x));
         }
 
         internal static int IntValue(byte[] bytes, int start, int signExt)

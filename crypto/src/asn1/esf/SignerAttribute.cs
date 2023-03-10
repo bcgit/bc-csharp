@@ -80,18 +80,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (claimedAttributes != null)
-			{
-				v.Add(new DerTaggedObject(0, claimedAttributes));
-			}
-			else
-			{
-				v.Add(new DerTaggedObject(1, certifiedAttributes));
-			}
-
-			return new DerSequence(v);
+			return claimedAttributes != null
+				?	new DerSequence(new DerTaggedObject(0, claimedAttributes))
+				:	new DerSequence(new DerTaggedObject(1, certifiedAttributes));
 		}
 	}
 }

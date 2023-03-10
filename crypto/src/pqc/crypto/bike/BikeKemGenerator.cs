@@ -23,18 +23,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             BikeEngine engine = parameters.BikeEngine;
 
             byte[] K = new byte[parameters.LByte];
-            byte[] c0 = new byte[parameters.RByte];
-            byte[] c1 = new byte[parameters.LByte];
+            byte[] c01 = new byte[parameters.RByte + parameters.LByte];
             byte[] h = key.PublicKey;
 
-            engine.Encaps(c0, c1, K, h, sr);
+            engine.Encaps(c01, K, h, sr);
 
-            byte[] cipherText = Arrays.Concatenate(c0, c1);
-
-            return new SecretWithEncapsulationImpl(Arrays.CopyOfRange(K, 0, parameters.DefaultKeySize / 8), cipherText);
+            return new SecretWithEncapsulationImpl(Arrays.CopyOfRange(K, 0, parameters.DefaultKeySize / 8), c01);
         }
 
-        private class SecretWithEncapsulationImpl
+        private sealed class SecretWithEncapsulationImpl
             : ISecretWithEncapsulation
         {
             private volatile bool hasBeenDestroyed = false;
@@ -65,10 +62,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             {
                 if (!hasBeenDestroyed)
                 {
-                    hasBeenDestroyed = true;
                     Arrays.Clear(sessionKey);
                     Arrays.Clear(cipher_text);
+                    hasBeenDestroyed = true;
                 }
+                GC.SuppressFinalize(this);
             }
 
             public bool IsDestroyed()

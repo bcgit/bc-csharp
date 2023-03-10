@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.KyberOidLookup(kyberPublicKeyParameters.Parameters));
-                Asn1EncodableVector v = new Asn1EncodableVector();
+                Asn1EncodableVector v = new Asn1EncodableVector(2);
                 v.Add(new DerOctetString(kyberPublicKeyParameters.T));
                 v.Add(new DerOctetString(kyberPublicKeyParameters.Rho));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(v));

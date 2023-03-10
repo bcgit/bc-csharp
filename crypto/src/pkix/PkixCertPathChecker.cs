@@ -32,7 +32,6 @@ namespace Org.BouncyCastle.Pkix
          *                checking must be supported
          */
         public abstract void Init(bool forward);
-        //throws CertPathValidatorException;
 
         /**
          * Indicates if forward checking is supported. Forward checking refers to
@@ -82,7 +81,6 @@ namespace Org.BouncyCastle.Pkix
          *                if the specified certificate does not pass the check
          */
         public abstract void Check(X509Certificate cert, ISet<string> unresolvedCritExts);
-        //throws CertPathValidatorException;
 
         /**
          * Returns a clone of this object. Calls the <code>Object.clone()</code>

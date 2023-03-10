@@ -60,10 +60,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             {
                 if (!m_hasBeenDestroyed)
                 {
-                    m_hasBeenDestroyed = true;
                     Arrays.Clear(m_sessionKey);
                     Arrays.Clear(m_cipherText);
+                    m_hasBeenDestroyed = true;
                 }
+                GC.SuppressFinalize(this);
             }
 
             internal bool IsDestroyed()

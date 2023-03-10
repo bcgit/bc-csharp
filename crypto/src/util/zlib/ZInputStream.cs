@@ -116,17 +116,34 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z.avail_in = 0;
         }
 
+        protected void Detach(bool disposing)
+        {
+            if (disposing)
+            {
+                ImplDisposing(disposeInput: false);
+            }
+            base.Dispose(disposing);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-			    if (!closed)
+                ImplDisposing(disposeInput: true);
+            }
+            base.Dispose(disposing);
+        }
+
+        private void ImplDisposing(bool disposeInput)
+        {
+            if (!closed)
+            {
+                closed = true;
+                if (disposeInput)
                 {
-                    closed = true;
                     input.Dispose();
                 }
             }
-            base.Dispose(disposing);
         }
 
         public virtual int FlushMode
@@ -203,6 +220,40 @@ namespace Org.BouncyCastle.Utilities.Zlib
         public virtual long TotalOut
         {
             get { return z.total_out; }
+        }
+    }
+
+    public class ZInputStreamLeaveOpen
+        : ZInputStream
+    {
+        public ZInputStreamLeaveOpen(Stream input)
+            : base(input)
+        {
+        }
+
+        public ZInputStreamLeaveOpen(Stream input, bool nowrap)
+            : base(input, nowrap)
+        {
+        }
+
+        public ZInputStreamLeaveOpen(Stream input, ZStream z)
+            : base(input, z)
+        {
+        }
+
+        public ZInputStreamLeaveOpen(Stream input, int level)
+            : base(input, level)
+        {
+        }
+
+        public ZInputStreamLeaveOpen(Stream input, int level, bool nowrap)
+            : base(input, level, nowrap)
+        {
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            Detach(disposing);
         }
     }
 }

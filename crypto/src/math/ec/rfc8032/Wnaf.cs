@@ -33,25 +33,24 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            uint sign = 0U;
-            int j = 0, lead = 32 - width;
+            int j = 0, lead = 32 - width, sign = 0;
 
             for (int i = 0; i < t.Length; ++i, j -= 16)
             {
                 uint word = t[i];
                 while (j < 16)
                 {
-                    uint word16 = word >> j;
+                    int word16 = (int)(word >> j);
 
-                    int skip = Integers.NumberOfTrailingZeros((int)((sign ^ word16) | 0xFFFF0000U));
+                    int skip = Integers.NumberOfTrailingZeros((sign ^ word16) | 0x00010000);
                     if (skip > 0)
                     {
                         j += skip;
                         continue;
                     }
 
-                    int digit = ((int)word16 | 1) << lead;
-                    sign = (uint)(digit >> 31);
+                    int digit = (word16 | 1) << lead;
+                    sign = digit >> 31;
 
                     ws[(i << 4) + j] = (sbyte)(digit >> lead);
 
@@ -59,7 +58,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            Debug.Assert((int)sign == (int)n[n.Length - 1] >> 31);
+            Debug.Assert(sign == (int)n[n.Length - 1] >> 31);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -243,7 +244,7 @@ namespace Org.BouncyCastle.Bcpg
 
 			if (headerList.Count > 0)
             {
-                header = (string)headerList[0];
+                header = headerList[0];
             }
 
 			clearText = "-----BEGIN PGP SIGNED MESSAGE-----".Equals(header);
@@ -290,7 +291,7 @@ namespace Org.BouncyCastle.Bcpg
 			string[] hdrs = new string[headerList.Count - 1];
             for (int i = 0; i != hdrs.Length; i++)
             {
-                hdrs[i] = (string)headerList[i + 1];
+                hdrs[i] = headerList[i + 1];
             }
 
 			return hdrs;
@@ -303,7 +304,7 @@ namespace Org.BouncyCastle.Bcpg
             {
                 c = input.ReadByte();
             }
-            while (c == ' ' || c == '\t' || c == '\f' || c == '\u000B') ; // \u000B ~ \v
+            while (c == ' ' || c == '\t' || c == '\f' || c == '\v');
 
             if (c >= 128)
                 throw new IOException("invalid armor");
@@ -396,75 +397,55 @@ namespace Org.BouncyCastle.Bcpg
                         newLineFound = false;
                     }
                 }
-            
+
                 lastC = c;
 
                 if (c < 0)
                 {
                     isEndOfStream = true;
                 }
-            
+
                 return c;
             }
 
             if (bufPtr > 2 || crcFound)
             {
                 c = ReadIgnoreSpace();
-            
+
                 if (c == '\r' || c == '\n')
                 {
                     c = ReadIgnoreSpace();
-                
+
                     while (c == '\n' || c == '\r')
                     {
                         c = ReadIgnoreSpace();
                     }
 
-                    if (c < 0)                // EOF
-                    {
-                        isEndOfStream = true;
-                        return -1;
-                    }
-
                     if (c == '=')            // crc reached
                     {
                         bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-                        if (bufPtr == 0)
-                        {
-                            int i = ((outBuf[0] & 0xff) << 16)
-                                    | ((outBuf[1] & 0xff) << 8)
-                                    | (outBuf[2] & 0xff);
+                        if (bufPtr != 0)
+                            throw new IOException("malformed crc in armored message.");
 
-                            crcFound = true;
+                        crcFound = true;
 
-                            if (i != crc.Value)
-                            {
-                                throw new IOException("crc check failed in armored message.");
-                            }
-                            return ReadByte();
-                        }
-                        else
-                        {
-                            if (detectMissingChecksum)
-                            {
-                                throw new IOException("no crc found in armored message");
-                            }
-                        }
+                        int i = (int)Pack.BE_To_UInt24(outBuf);
+                        if (i != crc.Value)
+                            throw new IOException("crc check failed in armored message.");
+
+                        return ReadByte();
                     }
-                    else if (c == '-')        // end of record reached
+
+                    if (c == '-')        // end of record reached
                     {
                         while ((c = input.ReadByte()) >= 0)
                         {
                             if (c == '\n' || c == '\r')
-                            {
                                 break;
-                            }
                         }
 
                         if (!crcFound && detectMissingChecksum)
-                        {
                             throw new IOException("crc check not found");
-                        }
 
                         crcFound = false;
                         start = true;
@@ -477,30 +458,30 @@ namespace Org.BouncyCastle.Bcpg
 
                         return -1;
                     }
-                    else                   // data
-                    {
-                        bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-                    }
+                }
+
+                if (c < 0)
+                {
+                    isEndOfStream = true;
+                    return -1;
+                }
+
+                bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
+
+                if (bufPtr == 0)
+                {
+                    crc.Update3(outBuf, 0);
                 }
                 else
                 {
-                    if (c >= 0)
+                    for (int i = bufPtr; i < 3; ++i)
                     {
-                        bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-                    }
-                    else
-                    {
-                        isEndOfStream = true;
-                        return -1;
+                        crc.Update(outBuf[i]);
                     }
                 }
             }
 
-            c = outBuf[bufPtr++];
-
-            crc.Update((byte)c);
-
-            return c;
+            return (int)outBuf[bufPtr++];
         }
 
         protected override void Dispose(bool disposing)

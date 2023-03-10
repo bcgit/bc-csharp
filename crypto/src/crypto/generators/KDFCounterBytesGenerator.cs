@@ -57,10 +57,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public IMac Mac => prf;
 
-        public IDigest Digest
-        {
-            get { return (prf as HMac)?.GetUnderlyingDigest(); }
-        }
+        public IDigest Digest => (prf as HMac)?.GetUnderlyingDigest();
 
         public int GenerateBytes(byte[] output, int outOff, int length)
         {

@@ -17,7 +17,7 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
 {
-	/**
+    /**
 	 * The following extensions are listed in RFC 2459 as relevant to CRLs
 	 *
 	 * Authority Key Identifier
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.X509
 	 * Delta CRL Indicator (critical)
 	 * Issuing Distribution Point (critical)
 	 */
-	public class X509Crl
+    public class X509Crl
 		: X509ExtensionBase
 		// TODO Add interface Crl?
 	{
@@ -63,7 +63,6 @@ namespace Org.BouncyCastle.X509
 		private readonly byte[] sigAlgParams;
 		private readonly bool isIndirect;
 
-        private readonly object cacheLock = new object();
         private CachedEncoding cachedEncoding;
 
         private volatile bool hashValueSet;
@@ -306,13 +305,13 @@ namespace Org.BouncyCastle.X509
 			byte[] sig = this.GetSignature();
 
 			buf.Append("            Signature: ");
-			buf.Append(Hex.ToHexString(sig, 0, 20)).AppendLine();
+			buf.AppendLine(Hex.ToHexString(sig, 0, 20));
 
 			for (int i = 20; i < sig.Length; i += 20)
 			{
 				int count = System.Math.Min(20, sig.Length - i);
 				buf.Append("                       ");
-				buf.Append(Hex.ToHexString(sig, i, count)).AppendLine();
+				buf.AppendLine(Hex.ToHexString(sig, i, count));
 			}
 
 			X509Extensions extensions = c.TbsCertList.Extensions;
@@ -323,7 +322,7 @@ namespace Org.BouncyCastle.X509
 
 				if (e.MoveNext())
 				{
-					buf.Append("           Extensions: ").AppendLine();
+					buf.AppendLine("           Extensions:");
 				}
 
 				do
@@ -404,15 +403,7 @@ namespace Org.BouncyCastle.X509
 		 * @return true if the given certificate is on this CRL,
 		 * false otherwise.
 		 */
-//		public bool IsRevoked(
-//			Certificate cert)
-//		{
-//			if (!cert.getType().Equals("X.509"))
-//			{
-//				throw new RuntimeException("X.509 CRL used with non X.509 Cert");
-//			}
-		public virtual bool IsRevoked(
-			X509Certificate cert)
+		public virtual bool IsRevoked(X509Certificate cert)
 		{
 			CrlEntry[] certs = c.GetRevokedCertificates();
 
@@ -458,12 +449,11 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-            lock (cacheLock)
-            {
-                if (null != cachedEncoding)
-                    return cachedEncoding;
-            }
+			return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+        }
 
+		private static CachedEncoding CreateCachedEncoding(CertificateList c)
+		{
             byte[] encoding = null;
             CrlException exception = null;
             try
@@ -475,17 +465,7 @@ namespace Org.BouncyCastle.X509
                 exception = new CrlException("Failed to DER-encode CRL", e);
             }
 
-            CachedEncoding temp = new CachedEncoding(encoding, exception);
-
-            lock (cacheLock)
-            {
-                if (null == cachedEncoding)
-                {
-                    cachedEncoding = temp;
-                }
-
-                return cachedEncoding;
-            }
+            return new CachedEncoding(encoding, exception);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
@@ -18,9 +19,19 @@ using Org.BouncyCastle.Utilities;
 // </pre>
 namespace Org.BouncyCastle.Pqc.Asn1
 {
+    // TODO[api] Should only be Asn1Encodable
     public class CmcePrivateKey
         : Asn1Object
     {
+        public static CmcePrivateKey GetInstance(Object o)
+        {
+            if (o == null)
+                return null;
+            if (o is CmcePrivateKey cmcePrivateKey)
+                return cmcePrivateKey;
+            return new CmcePrivateKey(Asn1Sequence.GetInstance(o));
+        }
+
         private int version;
         private byte[] delta;
         private byte[] c;
@@ -84,7 +95,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         public Asn1Object ToAsn1Primitive()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(7);
 
             v.Add(new DerInteger(version));
             v.Add(new DerOctetString(delta));
@@ -94,28 +105,14 @@ namespace Org.BouncyCastle.Pqc.Asn1
             v.Add(new DerOctetString(s));
 
             // todo optional publickey
-            if(PublicKey != null)
+            if (publicKey != null)
             {
-                v.Add(new CmcePublicKey(PublicKey.T));
+                v.Add(new CmcePublicKey(publicKey.T));
             }
 
             return new DerSequence(v);
         }
 
-        public static  CmcePrivateKey GetInstance(Object o)
-        {
-            if (o is CmcePrivateKey)
-            {
-                return (CmcePrivateKey)o;
-            }
-            else if (o != null)
-            {
-                return new CmcePrivateKey(Asn1Sequence.GetInstance(o));
-            }
-
-            return null;
-        }
-        //TODO are these correct tags?
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             return ToAsn1Primitive().GetEncoding(encoding);
@@ -126,18 +123,24 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return ToAsn1Primitive().GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return ToAsn1Primitive().GetEncodingDer();
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return ToAsn1Primitive().GetEncodingDerImplicit(tagClass, tagNo);
+        }
+
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            CmcePrivateKey other = asn1Object as CmcePrivateKey;
-            if (other == null)
-                return false;
-            
-            return Arrays.AreEqual(this.ToAsn1Primitive().GetEncoded(), other.ToAsn1Primitive().GetEncoded());
+            return ToAsn1Primitive().CallAsn1Equals(asn1Object);
         }
 
         protected override int Asn1GetHashCode()
         {
-            return ToAsn1Object().CallAsn1GetHashCode();
+            return ToAsn1Primitive().CallAsn1GetHashCode();
         }
     }
 }

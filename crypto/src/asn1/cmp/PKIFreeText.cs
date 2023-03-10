@@ -7,13 +7,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
 		public static PkiFreeText GetInstance(object obj)
 		{
+			if (obj == null)
+				return null;
 			if (obj is PkiFreeText pkiFreeText)
 				return pkiFreeText;
-
-			if (obj != null)
-                return new PkiFreeText(Asn1Sequence.GetInstance(obj));
-
-            return null;
+            return new PkiFreeText(Asn1Sequence.GetInstance(obj));
 		}
 
         public static PkiFreeText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
@@ -21,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        internal Asn1Sequence m_strings;
+        private readonly Asn1Sequence m_strings;
 
         internal PkiFreeText(Asn1Sequence seq)
 		{

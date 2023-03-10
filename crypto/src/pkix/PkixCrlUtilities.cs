@@ -9,22 +9,27 @@ namespace Org.BouncyCastle.Pkix
 {
 	public class PkixCrlUtilities
 	{
-		public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
+        // TODO bc-fips-csharp implements this for ISelector<X509Crl>, using optional ICheckingCertificate
+        public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
+        {
+            // get complete CRL(s)
+            try
+            {
+                return FindCrls(crlSelector, paramsPkix.GetStoresCrl());
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Exception obtaining complete CRLs.", e);
+            }
+        }
+
+        // TODO bc-fips-csharp implements this for ISelector<X509Crl>, using optional ICheckingCertificate
+        public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
 			DateTime currentDate)
 		{
-			HashSet<X509Crl> initialSet;
+            var initialSet = FindCrls(crlSelector, paramsPkix);
 
-			// get complete CRL(s)
-			try
-			{
-				initialSet = FindCrls(crlSelector, paramsPkix.GetStoresCrl());
-			}
-			catch (Exception e)
-			{
-				throw new Exception("Exception obtaining complete CRLs.", e);
-			}
-
-			var finalSet = new HashSet<X509Crl>();
+            var finalSet = new HashSet<X509Crl>();
 			DateTime validityDate = currentDate;
 
 			if (paramsPkix.Date != null)
@@ -32,15 +37,15 @@ namespace Org.BouncyCastle.Pkix
 				validityDate = paramsPkix.Date.Value;
 			}
 
-			// based on RFC 5280 6.3.3
-			foreach (X509Crl crl in initialSet)
+            X509Certificate cert = crlSelector.CertificateChecking;
+
+            // based on RFC 5280 6.3.3
+            foreach (X509Crl crl in initialSet)
 			{
                 DateTime? nextUpdate = crl.NextUpdate;
 
                 if (null == nextUpdate || nextUpdate.Value.CompareTo(validityDate) > 0)
 				{
-					X509Certificate cert = crlSelector.CertificateChecking;
-
                     if (null == cert || crl.ThisUpdate.CompareTo(cert.NotAfter) < 0)
                     {
                         finalSet.Add(crl);
@@ -49,19 +54,6 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			return finalSet;
-		}
-
-		public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
-		{
-			// get complete CRL(s)
-			try
-			{
-				return FindCrls(crlSelector, paramsPkix.GetStoresCrl());
-			}
-			catch (Exception e)
-			{
-				throw new Exception("Exception obtaining complete CRLs.", e);
-			}
 		}
 
 		/// <summary>
@@ -76,7 +68,7 @@ namespace Org.BouncyCastle.Pkix
 		/// <returns>a Collection of all found {@link X509CRL X509CRL} objects. May be
 		/// empty but never <code>null</code>.
 		/// </returns>
-		private HashSet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, IList<IStore<X509Crl>> crlStores)
+		private HashSet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, IEnumerable<IStore<X509Crl>> crlStores)
 		{
             var crls = new HashSet<X509Crl>();
 

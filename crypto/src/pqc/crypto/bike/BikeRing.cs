@@ -34,11 +34,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             m_size = (r + 63) >> 6;
             m_sizeExt = m_size * 2;
 
+            uint r32 = Mod.Inverse32((uint)-r);
             foreach (int n in EnumerateSquarePowersInv(r))
             {
                 if (n >= PermutationCutoff && !m_halfPowers.ContainsKey(n))
                 {
-                    m_halfPowers[n] = GenerateHalfPower(r, n);
+                    m_halfPowers[n] = GenerateHalfPower((uint)r, r32, n);
                 }
             }
         }
@@ -74,19 +75,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         internal void DecodeBytes(byte[] bs, ulong[] z)
         {
             int partialBits = m_bits & 63;
+            int partialBytes = (partialBits + 7) >> 3;
             Pack.LE_To_UInt64(bs, 0, z, 0, Size - 1);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> last = stackalloc byte[8];
+            bs.AsSpan((Size - 1) << 3, partialBytes).CopyTo(last);
+#else
             byte[] last = new byte[8];
-            Array.Copy(bs, (Size - 1) << 3, last, 0, (partialBits + 7) >> 3);
+            Array.Copy(bs, (Size - 1) << 3, last, 0, partialBytes);
+#endif
             z[Size - 1] = Pack.LE_To_UInt64(last);
             Debug.Assert((z[Size - 1] >> partialBits) == 0UL);
         }
 
-        internal byte[] EncodeBits(ulong[] x)
+        internal byte[] EncodeBitsTransposed(ulong[] x)
         {
             byte[] bs = new byte[m_bits];
-            for (int i = 0; i < m_bits; ++i)
+            bs[0] = (byte)(x[0] & 1UL);
+            for (int i = 1; i < m_bits; ++i)
             {
-                bs[i] = (byte)((x[i >> 6] >> (i & 63)) & 1UL);
+                bs[m_bits - i] = (byte)((x[i >> 6] >> (i & 63)) & 1UL);
             }
             return bs;
         }
@@ -94,13 +102,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         internal void EncodeBytes(ulong[] x, byte[] bs)
         {
             int partialBits = m_bits & 63;
+            int partialBytes = (partialBits + 7) >> 3;
             Debug.Assert((x[Size - 1] >> partialBits) == 0UL);
             Pack.UInt64_To_LE(x, 0, Size - 1, bs, 0);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> last = stackalloc byte[8];
+            Pack.UInt64_To_LE(x[Size - 1], last);
+            last[..partialBytes].CopyTo(bs.AsSpan((Size - 1) << 3));
+#else
             byte[] last = new byte[8];
             Pack.UInt64_To_LE(x[Size - 1], last);
-            Array.Copy(last, 0, bs, (Size - 1) << 3, (partialBits + 7) >> 3);
+            Array.Copy(last, 0, bs, (Size - 1) << 3, partialBytes);
+#endif
         }
-        
+
         internal void Inv(ulong[] a, ulong[] z)
         {
             ulong[] f = Create();
@@ -131,8 +146,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         internal void Multiply(ulong[] x, ulong[] y, ulong[] z)
         {
+            Multiply(x, 0, y, 0, z);
+        }
+
+        internal void Multiply(ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z)
+        {
             ulong[] tt = CreateExt();
-            ImplMultiplyAcc(x, y, tt);
+            ImplMultiplyAcc(x, xOff, y, yOff, tt);
             Reduce(tt, z);
         }
 
@@ -195,29 +215,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return t + ((t >> 31) & m);
         }
 
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private static int ImplModHalf(int m, int x)
+        private void ImplMultiplyAcc(ulong[] x, int xOff, ulong[] y, int yOff, ulong[] zz)
         {
-            int t = -(x & 1);
-            return (x + (m & t)) >> 1;
-        }
+            var xBounds = x[xOff + Size - 1];
+            var yBounds = y[yOff + Size - 1];
+            var zzBounds = zz[SizeExt - 1];
 
-        private void ImplMultiplyAcc(ulong[] x, ulong[] y, ulong[] zz)
-        {
 #if NETCOREAPP3_0_OR_GREATER
             if (Pclmulqdq.IsSupported)
             {
                 int i = 0, limit = Size - 2;
                 while (i <= limit)
                 {
-                    var X01 = Vector128.Create(x[i], x[i + 1]);
+                    var X01 = Vector128.Create(x[xOff + i], x[xOff + i + 1]);
 
                     int j = 0;
                     while (j <= limit)
                     {
-                        var Y01 = Vector128.Create(y[j], y[j + 1]);
+                        var Y01 = Vector128.Create(y[yOff + j], y[yOff + j + 1]);
 
                         var Z01 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
                         var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
@@ -236,13 +251,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 }
                 if (i < Size)
                 {
-                    var Xi = Vector128.CreateScalar(x[i]);
-                    var Yi = Vector128.CreateScalar(y[i]);
+                    var Xi = Vector128.CreateScalar(x[xOff + i]);
+                    var Yi = Vector128.CreateScalar(y[yOff + i]);
 
                     for (int j = 0; j < i; ++j)
                     {
-                        var Xj = Vector128.CreateScalar(x[j]);
-                        var Yj = Vector128.CreateScalar(y[j]);
+                        var Xj = Vector128.CreateScalar(x[xOff + j]);
+                        var Yj = Vector128.CreateScalar(y[yOff + j]);
 
                         var Z = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x00),
                                          Pclmulqdq.CarrylessMultiply(Yi, Xj, 0x00));
@@ -283,7 +298,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             for (int i = 0; i < Size; ++i)
             {
-                ImplMulwAcc(u, x[i], y[i], zz, i << 1);
+                ImplMulwAcc(u, x[xOff + i], y[yOff + i], zz, i << 1);
             }
 
             ulong v0 = zz[0], v1 = zz[1];
@@ -303,7 +318,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
                 while (lo < hi)
                 {
-                    ImplMulwAcc(u, x[lo] ^ x[hi], y[lo] ^ y[hi], zz, zPos);
+                    ImplMulwAcc(u, x[xOff + lo] ^ x[xOff + hi], y[yOff + lo] ^ y[yOff + hi], zz, zPos);
 
                     ++lo;
                     --hi;
@@ -377,14 +392,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        private static int GenerateHalfPower(int r, int n)
+        private static int GenerateHalfPower(uint r, uint r32, int n)
         {
-            int p = 1;
-            for (int k = 0; k < n; ++k)
+            uint p = 1;
+            int k = n;
+            while (k >= 32)
             {
-                p = ImplModHalf(r, p);
+                uint y = r32 * p;
+                ulong t = (ulong)y * r;
+                ulong u = t + p;
+                Debug.Assert((uint)u == 0U);
+                p = (uint)(u >> 32);
+                k -= 32;
             }
-            return p;
+            if (k > 0)
+            {
+                uint mk = uint.MaxValue >> -k;
+                uint y = (r32 * p) & mk;
+                ulong t = (ulong)y * r;
+                ulong u = t + p;
+                Debug.Assert(((uint)u & mk) == 0U);
+                p = (uint)(u >> k);
+            }
+            return (int)p;
         }
 
         private static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)

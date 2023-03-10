@@ -166,15 +166,15 @@ namespace Org.BouncyCastle.Crypto.Digests
         private static void ImplAes(ref Vector128<byte> s0, ref Vector128<byte> s1, ref Vector128<byte> s2,
             ref Vector128<byte> s3, ReadOnlySpan<Vector128<byte>> rc)
         {
-            s0 = Aes.Encrypt(s0, rc[0]);
-            s1 = Aes.Encrypt(s1, rc[1]);
-            s2 = Aes.Encrypt(s2, rc[2]);
-            s3 = Aes.Encrypt(s3, rc[3]);
+            var t0 = Aes.Encrypt(s0, rc[0]);
+            var t1 = Aes.Encrypt(s1, rc[1]);
+            var t2 = Aes.Encrypt(s2, rc[2]);
+            var t3 = Aes.Encrypt(s3, rc[3]);
 
-            s0 = Aes.Encrypt(s0, rc[4]);
-            s1 = Aes.Encrypt(s1, rc[5]);
-            s2 = Aes.Encrypt(s2, rc[6]);
-            s3 = Aes.Encrypt(s3, rc[7]);
+            s0 = Aes.Encrypt(t0, rc[4]);
+            s1 = Aes.Encrypt(t1, rc[5]);
+            s2 = Aes.Encrypt(t2, rc[6]);
+            s3 = Aes.Encrypt(t3, rc[7]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

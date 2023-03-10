@@ -1,8 +1,6 @@
 using System;
 using System.Text;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
     /**
@@ -31,10 +29,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public static AuthorityInformationAccess GetInstance(object obj)
         {
-            if (obj is AuthorityInformationAccess)
-                return (AuthorityInformationAccess)obj;
             if (obj == null)
                 return null;
+            if (obj is AuthorityInformationAccess authorityInformationAccess)
+                return authorityInformationAccess;
             return new AuthorityInformationAccess(Asn1Sequence.GetInstance(obj));
         }
 

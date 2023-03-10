@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    [Obsolete("Will be removed")]
     public class Tables4kGcmMultiplier
         : IGcmMultiplier
     {

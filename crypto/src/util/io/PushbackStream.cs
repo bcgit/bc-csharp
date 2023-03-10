@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
@@ -22,9 +24,21 @@ namespace Org.BouncyCastle.Utilities.IO
                 m_buf = -1;
             }
 
-            s.CopyTo(destination, bufferSize);
+			Streams.CopyTo(s, destination, bufferSize);
         }
 #endif
+
+        public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            if (m_buf != -1)
+            {
+				byte[] buffer = new byte[1]{ (byte)m_buf };
+                await destination.WriteAsync(buffer, 0, 1, cancellationToken).ConfigureAwait(false);
+                m_buf = -1;
+            }
+
+            await Streams.CopyToAsync(s, destination, bufferSize, cancellationToken);
+        }
 
         public override int Read(byte[] buffer, int offset, int count)
 		{
@@ -58,6 +72,21 @@ namespace Org.BouncyCastle.Utilities.IO
 
             return s.Read(buffer);
         }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            if (m_buf != -1)
+            {
+                if (buffer.IsEmpty)
+                    return new ValueTask<int>(0);
+
+                buffer.Span[0] = (byte)m_buf;
+                m_buf = -1;
+                return new ValueTask<int>(1);
+            }
+
+            return Streams.ReadAsync(s, buffer, cancellationToken);
+        }
 #endif
 
         public override int ReadByte()
@@ -69,7 +98,7 @@ namespace Org.BouncyCastle.Utilities.IO
 				return tmp;
 			}
 
-			return base.ReadByte();
+			return s.ReadByte();
 		}
 
 		public virtual void Unread(int b)

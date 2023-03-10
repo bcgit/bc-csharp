@@ -23,26 +23,21 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly AlgorithmIdentifier sigAlgID;
         private readonly DerBitString sig;
 
-		public static CertificateList GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static CertificateList GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static CertificateList GetInstance(
-            object obj)
+        public static CertificateList GetInstance(object obj)
         {
-            if (obj is CertificateList)
-                return (CertificateList) obj;
+            if (obj == null)
+                return null;
+            if (obj is CertificateList certificateList)
+                return certificateList;
+            return new CertificateList(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new CertificateList(Asn1Sequence.GetInstance(obj));
-
-			return null;
-		}
-
-		private CertificateList(
+        private CertificateList(
             Asn1Sequence seq)
         {
 			if (seq.Count != 3)

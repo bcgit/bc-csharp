@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Asn1
 	 * pattern which takes a tag object and the tagging mode used. 
 	 * </p>
 	 */
+	// TODO[api] Add method to Report the smallest tag that can appear (for use with CER encoding rules).
 	public interface IAsn1Choice
 	{
 		// marker interface

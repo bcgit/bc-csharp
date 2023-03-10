@@ -96,5 +96,12 @@ namespace Org.BouncyCastle.Crypto.Prng
         {
             return EntropyUtilities.GenerateSeed(mDrbg.EntropySource, numBytes);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void GenerateSeed(Span<byte> seed)
+        {
+            EntropyUtilities.GenerateSeed(mDrbg.EntropySource, seed);
+        }
+#endif
     }
 }

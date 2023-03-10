@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                 if (m_expectedStreamCrc != m_streamCrc)
                     throw new IOException("Stream CRC error");
 
-                BsFinishedWithStream();
+                // TODO If not a LeaveOpen stream, should we check that we are at the end of stream here?
                 streamEnd = true;
                 return;
             }
@@ -252,19 +252,33 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             m_streamCrc = Integers.RotateLeft(m_streamCrc, 1) ^ blockFinalCrc;
         }
 
-        private void BsFinishedWithStream()
+        protected void Detach(bool disposing)
         {
-            try
+            if (disposing)
             {
-                if (this.bsStream != null)
+                ImplDisposing(disposeInput: false);
+            }
+            base.Dispose(disposing);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                ImplDisposing(disposeInput: true);
+            }
+            base.Dispose(disposing);
+        }
+
+        private void ImplDisposing(bool disposeInput)
+        {
+            if (this.bsStream != null)
+            {
+                if (disposeInput)
                 {
                     this.bsStream.Dispose();
-                    this.bsStream = null;
                 }
-            }
-            catch
-            {
-                //ignore
+                this.bsStream = null;
             }
         }
 
@@ -804,6 +818,20 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                 a[k] = new int[n2];
             }
             return a;
+        }
+    }
+
+    public class CBZip2InputStreamLeaveOpen
+        : CBZip2InputStream
+    {
+        public CBZip2InputStreamLeaveOpen(Stream outStream)
+            : base(outStream)
+        {
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            Detach(disposing);
         }
     }
 }

@@ -14,69 +14,58 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class CompleteCertificateRefs
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence otherCertIDs;
+		private readonly Asn1Sequence m_otherCertIDs;
 
-		public static CompleteCertificateRefs GetInstance(
-			object obj)
+		public static CompleteCertificateRefs GetInstance(object obj)
 		{
-			if (obj == null || obj is CompleteCertificateRefs)
-				return (CompleteCertificateRefs) obj;
+			if (obj == null)
+				return null;
 
-			if (obj is Asn1Sequence)
-				return new CompleteCertificateRefs((Asn1Sequence) obj);
+            if (obj is CompleteCertificateRefs completeCertificateRefs)
+				return completeCertificateRefs;
 
-			throw new ArgumentException(
-				"Unknown object in 'CompleteCertificateRefs' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
+			if (obj is Asn1Sequence asn1Sequence)
+				return new CompleteCertificateRefs(asn1Sequence);
+
+			throw new ArgumentException("Unknown object in 'CompleteCertificateRefs' factory: " + Platform.GetTypeName(obj),
+				nameof(obj));
 		}
 
-		private CompleteCertificateRefs(
-			Asn1Sequence seq)
+		private CompleteCertificateRefs(Asn1Sequence seq)
 		{
 			if (seq == null)
-				throw new ArgumentNullException("seq");
+				throw new ArgumentNullException(nameof(seq));
 
-			foreach (Asn1Encodable ae in seq)
-			{
-				OtherCertID.GetInstance(ae.ToAsn1Object());
-			}
+            // Validate
+            seq.MapElements(element => OtherCertID.GetInstance(element.ToAsn1Object()));
 
-			this.otherCertIDs = seq;
+            m_otherCertIDs = seq;
 		}
 
-		public CompleteCertificateRefs(
-			params OtherCertID[] otherCertIDs)
+		public CompleteCertificateRefs(params OtherCertID[] otherCertIDs)
 		{
 			if (otherCertIDs == null)
-				throw new ArgumentNullException("otherCertIDs");
+				throw new ArgumentNullException(nameof(otherCertIDs));
 
-			this.otherCertIDs = new DerSequence(otherCertIDs);
+			m_otherCertIDs = new DerSequence(otherCertIDs);
 		}
 
-		public CompleteCertificateRefs(
-			IEnumerable<OtherCertID> otherCertIDs)
+		public CompleteCertificateRefs(IEnumerable<OtherCertID> otherCertIDs)
 		{
 			if (otherCertIDs == null)
-				throw new ArgumentNullException("otherCertIDs");
+                throw new ArgumentNullException(nameof(otherCertIDs));
 
-			this.otherCertIDs = new DerSequence(
-				Asn1EncodableVector.FromEnumerable(otherCertIDs));
+            m_otherCertIDs = new DerSequence(Asn1EncodableVector.FromEnumerable(otherCertIDs));
 		}
 
 		public OtherCertID[] GetOtherCertIDs()
 		{
-			OtherCertID[] result = new OtherCertID[otherCertIDs.Count];
-			for (int i = 0; i < otherCertIDs.Count; ++i)
-			{
-				result[i] = OtherCertID.GetInstance(otherCertIDs[i].ToAsn1Object());
-			}
-			return result;
+            return m_otherCertIDs.MapElements(element => OtherCertID.GetInstance(element.ToAsn1Object()));
 		}
 
 		public override Asn1Object ToAsn1Object()
 		{
-			return otherCertIDs;
+			return m_otherCertIDs;
 		}
 	}
 }

@@ -7,37 +7,40 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class PkiMessages
         : Asn1Encodable
     {
-        private Asn1Sequence content;
+        public static PkiMessages GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PkiMessages pkiMessages)
+                return pkiMessages;
+            return new PkiMessages(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PkiMessages GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private Asn1Sequence m_content;
 
         internal PkiMessages(Asn1Sequence seq)
         {
-            content = seq;
+            m_content = seq;
         }
 
-        public static PkiMessages GetInstance(object obj)
+        internal PkiMessages(PkiMessages other)
         {
-            if (obj is PkiMessages)
-                return (PkiMessages)obj;
-
-            if (obj is Asn1Sequence)
-                return new PkiMessages((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+            m_content = other.m_content;
         }
 
-		public PkiMessages(params PkiMessage[] msgs)
+        public PkiMessages(params PkiMessage[] msgs)
         {
-            content = new DerSequence(msgs);
+            m_content = new DerSequence(msgs);
         }
 
         public virtual PkiMessage[] ToPkiMessageArray()
         {
-            PkiMessage[] result = new PkiMessage[content.Count];
-            for (int i = 0; i != result.Length; ++i)
-            {
-                result[i] = PkiMessage.GetInstance(content[i]);
-            }
-            return result;
+            return m_content.MapElements(PkiMessage.GetInstance);
         }
 
         /**
@@ -48,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public override Asn1Object ToAsn1Object()
         {
-            return content;
+            return m_content;
         }
     }
 }

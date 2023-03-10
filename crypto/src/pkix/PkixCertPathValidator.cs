@@ -212,7 +212,7 @@ namespace Org.BouncyCastle.Pkix
             //
 
 			var targetConstraints = paramsPkix.GetTargetConstraintsCert();
-            if (targetConstraints != null && !targetConstraints.Match((X509Certificate)certs[0]))
+            if (targetConstraints != null && !targetConstraints.Match(certs[0]))
             {
                 throw new PkixCertPathValidatorException(
 					"Target certificate in certification path does not match targetConstraints.", null, 0);
@@ -222,7 +222,7 @@ namespace Org.BouncyCastle.Pkix
             // initialize CertPathChecker's
             //
             var certPathCheckers = paramsPkix.GetCertPathCheckers();
-            foreach (PkixCertPathChecker certPathChecker in certPathCheckers)
+            foreach (var certPathChecker in certPathCheckers)
             {
                 certPathChecker.Init(false);
             }
@@ -404,6 +404,7 @@ namespace Org.BouncyCastle.Pkix
                 criticalExtensions.Remove(X509Extensions.SubjectAlternativeName.Id);
                 criticalExtensions.Remove(X509Extensions.NameConstraints.Id);
                 criticalExtensions.Remove(X509Extensions.CrlDistributionPoints.Id);
+                criticalExtensions.Remove(X509Extensions.ExtendedKeyUsage.Id);
             }
             else
             {
@@ -425,6 +426,7 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void CheckCertificate(X509Certificate cert)
         {
+            // TODO What check is this method trying to achieve?
             try
             {
                 TbsCertificateStructure.GetInstance(cert.CertificateStructure.TbsCertificate);

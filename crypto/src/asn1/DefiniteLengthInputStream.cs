@@ -5,7 +5,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-    class DefiniteLengthInputStream
+    internal class DefiniteLengthInputStream
         : LimitedInputStream
     {
 		private static readonly byte[] EmptyBytes = new byte[0];

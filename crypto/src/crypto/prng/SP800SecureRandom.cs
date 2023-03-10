@@ -113,6 +113,13 @@ namespace Org.BouncyCastle.Crypto.Prng
             return EntropyUtilities.GenerateSeed(mEntropySource, numBytes);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void GenerateSeed(Span<byte> seed)
+        {
+            EntropyUtilities.GenerateSeed(mEntropySource, seed);
+        }
+#endif
+
         /// <summary>Force a reseed of the DRBG.</summary>
         /// <param name="additionalInput">optional additional input</param>
         public virtual void Reseed(byte[] additionalInput)

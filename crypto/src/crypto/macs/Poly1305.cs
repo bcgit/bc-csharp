@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #endif
 
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 
@@ -22,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Macs
     /// href="https://github.com/floodyberry/poly1305-donna">poly1305-donna-unrolled</a> C implementation
     /// by Andrew M (@floodyberry).
     /// </remarks>
-    /// <seealso cref="Org.BouncyCastle.Crypto.Generators.Poly1305KeyGenerator"/>
+    /// <seealso cref="Poly1305KeyGenerator"/>
     public class Poly1305
         : IMac
     {

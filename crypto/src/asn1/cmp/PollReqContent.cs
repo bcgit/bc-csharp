@@ -7,13 +7,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static PollReqContent GetInstance(object obj)
         {
-			if (obj is PollReqContent pollReqContent)
-				return pollReqContent;
+            if (obj == null)
+                return null;
+            if (obj is PollReqContent pollReqContent)
+                return pollReqContent;
+            return new PollReqContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new PollReqContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static PollReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;
@@ -65,24 +68,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual DerInteger[][] GetCertReqIDs()
 		{
-			DerInteger[][] result = new DerInteger[m_content.Count][];
-			for (int i = 0; i != result.Length; ++i)
-			{
-				result[i] = SequenceToDerIntegerArray((Asn1Sequence)m_content[i]);
-			}
-			return result;
+            return m_content.MapElements(
+				element => Asn1Sequence.GetInstance(element).MapElements(DerInteger.GetInstance));
 		}
 
         public virtual BigInteger[] GetCertReqIDValues()
         {
-            BigInteger[] result = new BigInteger[m_content.Count];
-
-            for (int i = 0; i != result.Length; i++)
-            {
-                result[i] = DerInteger.GetInstance(Asn1Sequence.GetInstance(m_content[i])[0]).Value;
-            }
-
-            return result;
+			return m_content.MapElements(element => DerInteger.GetInstance(Asn1Sequence.GetInstance(element)[0]).Value);
         }
 
         /**
@@ -96,11 +88,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public override Asn1Object ToAsn1Object()
 		{
 			return m_content;
-		}
-
-		private static DerInteger[] SequenceToDerIntegerArray(Asn1Sequence seq)
-		{
-			return seq.MapElements(DerInteger.GetInstance);
 		}
 
 		private static DerSequence[] IntsToSequence(DerInteger[] ids)

@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Cms
 			AlgorithmIdentifier macAlgId = GetAlgorithmIdentifier(
 				macOid, encKey, asn1Params, out cipherParameters);
 
-			Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+			Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
 			foreach (RecipientInfoGenerator rig in recipientInfoGenerators)
 			{

@@ -556,7 +556,7 @@ namespace Org.BouncyCastle.Cms
 
             sigGen.AddObject(CalculateVersion(contentTypeOid));
 
-			Asn1EncodableVector digestAlgs = new Asn1EncodableVector();
+			Asn1EncodableVector digestAlgs = new Asn1EncodableVector(_messageDigestOids.Count);
 
 			foreach (string digestOid in _messageDigestOids)
             {

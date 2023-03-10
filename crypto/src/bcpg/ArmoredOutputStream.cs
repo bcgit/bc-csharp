@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
@@ -37,51 +38,81 @@ namespace Org.BouncyCastle.Bcpg
         /**
          * encode the input data producing a base 64 encoded byte array.
          */
-        private static void Encode(
-            Stream    outStream,
-            int[]    data,
-            int        len)
+        private static void Encode(Stream outStream, byte[] data, int len)
         {
             Debug.Assert(len > 0);
             Debug.Assert(len < 4);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bs = stackalloc byte[4];
+#else
             byte[] bs = new byte[4];
+#endif
+
             int d1 = data[0];
             bs[0] = encodingTable[(d1 >> 2) & 0x3f];
 
             switch (len)
             {
-                case 1:
-                {
-                    bs[1] = encodingTable[(d1 << 4) & 0x3f];
-                    bs[2] = (byte)'=';
-                    bs[3] = (byte)'=';
-                    break;
-                }
-                case 2:
-                {
-                    int d2 = data[1];
-                    bs[1] = encodingTable[((d1 << 4) | (d2 >> 4)) & 0x3f];
-                    bs[2] = encodingTable[(d2 << 2) & 0x3f];
-                    bs[3] = (byte)'=';
-                    break;
-                }
-                case 3:
-                {
-                    int d2 = data[1];
-                    int d3 = data[2];
-                    bs[1] = encodingTable[((d1 << 4) | (d2 >> 4)) & 0x3f];
-                    bs[2] = encodingTable[((d2 << 2) | (d3 >> 6)) & 0x3f];
-                    bs[3] = encodingTable[d3 & 0x3f];
-                    break;
-                }
+            case 1:
+            {
+                bs[1] = encodingTable[(d1 << 4) & 0x3f];
+                bs[2] = (byte)'=';
+                bs[3] = (byte)'=';
+                break;
+            }
+            case 2:
+            {
+                int d2 = data[1];
+                bs[1] = encodingTable[((d1 << 4) | (d2 >> 4)) & 0x3f];
+                bs[2] = encodingTable[(d2 << 2) & 0x3f];
+                bs[3] = (byte)'=';
+                break;
+            }
+            case 3:
+            {
+                int d2 = data[1];
+                int d3 = data[2];
+                bs[1] = encodingTable[((d1 << 4) | (d2 >> 4)) & 0x3f];
+                bs[2] = encodingTable[((d2 << 2) | (d3 >> 6)) & 0x3f];
+                bs[3] = encodingTable[d3 & 0x3f];
+                break;
+            }
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            outStream.Write(bs);
+#else
             outStream.Write(bs, 0, bs.Length);
+#endif
+        }
+
+        private static void Encode3(Stream outStream, byte[] data)
+        {
+            int d1 = data[0];
+            int d2 = data[1];
+            int d3 = data[2];
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bs = stackalloc byte[4];
+#else
+            byte[] bs = new byte[4];
+#endif
+
+            bs[0] = encodingTable[(d1 >> 2) & 0x3f];
+            bs[1] = encodingTable[((d1 << 4) | (d2 >> 4)) & 0x3f];
+            bs[2] = encodingTable[((d2 << 2) | (d3 >> 6)) & 0x3f];
+            bs[3] = encodingTable[d3 & 0x3f];
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            outStream.Write(bs);
+#else
+            outStream.Write(bs, 0, bs.Length);
+#endif
         }
 
         private readonly Stream outStream;
-        private int[]           buf = new int[3];
+        private byte[]          buf = new byte[3];
         private int             bufPtr = 0;
         private Crc24           crc = new Crc24();
         private int             chunkCount = 0;
@@ -324,7 +355,8 @@ namespace Org.BouncyCastle.Bcpg
 
             if (bufPtr == 3)
             {
-                Encode(outStream, buf, bufPtr);
+                crc.Update3(buf, 0);
+                Encode3(outStream, buf);
                 bufPtr = 0;
                 if ((++chunkCount & 0xf) == 0)
                 {
@@ -332,8 +364,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-            crc.Update(value);
-            buf[bufPtr++] = value & 0xff;
+            buf[bufPtr++] = value;
         }
 
         /**
@@ -359,18 +390,17 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (bufPtr > 0)
             {
+                for (int i = 0; i < bufPtr; ++i)
+                {
+                    crc.Update(buf[i]);
+                }
                 Encode(outStream, buf, bufPtr);
             }
 
             DoWrite(NewLine + '=');
 
-            int crcV = crc.Value;
-
-            buf[0] = ((crcV >> 16) & 0xff);
-            buf[1] = ((crcV >> 8) & 0xff);
-            buf[2] = (crcV & 0xff);
-
-            Encode(outStream, buf, 3);
+            Pack.UInt24_To_BE((uint)crc.Value, buf);
+            Encode3(outStream, buf);
 
             DoWrite(NewLine);
             DoWrite(footerStart);

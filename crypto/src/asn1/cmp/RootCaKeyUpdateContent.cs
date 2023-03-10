@@ -22,13 +22,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static RootCaKeyUpdateContent GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is RootCaKeyUpdateContent rootCaKeyUpdateContent)
                 return rootCaKeyUpdateContent;
+            return new RootCaKeyUpdateContent(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new RootCaKeyUpdateContent(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static RootCaKeyUpdateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CmpCertificate m_newWithNew;
@@ -50,20 +53,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (seq.Count < 1 || seq.Count > 3)
                 throw new ArgumentException("expected sequence of 1 to 3 elements only");
 
-            CmpCertificate newWithNew;
+            CmpCertificate newWithNew = CmpCertificate.GetInstance(seq[0]);
             CmpCertificate newWithOld = null;
             CmpCertificate oldWithNew = null;
-
-            newWithNew = CmpCertificate.GetInstance(seq[0]);
 
             for (int pos = 1; pos < seq.Count; ++pos)
             {
                 Asn1TaggedObject ato = Asn1TaggedObject.GetInstance(seq[pos]);
-                if (ato.TagNo == 0)
+
+                if (ato.HasContextTag(0))
                 {
                     newWithOld = CmpCertificate.GetInstance(ato, true);
                 }
-                else if (ato.TagNo == 1)
+                else if (ato.HasContextTag(1))
                 {
                     oldWithNew = CmpCertificate.GetInstance(ato, true);
                 }

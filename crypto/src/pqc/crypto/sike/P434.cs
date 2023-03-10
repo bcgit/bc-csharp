@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Utilities.IO.Compression;
 using System.Collections.Generic;
 using System.IO;
 
@@ -110,11 +111,10 @@ internal class P434
             this.PLEN_3 = 47;
 
             // Import compression tables from properties
-            var props = new Dictionary<string, string>(); 
-            Stream input = typeof(P434).Assembly
-                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p434.properties");
-            
-            using (StreamReader sr = new StreamReader(input))
+            var props = new Dictionary<string, string>();
+            using (var input = typeof(P434).Assembly
+                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.sike.p434.bz2"))
+            using (var sr = new StreamReader(Bzip2.DecompressInput(input)))
             {
                 int i = 0;
                 // load a properties file

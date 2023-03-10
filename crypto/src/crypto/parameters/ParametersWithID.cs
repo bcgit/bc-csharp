@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ParametersWithID
@@ -13,17 +11,29 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public ParametersWithID(ICipherParameters parameters, byte[] id)
             : this(parameters, id, 0, id.Length)
         {
+            // NOTE: 'parameters' may be null to imply key re-use
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            m_parameters = parameters;
+            m_id = (byte[])id.Clone();
         }
 
         public ParametersWithID(ICipherParameters parameters, byte[] id, int idOff, int idLen)
         {
+            // NOTE: 'parameters' may be null to imply key re-use
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
             m_parameters = parameters;
-            m_id = Arrays.CopyOfRange(id, idOff, idOff + idLen);
+            m_id = new byte[idLen];
+            Array.Copy(id, idOff, m_id, 0, idLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public ParametersWithID(ICipherParameters parameters, ReadOnlySpan<byte> id)
         {
+            // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_id = id.ToArray();
         }
@@ -31,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetID()
         {
-            return m_id;
+            return (byte[])m_id.Clone();
         }
 
         public ICipherParameters Parameters => m_parameters;

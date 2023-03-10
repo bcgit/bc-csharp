@@ -7,13 +7,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static CrlAnnContent GetInstance(object obj)
         {
-			if (obj is CrlAnnContent crlAnnContent)
-				return crlAnnContent;
+            if (obj == null)
+                return null;
+            if (obj is CrlAnnContent crlAnnContent)
+                return crlAnnContent;
+            return new CrlAnnContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new CrlAnnContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static CrlAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;

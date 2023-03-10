@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Cms
 				throw new CmsException("exception decoding algorithm parameters.", e);
 			}
 
-			var recipientInfos = new Asn1EncodableVector();
+			var recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
 			foreach (RecipientInfoGenerator rig in recipientInfoGenerators) 
 			{
@@ -111,13 +111,13 @@ namespace Org.BouncyCastle.Cms
 					throw new CmsException("error making encrypted content.", e);
 				}
 			}
-			
+
 			var eci = new ContentInfo(CmsObjectIdentifiers.Data, encContent);
 
 			var contentInfo = new ContentInfo(
 				CmsObjectIdentifiers.AuthenticatedData,
 				new AuthenticatedData(null, new DerSet(recipientInfos), macAlgId, null, eci, null, macResult, null));
-			
+
 			return new CmsAuthenticatedData(contentInfo);
 		}
 

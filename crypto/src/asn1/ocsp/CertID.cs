@@ -1,12 +1,10 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
-    public class CertID
+	public class CertID
         : Asn1Encodable
     {
         private readonly AlgorithmIdentifier    hashAlgorithm;
@@ -14,27 +12,18 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         private readonly Asn1OctetString        issuerKeyHash;
         private readonly DerInteger             serialNumber;
 
-		public static CertID GetInstance(
-			Asn1TaggedObject	obj,
-			bool				explicitly)
+		public static CertID GetInstance(Asn1TaggedObject obj, bool explicitly)
 		{
 			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
 		}
 
-		public static CertID GetInstance(
-			object obj)
+		public static CertID GetInstance(object obj)
 		{
-			if (obj == null || obj is CertID)
-			{
-				return (CertID)obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new CertID((Asn1Sequence)obj);
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+			if (obj == null)
+				return null;
+			if (obj is CertID certID)
+				return certID;
+			return new CertID(Asn1Sequence.GetInstance(obj));
 		}
 
 		public CertID(
@@ -49,8 +38,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             this.serialNumber = serialNumber;
         }
 
-		private CertID(
-            Asn1Sequence seq)
+		private CertID(Asn1Sequence seq)
         {
 			if (seq.Count != 4)
 				throw new ArgumentException("Wrong number of elements in sequence", "seq");

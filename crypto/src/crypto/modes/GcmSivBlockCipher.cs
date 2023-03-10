@@ -66,7 +66,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         /**
         * The multiplier.
         */
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IGcmMultiplier theMultiplier;
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /**
         * The gHash buffer.
@@ -126,12 +128,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         /**
         * Constructor.
         * @param pCipher the underlying cipher
         */
         public GcmSivBlockCipher(IBlockCipher pCipher)
-            : this(pCipher, new Tables4kGcmMultiplier())
+            : this(pCipher, null)
         {
         }
 
@@ -140,11 +143,17 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @param pCipher the underlying cipher
         * @param pMultiplier the multiplier
         */
+        [Obsolete("Will be removed")]
         public GcmSivBlockCipher(IBlockCipher pCipher, IGcmMultiplier pMultiplier)
         {
             /* Ensure that the cipher is the correct size */
             if (pCipher.GetBlockSize() != BUFLEN)
                 throw new ArgumentException("Cipher required with a block size of " + BUFLEN + ".");
+
+            if (pMultiplier == null)
+            {
+                pMultiplier = GcmBlockCipher.CreateGcmMultiplier();
+            }
 
             /* Store parameters */
             theCipher = pCipher;
@@ -154,6 +163,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             theAEADHasher = new GcmSivHasher(this);
             theDataHasher = new GcmSivHasher(this);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public virtual IBlockCipher UnderlyingCipher => theCipher;
 

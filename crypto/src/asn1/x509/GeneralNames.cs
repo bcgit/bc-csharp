@@ -1,24 +1,16 @@
-using System;
 using System.Text;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
 	public class GeneralNames
 		: Asn1Encodable
 	{
-        private static GeneralName[] Copy(GeneralName[] names)
-        {
-            return (GeneralName[])names.Clone();
-        }
-
         public static GeneralNames GetInstance(object obj)
 		{
-            if (obj is GeneralNames)
-                return (GeneralNames)obj;
             if (obj == null)
                 return null;
+            if (obj is GeneralNames generalNames)
+                return generalNames;
             return new GeneralNames(Asn1Sequence.GetInstance(obj));
 		}
 
@@ -32,36 +24,33 @@ namespace Org.BouncyCastle.Asn1.X509
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, extOid));
         }
 
-        private readonly GeneralName[] names;
+        private static GeneralName[] Copy(GeneralName[] names)
+        {
+            return (GeneralName[])names.Clone();
+        }
+
+        private readonly GeneralName[] m_names;
 
         /// <summary>Construct a GeneralNames object containing one GeneralName.</summary>
 		/// <param name="name">The name to be contained.</param>
-		public GeneralNames(
-			GeneralName name)
+		public GeneralNames(GeneralName name)
 		{
-			names = new GeneralName[]{ name };
+			m_names = new GeneralName[]{ name };
 		}
 
-        public GeneralNames(
-            GeneralName[] names)
+        public GeneralNames(GeneralName[] names)
         {
-            this.names = Copy(names);
+            m_names = Copy(names);
         }
 
-		private GeneralNames(
-			Asn1Sequence seq)
+		private GeneralNames(Asn1Sequence seq)
 		{
-			this.names = new GeneralName[seq.Count];
-
-			for (int i = 0; i != seq.Count; i++)
-			{
-				names[i] = GeneralName.GetInstance(seq[i]);
-			}
+			m_names = seq.MapElements(GeneralName.GetInstance);
 		}
 
 		public GeneralName[] GetNames()
 		{
-            return Copy(names);
+            return Copy(m_names);
 		}
 
 		/**
@@ -72,14 +61,14 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return new DerSequence(names);
+			return new DerSequence(m_names);
 		}
 
 		public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
 			buf.AppendLine("GeneralNames:");
-			foreach (GeneralName name in names)
+			foreach (GeneralName name in m_names)
 			{
 				buf.Append("    ")
 				   .Append(name)

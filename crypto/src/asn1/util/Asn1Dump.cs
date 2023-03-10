@@ -256,11 +256,13 @@ namespace Org.BouncyCastle.Asn1.Utilities
         /// <summary>Parse ASN.1 objects from input <see cref="Stream"/>, and write them to the output.</summary>
         public static void Dump(Stream input, TextWriter output)
         {
-            Asn1InputStream asn1InputStream = new Asn1InputStream(input);
-            Asn1Object asn1Object;
-            while ((asn1Object = asn1InputStream.ReadObject()) != null)
+            using (var asn1In = new Asn1InputStream(input, int.MaxValue, leaveOpen: true))
             {
-                output.Write(DumpAsString(asn1Object));
+                Asn1Object asn1Object;
+                while ((asn1Object = asn1In.ReadObject()) != null)
+                {
+                    output.Write(DumpAsString(asn1Object));
+                }
             }
         }
 

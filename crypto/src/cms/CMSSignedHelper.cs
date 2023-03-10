@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Cms
 		private static readonly IDictionary<string, string> m_digestAlgs = new Dictionary<string, string>();
 		private static readonly IDictionary<string, string[]> m_digestAliases = new Dictionary<string, string[]>();
 
-        private static readonly HashSet<string> noParams = new HashSet<string>();
+        private static readonly HashSet<string> m_noParams = new HashSet<string>();
 		private static readonly IDictionary<string, string> m_ecAlgorithms = new Dictionary<string, string>();
 
 		private static void AddEntries(DerObjectIdentifier oid, string digest, string encryption)
@@ -130,13 +130,13 @@ namespace Org.BouncyCastle.Cms
 			m_digestAliases.Add("SHA384", new string[]{ "SHA-384" });
 			m_digestAliases.Add("SHA512", new string[]{ "SHA-512" });
 
-            noParams.Add(CmsSignedGenerator.EncryptionDsa);
-            //noParams.Add(EncryptionECDsa);
-            noParams.Add(EncryptionECDsaWithSha1);
-            noParams.Add(EncryptionECDsaWithSha224);
-            noParams.Add(EncryptionECDsaWithSha256);
-            noParams.Add(EncryptionECDsaWithSha384);
-            noParams.Add(EncryptionECDsaWithSha512);
+            m_noParams.Add(CmsSignedGenerator.EncryptionDsa);
+            //m_noParams.Add(EncryptionECDsa);
+            m_noParams.Add(EncryptionECDsaWithSha1);
+            m_noParams.Add(EncryptionECDsaWithSha224);
+            m_noParams.Add(EncryptionECDsaWithSha256);
+            m_noParams.Add(EncryptionECDsaWithSha384);
+            m_noParams.Add(EncryptionECDsaWithSha512);
 
 			m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha1, EncryptionECDsaWithSha1);
 			m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha224, EncryptionECDsaWithSha224);
@@ -151,13 +151,13 @@ namespace Org.BouncyCastle.Cms
         */
 		internal string GetDigestAlgName(string digestAlgOid)
         {
-			return m_digestAlgs.TryGetValue(digestAlgOid, out var algName) ? algName : digestAlgOid;
+            return CollectionUtilities.GetValueOrKey(m_digestAlgs, digestAlgOid);
         }
 
-		internal AlgorithmIdentifier GetEncAlgorithmIdentifier(DerObjectIdentifier encOid,
+        internal AlgorithmIdentifier GetEncAlgorithmIdentifier(DerObjectIdentifier encOid,
 			Asn1Encodable sigX509Parameters)
 		{
-			if (noParams.Contains(encOid.Id))
+			if (m_noParams.Contains(encOid.Id))
 			{
 				return new AlgorithmIdentifier(encOid);
 			}
@@ -177,10 +177,10 @@ namespace Org.BouncyCastle.Cms
         */
         internal string GetEncryptionAlgName(string encryptionAlgOid)
         {
-			return m_encryptionAlgs.TryGetValue(encryptionAlgOid, out var algName) ? algName : encryptionAlgOid;
+            return CollectionUtilities.GetValueOrKey(m_encryptionAlgs, encryptionAlgOid);
         }
 
-		internal IDigest GetDigestInstance(
+        internal IDigest GetDigestInstance(
 			string algorithm)
 		{
 			try
@@ -326,10 +326,17 @@ namespace Org.BouncyCastle.Cms
             {
 				foreach (Asn1Encodable ae in certSet)
 				{
-					if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
+					if (ae == null)
+						continue;
+
+					if (ae is X509CertificateStructure c)
 					{
-						contents.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
-					}
+                        contents.Add(new X509Certificate(c));
+                    }
+					else if (ae.ToAsn1Object() is Asn1Sequence s)
+					{
+                        contents.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
+                    }
 				}
 			}
 			return CollectionUtilities.CreateStore(contents);
@@ -342,10 +349,17 @@ namespace Org.BouncyCastle.Cms
 			{
 				foreach (Asn1Encodable ae in crlSet)
 				{
-					if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
-					{
-						contents.Add(new X509Crl(CertificateList.GetInstance(s)));
-					}
+                    if (ae == null)
+                        continue;
+
+                    if (ae is CertificateList c)
+                    {
+                        contents.Add(new X509Crl(c));
+                    }
+                    else if (ae.ToAsn1Object() is Asn1Sequence s)
+                    {
+                        contents.Add(new X509Crl(CertificateList.GetInstance(s)));
+                    }
 				}
 			}
 			return CollectionUtilities.CreateStore(contents);

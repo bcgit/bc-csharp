@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1
 			{
 				_buf = buf;
 				_off = 0;
-				_derOut = Asn1OutputStream.Create(outStream, Asn1Encodable.Der);
+				_derOut = Asn1OutputStream.Create(outStream, Asn1Encodable.Der, leaveOpen: true);
 			}
 
 			public override void Write(byte[] buffer, int offset, int count)
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Asn1
                         _off = 0;
                     }
 
-                    _derOut.FlushInternal();
+                    _derOut.Dispose();
                 }
                 base.Dispose(disposing);
             }

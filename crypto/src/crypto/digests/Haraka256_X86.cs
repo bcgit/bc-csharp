@@ -98,11 +98,11 @@ namespace Org.BouncyCastle.Crypto.Digests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ImplAes(ref Vector128<byte> s0, ref Vector128<byte> s1, ReadOnlySpan<Vector128<byte>> rc)
         {
-            s0 = Aes.Encrypt(s0, rc[0]);
-            s1 = Aes.Encrypt(s1, rc[1]);
+            var t0 = Aes.Encrypt(s0, rc[0]);
+            var t1 = Aes.Encrypt(s1, rc[1]);
 
-            s0 = Aes.Encrypt(s0, rc[2]);
-            s1 = Aes.Encrypt(s1, rc[3]);
+            s0 = Aes.Encrypt(t0, rc[2]);
+            s1 = Aes.Encrypt(t1, rc[3]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

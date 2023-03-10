@@ -10,18 +10,16 @@ namespace Org.BouncyCastle.Bcpg
     public class BcpgOutputStream
         : BaseOutputStream
     {
-		internal static BcpgOutputStream Wrap(
-			Stream outStr)
+		internal static BcpgOutputStream Wrap(Stream outStr)
 		{
-			if (outStr is BcpgOutputStream)
-			{
-				return (BcpgOutputStream) outStr;
-			}
+			if (outStr is BcpgOutputStream bcpgOutputStream)
+				return bcpgOutputStream;
 
 			return new BcpgOutputStream(outStr);
 		}
 
 		private Stream outStr;
+        private bool useOldFormat;
         private byte[] partialBuffer;
         private int partialBufferLength;
         private int partialPower;
@@ -30,26 +28,28 @@ namespace Org.BouncyCastle.Bcpg
 
 		/// <summary>Create a stream representing a general packet.</summary>
 		/// <param name="outStr">Output stream to write to.</param>
-		public BcpgOutputStream(
-            Stream outStr)
+		public BcpgOutputStream(Stream outStr)
+            : this(outStr, false)
         {
-			if (outStr == null)
-				throw new ArgumentNullException("outStr");
-
-			this.outStr = outStr;
         }
 
-		/// <summary>Create a stream representing an old style partial object.</summary>
+        /// <summary>Base constructor specifying whether or not to use packets in the new format wherever possible.
+        /// </summary>
 		/// <param name="outStr">Output stream to write to.</param>
-		/// <param name="tag">The packet tag for the object.</param>
-        public BcpgOutputStream(
-            Stream		outStr,
-            PacketTag	tag)
+        /// <param name="newFormatOnly"><c>true</c> if use new format packets, <c>false</c> if backwards compatible
+        /// preferred.</param>
+        public BcpgOutputStream(Stream outStr, bool newFormatOnly)
         {
-			if (outStr == null)
-				throw new ArgumentNullException("outStr");
+            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            this.useOldFormat = !newFormatOnly;
+        }
 
-			this.outStr = outStr;
+        /// <summary>Create a stream representing an old style partial object.</summary>
+        /// <param name="outStr">Output stream to write to.</param>
+        /// <param name="tag">The packet tag for the object.</param>
+        public BcpgOutputStream(Stream outStr, PacketTag tag)
+        {
+            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
             this.WriteHeader(tag, true, true, 0);
         }
 
@@ -58,16 +58,9 @@ namespace Org.BouncyCastle.Bcpg
 		/// <param name="tag">Packet tag.</param>
 		/// <param name="length">Size of chunks making up the packet.</param>
 		/// <param name="oldFormat">If true, the header is written out in old format.</param>
-		public BcpgOutputStream(
-            Stream		outStr,
-            PacketTag	tag,
-            long		length,
-            bool		oldFormat)
+		public BcpgOutputStream(Stream outStr, PacketTag tag, long length, bool oldFormat)
         {
-			if (outStr == null)
-				throw new ArgumentNullException("outStr");
-
-			this.outStr = outStr;
+            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
 
             if (length > 0xFFFFFFFFL)
             {
@@ -87,15 +80,9 @@ namespace Org.BouncyCastle.Bcpg
 		/// <param name="outStr">Output stream to write to.</param>
 		/// <param name="tag">Packet tag.</param>
 		/// <param name="length">Size of chunks making up the packet.</param>
-		public BcpgOutputStream(
-            Stream		outStr,
-            PacketTag	tag,
-            long		length)
+		public BcpgOutputStream(Stream outStr, PacketTag tag, long length)
         {
-			if (outStr == null)
-				throw new ArgumentNullException("outStr");
-
-            this.outStr = outStr;
+            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
             this.WriteHeader(tag, false, false, length);
         }
 
@@ -103,15 +90,9 @@ namespace Org.BouncyCastle.Bcpg
 		/// <param name="outStr">Output stream to write to.</param>
 		/// <param name="tag">Packet tag.</param>
 		/// <param name="buffer">Buffer to use for collecting chunks.</param>
-        public BcpgOutputStream(
-            Stream		outStr,
-            PacketTag	tag,
-            byte[]		buffer)
+        public BcpgOutputStream(Stream outStr, PacketTag tag, byte[] buffer)
         {
-			if (outStr == null)
-				throw new ArgumentNullException("outStr");
-
-            this.outStr = outStr;
+            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
             this.WriteHeader(tag, false, true, 0);
 
 			this.partialBuffer = buffer;
@@ -123,15 +104,13 @@ namespace Org.BouncyCastle.Bcpg
             }
 
 			if (partialPower > 30)
-            {
                 throw new IOException("Buffer cannot be greater than 2^30 in length.");
-            }
+
             this.partialBufferLength = 1 << partialPower;
             this.partialOffset = 0;
         }
 
-		private void WriteNewPacketLength(
-            long bodyLen)
+		private void WriteNewPacketLength(long bodyLen)
         {
             if (bodyLen < 192)
             {
@@ -381,29 +360,28 @@ namespace Org.BouncyCastle.Bcpg
 				(byte)n);
 		}
 
-		public void WritePacket(
-            ContainedPacket p)
+		public void WritePacket(ContainedPacket p)
         {
             p.Encode(this);
         }
 
-        internal void WritePacket(
-            PacketTag	tag,
-            byte[]		body,
-            bool		oldFormat)
+        internal void WritePacket(PacketTag tag, byte[] body)
+        {
+            WritePacket(tag, body, useOldFormat);
+        }
+
+        internal void WritePacket(PacketTag tag, byte[] body, bool oldFormat)
         {
             this.WriteHeader(tag, oldFormat, false, body.Length);
             this.Write(body);
         }
 
-		public void WriteObject(
-            BcpgObject bcpgObject)
+		public void WriteObject(BcpgObject bcpgObject)
         {
             bcpgObject.Encode(this);
         }
 
-		public void WriteObjects(
-			params BcpgObject[] v)
+		public void WriteObjects(params BcpgObject[] v)
 		{
 			foreach (BcpgObject o in v)
 			{

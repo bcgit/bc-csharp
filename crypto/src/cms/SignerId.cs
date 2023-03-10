@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Cms
 				return false;
 
 			return Arrays.AreEqual(SubjectKeyIdentifier, id.SubjectKeyIdentifier)
-				&& Platform.Equals(SerialNumber, id.SerialNumber)
+				&& Objects.Equals(SerialNumber, id.SerialNumber)
 				&& IssuersMatch(Issuer, id.Issuer);
         }
     }

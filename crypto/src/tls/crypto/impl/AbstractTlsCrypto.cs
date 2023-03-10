@@ -64,14 +64,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public virtual TlsSecret AdoptSecret(TlsSecret secret)
         {
             // TODO[tls] Need an alternative that doesn't require AbstractTlsSecret (which holds literal data)
-            if (secret is AbstractTlsSecret)
-            {
-                AbstractTlsSecret sec = (AbstractTlsSecret)secret;
+            if (secret is AbstractTlsSecret abstractTlsSecret)
+                return CreateSecret(abstractTlsSecret.CopyData());
 
-                return CreateSecret(sec.CopyData());
-            }
-
-            throw new ArgumentException("unrecognized TlsSecret - cannot copy data: " + Platform.GetTypeName(secret));
+            throw new ArgumentException("unrecognized TlsSecret - cannot copy data: " + secret.GetType().FullName);
         }
 
         public abstract TlsHash CreateHash(int cryptoHashAlgorithm);

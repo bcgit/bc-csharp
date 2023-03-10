@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1.Misc
         public static readonly DerObjectIdentifier Entrust = new DerObjectIdentifier("1.2.840.113533.7");
         public static readonly DerObjectIdentifier EntrustVersionExtension = Entrust.Branch("65.0");
 
-        public static readonly DerObjectIdentifier cast5CBC = new DerObjectIdentifier(Entrust+ ".66.10");
+        public static readonly DerObjectIdentifier cast5CBC = Entrust.Branch("66.10");
 
         //
         // HMAC-SHA1       hMAC-SHA1 OBJECT IDENTIFIER ::= { iso(1) identified-organization(3)

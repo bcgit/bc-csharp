@@ -127,6 +127,16 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, GetContents());
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.RelativeOid, GetContents());
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, GetContents());
+        }
+
         private void DoOutput(MemoryStream bOut)
         {
             OidTokenizer tok = new OidTokenizer(identifier);

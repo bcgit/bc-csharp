@@ -44,11 +44,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return sigma;
         }
 
-        internal byte[] PrivateKey => Arrays.Concatenate(Arrays.Concatenate(h0, h1), sigma);
-
         public byte[] GetEncoded()
         {
-            return PrivateKey;
+            return Arrays.ConcatenateAll(h0, h1, sigma);
         }
     }
 }

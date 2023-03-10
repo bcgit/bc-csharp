@@ -28,18 +28,16 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (parameters is KeyParameter)
+            if (parameters is KeyParameter keyParameter)
             {
                 /*
                 * RC4 encryption and decryption is completely
                 * symmetrical, so the 'forEncryption' is
                 * irrelevant.
                 */
-                workingKey = ((KeyParameter)parameters).GetKey();
+                workingKey = keyParameter.GetKey();
                 SetKey(workingKey);
 
                 return;
@@ -68,12 +66,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (byte)(input ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
 
-        public virtual void ProcessBytes(
-            byte[]	input,
-            int		inOff,
-            int		length,
-            byte[]	output,
-            int		outOff)
+        public virtual void ProcessBytes(byte[]	input, int inOff, int length, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, length, "input buffer too short");
             Check.OutputLength(output, outOff, length, "output buffer too short");

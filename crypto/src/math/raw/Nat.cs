@@ -1582,6 +1582,19 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static ulong ShiftDownBits64(int len, ulong[] z, int zOff, int bits, ulong c)
+        {
+            Debug.Assert(bits > 0 && bits < 64);
+            int i = len;
+            while (--i >= 0)
+            {
+                ulong next = z[zOff + i];
+                z[zOff + i] = (next >> bits) | (c << -bits);
+                c = next;
+            }
+            return c << -bits;
+        }
+
         public static uint ShiftDownWord(int len, uint[] z, uint c)
         {
             int i = len;

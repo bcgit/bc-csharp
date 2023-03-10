@@ -31,6 +31,19 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new StoreImpl<T>(contents);
         }
 
+        public static T GetFirstOrNull<T>(IEnumerable<T> e)
+            where T : class
+        {
+            if (e != null)
+            {
+                foreach (var t in e)
+                {
+                    return t;
+                }
+            }
+            return null;
+        }
+
         public static T GetValueOrKey<T>(IDictionary<T, T> d, T k)
         {
             return d.TryGetValue(k, out var v) ? v : k;

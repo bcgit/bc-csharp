@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the generic data making up the packet.</summary>
         public byte[] GetData()
         {
-            return (byte[]) data.Clone();
+            return (byte[])data.Clone();
         }
 
 		public void Encode(
@@ -103,8 +103,7 @@ namespace Org.BouncyCastle.Bcpg
             if (obj == this)
                 return true;
 
-            SignatureSubpacket other = obj as SignatureSubpacket;
-            if (null == other)
+            if (!(obj is SignatureSubpacket other))
                 return false;
 
             return this.type == other.type

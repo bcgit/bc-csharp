@@ -5,6 +5,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class PkiMessage
         : Asn1Encodable
     {
+        public static PkiMessage GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PkiMessage pkiMessage)
+                return pkiMessage;
+            return new PkiMessage(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PkiMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private readonly PkiHeader header;
         private readonly PkiBody body;
         private readonly DerBitString protection;
@@ -17,28 +31,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             for (int pos = 2; pos < seq.Count; ++pos)
             {
-                Asn1TaggedObject tObj = (Asn1TaggedObject)seq[pos].ToAsn1Object();
+                Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
 
-                if (tObj.TagNo == 0)
+                if (tObj.HasContextTag(0))
                 {
                     protection = DerBitString.GetInstance(tObj, true);
                 }
-                else
+                else if (tObj.HasContextTag(1))
                 {
                     extraCerts = Asn1Sequence.GetInstance(tObj, true);
                 }
             }
-        }
-
-        public static PkiMessage GetInstance(object obj)
-        {
-            if (obj is PkiMessage)
-                return (PkiMessage)obj;
-
-            if (obj != null)
-                return new PkiMessage(Asn1Sequence.GetInstance(obj));
-
-            return null;
         }
 
         /**
@@ -96,15 +99,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual CmpCertificate[] GetExtraCerts()
         {
-            if (extraCerts == null)
-                return null;
-
-            CmpCertificate[] results = new CmpCertificate[extraCerts.Count];
-            for (int i = 0; i < results.Length; ++i)
-            {
-                results[i] = CmpCertificate.GetInstance(extraCerts[i]);
-            }
-            return results;
+            return extraCerts?.MapElements(CmpCertificate.GetInstance);
         }
 
         /**

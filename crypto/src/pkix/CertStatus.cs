@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Pkix
         /// <summary>
         /// Returns the revocationDate.
         /// </summary>
-         public DateTime? RevocationDate
+        public DateTime? RevocationDate
         {
             get { return revocationDate; }
             set { this.revocationDate = value; }

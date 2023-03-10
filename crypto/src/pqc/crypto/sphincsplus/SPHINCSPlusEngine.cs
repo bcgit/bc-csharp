@@ -281,10 +281,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                ulong treeIndex = Pack.BE_To_UInt64_Partial(output, forsMsgBytes, (int)treeBytes)
+                ulong treeIndex = Pack.BE_To_UInt64_Low(output, forsMsgBytes, (int)treeBytes)
                                 & ulong.MaxValue >> (64 - (int)treeBits);
 
-                uint leafIndex = Pack.BE_To_UInt32_Partial(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
+                uint leafIndex = Pack.BE_To_UInt32_Low(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
                                & uint.MaxValue >> (32 - (int)leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
@@ -492,10 +492,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                ulong treeIndex = Pack.BE_To_UInt64_Partial(output, forsMsgBytes, (int)treeBytes)
+                ulong treeIndex = Pack.BE_To_UInt64_Low(output, forsMsgBytes, (int)treeBytes)
                                 & ulong.MaxValue >> (64 - (int)treeBits);
 
-                uint leafIndex = Pack.BE_To_UInt32_Partial(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
+                uint leafIndex = Pack.BE_To_UInt32_Low(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
                                & uint.MaxValue >> (32 - (int)leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
@@ -681,10 +681,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                ulong treeIndex = Pack.BE_To_UInt64_Partial(output, forsMsgBytes, (int)treeBytes)
+                ulong treeIndex = Pack.BE_To_UInt64_Low(output, forsMsgBytes, (int)treeBytes)
                                 & ulong.MaxValue >> (64 - (int)treeBits);
 
-                uint leafIndex = Pack.BE_To_UInt32_Partial(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
+                uint leafIndex = Pack.BE_To_UInt32_Low(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
                                & uint.MaxValue >> (32 - (int)leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
@@ -839,10 +839,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                ulong treeIndex = Pack.BE_To_UInt64_Partial(indices[..treeBytes])
+                ulong treeIndex = Pack.BE_To_UInt64_Low(indices[..treeBytes])
                                 & ulong.MaxValue >> (64 - treeBits);
 
-                uint leafIndex = Pack.BE_To_UInt32_Partial(indices[treeBytes..])
+                uint leafIndex = Pack.BE_To_UInt32_Low(indices[treeBytes..])
                                & uint.MaxValue >> (32 - leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, output);

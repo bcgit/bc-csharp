@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Cms
 	{
 		private readonly OriginatorInfo originatorInfo;
 
-		internal OriginatorInformation(OriginatorInfo originatorInfo)
+        public OriginatorInformation(OriginatorInfo originatorInfo)
 		{
 			this.originatorInfo = originatorInfo;
 		}

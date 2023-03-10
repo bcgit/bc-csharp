@@ -50,26 +50,26 @@ namespace Org.BouncyCastle.Crypto.Generators
                 DerObjectIdentifier oid;
                 switch (parameters.Strength)
                 {
-                    case 192:
-                        oid = X9ObjectIdentifiers.Prime192v1;
-                        break;
-                    case 224:
-                        oid = SecObjectIdentifiers.SecP224r1;
-                        break;
-                    case 239:
-                        oid = X9ObjectIdentifiers.Prime239v1;
-                        break;
-                    case 256:
-                        oid = X9ObjectIdentifiers.Prime256v1;
-                        break;
-                    case 384:
-                        oid = SecObjectIdentifiers.SecP384r1;
-                        break;
-                    case 521:
-                        oid = SecObjectIdentifiers.SecP521r1;
-                        break;
-                    default:
-                        throw new InvalidParameterException("unknown key size.");
+                case 192:
+                    oid = X9ObjectIdentifiers.Prime192v1;
+                    break;
+                case 224:
+                    oid = SecObjectIdentifiers.SecP224r1;
+                    break;
+                case 239:
+                    oid = X9ObjectIdentifiers.Prime239v1;
+                    break;
+                case 256:
+                    oid = X9ObjectIdentifiers.Prime256v1;
+                    break;
+                case 384:
+                    oid = SecObjectIdentifiers.SecP384r1;
+                    break;
+                case 521:
+                    oid = SecObjectIdentifiers.SecP521r1;
+                    break;
+                default:
+                    throw new InvalidParameterException("unknown key size.");
                 }
 
                 X9ECParameters ecps = FindECCurveByOid(oid);
@@ -131,42 +131,22 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         internal static X9ECParameters FindECCurveByName(string name)
         {
-            X9ECParameters ecP = CustomNamedCurves.GetByName(name);
-            if (ecP == null)
-            {
-                ecP = ECNamedCurveTable.GetByName(name);
-            }
-            return ecP;
+            return CustomNamedCurves.GetByName(name) ?? ECNamedCurveTable.GetByName(name);
         }
 
         internal static X9ECParametersHolder FindECCurveByNameLazy(string name)
         {
-            X9ECParametersHolder holder = CustomNamedCurves.GetByNameLazy(name);
-            if (holder == null)
-            {
-                holder = ECNamedCurveTable.GetByNameLazy(name);
-            }
-            return holder;
+            return CustomNamedCurves.GetByNameLazy(name) ?? ECNamedCurveTable.GetByNameLazy(name);
         }
 
         internal static X9ECParameters FindECCurveByOid(DerObjectIdentifier oid)
         {
-            X9ECParameters ecP = CustomNamedCurves.GetByOid(oid);
-            if (ecP == null)
-            {
-                ecP = ECNamedCurveTable.GetByOid(oid);
-            }
-            return ecP;
+            return CustomNamedCurves.GetByOid(oid) ?? ECNamedCurveTable.GetByOid(oid);
         }
 
         internal static X9ECParametersHolder FindECCurveByOidLazy(DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = CustomNamedCurves.GetByOidLazy(oid);
-            if (holder == null)
-            {
-                holder = ECNamedCurveTable.GetByOidLazy(oid);
-            }
-            return holder;
+            return CustomNamedCurves.GetByOidLazy(oid) ?? ECNamedCurveTable.GetByOidLazy(oid);
         }
 
         internal static ECPublicKeyParameters GetCorrespondingPublicKey(

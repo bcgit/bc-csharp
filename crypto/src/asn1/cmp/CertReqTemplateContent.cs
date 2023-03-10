@@ -22,13 +22,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static CertReqTemplateContent GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is CertReqTemplateContent certReqTemplateContent)
                 return certReqTemplateContent;
+            return new CertReqTemplateContent(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new CertReqTemplateContent(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static CertReqTemplateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CertTemplate m_certTemplate;

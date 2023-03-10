@@ -61,9 +61,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             ICipherParameters parameters)
         {
             this.encrypting = forEncryption;
-            if (parameters is ParametersWithIV)
+            if (parameters is ParametersWithIV ivParam)
             {
-                ParametersWithIV ivParam = (ParametersWithIV) parameters;
                 byte[] iv = ivParam.GetIV();
                 int diff = IV.Length - iv.Length;
                 Array.Copy(iv, 0, IV, diff, iv.Length);

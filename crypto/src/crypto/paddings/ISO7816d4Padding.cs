@@ -1,37 +1,22 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Paddings
 {
-	/**
-	 * A padder that adds the padding according to the scheme referenced in
-	 * ISO 7814-4 - scheme 2 from ISO 9797-1. The first byte is 0x80, rest is 0x00
-	 */
+	/// <summary>
+	/// A padder that adds the padding according to the scheme referenced in ISO 7814-4 - scheme 2 from ISO 9797-1.
+	/// The first byte is 0x80, rest is 0x00
+	/// </summary>
 	public class ISO7816d4Padding
 		: IBlockCipherPadding
 	{
-		/**
-		 * Initialise the padder.
-		 *
-		 * @param random - a SecureRandom if available.
-		 */
-		public void Init(
-			SecureRandom random)
+		public void Init(SecureRandom random)
 		{
 			// nothing to do.
 		}
 
-		/**
-		 * Return the name of the algorithm the padder implements.
-		 *
-		 * @return the name of the algorithm the padder implements.
-		 */
-		public string PaddingName
-		{
-			get { return "ISO7816-4"; }
-		}
+		public string PaddingName => "ISO7816-4";
 
 		public int AddPadding(byte[] input, int inOff)
 		{

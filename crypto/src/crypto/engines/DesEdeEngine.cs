@@ -21,14 +21,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public override void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public override void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (!(parameters is KeyParameter))
-                throw new ArgumentException("invalid parameter passed to DESede init - " + Platform.GetTypeName(parameters));
+            if (!(parameters is KeyParameter keyParameter))
+                throw new ArgumentException(
+                    "invalid parameter passed to DESede init - " + Platform.GetTypeName(parameters));
 
-            byte[] keyMaster = ((KeyParameter)parameters).GetKey();
+            byte[] keyMaster = keyParameter.GetKey();
             if (keyMaster.Length != 24 && keyMaster.Length != 16)
                 throw new ArgumentException("key size must be 16 or 24 bytes.");
 

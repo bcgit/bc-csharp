@@ -22,13 +22,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static OobCertHash GetInstance(object obj)
         {
-			if (obj is OobCertHash oobCertHash)
-				return oobCertHash;
+            if (obj == null)
+                return null;
+            if (obj is OobCertHash oobCertHash)
+                return oobCertHash;
+            return new OobCertHash(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new OobCertHash(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_hashAlg;
@@ -76,7 +79,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptionalTagged(true, 0, m_hashAlg);
             v.AddOptionalTagged(true, 1, m_certId);
 			v.Add(m_hashVal);

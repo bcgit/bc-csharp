@@ -32,6 +32,10 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId85328">Release 2.1.1</a>
+                                    <li>
+                                        <a href="#mozTocId85327">Release 2.1.0</a>
+                                    <li>
                                         <a href="#mozTocId85326">Release 2.0.0</a>
                                     <li>
                                         <a href="#mozTocId85325">Release 1.9.0</a>
@@ -319,6 +323,57 @@
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
 
+        <h4><a class="mozTocH4" name="mozTocId85328"></a>Release 2.1.1, Saturday February 18, 2023</h4>
+        <p>
+            This is a hotfix release to fix the missing symbols for the 2.1.0 release.
+            We have now added an snupkg with symbols, enabled SourceLink, and made the build deterministic.
+            There was no change to functionality.
+        </p>
+
+        <h4><a class="mozTocH4" name="mozTocId85327"></a>Release 2.1.0, Saturday February 18, 2023</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Fixed a rounding issue with FF1 Format Preserving Encryption algorithm for certain radices.</li>
+            <li>Fixed RFC3394WrapEngine handling of 64 bit keys.</li>
+            <li>PkixCertPathValidator: fixed fetching of DateOfCertGen extension.</li>
+            <li>
+                PkixCertPathValidator: correctly remove ExtendedKeyUsage from critical extensions
+                (https://github.com/bcgit/bc-csharp/issues/395).
+            </li>
+            <li>PkixNameConstraintValidator: fixed special handling of 'serialNumber' in RDNs.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>The BIKE implementation has been updated according to the NIST PQC Round 4 modifications.</li>
+            <li>The HQC implementation has been updated according to the NIST PQC Round 4 modifications.</li>
+            <li>
+                EdDSA verification now conforms to the recommendations of
+                <a href="https://ia.cr/2020/1244">Taming the many EdDSAs</a>, in particular cofactored verification.
+                As a side benefit, <a href="https://ia.cr/2020/454">Pornin's basis reduction</a> is now used for EdDSA
+                verification, giving a significant performance boost.
+            </li>
+            <li>Major performance improvements for Anomalous Binary (Koblitz) Curves.</li>
+            <li>Added implementations of <a href="https://ascon.iaik.tugraz.at/">Ascon</a> AEAD, Hash and XOF algorithms.</li>
+            <li>Added AriaWrapEngine, an implementation of RFC 3394 wrapping for the ARIA cipher.</li>
+            <li>
+                User customization of the GCM multiplier has been obsoleted. We recommend no longer supplying a custom
+                multiplier to GcmBlockCipher.
+            </li>
+            <li>
+                Several large properties files used by the PQC algorithms have been compressed in order to reduce the
+                size of the assembly.
+            </li>
+            <li>Debug symbols have been extracted to a separate snupkg package.</li>
+            <li>Major performance improvements for GCM bulk processing when Pclmulqdq, Ssse3 intrinsics available.</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
+
         <h4><a class="mozTocH4" name="mozTocId85326"></a>Release 2.0.0, Tuesday November 15, 2022</h4>
         <p>
             With this release we have finally moved to building for modern .NET versions (directly targeted frameworks:
@@ -346,7 +401,7 @@
         <h5>Defects Fixed</h5>
         <ul>
             <li>Fixed TLS 1.3 Export Keying Material (https://github.com/bcgit/bc-java/issues/1133).</li>
-            <li>BasicOcspResponseGenerator now allows nullable 'nextUpdate' (https://github.com/bcgit/bc-csharp/issues/371)</li>
+            <li>BasicOcspResponseGenerator now allows nullable 'nextUpdate' (https://github.com/bcgit/bc-csharp/issues/371).</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>
@@ -365,7 +420,7 @@
             </li>
             <li>
                 Many APIs have now added variants of existing methods to enable use of
-                <a href="https://learn.microsoft.com/en-us/dotnet/api/system.span-1">Span</a> (only available int the
+                <a href="https://learn.microsoft.com/en-us/dotnet/api/system.span-1">Span</a> (only available in the
                 net6.0 version).
             </li>
             <li>The library has been converted to use generic collections throughout.</li>

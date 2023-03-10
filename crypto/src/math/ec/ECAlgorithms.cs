@@ -584,12 +584,11 @@ namespace Org.BouncyCastle.Math.EC
 
             ECPoint R = c.Infinity;
 
-            int top = fullComb - 1; 
-            for (int i = 0; i < d; ++i)
+            for (int i = 1; i <= d; ++i)
             {
                 uint secretIndexK = 0, secretIndexL = 0;
 
-                for (int j = top - i; j >= 0; j -= d)
+                for (int j = fullComb - i; j >= 0; j -= d)
                 {
                     uint secretBitK = K[j >> 5] >> (j & 0x1F);
                     secretIndexK ^= secretBitK >> 1;

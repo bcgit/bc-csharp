@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Time(Asn1GeneralizedTime generalizedTime)
         {
-            this.m_timeObject = generalizedTime ?? throw new ArgumentNullException(nameof(generalizedTime));
+            m_timeObject = generalizedTime ?? throw new ArgumentNullException(nameof(generalizedTime));
         }
 
         public Time(Asn1UtcTime utcTime)
@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.X509
             // Validate utcTime is in the appropriate year range
             utcTime.ToDateTime(2049);
 
-            this.m_timeObject = utcTime;
+            m_timeObject = utcTime;
         }
 
         /**

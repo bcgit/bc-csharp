@@ -57,17 +57,17 @@ namespace Org.BouncyCastle.Crypto.Signers
                     parameters = rParam.Parameters;
                 }
 
-                if (!(parameters is ECPrivateKeyParameters))
+                if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
                     throw new InvalidKeyException("EC private key required for signing");
 
-                this.key = (ECPrivateKeyParameters)parameters;
+                this.key = ecPrivateKeyParameters;
             }
             else
             {
-                if (!(parameters is ECPublicKeyParameters))
+                if (!(parameters is ECPublicKeyParameters ecPublicKeyParameters))
                     throw new InvalidKeyException("EC public key required for verification");
 
-                this.key = (ECPublicKeyParameters)parameters;
+                this.key = ecPublicKeyParameters;
             }
 
             this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);

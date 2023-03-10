@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -38,6 +39,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public const int SubkeyRevocation = 0x28;
         public const int CertificationRevocation = 0x30;
         public const int Timestamp = 0x40;
+        public const int ThirdPartyConfirmation = 0x50;
 
         private readonly SignaturePacket	sigPck;
         private readonly int				signatureType;
@@ -52,8 +54,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
-		internal PgpSignature(
-            SignaturePacket sigPacket)
+		internal PgpSignature(SignaturePacket sigPacket)
 			: this(sigPacket, null)
         {
         }
@@ -82,6 +83,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 			get { return sigPck.HashAlgorithm; }
 		}
+
+        /// <summary>Return the digest prefix of the signature.</summary>
+        public byte[] GetDigestPrefix()
+        {
+            return sigPck.GetFingerprint();
+        }
 
         /// <summary>Return true if this signature represents a certification.</summary>
         public bool IsCertification()
@@ -194,14 +201,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public bool Verify()
         {
             byte[] trailer = GetSignatureTrailer();
+
             sig.BlockUpdate(trailer, 0, trailer.Length);
 
 			return sig.VerifySignature(GetSignature());
         }
 
-		private void UpdateWithIdData(
-			int		header,
-			byte[]	idBytes)
+		private void UpdateWithIdData(int header, byte[] idBytes)
 		{
 			this.Update(
 				(byte) header,
@@ -212,8 +218,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			this.Update(idBytes);
 		}
 
-		private void UpdateWithPublicKey(
-			PgpPublicKey key)
+		private void UpdateWithPublicKey(PgpPublicKey key)
 		{
 			byte[] keyBytes = GetEncodedPublicKey(key);
 
@@ -231,9 +236,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <param name="userAttributes">User attributes the key was stored under.</param>
 		/// <param name="key">The key to be verified.</param>
 		/// <returns>True, if the signature matches, false otherwise.</returns>
-		public bool VerifyCertification(
-			PgpUserAttributeSubpacketVector	userAttributes,
-			PgpPublicKey					key)
+		public bool VerifyCertification(PgpUserAttributeSubpacketVector	userAttributes, PgpPublicKey key)
 		{
 			UpdateWithPublicKey(key);
 
@@ -254,9 +257,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				throw new PgpException("cannot encode subpacket array", e);
 			}
 
-			this.Update(sigPck.GetSignatureTrailer());
-
-			return sig.VerifySignature(GetSignature());
+			return Verify();
 		}
 
 		/// <summary>
@@ -266,9 +267,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <param name="id">ID the key was stored under.</param>
 		/// <param name="key">The key to be verified.</param>
 		/// <returns>True, if the signature matches, false otherwise.</returns>
-        public bool VerifyCertification(
-            string			id,
-            PgpPublicKey	key)
+        public bool VerifyCertification(string id, PgpPublicKey key)
         {
 			UpdateWithPublicKey(key);
 
@@ -277,9 +276,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
             UpdateWithIdData(0xb4, Strings.ToUtf8ByteArray(id));
 
-			Update(sigPck.GetSignatureTrailer());
-
-			return sig.VerifySignature(GetSignature());
+            return Verify();
         }
 
 		/// <summary>Verify a certification for the passed in key against the passed in master key.</summary>
@@ -293,9 +290,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			UpdateWithPublicKey(masterKey);
 			UpdateWithPublicKey(pubKey);
 
-			Update(sigPck.GetSignatureTrailer());
-
-			return sig.VerifySignature(GetSignature());
+			return Verify();
         }
 
 		/// <summary>Verify a key certification, such as revocation, for the passed in key.</summary>
@@ -312,9 +307,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			UpdateWithPublicKey(pubKey);
 
-            Update(sigPck.GetSignatureTrailer());
-
-			return sig.VerifySignature(GetSignature());
+			return Verify();
         }
 
 		public int SignatureType
@@ -438,13 +431,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return bOut.ToArray();
         }
 
-		public void Encode(Stream outStream)
+        public void Encode(Stream outStream)
         {
+            Encode(outStream, false);
+        }
+
+        /**
+         * Encode the signature to outStream, with trust packets stripped out if forTransfer is true.
+         *
+         * @param outStream   stream to write the key encoding to.
+         * @param forTransfer if the purpose of encoding is to send key to other users.
+         * @throws IOException in case of encoding error.
+         */
+        public void Encode(Stream outStream, bool forTransfer)
+        {
+            // Exportable signatures MUST NOT be exported if forTransfer==true
+            if (forTransfer && (!GetHashedSubPackets().IsExportable() || !GetUnhashedSubPackets().IsExportable()))
+                return;
+
             var bcpgOut = BcpgOutputStream.Wrap(outStream);
 
-			bcpgOut.WritePacket(sigPck);
-
-			if (trustPck != null)
+            bcpgOut.WritePacket(sigPck);
+            if (!forTransfer && trustPck != null)
             {
                 bcpgOut.WritePacket(trustPck);
             }
@@ -479,6 +487,45 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             default:
                 return false;
             }
+        }
+
+        public static bool IsSignatureEncodingEqual(PgpSignature sig1, PgpSignature sig2)
+        {
+            return Arrays.AreEqual(sig1.sigPck.GetSignatureBytes(), sig2.sigPck.GetSignatureBytes());
+        }
+
+        public static PgpSignature Join(PgpSignature sig1, PgpSignature sig2)
+        {
+            if (!IsSignatureEncodingEqual(sig1, sig2))
+                throw new ArgumentException("These are different signatures.");
+
+            // merge unhashed subpackets
+            SignatureSubpacket[] sig1Unhashed = sig1.GetUnhashedSubPackets().ToSubpacketArray();
+            SignatureSubpacket[] sig2Unhashed = sig2.GetUnhashedSubPackets().ToSubpacketArray();
+
+            var merged = new List<SignatureSubpacket>(sig1Unhashed);
+
+            foreach (var subpacket in sig2Unhashed)
+            {
+                if (!merged.Contains(subpacket))
+                {
+                    merged.Add(subpacket);
+                }
+            }
+
+            SignatureSubpacket[] unhashed = merged.ToArray();
+            return new PgpSignature(
+                new SignaturePacket(
+                    sig1.SignatureType,
+                    sig1.KeyId,
+                    sig1.KeyAlgorithm,
+                    sig1.HashAlgorithm,
+                    sig1.GetHashedSubPackets().ToSubpacketArray(),
+                    unhashed,
+                    sig1.GetDigestPrefix(),
+                    sig1.sigPck.GetSignature()
+                )
+            );
         }
     }
 }

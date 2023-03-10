@@ -11,13 +11,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static PollRepContent GetInstance(object obj)
         {
-			if (obj is PollRepContent pollRepContent)
-				return pollRepContent;
+            if (obj == null)
+                return null;
+            if (obj is PollRepContent pollRepContent)
+                return pollRepContent;
+            return new PollRepContent(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new PollRepContent(Asn1Sequence.GetInstance(obj));
-
-			return null;
+        public static PollRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly DerInteger[] m_certReqID;

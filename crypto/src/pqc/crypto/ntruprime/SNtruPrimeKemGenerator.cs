@@ -24,6 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return new NtruLPRimeKemGenerator.SecretWithEncapsulationImpl(sessionKey, cipherText);
         }
 
+        // TODO[api] private sealed
         public class SecretWithEncapsulationImpl : ISecretWithEncapsulation
         {
             private volatile bool hasBeenDestroyed = false;
@@ -50,14 +51,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             public void Dispose()
             {
-                if (!hasBeenDestroyed)
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (disposing)
                 {
-                    hasBeenDestroyed = true;
-                    Arrays.Clear(sessionKey);
-                    Arrays.Clear(cipherText);
+                    if (!hasBeenDestroyed)
+                    {
+                        Arrays.Clear(sessionKey);
+                        Arrays.Clear(cipherText);
+                        hasBeenDestroyed = true;
+                    }
                 }
             }
-            
+
             public bool IsDestroyed()
             {
                 return hasBeenDestroyed;

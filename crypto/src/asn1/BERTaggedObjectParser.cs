@@ -32,6 +32,11 @@ namespace Org.BouncyCastle.Asn1
 			get { return m_tagNo; }
 		}
 
+        public bool HasContextTag()
+        {
+            return m_tagClass == Asn1Tags.ContextSpecific;
+        }
+
         public bool HasContextTag(int tagNo)
         {
             return m_tagClass == Asn1Tags.ContextSpecific && m_tagNo == tagNo;
@@ -40,6 +45,11 @@ namespace Org.BouncyCastle.Asn1
         public bool HasTag(int tagClass, int tagNo)
         {
             return m_tagClass == tagClass && m_tagNo == tagNo;
+        }
+
+        public bool HasTagClass(int tagClass)
+        {
+            return m_tagClass == tagClass;
         }
 
         public virtual IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)

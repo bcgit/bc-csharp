@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Org.BouncyCastle.Utilities;
 
@@ -68,12 +69,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		private DerSequence CreateSequence(IList<GeneralSubtree> subtrees)
 		{
-            GeneralSubtree[] gsts = new GeneralSubtree[subtrees.Count];
-            for (int i = 0; i < subtrees.Count; ++i)
-            {
-                gsts[i] = subtrees[i];
-            }
-            return new DerSequence(gsts);
+            return new DerSequence(subtrees.ToArray());
 		}
 
 		public Asn1Sequence PermittedSubtrees
@@ -92,7 +88,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptionalTagged(false, 0, permitted);
             v.AddOptionalTagged(false, 1, excluded);
             return new DerSequence(v);

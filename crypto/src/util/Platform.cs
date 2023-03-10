@@ -56,6 +56,11 @@ namespace Org.BouncyCastle.Utilities
             return InvariantCompareInfo.IsPrefix(source, prefix, CompareOptions.Ordinal);
         }
 
+        internal static bool StartsWithIgnoreCase(string source, string prefix)
+        {
+            return InvariantCompareInfo.IsPrefix(source, prefix, CompareOptions.OrdinalIgnoreCase);
+        }
+
         internal static bool EndsWith(string source, string suffix)
         {
             return InvariantCompareInfo.IsSuffix(source, suffix, CompareOptions.Ordinal);
@@ -63,7 +68,12 @@ namespace Org.BouncyCastle.Utilities
 
         internal static string GetTypeName(object obj)
         {
-            return obj.GetType().FullName;
+            return GetTypeName(obj.GetType());
+        }
+
+        internal static string GetTypeName(Type t)
+        {
+            return t.FullName;
         }
     }
 }

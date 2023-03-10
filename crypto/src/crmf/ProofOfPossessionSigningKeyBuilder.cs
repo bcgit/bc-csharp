@@ -30,7 +30,6 @@ namespace Org.BouncyCastle.Crmf
         public ProofOfPossessionSigningKeyBuilder SetSender(GeneralName name)
         {
             this._name = name;
-
             return this;
         }
 
@@ -84,18 +83,15 @@ namespace Org.BouncyCastle.Crmf
 
         private ProofOfPossessionSigningKeyBuilder ImplSetPublicKeyMac(IMacFactory fact)
         {
-            byte[] d = _pubKeyInfo.GetDerEncoded();
-
             IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
             using (var stream = calc.Stream)
             {
-                stream.Write(d, 0, d.Length);
+                _pubKeyInfo.EncodeTo(stream, Asn1Encodable.Der);
             }
 
-            this._publicKeyMAC = new PKMacValue(
-                (AlgorithmIdentifier)fact.AlgorithmDetails,
-                new DerBitString(calc.GetResult().Collect()));
+            var mac = calc.GetResult().Collect();
 
+            this._publicKeyMAC = new PKMacValue((AlgorithmIdentifier)fact.AlgorithmDetails, new DerBitString(mac));
             return this;
         }
     }

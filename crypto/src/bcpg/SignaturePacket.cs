@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Sig;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -24,8 +25,7 @@ namespace Org.BouncyCastle.Bcpg
         private SignatureSubpacket[]	unhashedData;
 		private byte[]					signatureEncoding;
 
-		internal SignaturePacket(
-            BcpgInputStream bcpgIn)
+		internal SignaturePacket(BcpgInputStream bcpgIn)
         {
             version = bcpgIn.ReadByte();
 
@@ -125,42 +125,36 @@ namespace Org.BouncyCastle.Bcpg
 
 			switch (keyAlgorithm)
             {
-                case PublicKeyAlgorithmTag.RsaGeneral:
-                case PublicKeyAlgorithmTag.RsaSign:
-                    MPInteger v = new MPInteger(bcpgIn);
-					signature = new MPInteger[1]{ v };
-                    break;
-				case PublicKeyAlgorithmTag.Dsa:
-                    MPInteger r = new MPInteger(bcpgIn);
-                    MPInteger s = new MPInteger(bcpgIn);
-					signature = new MPInteger[2]{ r, s };
-                    break;
-                case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
-                case PublicKeyAlgorithmTag.ElGamalGeneral:
-                    MPInteger p = new MPInteger(bcpgIn);
-                    MPInteger g = new MPInteger(bcpgIn);
-                    MPInteger y = new MPInteger(bcpgIn);
-					signature = new MPInteger[3]{ p, g, y };
-                    break;
-                case PublicKeyAlgorithmTag.ECDsa:
-                case PublicKeyAlgorithmTag.EdDsa:
-                    MPInteger ecR = new MPInteger(bcpgIn);
-                    MPInteger ecS = new MPInteger(bcpgIn);
-                    signature = new MPInteger[2]{ ecR, ecS };
-                    break;
-                default:
-					if (keyAlgorithm < PublicKeyAlgorithmTag.Experimental_1 || keyAlgorithm > PublicKeyAlgorithmTag.Experimental_11)
-                        throw new IOException("unknown signature key algorithm: " + keyAlgorithm);
+            case PublicKeyAlgorithmTag.RsaGeneral:
+            case PublicKeyAlgorithmTag.RsaSign:
+                MPInteger v = new MPInteger(bcpgIn);
+				signature = new MPInteger[1]{ v };
+                break;
+			case PublicKeyAlgorithmTag.Dsa:
+                MPInteger r = new MPInteger(bcpgIn);
+                MPInteger s = new MPInteger(bcpgIn);
+				signature = new MPInteger[2]{ r, s };
+                break;
+            case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
+            case PublicKeyAlgorithmTag.ElGamalGeneral:
+                MPInteger p = new MPInteger(bcpgIn);
+                MPInteger g = new MPInteger(bcpgIn);
+                MPInteger y = new MPInteger(bcpgIn);
+				signature = new MPInteger[3]{ p, g, y };
+                break;
+            case PublicKeyAlgorithmTag.ECDsa:
+            case PublicKeyAlgorithmTag.EdDsa:
+                MPInteger ecR = new MPInteger(bcpgIn);
+                MPInteger ecS = new MPInteger(bcpgIn);
+                signature = new MPInteger[2]{ ecR, ecS };
+                break;
+            default:
+				if (keyAlgorithm < PublicKeyAlgorithmTag.Experimental_1 || keyAlgorithm > PublicKeyAlgorithmTag.Experimental_11)
+                    throw new IOException("unknown signature key algorithm: " + keyAlgorithm);
 
-                    signature = null;
-					MemoryStream bOut = new MemoryStream();
-					int ch;
-					while ((ch = bcpgIn.ReadByte()) >= 0)
-					{
-						bOut.WriteByte((byte) ch);
-					}
-					signatureEncoding = bOut.ToArray();
-					break;
+                signature = null;
+                signatureEncoding = Streams.ReadAll(bcpgIn);
+				break;
             }
         }
 
@@ -238,23 +232,23 @@ namespace Org.BouncyCastle.Bcpg
 			}
 		}
 
-		public int Version
-        {
-			get { return version; }
-        }
+		public int Version => version;
 
-		public int SignatureType
-        {
-			get { return signatureType; }
-		}
+		public int SignatureType => signatureType;
 
-		/**
+        /**
         * return the keyId
         * @return the keyId that created the signature.
         */
-        public long KeyId
+        public long KeyId => keyId;
+
+        /**
+         * Return the signatures fingerprint.
+         * @return fingerprint (digest prefix) of the signature
+         */
+        public byte[] GetFingerprint()
         {
-            get { return keyId; }
+            return Arrays.Clone(fingerprint);
         }
 
 		/**
@@ -314,24 +308,15 @@ namespace Org.BouncyCastle.Bcpg
             return sOut.ToArray();
         }
 
-		public PublicKeyAlgorithmTag KeyAlgorithm
-        {
-			get { return keyAlgorithm; }
-        }
+		public PublicKeyAlgorithmTag KeyAlgorithm => keyAlgorithm;
 
-		public HashAlgorithmTag HashAlgorithm
-		{
-			get { return hashAlgorithm; }
-        }
+        public HashAlgorithmTag HashAlgorithm => hashAlgorithm;
 
-		/**
+        /**
 		* return the signature as a set of integers - note this is normalised to be the
         * ASN.1 encoding of what appears in the signature packet.
         */
-        public MPInteger[] GetSignature()
-        {
-            return signature;
-        }
+        public MPInteger[] GetSignature() => signature;
 
 		/**
 		 * Return the byte encoding of the signature section.
@@ -340,43 +325,34 @@ namespace Org.BouncyCastle.Bcpg
 		public byte[] GetSignatureBytes()
 		{
 			if (signatureEncoding != null)
-			{
-				return (byte[]) signatureEncoding.Clone();
-			}
+				return (byte[])signatureEncoding.Clone();
 
 			MemoryStream bOut = new MemoryStream();
-			BcpgOutputStream bcOut = new BcpgOutputStream(bOut);
 
-			foreach (MPInteger sigObj in signature)
-			{
-				try
-				{
-					bcOut.WriteObject(sigObj);
-				}
-				catch (IOException e)
-				{
-					throw new Exception("internal error: " + e);
-				}
-			}
+            using (var pOut = new BcpgOutputStream(bOut))
+            {
+                foreach (MPInteger sigObj in signature)
+                {
+                    try
+                    {
+                        pOut.WriteObject(sigObj);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new Exception("internal error: " + e);
+                    }
+                }
+            }
 
-			return bOut.ToArray();
+            return bOut.ToArray();
 		}
 
-		public SignatureSubpacket[] GetHashedSubPackets()
-        {
-            return hashedData;
-        }
+		public SignatureSubpacket[] GetHashedSubPackets() => hashedData;
 
-		public SignatureSubpacket[] GetUnhashedSubPackets()
-        {
-            return unhashedData;
-        }
+		public SignatureSubpacket[] GetUnhashedSubPackets() => unhashedData;
 
 		/// <summary>Return the creation time in milliseconds since 1 Jan., 1970 UTC.</summary>
-        public long CreationTime
-        {
-            get { return creationTime; }
-        }
+        public long CreationTime => creationTime;
 
 		public override void Encode(BcpgOutputStream bcpgOut)
         {
@@ -416,7 +392,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray());
         }
 
 		private static void EncodeLengthAndData(

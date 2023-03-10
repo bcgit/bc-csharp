@@ -16,6 +16,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public static readonly int CMP_1999 = 1;
         public static readonly int CMP_2000 = 2;
 
+        public static PkiHeader GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PkiHeader pkiHeader)
+                return pkiHeader;
+            return new PkiHeader(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PkiHeader GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private readonly DerInteger pvno;
         private readonly GeneralName sender;
         private readonly GeneralName recipient;
@@ -37,7 +51,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             for (int pos = 3; pos < seq.Count; ++pos)
             {
-                Asn1TaggedObject tObj = (Asn1TaggedObject)seq[pos];
+                Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
+                if (Asn1Tags.ContextSpecific != tObj.TagClass)
+                    continue;
 
                 switch (tObj.TagNo)
                 {
@@ -72,17 +88,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
                     throw new ArgumentException("unknown tag number: " + tObj.TagNo, nameof(seq));
                 }
             }
-        }
-
-        public static PkiHeader GetInstance(object obj)
-        {
-            if (obj is PkiHeader)
-                return (PkiHeader)obj;
-
-            if (obj is Asn1Sequence)
-                return new PkiHeader((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }
 
         public PkiHeader(
@@ -160,16 +165,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual InfoTypeAndValue[] GetGeneralInfo()
         {
-            if (generalInfo == null)
-            {
-                return null;
-            }
-            InfoTypeAndValue[] results = new InfoTypeAndValue[generalInfo.Count];
-            for (int i = 0; i < results.Length; i++)
-            {
-                results[i] = InfoTypeAndValue.GetInstance(generalInfo[i]);
-            }
-            return results;
+            return generalInfo?.MapElements(InfoTypeAndValue.GetInstance);
         }
 
         /**

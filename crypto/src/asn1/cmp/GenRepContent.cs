@@ -5,13 +5,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static GenRepContent GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is GenRepContent genRepContent)
                 return genRepContent;
+            return new GenRepContent(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new GenRepContent(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static GenRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;

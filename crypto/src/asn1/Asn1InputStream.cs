@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers.Binary;
+#endif
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -16,6 +19,7 @@ namespace Org.BouncyCastle.Asn1
         : FilterStream
     {
         private readonly int limit;
+        private readonly bool m_leaveOpen;
 
         internal byte[][] tmpBuffers;
 
@@ -25,17 +29,12 @@ namespace Org.BouncyCastle.Asn1
                 return limited.Limit;
 
             if (input is Asn1InputStream asn1)
-                return asn1.Limit;
+                return asn1.limit;
 
             if (input is MemoryStream memory)
                 return Convert.ToInt32(memory.Length - memory.Position);
 
             return int.MaxValue;
-        }
-
-        public Asn1InputStream(Stream input)
-            : this(input, FindLimit(input))
-        {
         }
 
         /**
@@ -49,6 +48,11 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public Asn1InputStream(Stream input)
+            : this(input, FindLimit(input))
+        {
+        }
+
         /**
          * Create an ASN1InputStream where no DER object will be longer than limit.
          *
@@ -56,14 +60,23 @@ namespace Org.BouncyCastle.Asn1
          * @param limit maximum size of a DER encoded object.
          */
         public Asn1InputStream(Stream input, int limit)
-            : this(input, limit, new byte[16][])
+            : this(input, limit, false)
         {
         }
 
-        internal Asn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
+        public Asn1InputStream(Stream input, int limit, bool leaveOpen)
+            : this(input, limit, leaveOpen, new byte[16][])
+        {
+        }
+
+        internal Asn1InputStream(Stream input, int limit, bool leaveOpen, byte[][] tmpBuffers)
             : base(input)
         {
+            if (!input.CanRead)
+                throw new ArgumentException("Expected stream to be readable", nameof(input));
+
             this.limit = limit;
+            m_leaveOpen = leaveOpen;
             this.tmpBuffers = tmpBuffers;
         }
 
@@ -71,7 +84,14 @@ namespace Org.BouncyCastle.Asn1
         {
             tmpBuffers = null;
 
-            base.Dispose(disposing);
+            if (m_leaveOpen)
+            {
+                base.Detach(disposing);
+            }
+            else
+            {
+                base.Dispose(disposing);
+            }
         }
 
         /**
@@ -100,9 +120,9 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.OctetString:
                 return BuildConstructedOctetString(ReadVector(defIn));
             case Asn1Tags.Sequence:
-                return CreateDLSequence(defIn);
+                return DLSequence.FromVector(ReadVector(defIn));
             case Asn1Tags.Set:
-                return CreateDLSet(defIn);
+                return DLSet.FromVector(ReadVector(defIn));
             case Asn1Tags.External:
                 return DLSequence.FromVector(ReadVector(defIn)).ToAsn1External();
             default:
@@ -122,7 +142,7 @@ namespace Org.BouncyCastle.Asn1
             return Asn1TaggedObject.CreateConstructedDL(tagClass, tagNo, contentsElements);
         }
 
-        internal virtual Asn1EncodableVector ReadVector()
+        private Asn1EncodableVector ReadVector()
         {
             Asn1Object o = ReadObject();
             if (null == o)
@@ -137,23 +157,16 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
-        internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
+        private Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
         {
             int remaining = defIn.Remaining;
             if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            return new Asn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
-        }
-
-        internal virtual Asn1Sequence CreateDLSequence(DefiniteLengthInputStream defIn)
-        {
-            return DLSequence.FromVector(ReadVector(defIn));
-        }
-
-        internal virtual Asn1Set CreateDLSet(DefiniteLengthInputStream defIn)
-        {
-            return DLSet.FromVector(ReadVector(defIn));
+            using (var sub = new Asn1InputStream(defIn, remaining, leaveOpen: true, tmpBuffers))
+            {
+                return sub.ReadVector();
+            }
         }
 
         public Asn1Object ReadObject()
@@ -213,7 +226,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal virtual DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
+        private DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
         {
             DerBitString[] bitStrings = new DerBitString[contentsElements.Count];
 
@@ -230,7 +243,7 @@ namespace Org.BouncyCastle.Asn1
             return new DLBitString(BerBitString.FlattenBitStrings(bitStrings), false);
         }
 
-        internal virtual Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
+        private Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
         {
             Asn1OctetString[] octetStrings = new Asn1OctetString[contentsElements.Count];
 
@@ -246,11 +259,6 @@ namespace Org.BouncyCastle.Asn1
 
             // Note: No DLOctetString available
             return new DerOctetString(BerOctetString.FlattenOctetStrings(octetStrings));
-        }
-
-        internal virtual int Limit
-        {
-            get { return limit; }
         }
 
         internal static int ReadTagNumber(Stream s, int tagHdr)
@@ -340,12 +348,13 @@ namespace Org.BouncyCastle.Asn1
             return length;
         }
 
-        private static byte[] GetBuffer(DefiniteLengthInputStream defIn, byte[][] tmpBuffers)
+        private static bool GetBuffer(DefiniteLengthInputStream defIn, byte[][] tmpBuffers, out byte[] contents)
         {
             int len = defIn.Remaining;
             if (len >= tmpBuffers.Length)
             {
-                return defIn.ToArray();
+                contents = defIn.ToArray();
+                return false;
             }
 
             byte[] buf = tmpBuffers[len];
@@ -356,50 +365,8 @@ namespace Org.BouncyCastle.Asn1
 
             defIn.ReadAllIntoByteArray(buf);
 
-            return buf;
-        }
-
-        private static char[] GetBmpCharBuffer(DefiniteLengthInputStream defIn)
-        {
-            int remainingBytes = defIn.Remaining;
-            if (0 != (remainingBytes & 1))
-                throw new IOException("malformed BMPString encoding encountered");
-
-            char[] str = new char[remainingBytes / 2];
-            int stringPos = 0;
-
-            byte[] buf = new byte[8];
-            while (remainingBytes >= 8)
-            {
-                if (Streams.ReadFully(defIn, buf, 0, 8) != 8)
-                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
-
-                str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
-                str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
-                str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
-                str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
-                stringPos += 4;
-                remainingBytes -= 8;
-            }
-            if (remainingBytes > 0)
-            {
-                if (Streams.ReadFully(defIn, buf, 0, remainingBytes) != remainingBytes)
-                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
-
-                int bufPos = 0;
-                do
-                {
-                    int b1 = buf[bufPos++] << 8;
-                    int b2 = buf[bufPos++] & 0xFF;
-                    str[stringPos++] = (char)(b1 | b2);
-                }
-                while (bufPos < remainingBytes);
-            }
-
-            if (0 != defIn.Remaining || str.Length != stringPos)
-                throw new InvalidOperationException();
-
-            return str;
+            contents = buf;
+            return true;
         }
 
         internal static Asn1Object CreatePrimitiveDerObject(int tagNo, DefiniteLengthInputStream defIn,
@@ -408,15 +375,22 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
             case Asn1Tags.BmpString:
-                return DerBmpString.CreatePrimitive(GetBmpCharBuffer(defIn));
+                return CreateDerBmpString(defIn);
             case Asn1Tags.Boolean:
-                return DerBoolean.CreatePrimitive(GetBuffer(defIn, tmpBuffers));
+            {
+                GetBuffer(defIn, tmpBuffers, out var contents);
+                return DerBoolean.CreatePrimitive(contents);
+            }
             case Asn1Tags.Enumerated:
-                // TODO Ideally only clone if we used a buffer
-                return DerEnumerated.CreatePrimitive(GetBuffer(defIn, tmpBuffers), true);
+            {
+                bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
+                return DerEnumerated.CreatePrimitive(contents, clone: usedBuffer);
+            }
             case Asn1Tags.ObjectIdentifier:
-                // TODO Ideally only clone if we used a buffer
-                return DerObjectIdentifier.CreatePrimitive(GetBuffer(defIn, tmpBuffers), true);
+            {
+                bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
+                return DerObjectIdentifier.CreatePrimitive(contents, clone: usedBuffer);
+            }
             }
 
             byte[] bytes = defIn.ToArray();
@@ -459,9 +433,100 @@ namespace Org.BouncyCastle.Asn1
                 return DerVideotexString.CreatePrimitive(bytes);
             case Asn1Tags.VisibleString:
                 return DerVisibleString.CreatePrimitive(bytes);
+            case Asn1Tags.Time:
+            case Asn1Tags.Date:
+            case Asn1Tags.TimeOfDay:
+            case Asn1Tags.DateTime:
+            case Asn1Tags.Duration:
+            case Asn1Tags.ObjectIdentifierIri:
+            case Asn1Tags.RelativeOidIri:
+                throw new IOException("unsupported tag " + tagNo + " encountered");
             default:
                 throw new IOException("unknown tag " + tagNo + " encountered");
             }
+        }
+
+        private static DerBmpString CreateDerBmpString(DefiniteLengthInputStream defIn)
+        {
+            int remainingBytes = defIn.Remaining;
+            if (0 != (remainingBytes & 1))
+                throw new IOException("malformed BMPString encoding encountered");
+
+            int length = remainingBytes / 2;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DerBmpString.CreatePrimitive(length, defIn, (str, defIn) =>
+            {
+                int stringPos = 0;
+
+                Span<byte> buf = stackalloc byte[8];
+                while (remainingBytes >= 8)
+                {
+                    if (Streams.ReadFully(defIn, buf) != 8)
+                        throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                    str[stringPos    ] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[0..]);
+                    str[stringPos + 1] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[2..]);
+                    str[stringPos + 2] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[4..]);
+                    str[stringPos + 3] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[6..]);
+                    stringPos += 4;
+                    remainingBytes -= 8;
+                }
+                if (remainingBytes > 0)
+                {
+                    if (Streams.ReadFully(defIn, buf) != remainingBytes)
+                        throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                    int bufPos = 0;
+                    do
+                    {
+                        int b1 = buf[bufPos++] << 8;
+                        int b2 = buf[bufPos++] & 0xFF;
+                        str[stringPos++] = (char)(b1 | b2);
+                    }
+                    while (bufPos < remainingBytes);
+                }
+
+                if (0 != defIn.Remaining || str.Length != stringPos)
+                    throw new InvalidOperationException();
+            });
+#else
+            char[] str = new char[length];
+            int stringPos = 0;
+
+            byte[] buf = new byte[8];
+            while (remainingBytes >= 8)
+            {
+                if (Streams.ReadFully(defIn, buf, 0, 8) != 8)
+                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
+                str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
+                str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
+                str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
+                stringPos += 4;
+                remainingBytes -= 8;
+            }
+            if (remainingBytes > 0)
+            {
+                if (Streams.ReadFully(defIn, buf, 0, remainingBytes) != remainingBytes)
+                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                int bufPos = 0;
+                do
+                {
+                    int b1 = buf[bufPos++] << 8;
+                    int b2 = buf[bufPos++] & 0xFF;
+                    str[stringPos++] = (char)(b1 | b2);
+                }
+                while (bufPos < remainingBytes);
+            }
+
+            if (0 != defIn.Remaining || str.Length != stringPos)
+                throw new InvalidOperationException();
+
+            return DerBmpString.CreatePrimitive(str);
+#endif
         }
     }
 }

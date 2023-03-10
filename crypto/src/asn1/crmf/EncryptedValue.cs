@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(6);
             v.AddOptionalTagged(false, 0, m_intendedAlg);
             v.AddOptionalTagged(false, 1, m_symmAlg);
             v.AddOptionalTagged(false, 2, m_encSymmKey);

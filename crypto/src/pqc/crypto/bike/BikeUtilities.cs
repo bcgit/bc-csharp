@@ -1,8 +1,7 @@
 ﻿using System;
 
-using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
@@ -18,59 +17,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return hammingWeight;
         }
 
-        internal static void FromByteArrayToBitArray(byte[] output, byte[] input)
+        internal static void FromBitsToUlongs(ulong[] output, byte[] input, int inputOff, int inputLen)
         {
-            int max = (output.Length / 8);
-            for (int i = 0; i < max; i++)
+            for (int i = 0; i < inputLen; ++i)
             {
-                for (int j = 0; j != 8; j++)
-                {
-                    output[i * 8 + j] = (byte)((input[i] >> j) & 1);
-                }
-            }
-            if (output.Length % 8 != 0)
-            {
-                int off = max * 8;
-                int count = 0;
-                while (off < output.Length)
-                {
-                    output[off++] = (byte)((input[max] >> count) & 1);
-                    count++;
-                }
+                ulong bit = input[inputOff + i] & 1UL;
+                output[i >> 6] |= bit << (i & 63);
             }
         }
 
-        internal static void FromBitArrayToByteArray(byte[] output, byte[] input, int inputOff, int inputLen)
-        {
-            int count = 0;
-            int pos = 0;
-            while (count < inputLen)
-            {
-                if (count + 8 >= inputLen)
-                {// last set of bits cannot have enough 8 bits
-                    int b = input[inputOff + count];
-                    for (int j = inputLen - count - 1; j >= 1; j--)
-                    { //bin in reversed order
-                        b |= input[inputOff + count + j] << j;
-                    }
-                    output[pos] = (byte)b;
-                }
-                else
-                {
-                    int b = input[inputOff + count];
-                    for (int j = 7; j >= 1; j--)
-                    { //bin in reversed order
-                        b |= input[inputOff + count + j] << j;
-                    }
-                    output[pos] = (byte)b;
-                }
-
-                count += 8;
-                pos++;
-            }
-        }
-
-        internal static void GenerateRandomByteArray(byte[] res, uint size, uint weight, IXof digest)
+        internal static void GenerateRandomUlongs(ulong[] res, int size, int weight, IXof digest)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buf = stackalloc byte[4];
@@ -78,7 +34,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] buf = new byte[4];
 #endif
 
-            for (int i = (int)weight - 1; i >= 0; i--)
+            for (int i = weight - 1; i >= 0; i--)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 digest.Output(buf);
@@ -88,10 +44,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 ulong temp = Pack.LE_To_UInt32(buf, 0);
 #endif
 
-                temp = temp * (size - (uint)i) >> 32;
-                uint rand_pos = (uint)i + (uint)temp;
+                temp *= (uint)(size - i);
+                uint rand_pos = (uint)i + (uint)(temp >> 32);
 
-                if (CheckBit(res, rand_pos) != 0)
+                if (CheckBit(res, rand_pos))
                 {
                     rand_pos = (uint)i;
                 }
@@ -99,18 +55,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        private static uint CheckBit(byte[] tmp, uint position)
+        private static bool CheckBit(ulong[] tmp, uint position)
         {
-            uint index = position / 8;
-            uint pos = position % 8;
-            return ((uint)tmp[index] >> (int)pos) & 1U;
+            uint index = position >> 6;
+            uint pos = position & 63;
+            return ((tmp[index] >> (int)pos) & 1UL) != 0UL;
         }
 
-        private static void SetBit(byte[] tmp, uint position)
+        private static void SetBit(ulong[] tmp, uint position)
         {
-            uint index = position / 8;
-            uint pos = position % 8;
-            tmp[index] |= (byte)(1 << (int)pos);
+            uint index = position >> 6;
+            uint pos = position & 63;
+            tmp[index] |= 1UL << (int)pos;
         }
     }
 }

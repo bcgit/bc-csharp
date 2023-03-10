@@ -1,7 +1,4 @@
-using System;
 using System.Text;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -18,35 +15,25 @@ namespace Org.BouncyCastle.Asn1.X509
     public class DistributionPoint
         : Asn1Encodable
     {
-        internal readonly DistributionPointName	distributionPoint;
-        internal readonly ReasonFlags			reasons;
-        internal readonly GeneralNames			cRLIssuer;
+		public static DistributionPoint GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is DistributionPoint distributionPoint)
+                return distributionPoint;
+            return new DistributionPoint(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static DistributionPoint GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static DistributionPoint GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static DistributionPoint GetInstance(
-            object obj)
-        {
-            if(obj == null || obj is DistributionPoint)
-            {
-                return (DistributionPoint) obj;
-            }
+        private readonly DistributionPointName m_distributionPoint;
+        private readonly ReasonFlags m_reasons;
+        private readonly GeneralNames m_crlIssuer;
 
-			if(obj is Asn1Sequence)
-            {
-                return new DistributionPoint((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("Invalid DistributionPoint: " + Platform.GetTypeName(obj));
-        }
-
-		private DistributionPoint(
-            Asn1Sequence seq)
+        private DistributionPoint(Asn1Sequence seq)
         {
             for (int i = 0; i != seq.Count; i++)
             {
@@ -55,52 +42,42 @@ namespace Org.BouncyCastle.Asn1.X509
 				switch (t.TagNo)
                 {
                 case 0:
-                    distributionPoint = DistributionPointName.GetInstance(t, true);
+                    // CHOICE so explicit
+                    m_distributionPoint = DistributionPointName.GetInstance(t, true);
                     break;
                 case 1:
-                    reasons = new ReasonFlags(DerBitString.GetInstance(t, false));
+                    m_reasons = new ReasonFlags(DerBitString.GetInstance(t, false));
                     break;
                 case 2:
-                    cRLIssuer = GeneralNames.GetInstance(t, false);
+                    m_crlIssuer = GeneralNames.GetInstance(t, false);
                     break;
                 }
             }
         }
 
-		public DistributionPoint(
-            DistributionPointName	distributionPointName,
-            ReasonFlags				reasons,
-            GeneralNames			crlIssuer)
+		public DistributionPoint(DistributionPointName distributionPointName, ReasonFlags reasons,
+            GeneralNames crlIssuer)
         {
-            this.distributionPoint = distributionPointName;
-            this.reasons = reasons;
-            this.cRLIssuer = crlIssuer;
+            m_distributionPoint = distributionPointName;
+            m_reasons = reasons;
+            m_crlIssuer = crlIssuer;
         }
 
-		public DistributionPointName DistributionPointName
-        {
-			get { return distributionPoint; }
-        }
+        public DistributionPointName DistributionPointName => m_distributionPoint;
 
-		public ReasonFlags Reasons
-        {
-			get { return reasons; }
-        }
+		public ReasonFlags Reasons => m_reasons;
 
-		public GeneralNames CrlIssuer
-        {
-			get { return cRLIssuer; }
-        }
+		public GeneralNames CrlIssuer => m_crlIssuer;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
 
             // As this is a CHOICE it must be explicitly tagged
-            v.AddOptionalTagged(true, 0, distributionPoint);
+            v.AddOptionalTagged(true, 0, m_distributionPoint);
 
-            v.AddOptionalTagged(false, 1, reasons);
-            v.AddOptionalTagged(false, 2, cRLIssuer);
+            v.AddOptionalTagged(false, 1, m_reasons);
+            v.AddOptionalTagged(false, 2, m_crlIssuer);
             return new DerSequence(v);
         }
 
@@ -108,17 +85,17 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			StringBuilder buf = new StringBuilder();
 			buf.AppendLine("DistributionPoint: [");
-			if (distributionPoint != null)
+			if (m_distributionPoint != null)
 			{
-                AppendObject(buf, "distributionPoint", distributionPoint.ToString());
+                AppendObject(buf, "distributionPoint", m_distributionPoint.ToString());
 			}
-			if (reasons != null)
+			if (m_reasons != null)
 			{
-                AppendObject(buf, "reasons", reasons.ToString());
+                AppendObject(buf, "reasons", m_reasons.ToString());
 			}
-			if (cRLIssuer != null)
+			if (m_crlIssuer != null)
 			{
-                AppendObject(buf, "cRLIssuer", cRLIssuer.ToString());
+                AppendObject(buf, "cRLIssuer", m_crlIssuer.ToString());
 			}
 			buf.AppendLine("]");
 			return buf.ToString();

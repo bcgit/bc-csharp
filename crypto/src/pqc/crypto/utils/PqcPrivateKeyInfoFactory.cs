@@ -105,8 +105,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 #pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is FalconPrivateKeyParameters falconPrivateKeyParameters)
             {
-                Asn1EncodableVector v = new Asn1EncodableVector();
-
+                Asn1EncodableVector v = new Asn1EncodableVector(4);
                 v.Add(new DerInteger(1));
                 v.Add(new DerOctetString(falconPrivateKeyParameters.GetSpolyLittleF()));
                 v.Add(new DerOctetString(falconPrivateKeyParameters.GetG()));
@@ -120,8 +119,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (privateKey is KyberPrivateKeyParameters kyberPrivateKeyParameters)
             {
-                Asn1EncodableVector v = new Asn1EncodableVector();
-
+                Asn1EncodableVector v = new Asn1EncodableVector(4);
                 v.Add(new DerInteger(0));
                 v.Add(new DerOctetString(kyberPrivateKeyParameters.S));
                 v.Add(new DerOctetString(kyberPrivateKeyParameters.Hpk));
@@ -130,7 +128,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.KyberOidLookup(kyberPrivateKeyParameters.Parameters));
 
-                Asn1EncodableVector vPub = new Asn1EncodableVector();
+                Asn1EncodableVector vPub = new Asn1EncodableVector(2);
                 vPub.Add(new DerOctetString(kyberPrivateKeyParameters.T));
                 vPub.Add(new DerOctetString(kyberPrivateKeyParameters.Rho));
 
@@ -139,8 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (privateKey is DilithiumPrivateKeyParameters dilithiumPrivateKeyParameters)
             {
-                Asn1EncodableVector v = new Asn1EncodableVector();
-
+                Asn1EncodableVector v = new Asn1EncodableVector(7);
                 v.Add(new DerInteger(0));
                 v.Add(new DerBitString(dilithiumPrivateKeyParameters.Rho));
                 v.Add(new DerBitString(dilithiumPrivateKeyParameters.K));
@@ -152,7 +149,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.DilithiumOidLookup(dilithiumPrivateKeyParameters.Parameters));
 
-                Asn1EncodableVector vPub = new Asn1EncodableVector();
+                Asn1EncodableVector vPub = new Asn1EncodableVector(2);
                 vPub.Add(new DerOctetString(dilithiumPrivateKeyParameters.Rho));
                 vPub.Add(new DerOctetString(dilithiumPrivateKeyParameters.T1));
 

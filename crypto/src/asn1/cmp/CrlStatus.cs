@@ -14,13 +14,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static CrlStatus GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is CrlStatus crlStatus)
                 return crlStatus;
+            return new CrlStatus(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new CrlStatus(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static CrlStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CrlSource m_source;

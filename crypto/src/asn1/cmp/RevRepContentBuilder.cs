@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual RevRepContent Build()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
 
 			v.Add(new DerSequence(m_status));
 

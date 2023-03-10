@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return new SecretWithEncapsulationImpl(K, cipherText);
         }
 
-        private class SecretWithEncapsulationImpl : ISecretWithEncapsulation
+        private sealed class SecretWithEncapsulationImpl : ISecretWithEncapsulation
         {
             private volatile bool hasBeenDestroyed;
 
@@ -65,10 +65,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 if (!hasBeenDestroyed)
                 {
-                    hasBeenDestroyed = true;
                     Arrays.Clear(sessionKey);
                     Arrays.Clear(cipher_text);
+                    hasBeenDestroyed = true;
                 }
+                GC.SuppressFinalize(this);
             }
 
             public bool IsDestroyed()

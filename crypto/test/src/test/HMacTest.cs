@@ -116,16 +116,13 @@ namespace Org.BouncyCastle.Tests
             IMac mac = MacUtilities.GetMac("HmacSHA1");
 
             byte [] b = {(byte)1, (byte)2, (byte)3, (byte)4, (byte)5};
-//			KeyParameter sks = new KeyParameter(b); //, "HmacSHA1");
-//			RC5ParameterSpec algPS = new RC5ParameterSpec(100, 100, 100);
             RC5Parameters rc5Parameters = new RC5Parameters(b, 100);
 
             try
             {
-//				mac.Init(sks, algPS);
                 mac.Init(rc5Parameters);
+                Fail("No exception thrown");
             }
-//			catch (InvalidAlgorithmParameterException e)
             catch (Exception)
             {
                 // ignore okay
@@ -133,26 +130,13 @@ namespace Org.BouncyCastle.Tests
 
             try
             {
-                mac.Init(null); //, null);
+                mac.Init(null);
+                Fail("No exception thrown");
             }
-//			catch (InvalidKeyException)
-//			{
-//				// ignore okay
-//			}
-//			catch (InvalidAlgorithmParameterException e)
             catch (Exception)
             {
                 // ignore okay
             }
-
-//			try
-//			{
-//				mac.Init(null);
-//			}
-//			catch (InvalidKeyException)
-//			{
-//				// ignore okay
-//			}
         }
 
         public override void PerformTest()

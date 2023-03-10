@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -224,58 +225,61 @@ namespace Org.BouncyCastle.Crypto
 				return 0;
 			}
 
-			int blockSize = GetBlockSize();
-			int outLength = GetUpdateOutputSize(length);
-
-			if (outLength > 0)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return ProcessBytes(input.AsSpan(inOff, length), Spans.FromNullable(output, outOff));
+#else
+			int resultLen = 0;
+            int blockSize = buf.Length;
+            int available = blockSize - bufOff;
+			if (length >= available)
 			{
-                Check.OutputLength(output, outOff, outLength, "output buffer too short");
-			}
+				Array.Copy(input, inOff, buf, bufOff, available);
+                inOff += available;
+                length -= available;
 
-            int resultLen = 0;
-			int gapLen = buf.Length - bufOff;
-			if (length >= gapLen)
-			{
-				Array.Copy(input, inOff, buf, bufOff, gapLen);
-				resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
+                int total = blockSize + length;
+                if (outOff > (output.Length - total))
+                {
+                    Check.OutputLength(output, outOff, total - total % blockSize, "output buffer too short");
+                }
+
+                resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
 				bufOff = 0;
-				length -= gapLen;
-				inOff += gapLen;
-				while (length >= buf.Length)
+
+				while (length >= blockSize)
 				{
 					resultLen += m_cipherMode.ProcessBlock(input, inOff, output, outOff + resultLen);
-					length -= blockSize;
 					inOff += blockSize;
+					length -= blockSize;
 				}
 			}
 			Array.Copy(input, inOff, buf, bufOff, length);
 			bufOff += length;
 			return resultLen;
-		}
+#endif
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            if (input.IsEmpty)
-                return 0;
-
-            int blockSize = GetBlockSize();
-            int outLength = GetUpdateOutputSize(input.Length);
-
-            if (outLength > 0)
-            {
-                Check.OutputLength(output, outLength, "output buffer too short");
-            }
-
             int resultLen = 0;
-            int gapLen = buf.Length - bufOff;
-            if (input.Length >= gapLen)
+            int blockSize = buf.Length;
+            int available = blockSize - bufOff;
+            if (input.Length >= available)
             {
-				input[..gapLen].CopyTo(buf.AsSpan(bufOff));
+                input[..available].CopyTo(buf.AsSpan(bufOff));
+                input = input[available..];
+
+                int total = blockSize + input.Length;
+				if (output.Length < total)
+				{
+                    Check.OutputLength(output, total - total % blockSize, "output buffer too short");
+                }
+
                 resultLen = m_cipherMode.ProcessBlock(buf, output);
                 bufOff = 0;
-				input = input[gapLen..];
-                while (input.Length >= buf.Length)
+
+                while (input.Length >= blockSize)
                 {
                     resultLen += m_cipherMode.ProcessBlock(input, output[resultLen..]);
 					input = input[blockSize..];

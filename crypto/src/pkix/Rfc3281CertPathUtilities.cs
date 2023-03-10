@@ -253,26 +253,21 @@ namespace Org.BouncyCastle.Pkix
 			}
 		}
 
-		internal static void ProcessAttrCert4(
-			X509Certificate	acIssuerCert,
-			PkixParameters	pkixParams)
+		internal static void ProcessAttrCert4(X509Certificate acIssuerCert, PkixParameters pkixParams)
 		{
-			var set = pkixParams.GetTrustedACIssuers();
-			bool trusted = false;
-			foreach (TrustAnchor anchor in set)
+			foreach (var anchor in pkixParams.GetTrustedACIssuers())
 			{
                 var symbols = X509Name.RFC2253Symbols;
+
                 if (acIssuerCert.SubjectDN.ToString(false, symbols).Equals(anchor.CAName)
 					|| acIssuerCert.Equals(anchor.TrustedCert))
 				{
-					trusted = true;
+					// Trusted
+					return;
 				}
 			}
-			if (!trusted)
-			{
-				throw new PkixCertPathValidatorException(
-					"Attribute certificate issuer is not directly trusted.");
-			}
+
+			throw new PkixCertPathValidatorException("Attribute certificate issuer is not directly trusted.");
 		}
 
 		internal static void ProcessAttrCert3(

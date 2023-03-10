@@ -14,17 +14,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         public static BcTlsSecret Convert(BcTlsCrypto crypto, TlsSecret secret)
         {
-            if (secret is BcTlsSecret)
-                return (BcTlsSecret)secret;
+            if (secret is BcTlsSecret bcTlsSecret)
+                return bcTlsSecret;
 
-            if (secret is AbstractTlsSecret)
-            {
-                AbstractTlsSecret abstractTlsSecret = (AbstractTlsSecret)secret;
-
+            if (secret is AbstractTlsSecret abstractTlsSecret)
                 return crypto.AdoptLocalSecret(CopyData(abstractTlsSecret));
-            }
 
-            throw new ArgumentException("unrecognized TlsSecret - cannot copy data: " + Platform.GetTypeName(secret));
+            throw new ArgumentException("unrecognized TlsSecret - cannot copy data: " + secret.GetType().FullName);
         }
 
         // SSL3 magic mix constants ("A", "BB", "CCC", ...)

@@ -21,12 +21,14 @@ namespace Org.BouncyCastle.Utilities.IO.Compression
 #endif
         }
 
-        internal static Stream DecompressInput(Stream stream)
+        internal static Stream DecompressInput(Stream stream, bool leaveOpen = false)
         {
 #if NET6_0_OR_GREATER
-            return new ZLibStream(stream, CompressionMode.Decompress, leaveOpen: false);
+            return new ZLibStream(stream, CompressionMode.Decompress, leaveOpen);
 #else
-            return new ZInputStream(stream);
+            return leaveOpen
+                ?   new ZInputStreamLeaveOpen(stream)
+                :   new ZInputStream(stream);
 #endif
         }
 

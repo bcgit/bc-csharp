@@ -25,9 +25,15 @@ namespace Org.BouncyCastle.Bcpg
         PolicyUrl = 26,							// policy URL
         KeyFlags = 27,							// key flags
         SignerUserId = 28,						// signer's user id
-        RevocationReason = 29,					// reason for revocation
-		Features = 30,							// features
-		SignatureTarget = 31,					// signature target
-		EmbeddedSignature = 32					// embedded signature
-	}
+        RevocationReason = 29,                  // reason for revocation
+        Features = 30,                          // features
+        SignatureTarget = 31,                   // signature target
+        EmbeddedSignature = 32,					// embedded signature
+        IssuerFingerprint = 33,                 // issuer key fingerprint
+        //PreferredAeadAlgorithms = 34,         // RESERVED since crypto-refresh-05
+        IntendedRecipientFingerprint = 35,      // intended recipient fingerprint
+        AttestedCertifications = 37,            // attested certifications (RESERVED)
+        KeyBlock = 38,                          // Key Block (RESERVED)
+        PreferredAeadAlgorithms = 39,           // preferred AEAD algorithms
+    }
 }

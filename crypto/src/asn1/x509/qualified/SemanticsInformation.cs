@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptional(semanticsIdentifier);
 
             if (null != nameRegistrationAuthorities)

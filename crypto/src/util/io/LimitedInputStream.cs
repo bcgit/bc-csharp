@@ -1,10 +1,9 @@
-﻿using Org.BouncyCastle.Utilities.Zlib;
-using System;
+﻿using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-    internal class LimitedInputStream
+    internal sealed class LimitedInputStream
         : BaseInputStream
     {
         private readonly Stream m_stream;

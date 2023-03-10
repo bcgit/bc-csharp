@@ -18,12 +18,22 @@ namespace Org.BouncyCastle.Utilities
 
         public static string FromByteArray(byte[] bs)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return string.Create(bs.Length, bs, (chars, bytes) =>
+            {
+                for (int i = 0; i < chars.Length; ++i)
+                {
+                    chars[i] = Convert.ToChar(bytes[i]);
+                }
+            });
+#else
             char[] cs = new char[bs.Length];
             for (int i = 0; i < cs.Length; ++i)
             {
                 cs[i] = Convert.ToChar(bs[i]);
             }
             return new string(cs);
+#endif
         }
 
         public static byte[] ToByteArray(char[] cs)
@@ -76,6 +86,11 @@ namespace Org.BouncyCastle.Utilities
         public static string FromUtf8ByteArray(byte[] bytes)
         {
             return Encoding.UTF8.GetString(bytes);
+        }
+
+        public static string FromUtf8ByteArray(byte[] bytes, int index, int count)
+        {
+            return Encoding.UTF8.GetString(bytes, index, count);
         }
 
         public static byte[] ToUtf8ByteArray(char[] cs)

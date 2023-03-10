@@ -4,42 +4,25 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Paddings
 {
-
-    /**
-    * A padder that adds ISO10126-2 padding to a block.
-    */
-    public class ISO10126d2Padding: IBlockCipherPadding
+    /// <summary>A padder that adds ISO10126-2 padding to a block.</summary>
+    public class ISO10126d2Padding
+        : IBlockCipherPadding
     {
-        private SecureRandom random;
+        private SecureRandom m_random = null;
 
-        /**
-        * Initialise the padder.
-        *
-        * @param random a SecureRandom if available.
-        */
-        public void Init(
-			SecureRandom random)
-            //throws ArgumentException
+        public void Init(SecureRandom random)
         {
-            this.random = CryptoServicesRegistrar.GetSecureRandom(random);
+            m_random = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
-		/**
-        * Return the name of the algorithm the cipher implements.
-        *
-        * @return the name of the algorithm the cipher implements.
-        */
-        public string PaddingName
-        {
-            get { return "ISO10126-2"; }
-        }
+        public string PaddingName => "ISO10126-2";
 
         public int AddPadding(byte[] input, int inOff)
         {
             int count = input.Length - inOff;
             if (count > 1)
             {
-                random.NextBytes(input, inOff, count - 1);
+                m_random.NextBytes(input, inOff, count - 1);
             }
             input[input.Length - 1] = (byte)count;
 
@@ -52,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
             int count = block.Length - position;
             if (count > 1)
             {
-                random.NextBytes(block[position..(block.Length - 1)]);
+                m_random.NextBytes(block[position..(block.Length - 1)]);
             }
             block[block.Length - 1] = (byte)count;
 
@@ -62,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
 
         public int PadCount(byte[] input)
         {
-            int count = input[input.Length -1];
+            int count = input[input.Length - 1];
             int position = input.Length - count;
 
             int failed = (position | (count - 1)) >> 31;

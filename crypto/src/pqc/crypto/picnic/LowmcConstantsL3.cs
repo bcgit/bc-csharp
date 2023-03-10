@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Utilities.IO.Compression;
 using System.Collections.Generic;
 using System.IO;
 
@@ -9,10 +10,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         public LowmcConstantsL3()
         {
             _matrixToHex = new Dictionary<string, string>();
-            Stream input = typeof(LowmcConstants).Assembly
-                .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.picnic.lowmcL3.properties");
-            
-            using (StreamReader sr = new StreamReader(input))
+            using (var input = typeof(LowmcConstants).Assembly.GetManifestResourceStream(
+                "Org.BouncyCastle.pqc.crypto.picnic.lowmcL3.bz2"))
+            using (var sr = new StreamReader(Bzip2.DecompressInput(input)))
             {
                 // load a properties file
                 string line = sr.ReadLine();

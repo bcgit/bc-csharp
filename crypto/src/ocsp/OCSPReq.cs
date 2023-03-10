@@ -165,9 +165,10 @@ namespace Org.BouncyCastle.Ocsp
 			{
 				foreach (Asn1Encodable ae in certs)
 				{
-                    if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
+                    var c = X509CertificateStructure.GetInstance(ae);
+                    if (c != null)
                     {
-                        result.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
+                        result.Add(new X509Certificate(c));
                     }
                 }
 			}

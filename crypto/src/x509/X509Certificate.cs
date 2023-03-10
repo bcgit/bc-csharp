@@ -63,7 +63,6 @@ namespace Org.BouncyCastle.X509
         private readonly BasicConstraints basicConstraints;
         private readonly bool[] keyUsage;
 
-        private readonly object cacheLock = new object();
         private AsymmetricKeyParameter publicKeyValue;
         private CachedEncoding cachedEncoding;
 
@@ -339,7 +338,6 @@ namespace Org.BouncyCastle.X509
             return Arrays.Clone(keyUsage);
         }
 
-        // TODO Replace with something that returns a list of DerObjectIdentifier
         public virtual IList<DerObjectIdentifier> GetExtendedKeyUsage()
         {
             Asn1OctetString str = GetExtensionValue(X509Extensions.ExtendedKeyUsage);
@@ -472,23 +470,7 @@ namespace Org.BouncyCastle.X509
         public virtual AsymmetricKeyParameter GetPublicKey()
         {
             // Cache the public key to support repeated-use optimizations
-            lock (cacheLock)
-            {
-                if (null != publicKeyValue)
-                    return publicKeyValue;
-            }
-
-            AsymmetricKeyParameter temp = PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-
-            lock (cacheLock)
-            {
-                if (null == publicKeyValue)
-                {
-                    publicKeyValue = temp;
-                }
-
-                return publicKeyValue;
-            }
+            return Objects.EnsureSingletonInitialized(ref publicKeyValue, c, CreatePublicKey);
         }
 
         /// <summary>
@@ -576,12 +558,12 @@ namespace Org.BouncyCastle.X509
             buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).AppendLine();
 
             byte[] sig = this.GetSignature();
-            buf.Append("            Signature: ").Append(Hex.ToHexString(sig, 0, 20)).AppendLine();
+            buf.Append("            Signature: ").AppendLine(Hex.ToHexString(sig, 0, 20));
 
             for (int i = 20; i < sig.Length; i += 20)
             {
                 int len = System.Math.Min(20, sig.Length - i);
-                buf.Append("                       ").Append(Hex.ToHexString(sig, i, len)).AppendLine();
+                buf.Append("                       ").AppendLine(Hex.ToHexString(sig, i, len));
             }
 
             X509Extensions extensions = c.TbsCertificate.Extensions;
@@ -592,7 +574,7 @@ namespace Org.BouncyCastle.X509
 
                 if (e.MoveNext())
                 {
-                    buf.Append("       Extensions: \n");
+                    buf.AppendLine("       Extensions:");
                 }
 
                 do
@@ -692,12 +674,11 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-            lock (cacheLock)
-            {
-                if (null != cachedEncoding)
-                    return cachedEncoding;
-            }
+            return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+        }
 
+        private static CachedEncoding CreateCachedEncoding(X509CertificateStructure c)
+        {
             byte[] encoding = null;
             CertificateEncodingException exception = null;
             try
@@ -709,17 +690,12 @@ namespace Org.BouncyCastle.X509
                 exception = new CertificateEncodingException("Failed to DER-encode certificate", e);
             }
 
-            CachedEncoding temp = new CachedEncoding(encoding, exception);
+            return new CachedEncoding(encoding, exception);
+        }
 
-            lock (cacheLock)
-            {
-                if (null == cachedEncoding)
-                {
-                    cachedEncoding = temp;
-                }
-
-                return cachedEncoding;
-            }
+        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
+        {
+            return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
         }
 
         private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
@@ -731,7 +707,7 @@ namespace Org.BouncyCastle.X509
             Asn1Encodable p2 = id2.Parameters;
 
             if ((p1 == null) == (p2 == null))
-                return Platform.Equals(p1, p2);
+                return Objects.Equals(p1, p2);
 
             // Exactly one of p1, p2 is null at this point
             return p1 == null

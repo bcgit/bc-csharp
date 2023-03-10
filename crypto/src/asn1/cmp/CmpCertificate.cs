@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
@@ -11,64 +9,69 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         public static CmpCertificate GetInstance(object obj)
         {
-            // TODO[cmp] Review this whole metho
-
             if (obj == null)
                 return null;
-
             if (obj is CmpCertificate cmpCertificate)
                 return cmpCertificate;
+            if (obj is X509CertificateStructure certificate)
+                return new CmpCertificate(certificate);
+            if (obj is Asn1TaggedObject taggedObject)
+                return new CmpCertificate(taggedObject);
 
-            if (obj is byte[] bs)
+            Asn1Object asn1Object = null;
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                try
-                {
-                    obj = Asn1Object.FromByteArray(bs);
-                }
-                catch (IOException)
-                {
-                    throw new ArgumentException("Invalid encoding in CmpCertificate");
-                }
+                asn1Object = asn1Convertible.ToAsn1Object();
+            }
+            else if (obj is byte[] bytes)
+            {
+                asn1Object = Asn1Object.FromByteArray(bytes);
             }
 
-            if (obj is Asn1Sequence)
-                return new CmpCertificate(X509CertificateStructure.GetInstance(obj));
+            if (asn1Object is Asn1TaggedObject asn1TaggedObject)
+                return new CmpCertificate(asn1TaggedObject);
 
-            if (obj is Asn1TaggedObject taggedObject)
-                return new CmpCertificate(taggedObject.TagNo, taggedObject.GetObject());
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+            return new CmpCertificate(X509CertificateStructure.GetInstance(asn1Object ?? obj));
         }
 
         public static CmpCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            // TODO[cmp]
-            if (taggedObject == null)
-                return null;
-
-            if (!declaredExplicit)
-                throw new ArgumentException("tag must be explicit");
-
-            // TODO[cmp]
-            return GetInstance(taggedObject.GetObject());
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly X509CertificateStructure m_x509v3PKCert;
 
-        private readonly int m_otherTagValue;
-        private readonly Asn1Encodable m_otherCert;
+        private readonly int m_otherTag;
+        private readonly Asn1Encodable m_otherObject;
 
-        /**
-         * Note: the addition of other certificates is a BC extension. If you use this constructor they
-         * will be added with an explicit tag value of type.
-         *
-         * @param type      the type of the certificate (used as a tag value).
-         * @param otherCert the object representing the certificate
-         */
+        [Obsolete("Use 'GetInstance' from tagged object instead")]
         public CmpCertificate(int type, Asn1Encodable otherCert)
         {
-            m_otherTagValue = type;
-            m_otherCert = otherCert;
+            m_otherTag = type;
+            m_otherObject = otherCert;
+        }
+
+        internal CmpCertificate(Asn1TaggedObject taggedObject)
+        {
+            Asn1Encodable otherCert;
+            if (taggedObject.HasContextTag(1))
+            {
+                otherCert = AttributeCertificate.GetInstance(taggedObject, true);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid CHOICE element", nameof(taggedObject));
+            }
+
+            m_otherTag = taggedObject.TagNo;
+            m_otherObject = taggedObject.GetExplicitBaseObject();
+        }
+
+        internal CmpCertificate(CmpCertificate other)
+        {
+            m_x509v3PKCert = other.m_x509v3PKCert;
+            m_otherTag = other.m_otherTag;
+            m_otherObject = other.m_otherObject;
         }
 
         public CmpCertificate(X509CertificateStructure x509v3PKCert)
@@ -83,9 +86,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual X509CertificateStructure X509v3PKCert => m_x509v3PKCert;
 
-        public virtual int OtherCertTag => m_otherTagValue;
+        public virtual int OtherCertTag => m_otherTag;
 
-        public virtual Asn1Encodable OtherCert => m_otherCert;
+        public virtual Asn1Encodable OtherCert => m_otherObject;
 
         /**
          * <pre>
@@ -100,13 +103,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public override Asn1Object ToAsn1Object()
         {
-            if (m_otherCert != null)
-            {
-                // explicit following CMP conventions
-                return new DerTaggedObject(true, m_otherTagValue, m_otherCert);
-            }
-
-            return m_x509v3PKCert.ToAsn1Object();
+            if (m_otherObject != null)
+                return new DerTaggedObject(true, m_otherTag, m_otherObject);
+            if (m_x509v3PKCert != null)
+                return m_x509v3PKCert.ToAsn1Object();
+            throw new InvalidOperationException();
         }
     }
 }

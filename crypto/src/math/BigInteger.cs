@@ -942,7 +942,7 @@ namespace Org.BouncyCastle.Math
                         int sum = 0;
                         for (int i = 0; i < magnitude.Length; ++i)
                         {
-                            sum += BitCnt(magnitude[i]);
+                            sum += Integers.PopCount(magnitude[i]);
                         }
                         nBits = sum;
                     }
@@ -950,21 +950,6 @@ namespace Org.BouncyCastle.Math
 
                 return nBits;
             }
-        }
-
-        internal static int BitCnt(uint u)
-        {
-#if NETCOREAPP3_0_OR_GREATER
-            return BitOperations.PopCount(u);
-#else
-            u = u - ((u >> 1) & 0x55555555);
-            u = (u & 0x33333333) + ((u >> 2) & 0x33333333);
-            u = (u + (u >> 4)) & 0x0f0f0f0f;
-            u += (u >> 8);
-            u += (u >> 16);
-            u &= 0x3f;
-            return (int)u;
-#endif
         }
 
         private static int CalcBitLength(int sign, int indx, uint[]	mag)

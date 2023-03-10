@@ -18,13 +18,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	{
         public static ErrorMsgContent GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is ErrorMsgContent errorMsgContent)
                 return errorMsgContent;
+            return new ErrorMsgContent(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new ErrorMsgContent(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static ErrorMsgContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiStatusInfo m_pkiStatusInfo;

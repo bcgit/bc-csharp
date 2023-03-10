@@ -9,13 +9,8 @@ namespace Org.BouncyCastle.Cms
 	/// </remarks>
 	public enum CmsAttributeTableParameter
 	{
-//		const string ContentType = "contentType";
-//		const string Digest = "digest";
-//		const string Signature = "encryptedDigest";
-//		const string DigestAlgorithmIdentifier = "digestAlgID";
-
-		ContentType, Digest, Signature, DigestAlgorithmIdentifier
-	}
+		ContentType, Digest, Signature, DigestAlgorithmIdentifier, SignatureAlgorithmIdentifier
+    }
 
 	public interface CmsAttributeTableGenerator
 	{

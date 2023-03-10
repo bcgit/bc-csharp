@@ -360,26 +360,26 @@ namespace Org.BouncyCastle.X509
 
 					switch (DigestedObjectType)
 					{
-						case ObjectDigestInfo.PublicKey:
-						{
-							// TODO: DSA Dss-parms
+					case ObjectDigestInfo.PublicKey:
+					{
+						// TODO: DSA Dss-parms
 
-							//byte[] b = x509Cert.GetPublicKey().getEncoded();
-							// TODO Is this the right way to encode?
-							byte[] b = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
-								x509Cert.GetPublicKey()).GetEncoded();
-							md.BlockUpdate(b, 0, b.Length);
-							break;
-						}
+						//byte[] b = x509Cert.GetPublicKey().getEncoded();
+						// TODO Is this the right way to encode?
+						byte[] b = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
+							x509Cert.GetPublicKey()).GetEncoded();
+						md.BlockUpdate(b, 0, b.Length);
+						break;
+					}
 
-						case ObjectDigestInfo.PublicKeyCert:
-						{
-							byte[] b = x509Cert.GetEncoded();
-							md.BlockUpdate(b, 0, b.Length);
-							break;
-						}
+					case ObjectDigestInfo.PublicKeyCert:
+					{
+						byte[] b = x509Cert.GetEncoded();
+						md.BlockUpdate(b, 0, b.Length);
+						break;
+					}
 
-						// TODO Default handler?
+					// TODO Default handler?
 					}
 
 					// TODO Shouldn't this be the other way around?

@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Tls.Tests
             lock (this)
             {
                 if (m_closed)
-                    throw new ObjectDisposedException(this.GetType().Name);
+                    throw new ObjectDisposedException(GetType().FullName);
             }
         }
     }

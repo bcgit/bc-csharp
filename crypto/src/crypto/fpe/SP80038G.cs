@@ -303,7 +303,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return tweak64;
         }
 
-        private static BigInteger CalculateY_FF1(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int b, int d, int round, byte[] P, ushort[] AB)
+        private static BigInteger CalculateY_FF1(IBlockCipher cipher, BigInteger bigRadix, byte[] T, int b, int d,
+            int round, byte[] P, ushort[] AB)
         {
             int t = T.Length;
 
@@ -579,7 +580,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
 
             for (int i = 0; i < m; ++i)
             {
-                Xor(x, i * BLOCK_SIZE, y, 0, BLOCK_SIZE);
+                Bytes.XorTo(BLOCK_SIZE, x, i * BLOCK_SIZE, y, 0);
                 c.ProcessBlock(y, 0, y, 0);
             }
 
@@ -599,14 +600,6 @@ namespace Org.BouncyCastle.Crypto.Fpe
             }
             if (x.SignValue != 0)
                 throw new ArgumentException();
-        }
-
-        private static void Xor(byte[] x, int xOff, byte[] y, int yOff, int len)
-        {
-            for (int i = 0; i < len; ++i)
-            {
-                y[yOff + i] ^= x[xOff + i];
-            }
         }
 
         private static byte[] ToByte(ushort[] buf)

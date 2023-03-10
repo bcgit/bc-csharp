@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
@@ -28,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.IO
             get { return m_stream.CanRead; }
         }
 
-        public sealed override bool CanSeek
+        public override bool CanSeek
         {
             get { return false; }
         }
@@ -41,28 +43,26 @@ namespace Org.BouncyCastle.Crypto.IO
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (m_readDigest == null)
-            {
-                m_stream.CopyTo(destination, bufferSize);
-            }
-            else
-            {
-                base.CopyTo(destination, bufferSize);
-            }
+            Streams.CopyTo(ReadSource, destination, bufferSize);
         }
 #endif
+
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
+        }
 
         public override void Flush()
         {
             m_stream.Flush();
         }
 
-        public sealed override long Length
+        public override long Length
         {
             get { throw new NotSupportedException(); }
         }
 
-        public sealed override long Position
+        public override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
@@ -92,6 +92,11 @@ namespace Org.BouncyCastle.Crypto.IO
 
             return n;
         }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
+        }
 #endif
 
         public override int ReadByte()
@@ -106,12 +111,12 @@ namespace Org.BouncyCastle.Crypto.IO
             return b;
         }
 
-        public sealed override long Seek(long offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
         }
 
-        public sealed override void SetLength(long length)
+        public override void SetLength(long length)
         {
             throw new NotSupportedException();
         }
@@ -136,6 +141,11 @@ namespace Org.BouncyCastle.Crypto.IO
                 m_writeDigest.BlockUpdate(buffer);
             }
         }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.WriteAsync(WriteDestination, buffer, cancellationToken);
+        }
 #endif
 
         public override void WriteByte(byte value)
@@ -156,5 +166,8 @@ namespace Org.BouncyCastle.Crypto.IO
             }
             base.Dispose(disposing);
         }
+
+        private Stream ReadSource => m_readDigest == null ? m_stream : this;
+        private Stream WriteDestination => m_writeDigest == null ? m_stream : this;
     }
 }

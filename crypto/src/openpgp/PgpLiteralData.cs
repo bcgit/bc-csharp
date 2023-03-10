@@ -18,14 +18,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 		private readonly LiteralDataPacket data;
 
-		public PgpLiteralData(
-            BcpgInputStream bcpgInput)
+		public PgpLiteralData(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();
-            if (!(packet is LiteralDataPacket))
+            if (!(packet is LiteralDataPacket literalDataPacket))
                 throw new IOException("unexpected packet in stream: " + packet);
 
-            this.data = (LiteralDataPacket)packet;
+            this.data = literalDataPacket;
         }
 
 		/// <summary>The format of the data stream - Binary or Text</summary>
