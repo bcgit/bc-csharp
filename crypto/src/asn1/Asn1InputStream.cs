@@ -82,10 +82,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                tmpBuffers = null;
-            }
+            tmpBuffers = null;
 
             if (m_leaveOpen)
             {

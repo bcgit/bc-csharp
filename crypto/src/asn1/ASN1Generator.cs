@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1
 
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 

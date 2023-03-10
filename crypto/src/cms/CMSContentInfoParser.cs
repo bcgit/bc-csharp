@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Cms
 
 		public void Dispose()
 		{
-			Dispose(true);
+			Dispose(disposing: true);
 			GC.SuppressFinalize(this);
 		}
 

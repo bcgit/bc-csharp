@@ -83,6 +83,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         public void Dispose()
         {
             m_randomNumberGenerator.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         #endregion

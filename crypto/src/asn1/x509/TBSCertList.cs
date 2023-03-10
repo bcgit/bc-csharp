@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1.X509
 				return new RevokedCertificatesEnumerator(en.GetEnumerator());
 			}
 
-			private class RevokedCertificatesEnumerator
+			private sealed class RevokedCertificatesEnumerator
 				: IEnumerator<CrlEntry>
 			{
 				private readonly IEnumerator<Asn1Encodable> e;
@@ -107,11 +107,13 @@ namespace Org.BouncyCastle.Asn1.X509
 					this.e = e;
 				}
 
-				public virtual void Dispose()
+				public void Dispose()
 				{
-				}
+					e.Dispose();
+                    GC.SuppressFinalize(this);
+                }
 
-				public bool MoveNext()
+                public bool MoveNext()
 				{
 					return e.MoveNext();
 				}

@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 

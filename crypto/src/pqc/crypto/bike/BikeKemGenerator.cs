@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return new SecretWithEncapsulationImpl(Arrays.CopyOfRange(K, 0, parameters.DefaultKeySize / 8), c01);
         }
 
-        private class SecretWithEncapsulationImpl
+        private sealed class SecretWithEncapsulationImpl
             : ISecretWithEncapsulation
         {
             private volatile bool hasBeenDestroyed = false;
@@ -62,10 +62,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             {
                 if (!hasBeenDestroyed)
                 {
-                    hasBeenDestroyed = true;
                     Arrays.Clear(sessionKey);
                     Arrays.Clear(cipher_text);
+                    hasBeenDestroyed = true;
                 }
+                GC.SuppressFinalize(this);
             }
 
             public bool IsDestroyed()

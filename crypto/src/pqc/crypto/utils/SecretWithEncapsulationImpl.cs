@@ -35,11 +35,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         public void Dispose()
         {
-            if (!hasBeenDestroyed)
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                hasBeenDestroyed = true;
-                Arrays.Clear(sessionKey);
-                Arrays.Clear(cipher_text);
+                if (!hasBeenDestroyed)
+                {
+                    Arrays.Clear(sessionKey);
+                    Arrays.Clear(cipher_text);
+                    hasBeenDestroyed = true;
+                }
             }
         }
 
