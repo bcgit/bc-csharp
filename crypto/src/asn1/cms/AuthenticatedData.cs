@@ -48,17 +48,16 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.unauthAttrs = unauthAttrs;
 		}
 
-		private AuthenticatedData(
-			Asn1Sequence	seq)
+		private AuthenticatedData(Asn1Sequence seq)
 		{
 			int index = 0;
 
 			version = (DerInteger)seq[index++];
 
 			Asn1Encodable tmp = seq[index++];
-			if (tmp is Asn1TaggedObject)
+			if (tmp is Asn1TaggedObject taggedObject1)
 			{
-				originatorInfo = OriginatorInfo.GetInstance((Asn1TaggedObject)tmp, false);
+				originatorInfo = OriginatorInfo.GetInstance(taggedObject1, false);
 				tmp = seq[index++];
 			}
 
@@ -66,18 +65,18 @@ namespace Org.BouncyCastle.Asn1.Cms
 			macAlgorithm = AlgorithmIdentifier.GetInstance(seq[index++]);
 
 			tmp = seq[index++];
-			if (tmp is Asn1TaggedObject)
+			if (tmp is Asn1TaggedObject taggedObject2)
 			{
-				digestAlgorithm = AlgorithmIdentifier.GetInstance((Asn1TaggedObject)tmp, false);
+				digestAlgorithm = AlgorithmIdentifier.GetInstance(taggedObject2, false);
 				tmp = seq[index++];
 			}
 
 			encapsulatedContentInfo = ContentInfo.GetInstance(tmp);
 
 			tmp = seq[index++];
-			if (tmp is Asn1TaggedObject)
+			if (tmp is Asn1TaggedObject taggedObject3)
 			{
-				authAttrs = Asn1Set.GetInstance((Asn1TaggedObject)tmp, false);
+				authAttrs = Asn1Set.GetInstance(taggedObject3, false);
 				tmp = seq[index++];
 			}
 

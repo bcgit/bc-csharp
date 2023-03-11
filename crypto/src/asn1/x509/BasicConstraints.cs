@@ -37,9 +37,9 @@ namespace Org.BouncyCastle.Asn1.X509
         {
 			if (seq.Count > 0)
 			{
-				if (seq[0] is DerBoolean)
+				if (seq[0] is DerBoolean derBoolean)
 				{
-					this.cA = DerBoolean.GetInstance(seq[0]);
+					this.cA = derBoolean;
 				}
 				else
 				{

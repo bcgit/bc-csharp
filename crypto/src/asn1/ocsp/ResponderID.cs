@@ -10,27 +10,22 @@ namespace Org.BouncyCastle.Asn1.Ocsp
     {
         private readonly Asn1Encodable id;
 
-		public static ResponderID GetInstance(
-			object obj)
+		public static ResponderID GetInstance(object obj)
 		{
 			if (obj == null || obj is ResponderID)
 			{
 				return (ResponderID)obj;
 			}
 
-			if (obj is DerOctetString)
+			if (obj is Asn1OctetString octets)
 			{
-				return new ResponderID((DerOctetString)obj);
+				return new ResponderID(octets);
 			}
 
-			if (obj is Asn1TaggedObject)
+			if (obj is Asn1TaggedObject o)
 			{
-				Asn1TaggedObject o = (Asn1TaggedObject)obj;
-
 				if (o.TagNo == 1)
-				{
 					return new ResponderID(X509Name.GetInstance(o, true));
-				}
 
 				return new ResponderID(Asn1OctetString.GetInstance(o, true));
 			}

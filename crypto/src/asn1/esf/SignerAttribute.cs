@@ -26,11 +26,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 				"obj");
 		}
 
-		private SignerAttribute(
-			object obj)
+		private SignerAttribute(object obj)
 		{
-			Asn1Sequence seq = (Asn1Sequence) obj;
-			DerTaggedObject taggedObject = (DerTaggedObject) seq[0];
+			Asn1Sequence seq = (Asn1Sequence)obj;
+			Asn1TaggedObject taggedObject = (Asn1TaggedObject)seq[0];
 			if (taggedObject.TagNo == 0)
 			{
 				claimedAttributes = Asn1Sequence.GetInstance(taggedObject, true);

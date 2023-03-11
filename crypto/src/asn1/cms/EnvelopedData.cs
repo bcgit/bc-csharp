@@ -45,9 +45,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             object tmp = seq[index++];
 
-            if (tmp is Asn1TaggedObject)
+            if (tmp is Asn1TaggedObject taggedObject)
             {
-                originatorInfo = OriginatorInfo.GetInstance((Asn1TaggedObject) tmp, false);
+                originatorInfo = OriginatorInfo.GetInstance(taggedObject, false);
                 tmp = seq[index++];
             }
 
@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (seq.Count > index)
             {
-                unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject) seq[index], false);
+                unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject)seq[index], false);
             }
         }
 

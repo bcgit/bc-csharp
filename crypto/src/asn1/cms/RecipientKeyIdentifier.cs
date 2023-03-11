@@ -43,24 +43,24 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			switch(seq.Count)
             {
-				case 1:
-					break;
-				case 2:
-					if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
-					{
-						date = asn1GeneralizedTime;
-					}
-					else
-					{
-						other = OtherKeyAttribute.GetInstance(seq[2]);
-					}
-					break;
-				case 3:
-					date = (Asn1GeneralizedTime)seq[1];
+			case 1:
+				break;
+			case 2:
+				if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
+				{
+					date = asn1GeneralizedTime;
+				}
+				else
+				{
 					other = OtherKeyAttribute.GetInstance(seq[2]);
-					break;
-				default:
-					throw new ArgumentException("Invalid RecipientKeyIdentifier");
+				}
+				break;
+			case 3:
+				date = (Asn1GeneralizedTime)seq[1];
+				other = OtherKeyAttribute.GetInstance(seq[2]);
+				break;
+			default:
+				throw new ArgumentException("Invalid RecipientKeyIdentifier");
             }
         }
 

@@ -63,16 +63,13 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 		{
 		}
 
-		private ResponseData(
-			Asn1Sequence seq)
+		private ResponseData(Asn1Sequence seq)
 		{
 			int index = 0;
 
 			Asn1Encodable enc = seq[0];
-			if (enc is Asn1TaggedObject)
+			if (enc is Asn1TaggedObject o)
 			{
-				Asn1TaggedObject o = (Asn1TaggedObject)enc;
-
 				if (o.TagNo == 0)
 				{
 					this.versionPresent = true;

@@ -54,9 +54,9 @@ namespace Org.BouncyCastle.Asn1.X9
             this.curve = x9c.Curve;
             object p = seq[3];
 
-            if (p is X9ECPoint)
+            if (p is X9ECPoint x9)
             {
-                this.g = (X9ECPoint)p;
+                this.g = x9;
             }
             else
             {

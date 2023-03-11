@@ -66,11 +66,11 @@ namespace Org.BouncyCastle.Asn1.X509
 			this.seq = seq;
 
 			//
-			// some certficates don't include a version number - we assume v1
+			// some certificates don't include a version number - we assume v1
 			//
-			if (seq[0] is Asn1TaggedObject)
+			if (seq[0] is Asn1TaggedObject taggedObject)
 			{
-				version = DerInteger.GetInstance((Asn1TaggedObject)seq[0], true);
+				version = DerInteger.GetInstance(taggedObject, true);
 			}
 			else
 			{

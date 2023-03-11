@@ -169,21 +169,19 @@ namespace Org.BouncyCastle.Asn1.X509
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
-		internal TbsCertificateList(
-            Asn1Sequence seq)
+		internal TbsCertificateList(Asn1Sequence seq)
         {
 			if (seq.Count < 3 || seq.Count > 7)
-			{
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
 
 			int seqPos = 0;
 
 			this.seq = seq;
 
-			if (seq[seqPos] is DerInteger)
+			if (seq[seqPos] is DerInteger derInteger)
             {
-				version = DerInteger.GetInstance(seq[seqPos++]);
+				version = derInteger;
+				++seqPos;
 			}
             else
             {

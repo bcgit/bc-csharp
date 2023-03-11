@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 }
                 else
                 {
-                    this.identifier = (Asn1Encodable)seq[1];
+                    this.identifier = seq[1];
                 }
             }
             else

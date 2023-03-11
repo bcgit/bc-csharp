@@ -120,14 +120,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public virtual DerInteger[] GetNoticeNumbers()
         {
-            DerInteger[] tmp = new DerInteger[noticeNumbers.Count];
-
-            for (int i = 0; i != noticeNumbers.Count; ++i)
-            {
-                tmp[i] = DerInteger.GetInstance(noticeNumbers[i]);
-            }
-
-            return tmp;
+            return noticeNumbers.MapElements(DerInteger.GetInstance);
         }
 
         /**

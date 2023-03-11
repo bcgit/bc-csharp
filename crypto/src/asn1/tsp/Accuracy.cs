@@ -40,20 +40,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             this.micros = micros;
 		}
 
-		private Accuracy(
-			Asn1Sequence seq)
+		private Accuracy(Asn1Sequence seq)
 		{
 			for (int i = 0; i < seq.Count; ++i)
 			{
 				// seconds
-				if (seq[i] is DerInteger)
+				if (seq[i] is DerInteger derInteger)
 				{
-					seconds = (DerInteger) seq[i];
+					seconds = derInteger;
 				}
-                else if (seq[i] is Asn1TaggedObject)
+                else if (seq[i] is Asn1TaggedObject extra)
 				{
-                    Asn1TaggedObject extra = (Asn1TaggedObject)seq[i];
-
                     switch (extra.TagNo)
                     {
                     case 0:

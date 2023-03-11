@@ -58,10 +58,8 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			{
 				Asn1Object o = (Asn1Object) e.Current;
 
-				if (o is Asn1TaggedObject)
+				if (o is Asn1TaggedObject tagged)
 				{
-					DerTaggedObject tagged = (DerTaggedObject) o;
-
 					switch (tagged.TagNo)
 					{
 					case 0:
@@ -75,7 +73,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 					}
 				}
 
-				if (o is DerSequence)
+				if (o is Asn1Sequence)
 				{
 					accuracy = Accuracy.GetInstance(o);
 				}

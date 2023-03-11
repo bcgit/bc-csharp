@@ -27,25 +27,22 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.recipientEncryptedKeys = recipientEncryptedKeys;
         }
 
-		public KeyAgreeRecipientInfo(
-            Asn1Sequence seq)
+		public KeyAgreeRecipientInfo(Asn1Sequence seq)
         {
             int index = 0;
 
             version = (DerInteger) seq[index++];
-            originator = OriginatorIdentifierOrKey.GetInstance(
-				(Asn1TaggedObject) seq[index++], true);
+            originator = OriginatorIdentifierOrKey.GetInstance((Asn1TaggedObject)seq[index++], true);
 
-			if (seq[index] is Asn1TaggedObject)
+			if (seq[index] is Asn1TaggedObject taggedObject)
             {
-                ukm = Asn1OctetString.GetInstance(
-					(Asn1TaggedObject) seq[index++], true);
+                ukm = Asn1OctetString.GetInstance(taggedObject, true);
+                ++index;
             }
 
-			keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(
-				seq[index++]);
+			keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[index++]);
 
-			recipientEncryptedKeys = (Asn1Sequence) seq[index++];
+			recipientEncryptedKeys = (Asn1Sequence)seq[index++];
         }
 
 		/**

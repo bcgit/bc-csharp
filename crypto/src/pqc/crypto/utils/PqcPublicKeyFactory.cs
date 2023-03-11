@@ -225,7 +225,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(
-                    DerSequence.GetInstance(keyInfo.ParsePublicKey())[0]).GetOctets();
+                    Asn1Sequence.GetInstance(keyInfo.ParsePublicKey())[0]).GetOctets();
 
                 SaberParameters saberParams = PqcUtilities.SaberParamsLookup(keyInfo.AlgorithmID.Algorithm);
 

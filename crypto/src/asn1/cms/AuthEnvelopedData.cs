@@ -49,8 +49,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.unauthAttrs = unauthAttrs;
 	    }
 
-		private AuthEnvelopedData(
-			Asn1Sequence	seq)
+		private AuthEnvelopedData(Asn1Sequence seq)
 		{
 			int index = 0;
 
@@ -61,9 +60,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 				throw new ArgumentException("AuthEnvelopedData version number must be 0");
 
 			tmp = seq[index++].ToAsn1Object();
-			if (tmp is Asn1TaggedObject)
+			if (tmp is Asn1TaggedObject taggedObject1)
 			{
-				originatorInfo = OriginatorInfo.GetInstance((Asn1TaggedObject)tmp, false);
+				originatorInfo = OriginatorInfo.GetInstance(taggedObject1, false);
 				tmp = seq[index++].ToAsn1Object();
 			}
 
@@ -76,9 +75,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 			authEncryptedContentInfo = EncryptedContentInfo.GetInstance(tmp);
 
 			tmp = seq[index++].ToAsn1Object();
-			if (tmp is Asn1TaggedObject)
+			if (tmp is Asn1TaggedObject taggedObject2)
 			{
-				authAttrs = Asn1Set.GetInstance((Asn1TaggedObject)tmp, false);
+				authAttrs = Asn1Set.GetInstance(taggedObject2, false);
 				tmp = seq[index++].ToAsn1Object();
 			}
 			else

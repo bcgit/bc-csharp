@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             //
             if (seq.Count > 3)
             {
-                DerTaggedObject tagobj = (DerTaggedObject) seq[3];
+                Asn1TaggedObject tagobj = (Asn1TaggedObject)seq[3];
                 attributes = Asn1Set.GetInstance(tagobj, false);
             }
 
