@@ -6,17 +6,9 @@ namespace Org.BouncyCastle.Asn1
     public class BerOctetString
         : DerOctetString
     {
-        private const int DefaultSegmentLimit = 1000;
-
         public static BerOctetString FromSequence(Asn1Sequence seq)
         {
-            int count = seq.Count;
-            Asn1OctetString[] v = new Asn1OctetString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                v[i] = GetInstance(seq[i]);
-            }
-            return new BerOctetString(v);
+            return new BerOctetString(seq.MapElements(GetInstance));
         }
 
         internal static byte[] FlattenOctetStrings(Asn1OctetString[] octetStrings)
@@ -51,34 +43,34 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private readonly int segmentLimit;
         private readonly Asn1OctetString[] elements;
 
         public BerOctetString(byte[] contents)
-			: this(contents, DefaultSegmentLimit)
+			: this(contents, null)
 		{
 		}
 
         public BerOctetString(Asn1OctetString[] elements)
-            : this(elements, DefaultSegmentLimit)
+            : this(FlattenOctetStrings(elements), elements)
         {
         }
 
+        [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerOctetString(byte[] contents, int segmentLimit)
-            : this(contents, null, segmentLimit)
+            : this(contents)
         {
         }
 
+        [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerOctetString(Asn1OctetString[] elements, int segmentLimit)
-            : this(FlattenOctetStrings(elements), elements, segmentLimit)
+            : this(elements)
         {
         }
 
-        private BerOctetString(byte[] contents, Asn1OctetString[] elements, int segmentLimit)
+        private BerOctetString(byte[] contents, Asn1OctetString[] elements)
             : base(contents)
         {
             this.elements = elements;
-            this.segmentLimit = segmentLimit;
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
