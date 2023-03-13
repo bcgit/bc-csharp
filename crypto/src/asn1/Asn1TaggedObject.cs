@@ -294,9 +294,8 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1Object GetBaseUniversal(bool declaredExplicit, int tagNo)
         {
-            Asn1UniversalType universalType = Asn1UniversalTypes.Get(tagNo);
-            if (null == universalType)
-                throw new ArgumentException("unsupported UNIVERSAL tag number: " + tagNo, nameof(tagNo));
+            Asn1UniversalType universalType = Asn1UniversalTypes.Get(tagNo)
+                ?? throw new ArgumentException("unsupported UNIVERSAL tag number: " + tagNo, nameof(tagNo));
 
             return GetBaseUniversal(declaredExplicit, universalType);
         }

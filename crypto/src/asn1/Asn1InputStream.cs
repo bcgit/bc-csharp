@@ -433,7 +433,11 @@ namespace Org.BouncyCastle.Asn1
                 return DerVideotexString.CreatePrimitive(bytes);
             case Asn1Tags.VisibleString:
                 return DerVisibleString.CreatePrimitive(bytes);
+
+            case Asn1Tags.Real:
+            case Asn1Tags.EmbeddedPdv:
             case Asn1Tags.Time:
+            case Asn1Tags.UnrestrictedString:
             case Asn1Tags.Date:
             case Asn1Tags.TimeOfDay:
             case Asn1Tags.DateTime:

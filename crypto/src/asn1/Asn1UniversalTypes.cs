@@ -65,7 +65,14 @@ namespace Org.BouncyCastle.Asn1
 
             case Asn1Tags.Real:
             case Asn1Tags.EmbeddedPdv:
+            case Asn1Tags.Time:
             case Asn1Tags.UnrestrictedString:
+            case Asn1Tags.Date:
+            case Asn1Tags.TimeOfDay:
+            case Asn1Tags.DateTime:
+            case Asn1Tags.Duration:
+            case Asn1Tags.ObjectIdentifierIri:
+            case Asn1Tags.RelativeOidIri:
             default:
                 return null;
             }
