@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
@@ -10,13 +11,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly ISigner m_signer;
         private readonly IDigest m_digest;
-        private readonly byte[] m_digBuf;
 
         internal EdDsaSigner(ISigner signer, IDigest digest)
         {
             m_signer = signer;
             m_digest = digest;
-            m_digBuf = new byte[digest.GetDigestSize()];
         }
 
         public string AlgorithmName => m_signer.AlgorithmName;
@@ -48,27 +47,35 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public byte[] GenerateSignature()
         {
-            m_digest.DoFinal(m_digBuf, 0);
-
-            m_signer.BlockUpdate(m_digBuf, 0, m_digBuf.Length);
-
+            FinalizeDigest();
             return m_signer.GenerateSignature();
         }
 
         public bool VerifySignature(byte[] signature)
         {
-            m_digest.DoFinal(m_digBuf, 0);
-
-            m_signer.BlockUpdate(m_digBuf, 0, m_digBuf.Length);
-
+            FinalizeDigest();
             return m_signer.VerifySignature(signature);
         }
 
         public void Reset()
         {
-            Arrays.Clear(m_digBuf);
             m_signer.Reset();
             m_digest.Reset();
+        }
+
+        private void FinalizeDigest()
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int digestSize = m_digest.GetDigestSize();
+            Span<byte> hash = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
+            m_digest.DoFinal(hash);
+            m_signer.BlockUpdate(hash);
+#else
+            byte[] hash = DigestUtilities.DoFinal(m_digest);
+            m_signer.BlockUpdate(hash, 0, hash.Length);
+#endif
         }
     }
 }
