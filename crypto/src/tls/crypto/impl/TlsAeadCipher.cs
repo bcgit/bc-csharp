@@ -217,9 +217,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 outputPos += m_encryptCipher.DoFinal(output, outputPos, plaintextLength + extraLength, output,
                     outputPos);
             }
-            catch (IOException e)
+            catch (IOException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -292,9 +292,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 outputPos += m_encryptCipher.DoFinal(output, outputPos, plaintext.Length + extraLength, output,
                     outputPos);
             }
-            catch (IOException e)
+            catch (IOException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -357,11 +357,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 {
                     m_decryptCipher.Reset();
                 }
-                throw fatalAlert;
+                throw;
             }
-            catch (IOException e)
+            catch (IOException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

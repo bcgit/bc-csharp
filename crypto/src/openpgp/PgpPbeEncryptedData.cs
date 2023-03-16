@@ -133,9 +133,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				return encStream;
 			}
-			catch (PgpException e)
+			catch (PgpException)
 			{
-				throw e;
+				throw;
 			}
 			catch (Exception e)
 			{

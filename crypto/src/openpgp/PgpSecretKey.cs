@@ -154,9 +154,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     }
                 }
             }
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -605,9 +605,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 return data;
             }
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -771,9 +771,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 return new PgpPrivateKey(KeyId, pubPk, privateKey);
             }
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -1000,9 +1000,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         keyData = EncryptKeyDataV3(rawKeyData, newEncAlgorithm, rawNewPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
                 }
-                catch (PgpException e)
+                catch (PgpException)
                 {
-                    throw e;
+                    throw;
                 }
                 catch (Exception e)
                 {

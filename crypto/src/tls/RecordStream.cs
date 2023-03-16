@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.ExceptionServices;
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
@@ -356,14 +357,14 @@ namespace Org.BouncyCastle.Tls
         {
             m_inputRecord.Reset();
 
-            IOException io = null;
+            ExceptionDispatchInfo io = null;
             try
             {
                 m_input.Dispose();
             }
             catch (IOException e)
             {
-                io = e;
+                io = ExceptionDispatchInfo.Capture(e);
             }
 
             try
@@ -374,7 +375,7 @@ namespace Org.BouncyCastle.Tls
             {
                 if (io == null)
                 {
-                    io = e;
+                    io = ExceptionDispatchInfo.Capture(e);
                 }
                 else
                 {
@@ -383,8 +384,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            if (io != null)
-                throw io;
+            io?.Throw();
         }
 
         /// <exception cref="IOException"/>

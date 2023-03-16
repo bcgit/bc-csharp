@@ -144,9 +144,9 @@ namespace Org.BouncyCastle.Tests
 
 				return "";
 			}
-			catch (TestFailedException e)
+			catch (TestFailedException)
 			{
-				throw e;
+				throw;
 			}
 			catch (Exception e)
 			{

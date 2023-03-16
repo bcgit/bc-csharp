@@ -141,6 +141,10 @@ namespace Org.BouncyCastle.X509
 
 				return ReadDerCertificate(new Asn1InputStream(inStream));
 			}
+			catch (CertificateException)
+			{
+				throw;
+			}
 			catch (Exception e)
 			{
 				throw new CertificateException(e.ToString());

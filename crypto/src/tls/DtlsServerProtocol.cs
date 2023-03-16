@@ -57,12 +57,12 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert fatalAlert)
             {
                 AbortServerHandshake(state, recordLayer, fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
             catch (IOException e)
             {
                 AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

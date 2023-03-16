@@ -27,9 +27,9 @@ namespace Org.BouncyCastle.X509
 			{
 				return AttributeCertificate.GetInstance(Asn1Object.FromStream(input));
 			}
-			catch (IOException e)
+			catch (IOException)
 			{
-				throw e;
+				throw;
 			}
 			catch (Exception e)
 			{

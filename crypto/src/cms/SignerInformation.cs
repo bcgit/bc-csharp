@@ -612,9 +612,9 @@ namespace Org.BouncyCastle.Cms
 					throw new CmsException("algorithm: " + algorithm + " not supported in base signatures.");
 				}
 			}
-			catch (SecurityUtilityException e)
+			catch (SecurityUtilityException)
 			{
-				throw e;
+				throw;
 			}
 			catch (GeneralSecurityException e)
 			{

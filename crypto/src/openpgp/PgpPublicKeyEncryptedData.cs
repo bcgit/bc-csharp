@@ -45,9 +45,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         throw new PgpException("unknown asymmetric algorithm: " + algorithm);
                 }
             }
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -116,9 +116,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 cipher = CipherUtilities.GetCipher(cName);
 			}
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -175,9 +175,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				return encStream;
             }
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

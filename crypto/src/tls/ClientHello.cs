@@ -103,9 +103,9 @@ namespace Org.BouncyCastle.Tls
             {
                 return ImplParse(messageInput, dtlsOutput);
             }
-            catch (TlsFatalAlert e)
+            catch (TlsFatalAlert)
             {
-                throw e;
+                throw;
             }
             catch (IOException e)
             {

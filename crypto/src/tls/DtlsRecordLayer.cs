@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Tls
             //catch (InterruptedIOException e)
             //{
             //    e.bytesTransferred = 0;
-            //    throw e;
+            //    throw;
             //}
 
             sender.Send(buf, off, len);
@@ -578,13 +578,13 @@ namespace Org.BouncyCastle.Tls
                 if (TlsUtilities.IsTimeout(e))
                     return -1;
 
-                throw e;
+                throw;
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
             //catch (InterruptedIOException e)
             //{
             //    e.bytesTransferred = 0;
-            //    throw e;
+            //    throw;
             //}
         }
 

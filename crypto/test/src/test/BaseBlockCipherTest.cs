@@ -115,9 +115,9 @@ namespace Org.BouncyCastle.Tests
 						+ Hex.ToHexString(cText));
 				}
 			}
-			catch (TestFailedException e)
+			catch (TestFailedException)
 			{
-				throw e;
+				throw;
 			}
 			catch (Exception e)
 			{

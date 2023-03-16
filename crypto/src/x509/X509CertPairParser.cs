@@ -74,6 +74,10 @@ namespace Org.BouncyCastle.X509
 
                 return ReadDerCrossCertificatePair(inStream);
 			}
+			catch (CertificateException)
+			{
+				throw;
+			}
 			catch (Exception e)
 			{
 				throw new CertificateException(e.ToString());

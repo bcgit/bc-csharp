@@ -782,12 +782,12 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert e)
             {
                 HandleException(e.AlertDescription, "Failed to read record", e);
-                throw e;
+                throw;
             }
             catch (IOException e)
             {
                 HandleException(AlertDescription.internal_error, "Failed to read record", e);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -813,20 +813,20 @@ namespace Org.BouncyCastle.Tls
                     return;
                 }
             }
-            catch (TlsFatalAlertReceived e)
+            catch (TlsFatalAlertReceived)
             {
                 // Connection failure already handled at source
-                throw e;
+                throw;
             }
             catch (TlsFatalAlert e)
             {
                 HandleException(e.AlertDescription, "Failed to read record", e);
-                throw e;
+                throw;
             }
             catch (IOException e)
             {
                 HandleException(AlertDescription.internal_error, "Failed to read record", e);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -849,12 +849,12 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert e)
             {
                 HandleException(e.AlertDescription, "Failed to process record", e);
-                throw e;
+                throw;
             }
             catch (IOException e)
             {
                 HandleException(AlertDescription.internal_error, "Failed to process record", e);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -873,12 +873,12 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert e)
             {
                 HandleException(e.AlertDescription, "Failed to write record", e);
-                throw e;
+                throw;
             }
             catch (IOException e)
             {
                 HandleException(AlertDescription.internal_error, "Failed to write record", e);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -898,12 +898,12 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert e)
             {
                 HandleException(e.AlertDescription, "Failed to write record", e);
-                throw e;
+                throw;
             }
             catch (IOException e)
             {
                 HandleException(AlertDescription.internal_error, "Failed to write record", e);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

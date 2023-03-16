@@ -2288,9 +2288,9 @@ namespace Org.BouncyCastle.Tls
                     verified = verifier.VerifyRawSignature(certificateVerify, hash);
                 }
             }
-            catch (TlsFatalAlert e)
+            catch (TlsFatalAlert )
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -2353,9 +2353,9 @@ namespace Org.BouncyCastle.Tls
                 output.Write(prfHash, 0, prfHash.Length);
                 verified = verifier.VerifySignature(certificateVerify.Signature);
             }
-            catch (TlsFatalAlert e)
+            catch (TlsFatalAlert)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

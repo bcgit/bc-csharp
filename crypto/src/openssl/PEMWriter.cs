@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.OpenSsl
                 if (e.InnerException is IOException inner)
                     throw inner;
 
-                throw e;
+                throw;
             }
 		}
 	}

@@ -526,9 +526,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 return new ArmoredInputStream(inputStream, hasHeaders);
             }
-            catch (IOException e)
+            catch (IOException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

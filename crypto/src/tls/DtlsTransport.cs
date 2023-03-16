@@ -54,29 +54,29 @@ namespace Org.BouncyCastle.Tls
                     return -1;
 
                 m_recordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (TlsTimeoutException e)
+            catch (TlsTimeoutException)
             {
-                throw e;
+                throw;
             }
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
-                    throw e;
+                    throw;
 
                 m_recordLayer.Fail(AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
-            //catch (InterruptedIOException e)
+            //catch (InterruptedIOException)
             //{
-            //    throw e;
+            //    throw;
             //}
-            catch (IOException e)
+            catch (IOException)
             {
                 m_recordLayer.Fail(AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -103,29 +103,29 @@ namespace Org.BouncyCastle.Tls
                     return -1;
 
                 m_recordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (TlsTimeoutException e)
+            catch (TlsTimeoutException)
             {
-                throw e;
+                throw;
             }
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
-                    throw e;
+                    throw;
 
                 m_recordLayer.Fail(AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
-            //catch (InterruptedIOException e)
+            //catch (InterruptedIOException)
             //{
-            //    throw e;
+            //    throw;
             //}
-            catch (IOException e)
+            catch (IOException)
             {
                 m_recordLayer.Fail(AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -155,29 +155,29 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert fatalAlert)
             {
                 m_recordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (TlsTimeoutException e)
+            catch (TlsTimeoutException)
             {
-                throw e;
+                throw;
             }
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
-                    throw e;
+                    throw;
 
                 m_recordLayer.Fail(AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
-            //catch (InterruptedIOException e)
+            //catch (InterruptedIOException)
             //{
-            //    throw e;
+            //    throw;
             //}
-            catch (IOException e)
+            catch (IOException)
             {
                 m_recordLayer.Fail(AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -197,29 +197,29 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert fatalAlert)
             {
                 m_recordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (TlsTimeoutException e)
+            catch (TlsTimeoutException)
             {
-                throw e;
+                throw;
             }
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
-                    throw e;
+                    throw;
 
                 m_recordLayer.Fail(AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
-            //catch (InterruptedIOException e)
+            //catch (InterruptedIOException)
             //{
-            //    throw e;
+            //    throw;
             //}
-            catch (IOException e)
+            catch (IOException)
             {
                 m_recordLayer.Fail(AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

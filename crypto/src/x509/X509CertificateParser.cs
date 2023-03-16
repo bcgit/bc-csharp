@@ -143,6 +143,10 @@ namespace Org.BouncyCastle.X509
 					return ReadDerCertificate(asn1In);
 				}
 			}
+			catch (CertificateException)
+			{
+				throw;
+			}
 			catch (Exception e)
 			{
 				throw new CertificateException("Failed to read certificate", e);
