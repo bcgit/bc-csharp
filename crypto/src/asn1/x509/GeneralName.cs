@@ -337,7 +337,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             if (bits > 0)
             {
-                addr[offset] = (byte)(byte.MaxValue >> (8 - bits));
+                addr[offset] = (byte)(0xFF00 >> bits);
             }
         }
 

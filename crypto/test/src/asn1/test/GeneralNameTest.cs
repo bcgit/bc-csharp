@@ -14,7 +14,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 		: SimpleTest
 	{
 		private static readonly byte[] ipv4 = Hex.Decode("87040a090800");
-		private static readonly byte[] ipv4WithMask = Hex.Decode("87080a090800ffffff00");
+        private static readonly byte[] ipv4WithMask24 = Hex.Decode("87080a090800ffffff00");
+        private static readonly byte[] ipv4WithMask14 = Hex.Decode("87080a090800fffc0000");
 
 		private static readonly byte[] ipv6a = Hex.Decode("871020010db885a308d313198a2e03707334");
 		private static readonly byte[] ipv6b = Hex.Decode("871020010db885a3000013198a2e03707334");
@@ -38,19 +39,31 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("ipv4 encoding failed");
 			}
 
-			nm = new GeneralName(GeneralName.IPAddress, "10.9.8.0/255.255.255.0");
-			if (!Arrays.AreEqual(nm.GetEncoded(), ipv4WithMask))
+            nm = new GeneralName(GeneralName.IPAddress, "10.9.8.0/255.255.255.0");
+			if (!Arrays.AreEqual(nm.GetEncoded(), ipv4WithMask24))
 			{
 				Fail("ipv4 with netmask 1 encoding failed");
 			}
 
 			nm = new GeneralName(GeneralName.IPAddress, "10.9.8.0/24");
-			if (!Arrays.AreEqual(nm.GetEncoded(), ipv4WithMask))
+			if (!Arrays.AreEqual(nm.GetEncoded(), ipv4WithMask24))
 			{
 				Fail("ipv4 with netmask 2 encoding failed");
 			}
 
-			nm = new GeneralName(GeneralName.IPAddress, "2001:0db8:85a3:08d3:1319:8a2e:0370:7334");
+            nm = new GeneralName(GeneralName.IPAddress, "10.9.8.0/255.252.0.0");
+            if (!Arrays.AreEqual(nm.GetEncoded(), ipv4WithMask14))
+            {
+                Fail("ipv4 with netmask 1 encoding failed");
+            }
+
+            nm = new GeneralName(GeneralName.IPAddress, "10.9.8.0/14");
+            if (!Arrays.AreEqual(nm.GetEncoded(), ipv4WithMask14))
+            {
+                Fail("ipv4 with netmask 2 encoding failed");
+            }
+
+            nm = new GeneralName(GeneralName.IPAddress, "2001:0db8:85a3:08d3:1319:8a2e:0370:7334");
 			if (!Arrays.AreEqual(nm.GetEncoded(), ipv6a))
 			{
 				Fail("ipv6 with netmask encoding failed");
