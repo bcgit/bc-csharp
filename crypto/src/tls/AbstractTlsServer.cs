@@ -217,6 +217,16 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>RFC 9146 DTLS connection ID.</summary>
+        /// <remarks>
+        /// This method will be called if a connection_id extension was sent by the client.
+        /// If the return value is non-null, the server will send this connection ID to the client to use in future packets.
+        /// As future communication doesn't include the connection IDs length, this should either be fixed-length
+        /// or include the connection ID's length. (see explanation in RFC 9146 4. "cid:")
+        /// </remarks>
+        /// <returns>The connection ID to use.</returns>
+        protected virtual byte[] GetNewConnectionID() => null;
+
         public virtual void Init(TlsServerContext context)
         {
             this.m_context = context;
@@ -586,6 +596,22 @@ namespace Org.BouncyCastle.Tls
             else
             {
                 TlsExtensionsUtilities.AddAlpnExtensionServer(serverExtensions, m_selectedProtocolName);
+            }
+
+            if (ProtocolVersion.DTLSv12.Equals(m_context.ServerVersion))
+            {
+                /*
+                 * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
+                 * negotiated afresh.
+                 */
+                if (m_clientExtensions.ContainsKey(ExtensionType.connection_id))
+                {
+                    var serverConnectionID = GetNewConnectionID();
+                    if (serverConnectionID != null)
+                    {
+                        TlsExtensionsUtilities.AddConnectionIDExtension(m_serverExtensions, serverConnectionID);
+                    }
+                }
             }
         }
 

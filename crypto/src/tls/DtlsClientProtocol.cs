@@ -825,6 +825,24 @@ namespace Org.BouncyCastle.Tls
                 state.serverExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
+            // Connection ID
+            if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+            {
+                /*
+                 * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
+                 * negotiated afresh.
+                 */
+                var serverConnectionID = TlsExtensionsUtilities.GetConnectionIDExtension(state.serverExtensions);
+                if (serverConnectionID != null)
+                {
+                    var clientConnectionID = TlsExtensionsUtilities.GetConnectionIDExtension(state.clientExtensions)
+                        ?? throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                    securityParameters.m_connectionIDLocal = serverConnectionID;
+                    securityParameters.m_connectionIDPeer = clientConnectionID;
+                }
+            }
+
             // Heartbeats
             {
                 HeartbeatExtension heartbeatExtension = TlsExtensionsUtilities.GetHeartbeatExtension(

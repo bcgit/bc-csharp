@@ -549,6 +549,24 @@ namespace Org.BouncyCastle.Tls
                 state.serverExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
+            // Connection ID
+            if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+            {
+                /*
+                 * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
+                 * negotiated afresh.
+                 */
+                var serverConnectionID = TlsExtensionsUtilities.GetConnectionIDExtension(state.serverExtensions);
+                if (serverConnectionID != null)
+                {
+                    var clientConnectionID = TlsExtensionsUtilities.GetConnectionIDExtension(state.clientExtensions)
+                        ?? throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                    securityParameters.m_connectionIDLocal = clientConnectionID;
+                    securityParameters.m_connectionIDPeer = serverConnectionID;
+                }
+            }
+
             /*
              * TODO RFC 3546 2.3 If [...] the older session is resumed, then the server MUST ignore
              * extensions appearing in the client hello, and send a server hello containing no

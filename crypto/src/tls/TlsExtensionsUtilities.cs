@@ -64,6 +64,12 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        public static void AddConnectionIDExtension(IDictionary<int, byte[]> extensions, byte[] connectionID)
+        {
+            extensions[ExtensionType.connection_id] = CreateConnectionIDExtension(connectionID);
+        }
+
+        /// <exception cref="IOException"/>
         public static void AddCookieExtension(IDictionary<int, byte[]> extensions, byte[] cookie)
         {
             extensions[ExtensionType.cookie] = CreateCookieExtension(cookie);
@@ -314,6 +320,13 @@ namespace Org.BouncyCastle.Tls
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.compress_certificate);
             return extensionData == null ? null : ReadCompressCertificateExtension(extensionData);
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] GetConnectionIDExtension(IDictionary<int, byte[]> extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.connection_id);
+            return extensionData == null ? null : ReadConnectionIDExtension(extensionData);
         }
 
         /// <exception cref="IOException"/>
@@ -628,6 +641,15 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             return TlsUtilities.EncodeUint16ArrayWithUint8Length(algorithms);
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] CreateConnectionIDExtension(byte[] connectionID)
+        {
+            if (connectionID == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return TlsUtilities.EncodeOpaque8(connectionID);
         }
 
         /// <exception cref="IOException"/>
@@ -1056,6 +1078,12 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
             return algorithms;
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] ReadConnectionIDExtension(byte[] extensionData)
+        {
+            return TlsUtilities.DecodeOpaque8(extensionData);
         }
 
         /// <exception cref="IOException"/>

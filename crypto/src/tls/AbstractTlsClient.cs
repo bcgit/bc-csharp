@@ -77,6 +77,15 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
         }
 
+        /// <summary>RFC 9146 DTLS connection ID.</summary>
+        /// <remarks>
+        /// The default <see cref="GetClientExtensions"/> implementation calls this to get the connection_id extension
+        /// the client will send. As future communication doesn't include the connection IDs length, this should either
+        /// be fixed-length or include the connection ID's length. (see explanation in RFC 9146 4. "cid:")
+        /// </remarks>
+        /// <returns>The connection ID to use.</returns>
+        protected virtual byte[] GetNewConnectionID() => null;
+
         /// <exception cref="IOException"/>
         public virtual TlsPskIdentity GetPskIdentity()
         {
@@ -239,11 +248,13 @@ namespace Org.BouncyCastle.Tls
 
             bool offeringTlsV13Plus = false;
             bool offeringPreTlsV13 = false;
+            bool offeringDtlsV12 = false;
             {
                 ProtocolVersion[] supportedVersions = GetProtocolVersions();
                 for (int i = 0; i < supportedVersions.Length; ++i)
                 {
-                    if (TlsUtilities.IsTlsV13(supportedVersions[i]))
+                    var supportedVersion = supportedVersions[i];
+                    if (TlsUtilities.IsTlsV13(supportedVersion))
                     {
                         offeringTlsV13Plus = true;
                     }
@@ -251,6 +262,8 @@ namespace Org.BouncyCastle.Tls
                     {
                         offeringPreTlsV13 = true;
                     }
+
+                    offeringDtlsV12 |= ProtocolVersion.DTLSv12.Equals(supportedVersion);
                 }
             }
 
@@ -369,6 +382,19 @@ namespace Org.BouncyCastle.Tls
             if (serverCertTypes != null && (serverCertTypes.Length > 1 || serverCertTypes[0] != CertificateType.X509))
             {
                 TlsExtensionsUtilities.AddServerCertificateTypeExtensionClient(clientExtensions, serverCertTypes);
+            }
+
+            if (offeringDtlsV12)
+            {
+                /*
+                 * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
+                 * negotiated afresh.
+                 */
+                var clientConnectionID = GetNewConnectionID();
+                if (clientConnectionID != null)
+                {
+                    TlsExtensionsUtilities.AddConnectionIDExtension(clientExtensions, clientConnectionID);
+                }
             }
 
             return clientExtensions;
