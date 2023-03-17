@@ -99,6 +99,11 @@ namespace Org.BouncyCastle.OpenSsl
                     encoding = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(akp).GetDerEncoded();
                 }
             }
+            else if (obj is SubjectPublicKeyInfo subjectPublicKeyInfo)
+            {
+                type = "PUBLIC KEY";
+                encoding = subjectPublicKeyInfo.GetEncoded();
+            }
             else if (obj is X509V2AttributeCertificate attrCert)
             {
                 type = "ATTRIBUTE CERTIFICATE";
@@ -240,8 +245,8 @@ namespace Org.BouncyCastle.OpenSsl
 #endif
 
         private static byte[] EncodePrivateKey(
-            AsymmetricKeyParameter	akp,
-            out string				keyType)
+            AsymmetricKeyParameter akp,
+            out string keyType)
         {
             PrivateKeyInfo info = PrivateKeyInfoFactory.CreatePrivateKeyInfo(akp);
             AlgorithmIdentifier algID = info.PrivateKeyAlgorithm;
@@ -253,7 +258,7 @@ namespace Org.BouncyCastle.OpenSsl
 
                 DsaParameter p = DsaParameter.GetInstance(algID.Parameters);
 
-                BigInteger x = ((DsaPrivateKeyParameters) akp).X;
+                BigInteger x = ((DsaPrivateKeyParameters)akp).X;
                 BigInteger y = p.G.ModPow(x, p.P);
 
                 // TODO Create an ASN1 object somewhere for this?
