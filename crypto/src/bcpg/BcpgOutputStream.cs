@@ -133,11 +133,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        private void WriteHeader(
-            PacketTag	tag,
-            bool		oldPackets,
-            bool		partial,
-            long		bodyLen)
+        private void WriteHeader(PacketTag packetTag, bool oldPackets, bool partial, long bodyLen)
         {
             int hdr = 0x80;
 
@@ -147,9 +143,12 @@ namespace Org.BouncyCastle.Bcpg
                 partialBuffer = null;
             }
 
-            if (oldPackets)
+            int tag = (int)packetTag;
+
+            // only tags <= 0xF in value can be written as old packets.
+            if (tag <= 0xF && oldPackets)
             {
-                hdr |= ((int) tag) << 2;
+                hdr |= tag << 2;
 
                 if (partial)
                 {
@@ -180,7 +179,7 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                hdr |= 0x40 | (int) tag;
+                hdr |= 0x40 | tag;
                 this.WriteByte((byte) hdr);
 
                 if (partial)
