@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Bcpg
                 subpackets[i].Encode(bOut);
             }
 
-            bcpgOut.WritePacket(PacketTag.UserAttribute, bOut.ToArray(), false);
+            bcpgOut.WritePacket(PacketTag.UserAttribute, bOut.ToArray());
         }
     }
 }

@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				ICipherParameters cp = key;
 
 				// TODO Ask SignerUtilities whether random is permitted?
-				if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
+				if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
 				{
 					// EdDSA signers don't expect a SecureRandom
 				}
@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			byte[] fingerPrint = new byte[2]{ digest[0], digest[1] };
 
 			MPInteger[] sigValues;
-            if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
+            if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
             {
                 int sigLen = sigBytes.Length;
                 if (sigLen == Ed25519.SignatureSize)

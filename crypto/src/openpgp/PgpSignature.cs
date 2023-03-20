@@ -370,7 +370,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				{
 					signature = sigValues[0].Value.ToByteArrayUnsigned();
 				}
-                else if (KeyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
+                else if (KeyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
                 {
 					if (sigValues.Length != 2)
 						throw new InvalidOperationException();

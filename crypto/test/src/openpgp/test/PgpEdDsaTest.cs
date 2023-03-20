@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Ed25519KeyPairGenerator edKp = new Ed25519KeyPairGenerator();
             edKp.Init(new Ed25519KeyGenerationParameters(random));
 
-            PgpKeyPair dsaKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.EdDsa, edKp.GenerateKeyPair(), DateTime.UtcNow);
+            PgpKeyPair dsaKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.EdDsa_Legacy, edKp.GenerateKeyPair(), DateTime.UtcNow);
 
             X25519KeyPairGenerator dhKp = new X25519KeyPairGenerator();
             dhKp.Init(new X25519KeyGenerationParameters(random));
@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             IsTrue(secRing.GetSecretKey().IsSigningKey);
 
-            PgpSignatureGenerator pgpGen = new PgpSignatureGenerator(PublicKeyAlgorithmTag.EdDsa, HashAlgorithmTag.Sha256);
+            PgpSignatureGenerator pgpGen = new PgpSignatureGenerator(PublicKeyAlgorithmTag.EdDsa_Legacy, HashAlgorithmTag.Sha256);
 
             pgpGen.InitSign(PgpSignature.SubkeyBinding, secRing.GetSecretKey().ExtractPrivateKey(null));
 

@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Bcpg
             case PublicKeyAlgorithmTag.ECDsa:
                 key = new ECDsaPublicBcpgKey(bcpgIn);
                 break;
-            case PublicKeyAlgorithmTag.EdDsa:
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 key = new EdDsaPublicBcpgKey(bcpgIn);
                 break;
             default:

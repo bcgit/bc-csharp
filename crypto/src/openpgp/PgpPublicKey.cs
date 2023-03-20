@@ -594,7 +594,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         return GetECKey("ECDH", ecdhK);
                     }
                 }
-                case PublicKeyAlgorithmTag.EdDsa:
+                case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 {
                     EdDsaPublicBcpgKey eddsaK = (EdDsaPublicBcpgKey)publicPk.Key;
                     var curveOid = eddsaK.CurveOid;

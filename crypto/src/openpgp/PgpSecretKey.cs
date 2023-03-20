@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
                     secKey = new ECSecretBcpgKey(ecK.D);
                     break;
-                case PublicKeyAlgorithmTag.EdDsa:
+                case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 {
                     if (privKey.Key is Ed25519PrivateKeyParameters ed25519K)
                     {
@@ -441,7 +441,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.RsaSign:
                     case PublicKeyAlgorithmTag.Dsa:
                     case PublicKeyAlgorithmTag.ECDsa:
-                    case PublicKeyAlgorithmTag.EdDsa:
+                    case PublicKeyAlgorithmTag.EdDsa_Legacy:
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         return true;
                     default:
@@ -733,7 +733,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     privateKey = new ECPrivateKeyParameters("ECDSA", ecdsaPriv.X, ecdsaPub.CurveOid);
                     break;
                 }
-                case PublicKeyAlgorithmTag.EdDsa:
+                case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 {
                     EdDsaPublicBcpgKey eddsaPub = (EdDsaPublicBcpgKey)pubPk.Key;
                     EdSecretBcpgKey ecdsaPriv = new EdSecretBcpgKey(bcpgIn);

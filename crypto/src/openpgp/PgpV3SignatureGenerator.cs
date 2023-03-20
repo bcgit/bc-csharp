@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PublicKeyAlgorithmTag	keyAlgorithm,
             HashAlgorithmTag		hashAlgorithm)
         {
-            if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
+            if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
                 throw new ArgumentException("Invalid algorithm for V3 signature", nameof(keyAlgorithm));
 
             this.keyAlgorithm = keyAlgorithm;
@@ -52,17 +52,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             try
             {
                 ICipherParameters cp = key;
-
-                // TODO Ask SignerUtilities whether random is permitted?
-                if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa)
-                {
-                    // EdDSA signers don't expect a SecureRandom
-                }
-                else
-                {
-                    cp = ParameterUtilities.WithRandom(cp, random);
-                }
-
+                cp = ParameterUtilities.WithRandom(cp, random);
                 sig.Init(true, cp);
             }
             catch (InvalidKeyException e)

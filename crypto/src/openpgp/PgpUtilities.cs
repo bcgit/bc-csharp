@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             case PublicKeyAlgorithmTag.ECDsa:
                 encAlg = "ECDSA";
                 break;
-            case PublicKeyAlgorithmTag.EdDsa:
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 encAlg = "EdDSA";
                 break;
             case PublicKeyAlgorithmTag.ElGamalEncrypt: // in some malformed cases.
@@ -546,7 +546,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             switch (publicKeyAlgorithm)
             {
-            case PublicKeyAlgorithmTag.EdDsa:
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
             {
                 ISigner signer;
                 if (key is Ed25519PrivateKeyParameters || key is Ed25519PublicKeyParameters)
