@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -101,6 +102,9 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_algorithms.Add("Ed25519", EdECObjectIdentifiers.id_Ed25519);
             m_algorithms.Add("Ed448", EdECObjectIdentifiers.id_Ed448);
             // TODO Ed25519ctx, Ed25519ph, Ed448ph
+
+            m_algorithms.Add("SHA256WITHSM2", GMObjectIdentifiers.sm2sign_with_sha256);
+            m_algorithms.Add("SM3WITHSM2", GMObjectIdentifiers.sm2sign_with_sm3);
 
             //
             // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
