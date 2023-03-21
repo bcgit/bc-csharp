@@ -608,10 +608,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                     if ((i * 8 + j) == this.r)
                         break;
 
-                    if (((h[i] >> j) & 1) == 1)
-                    {
-                        compactVersion[count++] = i * 8 + j;
-                    }
+                    int mask = (h[i] >> j) & 1;
+
+                    // if mask == 1 compactVersion = (i * 8 + j)
+                    // if mask == 0 compactVersion = compactVersion
+                    compactVersion[count] = (i * 8 + j) & -mask | compactVersion[count] & ~-mask;
+
+                    count += mask - hw;
+                    count += (count >> 31) & hw;
                 }
             }
         }
