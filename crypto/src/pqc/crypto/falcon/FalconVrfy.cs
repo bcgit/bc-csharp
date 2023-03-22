@@ -712,6 +712,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
             uint logn, ushort[] tmpsrc, int tmp)
         {
+            int success = 1;
             int u, n;
             int t1, t2;
 
@@ -732,7 +733,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             mq_NTT(tmpsrc, t2, logn);
             for (u = 0; u < n; u ++) {
                 if (tmpsrc[t2+u] == 0) {
-                    return 0;
+                    success = 0;
                 }
                 tmpsrc[t1+u] = (ushort)mq_div_12289(tmpsrc[t1+u], tmpsrc[t2+u]);
             }
@@ -746,11 +747,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 //gi = *(int *)&w;
                 gi = (int)w;
                 if (gi < -127 || gi > +127) {
-                    return 0;
+                    success = 0;
                 }
                 Gsrc[G+u] = (sbyte)gi;
             }
-            return 1;
+            return success;
         }
 
         internal int is_invertible(
