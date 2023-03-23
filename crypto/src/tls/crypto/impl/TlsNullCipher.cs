@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
     /// <summary>The NULL cipher.</summary>
     public class TlsNullCipher
-        : TlsCipher
+        : AbstractTlsCipher
     {
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly TlsSuiteHmac m_readMac, m_writeMac;
@@ -56,22 +56,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
-        public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
+        public override int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             return plaintextLimit + m_writeMac.Size;
         }
 
-        public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
+        public override int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             return plaintextLength + m_writeMac.Size;
         }
 
-        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        public override int GetPlaintextLimit(int ciphertextLimit)
         {
             return ciphertextLimit - m_writeMac.Size;
         }
 
-        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+        public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
             byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext, offset, len);
@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+        public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
             byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext);
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
-        public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
+        public override TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
         {
             int macSize = m_readMac.Size;
@@ -111,17 +111,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, offset, macInputLen, recordType);
         }
 
-        public virtual void RekeyDecoder()
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
-
-        public virtual void RekeyEncoder()
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
-
-        public virtual bool UsesOpaqueRecordType
+        public override bool UsesOpaqueRecordType
         {
             get { return false; }
         }

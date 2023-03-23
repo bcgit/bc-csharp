@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
     /// <summary>A generic TLS 1.2 AEAD cipher.</summary>
     public class TlsAeadCipher
-        : TlsCipher
+        : AbstractTlsCipher
     {
         public const int AEAD_CCM = 1;
         public const int AEAD_CHACHA20_POLY1305 = 2;
@@ -134,12 +134,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             decryptCipher.Init(dummyNonce, macSize, null);
         }
 
-        public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
+        public override int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             return plaintextLimit + m_macSize + m_record_iv_length + (m_isTlsV13 ? 1 : 0);
         }
 
-        public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
+        public override int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             int innerPlaintextLimit = plaintextLength;
             if (m_isTlsV13)
@@ -153,12 +153,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
-        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        public override int GetPlaintextLimit(int ciphertextLimit)
         {
             return ciphertextLimit - m_macSize - m_record_iv_length - (m_isTlsV13 ? 1 : 0);
         }
 
-        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+        public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int plaintextOffset, int plaintextLength)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+        public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
             byte[] nonce = new byte[m_encryptNonce.Length + m_record_iv_length];
@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
-        public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
+        public override TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int ciphertextOffset, int ciphertextLength)
         {
             if (GetPlaintextLimit(ciphertextLength) < 0)
@@ -398,17 +398,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, encryptionOffset, plaintextLength, contentType);
         }
 
-        public virtual void RekeyDecoder()
+        public override void RekeyDecoder()
         {
             RekeyCipher(m_cryptoParams.SecurityParameters, m_decryptCipher, m_decryptNonce, !m_cryptoParams.IsServer);
         }
 
-        public virtual void RekeyEncoder()
+        public override void RekeyEncoder()
         {
             RekeyCipher(m_cryptoParams.SecurityParameters, m_encryptCipher, m_encryptNonce, m_cryptoParams.IsServer);
         }
 
-        public virtual bool UsesOpaqueRecordType
+        public override bool UsesOpaqueRecordType
         {
             get { return m_isTlsV13; }
         }
