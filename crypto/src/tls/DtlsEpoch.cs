@@ -11,10 +11,11 @@ namespace Org.BouncyCastle.Tls
 
         private readonly int m_epoch;
         private readonly TlsCipher m_cipher;
+        private readonly int m_recordHeaderLengthRead, m_recordHeaderLengthWrite;
 
         private long m_sequenceNumber = 0;
 
-        internal DtlsEpoch(int epoch, TlsCipher cipher)
+        internal DtlsEpoch(int epoch, TlsCipher cipher, int recordHeaderLengthRead, int recordHeaderLengthWrite)
         {
             if (epoch < 0)
                 throw new ArgumentException("must be >= 0", "epoch");
@@ -23,6 +24,8 @@ namespace Org.BouncyCastle.Tls
 
             this.m_epoch = epoch;
             this.m_cipher = cipher;
+            this.m_recordHeaderLengthRead = recordHeaderLengthRead;
+            this.m_recordHeaderLengthWrite = recordHeaderLengthWrite;
         }
 
         /// <exception cref="IOException"/>
@@ -46,6 +49,10 @@ namespace Org.BouncyCastle.Tls
         {
             get { return m_epoch; }
         }
+
+        internal int RecordHeaderLengthRead => m_recordHeaderLengthRead;
+
+        internal int RecordHeaderLengthWrite => m_recordHeaderLengthWrite;
 
         internal DtlsReplayWindow ReplayWindow
         {

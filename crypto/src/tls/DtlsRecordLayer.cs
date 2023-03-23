@@ -122,7 +122,8 @@ namespace Org.BouncyCastle.Tls
 
             this.m_inHandshake = true;
 
-            this.m_currentEpoch = new DtlsEpoch(0, TlsNullNullCipher.Instance);
+            this.m_currentEpoch = new DtlsEpoch(0, TlsNullNullCipher.Instance, RECORD_HEADER_LENGTH,
+                RECORD_HEADER_LENGTH);
             this.m_pendingEpoch = null;
             this.m_readEpoch = m_currentEpoch;
             this.m_writeEpoch = m_currentEpoch;
@@ -175,8 +176,13 @@ namespace Org.BouncyCastle.Tls
              * lifetime."
              */
 
+            var securityParameters = m_context.SecurityParameters;
+            int recordHeaderLengthRead = RECORD_HEADER_LENGTH + (securityParameters.ConnectionIDPeer?.Length ?? 0);
+            int recordHeaderLengthWrite = RECORD_HEADER_LENGTH + (securityParameters.ConnectionIDLocal?.Length ?? 0);
+
             // TODO Check for overflow
-            this.m_pendingEpoch = new DtlsEpoch(m_writeEpoch.Epoch + 1, pendingCipher);
+            this.m_pendingEpoch = new DtlsEpoch(m_writeEpoch.Epoch + 1, pendingCipher, recordHeaderLengthRead,
+                recordHeaderLengthWrite);
         }
 
         internal virtual void HandshakeSuccessful(DtlsHandshakeRetransmit retransmit)
