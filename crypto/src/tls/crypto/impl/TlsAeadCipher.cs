@@ -136,7 +136,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public override int GetCiphertextDecodeLimit(int plaintextLimit)
         {
-            return plaintextLimit + m_macSize + m_record_iv_length + (m_isTlsV13 ? 1 : 0);
+            int innerPlaintextLimit = plaintextLimit + (m_isTlsV13 ? 1 : 0);
+
+            return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
         public override int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
@@ -155,7 +157,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public override int GetPlaintextLimit(int ciphertextLimit)
         {
-            return ciphertextLimit - m_macSize - m_record_iv_length - (m_isTlsV13 ? 1 : 0);
+            int innerPlaintextLimit = ciphertextLimit - m_macSize - m_record_iv_length;
+
+            return  innerPlaintextLimit - (m_isTlsV13 ? 1 : 0);
         }
 
         public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,

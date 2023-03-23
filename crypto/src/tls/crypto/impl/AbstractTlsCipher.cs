@@ -12,7 +12,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public abstract int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit);
 
         // TODO[api] Remove this method from TlsCipher
-        public abstract int GetPlaintextLimit(int ciphertextLimit);
+        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        {
+            return GetPlaintextEncodeLimit(ciphertextLimit);
+        }
 
         // TODO[api] Add to TlsCipher
         public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
