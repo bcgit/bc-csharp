@@ -443,43 +443,43 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 m_encryptThenMac ? 0 : macSize);
             bool badMac = (totalPad == 0);
 
-            int dec_output_length = blocks_length - totalPad;
+            int innerPlaintextLength = blocks_length - totalPad;
 
             if (!m_encryptThenMac)
             {
-                dec_output_length -= macSize;
+                innerPlaintextLength -= macSize;
 
                 byte[] expectedMac = m_readMac.CalculateMacConstantTime(seqNo, recordType, m_decryptConnectionID,
-                    ciphertext, offset, dec_output_length, blocks_length - macSize, m_randomData);
+                    ciphertext, offset, innerPlaintextLength, blocks_length - macSize, m_randomData);
 
                 badMac |= !TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
-                    offset + dec_output_length);
+                    offset + innerPlaintextLength);
             }
 
             if (badMac)
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 
             short contentType = recordType;
+            int plaintextLength = innerPlaintextLength;
+
             if (m_decryptUseInnerPlaintext)
             {
                 // Strip padding and read true content type from DTLSInnerPlaintext
-                int pos = dec_output_length;
                 for (;;)
                 {
-                    if (--pos < 0)
+                    if (--plaintextLength < 0)
                         throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-                    byte octet = ciphertext[offset + pos];
+                    byte octet = ciphertext[offset + plaintextLength];
                     if (0 != octet)
                     {
                         contentType = (short)(octet & 0xFF);
-                        dec_output_length = pos;
                         break;
                     }
                 }
             }
 
-            return new TlsDecodeResult(ciphertext, offset, dec_output_length, contentType);
+            return new TlsDecodeResult(ciphertext, offset, plaintextLength, contentType);
         }
 
         public override bool UsesOpaqueRecordType
