@@ -193,6 +193,14 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadInt32(m_databuf, m_skipped);
         }
 
+        public short ReadUint8(int skip)
+        {
+            if (m_available < skip + 1)
+                throw new InvalidOperationException("Not enough data to read");
+
+            return TlsUtilities.ReadUint8(m_databuf, m_skipped + skip);
+        }
+
         public int ReadUint16(int skip)
         {
             if (m_available < skip + 2)
