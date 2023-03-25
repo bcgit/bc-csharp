@@ -681,6 +681,11 @@ namespace Org.BouncyCastle.Tls
                 if (!Arrays.FixedTimeEquals(connectionID.Length, connectionID, 0, record, 11))
                     return -1;
             }
+            else
+            {
+                if (ContentType.tls12_cid == recordType)
+                    return -1;
+            }
 
             int length = TlsUtilities.ReadUint16(record, recordHeaderLength - 2);
             if (received != (length + recordHeaderLength))

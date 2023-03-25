@@ -154,14 +154,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public override int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
-            int innerPlaintextLimit = plaintextLength;
-            if (m_encryptUseInnerPlaintext)
-            {
-                // TODO[tls13] Add support for padding
-                int maxPadding = 0;
+            plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
 
-                innerPlaintextLimit = 1 + System.Math.Min(plaintextLimit, plaintextLength + maxPadding);
-            }
+            int innerPlaintextLimit = plaintextLimit + (m_encryptUseInnerPlaintext ? 1 : 0);
 
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }

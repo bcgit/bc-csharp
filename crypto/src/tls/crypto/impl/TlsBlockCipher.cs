@@ -159,29 +159,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         {
             int blockSize = m_decryptCipher.GetBlockSize();
             int macSize = m_readMac.Size;
-            int maxExtraPadding = 256;
-
+            int maxPadding = 256;
             int innerPlaintextLimit = plaintextLimit + (m_decryptUseInnerPlaintext ? 1 : 0);
 
-            return GetCiphertextLength(blockSize, macSize, maxExtraPadding, innerPlaintextLimit);
+            return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
         public override int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
+            plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
+
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
-            int maxExtraPadding = m_useExtraPadding ? 256 : blockSize;
+            int maxPadding = m_useExtraPadding ? 256 : blockSize;
+            int innerPlaintextLimit = plaintextLimit + (m_encryptUseInnerPlaintext ? 1 : 0);
 
-            int innerPlaintextLimit = plaintextLength;
-            if (m_encryptUseInnerPlaintext)
-            {
-                // TODO[cid] Add support for padding
-                int maxPadding = 0;
-
-                innerPlaintextLimit = 1 + System.Math.Min(plaintextLimit, plaintextLength + maxPadding);
-            }
-
-            return GetCiphertextLength(blockSize, macSize, maxExtraPadding, innerPlaintextLimit);
+            return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
         public override int GetPlaintextDecodeLimit(int ciphertextLimit)
