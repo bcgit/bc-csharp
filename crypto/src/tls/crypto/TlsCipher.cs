@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <param name="plaintextLength">the actual input size for the plaintext.</param>
         /// <param name="plaintextLimit">the maximum input size for the plaintext.</param>
         /// <returns>the maximum output size of the ciphertext for plaintextlimit bytes of input.</returns>
+        // TODO[api] Only need plaintextLimit parameter (receiving current callers' plaintextLength)
         int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit);
 
         /// <summary>Return the maximum size for the plaintext given ciphertextlimit bytes of ciphertext.</summary>
@@ -35,10 +36,12 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>A <see cref="TlsEncodeResult"/> containing the result of encoding (after 'headerAllocation' unused
         /// bytes).</returns>
         /// <exception cref="IOException"/>
+        // TODO[api] Add a parameter for how much (D)TLSInnerPlaintext padding to add
         TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api] Add a parameter for how much (D)TLSInnerPlaintext padding to add
         TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext);
 #endif
@@ -61,6 +64,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <exception cref="IOException"/>
         void RekeyEncoder();
 
+        // TODO[api] Separate methods for decode, encode
         bool UsesOpaqueRecordType { get; }
     }
 }
