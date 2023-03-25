@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.ExceptionServices;
 
 using Org.BouncyCastle.Tls.Crypto;
+using Org.BouncyCastle.Tls.Crypto.Impl;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
@@ -149,8 +150,19 @@ namespace Org.BouncyCastle.Tls
             // NOTE: For TLS 1.3, this only MIGHT be application data
             if (ContentType.application_data == recordType && m_handler.IsApplicationDataReady)
             {
-                applicationDataLimit = System.Math.Max(0, System.Math.Min(m_plaintextLimit,
-                    m_readCipher.GetPlaintextLimit(length)));
+                var cipher = m_readCipher;
+
+                int plaintextDecodeLimit;
+                if (cipher is AbstractTlsCipher abstractTlsCipher)
+                {
+                    plaintextDecodeLimit = abstractTlsCipher.GetPlaintextDecodeLimit(length);
+                }
+                else
+                {
+                    plaintextDecodeLimit = cipher.GetPlaintextLimit(length);
+                }
+
+                applicationDataLimit = System.Math.Max(0, System.Math.Min(m_plaintextLimit, plaintextDecodeLimit));
             }
 
             return new RecordPreview(recordSize, applicationDataLimit);
