@@ -31,6 +31,12 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis)
         {
+            return Receive(buf, off, len, waitMillis, null);
+        }
+
+        /// <exception cref="IOException"/>
+        public virtual int Receive(byte[] buf, int off, int len, int waitMillis, Action recordCallback)
+        {
             if (null == buf)
                 throw new ArgumentNullException("buf");
             if (off < 0 || off >= buf.Length)
@@ -39,14 +45,14 @@ namespace Org.BouncyCastle.Tls
                 throw new ArgumentException("invalid length: " + len, "len");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return Receive(buf.AsSpan(off, len), waitMillis);
+            return Receive(buf.AsSpan(off, len), waitMillis, recordCallback);
 #else
             if (waitMillis < 0)
                 throw new ArgumentException("cannot be negative", "waitMillis");
 
             try
             {
-                return m_recordLayer.Receive(buf, off, len, waitMillis);
+                return m_recordLayer.Receive(buf, off, len, waitMillis, recordCallback);
             }
             catch (TlsFatalAlert fatalAlert)
             {
@@ -87,7 +93,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        public virtual int ReceivePending(byte[] buf, int off, int len)
+        public virtual int ReceivePending(byte[] buf, int off, int len, Action recordCallback = null)
         {
             if (null == buf)
                 throw new ArgumentNullException("buf");
@@ -97,11 +103,11 @@ namespace Org.BouncyCastle.Tls
                 throw new ArgumentException("invalid length: " + len, "len");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ReceivePending(buf.AsSpan(off, len));
+            return ReceivePending(buf.AsSpan(off, len), recordCallback);
 #else
             try
             {
-                return m_recordLayer.ReceivePending(buf, off, len);
+                return m_recordLayer.ReceivePending(buf, off, len, recordCallback);
             }
             catch (TlsFatalAlert fatalAlert)
             {
@@ -145,12 +151,18 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual int Receive(Span<byte> buffer, int waitMillis)
         {
+            return Receive(buffer, waitMillis, null);
+        }
+
+        /// <exception cref="IOException"/>
+        public virtual int Receive(Span<byte> buffer, int waitMillis, Action recordCallback)
+        {
             if (waitMillis < 0)
                 throw new ArgumentException("cannot be negative", nameof(waitMillis));
 
             try
             {
-                return m_recordLayer.Receive(buffer, waitMillis);
+                return m_recordLayer.Receive(buffer, waitMillis, recordCallback);
             }
             catch (TlsFatalAlert fatalAlert)
             {
@@ -190,11 +202,11 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        public virtual int ReceivePending(Span<byte> buffer)
+        public virtual int ReceivePending(Span<byte> buffer, Action recordCallback = null)
         {
             try
             {
-                return m_recordLayer.ReceivePending(buffer);
+                return m_recordLayer.ReceivePending(buffer, recordCallback);
             }
             catch (TlsFatalAlert fatalAlert)
             {

@@ -42,7 +42,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Report that a received record with the given sequence number passed authentication checks.
         /// </summary>
         /// <param name="seq">the 48-bit DTLSPlainText.sequence_number field of an authenticated record.</param>
-        internal void ReportAuthenticated(long seq)
+        /// <param name="isLatestConfirmed">indicates whether <paramref name="seq"/> is now the latest confirmed
+        /// sequence number.</param>
+        internal void ReportAuthenticated(long seq, out bool isLatestConfirmed)
         {
             if ((seq & ValidSeqMask) != seq)
                 throw new ArgumentException("out of range", "seq");
@@ -54,6 +56,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     m_bitmap |= (1UL << (int)diff);
                 }
+                isLatestConfirmed = false;
             }
             else
             {
@@ -68,6 +71,7 @@ namespace Org.BouncyCastle.Tls
                     m_bitmap |= 1UL;
                 }
                 m_latestConfirmedSeq = seq;
+                isLatestConfirmed = true;
             }
         }
 
