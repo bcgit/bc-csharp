@@ -86,6 +86,61 @@ namespace Org.BouncyCastle.Tls
 #endif
         }
 
+        /// <exception cref="IOException"/>
+        public virtual int ReceivePending(byte[] buf, int off, int len)
+        {
+            if (null == buf)
+                throw new ArgumentNullException("buf");
+            if (off < 0 || off >= buf.Length)
+                throw new ArgumentException("invalid offset: " + off, "off");
+            if (len < 0 || len > buf.Length - off)
+                throw new ArgumentException("invalid length: " + len, "len");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ReceivePending(buf.AsSpan(off, len));
+#else
+            try
+            {
+                return m_recordLayer.ReceivePending(buf, off, len);
+            }
+            catch (TlsFatalAlert fatalAlert)
+            {
+                if (m_ignoreCorruptRecords && AlertDescription.bad_record_mac == fatalAlert.AlertDescription)
+                    return -1;
+
+                m_recordLayer.Fail(fatalAlert.AlertDescription);
+                throw;
+            }
+            catch (TlsTimeoutException)
+            {
+                throw;
+            }
+            catch (SocketException e)
+            {
+                if (TlsUtilities.IsTimeout(e))
+                    throw;
+
+                m_recordLayer.Fail(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+            // TODO[tls-port] Can we support interrupted IO on .NET?
+            //catch (InterruptedIOException)
+            //{
+            //    throw;
+            //}
+            catch (IOException)
+            {
+                m_recordLayer.Fail(AlertDescription.internal_error);
+                throw;
+            }
+            catch (Exception e)
+            {
+                m_recordLayer.Fail(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+#endif
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         /// <exception cref="IOException"/>
         public virtual int Receive(Span<byte> buffer, int waitMillis)
@@ -96,6 +151,50 @@ namespace Org.BouncyCastle.Tls
             try
             {
                 return m_recordLayer.Receive(buffer, waitMillis);
+            }
+            catch (TlsFatalAlert fatalAlert)
+            {
+                if (m_ignoreCorruptRecords && AlertDescription.bad_record_mac == fatalAlert.AlertDescription)
+                    return -1;
+
+                m_recordLayer.Fail(fatalAlert.AlertDescription);
+                throw;
+            }
+            catch (TlsTimeoutException)
+            {
+                throw;
+            }
+            catch (SocketException e)
+            {
+                if (TlsUtilities.IsTimeout(e))
+                    throw;
+
+                m_recordLayer.Fail(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+            // TODO[tls-port] Can we support interrupted IO on .NET?
+            //catch (InterruptedIOException)
+            //{
+            //    throw;
+            //}
+            catch (IOException)
+            {
+                m_recordLayer.Fail(AlertDescription.internal_error);
+                throw;
+            }
+            catch (Exception e)
+            {
+                m_recordLayer.Fail(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+        }
+
+        /// <exception cref="IOException"/>
+        public virtual int ReceivePending(Span<byte> buffer)
+        {
+            try
+            {
+                return m_recordLayer.ReceivePending(buffer);
             }
             catch (TlsFatalAlert fatalAlert)
             {
