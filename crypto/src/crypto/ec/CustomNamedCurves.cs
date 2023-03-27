@@ -914,7 +914,7 @@ namespace Org.BouncyCastle.Crypto.EC
             return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
-        /// <summary>Enumerate the available curve objIdToName in this registry.</summary>
+        /// <summary>Enumerate the available curve names in this registry.</summary>
         public static IEnumerable<string> Names
         {
             get { return CollectionUtilities.Proxy(names); }
