@@ -782,14 +782,16 @@ namespace Org.BouncyCastle.Crypto.EC
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<DerObjectIdentifier, X9ECParametersHolder> curves =
             new Dictionary<DerObjectIdentifier, X9ECParametersHolder>();
-        private static readonly Dictionary<DerObjectIdentifier, string> names =
+        private static readonly Dictionary<DerObjectIdentifier, string> objIdToName =
             new Dictionary<DerObjectIdentifier, string>();
+        private static readonly List<string> names = new List<string>();
 
         private static void DefineCurve(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
         {
             objIds.Add(name, oid);
-            names.Add(oid, name);
+            objIdToName.Add(oid, name);
             curves.Add(oid, holder);
+            names.Add(name);
         }
 
         private static void DefineCurveAlias(string name, DerObjectIdentifier oid)
@@ -902,7 +904,7 @@ namespace Org.BouncyCastle.Crypto.EC
         /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static string GetName(DerObjectIdentifier oid)
         {
-            return CollectionUtilities.GetValueOrNull(names, oid);
+            return CollectionUtilities.GetValueOrNull(objIdToName, oid);
         }
 
         /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
@@ -912,10 +914,10 @@ namespace Org.BouncyCastle.Crypto.EC
             return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
-        /// <summary>Enumerate the available curve names in this registry.</summary>
+        /// <summary>Enumerate the available curve objIdToName in this registry.</summary>
         public static IEnumerable<string> Names
         {
-            get { return CollectionUtilities.Proxy(objIds.Keys); }
+            get { return CollectionUtilities.Proxy(names); }
         }
     }
 }
