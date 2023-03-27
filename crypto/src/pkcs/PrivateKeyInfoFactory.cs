@@ -164,16 +164,6 @@ namespace Org.BouncyCastle.Pkcs
                 else
                 {
                     X962Parameters x962;
-                    //if (priv.PublicKeyParamSet == null)
-                    //{
-                    //    X9ECParameters ecP = new X9ECParameters(dp.Curve, new X9ECPoint(dp.G, false), dp.N, dp.H,
-                    //        dp.GetSeed());
-                    //    x962 = new X962Parameters(ecP);
-                    //}
-                    //else
-                    //{
-                    //    x962 = new X962Parameters(priv.PublicKeyParamSet);
-                    //}
                     if (dp is ECNamedDomainParameters _dp)
                     {
                         x962 = new X962Parameters(_dp.Name);  
