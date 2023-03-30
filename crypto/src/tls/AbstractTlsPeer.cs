@@ -65,6 +65,11 @@ namespace Org.BouncyCastle.Tls
             return 0;
         }
 
+        public virtual int GetHandshakeResendTimeMillis()
+        {
+            return 1000;
+        }
+
         public virtual bool AllowLegacyResumption()
         {
             return false;
