@@ -31,6 +31,13 @@ namespace Org.BouncyCastle.Tls
         /// <returns>the handshake timeout, in milliseconds.</returns>
         int GetHandshakeTimeoutMillis();
 
+        /// <summary>Specify the time, in milliseconds, after which a handshake packet is resent.</summary>
+        /// <remarks>
+        /// NOTE: Currently only respected by DTLS protocols.
+        /// </remarks>
+        /// <returns>the handshake resend time, in milliseconds.</returns>
+        int GetHandshakeResendTimeMillis();
+
         bool AllowLegacyResumption();
 
         int GetMaxCertificateChainLength();

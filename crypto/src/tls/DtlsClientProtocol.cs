@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters securityParameters = state.clientContext.SecurityParameters;
 
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.clientContext, recordLayer,
-                state.client.GetHandshakeTimeoutMillis(), null);
+                state.client.GetHandshakeTimeoutMillis(), state.client.GetHandshakeResendTimeMillis(), null);
 
             byte[] clientHelloBody = GenerateClientHello(state);
 
