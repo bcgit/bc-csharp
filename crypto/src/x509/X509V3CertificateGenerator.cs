@@ -26,6 +26,39 @@ namespace Org.BouncyCastle.X509
             tbsGen = new V3TbsCertificateGenerator();
         }
 
+		/// <summary>Create a generator for a version 3 certificate, initialised with another certificate.</summary>
+		/// <param name="template">Template certificate to base the new one on.</param>
+		public X509V3CertificateGenerator(X509Certificate template)
+			: this(template.CertificateStructure)
+		{
+		}
+
+		public X509V3CertificateGenerator(X509CertificateStructure template)
+		{
+			tbsGen = new V3TbsCertificateGenerator();
+			tbsGen.SetSerialNumber(template.SerialNumber);
+			tbsGen.SetIssuer(template.Issuer);
+			tbsGen.SetStartDate(template.StartDate);
+			tbsGen.SetEndDate(template.EndDate);
+			tbsGen.SetSubject(template.Subject);
+			tbsGen.SetSubjectPublicKeyInfo(template.SubjectPublicKeyInfo);
+
+			var extensions = template.TbsCertificate.Extensions;
+
+            foreach (var oid in extensions.ExtensionOids)
+            {
+                if (X509Extensions.SubjectAltPublicKeyInfo.Equals(oid) ||
+                    X509Extensions.AltSignatureAlgorithm.Equals(oid) ||
+                    X509Extensions.AltSignatureValue.Equals(oid))
+                {
+                    continue;
+                }
+
+                X509Extension ext = extensions.GetExtension(oid);
+                extGenerator.AddExtension(oid, ext.critical, ext.Value.GetOctets());
+            }
+		}
+
 		/// <summary>
 		/// Reset the Generator.
 		/// </summary>
