@@ -24,7 +24,40 @@ namespace Org.BouncyCastle.X509
 			tbsGen = new V2TbsCertListGenerator();
 		}
 
-		/**
+        /// <summary>Create a builder for a version 2 CRL, initialised with another CRL.</summary>
+		/// <param name="template">Template CRL to base the new one on.</param>
+        public X509V2CrlGenerator(X509Crl template)
+			: this(template.CertificateList)
+		{
+		}
+
+        public X509V2CrlGenerator(CertificateList template)
+        {
+            tbsGen = new V2TbsCertListGenerator();
+            tbsGen.SetIssuer(template.Issuer);
+            tbsGen.SetThisUpdate(template.ThisUpdate);
+            tbsGen.SetNextUpdate(template.NextUpdate);
+
+            AddCrl(new X509Crl(template));
+
+            var extensions = template.TbsCertList.Extensions;
+            if (extensions != null)
+            {
+				foreach (var oid in extensions.ExtensionOids)
+				{
+					if (X509Extensions.AltSignatureAlgorithm.Equals(oid) ||
+						X509Extensions.AltSignatureValue.Equals(oid))
+					{
+						continue;
+					}
+
+					X509Extension ext = extensions.GetExtension(oid);
+					extGenerator.AddExtension(oid, ext.critical, ext.Value.GetOctets());
+				}
+            }
+        }
+
+        /**
 		* reset the generator
 		*/
 		public void Reset()
