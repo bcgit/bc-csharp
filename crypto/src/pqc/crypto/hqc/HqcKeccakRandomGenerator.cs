@@ -62,9 +62,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         private void KeccakIncAbsorb(byte[] input, int inputLen)
         {
-            if (input == null)
-                return;
-
             int count = 0;
             int rateBytes = rate >> 3;
             while (inputLen + (long)state[25] >= rateBytes)
