@@ -38,8 +38,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                     var t = Aes.KeygenAssist(s, rcon[round++]);
                     t = Sse2.Shuffle(t.AsInt32(), 0xFF).AsByte();
                     s = Sse2.Xor(s, Sse2.ShiftLeftLogical128BitLane(s, 8));
-                    s = Sse2.Xor(s, Sse2.ShiftLeftLogical128BitLane(s, 4));
-                    s = Sse2.Xor(s, t);
+                    t = Sse2.Xor(t, s);
+                    s = Sse2.Xor(t, Sse2.ShiftLeftLogical128BitLane(s, 4));
                     K[round] = s;
                 }
 
@@ -60,8 +60,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                     t1 = Sse2.Shuffle(t1.AsInt32(), 0x55).AsByte();
 
                     s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
-                    s1 = Sse2.Xor(s1, t1);
+                    t1 = Sse2.Xor(t1, s1);
+                    s1 = Sse2.Xor(t1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
 
                     K[++round] = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s1, 8));
 
@@ -76,8 +76,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                     t2 = Sse2.Shuffle(t2.AsInt32(), 0x55).AsByte();
 
                     s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
-                    s1 = Sse2.Xor(s1, t2);
+                    t2 = Sse2.Xor(t2, s1);
+                    s1 = Sse2.Xor(t2, Sse2.ShiftLeftLogical128BitLane(s1, 4));
 
                     K[++round] = s1;
 
@@ -106,8 +106,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                     var t1 = Aes.KeygenAssist(s2, rcon);    rcon <<= 1;
                     t1 = Sse2.Shuffle(t1.AsInt32(), 0xFF).AsByte();
                     s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
-                    s1 = Sse2.Xor(s1, t1);
+                    t1 = Sse2.Xor(t1, s1);
+                    s1 = Sse2.Xor(t1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
                     K[++round] = s1;
 
                     if (round == 14)
@@ -116,8 +116,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                     var t2 = Aes.KeygenAssist(s1, 0x00);
                     t2 = Sse2.Shuffle(t2.AsInt32(), 0xAA).AsByte();
                     s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 8));
-                    s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 4));
-                    s2 = Sse2.Xor(s2, t2);
+                    t2 = Sse2.Xor(t2, s2);
+                    s2 = Sse2.Xor(t2, Sse2.ShiftLeftLogical128BitLane(s2, 4));
                     K[++round] = s2;
                 }
 
