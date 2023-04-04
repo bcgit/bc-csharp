@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.Security;
 
@@ -18,9 +19,40 @@ namespace Org.BouncyCastle.Pkcs.Tests
     public class Pkcs10Test
         : SimpleTest
     {
+        private static readonly byte[] EmptyExtensionsReq = Base64.Decode(
+                "MIICVDCCATwCAQAwADCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKy8\n" +
+                "4oC/QPFkRBE04LIA5njEulZx/EEh+J2spnThoRwk+oycYEVKp95NSfGTAoNjTwUv\n" +
+                "TdB9c1PCPE1DmgZIVLEVvouB7sZbMbLSI0d//oMO/Wr/CZmvjPGB8DID7RJs0eqO\n" +
+                "gLgSuyBVrwbcSKtxH4NrNDsS5IZXCcE3xzkxMDdz72m9jvIrl2ivi+YmJ7cJo3N+\n" +
+                "DBEqHZW28oytOmVo+8zhxvnHb9w26GJEOxN5zYbiIVW2vU9OfeF9te+Rhnks43Pk\n" +
+                "YDDP2U4hR7q0BYrdkeWdA1ReleYyn/haeAoIVLZMANIOXobiqASKqSusVq9tLD67\n" +
+                "7TAywl5AVq8GOBzlXZUCAwEAAaAPMA0GCSqGSIb3DQEJDjEAMA0GCSqGSIb3DQEB\n" +
+                "CwUAA4IBAQAXck62gJw1deVOLVFAwBNVNXgJarHtDg3pauHTHvN+pSbdOTe1aRzb\n" +
+                "Tt4/govtuuGZsGWlUqiglLpl6qeS7Pe9m+WJwhH5yXnJ3yvy2Lc/XkeVQ0kt8uFg\n" +
+                "30UyrgKng6LDgUGFjDSiFr3dK8S/iYpDu/qpl1bWJPWmfmnIXzZWWvBdUTKlfoD9\n" +
+                "/NLIWINEzHQIBXGy2uLhutYOvDq0WDGOgtdFC8my/QajaJh5lo6mM/PlmcYjK286\n" +
+                "EdGSIxdME7hoW/ljA5355S820QZDkYx1tI/Y/YaY5KVOntwfDQzQiwWZ2PtpTqSK\n" +
+                "KYe2Ujb362yaERCE13DJC4Us9j8OOXcW\n");
+
         public override string Name
         {
 			get { return "Pkcs10"; }
+        }
+
+        [Test]
+        public void EmptyExtRequest()
+        {
+            Pkcs10CertificationRequest req = new Pkcs10CertificationRequest(EmptyExtensionsReq);
+
+            try
+            {
+                req.GetRequestedExtensions();
+                Fail("no exception thrown");
+            }
+            catch (InvalidOperationException e)
+            {
+                Assert.AreEqual("pkcs_9_at_extensionRequest present but has no value", e.Message);
+            }
         }
 
         [Test]
@@ -122,7 +154,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
                 Fail("expected name 2");
             }
         }
-
 
         public override void PerformTest()
         {

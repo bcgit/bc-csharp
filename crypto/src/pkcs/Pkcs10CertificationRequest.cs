@@ -487,41 +487,50 @@ namespace Org.BouncyCastle.Pkcs
                     try
                     {
                         attributePkcs = AttributePkcs.GetInstance(item);
-
                     }
                     catch (ArgumentException ex)
                     {
                         throw new ArgumentException("encountered non PKCS attribute in extensions block", ex);
                     }
 
-                    if (attributePkcs.AttrType.Equals(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest))
+                    if (PkcsObjectIdentifiers.Pkcs9AtExtensionRequest.Equals(attributePkcs.AttrType))
                     {
                         X509ExtensionsGenerator generator = new X509ExtensionsGenerator();
 
-                        Asn1Sequence extensionSequence = Asn1Sequence.GetInstance(attributePkcs.AttrValues[0]);
+                        var attrValues = attributePkcs.AttrValues;
+                        if (attrValues == null || attrValues.Count == 0)
+                            throw new InvalidOperationException("pkcs_9_at_extensionRequest present but has no value");
 
+                        Asn1Sequence extensionSequence = Asn1Sequence.GetInstance(attrValues[0]);
 
-                        foreach (Asn1Encodable seqItem in extensionSequence)
+                        try
                         {
+                            foreach (Asn1Encodable seqItem in extensionSequence)
+                            {
+                                Asn1Sequence itemSeq = Asn1Sequence.GetInstance(seqItem);
 
-                            Asn1Sequence itemSeq = Asn1Sequence.GetInstance(seqItem);
-                            if (itemSeq.Count == 2)
-                            {
-                                generator.AddExtension(DerObjectIdentifier.GetInstance(itemSeq[0]), false, Asn1OctetString.GetInstance(itemSeq[1]).GetOctets());
+                                if (itemSeq.Count == 2)
+                                {
+                                    generator.AddExtension(DerObjectIdentifier.GetInstance(itemSeq[0]), false, Asn1OctetString.GetInstance(itemSeq[1]).GetOctets());
+                                }
+                                else if (itemSeq.Count == 3)
+                                {
+                                    bool critical = DerBoolean.GetInstance(itemSeq[1]).IsTrue;
+                                    generator.AddExtension(DerObjectIdentifier.GetInstance(itemSeq[0]), critical, Asn1OctetString.GetInstance(itemSeq[2]).GetOctets());
+                                }
+                                else
+                                {
+                                    throw new InvalidOperationException("incorrect sequence size of X509Extension got " + itemSeq.Count + " expected 2 or 3");
+                                }
                             }
-                            else if (itemSeq.Count == 3)
-                            {
-                                generator.AddExtension(DerObjectIdentifier.GetInstance(itemSeq[0]), DerBoolean.GetInstance(itemSeq[1]).IsTrue, Asn1OctetString.GetInstance(itemSeq[2]).GetOctets());
-                            }
-                            else
-                            {
-                                throw new ArgumentException("incorrect sequence size of X509Extension got " + itemSeq.Count + " expected 2 or 3");
-                            }
+                        }
+                        catch (ArgumentException e)
+                        {
+                            throw new InvalidOperationException("asn1 processing issue: " + e.Message, e);
                         }
 
                         return generator.Generate();
                     }
-
                 }
             }
 
