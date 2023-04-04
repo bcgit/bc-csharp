@@ -217,18 +217,38 @@ namespace Org.BouncyCastle.X509
 				tbsGen.SetExtensions(extGenerator.Generate());
 			}
 
-			TbsCertificateList tbsCertList = tbsGen.GenerateTbsCertList();
+			var tbsCertList = tbsGen.GenerateTbsCertList();
 
-            IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
-			using (var sigStream = streamCalculator.Stream)
-			{
-				tbsCertList.EncodeTo(sigStream, Asn1Encodable.Der);
-			}
+			var signature = X509Utilities.GenerateSignature(signatureFactory, tbsCertList);
 
-			var signature = streamCalculator.GetResult().Collect();
+			return new X509Crl(CertificateList.GetInstance(new DerSequence(tbsCertList, sigAlgID, signature)));
+		}
 
-			return new X509Crl(
-				CertificateList.GetInstance(new DerSequence(tbsCertList, sigAlgID, new DerBitString(signature))));
+        /// <summary>
+        /// Generate a new <see cref="X509Crl"/> using the provided <see cref="ISignatureFactory"/> and
+        /// containing altSignatureAlgorithm and altSignatureValue extensions based on the passed
+        /// <paramref name="altSignatureFactory"/>.
+        /// </summary>
+        /// <param name="signatureFactory">A <see cref="ISignatureFactory">signature factory</see> with the necessary
+        /// algorithm details.</param>
+        /// <param name="isCritical">Whether the 'alt' extensions should be marked critical.</param>
+        /// <param name="altSignatureFactory">A <see cref="ISignatureFactory">signature factory</see> used to create the
+        /// altSignatureAlgorithm and altSignatureValue extensions.</param>
+        /// <returns>An <see cref="X509Certificate"/>.</returns>
+        public X509Crl Generate(ISignatureFactory signatureFactory, bool isCritical,
+            ISignatureFactory altSignatureFactory)
+		{
+            tbsGen.SetSignature(null);
+
+            var altSigAlgID = (AlgorithmIdentifier)altSignatureFactory.AlgorithmDetails;
+            extGenerator.AddExtension(X509Extensions.AltSignatureAlgorithm, isCritical, altSigAlgID);
+
+            tbsGen.SetExtensions(extGenerator.Generate());
+
+            var altSignature = X509Utilities.GenerateSignature(altSignatureFactory, tbsGen.GeneratePreTbsCertList());
+            extGenerator.AddExtension(X509Extensions.AltSignatureValue, isCritical, altSignature);
+
+            return Generate(signatureFactory);
 		}
 
 		/// <summary>

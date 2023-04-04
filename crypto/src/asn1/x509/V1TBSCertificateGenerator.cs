@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new InvalidOperationException("not all mandatory fields set in V1 TBScertificate generator");
             }
 
-			return new TbsCertificateStructure(
+			return TbsCertificateStructure.GetInstance(
 				new DerSequence(
 					//version, - not required as default value
 					serialNumber,

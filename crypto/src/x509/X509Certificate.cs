@@ -638,8 +638,7 @@ namespace Org.BouncyCastle.X509
         /// <param name="key">An appropriate public key parameter object, RsaPublicKeyParameters, DsaPublicKeyParameters or ECDsaPublicKeyParameters</param>
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If key submitted is not of the above nominated types.</exception>
-        public virtual void Verify(
-            AsymmetricKeyParameter key)
+        public virtual void Verify(AsymmetricKeyParameter key)
         {
             CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
         }
@@ -648,27 +647,54 @@ namespace Org.BouncyCastle.X509
         /// Verify the certificate's signature using a verifier created using the passed in verifier provider.
         /// </summary>
         /// <param name="verifierProvider">An appropriate provider for verifying the certificate's signature.</param>
-        /// <returns>True if the signature is valid.</returns>
-        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate algorithm is invalid.</exception>
-        public virtual void Verify(
-            IVerifierFactoryProvider verifierProvider)
+        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate signature algorithm
+        /// is invalid.</exception>
+        public virtual void Verify(IVerifierFactoryProvider verifierProvider)
         {
             CheckSignature(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
         }
 
-        protected virtual void CheckSignature(
-            IVerifierFactory verifier)
+        /// <summary>Verify the certificate's alternative signature using a verifier created using the passed in
+        /// verifier provider.</summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the certificate's alternative
+        /// signature.</param>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate alternative signature
+        /// algorithm is invalid.</exception>
+        public virtual void VerifyAltSignature(IVerifierFactoryProvider verifierProvider)
         {
-            if (!IsAlgIDEqual(c.SignatureAlgorithm, c.TbsCertificate.Signature))
-                throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
+            var tbsCertificate = c.TbsCertificate;
+            var extensions = tbsCertificate.Extensions;
 
-            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
-            using (var stream = streamCalculator.Stream)
+            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
+            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
+
+            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
+
+            Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertificate.ToAsn1Object());
+            Asn1EncodableVector v = new Asn1EncodableVector();
+
+            for (int i = 0; i < tbsSeq.Count - 1; i++)
             {
-                c.TbsCertificate.EncodeTo(stream, Asn1Encodable.Der);
+                if (i != 2) // signature field - must be ver 3 so version always present
+                {
+                    v.Add(tbsSeq[i]);
+                }
             }
 
-            if (!streamCalculator.GetResult().IsVerified(GetSignature()))
+            v.Add(X509Utilities.TrimExtensions(3, extensions));
+
+            if (!X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature))
+                throw new InvalidKeyException("Public key presented not for certificate alternative signature");
+        }
+
+        protected virtual void CheckSignature(IVerifierFactory verifier)
+        {
+            var tbsCertificate = c.TbsCertificate;
+
+            if (!IsAlgIDEqual(c.SignatureAlgorithm, tbsCertificate.Signature))
+                throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
+
+            if (!X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature))
                 throw new InvalidKeyException("Public key presented not for certificate signature");
         }
 

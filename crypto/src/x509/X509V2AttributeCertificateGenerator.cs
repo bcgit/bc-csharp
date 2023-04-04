@@ -117,24 +117,17 @@ namespace Org.BouncyCastle.X509
 				acInfoGen.SetExtensions(extGenerator.Generate());
 			}
 
-            AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
+            var acInfo = acInfoGen.GenerateAttributeCertificateInfo();
 
-			IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
-			using (var sigStream = streamCalculator.Stream)
-			{
-				acInfo.EncodeTo(sigStream, Asn1Encodable.Der);
-			}
+			var signature = X509Utilities.GenerateSignature(signatureFactory, acInfo);
 
-			var signature = streamCalculator.GetResult().Collect();
-
-			return new X509V2AttributeCertificate(
-				new AttributeCertificate(acInfo, sigAlgID, new DerBitString(signature)));
+			return new X509V2AttributeCertificate(new AttributeCertificate(acInfo, sigAlgID, signature));
 		}
 
-		/// <summary>
-		/// Allows enumeration of the signature names supported by the generator.
-		/// </summary>
-		public IEnumerable<string> SignatureAlgNames
+        /// <summary>
+        /// Allows enumeration of the signature names supported by the generator.
+        /// </summary>
+        public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }
 		}

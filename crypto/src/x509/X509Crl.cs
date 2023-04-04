@@ -104,8 +104,7 @@ namespace Org.BouncyCastle.X509
 				:	null;
 		}
 
-		public virtual void Verify(
-			AsymmetricKeyParameter publicKey)
+		public virtual void Verify(AsymmetricKeyParameter publicKey)
 		{
             Verify(new Asn1VerifierFactoryProvider(publicKey));
 		}
@@ -116,26 +115,57 @@ namespace Org.BouncyCastle.X509
         /// <param name="verifierProvider">An appropriate provider for verifying the CRL's signature.</param>
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If verifier provider is not appropriate or the CRL algorithm is invalid.</exception>
-        public virtual void Verify(
-            IVerifierFactoryProvider verifierProvider)
+        public virtual void Verify(IVerifierFactoryProvider verifierProvider)
         {
             CheckSignature(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
         }
 
-        protected virtual void CheckSignature(
-            IVerifierFactory verifier)
+        /// <summary>Verify the CRL's alternative signature using a verifier created using the passed in
+        /// verifier provider.</summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the CRL's alternative signature.
+		/// </param>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the CRL alternative signature
+        /// algorithm is invalid.</exception>
+        public virtual void VerifyAltSignature(IVerifierFactoryProvider verifierProvider)
         {
+            var tbsCertList = c.TbsCertList;
+            var extensions = tbsCertList.Extensions;
+
+            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
+            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
+
+            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
+
+			Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertList.ToAsn1Object());
+			Asn1EncodableVector v = new Asn1EncodableVector();
+
+			int start = 1;    //  want to skip signature field
+			if (tbsSeq[0] is DerInteger derInteger)
+            {
+				v.Add(derInteger);
+				start++;
+			}
+
+			for (int i = start; i < tbsSeq.Count - 1; i++)
+			{
+				v.Add(tbsSeq[i]);
+			}
+
+            v.Add(X509Utilities.TrimExtensions(0, extensions));
+
+            if (!X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature))
+                throw new InvalidKeyException("CRL alternative signature does not verify with supplied public key.");
+        }
+
+        protected virtual void CheckSignature(IVerifierFactory verifier)
+        {
+			var tbsCertList = c.TbsCertList;
+
             // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
-            if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
+            if (!c.SignatureAlgorithm.Equals(tbsCertList.Signature))
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
 
-            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
-			using (var stream = streamCalculator.Stream)
-			{
-				c.TbsCertList.EncodeTo(stream, Asn1Encodable.Der);
-            }
-
-            if (!streamCalculator.GetResult().IsVerified(GetSignature()))
+			if (!X509Utilities.VerifySignature(verifier, tbsCertList, c.Signature))
                 throw new InvalidKeyException("CRL does not verify with supplied public key.");
         }
 

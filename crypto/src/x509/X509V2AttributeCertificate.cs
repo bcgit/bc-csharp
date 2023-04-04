@@ -161,8 +161,7 @@ namespace Org.BouncyCastle.X509
             return cert.GetSignatureOctets();
 		}
 
-        public virtual void Verify(
-            AsymmetricKeyParameter key)
+        public virtual void Verify(AsymmetricKeyParameter key)
         {
             CheckSignature(new Asn1VerifierFactory(cert.SignatureAlgorithm, key));
         }
@@ -173,34 +172,20 @@ namespace Org.BouncyCastle.X509
         /// <param name="verifierProvider">An appropriate provider for verifying the certificate's signature.</param>
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If verifier provider is not appropriate or the certificate algorithm is invalid.</exception>
-        public virtual void Verify(
-            IVerifierFactoryProvider verifierProvider)
+        public virtual void Verify(IVerifierFactoryProvider verifierProvider)
         {
             CheckSignature(verifierProvider.CreateVerifierFactory(cert.SignatureAlgorithm));
         }
 
-        protected virtual void CheckSignature(
-            IVerifierFactory verifier)
+        protected virtual void CheckSignature(IVerifierFactory verifier)
         {
+			var acInfo = cert.ACInfo;
+
             // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
-            if (!cert.SignatureAlgorithm.Equals(cert.ACInfo.Signature))
+            if (!cert.SignatureAlgorithm.Equals(acInfo.Signature))
 				throw new CertificateException("Signature algorithm in certificate info not same as outer certificate");
 
-            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
-
-			try
-			{
-				using (var stream = streamCalculator.Stream)
-				{
-					cert.ACInfo.EncodeTo(stream);
-                }
-            }
-			catch (IOException e)
-			{
-				throw new SignatureException("Exception encoding certificate info object", e);
-			}
-
-			if (!streamCalculator.GetResult().IsVerified(GetSignature()))
+			if (!X509Utilities.VerifySignature(verifier, acInfo, cert.SignatureValue))
 				throw new InvalidKeyException("Public key presented not for certificate signature");
 		}
 

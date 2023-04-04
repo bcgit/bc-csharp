@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
@@ -159,5 +160,45 @@ namespace Org.BouncyCastle.X509
 		{
 			return CollectionUtilities.Proxy(m_algorithms.Keys);
 		}
-	}
+
+        internal static DerBitString GenerateSignature(ISignatureFactory signatureFactory, Asn1Encodable asn1Encodable)
+        {
+			var result = CalculateResult(signatureFactory.CreateCalculator(), asn1Encodable);
+            return new DerBitString(result.Collect());
+        }
+
+        internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,
+			DerBitString signature)
+        {
+            var result = CalculateResult(verifierFactory.CreateCalculator(), asn1Encodable);
+			return result.IsVerified(signature.GetOctets());
+        }
+
+        internal static Asn1TaggedObject TrimExtensions(int tagNo, X509Extensions exts)
+        {
+            Asn1Sequence extSeq = Asn1Sequence.GetInstance(exts.ToAsn1Object());
+            Asn1EncodableVector extV = new Asn1EncodableVector();
+			foreach (var extEntry in extSeq)
+			{
+				Asn1Sequence ext = Asn1Sequence.GetInstance(extEntry);
+
+                if (!X509Extensions.AltSignatureValue.Equals(ext[0]))
+                {
+                    extV.Add(ext);
+                }
+            }
+
+            return new DerTaggedObject(true, tagNo, new DerSequence(extV));
+        }
+
+		private static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
+			Asn1Encodable asn1Encodable)
+		{
+            using (var stream = streamCalculator.Stream)
+            {
+                asn1Encodable.EncodeTo(stream, Asn1Encodable.Der);
+            }
+            return streamCalculator.GetResult();
+        }
+    }
 }

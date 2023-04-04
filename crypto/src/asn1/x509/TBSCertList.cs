@@ -144,32 +144,21 @@ namespace Org.BouncyCastle.Asn1.X509
 		internal Asn1Sequence			revokedCertificates;
 		internal X509Extensions			crlExtensions;
 
-		public static TbsCertificateList GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static TbsCertificateList GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+			if (obj is TbsCertificateList tbsCertificateList)
+				return tbsCertificateList;
+			return new TbsCertificateList(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static TbsCertificateList GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static TbsCertificateList GetInstance(
-            object obj)
-        {
-            TbsCertificateList list = obj as TbsCertificateList;
-
-			if (obj == null || list != null)
-            {
-                return list;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new TbsCertificateList((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-        }
-
-		internal TbsCertificateList(Asn1Sequence seq)
+        private TbsCertificateList(Asn1Sequence seq)
         {
 			if (seq.Count < 3 || seq.Count > 7)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);

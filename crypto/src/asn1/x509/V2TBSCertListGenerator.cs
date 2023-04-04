@@ -40,40 +40,34 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-		public void SetSignature(
-            AlgorithmIdentifier signature)
+		public void SetSignature(AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(
-            X509Name issuer)
+		public void SetIssuer(X509Name issuer)
         {
             this.issuer = issuer;
         }
 
-		public void SetThisUpdate(
-            Asn1UtcTime thisUpdate)
+		public void SetThisUpdate(Asn1UtcTime thisUpdate)
         {
             this.thisUpdate = new Time(thisUpdate);
         }
 
-		public void SetNextUpdate(
-            Asn1UtcTime nextUpdate)
+		public void SetNextUpdate(Asn1UtcTime nextUpdate)
         {
             this.nextUpdate = (nextUpdate != null)
 				?	new Time(nextUpdate)
 				:	null;
         }
 
-		public void SetThisUpdate(
-            Time thisUpdate)
+		public void SetThisUpdate(Time thisUpdate)
         {
             this.thisUpdate = thisUpdate;
         }
 
-		public void SetNextUpdate(
-            Time nextUpdate)
+		public void SetNextUpdate(Time nextUpdate)
         {
             this.nextUpdate = nextUpdate;
         }
@@ -154,39 +148,49 @@ namespace Org.BouncyCastle.Asn1.X509
 			AddCrlEntry(new DerSequence(v));
 		}
 
-		public void SetExtensions(
-            X509Extensions extensions)
+		public void SetExtensions(X509Extensions extensions)
         {
             this.extensions = extensions;
         }
 
-		public TbsCertificateList GenerateTbsCertList()
+        public Asn1Sequence GeneratePreTbsCertList()
+        {
+            if (signature != null)
+                throw new InvalidOperationException("signature should not be set in PreTBSCertList generator");
+
+            if ((issuer == null) || (thisUpdate == null))
+                throw new InvalidOperationException("Not all mandatory fields set in V2 PreTBSCertList generator");
+
+            return GenerateTbsCertificateStructure();
+        }
+
+        public TbsCertificateList GenerateTbsCertList()
         {
             if ((signature == null) || (issuer == null) || (thisUpdate == null))
-            {
                 throw new InvalidOperationException("Not all mandatory fields set in V2 TbsCertList generator.");
-            }
 
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				version, signature, issuer, thisUpdate);
+            return TbsCertificateList.GetInstance(GenerateTbsCertificateStructure());
+        }
 
-			if (nextUpdate != null)
+        private Asn1Sequence GenerateTbsCertificateStructure()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(7);
+
+            v.Add(version);
+            v.AddOptional(signature);
+            v.Add(issuer);
+            v.Add(thisUpdate);
+            v.AddOptional(nextUpdate);
+
+            // Add CRLEntries if they exist
+            if (crlEntries != null && crlEntries.Count > 0)
             {
-                v.Add(nextUpdate);
+                v.Add(new DerSequence(crlEntries.ToArray()));
             }
 
-			// Add CRLEntries if they exist
-            if (crlEntries != null)
-            {
-				v.Add(new DerSequence(crlEntries.ToArray()));
-            }
+            v.AddOptionalTagged(true, 0, extensions);
 
-			if (extensions != null)
-            {
-                v.Add(new DerTaggedObject(0, extensions));
-            }
-
-			return new TbsCertificateList(new DerSequence(v));
+            return new DerSequence(v);
         }
     }
 }

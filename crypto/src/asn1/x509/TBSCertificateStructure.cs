@@ -39,27 +39,21 @@ namespace Org.BouncyCastle.Asn1.X509
 		internal DerBitString            subjectUniqueID;
 		internal X509Extensions          extensions;
 
-		public static TbsCertificateStructure GetInstance(
-			Asn1TaggedObject	obj,
-			bool				explicitly)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-		}
+        public static TbsCertificateStructure GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is TbsCertificateStructure tbsCertificateStructure)
+                return tbsCertificateStructure;
+            return new TbsCertificateStructure(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static TbsCertificateStructure GetInstance(
-			object obj)
-		{
-			if (obj is TbsCertificateStructure)
-				return (TbsCertificateStructure) obj;
+        public static TbsCertificateStructure GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+        }
 
-			if (obj != null)
-				return new TbsCertificateStructure(Asn1Sequence.GetInstance(obj));
-
-			return null;
-		}
-
-		internal TbsCertificateStructure(
-			Asn1Sequence seq)
+        private TbsCertificateStructure(Asn1Sequence seq)
 		{
 			int seqStart = 0;
 
