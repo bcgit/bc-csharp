@@ -161,6 +161,16 @@ namespace Org.BouncyCastle.X509
             return cert.GetSignatureOctets();
 		}
 
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
+        {
+            return CheckSignatureValid(new Asn1VerifierFactory(cert.SignatureAlgorithm, key));
+        }
+
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(cert.SignatureAlgorithm));
+        }
+
         public virtual void Verify(AsymmetricKeyParameter key)
         {
             CheckSignature(new Asn1VerifierFactory(cert.SignatureAlgorithm, key));
@@ -179,17 +189,22 @@ namespace Org.BouncyCastle.X509
 
         protected virtual void CheckSignature(IVerifierFactory verifier)
         {
-			var acInfo = cert.ACInfo;
-
-            // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
-            if (!cert.SignatureAlgorithm.Equals(acInfo.Signature))
-				throw new CertificateException("Signature algorithm in certificate info not same as outer certificate");
-
-			if (!X509Utilities.VerifySignature(verifier, acInfo, cert.SignatureValue))
+			if (!CheckSignatureValid(verifier))
 				throw new InvalidKeyException("Public key presented not for certificate signature");
 		}
 
-		public virtual byte[] GetEncoded()
+        protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
+        {
+            var acInfo = cert.ACInfo;
+
+            // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
+            if (!cert.SignatureAlgorithm.Equals(acInfo.Signature))
+                throw new CertificateException("Signature algorithm in certificate info not same as outer certificate");
+
+			return X509Utilities.VerifySignature(verifier, acInfo, cert.SignatureValue);
+        }
+
+        public virtual byte[] GetEncoded()
 		{
 			return cert.GetEncoded();
 		}

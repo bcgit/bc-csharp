@@ -104,9 +104,49 @@ namespace Org.BouncyCastle.X509
 				:	null;
 		}
 
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
+        {
+            return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
+        }
+
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+        }
+
+        public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            var tbsCertList = c.TbsCertList;
+            var extensions = tbsCertList.Extensions;
+
+            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
+            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
+
+            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
+
+            Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertList.ToAsn1Object());
+            Asn1EncodableVector v = new Asn1EncodableVector();
+
+            int start = 1;    //  want to skip signature field
+            if (tbsSeq[0] is DerInteger version)
+            {
+                v.Add(version);
+                start++;
+            }
+
+            for (int i = start; i < tbsSeq.Count - 1; i++)
+            {
+                v.Add(tbsSeq[i]);
+            }
+
+            v.Add(X509Utilities.TrimExtensions(0, extensions));
+
+			return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
+        }
+
 		public virtual void Verify(AsymmetricKeyParameter publicKey)
 		{
-            Verify(new Asn1VerifierFactoryProvider(publicKey));
+			CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, publicKey));
 		}
 
         /// <summary>
@@ -128,45 +168,25 @@ namespace Org.BouncyCastle.X509
         /// algorithm is invalid.</exception>
         public virtual void VerifyAltSignature(IVerifierFactoryProvider verifierProvider)
         {
-            var tbsCertList = c.TbsCertList;
-            var extensions = tbsCertList.Extensions;
-
-            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
-            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
-
-            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
-
-			Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertList.ToAsn1Object());
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			int start = 1;    //  want to skip signature field
-			if (tbsSeq[0] is DerInteger derInteger)
-            {
-				v.Add(derInteger);
-				start++;
-			}
-
-			for (int i = start; i < tbsSeq.Count - 1; i++)
-			{
-				v.Add(tbsSeq[i]);
-			}
-
-            v.Add(X509Utilities.TrimExtensions(0, extensions));
-
-            if (!X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature))
+            if (!IsAlternativeSignatureValid(verifierProvider))
                 throw new InvalidKeyException("CRL alternative signature does not verify with supplied public key.");
         }
 
         protected virtual void CheckSignature(IVerifierFactory verifier)
         {
-			var tbsCertList = c.TbsCertList;
+			if (!CheckSignatureValid(verifier))
+                throw new InvalidKeyException("CRL does not verify with supplied public key.");
+        }
+
+        protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
+        {
+            var tbsCertList = c.TbsCertList;
 
             // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
             if (!c.SignatureAlgorithm.Equals(tbsCertList.Signature))
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
 
-			if (!X509Utilities.VerifySignature(verifier, tbsCertList, c.Signature))
-                throw new InvalidKeyException("CRL does not verify with supplied public key.");
+			return X509Utilities.VerifySignature(verifier, tbsCertList, c.Signature);
         }
 
         public virtual int Version

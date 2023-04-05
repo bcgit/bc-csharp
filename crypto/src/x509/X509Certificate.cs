@@ -632,6 +632,42 @@ namespace Org.BouncyCastle.X509
             return buf.ToString();
         }
 
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
+        {
+            return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
+        }
+
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+        }
+
+        public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            var tbsCertificate = c.TbsCertificate;
+            var extensions = tbsCertificate.Extensions;
+
+            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
+            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
+
+            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
+
+            Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertificate.ToAsn1Object());
+            Asn1EncodableVector v = new Asn1EncodableVector();
+
+            for (int i = 0; i < tbsSeq.Count - 1; i++)
+            {
+                if (i != 2) // signature field - must be ver 3 so version always present
+                {
+                    v.Add(tbsSeq[i]);
+                }
+            }
+
+            v.Add(X509Utilities.TrimExtensions(3, extensions));
+
+            return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
+        }
+
         /// <summary>
         /// Verify the certificate's signature using the nominated public key.
         /// </summary>
@@ -662,40 +698,24 @@ namespace Org.BouncyCastle.X509
         /// algorithm is invalid.</exception>
         public virtual void VerifyAltSignature(IVerifierFactoryProvider verifierProvider)
         {
-            var tbsCertificate = c.TbsCertificate;
-            var extensions = tbsCertificate.Extensions;
-
-            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
-            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
-
-            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
-
-            Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertificate.ToAsn1Object());
-            Asn1EncodableVector v = new Asn1EncodableVector();
-
-            for (int i = 0; i < tbsSeq.Count - 1; i++)
-            {
-                if (i != 2) // signature field - must be ver 3 so version always present
-                {
-                    v.Add(tbsSeq[i]);
-                }
-            }
-
-            v.Add(X509Utilities.TrimExtensions(3, extensions));
-
-            if (!X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature))
+            if (!IsAlternativeSignatureValid(verifierProvider))
                 throw new InvalidKeyException("Public key presented not for certificate alternative signature");
         }
 
         protected virtual void CheckSignature(IVerifierFactory verifier)
+        {
+            if (!CheckSignatureValid(verifier))
+                throw new InvalidKeyException("Public key presented not for certificate signature");
+        }
+
+        protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
         {
             var tbsCertificate = c.TbsCertificate;
 
             if (!IsAlgIDEqual(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
-            if (!X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature))
-                throw new InvalidKeyException("Public key presented not for certificate signature");
+            return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);
         }
 
         private CachedEncoding GetCachedEncoding()
