@@ -369,8 +369,9 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		/// <exception cref="PkixCertPathValidatorException"/>
-		internal static PkixPolicyNode ProcessCertD(PkixCertPath certPath, int index, ISet<string> acceptablePolicies,
-			PkixPolicyNode validPolicyTree, IList<PkixPolicyNode>[] policyNodes, int inhibitAnyPolicy)
+		internal static PkixPolicyNode ProcessCertD(PkixCertPath certPath, int index,
+			HashSet<string> acceptablePolicies, PkixPolicyNode validPolicyTree, IList<PkixPolicyNode>[] policyNodes,
+			int inhibitAnyPolicy)
 		{
 			var certs = certPath.Certificates;
 			X509Certificate cert = certs[index];
@@ -408,7 +409,7 @@ namespace Org.BouncyCastle.Pkix
 
 					if (!ANY_POLICY.Equals(pOid.Id))
 					{
-						ISet<PolicyQualifierInfo> pq;
+						HashSet<PolicyQualifierInfo> pq;
 						try
 						{
 							pq = PkixCertPathValidatorUtilities.GetQualifierSet(pInfo.PolicyQualifiers);
@@ -674,7 +675,7 @@ namespace Org.BouncyCastle.Pkix
 		* @throws AnnotatedException if the CRL is not valid or the status cannot be checked or
 		*                            some error occurs.
 		*/
-		internal static ISet<AsymmetricKeyParameter> ProcessCrlF(
+		internal static HashSet<AsymmetricKeyParameter> ProcessCrlF(
 			X509Crl					crl,
 			object					cert,
 			X509Certificate			defaultCRLSignCert,
@@ -798,7 +799,7 @@ namespace Org.BouncyCastle.Pkix
 			return checkKeys;
 		}
 
-		internal static AsymmetricKeyParameter ProcessCrlG(X509Crl crl, ISet<AsymmetricKeyParameter> keys)
+		internal static AsymmetricKeyParameter ProcessCrlG(X509Crl crl, HashSet<AsymmetricKeyParameter> keys)
 		{
 			Exception lastException = null;
 			foreach (AsymmetricKeyParameter key in keys)
@@ -816,7 +817,7 @@ namespace Org.BouncyCastle.Pkix
 			throw new Exception("Cannot verify CRL.", lastException);
 		}
 
-		internal static X509Crl ProcessCrlH(ISet<X509Crl> deltaCrls, AsymmetricKeyParameter key)
+		internal static X509Crl ProcessCrlH(HashSet<X509Crl> deltaCrls, AsymmetricKeyParameter key)
 		{
 			Exception lastException = null;
 			foreach (X509Crl crl in deltaCrls)
@@ -918,7 +919,8 @@ namespace Org.BouncyCastle.Pkix
 					if (paramsPKIX.IsUseDeltasEnabled)
 					{
 						// get delta CRLs
-						ISet<X509Crl> deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(currentDate, paramsPKIX, crl);
+						HashSet<X509Crl> deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(currentDate,
+							paramsPKIX, crl);
 						// we only want one valid delta CRL
 						// (h)
 						deltaCRL = ProcessCrlH(deltaCRLs, key);
@@ -1996,7 +1998,7 @@ namespace Org.BouncyCastle.Pkix
 
 		internal static PkixPolicyNode WrapupCertG(PkixCertPath certPath, PkixParameters paramsPKIX,
 			ISet<string> userInitialPolicySet, int index, IList<PkixPolicyNode>[] policyNodes,
-			PkixPolicyNode validPolicyTree, ISet<string> acceptablePolicies)
+			PkixPolicyNode validPolicyTree, HashSet<string> acceptablePolicies)
 		{
 			int n = certPath.Certificates.Count;
 

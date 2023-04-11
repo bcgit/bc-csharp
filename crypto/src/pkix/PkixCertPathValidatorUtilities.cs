@@ -298,7 +298,7 @@ namespace Org.BouncyCastle.Pkix
 		// policy checking
 		//
 
-		internal static ISet<PolicyQualifierInfo> GetQualifierSet(Asn1Sequence qualifiers)
+		internal static HashSet<PolicyQualifierInfo> GetQualifierSet(Asn1Sequence qualifiers)
 		{
 			var pq = new HashSet<PolicyQualifierInfo>();
 
@@ -362,7 +362,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static void PrepareNextCertB1(int i, IList<PkixPolicyNode>[] policyNodes, string id_p,
-			IDictionary<string, ISet<string>> m_idp, X509Certificate cert)
+			IDictionary<string, HashSet<string>> m_idp, X509Certificate cert)
 		{
 			foreach (var node in policyNodes[i])
 			{
@@ -825,7 +825,7 @@ namespace Org.BouncyCastle.Pkix
 		 * @throws Exception if an exception occurs while picking the delta
 		 *             CRLs.
 		 */
-		internal static ISet<X509Crl> GetDeltaCrls(DateTime currentDate, PkixParameters pkixParameters,
+		internal static HashSet<X509Crl> GetDeltaCrls(DateTime currentDate, PkixParameters pkixParameters,
 			X509Crl completeCRL)
 		{
 			X509CrlStoreSelector deltaSelect = new X509CrlStoreSelector();
@@ -952,7 +952,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static bool ProcessCertD1i(int index, IList<PkixPolicyNode>[] policyNodes, DerObjectIdentifier	pOid,
-			ISet<PolicyQualifierInfo> pq)
+			HashSet<PolicyQualifierInfo> pq)
 		{
 			foreach (var node in policyNodes[index - 1])
 			{
@@ -974,7 +974,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static void ProcessCertD1ii(int index, IList<PkixPolicyNode>[] policyNodes, DerObjectIdentifier _poid,
-			ISet<PolicyQualifierInfo> _pq)
+			HashSet<PolicyQualifierInfo> _pq)
 		{
 			foreach (var _node in policyNodes[index - 1])
 			{

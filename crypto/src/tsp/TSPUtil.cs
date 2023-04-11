@@ -178,14 +178,14 @@ namespace Org.BouncyCastle.Tsp
 			return DigestUtilities.GetDigest(digestName);
 		}
 
-		internal static ISet<DerObjectIdentifier> GetCriticalExtensionOids(X509Extensions extensions)
+		internal static HashSet<DerObjectIdentifier> GetCriticalExtensionOids(X509Extensions extensions)
 		{
 			return extensions == null
 				? new HashSet<DerObjectIdentifier>()
 				: new HashSet<DerObjectIdentifier>(extensions.GetCriticalExtensionOids());
 		}
 
-		internal static ISet<DerObjectIdentifier> GetNonCriticalExtensionOids(X509Extensions extensions)
+		internal static HashSet<DerObjectIdentifier> GetNonCriticalExtensionOids(X509Extensions extensions)
 		{
 			return extensions == null
 				? new HashSet<DerObjectIdentifier>()

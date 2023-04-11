@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.ExtendedKeyUsage));
         }
 
-        internal readonly ISet<DerObjectIdentifier> m_usageTable = new HashSet<DerObjectIdentifier>();
+        internal readonly HashSet<DerObjectIdentifier> m_usageTable = new HashSet<DerObjectIdentifier>();
         internal readonly Asn1Sequence seq;
 
         private ExtendedKeyUsage(Asn1Sequence seq)

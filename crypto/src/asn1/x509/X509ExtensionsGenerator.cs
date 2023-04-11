@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Asn1.X509
             new Dictionary<DerObjectIdentifier, X509Extension>();
         private List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
 
-        private static readonly ISet<DerObjectIdentifier> m_dupsAllowed = new HashSet<DerObjectIdentifier>()
+        private static readonly HashSet<DerObjectIdentifier> m_dupsAllowed = new HashSet<DerObjectIdentifier>()
         {
             X509Extensions.SubjectAlternativeName,
             X509Extensions.IssuerAlternativeName,

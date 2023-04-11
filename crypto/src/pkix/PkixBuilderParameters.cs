@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Pkix
 	{
 		private int maxPathLength = 5;
 
-		private ISet<X509Certificate> excludedCerts = new HashSet<X509Certificate>();
+		private HashSet<X509Certificate> excludedCerts = new HashSet<X509Certificate>();
 
 		/**
 		* Returns an instance of <code>PkixBuilderParameters</code>.
