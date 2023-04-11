@@ -41,6 +41,11 @@ namespace Org.BouncyCastle.Crypto
         /// <returns>true if the internal state represents the signature described in the passed in array.</returns>
         bool VerifySignature(byte[] signature);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api]
+        //bool VerifySignature(ReadOnlySpan<byte> signature);
+#endif
+
         /// <summary>Reset the signer back to its initial state.</summary>
         void Reset();
     }
