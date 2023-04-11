@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.OpenSsl
 
             var headers = new List<PemHeader>(2);
             headers.Add(new PemHeader("Proc-Type", "4,ENCRYPTED"));
-            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv).ToUpperInvariant()));
+            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv, true)));
 
             return new PemObject(type, headers, encData);
         }
@@ -249,7 +249,7 @@ namespace Org.BouncyCastle.OpenSsl
 
             var headers = new List<PemHeader>(2);
             headers.Add(new PemHeader("Proc-Type", "4,ENCRYPTED"));
-            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv).ToUpperInvariant()));
+            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv, true)));
 
             return new PemObject(type, headers, encData);
         }

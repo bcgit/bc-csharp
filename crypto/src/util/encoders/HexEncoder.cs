@@ -6,6 +6,45 @@ namespace Org.BouncyCastle.Utilities.Encoders
     public class HexEncoder
         : IEncoder
     {
+        private static readonly char[] CharsLower = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+        private static readonly char[] CharsUpper = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static int EncodeLower(ReadOnlySpan<byte> input, Span<char> output)
+        {
+            int inPos = 0;
+            int inEnd = input.Length;
+            int outPos = 0;
+
+            while (inPos < inEnd)
+            {
+                uint b = input[inPos++];
+
+                output[outPos++] = CharsLower[b >> 4];
+                output[outPos++] = CharsLower[b & 0xF];
+            }
+
+            return outPos;
+        }
+
+        internal static int EncodeUpper(ReadOnlySpan<byte> input, Span<char> output)
+        {
+            int inPos = 0;
+            int inEnd = input.Length;
+            int outPos = 0;
+
+            while (inPos < inEnd)
+            {
+                uint b = input[inPos++];
+
+                output[outPos++] = CharsUpper[b >> 4];
+                output[outPos++] = CharsUpper[b & 0xF];
+            }
+
+            return outPos;
+        }
+#endif
+
         protected readonly byte[] encodingTable =
         {
             (byte)'0', (byte)'1', (byte)'2', (byte)'3', (byte)'4', (byte)'5', (byte)'6', (byte)'7',
