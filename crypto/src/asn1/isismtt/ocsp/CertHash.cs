@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
 			this.hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
-			this.certificateHash = DerOctetString.GetInstance(seq[1]).GetOctets();
+			this.certificateHash = Asn1OctetString.GetInstance(seq[1]).GetOctets();
 		}
 
 		/**

@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             }
 
 			e.MoveNext();
-            encryptedDigest = DerOctetString.GetInstance(e.Current);
+            encryptedDigest = Asn1OctetString.GetInstance(e.Current);
 
 			if (e.MoveNext())
             {
