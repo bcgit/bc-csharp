@@ -46,6 +46,16 @@ namespace Org.BouncyCastle.Utilities
             return InvariantCompareInfo.IndexOf(source, value, startIndex, CompareOptions.Ordinal);
         }
 
+        internal static bool Is64BitProcess
+        {
+#if NETCOREAPP2_0_OR_GREATER || NET40_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+
+            get { return Environment.Is64BitProcess; }
+#else
+            get { return IntPtr.Size == 8; }
+#endif
+        }
+
         internal static int LastIndexOf(string source, string value)
         {
             return InvariantCompareInfo.LastIndexOf(source, value, CompareOptions.Ordinal);

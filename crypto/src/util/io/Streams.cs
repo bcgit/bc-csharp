@@ -2,13 +2,15 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
 using System.Threading.Tasks;
+#endif
 
 namespace Org.BouncyCastle.Utilities.IO
 {
     public static class Streams
 	{
-        private static readonly int MaxStackAlloc = Environment.Is64BitProcess ? 4096 : 1024;
+        private static readonly int MaxStackAlloc = Platform.Is64BitProcess ? 4096 : 1024;
 
 		public static int DefaultBufferSize => MaxStackAlloc;
 
@@ -37,6 +39,7 @@ namespace Org.BouncyCastle.Utilities.IO
 #endif
 		}
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
         public static Task CopyToAsync(Stream source, Stream destination)
         {
             return CopyToAsync(source, destination, DefaultBufferSize);
@@ -69,6 +72,7 @@ namespace Org.BouncyCastle.Utilities.IO
 			}
 #endif
 		}
+#endif
 
         public static void Drain(Stream inStr)
 		{

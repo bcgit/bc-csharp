@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
 using System.Threading.Tasks;
+#endif
 
 namespace Org.BouncyCastle.Utilities.IO
 {
@@ -28,6 +30,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
         public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
             if (m_buf != -1)
@@ -39,6 +42,7 @@ namespace Org.BouncyCastle.Utilities.IO
 
             await Streams.CopyToAsync(s, destination, bufferSize, cancellationToken);
         }
+#endif
 
         public override int Read(byte[] buffer, int offset, int count)
 		{

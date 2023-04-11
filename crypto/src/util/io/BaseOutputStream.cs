@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
 using System.Threading.Tasks;
+#endif
 
 namespace Org.BouncyCastle.Utilities.IO
 {
@@ -16,11 +18,15 @@ namespace Org.BouncyCastle.Utilities.IO
         // TODO[api] sealed
         public override void CopyTo(Stream destination, int bufferSize) { throw new NotSupportedException(); }
 #endif
+
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
         // TODO[api] sealed
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
         }
+#endif
+
         public override void Flush() {}
         public sealed override long Length { get { throw new NotSupportedException(); } }
         public sealed override long Position
