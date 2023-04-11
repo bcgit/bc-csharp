@@ -97,14 +97,12 @@ namespace Org.BouncyCastle.Cmp
             if (null == body)
                 throw new InvalidOperationException("body must be set before building");
 
-            var calculator = signatureFactory.CreateCalculator();
-
             if (!(signatureFactory.AlgorithmDetails is AlgorithmIdentifier algorithmDetails))
                 throw new ArgumentException("AlgorithmDetails is not AlgorithmIdentifier");
 
             FinalizeHeader(algorithmDetails);
             PkiHeader header = m_hdrBuilder.Build();
-            DerBitString protection = new DerBitString(CalculateSignature(calculator, header, body));
+            DerBitString protection = X509Utilities.GenerateSignature(signatureFactory, new DerSequence(header, body));
             return FinalizeMessage(header, protection);
         }
 
@@ -113,14 +111,12 @@ namespace Org.BouncyCastle.Cmp
             if (null == body)
                 throw new InvalidOperationException("body must be set before building");
 
-            var calculator = macFactory.CreateCalculator();
-
             if (!(macFactory.AlgorithmDetails is AlgorithmIdentifier algorithmDetails))
                 throw new ArgumentException("AlgorithmDetails is not AlgorithmIdentifier");
 
             FinalizeHeader(algorithmDetails);
             PkiHeader header = m_hdrBuilder.Build();
-            DerBitString protection = new DerBitString(CalculateSignature(calculator, header, body));
+            DerBitString protection = X509Utilities.GenerateMac(macFactory, new DerSequence(header, body));
             return FinalizeMessage(header, protection);
         }
 
@@ -145,16 +141,6 @@ namespace Org.BouncyCastle.Cmp
             }
 
             return new ProtectedPkiMessage(new PkiMessage(header, body, protection, cmpCertificates));
-        }
-
-        private byte[] CalculateSignature(IStreamCalculator<IBlockResult> signer, PkiHeader header, PkiBody body)
-        {
-            using (var s = signer.Stream)
-            {
-                new DerSequence(header, body).EncodeTo(s);
-            }
-
-            return signer.GetResult().Collect();
         }
     }
 }

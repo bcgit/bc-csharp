@@ -178,43 +178,25 @@ namespace Org.BouncyCastle.Crmf
             {
                 PopoSigningKey popoSign = PopoSigningKey.GetInstance(pop.Object);
                 if (popoSign.PoposkInput != null && popoSign.PoposkInput.PublicKeyMac != null)
-                {
                     throw new InvalidOperationException("verification requires password check");
-                }
-                return verifySignature(verifierProvider, popoSign);
+
+                return VerifySignature(verifierProvider, popoSign);
             }
 
             throw new InvalidOperationException("not Signing Key type of proof of possession");
         }
 
-        private bool verifySignature(IVerifierFactoryProvider verifierFactoryProvider, PopoSigningKey signKey)
+        private bool VerifySignature(IVerifierFactoryProvider verifierFactoryProvider, PopoSigningKey signKey)
         {
-            IVerifierFactory verifer;
-            IStreamCalculator<IVerifier> calculator;
-            try
+            var verifierFactory = verifierFactoryProvider.CreateVerifierFactory(signKey.AlgorithmIdentifier);
+
+            Asn1Encodable asn1Encodable = signKey.PoposkInput;
+            if (asn1Encodable == null)
             {
-                verifer = verifierFactoryProvider.CreateVerifierFactory(signKey.AlgorithmIdentifier);
-                calculator = verifer.CreateCalculator();
-            }
-            catch (Exception ex)
-            {
-                throw new CrmfException("unable to create verifier: " + ex.Message, ex);
+                asn1Encodable = certReqMsg.CertReq;
             }
 
-            if (signKey.PoposkInput != null)
-            {
-                byte[] b = signKey.GetDerEncoded();
-                calculator.Stream.Write(b, 0, b.Length);
-            }
-            else
-            {
-                byte[] b = certReqMsg.CertReq.GetDerEncoded();
-                calculator.Stream.Write(b, 0, b.Length);
-            }
-
-            IVerifier result = calculator.GetResult();
-
-            return result.IsVerified(signKey.Signature.GetBytes());
+            return X509.X509Utilities.VerifySignature(verifierFactory, asn1Encodable, signKey.Signature);
         }
 
         /// <summary>

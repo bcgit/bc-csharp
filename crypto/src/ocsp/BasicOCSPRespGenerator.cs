@@ -164,12 +164,10 @@ namespace Org.BouncyCastle.Ocsp
 			this.responseExtensions = responseExtensions;
 		}
 
-		private BasicOcspResp GenerateResponse(
-			ISignatureFactory    signatureCalculator,
-			X509Certificate[]		chain,
-			DateTime				producedAt)
+		private BasicOcspResp GenerateResponse(ISignatureFactory signatureFactory, X509Certificate[] chain,
+			DateTime producedAt)
 		{
-            AlgorithmIdentifier signingAlgID = (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails;
+            AlgorithmIdentifier signingAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
             DerObjectIdentifier signingAlgorithm = signingAlgID.Algorithm;
 
 			Asn1EncodableVector responses = new Asn1EncodableVector();
@@ -186,26 +184,20 @@ namespace Org.BouncyCastle.Ocsp
 				}
 			}
 
-			ResponseData tbsResp = new ResponseData(responderID.ToAsn1Object(), new Asn1GeneralizedTime(producedAt),
+			var responseData = new ResponseData(responderID.ToAsn1Object(), new Asn1GeneralizedTime(producedAt),
 				new DerSequence(responses), responseExtensions);
-			DerBitString bitSig;
 
+			DerBitString bitSig;
 			try
 			{
-                IStreamCalculator<IBlockResult> streamCalculator = signatureCalculator.CreateCalculator();
-				using (Stream sigStream = streamCalculator.Stream)
-				{
-					tbsResp.EncodeTo(sigStream, Asn1Encodable.Der);
-				}
-
-				bitSig = new DerBitString(streamCalculator.GetResult().Collect());
+				bitSig = X509.X509Utilities.GenerateSignature(signatureFactory, responseData);
 			}
 			catch (Exception e)
 			{
 				throw new OcspException("exception processing TBSRequest: " + e, e);
 			}
 
-			AlgorithmIdentifier sigAlgId = OcspUtilities.GetSigAlgID(signingAlgorithm);
+			AlgorithmIdentifier sigAlgID = OcspUtilities.GetSigAlgID(signingAlgorithm);
 
 			DerSequence chainSeq = null;
 			if (chain != null && chain.Length > 0)
@@ -230,7 +222,7 @@ namespace Org.BouncyCastle.Ocsp
 				chainSeq = new DerSequence(v);
 			}
 
-			return new BasicOcspResp(new BasicOcspResponse(tbsResp, sigAlgId, bitSig, chainSeq));
+			return new BasicOcspResp(new BasicOcspResponse(responseData, sigAlgID, bitSig, chainSeq));
 		}
 
 		public BasicOcspResp Generate(

@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.X509
 		public void SetSubjectUniqueID(
 			bool[] uniqueID)
 		{
-			tbsGen.SetSubjectUniqueID(booleanToBitString(uniqueID));
+			tbsGen.SetSubjectUniqueID(BooleanToBitString(uniqueID));
 		}
 
 		/// <summary>
@@ -153,30 +153,7 @@ namespace Org.BouncyCastle.X509
 		public void SetIssuerUniqueID(
 			bool[] uniqueID)
 		{
-			tbsGen.SetIssuerUniqueID(booleanToBitString(uniqueID));
-		}
-
-		private DerBitString booleanToBitString(
-			bool[] id)
-		{
-			byte[] bytes = new byte[(id.Length + 7) / 8];
-
-			for (int i = 0; i != id.Length; i++)
-			{
-				if (id[i])
-				{
-					bytes[i / 8] |= (byte)(1 << ((7 - (i % 8))));
-				}
-			}
-
-			int pad = id.Length % 8;
-
-			if (pad == 0)
-			{
-				return new DerBitString(bytes);
-			}
-
-			return new DerBitString(bytes, 8 - pad);
+			tbsGen.SetIssuerUniqueID(BooleanToBitString(uniqueID));
 		}
 
 		/// <summary>
@@ -327,9 +304,29 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
-		public IEnumerable<string> SignatureAlgNames
-		{
-			get { return X509Utilities.GetAlgNames(); }
-		}
-	}
+		public IEnumerable<string> SignatureAlgNames => X509Utilities.GetAlgNames();
+
+        private static DerBitString BooleanToBitString(bool[] id)
+        {
+            int byteLength = (id.Length + 7) / 8;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bytes = byteLength <= 512
+                ? stackalloc byte[byteLength]
+                : new byte[byteLength];
+#else
+			byte[] bytes = new byte[byteLength];
+#endif
+
+            for (int i = 0; i != id.Length; i++)
+            {
+                if (id[i])
+                {
+                    bytes[i >> 3] |= (byte)(0x80 >> (i & 7));
+                }
+            }
+
+            return new DerBitString(bytes, (8 - id.Length) & 7);
+        }
+    }
 }

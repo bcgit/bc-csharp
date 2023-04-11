@@ -1,12 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Net.Security;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crmf
 {
@@ -55,43 +54,33 @@ namespace Org.BouncyCastle.Crmf
                 throw new InvalidOperationException("name and publicKeyMAC cannot both be set.");
 
             PopoSigningKeyInput popo;
+            Asn1Encodable asn1Encodable;
 
-            IStreamCalculator<IBlockResult> calc = signer.CreateCalculator();
-            using (Stream sigStream = calc.Stream)
+            if (_certRequest != null)
             {
-                if (_certRequest != null)
-                {
-                    popo = null;
-                    _certRequest.EncodeTo(sigStream, Asn1Encodable.Der);
-                }
-                else if (_name != null)
-                {
-                    popo = new PopoSigningKeyInput(_name, _pubKeyInfo);
-                    popo.EncodeTo(sigStream, Asn1Encodable.Der);
-                }
-                else
-                {
-                    popo = new PopoSigningKeyInput(_publicKeyMAC, _pubKeyInfo);
-                    popo.EncodeTo(sigStream, Asn1Encodable.Der);
-                }
+                popo = null;
+                asn1Encodable = _certRequest;
+            }
+            else if (_name != null)
+            {
+                popo = new PopoSigningKeyInput(_name, _pubKeyInfo);
+                asn1Encodable = popo;
+            }
+            else
+            {
+                popo = new PopoSigningKeyInput(_publicKeyMAC, _pubKeyInfo);
+                asn1Encodable = popo;
             }
 
-            var signature = calc.GetResult().Collect();
+            var signature = X509.X509Utilities.GenerateSignature(signer, asn1Encodable);
 
-            return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, new DerBitString(signature));
+            return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, signature);
         }
 
-        private ProofOfPossessionSigningKeyBuilder ImplSetPublicKeyMac(IMacFactory fact)
+        private ProofOfPossessionSigningKeyBuilder ImplSetPublicKeyMac(IMacFactory macFactory)
         {
-            IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
-            using (var stream = calc.Stream)
-            {
-                _pubKeyInfo.EncodeTo(stream, Asn1Encodable.Der);
-            }
-
-            var mac = calc.GetResult().Collect();
-
-            this._publicKeyMAC = new PKMacValue((AlgorithmIdentifier)fact.AlgorithmDetails, new DerBitString(mac));
+            var macValue = X509.X509Utilities.GenerateMac(macFactory, _pubKeyInfo);
+            this._publicKeyMAC = new PKMacValue((AlgorithmIdentifier)macFactory.AlgorithmDetails, macValue);
             return this;
         }
     }

@@ -14,7 +14,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
 {
-	internal class X509Utilities
+    internal static class X509Utilities
 	{
         private static readonly Dictionary<string, DerObjectIdentifier> m_algorithms =
 			new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
@@ -126,7 +126,17 @@ namespace Org.BouncyCastle.X509
 			m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
 		}
 
-		private static RsassaPssParameters CreatePssParams(
+        internal static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
+            Asn1Encodable asn1Encodable)
+        {
+            using (var stream = streamCalculator.Stream)
+            {
+                asn1Encodable.EncodeTo(stream, Asn1Encodable.Der);
+            }
+            return streamCalculator.GetResult();
+        }
+
+        private static RsassaPssParameters CreatePssParams(
 			AlgorithmIdentifier	hashAlgId,
 			int					saltSize)
 		{
@@ -137,7 +147,23 @@ namespace Org.BouncyCastle.X509
 				new DerInteger(1));
 		}
 
-		internal static DerObjectIdentifier GetAlgorithmOid(string algorithmName)
+        internal static DerBitString CollectDerBitString(IBlockResult result)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var maxResultLength = result.GetMaxResultLength();
+            Span<byte> data = maxResultLength <= 512
+                ? stackalloc byte[maxResultLength]
+                : new byte[maxResultLength];
+            int resultLength = result.Collect(data);
+            data = data[..resultLength];
+#else
+            var data = result.Collect();
+#endif
+
+            return new DerBitString(data);
+        }
+
+        internal static DerObjectIdentifier GetAlgorithmOid(string algorithmName)
 		{
 			if (m_algorithms.TryGetValue(algorithmName, out var oid))
 				return oid;
@@ -161,16 +187,29 @@ namespace Org.BouncyCastle.X509
 			return CollectionUtilities.Proxy(m_algorithms.Keys);
 		}
 
+        internal static DerBitString GenerateBitString(IStreamCalculator<IBlockResult> streamCalculator,
+			Asn1Encodable asn1Encodable)
+        {
+            var result = CalculateResult(streamCalculator, asn1Encodable);
+            return CollectDerBitString(result);
+        }
+
+        internal static DerBitString GenerateMac(IMacFactory macFactory, Asn1Encodable asn1Encodable)
+        {
+			return GenerateBitString(macFactory.CreateCalculator(), asn1Encodable);
+        }
+
         internal static DerBitString GenerateSignature(ISignatureFactory signatureFactory, Asn1Encodable asn1Encodable)
         {
-			var result = CalculateResult(signatureFactory.CreateCalculator(), asn1Encodable);
-            return new DerBitString(result.Collect());
+            return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,
 			DerBitString signature)
         {
             var result = CalculateResult(verifierFactory.CreateCalculator(), asn1Encodable);
+
+			// TODO[api] Use GetOctetsSpan() once IsVerified(ReadOnlySpan<byte>) is available
 			return result.IsVerified(signature.GetOctets());
         }
 
@@ -189,16 +228,6 @@ namespace Org.BouncyCastle.X509
             }
 
             return new DerTaggedObject(true, tagNo, new DerSequence(extV));
-        }
-
-		private static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
-			Asn1Encodable asn1Encodable)
-		{
-            using (var stream = streamCalculator.Stream)
-            {
-                asn1Encodable.EncodeTo(stream, Asn1Encodable.Der);
-            }
-            return streamCalculator.GetResult();
         }
     }
 }

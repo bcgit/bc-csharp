@@ -269,10 +269,7 @@ namespace Org.BouncyCastle.Pkcs
             Init(signatureFactory, subject, publicKey, attributes);
         }
 
-        private void Init(
-            ISignatureFactory signatureFactory,
-            X509Name subject,
-            AsymmetricKeyParameter publicKey,
+        private void Init(ISignatureFactory signatureFactory, X509Name subject, AsymmetricKeyParameter publicKey,
             Asn1Set attributes)
         {
             this.sigAlgId = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
@@ -281,14 +278,7 @@ namespace Org.BouncyCastle.Pkcs
 
             this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
 
-            IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
-            using (Stream sigStream = streamCalculator.Stream)
-            {
-                reqInfo.EncodeTo(sigStream, Der);
-            }
-
-            // Generate Signature.
-            sigBits = new DerBitString(streamCalculator.GetResult().Collect());
+            sigBits = X509.X509Utilities.GenerateSignature(signatureFactory, reqInfo);
         }
 
         //        internal Pkcs10CertificationRequest(
@@ -337,18 +327,11 @@ namespace Org.BouncyCastle.Pkcs
             return Verify(verifierProvider.CreateVerifierFactory(sigAlgId));
         }
 
-        public bool Verify(
-            IVerifierFactory verifier)
+        public bool Verify(IVerifierFactory verifier)
         {
             try
             {
-                IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
-                using (var stream = streamCalculator.Stream)
-                {
-                    reqInfo.EncodeTo(stream, Asn1Encodable.Der);
-                }
-
-                return streamCalculator.GetResult().IsVerified(sigBits.GetOctets());
+                return X509.X509Utilities.VerifySignature(verifier, reqInfo, sigBits);
             }
             catch (Exception e)
             {

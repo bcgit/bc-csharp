@@ -122,26 +122,16 @@ namespace Org.BouncyCastle.X509
 
 			tbsGen.SetSignature(sigAlgID);
 
-			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
+			var tbsCertificate = tbsGen.GenerateTbsCertificate();
 
-			IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
-			using (var sigStream = streamCalculator.Stream)
-			{
-				tbsCert.EncodeTo(sigStream, Asn1Encodable.Der);
-			}
+            var signature = X509Utilities.GenerateSignature(signatureFactory, tbsCertificate);
 
-			var signature = streamCalculator.GetResult().Collect();
-
-			return new X509Certificate(
-				new X509CertificateStructure(tbsCert, sigAlgID, new DerBitString(signature)));
+            return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
 		}
 
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
-		public IEnumerable<string> SignatureAlgNames
-		{
-			get { return X509Utilities.GetAlgNames(); }
-		}
+		public IEnumerable<string> SignatureAlgNames => X509Utilities.GetAlgNames();
 	}
 }
