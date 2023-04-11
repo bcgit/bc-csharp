@@ -60,11 +60,15 @@ namespace Org.BouncyCastle.Asn1.X509
             m_signature = new DerBitString(signature);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public AltSignatureValue(ReadOnlySpan<byte> signature)
+        {
+            m_signature = new DerBitString(signature);
+        }
+#endif
+
         public DerBitString Signature => m_signature;
 
-        public override Asn1Object ToAsn1Object()
-        {
-            return m_signature;
-        }
+        public override Asn1Object ToAsn1Object() => m_signature;
     }
 }

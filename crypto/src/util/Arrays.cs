@@ -1037,6 +1037,13 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        public static T[] Prepend<T>(ReadOnlySpan<T> a, T b)
+        {
+            T[] result = new T[1 + a.Length];
+            result[0] = b;
+            a.CopyTo(result.AsSpan(1));
+            return result;
+        }
 #endif
     }
 }

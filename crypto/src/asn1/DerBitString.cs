@@ -118,6 +118,23 @@ namespace Org.BouncyCastle.Asn1
             this.contents = Arrays.Prepend(data, (byte)padBits);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public DerBitString(ReadOnlySpan<byte> data)
+            : this(data, 0)
+        {
+        }
+
+        public DerBitString(ReadOnlySpan<byte> data, int padBits)
+        {
+            if (padBits < 0 || padBits > 7)
+                throw new ArgumentException("must be in the range 0 to 7", "padBits");
+            if (data.IsEmpty && padBits != 0)
+                throw new ArgumentException("if 'data' is empty, 'padBits' must be 0");
+
+            this.contents = Arrays.Prepend(data, (byte)padBits);
+        }
+#endif
+
         public DerBitString(int namedBits)
         {
             if (namedBits == 0)

@@ -81,6 +81,19 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public BerBitString(ReadOnlySpan<byte> data)
+            : this(data, 0)
+        {
+        }
+
+        public BerBitString(ReadOnlySpan<byte> data, int padBits)
+            : base(data, padBits)
+        {
+            this.elements = null;
+        }
+#endif
+
         public BerBitString(int namedBits)
             : base(namedBits)
         {
