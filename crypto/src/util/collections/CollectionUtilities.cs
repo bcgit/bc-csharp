@@ -75,10 +75,12 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new ReadOnlyListProxy<T>(l);
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET40_OR_GREATER || NETSTANDARD1_0_OR_GREATER
         public static ISet<T> ReadOnly<T>(ISet<T> s)
         {
             return new ReadOnlySetProxy<T>(s);
         }
+#endif
 
         public static bool Remove<K, V>(IDictionary<K, V> d, K k, out V v)
         {

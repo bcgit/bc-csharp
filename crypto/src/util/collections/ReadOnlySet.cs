@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Utilities.Collections
 {
     internal abstract class ReadOnlySet<T>
+#if NETCOREAPP1_0_OR_GREATER || NET40_OR_GREATER || NETSTANDARD1_0_OR_GREATER
         : ISet<T>
+#else
+        : ICollection<T>, IEnumerable<T>, IEnumerable
+#endif
     {
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
@@ -35,6 +40,7 @@ namespace Org.BouncyCastle.Utilities.Collections
         public abstract bool Overlaps(IEnumerable<T> other);
     }
 
+#if NETCOREAPP1_0_OR_GREATER || NET40_OR_GREATER || NETSTANDARD1_0_OR_GREATER
     internal class ReadOnlySetProxy<T>
         : ReadOnlySet<T>
     {
@@ -58,4 +64,5 @@ namespace Org.BouncyCastle.Utilities.Collections
         public override bool IsSupersetOf(IEnumerable<T> other) => m_target.IsSupersetOf(other);
         public override bool Overlaps(IEnumerable<T> other) => m_target.Overlaps(other);
     }
+#endif
 }
