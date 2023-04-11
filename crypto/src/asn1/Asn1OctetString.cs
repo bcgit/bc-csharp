@@ -103,7 +103,19 @@ namespace Org.BouncyCastle.Asn1
             return contents;
         }
 
-		protected override int Asn1GetHashCode()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlyMemory<byte> GetOctetsMemory()
+        {
+            return contents.AsMemory();
+        }
+
+        internal ReadOnlySpan<byte> GetOctetsSpan()
+        {
+            return contents.AsSpan();
+        }
+#endif
+
+        protected override int Asn1GetHashCode()
 		{
 			return Arrays.GetHashCode(GetOctets());
         }

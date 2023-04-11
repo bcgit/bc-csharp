@@ -350,10 +350,17 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static ReadOnlySpan<byte> GetRawKey(PrivateKeyInfo keyInfo)
+        {
+            return Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctetsSpan();
+        }
+#else
         private static byte[] GetRawKey(PrivateKeyInfo keyInfo)
         {
             return Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
         }
+#endif
 
         public static AsymmetricKeyParameter DecryptKey(
             char[] passPhrase,

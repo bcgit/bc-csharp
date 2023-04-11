@@ -195,6 +195,24 @@ namespace Org.BouncyCastle.Asn1
             return Arrays.CopyOfRange(contents, 1, contents.Length);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlyMemory<byte> GetOctetsMemory()
+        {
+            if (contents[0] != 0)
+                throw new InvalidOperationException("attempt to get non-octet aligned data from BIT STRING");
+
+            return contents.AsMemory(1);
+        }
+
+        internal ReadOnlySpan<byte> GetOctetsSpan()
+        {
+            if (contents[0] != 0)
+                throw new InvalidOperationException("attempt to get non-octet aligned data from BIT STRING");
+
+            return contents.AsSpan(1);
+        }
+#endif
+
         public virtual byte[] GetBytes()
 		{
             if (contents.Length == 1)

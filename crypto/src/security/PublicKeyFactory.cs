@@ -280,6 +280,16 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static ReadOnlySpan<byte> GetRawKey(SubjectPublicKeyInfo keyInfo)
+        {
+            /*
+             * TODO[RFC 8422]
+             * - Require keyInfo.Algorithm.Parameters == null?
+             */
+            return keyInfo.PublicKeyData.GetOctetsSpan();
+        }
+#else
         private static byte[] GetRawKey(SubjectPublicKeyInfo keyInfo)
         {
             /*
@@ -288,6 +298,7 @@ namespace Org.BouncyCastle.Security
              */
             return keyInfo.PublicKeyData.GetOctets();
         }
+#endif
 
         private static bool IsPkcsDHParam(Asn1Sequence seq)
         {
