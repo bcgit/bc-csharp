@@ -851,7 +851,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[] myIn = new byte[BUFLEN];
             byte[] myOut = new byte[BUFLEN];
             byte[] myResult = new byte[BUFLEN];
-            byte[] myEncKey = new byte[pKey.GetKey().Length];
+            byte[] myEncKey = new byte[pKey.KeyLength];
 
             /* Prepare for encryption */
             Array.Copy(theNonce, 0, myIn, BUFLEN - NONCELEN, NONCELEN);

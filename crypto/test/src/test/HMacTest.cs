@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Tests
             mac.BlockUpdate(message, 0, message.Length);
             outBytes = MacUtilities.DoFinal(mac);
 
-            IsTrue("default key wrong length", key.GetKey().Length == (defKeySize / 8));
+            IsTrue("default key wrong length", key.KeyLength == (defKeySize / 8));
         }
 
         private void DoTestExceptions()

@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Tests
 					Fail("failed OID test");
 				}
 
-				if (k.GetKey().Length != (16 + ((i / groupSize) * 8)))
+				if (k.KeyLength != (16 + ((i / groupSize) * 8)))
 				{
 					Fail("failed key length test");
 				}
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Tests
 					Fail("failed wrap OID test");
 				}
 
-				if (k.GetKey().Length != (16 + (i * 8)))
+				if (k.KeyLength != (16 + (i * 8)))
 				{
 					Fail("failed key length test");
 				}

@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Cms
 			}
 			else if (Platform.StartsWith(algorithm, "AES"))
 			{
-				int length = key.GetKey().Length * 8;
+				int length = key.KeyLength * 8;
 				DerObjectIdentifier wrapOid;
 
 				if (length == 128)
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Cms
 			}
 			else if (Platform.StartsWith(algorithm, "CAMELLIA"))
 			{
-				int length = key.GetKey().Length * 8;
+				int length = key.KeyLength * 8;
 				DerObjectIdentifier wrapOid;
 
 				if (length == 128)

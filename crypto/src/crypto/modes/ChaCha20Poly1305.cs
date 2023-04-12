@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else
             {
-                if (KeySize != initKeyParam.GetKey().Length)
+                if (KeySize != initKeyParam.KeyLength)
                     throw new ArgumentException("Key must be 256 bits");
             }
 
