@@ -75,10 +75,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[] initNonce;
             ICipherParameters chacha20Params;
 
-            if (parameters is AeadParameters)
+            if (parameters is AeadParameters aeadParams)
             {
-                AeadParameters aeadParams = (AeadParameters)parameters;
-
                 int macSizeBits = aeadParams.MacSize;
                 if ((MacSize * 8) != macSizeBits)
                     throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
@@ -89,10 +87,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 this.mInitialAad = aeadParams.GetAssociatedText();
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV ivParams)
             {
-                ParametersWithIV ivParams = (ParametersWithIV)parameters;
-
                 initKeyParam = (KeyParameter)ivParams.Parameters;
                 initNonce = ivParams.GetIV();
                 chacha20Params = ivParams;
@@ -123,13 +119,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             // Check for encryption with reused nonce
             if (State.Uninitialized != mState && forEncryption && Arrays.AreEqual(mNonce, initNonce))
             {
-                if (null == initKeyParam || Arrays.AreEqual(mKey, initKeyParam.GetKey()))
+                if (null == initKeyParam || initKeyParam.FixedTimeEquals(mKey))
                     throw new ArgumentException("cannot reuse nonce for ChaCha20Poly1305 encryption");
             }
 
             if (null != initKeyParam)
             {
-                Array.Copy(initKeyParam.GetKey(), 0, mKey, 0, KeySize);
+                initKeyParam.CopyTo(mKey, 0, KeySize);
             }
 
             Array.Copy(initNonce, 0, mNonce, 0, NonceSize);

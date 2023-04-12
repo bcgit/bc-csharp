@@ -84,26 +84,29 @@ namespace Org.BouncyCastle.Crypto.Macs
 
             if (cipher != null)
             {
-                if (!(parameters is ParametersWithIV))
-                    throw new ArgumentException("Poly1305 requires an IV when used with a block cipher.", "parameters");
+                if (!(parameters is ParametersWithIV ivParams))
+                    throw new ArgumentException("Poly1305 requires an IV when used with a block cipher.", nameof(parameters));
 
-                ParametersWithIV ivParams = (ParametersWithIV)parameters;
                 nonce = ivParams.GetIV();
                 parameters = ivParams.Parameters;
             }
 
-            if (!(parameters is KeyParameter))
+            if (!(parameters is KeyParameter keyParameter))
                 throw new ArgumentException("Poly1305 requires a key.");
 
-            KeyParameter keyParams = (KeyParameter)parameters;
-
-            SetKey(keyParams.GetKey(), nonce);
+            SetKey(keyParameter, nonce);
 
             Reset();
         }
 
-        private void SetKey(byte[] key, byte[] nonce)
+        private void SetKey(KeyParameter keyParameter, byte[] nonce)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var key = keyParameter.Key;
+#else
+            byte[] key = keyParameter.GetKey();
+#endif
+
             if (key.Length != 32)
                 throw new ArgumentException("Poly1305 key must be 256 bits.");
 
@@ -129,28 +132,32 @@ namespace Org.BouncyCastle.Crypto.Macs
             s3 = r3 * 5;
             s4 = r4 * 5;
 
-            byte[] kBytes;
-            int kOff;
-
             if (cipher == null)
             {
-                kBytes = key;
-                kOff = BlockSize;
+                k0 = Pack.LE_To_UInt32(key, BlockSize + 0);
+                k1 = Pack.LE_To_UInt32(key, BlockSize + 4);
+                k2 = Pack.LE_To_UInt32(key, BlockSize + 8);
+                k3 = Pack.LE_To_UInt32(key, BlockSize + 12);
             }
             else
             {
                 // Compute encrypted nonce
-                kBytes = new byte[BlockSize];
-                kOff = 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> kBytes = stackalloc byte[BlockSize];
+                cipher.Init(true, new KeyParameter(key.Slice(BlockSize, BlockSize)));
+                cipher.ProcessBlock(nonce, kBytes);
+#else
+                byte[] kBytes = new byte[BlockSize];
                 cipher.Init(true, new KeyParameter(key, BlockSize, BlockSize));
                 cipher.ProcessBlock(nonce, 0, kBytes, 0);
-            }
+#endif
 
-            k0 = Pack.LE_To_UInt32(kBytes, kOff + 0);
-            k1 = Pack.LE_To_UInt32(kBytes, kOff + 4);
-            k2 = Pack.LE_To_UInt32(kBytes, kOff + 8);
-            k3 = Pack.LE_To_UInt32(kBytes, kOff + 12);
+                k0 = Pack.LE_To_UInt32(kBytes, 0);
+                k1 = Pack.LE_To_UInt32(kBytes, 4);
+                k2 = Pack.LE_To_UInt32(kBytes, 8);
+                k3 = Pack.LE_To_UInt32(kBytes, 12);
+            }
         }
 
         public string AlgorithmName

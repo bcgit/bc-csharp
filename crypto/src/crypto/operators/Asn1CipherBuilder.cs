@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
             CipherKeyGenerator keyGen = CipherKeyGeneratorFactory.CreateKeyGenerator(encryptionOID, random);
 
-            encKey = new KeyParameter(keyGen.GenerateKey());
+            encKey = keyGen.GenerateKeyParameter();
             algorithmIdentifier = AlgorithmIdentifierFactory.GenerateEncryptionAlgID(encryptionOID, encKey.KeyLength * 8, random);
         }
 

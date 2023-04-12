@@ -798,6 +798,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static uint LE_To_UInt32(ReadOnlySpan<byte> bs, int off)
+        {
+            return BinaryPrimitives.ReadUInt32LittleEndian(bs[off..]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void LE_To_UInt32(ReadOnlySpan<byte> bs, Span<uint> ns)
         {
             for (int i = 0; i < ns.Length; ++i)

@@ -379,10 +379,15 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* Calculate the necessary round keys
 		* The number of calculations depends on keyBits and blockBits
 		*/
-		private long[][] GenerateWorkingKey(
-			byte[]      key)
+		private long[][] GenerateWorkingKey(KeyParameter keyParameter)
 		{
-			int         KC;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var key = keyParameter.Key;
+#else
+            byte[] key = keyParameter.GetKey();
+#endif
+
+            int KC;
 			int         t, rconpointer = 0;
 			int         keyBits = key.Length * 8;
 			byte[,]    tk = new byte[4,MAXKC];
@@ -572,18 +577,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @exception ArgumentException if the parameters argument is
 		* inappropriate.
 		*/
-        public virtual void Init(
-			bool           forEncryption,
-			ICipherParameters  parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (typeof(KeyParameter).IsInstanceOfType(parameters))
-			{
-				workingKey = GenerateWorkingKey(((KeyParameter)parameters).GetKey());
-				this.forEncryption = forEncryption;
-				return;
-			}
+            if (!(parameters is KeyParameter keyParameter))
+                throw new ArgumentException("invalid parameter passed to Rijndael init - "
+					+ Platform.GetTypeName(parameters));
 
-			throw new ArgumentException("invalid parameter passed to Rijndael init - " + Platform.GetTypeName(parameters));
+			this.workingKey = GenerateWorkingKey(keyParameter);
+			this.forEncryption = forEncryption;
 		}
 
         public virtual string AlgorithmName

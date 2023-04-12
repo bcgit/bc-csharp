@@ -67,10 +67,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         * @return true if the given DES key material is weak or semi-weak,
         *     false otherwise.
         */
-        public static bool IsWeakKey(
-            byte[]	key,
-            int		offset)
+        public static bool IsWeakKey(byte[]	key, int offset)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return IsWeakKey(key.AsSpan(offset));
+#else
             if (key.Length - offset < DesKeyLength)
                 throw new ArgumentException("key material too short.");
 
@@ -89,19 +90,45 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 }
 
 				if (!unmatch)
-				{
 					return true;
-				}
             }
 
 			return false;
+#endif
         }
 
-		public static bool IsWeakKey(
-			byte[] key)
+        public static bool IsWeakKey(byte[] key)
 		{
 			return IsWeakKey(key, 0);
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool IsWeakKey(ReadOnlySpan<byte> key)
+        {
+            if (key.Length < DesKeyLength)
+                throw new ArgumentException("key material too short.");
+
+            //nextkey:
+            for (int i = 0; i < N_DES_WEAK_KEYS; i++)
+            {
+                bool unmatch = false;
+                for (int j = 0; j < DesKeyLength; j++)
+                {
+                    if (key[j] != DES_weak_keys[i * DesKeyLength + j])
+                    {
+                        //continue nextkey;
+                        unmatch = true;
+                        break;
+                    }
+                }
+
+                if (!unmatch)
+                    return true;
+            }
+
+            return false;
+        }
+#endif
 
         public static byte SetOddParity(byte b)
         {

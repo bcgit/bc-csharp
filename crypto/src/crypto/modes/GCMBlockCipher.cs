@@ -156,7 +156,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     if (keyParam == null)
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
 
-                    if (lastKey != null && Arrays.AreEqual(lastKey, keyParam.GetKey()))
+                    if (lastKey != null && keyParam.FixedTimeEquals(lastKey))
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
                 }
             }

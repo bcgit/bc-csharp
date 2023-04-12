@@ -62,5 +62,20 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             return newKey;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected override KeyParameter EngineGenerateKeyParameter()
+        {
+            return KeyParameter.Create(strength, random, (bytes, random) =>
+            {
+                do
+                {
+                    random.NextBytes(bytes);
+                    DesEdeParameters.SetOddParity(bytes);
+                }
+                while (DesEdeParameters.IsWeakKey(bytes) || !DesEdeParameters.IsRealEdeKey(bytes));
+            });
+        }
+#endif
     }
 }

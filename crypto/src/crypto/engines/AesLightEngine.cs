@@ -186,8 +186,14 @@ namespace Org.BouncyCastle.Crypto.Engines
         * AES specified a fixed block size of 128 bits and key sizes 128/192/256 bits
         * This code is written assuming those are the only possible values
         */
-        private uint[][] GenerateWorkingKey(byte[] key, bool forEncryption)
+        private uint[][] GenerateWorkingKey(KeyParameter keyParameter, bool forEncryption)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var key = keyParameter.Key;
+#else
+            byte[] key = keyParameter.GetKey();
+#endif
+
             int keyLen = key.Length;
             if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
                 throw new ArgumentException("Key length not 128/192/256 bits.");
@@ -348,7 +354,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("invalid parameter passed to AES init - "
                     + Platform.GetTypeName(parameters));
 
-            WorkingKey = GenerateWorkingKey(keyParameter.GetKey(), forEncryption);
+            WorkingKey = GenerateWorkingKey(keyParameter, forEncryption);
 
             this.forEncryption = forEncryption;
         }
