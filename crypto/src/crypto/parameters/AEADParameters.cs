@@ -30,13 +30,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		 * @param nonce nonce to be used
 		 * @param associatedText associated text, if any
 		 */
-		public AeadParameters(
-			KeyParameter	key,
-			int				macSize,
-			byte[]			nonce,
-			byte[]			associatedText)
+		public AeadParameters(KeyParameter key, int macSize, byte[] nonce, byte[] associatedText)
 		{
-			this.key = key;
+            if (nonce == null)
+                throw new ArgumentNullException(nameof(nonce));
+
+            this.key = key;
 			this.nonce = nonce;
 			this.macSize = macSize;
 			this.associatedText = associatedText;
@@ -59,7 +58,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
 		public virtual byte[] GetNonce()
 		{
-			return nonce;
+			return (byte[])nonce.Clone();
 		}
-	}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> Nonce => nonce;
+#endif
+    }
 }
