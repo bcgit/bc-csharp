@@ -63,6 +63,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.outputLength = source.outputLength;
             this.buffer = Arrays.Clone(source.buffer);
             this.compressorBuffer = Arrays.Clone(source.compressorBuffer);
+
+            this.firstOutput = source.firstOutput;
+            this.nCount = source.nCount;
+            this.bufOff = source.bufOff;
         }
 
         public virtual string AlgorithmName
