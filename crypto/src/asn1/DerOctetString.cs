@@ -21,6 +21,13 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal DerOctetString(ReadOnlySpan<byte> contents)
+            : base(contents)
+        {
+        }
+#endif
+
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);

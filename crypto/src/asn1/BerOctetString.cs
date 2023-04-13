@@ -67,6 +67,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal BerOctetString(ReadOnlySpan<byte> contents)
+            : base(contents)
+        {
+            this.elements = null;
+        }
+#endif
+
         private BerOctetString(byte[] contents, Asn1OctetString[] elements)
             : base(contents)
         {

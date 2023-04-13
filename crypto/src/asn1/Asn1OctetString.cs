@@ -88,6 +88,13 @@ namespace Org.BouncyCastle.Asn1
 			this.contents = contents;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal Asn1OctetString(ReadOnlySpan<byte> contents)
+        {
+            this.contents = contents.ToArray();
+        }
+#endif
+
         public Stream GetOctetStream()
 		{
 			return new MemoryStream(contents, false);
