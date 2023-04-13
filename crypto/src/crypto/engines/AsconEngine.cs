@@ -114,12 +114,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter key;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> npub;
+#else
             byte[] npub;
+#endif
 
             if (parameters is AeadParameters aeadParameters)
             {
                 key = aeadParameters.Key;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                npub = aeadParameters.Nonce;
+#else
                 npub = aeadParameters.GetNonce();
+#endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
                 int macSizeBits = aeadParameters.MacSize;
@@ -129,7 +137,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             else if (parameters is ParametersWithIV withIV)
             {
                 key = withIV.Parameters as KeyParameter;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                npub = withIV.IV;
+#else
                 npub = withIV.GetIV();
+#endif
                 initialAssociatedText = null;
             }
             else
@@ -139,7 +151,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             if (key == null)
                 throw new ArgumentException("Ascon Init parameters must include a key");
-            if (npub == null || npub.Length != CRYPTO_ABYTES)
+            if (npub.Length != CRYPTO_ABYTES)
                 throw new ArgumentException(asconParameters + " requires exactly " + CRYPTO_ABYTES + " bytes of IV");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -156,25 +168,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             if (CRYPTO_KEYBYTES == 16)
             {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                K1 = Pack.BE_To_UInt64(k);
-                K2 = Pack.BE_To_UInt64(k[8..]);
-#else
                 K1 = Pack.BE_To_UInt64(k, 0);
                 K2 = Pack.BE_To_UInt64(k, 8);
-#endif
             }
             else if (CRYPTO_KEYBYTES == 20)
             {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                K0 = Pack.BE_To_UInt32(k);
-                K1 = Pack.BE_To_UInt64(k[4..]);
-                K2 = Pack.BE_To_UInt64(k[12..]);
-#else
                 K0 = Pack.BE_To_UInt32(k, 0);
                 K1 = Pack.BE_To_UInt64(k, 4);
                 K2 = Pack.BE_To_UInt64(k, 12);
-#endif
             }
             else
             {

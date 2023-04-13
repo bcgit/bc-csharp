@@ -93,10 +93,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             KeyParameter keyParameter;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> N;
+#else
             byte[] N;
+#endif
             if (parameters is AeadParameters aeadParameters)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                N = aeadParameters.Nonce;
+#else
                 N = aeadParameters.GetNonce();
+#endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
                 int macSizeBits = aeadParameters.MacSize;
@@ -108,7 +116,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else if (parameters is ParametersWithIV parametersWithIV)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                N = parametersWithIV.IV;
+#else
                 N = parametersWithIV.GetIV();
+#endif
                 initialAssociatedText = null;
                 macSize = 16;
                 keyParameter = (KeyParameter) parametersWithIV.Parameters;
@@ -121,15 +133,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.hashBlock = new byte[16];
             this.mainBlock = new byte[forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize)];
 
-            if (N == null)
-            {
-                N = new byte[0];
-            }
-
             if (N.Length > 15)
-            {
                 throw new ArgumentException("IV must be no more than 15 bytes");
-            }
 
             /*
              * KEY-DEPENDENT INITIALISATION
@@ -220,6 +225,42 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return bottom;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int ProcessNonce(ReadOnlySpan<byte> N)
+        {
+            // TODO[api] Redesign to avoid this exceptional case
+            // Avoid problems if ProcessNonce() was overridden before this method even existed.
+            if (GetType() != typeof(OcbBlockCipher))
+                return ProcessNonce(N.ToArray());
+
+            Span<byte> nonce = stackalloc byte[16];
+            N.CopyTo(nonce[^N.Length..]);
+            nonce[0] = (byte)(macSize << 4);
+            nonce[15 - N.Length] |= 1;
+
+            int bottom = nonce[15] & 0x3F;
+            nonce[15] &= 0xC0;
+
+            /*
+             * When used with incrementing nonces, the cipher is only applied once every 64 inits.
+             */
+            if (KtopInput == null || !nonce.SequenceEqual(KtopInput))
+            {
+                KtopInput = nonce.ToArray();
+
+                Span<byte> Ktop = stackalloc byte[16];
+                hashCipher.ProcessBlock(KtopInput, Ktop);
+                Ktop.CopyTo(Stretch);
+                for (int i = 0; i < 8; ++i)
+                {
+                    Stretch[16 + i] = (byte)(Ktop[i] ^ Ktop[i + 1]);
+                }
+            }
+
+            return bottom;
+        }
+#endif
 
         public virtual int GetBlockSize()
         {

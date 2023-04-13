@@ -176,21 +176,31 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             /* Set defaults */
             byte[] myInitialAEAD = null;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> myNonce;
+#else
             byte[] myNonce;
+#endif
             KeyParameter myKey;
 
             /* Access parameters */
-            if (cipherParameters is AeadParameters)
+            if (cipherParameters is AeadParameters myAEAD)
             {
-                AeadParameters myAEAD = (AeadParameters)cipherParameters;
                 myInitialAEAD = myAEAD.GetAssociatedText();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                myNonce = myAEAD.Nonce;
+#else
                 myNonce = myAEAD.GetNonce();
+#endif
                 myKey = myAEAD.Key;
             }
-            else if (cipherParameters is ParametersWithIV)
+            else if (cipherParameters is ParametersWithIV myParms)
             {
-                ParametersWithIV myParms = (ParametersWithIV)cipherParameters;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                myNonce = myParms.IV;
+#else
                 myNonce = myParms.GetIV();
+#endif
                 myKey = (KeyParameter)myParms.Parameters;
             }
             else
@@ -199,28 +209,25 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             /* Check nonceSize */
-            if (myNonce == null || myNonce.Length != NONCELEN)
-            {
+            if (myNonce.Length != NONCELEN)
                 throw new ArgumentException("Invalid nonce");
-            }
 
             /* Check keysize */
             if (myKey == null)
-            {
                 throw new ArgumentException("Invalid key");
-            }
 
-            byte[] k = myKey.GetKey();
-
-            if (k.Length != BUFLEN && k.Length != (BUFLEN << 1))
-            {
+            int keyLength = myKey.KeyLength;
+            if (keyLength != BUFLEN && keyLength != (BUFLEN << 1))
                 throw new ArgumentException("Invalid key");
-            }
 
             /* Reset details */
             forEncryption = pEncrypt;
             theInitialAEAD = myInitialAEAD;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            theNonce = myNonce.ToArray();
+#else
             theNonce = myNonce;
+#endif
 
             /* Initialise the keys */
             DeriveKeys(myKey);

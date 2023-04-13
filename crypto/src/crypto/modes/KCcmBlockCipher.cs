@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         private int Nb_ = 4;
 
-        private void setNb(int Nb)
+        private void SetNb(int Nb)
         {
             if (Nb == 4 || Nb == 6 || Nb == 8)
             {
@@ -85,38 +85,32 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.buffer = new byte[engine.GetBlockSize()];
             this.s = new byte[engine.GetBlockSize()];
             this.counter = new byte[engine.GetBlockSize()];
-            setNb(Nb);
+            SetNb(Nb);
         }
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-
-                ICipherParameters cipherParameters;
-            if (parameters is AeadParameters)
+            ICipherParameters cipherParameters;
+            if (parameters is AeadParameters param)
             {
+                if (param.MacSize > MAX_MAC_BIT_LENGTH || param.MacSize < MIN_MAC_BIT_LENGTH || param.MacSize % 8 != 0)
+                    throw new ArgumentException("Invalid mac size specified");
 
-                    AeadParameters param = (AeadParameters)parameters;
-
-                    if (param.MacSize > MAX_MAC_BIT_LENGTH || param.MacSize < MIN_MAC_BIT_LENGTH || param.MacSize % 8 != 0)
-                    {
-                        throw new ArgumentException("Invalid mac size specified");
-                    }
-
-                    nonce = param.GetNonce();
-                    macSize = param.MacSize / BITS_IN_BYTE;
-                    initialAssociatedText = param.GetAssociatedText();
-                    cipherParameters = param.Key;
+                nonce = param.GetNonce();
+                macSize = param.MacSize / BITS_IN_BYTE;
+                initialAssociatedText = param.GetAssociatedText();
+                cipherParameters = param.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV paramsWithIV)
             {
-                    nonce = ((ParametersWithIV)parameters).GetIV();
-                    macSize = engine.GetBlockSize(); // use default blockSize for MAC if it is not specified
-                    initialAssociatedText = null;
-                    cipherParameters = ((ParametersWithIV)parameters).Parameters;
+                nonce = paramsWithIV.GetIV();
+                macSize = engine.GetBlockSize(); // use default blockSize for MAC if it is not specified
+                initialAssociatedText = null;
+                cipherParameters = paramsWithIV.Parameters;
             }
             else
             {
-                    throw new ArgumentException("Invalid parameters specified");
+                throw new ArgumentException("Invalid parameters specified");
             }
 
             this.mac = new byte[macSize];
@@ -133,10 +127,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual string AlgorithmName => engine.AlgorithmName + "/KCCM";
 
-        public virtual int GetBlockSize()
-        {
-            return engine.GetBlockSize();
-        }
+        public virtual int GetBlockSize() => engine.GetBlockSize();
 
         public virtual IBlockCipher UnderlyingCipher => engine;
 

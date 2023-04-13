@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 keyParam = cipherParameters;
             }
 
-            if (nonce == null || nonce.Length < 7 || nonce.Length > 13)
+            if (nonce.Length < 7 || nonce.Length > 13)
                 throw new ArgumentException("nonce must have length from 7 to 13 octets");
 
             Reset();

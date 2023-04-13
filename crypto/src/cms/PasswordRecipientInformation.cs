@@ -54,12 +54,17 @@ namespace Org.BouncyCastle.Cms
 				string				cName = CmsEnvelopedHelper.Instance.GetRfc3211WrapperName(kekAlgName);
 				IWrapper			keyWrapper = WrapperUtilities.GetWrapper(cName);
 
-				byte[] iv = Asn1OctetString.GetInstance(kekAlgParams[1]).GetOctets();
+                var iv = Asn1OctetString.GetInstance(kekAlgParams[1]);
 
-				ICipherParameters parameters = ((CmsPbeKey)key).GetEncoded(kekAlgName);
-				parameters = new ParametersWithIV(parameters, iv);
+                ICipherParameters parameters = ((CmsPbeKey)key).GetEncoded(kekAlgName);
 
-				keyWrapper.Init(false, parameters);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                parameters = new ParametersWithIV(parameters, iv.GetOctetsSpan());
+#else
+				parameters = new ParametersWithIV(parameters, iv.GetOctets());
+#endif
+
+                keyWrapper.Init(false, parameters);
 
 				KeyParameter sKey = ParameterUtilities.CreateKeyParameter(
 					GetContentAlgorithmName(), keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length));

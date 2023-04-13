@@ -1,10 +1,28 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ParametersWithIV
         : ICipherParameters
     {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ParametersWithIV Create<TState>(ICipherParameters parameter, int ivLength, TState state,
+            SpanAction<byte, TState> action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            if (ivLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(ivLength));
+
+            ParametersWithIV result = new ParametersWithIV(parameter, ivLength);
+            action(result.m_iv, state);
+            return result;
+        }
+#endif
+
         internal static ICipherParameters ApplyOptionalIV(ICipherParameters parameters, byte[] iv)
         {
             return iv == null ? parameters : new ParametersWithIV(parameters, iv);
@@ -43,6 +61,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_iv = iv.ToArray();
         }
 #endif
+
+        private ParametersWithIV(ICipherParameters parameters, int ivLength)
+        {
+            if (ivLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(ivLength));
+
+            // NOTE: 'parameters' may be null to imply key re-use
+            m_parameters = parameters;
+            m_iv = new byte[ivLength];
+        }
 
         public byte[] GetIV()
         {

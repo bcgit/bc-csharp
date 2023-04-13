@@ -72,19 +72,31 @@ namespace Org.BouncyCastle.Crypto.Modes
 		{
 			this.forEncryption = forEncryption;
 
-			byte[] nonce;
-			ICipherParameters keyParam;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> nonce;
+#else
+            byte[] nonce;
+#endif
+            ICipherParameters keyParam;
 
 			if (parameters is AeadParameters aeadParameters)
 			{
-				nonce = aeadParameters.GetNonce();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                nonce = aeadParameters.Nonce;
+#else
+                nonce = aeadParameters.GetNonce();
+#endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 				macSize = aeadParameters.MacSize / 8;
 				keyParam = aeadParameters.Key;
 			}
 			else if (parameters is ParametersWithIV parametersWithIV)
 			{
-				nonce = parametersWithIV.GetIV();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                nonce = parametersWithIV.IV;
+#else
+                nonce = parametersWithIV.GetIV();
+#endif
                 initialAssociatedText = null;
 				macSize = mac.GetMacSize() / 2;
 				keyParam = parametersWithIV.Parameters;
@@ -103,7 +115,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             tag[blockSize - 1] = (byte)Tag.N;
             mac.BlockUpdate(tag, 0, blockSize);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            mac.BlockUpdate(nonce);
+#else
             mac.BlockUpdate(nonce, 0, nonce.Length);
+#endif
             mac.DoFinal(nonceMac, 0);
 
             // Same BlockCipher underlies this and the mac, so reuse last key on cipher

@@ -48,17 +48,29 @@ namespace Org.BouncyCastle.Cms
 
 			// Note: In Java build, the IV is automatically generated in JCE layer
 			int ivLength = Platform.StartsWithIgnoreCase(rfc3211WrapperName, "DES") ? 8 : 16;
-			byte[] iv = new byte[ivLength];
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var parametersWithIV = ParametersWithIV.Create(keyEncryptionKey, ivLength, random,
+                (bytes, random) => random.NextBytes(bytes));
+#else
+            byte[] iv = new byte[ivLength];
 			random.NextBytes(iv);
 
-			ICipherParameters parameters = new ParametersWithIV(keyEncryptionKey, iv);
-			keyWrapper.Init(true, new ParametersWithRandom(parameters, random));
+			var parametersWithIV = new ParametersWithIV(keyEncryptionKey, iv);
+#endif
+
+            keyWrapper.Init(true, new ParametersWithRandom(parametersWithIV, random));
         	Asn1OctetString encryptedKey = new DerOctetString(
 				keyWrapper.Wrap(keyBytes, 0, keyBytes.Length));
 
 			DerSequence seq = new DerSequence(
 				new DerObjectIdentifier(keyEncryptionKeyOID),
-				new DerOctetString(iv));
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                new DerOctetString(parametersWithIV.IV)
+#else
+                new DerOctetString(iv)
+#endif
+            );
 
 			AlgorithmIdentifier keyEncryptionAlgorithm = new AlgorithmIdentifier(
 				PkcsObjectIdentifiers.IdAlgPwriKek, seq);

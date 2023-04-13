@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.Collections.Generic;
 using System.IO;
 
@@ -240,7 +243,12 @@ namespace Org.BouncyCastle.Cms
 							|| alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
 							|| alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
 						{
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+							cipherParameters = ParametersWithIV.Create<byte>(cipherParameters, 8, 0,
+								(bytes, state) => bytes.Fill(state));
+#else
 							cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
+#endif
 						}
 					}
 

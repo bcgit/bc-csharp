@@ -72,7 +72,11 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter initKeyParam;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> initNonce;
+#else
             byte[] initNonce;
+#endif
             ICipherParameters chacha20Params;
 
             if (parameters is AeadParameters aeadParams)
@@ -82,7 +86,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                     throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
 
                 initKeyParam = aeadParams.Key;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                initNonce = aeadParams.Nonce;
+#else
                 initNonce = aeadParams.GetNonce();
+#endif
                 chacha20Params = new ParametersWithIV(initKeyParam, initNonce);
 
                 this.mInitialAad = aeadParams.GetAssociatedText();
@@ -90,7 +98,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             else if (parameters is ParametersWithIV ivParams)
             {
                 initKeyParam = (KeyParameter)ivParams.Parameters;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                initNonce = ivParams.IV;
+#else
                 initNonce = ivParams.GetIV();
+#endif
                 chacha20Params = ivParams;
 
                 this.mInitialAad = null;
@@ -113,11 +125,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             // Validate nonce
-            if (null == initNonce || NonceSize != initNonce.Length)
+            if (NonceSize != initNonce.Length)
                 throw new ArgumentException("Nonce must be 96 bits");
 
             // Check for encryption with reused nonce
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (State.Uninitialized != mState && forEncryption && initNonce.SequenceEqual(mNonce))
+#else
             if (State.Uninitialized != mState && forEncryption && Arrays.AreEqual(mNonce, initNonce))
+#endif
             {
                 if (null == initKeyParam || initKeyParam.FixedTimeEquals(mKey))
                     throw new ArgumentException("cannot reuse nonce for ChaCha20Poly1305 encryption");
@@ -128,7 +144,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 initKeyParam.CopyTo(mKey, 0, KeySize);
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            initNonce.CopyTo(mNonce);
+#else
             Array.Copy(initNonce, 0, mNonce, 0, NonceSize);
+#endif
 
             mChacha20.Init(true, chacha20Params);
 

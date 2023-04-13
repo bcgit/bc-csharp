@@ -117,11 +117,19 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.initialised = true;
 
             KeyParameter keyParam;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> newNonce;
+#else
             byte[] newNonce;
+#endif
 
             if (parameters is AeadParameters aeadParameters)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce = aeadParameters.Nonce;
+#else
                 newNonce = aeadParameters.GetNonce();
+#endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
                 int macSizeBits = aeadParameters.MacSize;
@@ -133,7 +141,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else if (parameters is ParametersWithIV withIV)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce = withIV.IV;
+#else
                 newNonce = withIV.GetIV();
+#endif
                 initialAssociatedText = null;
                 macSize = 16;
                 keyParam = (KeyParameter)withIV.Parameters;
@@ -146,12 +158,16 @@ namespace Org.BouncyCastle.Crypto.Modes
             int bufLength = forEncryption ? BlockSize : (BlockSize + macSize);
             this.bufBlock = new byte[bufLength];
 
-            if (newNonce == null || newNonce.Length < 1)
+            if (newNonce.Length < 1)
                 throw new ArgumentException("IV must be at least 1 byte");
 
             if (forEncryption)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                if (nonce != null && newNonce.SequenceEqual(nonce))
+#else
                 if (nonce != null && Arrays.AreEqual(nonce, newNonce))
+#endif
                 {
                     if (keyParam == null)
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
@@ -161,7 +177,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            nonce = newNonce.ToArray();
+#else
             nonce = newNonce;
+#endif
             if (keyParam != null)
             {
                 lastKey = keyParam.GetKey();
