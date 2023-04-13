@@ -710,6 +710,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static uint BE_To_UInt32(ReadOnlySpan<byte> bs, int off)
+        {
+            return BinaryPrimitives.ReadUInt32BigEndian(bs[off..]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void BE_To_UInt32(ReadOnlySpan<byte> bs, Span<uint> ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -743,6 +749,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static ulong BE_To_UInt64(ReadOnlySpan<byte> bs)
         {
             return BinaryPrimitives.ReadUInt64BigEndian(bs);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ulong BE_To_UInt64(ReadOnlySpan<byte> bs, int off)
+        {
+            return BinaryPrimitives.ReadUInt64BigEndian(bs[off..]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -817,6 +829,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static ulong LE_To_UInt64(ReadOnlySpan<byte> bs)
         {
             return BinaryPrimitives.ReadUInt64LittleEndian(bs);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ulong LE_To_UInt64(ReadOnlySpan<byte> bs, int off)
+        {
+            return BinaryPrimitives.ReadUInt64LittleEndian(bs[off..]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
