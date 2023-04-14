@@ -4,6 +4,20 @@ using System.Net.Sockets;
 
 namespace Org.BouncyCastle.Tls
 {
+    [Flags]
+    public enum DtlsRecordFlags
+    {
+        None = 0,
+
+        /// <summary>The record is newer (by epoch and sequence number) than any record received previously.</summary>
+        IsNewest = 1,
+
+        /// <summary>The record includes the (valid) connection ID (RFC 9146) for this connection.</summary>
+        UsesConnectionID = 2,
+    }
+
+    public delegate void DtlsRecordCallback(DtlsRecordFlags flags);
+
     public class DtlsTransport
         : DatagramTransport
     {
@@ -34,8 +48,9 @@ namespace Org.BouncyCastle.Tls
             return Receive(buf, off, len, waitMillis, null);
         }
 
+        // TODO[api] Add to DatagramTransport (with a default null parameter)
         /// <exception cref="IOException"/>
-        public virtual int Receive(byte[] buf, int off, int len, int waitMillis, Action recordCallback)
+        public virtual int Receive(byte[] buf, int off, int len, int waitMillis, DtlsRecordCallback recordCallback)
         {
             if (null == buf)
                 throw new ArgumentNullException("buf");
@@ -92,8 +107,9 @@ namespace Org.BouncyCastle.Tls
 #endif
         }
 
+        // TODO[api] Add to DatagramTransport
         /// <exception cref="IOException"/>
-        public virtual int ReceivePending(byte[] buf, int off, int len, Action recordCallback = null)
+        public virtual int ReceivePending(byte[] buf, int off, int len, DtlsRecordCallback recordCallback = null)
         {
             if (null == buf)
                 throw new ArgumentNullException("buf");
@@ -154,8 +170,9 @@ namespace Org.BouncyCastle.Tls
             return Receive(buffer, waitMillis, null);
         }
 
+        // TODO[api] Add to DatagramTransport (with a default null parameter)
         /// <exception cref="IOException"/>
-        public virtual int Receive(Span<byte> buffer, int waitMillis, Action recordCallback)
+        public virtual int Receive(Span<byte> buffer, int waitMillis, DtlsRecordCallback recordCallback)
         {
             if (waitMillis < 0)
                 throw new ArgumentException("cannot be negative", nameof(waitMillis));
@@ -201,8 +218,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        // TODO[api] Add to DatagramTransport
         /// <exception cref="IOException"/>
-        public virtual int ReceivePending(Span<byte> buffer, Action recordCallback = null)
+        public virtual int ReceivePending(Span<byte> buffer, DtlsRecordCallback recordCallback = null)
         {
             try
             {

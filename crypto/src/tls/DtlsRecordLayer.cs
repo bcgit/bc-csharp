@@ -278,7 +278,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal int Receive(byte[] buf, int off, int len, int waitMillis, Action recordCallback)
+        internal int Receive(byte[] buf, int off, int len, int waitMillis, DtlsRecordCallback recordCallback)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Receive(buf.AsSpan(off, len), waitMillis, recordCallback);
@@ -348,7 +348,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal int ReceivePending(byte[] buf, int off, int len, Action recordCallback)
+        internal int ReceivePending(byte[] buf, int off, int len, DtlsRecordCallback recordCallback)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ReceivePending(buf.AsSpan(off, len), recordCallback);
@@ -380,7 +380,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal int Receive(Span<byte> buffer, int waitMillis, Action recordCallback)
+        internal int Receive(Span<byte> buffer, int waitMillis, DtlsRecordCallback recordCallback)
         {
             long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
 
@@ -446,7 +446,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal int ReceivePending(Span<byte> buffer, Action recordCallback)
+        internal int ReceivePending(Span<byte> buffer, DtlsRecordCallback recordCallback)
         {
             if (m_recordQueue.Available > 0)
             {
@@ -677,9 +677,10 @@ namespace Org.BouncyCastle.Tls
         // TODO Include 'currentTimeMillis' as an argument, use with Timeout, resetHeartbeat
         /// <exception cref="IOException"/>
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private int ProcessRecord(int received, byte[] record, Span<byte> buffer, Action recordCallback)
+        private int ProcessRecord(int received, byte[] record, Span<byte> buffer, DtlsRecordCallback recordCallback)
 #else
-        private int ProcessRecord(int received, byte[] record, byte[] buf, int off, int len, Action recordCallback)
+        private int ProcessRecord(int received, byte[] record, byte[] buf, int off, int len,
+            DtlsRecordCallback recordCallback)
 #endif
         {
             // NOTE: received < 0 (timeout) is covered by this first case
@@ -823,13 +824,19 @@ namespace Org.BouncyCastle.Tls
              */
             if (recordCallback != null)
             {
-                // TODO Make the callback more general than just peer address update
-                if (ContentType.tls12_cid == recordType &&
-                    isLatestConfirmed &&
-                    recordEpoch == m_readEpoch)
+                var flags = DtlsRecordFlags.None;
+
+                if (recordEpoch == m_readEpoch && isLatestConfirmed)
                 {
-                    recordCallback();
+                    flags |= DtlsRecordFlags.IsNewest;
                 }
+
+                if (ContentType.tls12_cid == recordType)
+                {
+                    flags |= DtlsRecordFlags.UsesConnectionID;
+                }
+
+                recordCallback(flags);
             }
 
             switch (decoded.contentType)
