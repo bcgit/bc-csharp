@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Tls
                 AbortServerHandshake(state, recordLayer, fatalAlert.AlertDescription);
                 throw;
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw;
