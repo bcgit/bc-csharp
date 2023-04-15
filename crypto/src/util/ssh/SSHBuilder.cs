@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Utilities.SSH
 {
-    public class SSHBuilder
+    internal class SshBuilder
     {
         private readonly MemoryStream bos = new MemoryStream();
 
-        [CLSCompliant(false)]
         public void U32(uint value)
         {
             bos.WriteByte(Convert.ToByte((value >> 24) & 0xFF));

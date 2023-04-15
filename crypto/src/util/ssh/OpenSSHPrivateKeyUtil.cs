@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -16,17 +12,11 @@ using Org.BouncyCastle.Pkcs;
 
 namespace Org.BouncyCastle.Utilities.SSH
 {
-    public class OpenSSHPrivateKeyUtil
+    public static class OpenSshPrivateKeyUtilities
     {
-        private OpenSSHPrivateKeyUtil()
-        {
-
-        }
-
-        /**
-         * Magic value for proprietary OpenSSH private key.
-         **/
-        static readonly byte[] AUTH_MAGIC = Strings.ToByteArray("openssh-key-v1\0"); // C string so null terminated
+        /// <summary>Magic value for proprietary OpenSSH private key.</summary>
+        /// <remarks>C string so null terminated.</remarks>
+        private static readonly byte[] AUTH_MAGIC = Strings.ToByteArray("openssh-key-v1\0");
 
         /**
          * Encode a cipher parameters into an OpenSSH private key.
@@ -38,9 +28,7 @@ namespace Org.BouncyCastle.Utilities.SSH
         public static byte[] EncodePrivateKey(AsymmetricKeyParameter parameters)
         {
             if (parameters == null)
-            {
-                throw new ArgumentException("parameters is null");
-            }
+                throw new ArgumentNullException(nameof(parameters));
 
             if (parameters is RsaPrivateCrtKeyParameters || parameters is ECPrivateKeyParameters)
             {
@@ -76,7 +64,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             {
                 Ed25519PublicKeyParameters publicKeyParameters = ed25519PrivateKey.GeneratePublicKey();
 
-                SSHBuilder builder = new SSHBuilder();
+                SshBuilder builder = new SshBuilder();
                 builder.WriteBytes(AUTH_MAGIC);
                 builder.WriteString("none");    // cipher name
                 builder.WriteString("none");    // KDF name
@@ -85,12 +73,12 @@ namespace Org.BouncyCastle.Utilities.SSH
                 builder.U32(1); // Number of keys
 
                 {
-                    byte[] pkEncoded = OpenSSHPublicKeyUtil.EncodePublicKey(publicKeyParameters);
+                    byte[] pkEncoded = OpenSshPublicKeyUtilities.EncodePublicKey(publicKeyParameters);
                     builder.WriteBlock(pkEncoded);
                 }
 
                 {
-                    SSHBuilder pkBuild = new SSHBuilder();
+                    SshBuilder pkBuild = new SshBuilder();
 
                     int checkint = CryptoServicesRegistrar.GetSecureRandom().NextInt();
                     pkBuild.U32((uint)checkint);
@@ -120,10 +108,10 @@ namespace Org.BouncyCastle.Utilities.SSH
 
         /**
          * Parse a private key.
-         * <p>
+         * <p/>
          * This method accepts the body of the OpenSSH private key.
          * The easiest way to extract the body is to use PemReader, for example:
-         * <p>
+         * <p/>
          * byte[] blob = new PemReader([reader]).readPemObject().getContent();
          * CipherParameters params = parsePrivateKeyBlob(blob);
          *
@@ -187,7 +175,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             }
             else
             {
-                SSHBuffer kIn = new SSHBuffer(AUTH_MAGIC, blob);
+                SshBuffer kIn = new SshBuffer(AUTH_MAGIC, blob);
 
                 String cipherName = kIn.ReadString();
                 if (!"none".Equals(cipherName))
@@ -208,7 +196,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 }
 
                 // Burn off public key.
-                OpenSSHPublicKeyUtil.ParsePublicKey(kIn.ReadBlock());
+                OpenSshPublicKeyUtilities.ParsePublicKey(kIn.ReadBlock());
 
                 byte[] privateKeyBlock = kIn.ReadPaddedBlock();
 
@@ -217,7 +205,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                     throw new InvalidOperationException("decoded key has trailing data");
                 }
 
-                SSHBuffer pkIn = new SSHBuffer(privateKeyBlock);
+                SshBuffer pkIn = new SshBuffer(privateKeyBlock);
                 int check1 = pkIn.ReadU32();
                 int check2 = pkIn.ReadU32();
 
@@ -243,7 +231,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 }
                 else if (keyType.StartsWith("ecdsa"))
                 {
-                    DerObjectIdentifier oid = SSHNamedCurves.GetByName(Strings.FromByteArray(pkIn.ReadBlock())) ?? 
+                    DerObjectIdentifier oid = SshNamedCurves.GetByName(Strings.FromByteArray(pkIn.ReadBlock())) ?? 
                         throw new InvalidOperationException("OID not found for: " + keyType);
                     X9ECParameters curveParams = NistNamedCurves.GetByOid(oid) ?? throw new InvalidOperationException("Curve not found for: " + oid);
 

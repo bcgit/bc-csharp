@@ -1,25 +1,15 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.SSH
 {
-    public class OpenSSHPublicKeyUtil
+    public static class OpenSshPublicKeyUtilities
     {
-        private OpenSSHPublicKeyUtil()
-        {
-
-        }
-
         private static readonly String RSA = "ssh-rsa";
         private static readonly String ECDSA = "ecdsa";
         private static readonly String ED_25519 = "ssh-ed25519";
@@ -27,7 +17,7 @@ namespace Org.BouncyCastle.Utilities.SSH
 
         /**
          * Parse a public key.
-         * <p>
+         * <p/>
          * This method accepts the bytes that are Base64 encoded in an OpenSSH public key file.
          *
          * @param encoded The key.
@@ -35,7 +25,7 @@ namespace Org.BouncyCastle.Utilities.SSH
          */
         public static AsymmetricKeyParameter ParsePublicKey(byte[] encoded)
         {
-            SSHBuffer buffer = new SSHBuffer(encoded);
+            SshBuffer buffer = new SshBuffer(encoded);
             return ParsePublicKey(buffer);
         }
 
@@ -62,7 +52,7 @@ namespace Org.BouncyCastle.Utilities.SSH
 
                 RsaKeyParameters rsaPubKey = (RsaKeyParameters)cipherParameters;
 
-                SSHBuilder builder = new SSHBuilder();
+                SshBuilder builder = new SshBuilder();
                 builder.WriteString(RSA);
                 builder.WriteBigNum(rsaPubKey.Exponent);
                 builder.WriteBigNum(rsaPubKey.Modulus);
@@ -72,12 +62,12 @@ namespace Org.BouncyCastle.Utilities.SSH
             }
             else if (cipherParameters is ECPublicKeyParameters ecPublicKey)
             {
-                SSHBuilder builder = new SSHBuilder();
+                SshBuilder builder = new SshBuilder();
 
                 //
                 // checked for named curve parameters..
                 //
-                String name = SSHNamedCurves.GetNameForParameters(ecPublicKey.Parameters);
+                String name = SshNamedCurves.GetNameForParameters(ecPublicKey.Parameters);
 
                 if (name == null)
                 {
@@ -93,7 +83,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             {
                 DsaParameters dsaParams = dsaPubKey.Parameters;
 
-                SSHBuilder builder = new SSHBuilder();
+                SshBuilder builder = new SshBuilder();
                 builder.WriteString(DSS);
                 builder.WriteBigNum(dsaParams.P);
                 builder.WriteBigNum(dsaParams.Q);
@@ -103,7 +93,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             }
             else if (cipherParameters is Ed25519PublicKeyParameters ed25519PublicKey)
             {
-                SSHBuilder builder = new SSHBuilder();
+                SshBuilder builder = new SshBuilder();
                 builder.WriteString(ED_25519);
                 builder.WriteBlock(ed25519PublicKey.GetEncoded());
                 return builder.GetBytes();
@@ -118,7 +108,7 @@ namespace Org.BouncyCastle.Utilities.SSH
          * @param buffer containing the SSH public key.
          * @return A CipherParameters instance.
          */
-        public static AsymmetricKeyParameter ParsePublicKey(SSHBuffer buffer)
+        private static AsymmetricKeyParameter ParsePublicKey(SshBuffer buffer)
         {
             AsymmetricKeyParameter result = null;
 
@@ -141,8 +131,8 @@ namespace Org.BouncyCastle.Utilities.SSH
             else if (magic.StartsWith(ECDSA))
             {
                 String curveName = buffer.ReadString();
-                DerObjectIdentifier oid = SSHNamedCurves.GetByName(curveName);
-                X9ECParameters x9ECParameters = SSHNamedCurves.GetParameters(oid) ?? 
+                DerObjectIdentifier oid = SshNamedCurves.GetByName(curveName);
+                X9ECParameters x9ECParameters = SshNamedCurves.GetParameters(oid) ?? 
                     throw new InvalidOperationException("unable to find curve for " + magic + " using curve name " + curveName);
                 var curve = x9ECParameters.Curve;
                 byte[] pointRaw = buffer.ReadBlock();

@@ -1,28 +1,26 @@
-﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 
-using Org.BouncyCastle.Security;
+using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
-using Org.BouncyCastle.Utilities.SSH;
-using Org.BouncyCastle.Utilities.IO.Pem;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto.Signers;
-using System.Linq;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO.Pem;
+using Org.BouncyCastle.Utilities.SSH;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class OpenSSHKeyParsingTests : SimpleTest
+    public class OpenSshKeyParsingTests
     {
         private static SecureRandom secureRandom = new SecureRandom();
 
-        String rsa1024Key =
+        private static readonly string rsa1024Key =
               "-----BEGIN OPENSSH PRIVATE KEY-----\n"
             + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAlwAAAAdzc2gtcn\n"
             + "NhAAAAAwEAAQAAAIEA37C9iHf9kS3ekS8xVE4p5/bmA7Yc37gXqN10W6c53FzVMiT9ZzVm\n"
@@ -39,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             + "QQDiEe/BJMLRZ+94n98VCEr7E+eG2isQctxiAowH7o/wp5WAkFSD9W58dqUobuneXleG+F\n"
             + "DAfXzFhYvNE+TdLXUrAAAADm1hcmtAYmFybmFjbGVzAQIDBA==\n"
             + "-----END OPENSSH PRIVATE KEY-----\n";
-        String rsa2048Key =
+        private static readonly string rsa2048Key =
             "-----BEGIN OPENSSH PRIVATE KEY-----\n"
           + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABFwAAAAdzc2gtcn\n"
           + "NhAAAAAwEAAQAAAQEArxWa1zW+Uf0lUrYoL1yqgTYUT1TfUkfojrhguPB1s/1AEMj8sueu\n"
@@ -67,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "/XMw47d1iL7Hdu9NAJsplezKD5Unso4xJRXhLnXUT5FT8lSgwE+9xUBuILKUmZQa20ejKM\n"
           + "20U6szOxEEclA/8AAAAObWFya0BiYXJuYWNsZXMBAgMEBQ==\n"
           + "-----END OPENSSH PRIVATE KEY-----\n";
-        String rsa3072Key =
+        private static readonly string rsa3072Key =
             "-----BEGIN OPENSSH PRIVATE KEY-----\n"
           + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn\n"
           + "NhAAAAAwEAAQAAAYEA34VbMJbV2+ZJyRQANnFkTPNcSPkjBllNbnUrlGFQ9wxRyr6xiVRj\n"
@@ -106,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "xcxQuK2sGkRT7Q2NdfEQ9LG4GNIusJeISJgY9NdDBaXrSODSkJI2KCOxDlNY5NsNXXc0Ty\n"
           + "7fLQW04MPjqisAAAAObWFya0BiYXJuYWNsZXMBAgMEBQ==\n"
           + "-----END OPENSSH PRIVATE KEY-----\n";
-        String rsa4096Key =
+        private static readonly string rsa4096Key =
             "-----BEGIN OPENSSH PRIVATE KEY-----\n"
           + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn\n"
           + "NhAAAAAwEAAQAAAgEA2UjzaFgy2oYc6eyCk2tHEhMw/D807dSgVmOJz6ZXfbxIgh5aptbj\n"
@@ -156,7 +154,7 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "7NalafAFnf+Sg12wVD6f0ujP/ozQ24Arzc5rmE/AV+XJ7vqnjS1CeHSxTHPYrpKtC6mFQy\n"
           + "S+iAb4yzfmFnAAAADm1hcmtAYmFybmFjbGVzAQIDBA==\n"
           + "-----END OPENSSH PRIVATE KEY-----\n";
-        String ecdsa256Key =
+        private static readonly string ecdsa256Key =
             "-----BEGIN OPENSSH PRIVATE KEY-----\n"
           + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAaAAAABNlY2RzYS\n"
           + "1zaGEyLW5pc3RwMjU2AAAACG5pc3RwMjU2AAAAQQS9VjynnoLGUcT2hXXPkFwGfbleI4Ln\n"
@@ -166,7 +164,7 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "QAAAAgbAJJUVcjwwU/olgrxgINJ1DViX6GcCBhgeH8wAXiNKoAAAAObWFya0BiYXJuYWNs\n"
           + "ZXMBAg==\n"
           + "-----END OPENSSH PRIVATE KEY-----\n";
-        String ecdsa384Key =
+        private static readonly string ecdsa384Key =
             "-----BEGIN OPENSSH PRIVATE KEY-----\n"
           + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAiAAAABNlY2RzYS\n"
           + "1zaGEyLW5pc3RwMzg0AAAACG5pc3RwMzg0AAAAYQS0yKimt2kBeyNKUqNivPfSPBVyU4jH\n"
@@ -177,7 +175,7 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "qlpyi9jYKNblOSmYAAAAMQChvecXe7PGUVG0Pz2IgM9f80YLXdarf98sRptbGSIPwu8KlW\n"
           + "OlGv0Any5ue51/I5wAAAAObWFya0BiYXJuYWNsZXMB\n"
           + "-----END OPENSSH PRIVATE KEY-----\n";
-        String ecdsa521Key =
+        private static readonly string ecdsa521Key =
             "-----BEGIN OPENSSH PRIVATE KEY-----\n"
           + "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAArAAAABNlY2RzYS\n"
           + "1zaGEyLW5pc3RwNTIxAAAACG5pc3RwNTIxAAAAhQQA90An5exsl3UEU0d8fhqV8rgmoyzJ\n"
@@ -191,18 +189,12 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "5tYXJrQGJhcm5hY2xlcwECAwQ=\n"
           + "-----END OPENSSH PRIVATE KEY-----\n";
 
-        public static void main(
-            String[] args)
+        [Test]
+        public void TestDsa()
         {
-            RunTest(new OpenSSHKeyParsingTests());
-        }
+            var pubSpec = OpenSshPublicKeyUtilities.ParsePublicKey(Base64.Decode("AAAAB3NzaC1kc3MAAACBAJBB5+S4kZZYZLswaQ/zm3GM7YWmHsumwo/Xxu+z6Cg2l5PUoiBBZ4ET9EhhQuL2ja/zrCMCi0ZwiSRuSp36ayPrHLbNJb3VdOuJg8xExRa6F3YfVZfcTPUEKh6FU72fI31HrQmi4rpyHnWxL/iDX496ZG2Hdq6UkPISQpQwj4TtAAAAFQCP9TXcVahR/2rpfEhvdXR0PfhbRwAAAIBdXzAVqoOtb9zog6lNF1cGS1S06W9W/clvuwq2xF1s3bkoI/xUbFSc0IAPsGl2kcB61PAZqcop50lgpvYzt8cq/tbqz3ypq1dCQ0xdmJHj975QsRFax+w6xQ0kgpBhwcS2EOizKb+C+tRzndGpcDSoSMuVXp9i4wn5pJSTZxAYFQAAAIEAhQZc687zYxrEDR/1q6m4hw5GFxuVvLsC+bSHtMF0c11Qy4IPg7mBeP7K5Kq4WyJPtmZhuc5Bb12bJQR6qgd1uLn692fe1UK2kM6eWXBzhlzZ54BslfSKHGNN4qH+ln3Zaf/4rpKE7fvoinkrgkOZmj0PMx9D6wlpHKkXMUxeXtc="));
 
-
-        public void TestDSA()
-        {
-            var pubSpec = OpenSSHPublicKeyUtil.ParsePublicKey(Base64.Decode("AAAAB3NzaC1kc3MAAACBAJBB5+S4kZZYZLswaQ/zm3GM7YWmHsumwo/Xxu+z6Cg2l5PUoiBBZ4ET9EhhQuL2ja/zrCMCi0ZwiSRuSp36ayPrHLbNJb3VdOuJg8xExRa6F3YfVZfcTPUEKh6FU72fI31HrQmi4rpyHnWxL/iDX496ZG2Hdq6UkPISQpQwj4TtAAAAFQCP9TXcVahR/2rpfEhvdXR0PfhbRwAAAIBdXzAVqoOtb9zog6lNF1cGS1S06W9W/clvuwq2xF1s3bkoI/xUbFSc0IAPsGl2kcB61PAZqcop50lgpvYzt8cq/tbqz3ypq1dCQ0xdmJHj975QsRFax+w6xQ0kgpBhwcS2EOizKb+C+tRzndGpcDSoSMuVXp9i4wn5pJSTZxAYFQAAAIEAhQZc687zYxrEDR/1q6m4hw5GFxuVvLsC+bSHtMF0c11Qy4IPg7mBeP7K5Kq4WyJPtmZhuc5Bb12bJQR6qgd1uLn692fe1UK2kM6eWXBzhlzZ54BslfSKHGNN4qH+ln3Zaf/4rpKE7fvoinkrgkOZmj0PMx9D6wlpHKkXMUxeXtc="));
-
-            var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader("-----BEGIN DSA PRIVATE KEY-----\n" +
+            var privSpec = ParsePrivateKeyData("-----BEGIN DSA PRIVATE KEY-----\n" +
                 "MIIBuwIBAAKBgQCQQefkuJGWWGS7MGkP85txjO2Fph7LpsKP18bvs+goNpeT1KIg\n" +
                 "QWeBE/RIYULi9o2v86wjAotGcIkkbkqd+msj6xy2zSW91XTriYPMRMUWuhd2H1WX\n" +
                 "3Ez1BCoehVO9nyN9R60JouK6ch51sS/4g1+PemRth3aulJDyEkKUMI+E7QIVAI/1\n" +
@@ -213,23 +205,20 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "eP7K5Kq4WyJPtmZhuc5Bb12bJQR6qgd1uLn692fe1UK2kM6eWXBzhlzZ54BslfSK\n" +
                 "HGNN4qH+ln3Zaf/4rpKE7fvoinkrgkOZmj0PMx9D6wlpHKkXMUxeXtcCFELnLOJ8\n" +
                 "D0akSCUFY/iDLo/KnOIH\n" +
-                "-----END DSA PRIVATE KEY-----\n")).ReadPemObject().Content);
+                "-----END DSA PRIVATE KEY-----\n");
+
+            byte[] originalMessage = SecureRandom.GetNextBytes(secureRandom, 10);
 
             var signer = new DsaSigner();
             signer.Init(true, privSpec);
-
-            byte[] originalMessage = new byte[10];
-            secureRandom.NextBytes(originalMessage);
-
             BigInteger[] rs = signer.GenerateSignature(originalMessage);
 
             signer.Init(false, pubSpec);
-
-            IsTrue("DSA test", signer.VerifySignature(originalMessage, rs[0], rs[1]));
+            Assert.IsTrue(signer.VerifySignature(originalMessage, rs[0], rs[1]), "DSA test");
         }
 
-
-        public void TestECDSA_curvesFromSSHKeyGen()
+        [Test]
+        public void TestECDsa_CurvesFromSshKeyGen()
         {
             var pairs = new Tuple<string,string> []{
                 Tuple.Create(
@@ -274,125 +263,115 @@ namespace Org.BouncyCastle.Crypto.Tests
                 )
             };
 
-            String[] ecPriv = new String[] { ecdsa256Key, ecdsa384Key, ecdsa521Key };
+            string[] ecPriv = { ecdsa256Key, ecdsa384Key, ecdsa521Key };
             for (int i = 0; i != ecPriv.Length; i++)
             {
-                ECPrivateKeyParameters privKey = (ECPrivateKeyParameters)OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(
-                    new PemReader(
-                        new StringReader(ecPriv[i])).ReadPemObject().Content);
+                var privKey = (ECPrivateKeyParameters)ParsePrivateKeyData(ecPriv[i]);
+
                 var q = privKey.Parameters.G.Multiply(privKey.D);
 
                 DoECSigTest(new ECPublicKeyParameters(q, privKey.Parameters), privKey);
             }
 
-
             for (int i = 0; i != pairs.Length; i++)
             {
                 var pair = pairs[i];
 
-                var pubSpec = OpenSSHPublicKeyUtil.ParsePublicKey(
-                    Base64.Decode(pair.Item1));
-
-                var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(
-                    new PemReader(
-                        new StringReader(pair.Item2)).ReadPemObject().Content);
+                var pubSpec = OpenSshPublicKeyUtilities.ParsePublicKey(Base64.Decode(pair.Item1));
+                var privSpec = ParsePrivateKeyData(pair.Item2);
 
                 DoECSigTest(pubSpec, privSpec);
-
-                byte[] originalMessage;
-                BigInteger[] rs;
 
                 //
                 // Test encode
                 //
-                var recoveredPubKey = OpenSSHPublicKeyUtil.ParsePublicKey(OpenSSHPublicKeyUtil.EncodePublicKey((AsymmetricKeyParameter)pubSpec));
-                var recoveredPrivateKey = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(OpenSSHPrivateKeyUtil.EncodePrivateKey((AsymmetricKeyParameter)privSpec));
+                var recoveredPubKey = OpenSshPublicKeyUtilities.ParsePublicKey(
+                    OpenSshPublicKeyUtilities.EncodePublicKey((AsymmetricKeyParameter)pubSpec));
+                var recoveredPrivateKey = OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(
+                    OpenSshPrivateKeyUtilities.EncodePrivateKey((AsymmetricKeyParameter)privSpec));
+
+                byte[] originalMessage = SecureRandom.GetNextBytes(secureRandom, 10);
 
                 var signer = new ECDsaSigner();
                 signer.Init(true, privSpec);
-
-                originalMessage = new byte[10];
-                secureRandom.NextBytes(originalMessage);
-
-                rs = signer.GenerateSignature(originalMessage);
+                BigInteger[] rs = signer.GenerateSignature(originalMessage);
 
                 signer.Init(false, pubSpec);
-                IsTrue("ECDSA test post encoded / Decode", signer.VerifySignature(originalMessage, rs[0], rs[1]));
+                Assert.IsTrue(signer.VerifySignature(originalMessage, rs[0], rs[1]),
+                    "ECDSA test post encoded / Decode");
             }
 
         }
 
         private void DoECSigTest(AsymmetricKeyParameter pubSpec, AsymmetricKeyParameter privSpec)
         {
+            byte[] originalMessage = SecureRandom.GetNextBytes(secureRandom, 10);
+
             var signer = new ECDsaSigner();
             signer.Init(true, privSpec);
-
-            byte[] originalMessage = new byte[10];
-            secureRandom.NextBytes(originalMessage);
-
             BigInteger[] rs = signer.GenerateSignature(originalMessage);
 
             signer.Init(false, pubSpec);
-
-            IsTrue("ECDSA test", signer.VerifySignature(originalMessage, rs[0], rs[1]));
+            Assert.IsTrue(signer.VerifySignature(originalMessage, rs[0], rs[1]), "ECDSA test");
         }
 
-
-        public void TestECDSA()
-
+        [Test]
+        public void TestECDsa()
         {
-            var pubSpec = OpenSSHPublicKeyUtil.ParsePublicKey(Base64.Decode("AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHq5qxGqnh93Gpbj2w1Avx1UwBl6z5bZC3Viog1yNHDZYcV6Da4YQ3i0/hN7xY7sUy9dNF6g16tJSYXQQ4tvO3g="));
+            var pubSpec = OpenSshPublicKeyUtilities.ParsePublicKey(
+                Base64.Decode("AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHq5qxGqnh93Gpbj2w1Avx1UwBl6z5bZC3Viog1yNHDZYcV6Da4YQ3i0/hN7xY7sUy9dNF6g16tJSYXQQ4tvO3g="));
 
-            var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader("-----BEGIN EC PRIVATE KEY-----\n" +
+            var privSpec = ParsePrivateKeyData("-----BEGIN EC PRIVATE KEY-----\n" +
                 "MHcCAQEEIHeg/+m02j6nr4bO8ubfbzhs0fqOjiuIoWbvGnVg+FmpoAoGCCqGSM49\n" +
                 "AwEHoUQDQgAEermrEaqeH3caluPbDUC/HVTAGXrPltkLdWKiDXI0cNlhxXoNrhhD\n" +
                 "eLT+E3vFjuxTL100XqDXq0lJhdBDi287eA==\n" +
-                "-----END EC PRIVATE KEY-----\n")).ReadPemObject().Content);
+                "-----END EC PRIVATE KEY-----\n");
 
             DoECSigTest(pubSpec, privSpec);
-
         }
 
-
-        public void TestED25519()
-
+        [Test]
+        public void TestEd25519()
         {
-            var pubSpec = OpenSSHPublicKeyUtil.ParsePublicKey(Base64.Decode("AAAAC3NzaC1lZDI1NTE5AAAAIM4CaV7WQcy0lht0hclgXf4Olyvzvv2fnUvQ3J8IYsWF"));
-            var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader("-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+            var pubSpec = OpenSshPublicKeyUtilities.ParsePublicKey(
+                Base64.Decode("AAAAC3NzaC1lZDI1NTE5AAAAIM4CaV7WQcy0lht0hclgXf4Olyvzvv2fnUvQ3J8IYsWF"));
+
+            var privSpec = ParsePrivateKeyData("-----BEGIN OPENSSH PRIVATE KEY-----\n" +
                 "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n" +
                 "QyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQAAAKBTr4PvU6+D\n" +
                 "7wAAAAtzc2gtZWQyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQ\n" +
                 "AAAED4BTHeR3YD7CFQqusztfL5K+YSD4mRGLBwb7jHiXxIJM4CaV7WQcy0lht0hclgXf4O\n" +
                 "lyvzvv2fnUvQ3J8IYsWFAAAAG21lZ2Fud29vZHNAdHljaGUtMzI2NS5sb2NhbAEC\n" +
-                "-----END OPENSSH PRIVATE KEY-----\n")).ReadPemObject().Content);
+                "-----END OPENSSH PRIVATE KEY-----\n");
+
+            byte[] originalMessage = SecureRandom.GetNextBytes(secureRandom, 10);
 
             Ed25519Signer signer = new Ed25519Signer();
             signer.Init(true, privSpec);
-
-            byte[] originalMessage = new byte[10];
-            secureRandom.NextBytes(originalMessage);
             signer.BlockUpdate(originalMessage, 0, originalMessage.Length);
-
             byte[] sig = signer.GenerateSignature();
 
             signer.Init(false, pubSpec);
-
             signer.BlockUpdate(originalMessage, 0, originalMessage.Length);
-
-            IsTrue("ED25519Signer test", signer.VerifySignature(sig));
-
+            Assert.IsTrue(signer.VerifySignature(sig), "ED25519Signer test");
         }
 
+        [Test]
         public void TestFailures()
         {
-            byte[]
-            blob = new PemReader(new StringReader("-----BEGIN OPENSSH PRIVATE KEY-----\n" +
-                    "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n" +
-                    "QyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQAAAKBTr4PvU6+D\n" +
-                    "7wAAAAtzc2gtZWQyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQ\n" +
-                    "AAAED4BTHeR3YD7CFQqusztfL5K+YSD4mRGLBwb7jHiXxIJM4CaV7WQcy0lht0hclgXf4O\n" +
-                    "lyvzvv2fnUvQ3J8IYsWFAAAAG21lZ2Fud29vZHNAdHljaGUtMzI2NS5sb2NhbAEC\n" +
-                    "-----END OPENSSH PRIVATE KEY-----\n")).ReadPemObject().Content;
+            var data = "-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+                "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n" +
+                "QyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQAAAKBTr4PvU6+D\n" +
+                "7wAAAAtzc2gtZWQyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQ\n" +
+                "AAAED4BTHeR3YD7CFQqusztfL5K+YSD4mRGLBwb7jHiXxIJM4CaV7WQcy0lht0hclgXf4O\n" +
+                "lyvzvv2fnUvQ3J8IYsWFAAAAG21lZ2Fud29vZHNAdHljaGUtMzI2NS5sb2NhbAEC\n" +
+                "-----END OPENSSH PRIVATE KEY-----\n";
+
+            byte[] blob;
+            using (var pemReader = new PemReader(new StringReader(data)))
+            {
+                blob = pemReader.ReadPemObject().Content;
+            }
 
             //
             // Altering the check value.
@@ -401,59 +380,51 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(blob);
-                Fail("Change should trigger failure.");
+                var privSpec = OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(blob);
+                Assert.Fail("Change should trigger failure.");
             }
             catch (InvalidOperationException iles)
             {
-                IsEquals("Check value mismatch ", iles.Message, "private key check values are not the same");
+                Assert.AreEqual("private key check values are not the same", iles.Message, "Check value mismatch");
             }
 
             //
             // Altering the cipher name.
             //
 
-
-            blob = new PemReader(new StringReader("-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+            data = "-----BEGIN OPENSSH PRIVATE KEY-----\n" +
                 "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n" +
                 "QyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQAAAKBTr4PvU6+D\n" +
                 "7wAAAAtzc2gtZWQyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQ\n" +
                 "AAAED4BTHeR3YD7CFQqusztfL5K+YSD4mRGLBwb7jHiXxIJM4CaV7WQcy0lht0hclgXf4O\n" +
                 "lyvzvv2fnUvQ3J8IYsWFAAAAG21lZ2Fud29vZHNAdHljaGUtMzI2NS5sb2NhbAEC\n" +
-                "-----END OPENSSH PRIVATE KEY-----\n")).ReadPemObject().Content;
+                "-----END OPENSSH PRIVATE KEY-----\n";
+
+            using (var pemReader = new PemReader(new StringReader(data)))
+            {
+                blob = pemReader.ReadPemObject().Content;
+            }
+
             blob[19] = (byte)'C';
 
             try
             {
-                var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(blob);
-                Fail("Change should trigger failure.");
+                var privSpec = OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(blob);
+                Assert.Fail("Change should trigger failure.");
             }
             catch (InvalidOperationException iles)
             {
-                IsEquals("enc keys not supported ", iles.Message, "encrypted keys not supported");
+                Assert.AreEqual("encrypted keys not supported", iles.Message, "enc keys not supported");
             }
         }
 
-        public override string Name
-        {
-            get { return "OpenSSHTest"; }
-        }
-
-        public override void PerformTest()
-        {
-            TestECDSA_curvesFromSSHKeyGen();
-            TestDSA();
-            TestECDSA();
-            TestRSA();
-            TestED25519();
-            TestFailures();
-        }
-
+        [Test]
         public void TestRSA()
         {
-            var pubSpec = OpenSSHPublicKeyUtil.ParsePublicKey(Base64.Decode("AAAAB3NzaC1yc2EAAAADAQABAAAAgQDvh2BophdIp8ojwGZQR0FQ/awowXnV24nAPm+/na8MOUrdySNhOnlek4LAZl82/+Eu2t21XD6hQUiHKAj6XaNFBthTuss7Cz/tA348DLEMHD9wUtT0FXVmsxqN4BfusunbcULxxVWG2z8FvqeaGgc/Unkp9y7/kyf54pPUCBcClw=="));
+            var pubSpec = OpenSshPublicKeyUtilities.ParsePublicKey(
+                Base64.Decode("AAAAB3NzaC1yc2EAAAADAQABAAAAgQDvh2BophdIp8ojwGZQR0FQ/awowXnV24nAPm+/na8MOUrdySNhOnlek4LAZl82/+Eu2t21XD6hQUiHKAj6XaNFBthTuss7Cz/tA348DLEMHD9wUtT0FXVmsxqN4BfusunbcULxxVWG2z8FvqeaGgc/Unkp9y7/kyf54pPUCBcClw=="));
 
-            var privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader("-----BEGIN RSA PRIVATE KEY-----\n" +
+            var privSpec = ParsePrivateKeyData("-----BEGIN RSA PRIVATE KEY-----\n" +
                 "MIICXgIBAAKBgQDvh2BophdIp8ojwGZQR0FQ/awowXnV24nAPm+/na8MOUrdySNh\n" +
                 "Onlek4LAZl82/+Eu2t21XD6hQUiHKAj6XaNFBthTuss7Cz/tA348DLEMHD9wUtT0\n" +
                 "FXVmsxqN4BfusunbcULxxVWG2z8FvqeaGgc/Unkp9y7/kyf54pPUCBcClwIDAQAB\n" +
@@ -467,26 +438,26 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "7Hs+I1XnZXDIO4Rn1VRysN9rRj15ipnbDAuoUwUl7tDUMBFteg2e0kZCW/6NHIgC\n" +
                 "0aG6fLgVOdY+qi4lYtfFAkEAqqiBgEgSrDmnJLTm6j/Pv1mBA6b9bJbjOqomrDtr\n" +
                 "AWTXe+/kSCv/jYYdpNA/tDgAwEmtkWWEie6+SwJB5cXXqg==\n" +
-                "-----END RSA PRIVATE KEY-----\n")).ReadPemObject().Content);
+                "-----END RSA PRIVATE KEY-----\n");
 
             DoRSATest(pubSpec, privSpec);
 
-            privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader(rsa1024Key)).ReadPemObject().Content);
+            privSpec = ParsePrivateKeyData(rsa1024Key);
             pubSpec = new RsaKeyParameters(false, ((RsaKeyParameters)privSpec).Modulus, ((RsaPrivateCrtKeyParameters)privSpec).PublicExponent);
 
             DoRSATest(pubSpec, privSpec);
 
-            privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader(rsa2048Key)).ReadPemObject().Content);
+            privSpec = ParsePrivateKeyData(rsa2048Key);
             pubSpec = new RsaKeyParameters(false, ((RsaKeyParameters)privSpec).Modulus, ((RsaPrivateCrtKeyParameters)privSpec).PublicExponent);
 
             DoRSATest(pubSpec, privSpec);
 
-            privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader(rsa3072Key)).ReadPemObject().Content);
+            privSpec = ParsePrivateKeyData(rsa3072Key);
             pubSpec = new RsaKeyParameters(false, ((RsaKeyParameters)privSpec).Modulus, ((RsaPrivateCrtKeyParameters)privSpec).PublicExponent);
 
             DoRSATest(pubSpec, privSpec);
 
-            privSpec = OpenSSHPrivateKeyUtil.ParsePrivateKeyBlob(new PemReader(new StringReader(rsa4096Key)).ReadPemObject().Content);
+            privSpec = ParsePrivateKeyData(rsa4096Key);
             pubSpec = new RsaKeyParameters(false, ((RsaKeyParameters)privSpec).Modulus, ((RsaPrivateCrtKeyParameters)privSpec).PublicExponent);
 
             DoRSATest(pubSpec, privSpec);
@@ -494,9 +465,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void DoRSATest(AsymmetricKeyParameter pubSpec, AsymmetricKeyParameter privSpec)
         {
-            byte[] originalMessage = new byte[10];
-            secureRandom.NextBytes(originalMessage);
-
+            byte[] originalMessage = SecureRandom.GetNextBytes(secureRandom, 10);
             originalMessage[0] |= 1;
 
             var rsaEngine = new RsaEngine();
@@ -507,15 +476,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             rsaEngine.Init(false, pubSpec);
             byte[] result = rsaEngine.ProcessBlock(ct, 0, ct.Length);
 
-            IsTrue("Result did not match original message", Enumerable.SequenceEqual(originalMessage, result));
+            Assert.IsTrue(Arrays.AreEqual(originalMessage, result), "Result did not match original message");
         }
 
-        [Test]
-        public void TestFunction()
+        private static AsymmetricKeyParameter ParsePrivateKeyData(string data)
         {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
+            using (var pemReader = new PemReader(new StringReader(data)))
+            {
+                return OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(pemReader.ReadPemObject().Content);
+            }
         }
     }
 }

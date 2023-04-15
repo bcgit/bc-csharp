@@ -1,14 +1,15 @@
 ﻿using System;
+
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Utilities.SSH
 {
-    public class SSHBuffer
+    internal class SshBuffer
     {
         private readonly byte[] buffer;
         private int pos = 0;
 
-        public SSHBuffer(byte[] magic, byte[] buffer)
+        internal SshBuffer(byte[] magic, byte[] buffer)
         {
             this.buffer = buffer;
             for (int i = 0; i != magic.Length; i++)
@@ -22,7 +23,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             pos += magic.Length;
         }
 
-        public SSHBuffer(byte[] buffer)
+        internal SshBuffer(byte[] buffer)
         {
             this.buffer = buffer;
         }

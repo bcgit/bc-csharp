@@ -1,20 +1,17 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System.Collections.Generic;
+using System.Linq;
+
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.SSH
 {
-    public class SSHNamedCurves
+    public class SshNamedCurves
     {
         private static readonly Dictionary<string, DerObjectIdentifier> OidMap =
             new Dictionary<string, DerObjectIdentifier>
