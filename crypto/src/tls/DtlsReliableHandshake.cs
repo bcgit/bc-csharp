@@ -11,7 +11,6 @@ namespace Org.BouncyCastle.Tls
         private const int MAX_RECEIVE_AHEAD = 16;
         private const int MESSAGE_HEADER_LENGTH = 12;
 
-        internal const int INITIAL_RESEND_MILLIS = 1000;
         private const int MAX_RESEND_MILLIS = 60000;
 
         /// <exception cref="IOException"/>
@@ -85,21 +84,23 @@ namespace Org.BouncyCastle.Tls
         private IDictionary<int, DtlsReassembler> m_previousInboundFlight = null;
         private IList<Message> m_outboundFlight = new List<Message>();
 
+        private readonly int m_initialResendMillis;
         private int m_resendMillis = -1;
         private Timeout m_resendTimeout = null;
 
         private int m_next_send_seq = 0, m_next_receive_seq = 0;
 
         internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis,
-            DtlsRequest request)
+            int initialResendMillis, DtlsRequest request)
         {
             this.m_recordLayer = transport;
             this.m_handshakeHash = new DeferredHash(context);
             this.m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis);
+            m_initialResendMillis = initialResendMillis;
 
             if (null != request)
             {
-                this.m_resendMillis = INITIAL_RESEND_MILLIS;
+                this.m_resendMillis = m_initialResendMillis;
                 this.m_resendTimeout = new Timeout(m_resendMillis);
 
                 long recordSeq = request.RecordSeq;
@@ -298,7 +299,7 @@ namespace Org.BouncyCastle.Tls
 
             if (null == m_resendTimeout)
             {
-                m_resendMillis = INITIAL_RESEND_MILLIS;
+                m_resendMillis = m_initialResendMillis;
                 m_resendTimeout = new Timeout(m_resendMillis, currentTimeMillis);
 
                 PrepareInboundFlight(new Dictionary<int, DtlsReassembler>());
