@@ -9,7 +9,7 @@ using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC;
 
-namespace Org.BouncyCastle.Utilities.SSH
+namespace Org.BouncyCastle.Crypto.Utilities
 {
     public class SshNamedCurves
     {
@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             };
 
 
-        private static readonly Dictionary<string, string> CurveNameToSSHName = 
+        private static readonly Dictionary<string, string> CurveNameToSSHName =
             new Dictionary<string, string>
             {
                 {"secp256r1", "nistp256"},
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 {"sect571k1", "nistt571"}
             };
 
-        private static readonly Dictionary<ECCurve, string> CurveMap = 
+        private static readonly Dictionary<ECCurve, string> CurveMap =
             CustomNamedCurves.Names.ToDictionary(k => CustomNamedCurves.GetByNameLazy(k).Curve, v => v);
 
         private static readonly Dictionary<DerObjectIdentifier, string> OidToName =

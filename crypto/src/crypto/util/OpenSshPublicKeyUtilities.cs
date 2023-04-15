@@ -2,18 +2,17 @@
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 
-namespace Org.BouncyCastle.Utilities.SSH
+namespace Org.BouncyCastle.Crypto.Utilities
 {
     public static class OpenSshPublicKeyUtilities
     {
-        private static readonly String RSA = "ssh-rsa";
-        private static readonly String ECDSA = "ecdsa";
-        private static readonly String ED_25519 = "ssh-ed25519";
-        private static readonly String DSS = "ssh-dss";
+        private static readonly string RSA = "ssh-rsa";
+        private static readonly string ECDSA = "ecdsa";
+        private static readonly string ED_25519 = "ssh-ed25519";
+        private static readonly string DSS = "ssh-dss";
 
         /**
          * Parse a public key.
@@ -67,7 +66,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 //
                 // checked for named curve parameters..
                 //
-                String name = SshNamedCurves.GetNameForParameters(ecPublicKey.Parameters);
+                string name = SshNamedCurves.GetNameForParameters(ecPublicKey.Parameters);
 
                 if (name == null)
                 {
@@ -130,9 +129,9 @@ namespace Org.BouncyCastle.Utilities.SSH
             }
             else if (magic.StartsWith(ECDSA))
             {
-                String curveName = buffer.ReadString();
+                string curveName = buffer.ReadString();
                 DerObjectIdentifier oid = SshNamedCurves.GetByName(curveName);
-                X9ECParameters x9ECParameters = SshNamedCurves.GetParameters(oid) ?? 
+                X9ECParameters x9ECParameters = SshNamedCurves.GetParameters(oid) ??
                     throw new InvalidOperationException("unable to find curve for " + magic + " using curve name " + curveName);
                 var curve = x9ECParameters.Curve;
                 byte[] pointRaw = buffer.ReadBlock();

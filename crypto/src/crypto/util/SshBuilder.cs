@@ -2,8 +2,9 @@
 using System.IO;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Utilities.SSH
+namespace Org.BouncyCastle.Crypto.Utilities
 {
     internal class SshBuilder
     {
@@ -11,9 +12,9 @@ namespace Org.BouncyCastle.Utilities.SSH
 
         public void U32(uint value)
         {
-            bos.WriteByte(Convert.ToByte((value >> 24) & 0xFF));
-            bos.WriteByte(Convert.ToByte((value >> 16) & 0xFF));
-            bos.WriteByte(Convert.ToByte((value >> 8) & 0xFF));
+            bos.WriteByte(Convert.ToByte(value >> 24 & 0xFF));
+            bos.WriteByte(Convert.ToByte(value >> 16 & 0xFF));
+            bos.WriteByte(Convert.ToByte(value >> 8 & 0xFF));
             bos.WriteByte(Convert.ToByte(value & 0xFF));
         }
 
@@ -47,7 +48,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             }
         }
 
-        public void WriteString(String str)
+        public void WriteString(string str)
         {
             WriteBlock(Strings.ToByteArray(str));
         }

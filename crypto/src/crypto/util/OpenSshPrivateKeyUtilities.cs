@@ -5,12 +5,12 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Utilities.SSH
+namespace Org.BouncyCastle.Crypto.Utilities
 {
     public static class OpenSshPrivateKeyUtilities
     {
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                     pkBuild.WriteBlock(Arrays.Concatenate(ed25519PrivateKey.GetEncoded(), pubKeyEncoded));
 
                     // Comment for this private key (empty)
-                    pkBuild.WriteString("");    
+                    pkBuild.WriteString("");
 
                     builder.WriteBlock(pkBuild.GetPaddedBytes());
                 }
@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             {
                 SshBuffer kIn = new SshBuffer(AUTH_MAGIC, blob);
 
-                String cipherName = kIn.ReadString();
+                string cipherName = kIn.ReadString();
                 if (!"none".Equals(cipherName))
                 {
                     throw new InvalidOperationException("encrypted keys not supported");
@@ -214,7 +214,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                     throw new InvalidOperationException("private key check values are not the same");
                 }
 
-                String keyType = pkIn.ReadString();
+                string keyType = pkIn.ReadString();
 
                 if ("ssh-ed25519".Equals(keyType))
                 {
@@ -231,7 +231,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 }
                 else if (keyType.StartsWith("ecdsa"))
                 {
-                    DerObjectIdentifier oid = SshNamedCurves.GetByName(Strings.FromByteArray(pkIn.ReadBlock())) ?? 
+                    DerObjectIdentifier oid = SshNamedCurves.GetByName(Strings.FromByteArray(pkIn.ReadBlock())) ??
                         throw new InvalidOperationException("OID not found for: " + keyType);
                     X9ECParameters curveParams = NistNamedCurves.GetByOid(oid) ?? throw new InvalidOperationException("Curve not found for: " + oid);
 
@@ -287,16 +287,16 @@ namespace Org.BouncyCastle.Utilities.SSH
         /**
          * allIntegers returns true if the sequence holds only DerInteger types.
          **/
-        private static Boolean AllIntegers(Asn1Sequence sequence)
+        private static bool AllIntegers(Asn1Sequence sequence)
         {
             for (int t = 0; t < sequence.Count; t++)
             {
                 if (!(sequence[t] is DerInteger))
-            {
-                return false;
+                {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
     }
-}
 }

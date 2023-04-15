@@ -1,8 +1,9 @@
 ﻿using System;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Utilities.SSH
+namespace Org.BouncyCastle.Crypto.Utilities
 {
     internal class SshBuffer
     {
@@ -30,7 +31,7 @@ namespace Org.BouncyCastle.Utilities.SSH
 
         public int ReadU32()
         {
-            if (pos > (buffer.Length - 4))
+            if (pos > buffer.Length - 4)
             {
                 throw new ArgumentOutOfRangeException("4 bytes for U32 exceeds buffer.");
             }
@@ -38,12 +39,12 @@ namespace Org.BouncyCastle.Utilities.SSH
             int i = (buffer[pos++] & 0xFF) << 24;
             i |= (buffer[pos++] & 0xFF) << 16;
             i |= (buffer[pos++] & 0xFF) << 8;
-            i |= (buffer[pos++] & 0xFF);
+            i |= buffer[pos++] & 0xFF;
 
             return i;
         }
 
-        public String ReadString()
+        public string ReadString()
         {
             return Strings.FromByteArray(ReadBlock());
         }
@@ -56,7 +57,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 return new byte[0];
             }
 
-            if (pos > (buffer.Length - len))
+            if (pos > buffer.Length - len)
             {
                 throw new ArgumentException("not enough data for block");
             }
@@ -68,7 +69,7 @@ namespace Org.BouncyCastle.Utilities.SSH
         public void SkipBlock()
         {
             int len = ReadU32();
-            if (pos > (buffer.Length - len))
+            if (pos > buffer.Length - len)
             {
                 throw new ArgumentException("not enough data for block");
             }
@@ -89,7 +90,7 @@ namespace Org.BouncyCastle.Utilities.SSH
                 return new byte[0];
             }
 
-            if (pos > (buffer.Length - len))
+            if (pos > buffer.Length - len)
             {
                 throw new ArgumentException("not enough data for block");
             }
@@ -143,7 +144,7 @@ namespace Org.BouncyCastle.Utilities.SSH
             return Arrays.Clone(buffer);
         }
 
-        public Boolean HasRemaining()
+        public bool HasRemaining()
         {
             return pos < buffer.Length;
         }
