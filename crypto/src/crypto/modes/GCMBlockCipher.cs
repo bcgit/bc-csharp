@@ -402,6 +402,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 Check.OutputLength(output, outOff, BlockSize, "output buffer too short");
 
+                if (blocksRemaining == 0)
+                    throw new InvalidOperationException("Attempt to process too many blocks");
+
+                --blocksRemaining;
+
                 if (totalLength == 0)
                 {
                     InitCipher();
@@ -442,6 +447,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (++bufOff == bufBlock.Length)
             {
                 Check.OutputLength(output, BlockSize, "output buffer too short");
+
+                if (blocksRemaining == 0)
+                    throw new InvalidOperationException("Attempt to process too many blocks");
+
+                --blocksRemaining;
 
                 if (totalLength == 0)
                 {
@@ -484,6 +494,12 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (resultLen > 0)
                 {
                     Check.OutputLength(output, outOff, resultLen, "output buffer too short");
+
+                    uint blocksNeeded = (uint)resultLen >> 4;
+                    if (blocksRemaining < blocksNeeded)
+                        throw new InvalidOperationException("Attempt to process too many blocks");
+
+                    blocksRemaining -= blocksNeeded;
 
                     if (totalLength == 0)
                     {
@@ -538,6 +554,12 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (resultLen > 0)
                 {
                     Check.OutputLength(output, outOff, resultLen, "output buffer too short");
+
+                    uint blocksNeeded = (uint)resultLen >> 4;
+                    if (blocksRemaining < blocksNeeded)
+                        throw new InvalidOperationException("Attempt to process too many blocks");
+
+                    blocksRemaining -= blocksNeeded;
 
                     if (totalLength == 0)
                     {
@@ -620,6 +642,12 @@ namespace Org.BouncyCastle.Crypto.Modes
                 {
                     Check.OutputLength(output, resultLen, "output buffer too short");
 
+                    uint blocksNeeded = (uint)resultLen >> 4;
+                    if (blocksRemaining < blocksNeeded)
+                        throw new InvalidOperationException("Attempt to process too many blocks");
+
+                    blocksRemaining -= blocksNeeded;
+
                     if (totalLength == 0)
                     {
                         InitCipher();
@@ -685,6 +713,12 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (resultLen > 0)
                 {
                     Check.OutputLength(output, resultLen, "output buffer too short");
+
+                    uint blocksNeeded = (uint)resultLen >> 4;
+                    if (blocksRemaining < blocksNeeded)
+                        throw new InvalidOperationException("Attempt to process too many blocks");
+
+                    blocksRemaining -= blocksNeeded;
 
                     if (totalLength == 0)
                     {
@@ -800,6 +834,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (extra > 0)
             {
+                if (blocksRemaining == 0)
+                    throw new InvalidOperationException("Attempt to process too many blocks");
+
+                --blocksRemaining;
+
                 ProcessPartial(bufBlock, 0, extra, output, outOff);
             }
 
@@ -912,6 +951,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (extra > 0)
             {
+                if (blocksRemaining == 0)
+                    throw new InvalidOperationException("Attempt to process too many blocks");
+
+                --blocksRemaining;
+
                 ProcessPartial(bufBlock.AsSpan(0, extra), output);
             }
 
@@ -1175,6 +1219,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (limit < BlockSize * 4)
                 throw new ArgumentOutOfRangeException(nameof(limit));
 
+            var HPowBound = HPow[3];
+
             Span<Vector128<byte>> counters = stackalloc Vector128<byte>[4];
             var ctrBlocks = MemoryMarshal.AsBytes(counters);
 
@@ -1183,6 +1229,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             while (input.Length >= limit)
             {
+                var inputBound = input[BlockSize * 4 - 1];
+                var outputBound = output[BlockSize * 4 - 1];
+
                 GetNextCtrBlocks4(ctrBlocks);
 
                 var c0 = MemoryMarshal.Read<Vector128<byte>>(input);
@@ -1200,17 +1249,20 @@ namespace Org.BouncyCastle.Crypto.Modes
                 MemoryMarshal.Write(output[(BlockSize * 2)..], ref p2);
                 MemoryMarshal.Write(output[(BlockSize * 3)..], ref p3);
 
-                c0 = Ssse3.Shuffle(c0, ReverseBytesMask);
-                c1 = Ssse3.Shuffle(c1, ReverseBytesMask);
-                c2 = Ssse3.Shuffle(c2, ReverseBytesMask);
-                c3 = Ssse3.Shuffle(c3, ReverseBytesMask);
+                input = input[(BlockSize * 4)..];
+                output = output[(BlockSize * 4)..];
 
-                c0 = Sse2.Xor(c0, S128);
+                var d0 = Ssse3.Shuffle(c0, ReverseBytesMask);
+                var d1 = Ssse3.Shuffle(c1, ReverseBytesMask);
+                var d2 = Ssse3.Shuffle(c2, ReverseBytesMask);
+                var d3 = Ssse3.Shuffle(c3, ReverseBytesMask);
 
-                GcmUtilities.MultiplyExt(c0.AsUInt64(), HPow[0], out var U0, out var U1, out var U2);
-                GcmUtilities.MultiplyExt(c1.AsUInt64(), HPow[1], out var V0, out var V1, out var V2);
-                GcmUtilities.MultiplyExt(c2.AsUInt64(), HPow[2], out var W0, out var W1, out var W2);
-                GcmUtilities.MultiplyExt(c3.AsUInt64(), HPow[3], out var X0, out var X1, out var X2);
+                d0 = Sse2.Xor(d0, S128);
+
+                GcmUtilities.MultiplyExt(d0.AsUInt64(), HPow[0], out var U0, out var U1, out var U2);
+                GcmUtilities.MultiplyExt(d1.AsUInt64(), HPow[1], out var V0, out var V1, out var V2);
+                GcmUtilities.MultiplyExt(d2.AsUInt64(), HPow[2], out var W0, out var W1, out var W2);
+                GcmUtilities.MultiplyExt(d3.AsUInt64(), HPow[3], out var X0, out var X1, out var X2);
 
                 U0 = Sse2.Xor(U0, V0);
                 U1 = Sse2.Xor(U1, V1);
@@ -1225,9 +1277,6 @@ namespace Org.BouncyCastle.Crypto.Modes
                 U2 = Sse2.Xor(U2, X2);
 
                 S128 = GcmUtilities.Reduce3(U0, U1, U2).AsByte();
-
-                input = input[(BlockSize * 4)..];
-                output = output[(BlockSize * 4)..];
             }
 
             S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
@@ -1365,6 +1414,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (!IsFourWaySupported)
                 throw new PlatformNotSupportedException(nameof(EncryptBlocks4));
 
+            var HPowBound = HPow[3];
+
             Span<Vector128<byte>> counters = stackalloc Vector128<byte>[4];
             var ctrBlocks = MemoryMarshal.AsBytes(counters);
 
@@ -1373,6 +1424,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             while (input.Length >= BlockSize * 4)
             {
+                var outputBound = output[BlockSize * 4 - 1];
+
                 GetNextCtrBlocks4(ctrBlocks);
 
                 var p0 = MemoryMarshal.Read<Vector128<byte>>(input);
@@ -1390,17 +1443,20 @@ namespace Org.BouncyCastle.Crypto.Modes
                 MemoryMarshal.Write(output[(BlockSize * 2)..], ref c2);
                 MemoryMarshal.Write(output[(BlockSize * 3)..], ref c3);
 
-                c0 = Ssse3.Shuffle(c0, ReverseBytesMask);
-                c1 = Ssse3.Shuffle(c1, ReverseBytesMask);
-                c2 = Ssse3.Shuffle(c2, ReverseBytesMask);
-                c3 = Ssse3.Shuffle(c3, ReverseBytesMask);
+                input = input[(BlockSize * 4)..];
+                output = output[(BlockSize * 4)..];
 
-                c0 = Sse2.Xor(c0, S128);
+                var d0 = Ssse3.Shuffle(c0, ReverseBytesMask);
+                var d1 = Ssse3.Shuffle(c1, ReverseBytesMask);
+                var d2 = Ssse3.Shuffle(c2, ReverseBytesMask);
+                var d3 = Ssse3.Shuffle(c3, ReverseBytesMask);
 
-                GcmUtilities.MultiplyExt(c0.AsUInt64(), HPow[0], out var U0, out var U1, out var U2);
-                GcmUtilities.MultiplyExt(c1.AsUInt64(), HPow[1], out var V0, out var V1, out var V2);
-                GcmUtilities.MultiplyExt(c2.AsUInt64(), HPow[2], out var W0, out var W1, out var W2);
-                GcmUtilities.MultiplyExt(c3.AsUInt64(), HPow[3], out var X0, out var X1, out var X2);
+                d0 = Sse2.Xor(d0, S128);
+
+                GcmUtilities.MultiplyExt(d0.AsUInt64(), HPow[0], out var U0, out var U1, out var U2);
+                GcmUtilities.MultiplyExt(d1.AsUInt64(), HPow[1], out var V0, out var V1, out var V2);
+                GcmUtilities.MultiplyExt(d2.AsUInt64(), HPow[2], out var W0, out var W1, out var W2);
+                GcmUtilities.MultiplyExt(d3.AsUInt64(), HPow[3], out var X0, out var X1, out var X2);
 
                 U0 = Sse2.Xor(U0, V0);
                 U1 = Sse2.Xor(U1, V1);
@@ -1415,9 +1471,6 @@ namespace Org.BouncyCastle.Crypto.Modes
                 U2 = Sse2.Xor(U2, X2);
 
                 S128 = GcmUtilities.Reduce3(U0, U1, U2).AsByte();
-
-                input = input[(BlockSize * 4)..];
-                output = output[(BlockSize * 4)..];
             }
 
             S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
@@ -1428,11 +1481,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextCtrBlock(Span<byte> block)
         {
-            if (blocksRemaining == 0)
-                throw new InvalidOperationException("Attempt to process too many blocks");
-
-            blocksRemaining--;
-
             Pack.UInt32_To_BE(++counter32, counter, 12);
 
             cipher.ProcessBlock(counter, block);
@@ -1441,11 +1489,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextCtrBlocks2(Span<byte> blocks)
         {
-            if (blocksRemaining < 2)
-                throw new InvalidOperationException("Attempt to process too many blocks");
-
-            blocksRemaining -= 2;
-
             Pack.UInt32_To_BE(++counter32, counter, 12);
             cipher.ProcessBlock(counter, blocks);
 
@@ -1456,21 +1499,16 @@ namespace Org.BouncyCastle.Crypto.Modes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextCtrBlocks4(Span<byte> blocks)
         {
-            if (blocksRemaining < 4)
-                throw new InvalidOperationException("Attempt to process too many blocks");
-
-            blocksRemaining -= 4;
+            uint counter0 = counter32;
+            uint counter1 = counter0 + 1U;
+            uint counter2 = counter0 + 2U;
+            uint counter3 = counter0 + 3U;
+            uint counter4 = counter0 + 4U;
+            counter32 = counter4;
 
 #if NETCOREAPP3_0_OR_GREATER
             if (AesEngine_X86.IsSupported && cipher is AesEngine_X86 x86)
             {
-                uint counter0 = counter32;
-                uint counter1 = counter0 + 1U;
-                uint counter2 = counter0 + 2U;
-                uint counter3 = counter0 + 3U;
-                uint counter4 = counter0 + 4U;
-                counter32 = counter4;
-
                 counter.CopyTo(blocks);
                 counter.CopyTo(blocks[BlockSize..]);
                 counter.CopyTo(blocks[(BlockSize * 2)..]);
@@ -1485,16 +1523,16 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 #endif
 
-            Pack.UInt32_To_BE(++counter32, counter, 12);
+            Pack.UInt32_To_BE(counter1, counter, 12);
             cipher.ProcessBlock(counter, blocks);
 
-            Pack.UInt32_To_BE(++counter32, counter, 12);
+            Pack.UInt32_To_BE(counter2, counter, 12);
             cipher.ProcessBlock(counter, blocks[BlockSize..]);
 
-            Pack.UInt32_To_BE(++counter32, counter, 12);
+            Pack.UInt32_To_BE(counter3, counter, 12);
             cipher.ProcessBlock(counter, blocks[(BlockSize * 2)..]);
 
-            Pack.UInt32_To_BE(++counter32, counter, 12);
+            Pack.UInt32_To_BE(counter4, counter, 12);
             cipher.ProcessBlock(counter, blocks[(BlockSize * 3)..]);
         }
 

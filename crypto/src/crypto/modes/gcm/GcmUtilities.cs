@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         internal static void Multiply(ref FieldElement x, ref FieldElement y)
         {
-            ulong z0, z1, z2, z3;
+            ulong z0, z1, z2;
 
 #if NETCOREAPP3_0_OR_GREATER
             if (Pclmulqdq.IsSupported)
@@ -94,10 +94,18 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 ulong t1 = Z2.GetElement(0) ^ Z1.GetElement(1);
                 ulong t0 = Z2.GetElement(1);
 
+                Debug.Assert(t0 >> 63 == 0);
+
+                t1 ^= t3 ^ (t3 >>  1) ^ (t3 >>  2) ^ (t3 >>  7);
+                t2 ^=      (t3 << 63) ^ (t3 << 62) ^ (t3 << 57);
+
                 z0 = (t0 << 1) | (t1 >> 63);
                 z1 = (t1 << 1) | (t2 >> 63);
-                z2 = (t2 << 1) | (t3 >> 63);
-                z3 = (t3 << 1);
+                z2 = (t2 << 1);
+
+                z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
+//              z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+                z1 ^=                   (t2 << 63) ^ (t2 << 58);
             }
             else
 #endif
@@ -113,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 ulong y0 = y.n0, y1 = y.n1;
                 ulong x0r = Longs.Reverse(x0), x1r = Longs.Reverse(x1);
                 ulong y0r = Longs.Reverse(y0), y1r = Longs.Reverse(y1);
+                ulong z3;
 
                 ulong h0 = Longs.Reverse(ImplMul64(x0r, y0r));
                 ulong h1 = ImplMul64(x0, y0) << 1;
@@ -125,16 +134,16 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 z1 = h1 ^ h0 ^ h2 ^ h4;
                 z2 = h2 ^ h1 ^ h3 ^ h5;
                 z3 = h3;
+
+                Debug.Assert(z3 << 63 == 0);
+
+                z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
+//              z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
+                z2 ^=                   (z3 << 62) ^ (z3 << 57);
+
+                z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
+                z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
             }
-
-            Debug.Assert(z3 << 63 == 0);
-
-            z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^=                   (z3 << 62) ^ (z3 << 57);
-
-            z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-            z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
 
             x.n0 = z0;
             x.n1 = z1;
@@ -176,19 +185,18 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             ulong t1 = Z2.GetElement(0);
             ulong t0 = Z2.GetElement(1);
 
+            Debug.Assert(t0 >> 63 == 0);
+
+            t1 ^= t3 ^ (t3 >>  1) ^ (t3 >>  2) ^ (t3 >>  7);
+            t2 ^=      (t3 << 63) ^ (t3 << 62) ^ (t3 << 57);
+
             ulong z0 = (t0 << 1) | (t1 >> 63);
             ulong z1 = (t1 << 1) | (t2 >> 63);
-            ulong z2 = (t2 << 1) | (t3 >> 63);
-            ulong z3 = (t3 << 1);
-
-            Debug.Assert(z3 << 63 == 0);
-
-            z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^=                   (z3 << 62) ^ (z3 << 57);
+            ulong z2 = (t2 << 1);
 
             z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-            z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+//          z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+            z1 ^=                   (t2 << 63) ^ (t2 << 58);
 
             return Vector128.Create(z1, z0);
         }
@@ -201,19 +209,18 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             ulong t1 = Z2.GetElement(0) ^ Z1.GetElement(1);
             ulong t0 = Z2.GetElement(1);
 
+            Debug.Assert(t0 >> 63 == 0);
+
+            t1 ^= t3 ^ (t3 >>  1) ^ (t3 >>  2) ^ (t3 >>  7);
+            t2 ^=      (t3 << 63) ^ (t3 << 62) ^ (t3 << 57);
+
             ulong z0 = (t0 << 1) | (t1 >> 63);
             ulong z1 = (t1 << 1) | (t2 >> 63);
-            ulong z2 = (t2 << 1) | (t3 >> 63);
-            ulong z3 = (t3 << 1);
-
-            Debug.Assert(z3 << 63 == 0);
-
-            z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^=                   (z3 << 62) ^ (z3 << 57);
+            ulong z2 = (t2 << 1);
 
             z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-            z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+//          z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+            z1 ^=                   (t2 << 63) ^ (t2 << 58);
 
             return Vector128.Create(z1, z0);
         }
@@ -276,23 +283,16 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         internal static void Square(ref FieldElement x)
         {
-            ulong z1 = Interleave.Expand64To128Rev(x.n0, out ulong z0);
-            ulong z3 = Interleave.Expand64To128Rev(x.n1, out ulong z2);
+            ulong t1 = Interleave.Expand64To128Rev(x.n0, out ulong t0);
+            ulong t3 = Interleave.Expand64To128Rev(x.n1, out ulong t2);
 
-            Debug.Assert(z3 << 63 == 0UL);
+            Debug.Assert((t0 | t1 | t2 | t3) << 63 == 0UL);
 
-            z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^=                   (z3 << 62) ^ (z3 << 57);
+            var z1 = t1 ^ t3 ^ (t3 >>  1) ^ (t3 >>  2) ^ (t3 >>  7);
+            var z2 = t2 ^                   (t3 << 62) ^ (t3 << 57);
 
-            Debug.Assert(z2 << 63 == 0UL);
-
-            z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-//          z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
-            z1 ^=                   (z2 << 62) ^ (z2 << 57);
-
-            x.n0 = z0;
-            x.n1 = z1;
+            x.n0   = t0 ^ z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
+            x.n1   = z1 ^                   (t2 << 62) ^ (t2 << 57);
         }
 
         internal static void Xor(byte[] x, byte[] y)

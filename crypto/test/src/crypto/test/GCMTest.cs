@@ -561,7 +561,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void RandomTests(SecureRandom srng, IGcmMultiplier m)
         {
-            for (int i = 0; i < 10; ++i)
+            for (int i = 0; i < 100; ++i)
             {
                 RandomTest(srng, m);
             }
