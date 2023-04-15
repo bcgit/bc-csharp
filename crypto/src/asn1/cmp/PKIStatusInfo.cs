@@ -20,9 +20,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiStatusInfo GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
             return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
 		private readonly DerInteger status;
