@@ -782,16 +782,14 @@ namespace Org.BouncyCastle.Crypto.EC
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<DerObjectIdentifier, X9ECParametersHolder> curves =
             new Dictionary<DerObjectIdentifier, X9ECParametersHolder>();
-        private static readonly Dictionary<DerObjectIdentifier, string> objIdToName =
+        private static readonly Dictionary<DerObjectIdentifier, string> names =
             new Dictionary<DerObjectIdentifier, string>();
-        private static readonly List<string> names = new List<string>();
 
         private static void DefineCurve(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
         {
             objIds.Add(name, oid);
-            objIdToName.Add(oid, name);
+            names.Add(oid, name);
             curves.Add(oid, holder);
-            names.Add(name);
         }
 
         private static void DefineCurveAlias(string name, DerObjectIdentifier oid)
@@ -904,7 +902,7 @@ namespace Org.BouncyCastle.Crypto.EC
         /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static string GetName(DerObjectIdentifier oid)
         {
-            return CollectionUtilities.GetValueOrNull(objIdToName, oid);
+            return CollectionUtilities.GetValueOrNull(names, oid);
         }
 
         /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
@@ -917,7 +915,7 @@ namespace Org.BouncyCastle.Crypto.EC
         /// <summary>Enumerate the available curve names in this registry.</summary>
         public static IEnumerable<string> Names
         {
-            get { return CollectionUtilities.Proxy(names); }
+            get { return CollectionUtilities.Proxy(objIds.Keys); }
         }
     }
 }
