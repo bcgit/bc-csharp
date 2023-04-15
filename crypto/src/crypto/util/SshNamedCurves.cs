@@ -1,93 +1,107 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
-    public class SshNamedCurves
+    public static class SshNamedCurves
     {
-        private static readonly Dictionary<string, DerObjectIdentifier> OidMap =
-            new Dictionary<string, DerObjectIdentifier>
-            {
-                { "nistp256", SecObjectIdentifiers.SecP256r1 },
-                { "nistp384", SecObjectIdentifiers.SecP384r1 },
-                { "nistp521", SecObjectIdentifiers.SecP521r1 },
-                { "nistk163", SecObjectIdentifiers.SecT163k1 },
-                { "nistp192", SecObjectIdentifiers.SecP192r1 },
-                { "nistp224", SecObjectIdentifiers.SecP224r1 },
-                { "nistk233", SecObjectIdentifiers.SecT233k1 },
-                { "nistb233", SecObjectIdentifiers.SecT233r1 },
-                { "nistk283", SecObjectIdentifiers.SecT283k1 },
-                { "nistk409", SecObjectIdentifiers.SecT409k1 },
-                { "nistb409", SecObjectIdentifiers.SecT409r1 },
-                { "nistt571", SecObjectIdentifiers.SecT571k1 }
-            };
+        private static readonly Dictionary<string, DerObjectIdentifier> objIds =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<DerObjectIdentifier, string> names =
+            new Dictionary<DerObjectIdentifier, string>();
 
-
-        private static readonly Dictionary<string, string> CurveNameToSSHName =
-            new Dictionary<string, string>
-            {
-                {"secp256r1", "nistp256"},
-                {"secp384r1", "nistp384"},
-                {"secp521r1", "nistp521"},
-                {"sect163k1", "nistk163"},
-                {"secp192r1", "nistp192"},
-                {"secp224r1", "nistp224"},
-                {"sect233k1", "nistk233"},
-                {"sect233r1", "nistb233"},
-                {"sect283k1", "nistk283"},
-                {"sect409k1", "nistk409"},
-                {"sect409r1", "nistb409"},
-                {"sect571k1", "nistt571"}
-            };
-
-        private static readonly Dictionary<ECCurve, string> CurveMap =
-            CustomNamedCurves.Names.ToDictionary(k => CustomNamedCurves.GetByNameLazy(k).Curve, v => v);
-
-        private static readonly Dictionary<DerObjectIdentifier, string> OidToName =
-            OidMap.ToDictionary(k => k.Value, v => v.Key);
-
-
-        public static DerObjectIdentifier GetByName(string sshName)
+        private static void DefineCurveAlias(string name, DerObjectIdentifier oid)
         {
-            return OidMap[sshName];
+            if (FindByOidLazy(oid) == null)
+                throw new InvalidOperationException();
+
+            objIds.Add(name, oid);
+            names.Add(oid, name);
         }
 
-        public static X9ECParameters GetParameters(string sshName)
+        private static X9ECParametersHolder FindByOidLazy(DerObjectIdentifier oid) =>
+            ECKeyPairGenerator.FindECCurveByOidLazy(oid);
+
+        static SshNamedCurves()
         {
-            return NistNamedCurves.GetByOid(OidMap[sshName.ToLower()]);
+            DefineCurveAlias("nistp192", SecObjectIdentifiers.SecP192r1);
+            DefineCurveAlias("nistp224", SecObjectIdentifiers.SecP224r1);
+            DefineCurveAlias("nistp256", SecObjectIdentifiers.SecP256r1);
+            DefineCurveAlias("nistp384", SecObjectIdentifiers.SecP384r1);
+            DefineCurveAlias("nistp521", SecObjectIdentifiers.SecP521r1);
+            DefineCurveAlias("nistb233", SecObjectIdentifiers.SecT233r1);
+            DefineCurveAlias("nistb409", SecObjectIdentifiers.SecT409r1);
+            DefineCurveAlias("nistk163", SecObjectIdentifiers.SecT163k1);
+            DefineCurveAlias("nistk233", SecObjectIdentifiers.SecT233k1);
+            DefineCurveAlias("nistk283", SecObjectIdentifiers.SecT283k1);
+            DefineCurveAlias("nistk409", SecObjectIdentifiers.SecT409k1);
+            DefineCurveAlias("nistt571", SecObjectIdentifiers.SecT571k1);
         }
 
-        public static X9ECParameters GetParameters(DerObjectIdentifier oid)
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
+        public static X9ECParameters GetByName(string name)
         {
-            return NistNamedCurves.GetByOid(oid);
+            DerObjectIdentifier oid = GetOid(name);
+            return oid == null ? null : GetByOid(oid);
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given name.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="Math.EC.ECCurve">curve</see> without necessarily triggering the creation of
+        /// the full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="name">The name of the curve.</param>
+        public static X9ECParametersHolder GetByNameLazy(string name)
+        {
+            DerObjectIdentifier oid = GetOid(name);
+            return oid == null ? null : GetByOidLazy(oid);
+        }
+
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
+        public static X9ECParameters GetByOid(DerObjectIdentifier oid)
+        {
+            return GetByOidLazy(oid)?.Parameters;
+        }
+
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="Math.EC.ECCurve">curve</see> without necessarily triggering the creation of
+        /// the full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
+        public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
+        {
+            return names.ContainsKey(oid) ? FindByOidLazy(oid) : null;
+        }
+
+        /// <summary>Look up the name of the curve with the given <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static string GetName(DerObjectIdentifier oid)
         {
-            return OidToName[oid];
+            return CollectionUtilities.GetValueOrNull(names, oid);
         }
 
-        public static string GetNameForParameters(ECDomainParameters parameters)
+        /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
+        public static DerObjectIdentifier GetOid(string name)
         {
-            if (parameters is ECNamedDomainParameters)
-            {
-                return GetName(((ECNamedDomainParameters)parameters).Name);
-            }
-
-            return GetNameForParameters(parameters.Curve);
+            return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
-        public static string GetNameForParameters(ECCurve curve)
+        /// <summary>Enumerate the available curve names in this registry.</summary>
+        public static IEnumerable<string> Names
         {
-            return CurveNameToSSHName[CurveMap[curve]];
+            get { return CollectionUtilities.Proxy(objIds.Keys); }
         }
     }
 }

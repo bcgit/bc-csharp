@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bos.WriteByte(Convert.ToByte(value & 0xFF));
         }
 
-        public void WriteBigNum(BigInteger n)
+        public void WriteMpint(BigInteger n)
         {
             WriteBlock(n.ToByteArray());
         }
@@ -26,14 +26,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public void WriteBlock(byte[] value)
         {
             U32((uint)value.Length);
-            try
-            {
-                bos.Write(value, 0, value.Length);
-            }
-            catch (IOException e)
-            {
-                throw new InvalidOperationException(e.Message, e);
-            }
+            WriteBytes(value);
         }
 
         public void WriteBytes(byte[] value)
@@ -48,9 +41,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        public void WriteString(string str)
+        public void WriteStringAscii(string str)
         {
-            WriteBlock(Strings.ToByteArray(str));
+            WriteBlock(Encoding.ASCII.GetBytes(str));
+        }
+
+        public void WriteStringUtf8(string str)
+        {
+            WriteBlock(Encoding.UTF8.GetBytes(str));
         }
 
         public byte[] GetBytes()

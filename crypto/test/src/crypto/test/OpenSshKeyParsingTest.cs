@@ -16,7 +16,7 @@ using Org.BouncyCastle.Utilities.IO.Pem;
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class OpenSshKeyParsingTests
+    public class OpenSshKeyParsingTest
     {
         private static SecureRandom secureRandom = new SecureRandom();
 

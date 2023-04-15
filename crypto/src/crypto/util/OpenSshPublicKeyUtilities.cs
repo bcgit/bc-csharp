@@ -1,9 +1,9 @@
 ﻿using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -38,43 +38,34 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public static byte[] EncodePublicKey(AsymmetricKeyParameter cipherParameters)
         {
             if (cipherParameters == null)
+                throw new ArgumentNullException(nameof(cipherParameters));
+            if (cipherParameters.IsPrivate)
+                throw new ArgumentException("Not a public key", nameof(cipherParameters));
+
+            if (cipherParameters is RsaKeyParameters rsaPubKey)
             {
-                throw new ArgumentException("cipherParameters was null.");
-            }
-
-            if (cipherParameters is RsaKeyParameters)
-            {
-                if (cipherParameters.IsPrivate)
-                {
-                    throw new ArgumentException("RSAKeyParamaters was for encryption");
-                }
-
-                RsaKeyParameters rsaPubKey = (RsaKeyParameters)cipherParameters;
-
                 SshBuilder builder = new SshBuilder();
-                builder.WriteString(RSA);
-                builder.WriteBigNum(rsaPubKey.Exponent);
-                builder.WriteBigNum(rsaPubKey.Modulus);
-
+                builder.WriteStringAscii(RSA);
+                builder.WriteMpint(rsaPubKey.Exponent);
+                builder.WriteMpint(rsaPubKey.Modulus);
                 return builder.GetBytes();
-
             }
             else if (cipherParameters is ECPublicKeyParameters ecPublicKey)
             {
-                SshBuilder builder = new SshBuilder();
+                string curveName = null;
 
-                //
-                // checked for named curve parameters..
-                //
-                string name = SshNamedCurves.GetNameForParameters(ecPublicKey.Parameters);
-
-                if (name == null)
+                var oid = ecPublicKey.PublicKeyParamSet;
+                if (oid != null)
                 {
-                    throw new ArgumentException("unable to derive ssh curve name for " + ecPublicKey.Parameters.Curve.GetType().Name);
+                    curveName = SshNamedCurves.GetName(oid);
                 }
 
-                builder.WriteString(ECDSA + "-sha2-" + name); // Magic
-                builder.WriteString(name);
+                if (curveName == null)
+                    throw new ArgumentException("unable to derive ssh curve name for EC public key");
+
+                SshBuilder builder = new SshBuilder();
+                builder.WriteStringAscii(ECDSA + "-sha2-" + curveName); // Magic
+                builder.WriteStringAscii(curveName);
                 builder.WriteBlock(ecPublicKey.Q.GetEncoded(false)); //Uncompressed
                 return builder.GetBytes();
             }
@@ -83,22 +74,22 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 DsaParameters dsaParams = dsaPubKey.Parameters;
 
                 SshBuilder builder = new SshBuilder();
-                builder.WriteString(DSS);
-                builder.WriteBigNum(dsaParams.P);
-                builder.WriteBigNum(dsaParams.Q);
-                builder.WriteBigNum(dsaParams.G);
-                builder.WriteBigNum(dsaPubKey.Y);
+                builder.WriteStringAscii(DSS);
+                builder.WriteMpint(dsaParams.P);
+                builder.WriteMpint(dsaParams.Q);
+                builder.WriteMpint(dsaParams.G);
+                builder.WriteMpint(dsaPubKey.Y);
                 return builder.GetBytes();
             }
             else if (cipherParameters is Ed25519PublicKeyParameters ed25519PublicKey)
             {
                 SshBuilder builder = new SshBuilder();
-                builder.WriteString(ED_25519);
+                builder.WriteStringAscii(ED_25519);
                 builder.WriteBlock(ed25519PublicKey.GetEncoded());
                 return builder.GetBytes();
             }
 
-            throw new ArgumentException("unable to convert " + cipherParameters.GetType().Name + " to private key");
+            throw new ArgumentException("unable to convert " + Platform.GetTypeName(cipherParameters) + " to private key");
         }
 
         /**
@@ -111,55 +102,60 @@ namespace Org.BouncyCastle.Crypto.Utilities
         {
             AsymmetricKeyParameter result = null;
 
-            string magic = buffer.ReadString();
+            string magic = buffer.ReadStringAscii();
             if (RSA.Equals(magic))
             {
-                BigInteger e = buffer.ReadBigNumPositive();
-                BigInteger n = buffer.ReadBigNumPositive();
+                BigInteger e = buffer.ReadMpintPositive();
+                BigInteger n = buffer.ReadMpintPositive();
                 result = new RsaKeyParameters(false, n, e);
             }
             else if (DSS.Equals(magic))
             {
-                BigInteger p = buffer.ReadBigNumPositive();
-                BigInteger q = buffer.ReadBigNumPositive();
-                BigInteger g = buffer.ReadBigNumPositive();
-                BigInteger pubKey = buffer.ReadBigNumPositive();
+                BigInteger p = buffer.ReadMpintPositive();
+                BigInteger q = buffer.ReadMpintPositive();
+                BigInteger g = buffer.ReadMpintPositive();
+                BigInteger pubKey = buffer.ReadMpintPositive();
 
                 result = new DsaPublicKeyParameters(pubKey, new DsaParameters(p, q, g));
             }
             else if (magic.StartsWith(ECDSA))
             {
-                string curveName = buffer.ReadString();
-                DerObjectIdentifier oid = SshNamedCurves.GetByName(curveName);
-                X9ECParameters x9ECParameters = SshNamedCurves.GetParameters(oid) ??
-                    throw new InvalidOperationException("unable to find curve for " + magic + " using curve name " + curveName);
-                var curve = x9ECParameters.Curve;
-                byte[] pointRaw = buffer.ReadBlock();
+                var curveName = buffer.ReadStringAscii();
 
-                result = new ECPublicKeyParameters(
-                    curve.DecodePoint(pointRaw),
-                    new ECNamedDomainParameters(oid, x9ECParameters));
+                var oid = SshNamedCurves.GetOid(curveName);
+
+                X9ECParameters x9ECParameters = oid == null ? null : SshNamedCurves.GetByOid(oid);
+                if (x9ECParameters == null)
+                {
+                    throw new InvalidOperationException(
+                        "unable to find curve for " + magic + " using curve name " + curveName);
+                }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ReadOnlySpan<byte> pointEncoding = buffer.ReadBlockSpan();
+#else
+                byte[] pointEncoding = buffer.ReadBlock();
+#endif
+                var point = x9ECParameters.Curve.DecodePoint(pointEncoding);
+
+                result = new ECPublicKeyParameters(point, new ECNamedDomainParameters(oid, x9ECParameters));
             }
             else if (ED_25519.Equals(magic))
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ReadOnlySpan<byte> pubKeyBytes = buffer.ReadBlockSpan();
+#else
                 byte[] pubKeyBytes = buffer.ReadBlock();
-                if (pubKeyBytes.Length != Ed25519PublicKeyParameters.KeySize)
-                {
-                    throw new InvalidOperationException("public key value of wrong length");
-                }
+#endif
 
-                result = new Ed25519PublicKeyParameters(pubKeyBytes, 0);
+                result = new Ed25519PublicKeyParameters(pubKeyBytes);
             }
 
             if (result == null)
-            {
                 throw new ArgumentException("unable to parse key");
-            }
 
             if (buffer.HasRemaining())
-            {
                 throw new ArgumentException("decoded key has trailing data");
-            }
 
             return result;
         }
