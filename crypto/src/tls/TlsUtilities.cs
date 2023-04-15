@@ -5721,5 +5721,14 @@ namespace Org.BouncyCastle.Tls
             }
             return v;
         }
+
+        // TODO[api] Not needed once GetHandshakeResendTimeMillis() has been added to TlsPeer
+        internal static int GetHandshakeResendTimeMillis(TlsPeer tlsPeer)
+        {
+            if (tlsPeer is AbstractTlsPeer abstractTlsPeer)
+                return abstractTlsPeer.GetHandshakeResendTimeMillis();
+
+            return 1000;
+        }
     }
 }

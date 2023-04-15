@@ -90,8 +90,8 @@ namespace Org.BouncyCastle.Tls
 
         private int m_next_send_seq = 0, m_next_receive_seq = 0;
 
-        internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis, int initialResendMillis,
-            DtlsRequest request)
+        internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis,
+            int initialResendMillis, DtlsRequest request)
         {
             this.m_recordLayer = transport;
             this.m_handshakeHash = new DeferredHash(context);

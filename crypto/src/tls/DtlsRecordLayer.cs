@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Tls
                         HeartbeatMessageType.heartbeat_request, m_heartbeat.GeneratePayload());
                     this.m_heartbeatTimeout = new Timeout(m_heartbeat.TimeoutMillis, currentTimeMillis);
 
-                    this.m_heartbeatResendMillis = m_peer.GetHandshakeResendTimeMillis();
+                    this.m_heartbeatResendMillis = TlsUtilities.GetHandshakeResendTimeMillis(m_peer);
                     this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
 
                     SendHeartbeatMessage(m_heartbeatInFlight);
@@ -405,7 +405,7 @@ namespace Org.BouncyCastle.Tls
                         HeartbeatMessageType.heartbeat_request, m_heartbeat.GeneratePayload());
                     this.m_heartbeatTimeout = new Timeout(m_heartbeat.TimeoutMillis, currentTimeMillis);
 
-                    this.m_heartbeatResendMillis = m_peer.GetHandshakeResendTimeMillis();
+                    this.m_heartbeatResendMillis = TlsUtilities.GetHandshakeResendTimeMillis(m_peer);
                     this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
 
                     SendHeartbeatMessage(m_heartbeatInFlight);

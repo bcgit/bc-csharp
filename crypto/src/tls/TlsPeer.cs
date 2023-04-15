@@ -36,7 +36,8 @@ namespace Org.BouncyCastle.Tls
         /// NOTE: Currently only respected by DTLS protocols.
         /// </remarks>
         /// <returns>the handshake resend time, in milliseconds.</returns>
-        int GetHandshakeResendTimeMillis();
+        // TODO[api]
+        //int GetHandshakeResendTimeMillis();
 
         bool AllowLegacyResumption();
 
