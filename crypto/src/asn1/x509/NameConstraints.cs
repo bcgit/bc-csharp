@@ -1,45 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	public class NameConstraints
+    public class NameConstraints
 		: Asn1Encodable
 	{
-		private Asn1Sequence permitted, excluded;
+		private Asn1Sequence m_permitted, m_excluded;
 
-		public static NameConstraints GetInstance(
-			object obj)
+		public static NameConstraints GetInstance(object obj)
 		{
-			if (obj == null || obj is NameConstraints)
-			{
-				return (NameConstraints) obj;
-			}
+			if (obj == null)
+				return null;
+			if (obj is NameConstraints nameConstraints)
+				return nameConstraints;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new NameConstraints(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-			if (obj is Asn1Sequence)
-			{
-				return new NameConstraints((Asn1Sequence) obj);
-			}
+        public static NameConstraints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public NameConstraints(
-			Asn1Sequence seq)
+        [Obsolete("Use 'GetInstance' instead")]
+        public NameConstraints(Asn1Sequence seq)
 		{
 			foreach (Asn1TaggedObject o in seq)
 			{
 				switch (o.TagNo)
 				{
-					case 0:
-						permitted = Asn1Sequence.GetInstance(o, false);
-						break;
-					case 1:
-						excluded = Asn1Sequence.GetInstance(o, false);
-						break;
+				case 0:
+					m_permitted = Asn1Sequence.GetInstance(o, false);
+					break;
+				case 1:
+					m_excluded = Asn1Sequence.GetInstance(o, false);
+					break;
 				}
 			}
 		}
@@ -52,35 +49,32 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param permitted Permitted subtrees
 		 * @param excluded Excluded subtrees
 		 */
-		public NameConstraints(
-			IList<GeneralSubtree> permitted,
-			IList<GeneralSubtree> excluded)
+		public NameConstraints(IList<GeneralSubtree> permitted, IList<GeneralSubtree> excluded)
 		{
 			if (permitted != null)
 			{
-				this.permitted = CreateSequence(permitted);
+				this.m_permitted = CreateSequence(permitted);
 			}
 
 			if (excluded != null)
 			{
-				this.excluded = CreateSequence(excluded);
+				this.m_excluded = CreateSequence(excluded);
 			}
 		}
 
 		private DerSequence CreateSequence(IList<GeneralSubtree> subtrees)
 		{
-            return new DerSequence(subtrees.ToArray());
+			Asn1EncodableVector v = new Asn1EncodableVector(subtrees.Count);
+			foreach (var subtree in subtrees)
+			{
+				v.Add(subtree);
+			}
+            return new DerSequence(v);
 		}
 
-		public Asn1Sequence PermittedSubtrees
-		{
-			get { return permitted; }
-		}
+		public Asn1Sequence PermittedSubtrees => m_permitted;
 
-		public Asn1Sequence ExcludedSubtrees
-		{
-			get { return excluded; }
-		}
+		public Asn1Sequence ExcludedSubtrees => m_excluded;
 
 		/*
 		 * NameConstraints ::= SEQUENCE { permittedSubtrees [0] GeneralSubtrees
@@ -89,8 +83,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptionalTagged(false, 0, permitted);
-            v.AddOptionalTagged(false, 1, excluded);
+            v.AddOptionalTagged(false, 0, m_permitted);
+            v.AddOptionalTagged(false, 1, m_excluded);
             return new DerSequence(v);
         }
 	}

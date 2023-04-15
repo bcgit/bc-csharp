@@ -1619,7 +1619,7 @@ namespace Org.BouncyCastle.Pkix
 					PkixCertPathValidatorUtilities.GetExtensionValue(cert, X509Extensions.NameConstraints));
 				if (ncSeq != null)
 				{
-					nc = new NameConstraints(ncSeq);
+					nc = NameConstraints.GetInstance(ncSeq);
 				}
 			}
 			catch (Exception e)
