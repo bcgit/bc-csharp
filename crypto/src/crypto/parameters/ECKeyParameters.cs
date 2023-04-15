@@ -40,6 +40,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             this.algorithm = VerifyAlgorithmName(algorithm);
             this.parameters = parameters;
+            this.publicKeyParamSet = (parameters as ECNamedDomainParameters)?.Name;
         }
 
         protected ECKeyParameters(
