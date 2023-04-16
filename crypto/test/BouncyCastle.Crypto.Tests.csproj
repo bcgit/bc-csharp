@@ -8,6 +8,7 @@
     <NoWarn>618;1591</NoWarn>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+    <Configurations>Debug;Release;Publish</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -15,6 +16,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Publish'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 

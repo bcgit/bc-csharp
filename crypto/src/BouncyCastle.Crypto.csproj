@@ -24,6 +24,7 @@
 	<Product>BouncyCastle.NET</Product>
 	<PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Title>BouncyCastle.NET Cryptography</Title>
+    <Configurations>Debug;Release;Publish</Configurations>
   </PropertyGroup>
 
   <!-- CI systems other than GitLab might need different conditions -->
@@ -72,6 +73,13 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Publish'">
+    <DefineConstants />
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Deterministic build. -->
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="**\*.properties" />
     <None Remove="pqc\crypto\**\*.bz2" />
@@ -101,5 +109,8 @@
     <PropertyGroup>
 		<!-- Here we can override/use any MSBuild properties set by Nerdbank.GitVersioning -->
     </PropertyGroup>
+  </Target>
+  <Target Name="SignAssemblies" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Publish'">
+    <Exec Command="call &quot;$(ProjectDir)..\..\signfile.bat&quot; &quot;$(TargetPath)&quot;" />
   </Target>
 </Project>

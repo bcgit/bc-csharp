@@ -20,6 +20,8 @@ _Resharper*/
 .idea/
 .store/
 .vs/
+BC_codesign.p12
+BC_password.txt
 
 *.nuget.props
 *.nuget.targets
