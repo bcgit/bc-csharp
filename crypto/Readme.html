@@ -32,6 +32,8 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId85329">Release 2.2.0</a>
+                                    <li>
                                         <a href="#mozTocId85328">Release 2.1.1</a>
                                     <li>
                                         <a href="#mozTocId85327">Release 2.1.0</a>
@@ -322,6 +324,29 @@
         <br />
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+
+        <h4><a class="mozTocH4" name="mozTocId85329"></a>Release 2.2.0, Monday April 17, 2023</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Fixed non-8-aligned IPv4 netmask parsing.</li>
+            <li>Fixed the ParallelHash copy constructor.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>Fixed rethrow syntax across the project, which should give more informative stack traces where relevant.</li>
+            <li>Added support for generating/validating alternative signatures for certificates and CRLs.</li>
+            <li>RFC 9146: Added support for connection ID to DTLS.</li>
+            <li>Initial DTLS handshake resend time is now configurable.</li>
+            <li>Added utilities to support generation and parsing of OpenSSH public and private key formats.</li>
+            <li>The assemblies within the NuGet package are now also codesigned.</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
 
         <h4><a class="mozTocH4" name="mozTocId85328"></a>Release 2.1.1, Saturday February 18, 2023</h4>
         <p>
