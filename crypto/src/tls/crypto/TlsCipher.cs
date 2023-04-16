@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <summary>Return the maximum size for the plaintext given ciphertextlimit bytes of ciphertext.</summary>
         /// <param name="ciphertextLimit">the maximum number of bytes of ciphertext.</param>
         /// <returns>the maximum size of the plaintext for ciphertextlimit bytes of input.</returns>
+        // TODO[api] Remove
         int GetPlaintextLimit(int ciphertextLimit);
 
         /// <summary>Encode the passed in plaintext using the current bulk cipher.</summary>

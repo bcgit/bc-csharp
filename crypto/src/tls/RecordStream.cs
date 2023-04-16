@@ -153,9 +153,9 @@ namespace Org.BouncyCastle.Tls
                 var cipher = m_readCipher;
 
                 int plaintextDecodeLimit;
-                if (cipher is AbstractTlsCipher abstractTlsCipher)
+                if (cipher is TlsCipherExt tlsCipherExt)
                 {
-                    plaintextDecodeLimit = abstractTlsCipher.GetPlaintextDecodeLimit(length);
+                    plaintextDecodeLimit = tlsCipherExt.GetPlaintextDecodeLimit(length);
                 }
                 else
                 {

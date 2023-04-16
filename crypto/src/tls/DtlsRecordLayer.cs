@@ -240,9 +240,9 @@ namespace Org.BouncyCastle.Tls
             var cipher = m_readEpoch.Cipher;
 
             int plaintextDecodeLimit;
-            if (cipher is AbstractTlsCipher abstractTlsCipher)
+            if (cipher is TlsCipherExt tlsCipherExt)
             {
-                plaintextDecodeLimit = abstractTlsCipher.GetPlaintextDecodeLimit(ciphertextLimit);
+                plaintextDecodeLimit = tlsCipherExt.GetPlaintextDecodeLimit(ciphertextLimit);
             }
             else
             {
@@ -259,9 +259,9 @@ namespace Org.BouncyCastle.Tls
             int ciphertextLimit = m_transport.GetSendLimit() - m_writeEpoch.RecordHeaderLengthWrite;
 
             int plaintextEncodeLimit;
-            if (cipher is AbstractTlsCipher abstractTlsCipher)
+            if (cipher is TlsCipherExt tlsCipherExt)
             {
-                plaintextEncodeLimit = abstractTlsCipher.GetPlaintextEncodeLimit(ciphertextLimit);
+                plaintextEncodeLimit = tlsCipherExt.GetPlaintextEncodeLimit(ciphertextLimit);
             }
             else
             {

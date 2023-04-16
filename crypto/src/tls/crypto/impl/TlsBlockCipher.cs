@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
     /// <summary>A generic TLS 1.0-1.2 block cipher. This can be used for AES or 3DES for example.</summary>
     public class TlsBlockCipher
-        : AbstractTlsCipher
+        : TlsCipher, TlsCipherExt
     {
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly byte[] m_randomData;
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
-        public override int GetCiphertextDecodeLimit(int plaintextLimit)
+        public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
             int macSize = m_readMac.Size;
@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
-        public override int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
+        public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
 
@@ -177,7 +177,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
-        public override int GetPlaintextDecodeLimit(int ciphertextLimit)
+        // TODO[api] Remove
+        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        {
+            return GetPlaintextEncodeLimit(ciphertextLimit);
+        }
+
+        public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
             int macSize = m_readMac.Size;
@@ -187,7 +193,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_decryptUseInnerPlaintext ? 1 : 0);
         }
 
-        public override int GetPlaintextEncodeLimit(int ciphertextLimit)
+        public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
@@ -197,7 +203,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
-        public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -285,7 +291,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public override TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
             int blockSize = m_encryptCipher.GetBlockSize();
@@ -369,7 +375,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
-        public override TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
+        public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
@@ -475,7 +481,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, offset, plaintextLength, contentType);
         }
 
-        public override bool UsesOpaqueRecordType
+        public virtual void RekeyDecoder()
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        public virtual void RekeyEncoder()
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        public virtual bool UsesOpaqueRecordType
         {
             get { return false; }
         }
