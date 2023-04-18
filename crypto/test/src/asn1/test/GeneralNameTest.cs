@@ -35,7 +35,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 		[Test]
         public void TestIPv6()
 		{
-			GeneralName nm;
             CheckIPAddressEncoding("2001:0db8:85a3:08d3:1319:8a2e:0370:7334", ipv6a, "ipv6a failed");
             CheckIPAddressEncoding("2001:0db8:85a3::1319:8a2e:0370:7334", ipv6b, "ipv6b failed");
             CheckIPAddressEncoding("::1", ipv6c, "ipv6c failed");
