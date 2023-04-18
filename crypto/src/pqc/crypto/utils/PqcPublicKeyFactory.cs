@@ -21,6 +21,7 @@ using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -153,18 +154,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <exception cref="IOException"> on an error decoding the key</exception>
         public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            AlgorithmIdentifier algId = keyInfo.AlgorithmID;
-            SubjectPublicKeyInfoConverter converter = (SubjectPublicKeyInfoConverter)Converters[algId.Algorithm];
+            var algID = keyInfo.AlgorithmID;
+            var oid = algID.Algorithm;
 
-            if (converter != null)
-            {
-                return converter.GetPublicKeyParameters(keyInfo, defaultParams);
-            }
-            else
-            {
-                throw new IOException("algorithm identifier in public key not recognised: " + algId.Algorithm);
-            }
+            SubjectPublicKeyInfoConverter converter = CollectionUtilities.GetValueOrNull(Converters, oid)
+                ?? throw new IOException("algorithm identifier in public key not recognised: " + oid);
+
+            return converter.GetPublicKeyParameters(keyInfo, defaultParams);
         }
+
         private abstract class SubjectPublicKeyInfoConverter
         {
             internal abstract AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams);
@@ -294,24 +292,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private class KyberConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo,
+                object defaultParams)
             {
                 KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
-                Asn1Object obj = keyInfo.ParsePublicKey();
-                if (obj is Asn1Sequence)
+                try
                 {
-                    Asn1Sequence keySeq = Asn1Sequence.GetInstance(obj);
+                    Asn1Object obj = keyInfo.ParsePublicKey();
+#pragma warning disable CS0618 // Type or member is obsolete
+                    KyberPublicKey kyberKey = KyberPublicKey.GetInstance(obj);
+#pragma warning restore CS0618 // Type or member is obsolete
 
-                    return new KyberPublicKeyParameters(kyberParameters,
-                        Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
-                        Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
+                    return new KyberPublicKeyParameters(kyberParameters, kyberKey.T, kyberKey.Rho);
                 }
-                else
+                catch (Exception)
                 {
-                    byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
-
-                    return new KyberPublicKeyParameters(kyberParameters, encKey);
+                    // we're a raw encoding
+                    return new KyberPublicKeyParameters(kyberParameters, keyInfo.PublicKeyData.GetOctets());
                 }
             }
         }
