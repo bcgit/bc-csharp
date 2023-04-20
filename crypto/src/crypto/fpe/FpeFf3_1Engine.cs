@@ -19,9 +19,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             : base(baseCipher)
         {
             if (IsOverrideSet(SP80038G.FPE_DISABLED))
-            {
                 throw new InvalidOperationException("FPE disabled");
-            }
         }
 
         public override void Init(bool forEncryption, ICipherParameters parameters)
@@ -29,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             this.forEncryption = forEncryption;
             this.fpeParameters = (FpeParameters)parameters;
 
-            baseCipher.Init(!fpeParameters.UseInverseFunction, ReverseKey(fpeParameters.Key));
+            baseCipher.Init(!fpeParameters.UseInverseFunction, fpeParameters.Key.Reverse());
 
             if (fpeParameters.GetTweak().Length != 7)
                 throw new ArgumentException("tweak should be 56 bits");
@@ -81,19 +79,6 @@ namespace Org.BouncyCastle.Crypto.Fpe
             Array.Copy(dec, 0, outBuf, outOff, length);
 
             return length;
-        }
-
-        private static KeyParameter ReverseKey(KeyParameter key)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return KeyParameter.Create(key.KeyLength, key, (bytes, key) =>
-            {
-                key.Key.CopyTo(bytes);
-                bytes.Reverse();
-            });
-#else
-            return new KeyParameter(Arrays.Reverse(key.GetKey()));
-#endif
         }
     }
 }

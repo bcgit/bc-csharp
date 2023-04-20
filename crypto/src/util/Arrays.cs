@@ -958,6 +958,15 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        internal static void Reverse<T>(T[] input, T[] output)
+        {
+            int last = input.Length - 1;
+            for (int i = 0; i <= last; ++i)
+            {
+                output[i] = input[last - i];
+            }
+        }
+
         public static T[] ReverseInPlace<T>(T[] array)
         {
             if (null == array)

@@ -575,8 +575,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                         return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
                             new AlgorithmIdentifier(curveOid),
-                            // TODO Span variant
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                            pEnc.AsSpan(1)));
+#else
                             Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+#endif
                     }
                     else if (EdECObjectIdentifiers.id_X448.Equals(curveOid))
                     {
@@ -586,8 +589,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                         return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
                             new AlgorithmIdentifier(curveOid),
-                            // TODO Span variant
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                            pEnc.AsSpan(1)));
+#else
                             Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+#endif
                     }
                     else
                     {
@@ -608,8 +614,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                         return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
                             new AlgorithmIdentifier(curveOid),
-                            // TODO Span variant
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                            pEnc.AsSpan(1)));
+#else
                             Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+#endif
                     }
                     else if (EdECObjectIdentifiers.id_Ed448.Equals(curveOid))
                     {
@@ -619,8 +628,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                         return PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(
                             new AlgorithmIdentifier(curveOid),
-                            // TODO Span variant
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                            pEnc.AsSpan(1)));
+#else
                             Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
+#endif
                     }
                     else 
                     {

@@ -60,6 +60,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return Arrays.Clone(data);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> DataSpan => data;
+
+        internal ReadOnlyMemory<byte> DataMemory => data;
+#endif
+
         private static byte[] Validate(byte[] buf)
         {
             if (buf.Length != KeySize)

@@ -149,9 +149,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     byte[] secret = new byte[agreement.AgreementSize];
                     agreement.CalculateAgreement(cryptoPublicKey, secret, 0);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    Span<byte> ephPubEncoding = stackalloc byte[1 + X25519PublicKeyParameters.KeySize];
+                    ((X25519PublicKeyParameters)ephKp.Public).Encode(ephPubEncoding[1..]);
+#else
                     byte[] ephPubEncoding = new byte[1 + X25519PublicKeyParameters.KeySize];
-                    ephPubEncoding[0] = 0x40;
                     ((X25519PublicKeyParameters)ephKp.Public).Encode(ephPubEncoding, 1);
+#endif
+                    ephPubEncoding[0] = 0x40;
 
                     return EncryptSessionInfo(ecPubKey, sessionInfo, secret, ephPubEncoding, random);
                 }
@@ -168,9 +173,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     byte[] secret = new byte[agreement.AgreementSize];
                     agreement.CalculateAgreement(cryptoPublicKey, secret, 0);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    Span<byte> ephPubEncoding = stackalloc byte[1 + X448PublicKeyParameters.KeySize];
+                    ((X448PublicKeyParameters)ephKp.Public).Encode(ephPubEncoding[1..]);
+#else
                     byte[] ephPubEncoding = new byte[1 + X448PublicKeyParameters.KeySize];
-                    ephPubEncoding[0] = 0x40;
                     ((X448PublicKeyParameters)ephKp.Public).Encode(ephPubEncoding, 1);
+#endif
+                    ephPubEncoding[0] = 0x40;
 
                     return EncryptSessionInfo(ecPubKey, sessionInfo, secret, ephPubEncoding, random);
                 }
@@ -188,13 +198,29 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     BigInteger S = agreement.CalculateAgreement(cryptoPublicKey);
                     byte[] secret = BigIntegers.AsUnsignedByteArray(agreement.GetFieldSize(), S);
 
-                    byte[] ephPubEncoding = ((ECPublicKeyParameters)ephKp.Public).Q.GetEncoded(false);
+                    var q = ((ECPublicKeyParameters)ephKp.Public).Q;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    int encodedLength = q.GetEncodedLength(false);
+                    Span<byte> ephPubEncoding = encodedLength <= 512
+                        ? stackalloc byte[encodedLength]
+                        : new byte[encodedLength];
+                    q.EncodeTo(false, ephPubEncoding);
+#else
+                    byte[] ephPubEncoding = q.GetEncoded(false);
+#endif
+
                     return EncryptSessionInfo(ecPubKey, sessionInfo, secret, ephPubEncoding, random);
                 }
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            private byte[] EncryptSessionInfo(ECDHPublicBcpgKey ecPubKey, byte[] sessionInfo, byte[] secret,
+                ReadOnlySpan<byte> ephPubEncoding, SecureRandom random)
+#else
             private byte[] EncryptSessionInfo(ECDHPublicBcpgKey ecPubKey, byte[] sessionInfo, byte[] secret,
                 byte[] ephPubEncoding, SecureRandom random)
+#endif
             {
                 var key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, secret));
 
@@ -402,14 +428,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             sessionInfo[sessionInfo.Length - 1] = (byte)(check);
         }
 
-		private byte[] CreateSessionInfo(
-			SymmetricKeyAlgorithmTag	algorithm,
-			KeyParameter				key)
+		private byte[] CreateSessionInfo(SymmetricKeyAlgorithmTag algorithm, KeyParameter key)
 		{
-			byte[] keyBytes = key.GetKey();
-			byte[] sessionInfo = new byte[keyBytes.Length + 3];
-			sessionInfo[0] = (byte) algorithm;
-			keyBytes.CopyTo(sessionInfo, 1);
+            int keyLength = key.KeyLength;
+			byte[] sessionInfo = new byte[keyLength + 3];
+			sessionInfo[0] = (byte)algorithm;
+            key.CopyTo(sessionInfo, 1, keyLength);
 			AddCheckSum(sessionInfo);
 			return sessionInfo;
 		}

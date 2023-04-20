@@ -85,5 +85,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal ReadOnlySpan<byte> Key => m_key;
 #endif
+
+        internal KeyParameter Reverse()
+        {
+            var reversed = new KeyParameter(m_key.Length);
+            Arrays.Reverse(m_key, reversed.m_key);
+            return reversed;
+        }
     }
 }

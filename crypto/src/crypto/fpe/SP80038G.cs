@@ -358,11 +358,10 @@ namespace Org.BouncyCastle.Crypto.Fpe
             // iii.
             Array.Reverse(P);
             cipher.ProcessBlock(P, 0, P, 0);
-            Array.Reverse(P);
             byte[] S = P;
 
             // iv.
-            return new BigInteger(1, S);
+            return new BigInteger(1, S, bigEndian: false);
         }
 
         private static void CheckArgs(IBlockCipher cipher, bool isFF1, int radix, ushort[] buf, int off, int len)

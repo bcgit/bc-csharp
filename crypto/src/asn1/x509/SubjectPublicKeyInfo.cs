@@ -49,7 +49,15 @@ namespace Org.BouncyCastle.Asn1.X509
             this.algID = algID;
         }
 
-		private SubjectPublicKeyInfo(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public SubjectPublicKeyInfo(AlgorithmIdentifier algID, ReadOnlySpan<byte> publicKey)
+        {
+            this.keyData = new DerBitString(publicKey);
+            this.algID = algID;
+        }
+#endif
+
+        private SubjectPublicKeyInfo(
             Asn1Sequence seq)
         {
 			if (seq.Count != 2)

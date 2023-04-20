@@ -68,6 +68,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return Arrays.Clone(data);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> DataSpan => data;
+
+        internal ReadOnlyMemory<byte> DataMemory => data;
+#endif
+
         public X25519PublicKeyParameters GeneratePublicKey()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

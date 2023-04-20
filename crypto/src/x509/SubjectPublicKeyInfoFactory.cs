@@ -174,7 +174,17 @@ namespace Org.BouncyCastle.X509
                         x962 = new X962Parameters(_key.PublicKeyParamSet);
                     }
 
-                    byte[] pubKey = _key.Q.GetEncoded(false);
+                    var q = _key.Q;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    int encodedLength = q.GetEncodedLength(false);
+                    Span<byte> pubKey = encodedLength <= 512
+                        ? stackalloc byte[encodedLength]
+                        : new byte[encodedLength];
+                    q.EncodeTo(false, pubKey);
+#else
+                    byte[] pubKey = q.GetEncoded(false);
+#endif
 
                     AlgorithmIdentifier algID = new AlgorithmIdentifier(
                         X9ObjectIdentifiers.IdECPublicKey, x962.ToAsn1Object());
@@ -212,14 +222,22 @@ namespace Org.BouncyCastle.X509
             {
                 X448PublicKeyParameters key = (X448PublicKeyParameters)publicKey;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448), key.DataSpan);
+#else
                 return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448), key.GetEncoded());
+#endif
             }
 
             if (publicKey is X25519PublicKeyParameters)
             {
                 X25519PublicKeyParameters key = (X25519PublicKeyParameters)publicKey;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), key.DataSpan);
+#else
                 return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), key.GetEncoded());
+#endif
             }
 
             if (publicKey is Ed448PublicKeyParameters)
