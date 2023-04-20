@@ -98,20 +98,19 @@ namespace Org.BouncyCastle.Bcpg
         public virtual byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
-
-            pOut.WriteByte((byte) version);
-            pOut.WriteInt((int) time);
-
-            if (version <= 3)
+            using (var pOut = new BcpgOutputStream(bOut))
             {
-                pOut.WriteShort((short) validDays);
+                pOut.WriteByte((byte)version);
+                pOut.WriteInt((int)time);
+
+                if (version <= 3)
+                {
+                    pOut.WriteShort((short)validDays);
+                }
+
+                pOut.WriteByte((byte)algorithm);
+                pOut.WriteObject((BcpgObject)key);
             }
-
-            pOut.WriteByte((byte) algorithm);
-
-            pOut.WriteObject((BcpgObject)key);
-
             return bOut.ToArray();
         }
 

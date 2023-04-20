@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 using Org.BouncyCastle.Utilities;
 
@@ -136,28 +137,27 @@ namespace Org.BouncyCastle.Bcpg
 		public byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
-
-            pOut.Write(pubKeyPacket.GetEncodedContents());
-
-			pOut.WriteByte((byte) s2kUsage);
-
-			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+            using (var pOut = new BcpgOutputStream(bOut))
             {
-                pOut.WriteByte((byte) encAlgorithm);
-                pOut.WriteObject(s2k);
-            }
+                pOut.Write(pubKeyPacket.GetEncodedContents());
+                pOut.WriteByte((byte)s2kUsage);
 
-			if (iv != null)
-            {
-                pOut.Write(iv);
-            }
+                if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+                {
+                    pOut.WriteByte((byte)encAlgorithm);
+                    pOut.WriteObject(s2k);
+                }
 
-            if (secKeyData != null && secKeyData.Length > 0)
-            {
-                pOut.Write(secKeyData);
-            }
+                if (iv != null)
+                {
+                    pOut.Write(iv);
+                }
 
+                if (secKeyData != null && secKeyData.Length > 0)
+                {
+                    pOut.Write(secKeyData);
+                }
+            }
             return bOut.ToArray();
         }
 
