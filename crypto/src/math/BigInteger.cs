@@ -488,7 +488,7 @@ namespace Org.BouncyCastle.Math
             if ((sbyte)bytes[offset] >= 0)
             {
                 // strip leading zero bytes and return magnitude bytes
-                this.magnitude = MakeMagnitude(bytes, offset, length);
+                this.magnitude = MakeMagnitudeBE(bytes, offset, length);
                 this.sign = this.magnitude.Length > 0 ? 1 : 0;
                 return;
             }
@@ -534,115 +534,69 @@ namespace Org.BouncyCastle.Math
 
             inverse[index]++;
 
-            this.magnitude = MakeMagnitude(inverse);
+            this.magnitude = MakeMagnitudeBE(inverse);
         }
 
-        private static uint[] MakeMagnitude(byte[] bytes)
+        private static uint[] MakeMagnitudeBE(byte[] bytes)
         {
-            return MakeMagnitude(bytes, 0, bytes.Length);
+            return MakeMagnitudeBE(bytes, 0, bytes.Length);
         }
 
-        private static uint[] MakeMagnitude(byte[] bytes, int offset, int length)
+        private static uint[] MakeMagnitudeBE(byte[] bytes, int offset, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return MakeMagnitude(bytes.AsSpan(offset, length));
+            return MakeMagnitudeBE(bytes.AsSpan(offset, length));
 #else
             int end = offset + length;
 
             // strip leading zeros
-            int firstSignificant;
-            for (firstSignificant = offset; firstSignificant < end && bytes[firstSignificant] == 0; firstSignificant++)
+            int start;
+            for (start = offset; start < end && bytes[start] == 0; start++)
             {
             }
 
-            if (firstSignificant >= end)
+            int nBytes = end - start;
+            if (nBytes <= 0)
                 return ZeroMagnitude;
 
-            int nInts = (end - firstSignificant + 3) / BytesPerInt;
-            int bCount = (end - firstSignificant) % BytesPerInt;
-            if (bCount == 0)
-            {
-                bCount = BytesPerInt;
-            }
+            int nInts = (nBytes + BytesPerInt - 1) / BytesPerInt;
+            Debug.Assert(nInts > 0);
 
-            if (nInts < 1)
-                return ZeroMagnitude;
+            uint[] magnitude = new uint[nInts];
 
-            uint[] mag = new uint[nInts];
+            int first = ((nBytes - 1) % BytesPerInt) + 1;
+            magnitude[0] = Pack.BE_To_UInt32_Low(bytes, start, first);
+            Pack.BE_To_UInt32(bytes, start + first, magnitude, 1, nInts - 1);
 
-            uint v = 0U;
-            int magnitudeIndex = 0;
-            for (int i = firstSignificant; i < end; ++i)
-            {
-                v <<= 8;
-                v |= bytes[i];
-                bCount--;
-                if (bCount <= 0)
-                {
-                    mag[magnitudeIndex] = v;
-                    magnitudeIndex++;
-                    bCount = BytesPerInt;
-                    v = 0U;
-                }
-            }
-
-            if (magnitudeIndex < mag.Length)
-            {
-                mag[magnitudeIndex] = v;
-            }
-
-            return mag;
+            return magnitude;
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint[] MakeMagnitude(ReadOnlySpan<byte> bytes)
+        private static uint[] MakeMagnitudeBE(ReadOnlySpan<byte> bytes)
         {
             int end = bytes.Length;
 
             // strip leading zeros
-            int firstSignificant;
-            for (firstSignificant = 0; firstSignificant < end && bytes[firstSignificant] == 0; firstSignificant++)
+            int start;
+            for (start = 0; start < end && bytes[start] == 0; start++)
             {
             }
 
-            if (firstSignificant >= end)
+            int nBytes = end - start;
+            if (nBytes <= 0)
                 return ZeroMagnitude;
 
-            int nInts = (end - firstSignificant + 3) / BytesPerInt;
-            int bCount = (end - firstSignificant) % BytesPerInt;
-            if (bCount == 0)
-            {
-                bCount = BytesPerInt;
-            }
+            int nInts = (nBytes + BytesPerInt - 1) / BytesPerInt;
+            Debug.Assert(nInts > 0);
 
-            if (nInts < 1)
-                return ZeroMagnitude;
+            uint[] magnitude = new uint[nInts];
 
-            uint[] mag = new uint[nInts];
+            int first = ((nBytes - 1) % BytesPerInt) + 1;
+            magnitude[0] = Pack.BE_To_UInt32_Low(bytes.Slice(start, first));
+            Pack.BE_To_UInt32(bytes.Slice(start + first), magnitude.AsSpan(1));
 
-            uint v = 0;
-            int magnitudeIndex = 0;
-            for (int i = firstSignificant; i < end; ++i)
-            {
-                v <<= 8;
-                v |= bytes[i];
-                bCount--;
-                if (bCount <= 0)
-                {
-                    mag[magnitudeIndex] = v;
-                    magnitudeIndex++;
-                    bCount = BytesPerInt;
-                    v = 0U;
-                }
-            }
-
-            if (magnitudeIndex < mag.Length)
-            {
-                mag[magnitudeIndex] = v;
-            }
-
-            return mag;
+            return magnitude;
         }
 #endif
 
@@ -664,7 +618,7 @@ namespace Org.BouncyCastle.Math
             else
             {
                 // copy bytes
-                this.magnitude = MakeMagnitude(bytes, offset, length);
+                this.magnitude = MakeMagnitudeBE(bytes, offset, length);
                 this.sign = this.magnitude.Length < 1 ? 0 : sign;
             }
         }
@@ -683,7 +637,7 @@ namespace Org.BouncyCastle.Math
             else
             {
                 // copy bytes
-                this.magnitude = MakeMagnitude(bytes);
+                this.magnitude = MakeMagnitudeBE(bytes);
                 this.sign = this.magnitude.Length < 1 ? 0 : sign;
             }
         }
@@ -719,7 +673,7 @@ namespace Org.BouncyCastle.Math
             int xBits = BitsPerByte * nBytes - sizeInBits;
             b[0] &= (byte)(255U >> xBits);
 
-            this.magnitude = MakeMagnitude(b);
+            this.magnitude = MakeMagnitudeBE(b);
             this.sign = this.magnitude.Length < 1 ? 0 : 1;
         }
 
@@ -766,7 +720,7 @@ namespace Org.BouncyCastle.Math
                 // ensure the trailing bit is 1 (i.e. must be odd)
                 b[nBytes - 1] |= 1;
 
-                this.magnitude = MakeMagnitude(b);
+                this.magnitude = MakeMagnitudeBE(b);
                 this.nBits = -1;
 
                 if (certainty < 1)
