@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 		public DesEdeKeyGenerator()
 		{
 		}
-
+            
 		internal DesEdeKeyGenerator(
 			int defaultStrength)
 			: base(defaultStrength)
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 random.NextBytes(newKey);
                 DesEdeParameters.SetOddParity(newKey);
             }
-            while (DesEdeParameters.IsWeakKey(newKey, 0, newKey.Length) || !DesEdeParameters.IsRealEdeKey(newKey, 0));
+            while (DesEdeParameters.IsWeakKey(newKey) || !DesEdeParameters.IsRealEdeKey(newKey, 0));
 
             return newKey;
         }

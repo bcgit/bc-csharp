@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Asn1.X509
     public class NameConstraints
 		: Asn1Encodable
 	{
-		private Asn1Sequence m_permitted, m_excluded;
+		private readonly Asn1Sequence m_permitted, m_excluded;
 
 		public static NameConstraints GetInstance(object obj)
 		{
@@ -53,12 +53,12 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			if (permitted != null)
 			{
-				this.m_permitted = CreateSequence(permitted);
+				m_permitted = CreateSequence(permitted);
 			}
 
 			if (excluded != null)
 			{
-				this.m_excluded = CreateSequence(excluded);
+				m_excluded = CreateSequence(excluded);
 			}
 		}
 

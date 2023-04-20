@@ -1,13 +1,24 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     public class EncryptionScheme
         : AlgorithmIdentifier
     {
+        public new static EncryptionScheme GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is EncryptionScheme encryptionScheme)
+                return encryptionScheme;
+            return new EncryptionScheme(Asn1Sequence.GetInstance(obj));
+        }
+
+        public new static EncryptionScheme GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         public EncryptionScheme(
             DerObjectIdentifier	objectID)
             : base(objectID)
@@ -26,21 +37,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 			: this((DerObjectIdentifier)seq[0], seq[1])
         {
         }
-
-		public new static EncryptionScheme GetInstance(object obj)
-		{
-			if (obj is EncryptionScheme)
-			{
-				return (EncryptionScheme)obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new EncryptionScheme((Asn1Sequence)obj);
-			}
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
 
 		public Asn1Object Asn1Object
 		{

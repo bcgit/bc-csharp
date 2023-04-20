@@ -74,13 +74,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
          * @param key bytes making up the key
          * @param offset offset into the byte array the key starts at
          */
-        public static new bool IsWeakKey(byte[]	key, int offset)
+        public static new bool IsWeakKey(byte[] key, int offset)
         {
             return IsWeakKey(key, offset, key.Length - offset);
         }
 
-		public static new bool IsWeakKey(
-			byte[] key)
+		public static new bool IsWeakKey(byte[] key)
 		{
 			return IsWeakKey(key, 0, key.Length);
 		}

@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         * @return true if the given DES key material is weak or semi-weak,
         *     false otherwise.
         */
-        public static bool IsWeakKey(byte[]	key, int offset)
+        public static bool IsWeakKey(byte[] key, int offset)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return IsWeakKey(key.AsSpan(offset));
