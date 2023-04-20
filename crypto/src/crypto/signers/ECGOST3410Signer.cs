@@ -68,8 +68,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (!forSigning)
                 throw new InvalidOperationException("not initialized for signing");
 
-            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
-            BigInteger e = new BigInteger(1, mRev);
+            BigInteger e = new BigInteger(1, message, bigEndian: false);
 
             ECDomainParameters ec = key.Parameters;
             BigInteger n = ec.N;
@@ -113,8 +112,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (forSigning)
                 throw new InvalidOperationException("not initialized for verification");
 
-            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
-            BigInteger e = new BigInteger(1, mRev);
+            BigInteger e = new BigInteger(1, message, bigEndian: false);
             BigInteger n = key.Parameters.N;
 
             // r in the range [1,n-1]

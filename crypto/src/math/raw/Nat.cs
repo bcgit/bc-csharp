@@ -2747,14 +2747,9 @@ namespace Org.BouncyCastle.Math.Raw
                 ? stackalloc byte[bsLen]
                 : new byte[bsLen];
 
-            int xPos = len;
-            Span<byte> t = bs;
-            while (--xPos >= 0)
-            {
-                Pack.UInt32_To_BE(x[xPos], t);
-                t = t[4..];
-            }
-            return new BigInteger(1, bs);
+            Pack.UInt32_To_LE(x, bs);
+
+            return new BigInteger(1, bs, bigEndian: false);
         }
 #endif
 

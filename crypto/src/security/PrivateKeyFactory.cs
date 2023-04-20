@@ -151,7 +151,7 @@ namespace Org.BouncyCastle.Security
                     Asn1OctetString privEnc = keyInfo.PrivateKeyData;
                     if (privEnc.GetOctets().Length == 32 || privEnc.GetOctets().Length == 64)
                     {
-                        d = new BigInteger(1, Arrays.Reverse(privEnc.GetOctets()));
+                        d = new BigInteger(1, privEnc.GetOctets(), bigEndian: false);
                     }
                     else
                     {
@@ -162,8 +162,8 @@ namespace Org.BouncyCastle.Security
                         }
                         else
                         {
-                            byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
-                            d = new BigInteger(1, dVal);
+                            byte[] dVal = Asn1OctetString.GetInstance(privKey).GetOctets();
+                            d = new BigInteger(1, dVal, bigEndian: false);
                         }
                     }
                 }
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Security
                 }
                 else
                 {
-                    x = new BigInteger(1, Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets()));
+                    x = new BigInteger(1, Asn1OctetString.GetInstance(privKey).GetOctets(), bigEndian: false);
                 }
 
                 return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
@@ -280,8 +280,7 @@ namespace Org.BouncyCastle.Security
                     Asn1OctetString privEnc = keyInfo.PrivateKeyData;
                     if (privEnc.GetOctets().Length == 32 || privEnc.GetOctets().Length == 64)
                     {
-                        byte[] dVal = Arrays.Reverse(privEnc.GetOctets());
-                        d = new BigInteger(1, dVal);
+                        d = new BigInteger(1, privEnc.GetOctets(), bigEndian: false);
                     }
                     else
                     {
@@ -292,8 +291,8 @@ namespace Org.BouncyCastle.Security
                         }
                         else
                         {
-                            byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
-                            d = new BigInteger(1, dVal);
+                            byte[] dVal = Asn1OctetString.GetInstance(privKey).GetOctets();
+                            d = new BigInteger(1, dVal, bigEndian: false);
                         }
                     }
                 }

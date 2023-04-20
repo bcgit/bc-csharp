@@ -475,8 +475,15 @@ namespace Org.BouncyCastle.Math
         }
 
         public BigInteger(byte[] bytes)
-            : this(bytes, 0, bytes.Length)
         {
+            this.magnitude = InitBE(bytes, 0, bytes.Length, out this.sign);
+        }
+
+        public BigInteger(byte[] bytes, bool bigEndian)
+        {
+            this.magnitude = bigEndian
+                ? InitBE(bytes, 0, bytes.Length, out this.sign)
+                : InitLE(bytes, 0, bytes.Length, out this.sign);
         }
 
         public BigInteger(byte[] bytes, int offset, int length)
@@ -484,16 +491,30 @@ namespace Org.BouncyCastle.Math
             if (length == 0)
                 throw new FormatException("Zero length BigInteger");
 
-            // TODO Move this processing into MakeMagnitude (provide sign argument)
+            this.magnitude = InitBE(bytes, offset, length, out this.sign);
+        }
+
+        public BigInteger(byte[] bytes, int offset, int length, bool bigEndian)
+        {
+            if (length <= 0)
+                throw new FormatException("Zero length BigInteger");
+
+            this.magnitude = bigEndian
+                ? InitBE(bytes, offset, length, out this.sign)
+                : InitLE(bytes, offset, length, out this.sign);
+        }
+
+        private static uint[] InitBE(byte[] bytes, int offset, int length, out int sign)
+        {
+            // TODO Move this processing into MakeMagnitudeBE (provide sign argument)
             if ((sbyte)bytes[offset] >= 0)
             {
-                // strip leading zero bytes and return magnitude bytes
-                this.magnitude = MakeMagnitudeBE(bytes, offset, length);
-                this.sign = this.magnitude.Length > 0 ? 1 : 0;
-                return;
+                uint[] magnitude = MakeMagnitudeBE(bytes, offset, length);
+                sign = magnitude.Length > 0 ? 1 : 0;
+                return magnitude;
             }
 
-            this.sign = -1;
+            sign = -1;
 
             int end = offset + length;
 
@@ -504,10 +525,7 @@ namespace Org.BouncyCastle.Math
             }
 
             if (iBval >= end)
-            {
-                this.magnitude = One.magnitude;
-                return;
-            }
+                return One.magnitude;
 
             int numBytes = end - iBval;
 
@@ -534,7 +552,56 @@ namespace Org.BouncyCastle.Math
 
             inverse[index]++;
 
-            this.magnitude = MakeMagnitudeBE(inverse);
+            return MakeMagnitudeBE(inverse);
+        }
+
+        private static uint[] InitLE(byte[] bytes, int offset, int length, out int sign)
+        {
+            int end = offset + length;
+
+            // TODO Move this processing into MakeMagnitudeLE (provide sign argument)
+            if ((sbyte)bytes[end - 1] >= 0)
+            {
+                uint[] magnitude = MakeMagnitudeLE(bytes, offset, length);
+                sign = magnitude.Length > 0 ? 1 : 0;
+                return magnitude;
+            }
+
+            sign = -1;
+
+            // strip leading sign bytes
+            int last = length;
+            while (--last >= 0 && bytes[offset + last] == byte.MaxValue)
+            {
+            }
+
+            if (last < 0)
+                return One.magnitude;
+
+            int numBytes = last + 1;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> inverse = numBytes <= 512
+                ? stackalloc byte[numBytes]
+                : new byte[numBytes];
+#else
+            byte[] inverse = new byte[numBytes];
+#endif
+
+            for (int i = 0; i < numBytes; ++i)
+            {
+                inverse[i] = (byte)~bytes[offset + i];
+            }
+
+            int index = 0;
+            while (inverse[index] == byte.MaxValue)
+            {
+                inverse[index++] = byte.MinValue;
+            }
+
+            inverse[index]++;
+
+            return MakeMagnitudeLE(inverse);
         }
 
         private static uint[] MakeMagnitudeBE(byte[] bytes)
@@ -600,12 +667,95 @@ namespace Org.BouncyCastle.Math
         }
 #endif
 
+        private static uint[] MakeMagnitudeLE(byte[] bytes)
+        {
+            return MakeMagnitudeLE(bytes, 0, bytes.Length);
+        }
+
+        private static uint[] MakeMagnitudeLE(byte[] bytes, int offset, int length)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return MakeMagnitudeLE(bytes.AsSpan(offset, length));
+#else
+            // strip leading zeros
+            int last = length;
+            while (--last >= 0 && bytes[offset + last] == 0)
+            {
+            }
+
+            if (last < 0)
+                return ZeroMagnitude;
+
+            int nInts = (last + BytesPerInt) / BytesPerInt;
+            Debug.Assert(nInts > 0);
+
+            uint[] magnitude = new uint[nInts];
+
+            int partial = last % BytesPerInt;
+            int first = partial + 1;
+            int pos = offset + last - partial;
+
+            magnitude[0] = Pack.LE_To_UInt32_Low(bytes, pos, first);
+            for (int i = 1; i < nInts; ++i)
+            {
+                pos -= BytesPerInt;
+                magnitude[i] = Pack.LE_To_UInt32(bytes, pos);
+            }
+            Debug.Assert(pos == offset);
+
+            return magnitude;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static uint[] MakeMagnitudeLE(ReadOnlySpan<byte> bytes)
+        {
+            // strip leading zeros
+            int last = bytes.Length;
+            while (--last >= 0 && bytes[last] == 0)
+            {
+            }
+
+            if (last < 0)
+                return ZeroMagnitude;
+
+            int nInts = (last + BytesPerInt) / BytesPerInt;
+            Debug.Assert(nInts > 0);
+
+            uint[] magnitude = new uint[nInts];
+
+            int partial = last % BytesPerInt;
+            int first = partial + 1;
+            int pos = last - partial;
+
+            magnitude[0] = Pack.LE_To_UInt32_Low(bytes.Slice(pos, first));
+            for (int i = 1; i < nInts; ++i)
+            {
+                pos -= BytesPerInt;
+                magnitude[i] = Pack.LE_To_UInt32(bytes, pos);
+            }
+            Debug.Assert(pos == 0);
+
+            return magnitude;
+        }
+#endif
+
         public BigInteger(int sign, byte[] bytes)
-            : this(sign, bytes, 0, bytes.Length)
+            : this(sign, bytes, 0, bytes.Length, true)
+        {
+        }
+
+        public BigInteger(int sign, byte[] bytes, bool bigEndian)
+            : this(sign, bytes, 0, bytes.Length, bigEndian)
         {
         }
 
         public BigInteger(int sign, byte[] bytes, int offset, int length)
+            : this(sign, bytes, offset, length, true)
+        {
+        }
+
+        public BigInteger(int sign, byte[] bytes, int offset, int length, bool bigEndian)
         {
             if (sign < -1 || sign > 1)
                 throw new FormatException("Invalid sign value");
@@ -618,13 +768,20 @@ namespace Org.BouncyCastle.Math
             else
             {
                 // copy bytes
-                this.magnitude = MakeMagnitudeBE(bytes, offset, length);
+                this.magnitude = bigEndian
+                    ? MakeMagnitudeBE(bytes, offset, length)
+                    : MakeMagnitudeLE(bytes, offset, length);
                 this.sign = this.magnitude.Length < 1 ? 0 : sign;
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public BigInteger(int sign, ReadOnlySpan<byte> bytes)
+            : this(sign, bytes, true)
+        {
+        }
+
+        public BigInteger(int sign, ReadOnlySpan<byte> bytes, bool bigEndian)
         {
             if (sign < -1 || sign > 1)
                 throw new FormatException("Invalid sign value");
@@ -637,7 +794,9 @@ namespace Org.BouncyCastle.Math
             else
             {
                 // copy bytes
-                this.magnitude = MakeMagnitudeBE(bytes);
+                this.magnitude = bigEndian
+                    ? MakeMagnitudeBE(bytes)
+                    : MakeMagnitudeLE(bytes);
                 this.sign = this.magnitude.Length < 1 ? 0 : sign;
             }
         }

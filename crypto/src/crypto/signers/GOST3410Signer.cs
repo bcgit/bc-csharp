@@ -61,11 +61,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		 *
 		 * @param message the message that will be verified later.
 		 */
-        public virtual BigInteger[] GenerateSignature(
-			byte[] message)
+        public virtual BigInteger[] GenerateSignature(byte[] message)
 		{
-            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
-			BigInteger m = new BigInteger(1, mRev);
+			BigInteger m = new BigInteger(1, message, bigEndian: false);
 			Gost3410Parameters parameters = key.Parameters;
 			BigInteger k;
 
@@ -89,13 +87,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		 * the passed in message for standard Gost3410 the message should be a
 		 * Gost3411 hash of the real message to be verified.
 		 */
-        public virtual bool VerifySignature(
-			byte[]		message,
-			BigInteger	r,
-			BigInteger	s)
+        public virtual bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
 		{
-            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
-            BigInteger m = new BigInteger(1, mRev);
+            BigInteger m = new BigInteger(1, message, bigEndian: false);
 			Gost3410Parameters parameters = key.Parameters;
 
 			if (r.SignValue < 0 || parameters.Q.CompareTo(r) <= 0)

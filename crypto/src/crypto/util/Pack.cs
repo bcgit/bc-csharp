@@ -578,6 +578,25 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+        internal static uint LE_To_UInt32_High(byte[] bs, int off, int len)
+        {
+            return LE_To_UInt32_Low(bs, off, len) << ((4 - len) << 3);
+        }
+
+        internal static uint LE_To_UInt32_Low(byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 4);
+
+            uint result = bs[off];
+            int pos = 0;
+            for (int i = 1; i < len; ++i)
+            {
+                pos += 8;
+                result |= (uint)bs[off + i] << pos;
+            }
+            return result;
+        }
+
         internal static void LE_To_UInt32(byte[] bs, int off, uint[] ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -823,6 +842,27 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 ns[i] = LE_To_UInt32(bs);
                 bs = bs[4..];
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static uint LE_To_UInt32_High(ReadOnlySpan<byte> bs)
+        {
+            return LE_To_UInt32_Low(bs) << ((4 - bs.Length) << 3);
+        }
+
+        internal static uint LE_To_UInt32_Low(ReadOnlySpan<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 4);
+
+            uint result = bs[0];
+            int pos = 0;
+            for (int i = 1; i < len; ++i)
+            {
+                pos += 8;
+                result |= (uint)bs[i] << pos;
+            }
+            return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

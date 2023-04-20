@@ -203,9 +203,9 @@ namespace Org.BouncyCastle.Security
                     throw new ArgumentException("error recovering GOST3410_94 public key", e);
                 }
 
-                byte[] keyBytes = Arrays.Reverse(key.GetOctets()); // was little endian
+                byte[] keyBytes = key.GetOctets();
 
-                BigInteger y = new BigInteger(1, keyBytes);
+                BigInteger y = new BigInteger(1, keyBytes, bigEndian: false);
 
                 return new Gost3410PublicKeyParameters(y, algParams.PublicKeyParamSet);
             }
