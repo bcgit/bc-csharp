@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (m_encryptThenMac)
             {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, outBuf, headerAllocation,
+                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID, outBuf, headerAllocation,
                     outOff - headerAllocation);
                 Array.Copy(mac, 0, outBuf, outOff, mac.Length);
                 outOff += mac.Length;

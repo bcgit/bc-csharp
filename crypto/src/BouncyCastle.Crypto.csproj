@@ -71,6 +71,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DefineConstants />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Publish'">
@@ -78,6 +79,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Deterministic build. -->
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1716,11 +1716,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void GetNextCtrBlock(byte[] block)
         {
-            if (blocksRemaining == 0)
-                throw new InvalidOperationException("Attempt to process too many blocks");
-
-            blocksRemaining--;
-
             Pack.UInt32_To_BE(++counter32, counter, 12);
 
             cipher.ProcessBlock(counter, 0, block, 0);
