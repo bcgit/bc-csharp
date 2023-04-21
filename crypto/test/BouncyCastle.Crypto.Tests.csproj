@@ -17,10 +17,12 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Publish'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
