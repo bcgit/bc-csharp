@@ -21,6 +21,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             ESCH384
         }
 
+        private const int RATE_BITS = 128;
+        private const int RATE_BYTES = 16;
+        private const int RATE_UINTS = 4;
+
         private static readonly uint[] RCON = { 0xB7E15162U, 0xBF715880U, 0x38B4DA56U, 0x324E7738U, 0xBB1185EBU,
             0x4F7C7B57U, 0xCFBFA1C8U, 0xC2B3293DU };
 
@@ -31,40 +35,31 @@ namespace Org.BouncyCastle.Crypto.Digests
         private readonly int SPARKLE_STEPS_SLIM;
         private readonly int SPARKLE_STEPS_BIG;
         private readonly int STATE_BRANS;
-        private readonly int STATE_WORDS;
-        private readonly int RATE_WORDS;
-        private readonly int RATE_BYTES;
+        private readonly int STATE_UINTS;
 
         public SparkleDigest(SparkleParameters sparkleParameters)
         {
-            int ESCH_DIGEST_LEN;
-            int SPARKLE_STATE;
-            int SPARKLE_RATE = 128;
             switch (sparkleParameters)
             {
             case SparkleParameters.ESCH256:
-                ESCH_DIGEST_LEN = 256;
-                SPARKLE_STATE = 384;
+                algorithmName = "ESCH-256";
+                DIGEST_BYTES = 32;
                 SPARKLE_STEPS_SLIM = 7;
                 SPARKLE_STEPS_BIG = 11;
-                algorithmName = "ESCH-256";
+                STATE_UINTS = 12;
                 break;
             case SparkleParameters.ESCH384:
-                ESCH_DIGEST_LEN = 384;
-                SPARKLE_STATE = 512;
+                algorithmName = "ESCH-384";
+                DIGEST_BYTES = 48;
                 SPARKLE_STEPS_SLIM = 8;
                 SPARKLE_STEPS_BIG = 12;
-                algorithmName = "ESCH-384";
+                STATE_UINTS = 16;
                 break;
             default:
                 throw new ArgumentException("Invalid definition of SCHWAEMM instance");
             }
-            STATE_BRANS = SPARKLE_STATE >> 6;
-            STATE_WORDS = SPARKLE_STATE >> 5;
-            RATE_WORDS = SPARKLE_RATE >> 5;
-            RATE_BYTES = SPARKLE_RATE >> 3;
-            DIGEST_BYTES = ESCH_DIGEST_LEN >> 3;
-            state = new uint[STATE_WORDS];
+            STATE_BRANS = STATE_UINTS >> 1;
+            state = new uint[STATE_UINTS];
         }
 
         public string AlgorithmName => algorithmName;
@@ -106,19 +101,19 @@ namespace Org.BouncyCastle.Crypto.Digests
                 // addition of a buffer block to the state
                 tmpx = 0;
                 tmpy = 0;
-                for (i = 0; i < RATE_WORDS; i += 2)
+                for (i = 0; i < RATE_UINTS; i += 2)
                 {
                     tmpx ^= in32[i + (inOff >> 2)];
                     tmpy ^= in32[i + 1 + (inOff >> 2)];
                 }
                 tmpx = ELL(tmpx);
                 tmpy = ELL(tmpy);
-                for (i = 0; i < RATE_WORDS; i += 2)
+                for (i = 0; i < RATE_UINTS; i += 2)
                 {
                     state[i] ^= (in32[i + (inOff >> 2)] ^ tmpy);
                     state[i + 1] ^= (in32[i + 1 + (inOff >> 2)] ^ tmpx);
                 }
-                for (i = RATE_WORDS; i < (STATE_WORDS / 2); i += 2)
+                for (i = RATE_UINTS; i < (STATE_UINTS / 2); i += 2)
                 {
                     state[i] ^= tmpy;
                     state[i + 1] ^= tmpx;
@@ -132,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             // addition of constant M1 or M2 to the state
             state[STATE_BRANS - 1] ^= ((inlen < RATE_BYTES) ? (1u << 24) : (1u << 25));
             // addition of last msg block (incl. padding)
-            uint[] buffer = new uint[RATE_WORDS];
+            uint[] buffer = new uint[RATE_UINTS];
             for (i = 0; i < inlen; ++i)
             {
                 buffer[i >> 2] |= (input[inOff++] & 0xffu) << ((i & 3) << 3);
@@ -143,38 +138,37 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             tmpx = 0;
             tmpy = 0;
-            for (i = 0; i < RATE_WORDS; i += 2)
+            for (i = 0; i < RATE_UINTS; i += 2)
             {
                 tmpx ^= buffer[i];
                 tmpy ^= buffer[i + 1];
             }
             tmpx = ELL(tmpx);
             tmpy = ELL(tmpy);
-            for (i = 0; i < RATE_WORDS; i += 2)
+            for (i = 0; i < RATE_UINTS; i += 2)
             {
                 state[i] ^= (buffer[i] ^ tmpy);
                 state[i + 1] ^= (buffer[i + 1] ^ tmpx);
             }
-            for (i = RATE_WORDS; i < (STATE_WORDS / 2); i += 2)
+            for (i = RATE_UINTS; i < (STATE_UINTS / 2); i += 2)
             {
                 state[i] ^= tmpy;
                 state[i + 1] ^= tmpx;
             }
             // execute SPARKLE with big number of steps
             sparkle_opt(state, STATE_BRANS, SPARKLE_STEPS_BIG);
-            Pack.UInt32_To_LE(state, 0, RATE_WORDS, output, outOff);
+            Pack.UInt32_To_LE(state, 0, RATE_UINTS, output, outOff);
             int outlen = RATE_BYTES;
             outOff += RATE_BYTES;
             while (outlen < DIGEST_BYTES)
             {
                 sparkle_opt(state, STATE_BRANS, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state, 0, RATE_WORDS, output, outOff);
+                Pack.UInt32_To_LE(state, 0, RATE_UINTS, output, outOff);
                 outlen += RATE_BYTES;
                 outOff += RATE_BYTES;
             }
+            Reset();
             return DIGEST_BYTES;
-
-            // TODO Reset?
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -182,8 +176,6 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             byte[] rv = new byte[DIGEST_BYTES];
             DoFinal(rv, 0);
-            // TODO Remove duplicate if added in other DoFinal
-            Reset();
             rv.AsSpan(0, rv.Length).CopyTo(output);
             return DIGEST_BYTES;
         }
