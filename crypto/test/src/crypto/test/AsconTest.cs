@@ -496,11 +496,10 @@ namespace Org.BouncyCastle.Crypto.Tests
         private void ImplTestVectorsHash(AsconDigest.AsconParameters asconParameters, string filename)
         {
             AsconDigest ascon = new AsconDigest(asconParameters);
-            var buf = new Dictionary<string, string>();
+            var map = new Dictionary<string, string>();
             using (var src = new StreamReader(
                 SimpleTest.GetTestDataAsStream("crypto.ascon." + filename + "_LWC_HASH_KAT_256.txt")))
             {
-                Dictionary<string, string> map = new Dictionary<string, string>();
                 string line;
                 while ((line = src.ReadLine()) != null)
                 {
@@ -515,7 +514,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] hash = new byte[ascon.GetDigestSize()];
                         ascon.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(expected, hash));
-                        ascon.Reset();
                     }
                     else
                     {
@@ -554,7 +552,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] hash = new byte[ascon.GetDigestSize()];
                         ascon.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(expected, hash));
-                        ascon.Reset();
                     }
                     else
                     {
