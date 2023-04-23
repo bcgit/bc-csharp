@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Cms
 
             internal AlgorithmIdentifier DigestAlgorithmID
 			{
-				get { return new AlgorithmIdentifier(new DerObjectIdentifier(digestOID), DerNull.Instance); }
+				get { return new AlgorithmIdentifier(new DerObjectIdentifier(digestOID)); }
 			}
 
 			internal CmsAttributeTableGenerator SignedAttributes
