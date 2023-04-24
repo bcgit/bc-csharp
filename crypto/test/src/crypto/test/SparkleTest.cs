@@ -49,29 +49,42 @@ namespace Org.BouncyCastle.Crypto.Tests
             ImplTestVectorsDigest(SparkleDigest.SparkleParameters.ESCH384, "384");
         }
 
+        private static IDigest CreateDigest(SparkleDigest.SparkleParameters sparkleParameters)
+        {
+            return new SparkleDigest(sparkleParameters);
+        }
+
         private static void ImplBenchDigest(SparkleDigest.SparkleParameters sparkleParameters)
         {
-            var digest = new SparkleDigest(sparkleParameters);
+            var sparkle = CreateDigest(sparkleParameters);
 
             byte[] data = new byte[1024];
             for (int i = 0; i < 1024; ++i)
             {
                 for (int j = 0; j < 1024; ++j)
                 {
-#if NET6_0_OR_GREATER
-                    digest.BlockUpdate(data);
+                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    sparkle.BlockUpdate(data);
 #else
-                    digest.BlockUpdate(data, 0, 1024);
+                    sparkle.BlockUpdate(data, 0, 1024);
 #endif
                 }
 
-                digest.DoFinal(data, 0);
+                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                sparkle.DoFinal(data);
+#else
+                sparkle.DoFinal(data, 0);
+#endif
             }
         }
 
         private static void ImplTestVectorsDigest(SparkleDigest.SparkleParameters sparkleParameters, string filename)
         {
-            SparkleDigest sparkle = new SparkleDigest(sparkleParameters);
+            var sparkle = CreateDigest(sparkleParameters);
             var map = new Dictionary<string, string>();
             using (var src = new StreamReader(
                 SimpleTest.GetTestDataAsStream("crypto.sparkle.LWC_HASH_KAT_" + filename + ".txt")))

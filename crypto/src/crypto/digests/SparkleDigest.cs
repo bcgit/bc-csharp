@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
@@ -59,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 STATE_UINTS = 16;
                 break;
             default:
-                throw new ArgumentException("Invalid definition of SCHWAEMM instance");
+                throw new ArgumentException("Invalid definition of ESCH instance");
             }
 
             state = new uint[STATE_UINTS];
@@ -309,10 +310,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             for (int i = 0; i < steps; ++i)
             {
                 // Add round ant
+
                 s01 ^= RCON[i & 7];
                 s03 ^= (uint)i;
 
                 // ARXBOX layer
+
                 ArxBoxRound(RCON[0], ref s00, ref s01);
                 ArxBoxRound(RCON[1], ref s02, ref s03);
                 ArxBoxRound(RCON[2], ref s04, ref s05);
@@ -321,26 +324,30 @@ namespace Org.BouncyCastle.Crypto.Digests
                 ArxBoxRound(RCON[5], ref s10, ref s11);
 
                 // Linear layer
-                uint x0 = s00;
-                uint y0 = s01;
 
-                uint tx = ELL(s00 ^ s02 ^ s04);
-                uint ty = ELL(s01 ^ s03 ^ s05);
+                uint t024 = ELL(s00 ^ s02 ^ s04);
+                uint t135 = ELL(s01 ^ s03 ^ s05);
 
-                s00 = s08 ^ s02 ^ ty;
-                s01 = s09 ^ s03 ^ tx;
+                uint u00 = s00 ^ s06;
+                uint u01 = s01 ^ s07;
+                uint u02 = s02 ^ s08;
+                uint u03 = s03 ^ s09;
+                uint u04 = s04 ^ s10;
+                uint u05 = s05 ^ s11;
+
+                s06 = s00;
+                s07 = s01;
                 s08 = s02;
                 s09 = s03;
-
-                s02 = s10 ^ s04 ^ ty;
-                s03 = s11 ^ s05 ^ tx;
                 s10 = s04;
                 s11 = s05;
 
-                s04 = s06 ^ x0 ^ ty;
-                s05 = s07 ^ y0 ^ tx;
-                s06 = x0;
-                s07 = y0;
+                s00 = u02 ^ t135;
+                s01 = u03 ^ t024;
+                s02 = u04 ^ t135;
+                s03 = u05 ^ t024;
+                s04 = u00 ^ t135;
+                s05 = u01 ^ t024;
             }
 
             state[ 0] = s00;
@@ -359,6 +366,8 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private static void SparkleOpt16(uint[] state, int steps)
         {
+            Debug.Assert((steps & 1) == 0);
+
             uint s00 = state[ 0];
             uint s01 = state[ 1];
             uint s02 = state[ 2];
@@ -376,13 +385,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             uint s14 = state[14];
             uint s15 = state[15];
 
-            for (int i = 0; i < steps; ++i)
+            int step = 0;
+            while (step < steps)
             {
+                // STEP 1
+
                 // Add round ant
-                s01 ^= RCON[i & 7];
-                s03 ^= (uint)i;
+
+                s01 ^= RCON[step & 7];
+                s03 ^= (uint)(step++);
 
                 // ARXBOX layer
+
                 ArxBoxRound(RCON[0], ref s00, ref s01);
                 ArxBoxRound(RCON[1], ref s02, ref s03);
                 ArxBoxRound(RCON[2], ref s04, ref s05);
@@ -393,31 +407,56 @@ namespace Org.BouncyCastle.Crypto.Digests
                 ArxBoxRound(RCON[7], ref s14, ref s15);
 
                 // Linear layer
-                uint x0 = s00;
-                uint y0 = s01;
 
-                uint tx = ELL(s00 ^ s02 ^ s04 ^ s06);
-                uint ty = ELL(s01 ^ s03 ^ s05 ^ s07);
+                uint t0246 = ELL(s00 ^ s02 ^ s04 ^ s06);
+                uint t1357 = ELL(s01 ^ s03 ^ s05 ^ s07);
 
-                s00 = s10 ^ s02 ^ ty;
-                s01 = s11 ^ s03 ^ tx;
-                s10 = s02;
-                s11 = s03;
+                uint u08 = s08;
+                uint u09 = s09;
 
-                s02 = s12 ^ s04 ^ ty;
-                s03 = s13 ^ s05 ^ tx;
-                s12 = s04;
-                s13 = s05;
+                s08 = s02 ^ s10 ^ t1357;
+                s09 = s03 ^ s11 ^ t0246;
+                s10 = s04 ^ s12 ^ t1357;
+                s11 = s05 ^ s13 ^ t0246;
+                s12 = s06 ^ s14 ^ t1357;
+                s13 = s07 ^ s15 ^ t0246;
+                s14 = s00 ^ u08 ^ t1357;
+                s15 = s01 ^ u09 ^ t0246;
 
-                s04 = s14 ^ s06 ^ ty;
-                s05 = s15 ^ s07 ^ tx;
-                s14 = s06;
-                s15 = s07;
+                // STEP 2
 
-                s06 = s08 ^ x0 ^ ty;
-                s07 = s09 ^ y0 ^ tx;
-                s08 = x0;
-                s09 = y0;
+                // Add round ant
+
+                s09 ^= RCON[step & 7];
+                s11 ^= (uint)(step++);
+
+                // ARXBOX layer
+
+                ArxBoxRound(RCON[0], ref s08, ref s09);
+                ArxBoxRound(RCON[1], ref s10, ref s11);
+                ArxBoxRound(RCON[2], ref s12, ref s13);
+                ArxBoxRound(RCON[3], ref s14, ref s15);
+                ArxBoxRound(RCON[4], ref s00, ref s01);
+                ArxBoxRound(RCON[5], ref s02, ref s03);
+                ArxBoxRound(RCON[6], ref s04, ref s05);
+                ArxBoxRound(RCON[7], ref s06, ref s07);
+
+                // Linear layer
+
+                uint t8ACE = ELL(s08 ^ s10 ^ s12 ^ s14);
+                uint t9BDF = ELL(s09 ^ s11 ^ s13 ^ s15);
+
+                uint u00 = s00;
+                uint u01 = s01;
+
+                s00 = s02 ^ s10 ^ t9BDF;
+                s01 = s03 ^ s11 ^ t8ACE;
+                s02 = s04 ^ s12 ^ t9BDF;
+                s03 = s05 ^ s13 ^ t8ACE;
+                s04 = s06 ^ s14 ^ t9BDF;
+                s05 = s07 ^ s15 ^ t8ACE;
+                s06 = u00 ^ s08 ^ t9BDF;
+                s07 = u01 ^ s09 ^ t8ACE;
             }
 
             state[ 0] = s00;
@@ -462,7 +501,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #endif
         private static uint ELL(uint x)
         {
-            return Integers.RotateRight(x ^ (x << 16), 16);
+            return Integers.RotateRight(x, 16) ^ (x & 0xFFFFU);
         }
     }
 }
