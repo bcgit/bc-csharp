@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
@@ -84,6 +85,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void ImplTestVectorsDigest(SparkleDigest.SparkleParameters sparkleParameters, string filename)
         {
+            Random random = new Random();
             var sparkle = CreateDigest(sparkleParameters);
             var map = new Dictionary<string, string>();
             using (var src = new StreamReader(
@@ -99,10 +101,20 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
 
-                        sparkle.BlockUpdate(ptByte, 0, ptByte.Length);
                         byte[] hash = new byte[sparkle.GetDigestSize()];
+
+                        sparkle.BlockUpdate(ptByte, 0, ptByte.Length);
                         sparkle.DoFinal(hash, 0);
                         Assert.IsTrue(Arrays.AreEqual(expected, hash));
+
+                        if (ptByte.Length > 1)
+                        {
+                            int split = random.Next(1, ptByte.Length - 1);
+                            sparkle.BlockUpdate(ptByte, 0, split);
+                            sparkle.BlockUpdate(ptByte, split, ptByte.Length - split);
+                            sparkle.DoFinal(hash, 0);
+                            Assert.IsTrue(Arrays.AreEqual(expected, hash));
+                        }
                     }
                     else
                     {

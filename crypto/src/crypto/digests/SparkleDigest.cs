@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 state[(STATE_UINTS >> 1) - 1] ^= 1U << 24;
 
                 // padding
-                m_buf[m_bufPos++] = 0x80;
+                m_buf[m_bufPos] = 0x80;
                 while(++m_bufPos < RATE_BYTES)
                 {
                     m_buf[m_bufPos] = 0x00;
@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 state[(STATE_UINTS >> 1) - 1] ^= 1U << 24;
 
                 // padding
-                m_buf[m_bufPos++] = 0x80;
+                m_buf[m_bufPos] = 0x80;
                 while(++m_bufPos < RATE_BYTES)
                 {
                     m_buf[m_bufPos] = 0x00;
