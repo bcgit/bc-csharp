@@ -55,10 +55,10 @@ namespace Org.BouncyCastle.Pkix
 		private ISelector<X509Certificate> m_targetConstraintsCert;
 
 		private bool additionalLocationsEnabled;
-		private ISet<TrustAnchor> trustedACIssuers;
-		private ISet<string> necessaryACAttributes;
-		private ISet<string> prohibitedACAttributes;
-		private ISet<PkixAttrCertChecker> attrCertCheckers;
+		private HashSet<TrustAnchor> trustedACIssuers;
+		private HashSet<string> necessaryACAttributes;
+		private HashSet<string> prohibitedACAttributes;
+		private HashSet<PkixAttrCertChecker> attrCertCheckers;
 		private int validityModel = PkixValidityModel;
 		private bool useDeltas = false;
 
