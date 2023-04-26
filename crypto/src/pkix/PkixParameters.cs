@@ -190,9 +190,7 @@ namespace Org.BouncyCastle.Pkix
 		public virtual void SetTrustAnchors(ISet<TrustAnchor> tas)
 		{
 			if (tas == null)
-				throw new ArgumentNullException("value");
-			if (tas.Count < 1)
-				throw new ArgumentException("non-empty set required", "value");
+				throw new ArgumentNullException(nameof(tas));
 
 			// Explicit copy to enforce type-safety
 			this.trustAnchors = new HashSet<TrustAnchor>();
@@ -203,9 +201,12 @@ namespace Org.BouncyCastle.Pkix
 					trustAnchors.Add(ta);
 				}
 			}
-		}
 
-		/**
+            if (trustAnchors.Count < 1)
+                throw new ArgumentException("non-empty set required", nameof(tas));
+        }
+
+        /**
 		* Returns the required constraints on the target certificate or attribute
 		* certificate. The constraints are returned as an instance of
 		* <code>IX509Selector</code>. If <code>null</code>, no constraints are
