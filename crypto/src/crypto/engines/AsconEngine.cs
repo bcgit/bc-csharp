@@ -99,15 +99,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_buf = new byte[m_bufferSizeDecrypt];
         }
 
-        public int GetKeyBytesSize()
-        {
-            return CRYPTO_KEYBYTES;
-        }
+        public int GetKeyBytesSize() => CRYPTO_KEYBYTES;
 
-        public int GetIVBytesSize()
-        {
-            return CRYPTO_ABYTES;
-        }
+        public int GetIVBytesSize() => CRYPTO_ABYTES;
 
         public string AlgorithmName => algorithmName;
 
@@ -1060,6 +1054,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static ulong PAD(int i)
         {
             return 0x8000000000000000UL >> (i << 3);
