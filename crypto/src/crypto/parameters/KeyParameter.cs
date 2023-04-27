@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_key = new byte[length];
         }
 
-        internal void CopyTo(byte[] buf, int off, int len)
+        public void CopyTo(byte[] buf, int off, int len)
         {
             if (m_key.Length != len)
                 throw new ArgumentOutOfRangeException(nameof(len));
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal ReadOnlySpan<byte> Key => m_key;
 #endif
 
-        internal KeyParameter Reverse()
+        public KeyParameter Reverse()
         {
             var reversed = new KeyParameter(m_key.Length);
             Arrays.Reverse(m_key, reversed.m_key);
