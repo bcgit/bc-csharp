@@ -334,6 +334,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 random.NextBytes(output);
 
                 int length = sparkle.ProcessBytes(plaintext, 0, split, output, 0);
+
+                Assert.AreEqual(0, sparkle.GetUpdateOutputSize(0));
+
                 length += sparkle.ProcessBytes(plaintext, split, plaintextLength - split, output, length);
                 length += sparkle.DoFinal(output, length);
 
@@ -350,6 +353,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 random.NextBytes(output);
 
                 int length = sparkle.ProcessBytes(ciphertext, 0, split, output, 0);
+
+                Assert.AreEqual(0, sparkle.GetUpdateOutputSize(0));
+
                 length += sparkle.ProcessBytes(ciphertext, split, ciphertextLength - split, output, length);
                 length += sparkle.DoFinal(output, length);
 

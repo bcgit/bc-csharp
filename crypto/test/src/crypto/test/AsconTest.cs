@@ -373,6 +373,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 random.NextBytes(output);
 
                 int length = ascon.ProcessBytes(plaintext, 0, split, output, 0);
+
+                Assert.AreEqual(0, ascon.GetUpdateOutputSize(0));
+
                 length += ascon.ProcessBytes(plaintext, split, plaintextLength - split, output, length);
                 length += ascon.DoFinal(output, length);
 
@@ -389,6 +392,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 random.NextBytes(output);
 
                 int length = ascon.ProcessBytes(ciphertext, 0, split, output, 0);
+
+                Assert.AreEqual(0, ascon.GetUpdateOutputSize(0));
+
                 length += ascon.ProcessBytes(ciphertext, split, ciphertextLength - split, output, length);
                 length += ascon.DoFinal(output, length);
 

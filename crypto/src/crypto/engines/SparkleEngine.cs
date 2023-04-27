@@ -623,7 +623,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int GetUpdateOutputSize(int len)
         {
             // The -1 is to account for the lazy processing of a full buffer
-            int total = System.Math.Max(0, len - 1);
+            int total = System.Math.Max(0, len) - 1;
 
             switch (m_state)
             {
