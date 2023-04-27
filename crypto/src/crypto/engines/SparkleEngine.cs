@@ -145,7 +145,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             _M2 = (((2u ^ (1u << CAP_BRANS))) << 24);
             _M3 = (((3u ^ (1u << CAP_BRANS))) << 24);
             state = new uint[STATE_WORDS];
-            tag = new byte[TAG_BYTES];
             k = new uint[KEY_WORDS];
             npub = new uint[RATE_WORDS];
 
@@ -221,8 +220,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             m_state = forEncryption ? State.EncInit : State.DecInit;
 
-            // TODO true might be better?
-            Reset(false);
+            Reset();
         }
 
         public void ProcessAadByte(byte input)
@@ -520,8 +518,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (forEncryption)
             {
                 resultLength = m_bufPos + TAG_BYTES;
-                Check.OutputLength(outBytes, outOff, resultLength, "output buffer too short");
-
             }
             else
             {
@@ -531,9 +527,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 m_bufPos -= TAG_BYTES;
 
                 resultLength = m_bufPos;
-                Check.OutputLength(outBytes, outOff, resultLength, "output buffer too short");
-
             }
+
+            Check.OutputLength(outBytes, outOff, resultLength, "output buffer too short");
 
             if (encrypted || m_bufPos > 0)
             {
@@ -730,34 +726,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             m_bufPos = 0;
-            m_state = nextState;
-        }
-
-        private void FinishData(State nextState)
-        {
-            // TODO
-            //switch (asconParameters)
-            //{
-            //case AsconParameters.ascon128:
-            //    x1 ^= K1;
-            //    x2 ^= K2;
-            //    break;
-            //case AsconParameters.ascon128a:
-            //    x2 ^= K1;
-            //    x3 ^= K2;
-            //    break;
-            //case AsconParameters.ascon80pq:
-            //    x1 ^= (K0 << 32 | K1 >> 32);
-            //    x2 ^= (K1 << 32 | K2 >> 32);
-            //    x3 ^=  K2 << 32;
-            //    break;
-            //default:
-            //    throw new InvalidOperationException();
-            //}
-            //P(12);
-            //x3 ^= K1;
-            //x4 ^= K2;
-
             m_state = nextState;
         }
 
