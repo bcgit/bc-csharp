@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.BC
         /** SHA-1.PKCS12; 1.3.6.1.4.1.22554.1.1.2 */
         public static readonly DerObjectIdentifier bc_pbe_sha1_pkcs12   = bc_pbe_sha1.Branch("2");
 
-        /** SHA-256.PKCS12; 1.3.6.1.4.1.22554.1.2.1.1 */
+        /** SHA-256.PKCS5; 1.3.6.1.4.1.22554.1.2.1.1 */
         public static readonly DerObjectIdentifier bc_pbe_sha256_pkcs5  = bc_pbe_sha256.Branch("1");
         /** SHA-256.PKCS12; 1.3.6.1.4.1.22554.1.2.1.2 */
         public static readonly DerObjectIdentifier bc_pbe_sha256_pkcs12 = bc_pbe_sha256.Branch("2");
