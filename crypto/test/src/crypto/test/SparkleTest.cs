@@ -101,6 +101,30 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestBufferingEngine_SCHWAEMM128_128()
+        {
+            ImplTestBufferingEngine(SparkleEngine.SparkleParameters.SCHWAEMM128_128);
+        }
+
+        [Test]
+        public void TestBufferingEngine_SCHWAEMM192_192()
+        {
+            ImplTestBufferingEngine(SparkleEngine.SparkleParameters.SCHWAEMM192_192);
+        }
+
+        [Test]
+        public void TestBufferingEngine_SCHWAEMM256_128()
+        {
+            ImplTestBufferingEngine(SparkleEngine.SparkleParameters.SCHWAEMM256_128);
+        }
+
+        [Test]
+        public void TestBufferingEngine_SCHWAEMM256_256()
+        {
+            ImplTestBufferingEngine(SparkleEngine.SparkleParameters.SCHWAEMM256_256);
+        }
+
+        [Test]
         public void TestExceptionsDigest_ESCH256()
         {
             ImplTestExceptionsDigest(SparkleDigest.SparkleParameters.ESCH256);
@@ -279,6 +303,58 @@ namespace Org.BouncyCastle.Crypto.Tests
 #else
                 sparkle.ProcessBytes(data, 0, 1024, data, 0);
 #endif
+            }
+        }
+
+        private static void ImplTestBufferingEngine(SparkleEngine.SparkleParameters sparkleParameters)
+        {
+            Random random = new Random();
+
+            int plaintextLength = 256;
+            byte[] plaintext = new byte[plaintextLength];
+            random.NextBytes(plaintext);
+
+            var sparkle0 = CreateEngine(sparkleParameters);
+            InitEngine(sparkle0, true);
+
+            byte[] ciphertext = new byte[sparkle0.GetOutputSize(plaintextLength)];
+            random.NextBytes(ciphertext);
+
+            int ciphertextLength = sparkle0.ProcessBytes(plaintext, 0, plaintextLength, ciphertext, 0);
+            ciphertextLength += sparkle0.DoFinal(ciphertext, ciphertextLength);
+
+            byte[] output = new byte[ciphertextLength];
+
+            // Encryption
+            for (int split = 1; split < plaintextLength; ++split)
+            {
+                var sparkle = CreateEngine(sparkleParameters);
+                InitEngine(sparkle, true);
+
+                random.NextBytes(output);
+
+                int length = sparkle.ProcessBytes(plaintext, 0, split, output, 0);
+                length += sparkle.ProcessBytes(plaintext, split, plaintextLength - split, output, length);
+                length += sparkle.DoFinal(output, length);
+
+                Assert.IsTrue(Arrays.AreEqual(ciphertext, 0, ciphertextLength, output, 0, length),
+                    "encryption failed with split: " + split);
+            }
+
+            // Decryption
+            for (int split = 1; split < ciphertextLength; ++split)
+            {
+                var sparkle = CreateEngine(sparkleParameters);
+                InitEngine(sparkle, false);
+
+                random.NextBytes(output);
+
+                int length = sparkle.ProcessBytes(ciphertext, 0, split, output, 0);
+                length += sparkle.ProcessBytes(ciphertext, split, ciphertextLength - split, output, length);
+                length += sparkle.DoFinal(output, length);
+
+                Assert.IsTrue(Arrays.AreEqual(plaintext, 0, plaintextLength, output, 0, length),
+                    "decryption failed with split: " + split);
             }
         }
 
