@@ -725,6 +725,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 ProcessFinalAad();
                 break;
             }
+            default:
+                break;
             }
 
             m_bufPos = 0;

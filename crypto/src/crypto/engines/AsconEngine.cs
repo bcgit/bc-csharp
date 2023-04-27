@@ -676,6 +676,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 P(nr);
                 break;
             }
+            default:
+                break;
             }
 
             // domain separation
