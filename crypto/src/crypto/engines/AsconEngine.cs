@@ -345,12 +345,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                     return 0;
                 }
 
-                if (m_bufPos >= ASCON_AEAD_RATE)
+                // NOTE: Need 'while' here because ASCON_AEAD_RATE < CRYPTO_ABYTES in some parameter sets
+                while (m_bufPos >= ASCON_AEAD_RATE)
                 {
-                    ProcessBufferDecrypt(m_buf, 0, outBytes, outOff);
+                    ProcessBufferDecrypt(m_buf, 0, outBytes, outOff + resultLength);
                     m_bufPos -= ASCON_AEAD_RATE;
                     Array.Copy(m_buf, ASCON_AEAD_RATE, m_buf, 0, m_bufPos);
-                    resultLength = ASCON_AEAD_RATE;
+                    resultLength += ASCON_AEAD_RATE;
 
                     available += ASCON_AEAD_RATE;
                     if (len < available)
@@ -429,12 +430,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                     return 0;
                 }
 
-                if (m_bufPos >= ASCON_AEAD_RATE)
+                // NOTE: Need 'while' here because ASCON_AEAD_RATE < CRYPTO_ABYTES in some parameter sets
+                while (m_bufPos >= ASCON_AEAD_RATE)
                 {
-                    ProcessBufferDecrypt(m_buf, output);
+                    ProcessBufferDecrypt(m_buf, output[resultLength..]);
                     m_bufPos -= ASCON_AEAD_RATE;
                     m_buf.AsSpan(0, m_bufPos).CopyFrom(m_buf.AsSpan(ASCON_AEAD_RATE));
-                    resultLength = ASCON_AEAD_RATE;
+                    resultLength += ASCON_AEAD_RATE;
 
                     available += ASCON_AEAD_RATE;
                     if (input.Length < available)

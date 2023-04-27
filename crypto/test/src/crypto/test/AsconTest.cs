@@ -95,6 +95,24 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestBufferingEngine_ascon128()
+        {
+            ImplTestBufferingEngine(AsconEngine.AsconParameters.ascon128);
+        }
+
+        [Test]
+        public void TestBufferingEngine_ascon128a()
+        {
+            ImplTestBufferingEngine(AsconEngine.AsconParameters.ascon128a);
+        }
+
+        [Test]
+        public void TestBufferingEngine_ascon80()
+        {
+            ImplTestBufferingEngine(AsconEngine.AsconParameters.ascon80pq);
+        }
+
+        [Test]
         public void TestExceptionsDigest_AsconHash()
         {
             ImplTestExceptionsDigest(AsconDigest.AsconParameters.AsconHash);
@@ -324,6 +342,58 @@ namespace Org.BouncyCastle.Crypto.Tests
 #else
                 ascon.OutputFinal(data, 0, data.Length);
 #endif
+            }
+        }
+
+        private static void ImplTestBufferingEngine(AsconEngine.AsconParameters asconParameters)
+        {
+            Random random = new Random();
+
+            int plaintextLength = 256;
+            byte[] plaintext = new byte[plaintextLength];
+            random.NextBytes(plaintext);
+
+            var ascon0 = CreateEngine(asconParameters);
+            InitEngine(ascon0, true);
+
+            byte[] ciphertext = new byte[ascon0.GetOutputSize(plaintextLength)];
+            random.NextBytes(ciphertext);
+
+            int ciphertextLength = ascon0.ProcessBytes(plaintext, 0, plaintextLength, ciphertext, 0);
+            ciphertextLength += ascon0.DoFinal(ciphertext, ciphertextLength);
+
+            byte[] output = new byte[ciphertextLength];
+
+            // Encryption
+            for (int split = 1; split < plaintextLength; ++split)
+            {
+                var ascon = CreateEngine(asconParameters);
+                InitEngine(ascon, true);
+
+                random.NextBytes(output);
+
+                int length = ascon.ProcessBytes(plaintext, 0, split, output, 0);
+                length += ascon.ProcessBytes(plaintext, split, plaintextLength - split, output, length);
+                length += ascon.DoFinal(output, length);
+
+                Assert.IsTrue(Arrays.AreEqual(ciphertext, 0, ciphertextLength, output, 0, length),
+                    "encryption failed with split: " + split);
+            }
+
+            // Decryption
+            for (int split = 1; split < ciphertextLength; ++split)
+            {
+                var ascon = CreateEngine(asconParameters);
+                InitEngine(ascon, false);
+
+                random.NextBytes(output);
+
+                int length = ascon.ProcessBytes(ciphertext, 0, split, output, 0);
+                length += ascon.ProcessBytes(ciphertext, split, ciphertextLength - split, output, length);
+                length += ascon.DoFinal(output, length);
+
+                Assert.IsTrue(Arrays.AreEqual(plaintext, 0, plaintextLength, output, 0, length),
+                    "decryption failed with split: " + split);
             }
         }
 
