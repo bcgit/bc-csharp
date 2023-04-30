@@ -34,11 +34,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             Span<byte> buf = stackalloc byte[64];
             while (pkSeed.Length >= 32)
             {
-                XorWith(pkSeed[..32], buf);
+                Bytes.XorTo(32, pkSeed, buf);
                 Haraka512_X86.Permute(buf, buf);
                 pkSeed = pkSeed[32..];
             }
-            XorWith(pkSeed, buf);
+            Bytes.XorTo(pkSeed.Length, pkSeed, buf);
             buf[pkSeed.Length] ^= 0x1F;
             buf[           31] ^= 0x80;
 
@@ -86,23 +86,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             int available = 32 - m_bufPos;
             if (input.Length < available)
             {
-                XorWith(input, m_buf.AsSpan(m_bufPos));
+                Bytes.XorTo(input.Length, input, m_buf.AsSpan(m_bufPos));
                 m_bufPos += input.Length;
                 return;
             }
 
-            XorWith(input[..available], m_buf.AsSpan(m_bufPos));
+            Bytes.XorTo(available, input, m_buf.AsSpan(m_bufPos));
             input = input[available..];
             Haraka512_X86.Permute(m_buf, m_buf, m_roundConstants);
 
             while (input.Length >= 32)
             {
-                XorWith(input[..32], m_buf);
+                Bytes.XorTo(32, input, m_buf);
                 input = input[32..];
                 Haraka512_X86.Permute(m_buf, m_buf, m_roundConstants);
             }
 
-            XorWith(input, m_buf);
+            Bytes.XorTo(input.Length, input, m_buf);
             m_bufPos = input.Length;
         }
 
@@ -194,15 +194,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 BinaryPrimitives.ReadUInt64LittleEndian(t[..8]),
                 BinaryPrimitives.ReadUInt64LittleEndian(t[8..])
             ).AsByte();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void XorWith(ReadOnlySpan<byte> x, Span<byte> z)
-        {
-            for (int i = 0; i < x.Length; i++)
-            {
-                z[i] ^= x[i];
-            }
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Digests
 {
     public sealed class Haraka256Digest
@@ -140,8 +142,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             s1[1] = AesEnc(s1[1], RC[19]);
             Mix256(s1, s2);
 
-            Xor(s2[0], msg      , output[  ..16]);
-            Xor(s2[1], msg[16..], output[16..32]);
+            Bytes.Xor(16, s2[0], msg      , output);
+            Bytes.Xor(16, s2[1], msg[16..], output[16..]);
 
             return DIGEST_SIZE;
         }
@@ -188,11 +190,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             s1[1] = AesEnc(s1[1], RC[19]);
             Mix256(s1, s2);
 
-            s1[0] = Xor(s2[0], msg,  0);
-            s1[1] = Xor(s2[1], msg, 16);
-
-            Array.Copy(s1[0], 0, output, outOff     , 16);
-            Array.Copy(s1[1], 0, output, outOff + 16, 16);
+            Bytes.Xor(16, s2[0], 0, msg,  0, output, outOff);
+            Bytes.Xor(16, s2[1], 0, msg, 16, output, outOff + 16);
 
             return DIGEST_SIZE;
         }

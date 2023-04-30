@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Digests
 {
     public sealed class Haraka512Digest
@@ -166,10 +168,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             s1[3] = AesEnc(s1[3], RC[39]);
             Mix512(s1, s2);
 
-            Xor(s2[0], msg, s1[0]);
-            Xor(s2[1], msg[16..], s1[1]);
-            Xor(s2[2], msg[32..], s1[2]);
-            Xor(s2[3], msg[48..], s1[3]);
+            Bytes.Xor(16, s2[0], msg      , s1[0]);
+            Bytes.Xor(16, s2[1], msg[16..], s1[1]);
+            Bytes.Xor(16, s2[2], msg[32..], s1[2]);
+            Bytes.Xor(16, s2[3], msg[48..], s1[3]);
 
             s1[0].AsSpan(8, 8).CopyTo(output);
             s1[1].AsSpan(8, 8).CopyTo(output[8..]);
@@ -192,7 +194,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             s2[2] = new byte[16];
             s2[3] = new byte[16];
 
-            Array.Copy(msg, 0, s1[0], 0, 16);
+            Array.Copy(msg,  0, s1[0], 0, 16);
             Array.Copy(msg, 16, s1[1], 0, 16);
             Array.Copy(msg, 32, s1[2], 0, 16);
             Array.Copy(msg, 48, s1[3], 0, 16);
@@ -247,10 +249,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             s1[3] = AesEnc(s1[3], RC[39]);
             Mix512(s1, s2);
 
-            s1[0] = Xor(s2[0], msg, 0);
-            s1[1] = Xor(s2[1], msg, 16);
-            s1[2] = Xor(s2[2], msg, 32);
-            s1[3] = Xor(s2[3], msg, 48);
+            Bytes.Xor(16, s2[0], 0, msg,  0, s1[0], 0);
+            Bytes.Xor(16, s2[1], 0, msg, 16, s1[1], 0);
+            Bytes.Xor(16, s2[2], 0, msg, 32, s1[2], 0);
+            Bytes.Xor(16, s2[3], 0, msg, 48, s1[3], 0);
 
             Array.Copy(s1[0], 8, output, outOff, 8);
             Array.Copy(s1[1], 8, output, outOff + 8, 8);

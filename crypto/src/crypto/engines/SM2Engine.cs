@@ -395,34 +395,16 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Pack.UInt32_To_BE(++ct, buf);
                 digest.BlockUpdate(buf[..4]);
                 digest.DoFinal(buf);
-                Xor(encData.AsSpan(off, xorLen), buf);
+                Bytes.XorTo(xorLen, buf, encData.AsSpan(off));
 #else
                 Pack.UInt32_To_BE(++ct, buf, 0);
                 digest.BlockUpdate(buf, 0, 4);
                 digest.DoFinal(buf, 0);
-                Xor(encData, buf, off, xorLen);
+                Bytes.XorTo(xorLen, buf, 0, encData, off);
 #endif
                 off += xorLen;
             }
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private void Xor(Span<byte> data, ReadOnlySpan<byte> kdfOut)
-        {
-            for (int i = 0; i != data.Length; i++)
-            {
-                data[i] ^= kdfOut[i];
-            }
-        }
-#else
-        private void Xor(byte[] data, byte[] kdfOut, int dOff, int dRemaining)
-        {
-            for (int i = 0; i != dRemaining; i++)
-            {
-                data[dOff + i] ^= kdfOut[i];
-            }
-        }
-#endif
 
         private BigInteger NextK()
         {

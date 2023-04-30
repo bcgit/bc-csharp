@@ -363,41 +363,38 @@ namespace Org.BouncyCastle.Crypto.Digests
             V[56] = (byte)(r);
         }
 
-        private void xor512(byte[] A, byte[] B)
+        private static void Xor512(byte[] A, byte[] B)
         {
-            for (int i = 0; i < 64; ++i)
-            {
-                A[i] ^= B[i];
-            }
+            Bytes.XorTo(64, B, A);
         }
 
         private void E(byte[] K, byte[] m)
         {
             Array.Copy(K, 0, Ki, 0, 64);
-            xor512(K, m);
+            Xor512(K, m);
             F(K);
             for (int i = 0; i < 11; ++i)
             {
-                xor512(Ki, C[i]);
+                Xor512(Ki, C[i]);
                 F(Ki);
-                xor512(K, Ki);
+                Xor512(K, Ki);
                 F(K);
             }
-            xor512(Ki, C[11]);
+            Xor512(Ki, C[11]);
             F(Ki);
-            xor512(K, Ki);
+            Xor512(K, Ki);
         }
 
         private void g_N(byte[] h, byte[] N, byte[] m)
         {
             Array.Copy(h, 0, tmp, 0, 64);
 
-            xor512(h, N);
+            Xor512(h, N);
             F(h);
 
             E(h, m);
-            xor512(h, tmp);
-            xor512(h, m);
+            Xor512(h, tmp);
+            Xor512(h, m);
         }
 
         private void addMod512(byte[] A, int num)

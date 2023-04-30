@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 				block[..bytesToCopy].CopyTo(temp[(i * blockSize)..]);
             }
 
-			XorWith(seed, temp);
+            Bytes.XorTo(seedLength, seed, temp);
 
 			key.CopyFrom(temp);
 			v.CopyFrom(temp[key.Length..]);
@@ -111,14 +111,15 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 #else
         private void CTR_DRBG_Update(byte[] seed, byte[] key, byte[] v)
 	    {
-			byte[] temp = new byte[seed.Length];
+            int seedLength = seed.Length;
+			byte[] temp = new byte[seedLength];
 	        byte[] outputBlock = new byte[mEngine.GetBlockSize()];
 
             int i = 0;
 	        int outLen = mEngine.GetBlockSize();
 
 			mEngine.Init(true, ExpandToKeyParameter(key));
-	        while (i * outLen < seed.Length)
+	        while (i * outLen < seedLength)
 	        {
 	            AddOneTo(v);
 	            mEngine.ProcessBlock(v, 0, outputBlock, 0);
@@ -128,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	            ++i;
 	        }
 
-	        Xor(temp, seed, temp, 0);
+            Bytes.XorTo(seedLength, seed, temp);
 
 	        Array.Copy(temp, 0, key, 0, key.Length);
 	        Array.Copy(temp, key.Length, v, 0, v.Length);
@@ -169,32 +170,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
             mReseedCounter = 1;
         }
-#endif
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private void Xor(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> z)
-        {
-            for (int i = 0; i < z.Length; ++i)
-            {
-                z[i] = (byte)(x[i] ^ y[i]);
-            }
-        }
-
-        private void XorWith(ReadOnlySpan<byte> x, Span<byte> z)
-        {
-            for (int i = 0; i < z.Length; ++i)
-            {
-				z[i] ^= x[i];
-            }
-        }
-#else
-        private void Xor(byte[] output, byte[] a, byte[] b, int bOff)
-	    {
-            for (int i = 0; i < output.Length; i++) 
-	        {
-                output[i] = (byte)(a[i] ^ b[bOff + i]);
-	        }
-	    }
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -449,7 +424,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             int n = data.Length / blockSize;
             for (int i = 0; i < n; i++)
             {
-                Xor(chainingValue, data[(i * blockSize)..], inputBlock);
+                Bytes.Xor(blockSize, chainingValue, data[(i * blockSize)..], inputBlock);
                 mEngine.ProcessBlock(inputBlock, chainingValue);
             }
 
@@ -458,17 +433,17 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 #else
         private void BCC(byte[] bccOut, byte[] iV, byte[] data)
 	    {
-	        int outlen = mEngine.GetBlockSize();
-	        byte[] chainingValue = new byte[outlen]; // initial values = 0
-	        int n = data.Length / outlen;
+	        int blockSize = mEngine.GetBlockSize();
 
-	        byte[] inputBlock = new byte[outlen];
+	        byte[] chainingValue = new byte[blockSize]; // initial values = 0
+	        byte[] inputBlock = new byte[blockSize];
 
             mEngine.ProcessBlock(iV, 0, chainingValue, 0);
 
+            int n = data.Length / blockSize;
             for (int i = 0; i < n; i++)
 	        {
-	            Xor(inputBlock, chainingValue, data, i*outlen);
+                Bytes.Xor(blockSize, chainingValue, 0, data, i * blockSize, inputBlock, 0);
 	            mEngine.ProcessBlock(inputBlock, 0, chainingValue, 0);
 	        }
 

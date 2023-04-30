@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Digests
 {
     public abstract class HarakaBase
@@ -102,44 +104,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             s = SubBytes(s);
             s = ShiftRows(s);
             s = MixColumns(s);
-            XorTo(rk, s);
+            Bytes.XorTo(16, rk, s);
             return s;
         }
 
         private static byte MulX(byte p)
         {
             return (byte)(((p & 0x7F) << 1) ^ (((uint)p >> 7) * 0x1BU));
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static void Xor(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> z)
-        {
-            for (int i = 0; i < z.Length; i++)
-            {
-                z[i] = (byte)(x[i] ^ y[i]);
-            }
-        }
-#else
-        internal static byte[] Xor(byte[] x, byte[] y, int yStart)
-        {
-            byte[] output = new byte[16];
-            for (int i = 0; i < output.Length; i++)
-            {
-                output[i] = (byte)(x[i] ^ y[yStart++]);
-            }
-            return output;
-        }
-#endif
-
-        private static void XorTo(byte[] x, byte[] z)
-        {
-            for (int i = 0; i < 16; i += 4)
-            {
-                z[i + 0] ^= x[i + 0];
-                z[i + 1] ^= x[i + 1];
-                z[i + 2] ^= x[i + 2];
-                z[i + 3] ^= x[i + 3];
-            }
         }
 
         private static byte[] MixColumns(byte[] s)

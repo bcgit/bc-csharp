@@ -762,10 +762,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         protected static void Xor(byte[] block, byte[] val)
         {
-            for (int i = 15; i >= 0; --i)
-            {
-                block[i] ^= val[i];
-            }
+            Bytes.XorTo(16, val, block);
         }
     }
 }
