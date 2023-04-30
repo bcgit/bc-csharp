@@ -1,4 +1,3 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
@@ -7,46 +6,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
     public class FrodoKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private FrodoKeyGenerationParameters frodoParams;
-
-        private int n;
-        private int D;
-        private int B;
-
-        private SecureRandom random;
-
-        private void Initialize(
-            KeyGenerationParameters param)
-        {
-            frodoParams = (FrodoKeyGenerationParameters) param;
-            random = param.Random;
-
-            n = frodoParams.Parameters.N;
-            D = frodoParams.Parameters.D;
-            B = frodoParams.Parameters.B;
-        }
-
-        private AsymmetricCipherKeyPair GenKeyPair()
-        {
-            FrodoEngine engine = frodoParams.Parameters.Engine;
-            byte[] sk = new byte[engine.PrivateKeySize];
-            byte[] pk = new byte[engine.PublicKeySize];
-            engine.kem_keypair(pk, sk, random);
-
-            FrodoPublicKeyParameters pubKey = new FrodoPublicKeyParameters(frodoParams.Parameters, pk);
-            FrodoPrivateKeyParameters privKey = new FrodoPrivateKeyParameters(frodoParams.Parameters, sk);
-            return new AsymmetricCipherKeyPair(pubKey, privKey);
-        }
+        private FrodoParameters m_parameters;
+        private SecureRandom m_random;
 
         public void Init(KeyGenerationParameters param)
         {
-            this.Initialize(param);
+            FrodoKeyGenerationParameters frodoParams = (FrodoKeyGenerationParameters)param;
+
+            m_parameters = frodoParams.Parameters;
+            m_random = frodoParams.Random;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            return GenKeyPair();
-        }
+#pragma warning disable CS0618 // Type or member is obsolete
+            FrodoEngine engine = m_parameters.Engine;
+#pragma warning restore CS0618 // Type or member is obsolete
+            byte[] sk = new byte[engine.PrivateKeySize];
+            byte[] pk = new byte[engine.PublicKeySize];
+            engine.kem_keypair(pk, sk, m_random);
 
+            return new AsymmetricCipherKeyPair(
+                new FrodoPublicKeyParameters(m_parameters, pk),
+                new FrodoPrivateKeyParameters(m_parameters, sk));
+        }
     }
 }

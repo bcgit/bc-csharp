@@ -178,7 +178,19 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier mceliece6960119f_r3 = pqc_kem_mceliece.Branch("8");
         public static readonly DerObjectIdentifier mceliece8192128_r3 = pqc_kem_mceliece.Branch("9");
         public static readonly DerObjectIdentifier mceliece8192128f_r3 = pqc_kem_mceliece.Branch("10");
-        
+
+        /**
+         * Frodo
+         */
+        public static readonly DerObjectIdentifier pqc_kem_frodo = bc_kem.Branch("2");
+
+        public static readonly DerObjectIdentifier frodokem640aes = pqc_kem_frodo.Branch("1");
+        public static readonly DerObjectIdentifier frodokem640shake = pqc_kem_frodo.Branch("2");
+        public static readonly DerObjectIdentifier frodokem976aes = pqc_kem_frodo.Branch("3");
+        public static readonly DerObjectIdentifier frodokem976shake = pqc_kem_frodo.Branch("4");
+        public static readonly DerObjectIdentifier frodokem1344aes = pqc_kem_frodo.Branch("5");
+        public static readonly DerObjectIdentifier frodokem1344shake = pqc_kem_frodo.Branch("6");
+
         /**
          * SABER
          */

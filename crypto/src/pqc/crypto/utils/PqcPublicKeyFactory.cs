@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
@@ -49,7 +50,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.mceliece6960119f_r3] = new CmceConverter();
             Converters[BCObjectIdentifiers.mceliece8192128_r3] = new CmceConverter();
             Converters[BCObjectIdentifiers.mceliece8192128f_r3] = new CmceConverter();
-           
+
+            Converters[BCObjectIdentifiers.frodokem640aes] = new FrodoConverter();
+            Converters[BCObjectIdentifiers.frodokem640shake] = new FrodoConverter();
+            Converters[BCObjectIdentifiers.frodokem976aes] = new FrodoConverter();
+            Converters[BCObjectIdentifiers.frodokem976shake] = new FrodoConverter();
+            Converters[BCObjectIdentifiers.frodokem1344aes] = new FrodoConverter();
+            Converters[BCObjectIdentifiers.frodokem1344shake] = new FrodoConverter();
+
             Converters[BCObjectIdentifiers.lightsaberkem128r3] = new SaberConverter();
             Converters[BCObjectIdentifiers.saberkem128r3] = new SaberConverter();
             Converters[BCObjectIdentifiers.firesaberkem128r3] = new SaberConverter();
@@ -214,6 +222,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 CmceParameters spParams = PqcUtilities.McElieceParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
                 return new CmcePublicKeyParameters(spParams, keyEnc);
+            }
+        }
+
+        private class FrodoConverter
+            : SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+
+                FrodoParameters fParams = PqcUtilities.FrodoParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                return new FrodoPublicKeyParameters(fParams, keyEnc);
             }
         }
 

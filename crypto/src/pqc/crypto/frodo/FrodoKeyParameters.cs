@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         internal FrodoKeyParameters(bool isPrivate, FrodoParameters parameters)
             : base(isPrivate)
         {
-            this.m_parameters = parameters;
+            m_parameters = parameters;
         }
 
         public FrodoParameters Parameters => m_parameters;

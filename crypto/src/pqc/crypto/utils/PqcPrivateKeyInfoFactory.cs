@@ -10,6 +10,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
@@ -67,14 +68,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             if (privateKey is CmcePrivateKeyParameters cmcePrivateKeyParameters)
             {
                 byte[] encoding = cmcePrivateKeyParameters.GetEncoded();
-                AlgorithmIdentifier algorithmIdentifier =
-                    new AlgorithmIdentifier(PqcUtilities.McElieceOidLookup(cmcePrivateKeyParameters.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.McElieceOidLookup(cmcePrivateKeyParameters.Parameters));
 
                 CmcePublicKey CmcePub = new CmcePublicKey(cmcePrivateKeyParameters.ReconstructPublicKey());
                 CmcePrivateKey CmcePriv = new CmcePrivateKey(0, cmcePrivateKeyParameters.Delta,
                     cmcePrivateKeyParameters.C, cmcePrivateKeyParameters.G, cmcePrivateKeyParameters.Alpha,
                     cmcePrivateKeyParameters.S, CmcePub);
                 return new PrivateKeyInfo(algorithmIdentifier, CmcePriv, attributes);
+            }
+            if (privateKey is FrodoPrivateKeyParameters frodoPrivateKeyParameters)
+            {
+                byte[] encoding = frodoPrivateKeyParameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.FrodoOidLookup(frodoPrivateKeyParameters.Parameters));
+
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
             if (privateKey is SaberPrivateKeyParameters saberPrivateKeyParameters)
             {

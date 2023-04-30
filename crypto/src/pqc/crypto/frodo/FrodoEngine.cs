@@ -59,6 +59,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         public int PrivateKeySize => len_sk_bytes;
         public int PublicKeySize => len_pk_bytes;
 
+        // TODO[api] IDigest should be IXof?
         public FrodoEngine(int n, int D, int B, short[] cdf_table, IDigest digest, FrodoMatrixGenerator mGen)
         {
             this.n = n;
@@ -380,18 +381,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             ((IXof) digest).OutputFinal(pkh, 0, len_pkh_bytes);
 
             // 3. seedSE || k = SHAKE(pkh || mu, len_seedSE + len_k) (length in bits)
-            byte[] seedSE_k = new byte[len_seedSE + len_k];
+            byte[] x96_seedSE_k = new byte[len_seedSE + len_k];
+            x96_seedSE_k[0] = 0x96;
+
             digest.BlockUpdate(pkh, 0, len_pkh_bytes);
             digest.BlockUpdate(mu, 0, len_mu_bytes);
-            ((IXof) digest).OutputFinal(seedSE_k, 0, len_seedSE_bytes + len_k_bytes);
-
-            byte[] seedSE = Arrays.CopyOfRange(seedSE_k, 0, len_seedSE_bytes);
-            byte[] k = Arrays.CopyOfRange(seedSE_k, len_seedSE_bytes, len_seedSE_bytes + len_k_bytes);
+            ((IXof) digest).OutputFinal(x96_seedSE_k, 1, len_seedSE_bytes + len_k_bytes);
 
             // 4. r = SHAKE(0x96 || seedSE, 2*mbar*n + mbar*nbar*len_chi) (length in bits)
             byte[] rbytes = new byte[(2 * mbar * n + mbar * nbar) * len_chi_bytes];
-            digest.Update((byte) 0x96);
-            digest.BlockUpdate(seedSE, 0, seedSE.Length);
+
+            digest.BlockUpdate(x96_seedSE_k, 0, 1 + len_seedSE_bytes);
             ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
 
             short[] r = new short[rbytes.Length / 2];
@@ -435,7 +435,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             Array.Copy(Arrays.Concatenate(c1, c2), 0, ct, 0, len_ct_bytes);
             digest.BlockUpdate(c1, 0, c1.Length);
             digest.BlockUpdate(c2, 0, c2.Length);
-            digest.BlockUpdate(k, 0, len_k_bytes);
+            digest.BlockUpdate(x96_seedSE_k, 1 + len_seedSE_bytes, len_k_bytes);
             ((IXof) digest).OutputFinal(ss, 0, len_s_bytes);
         }
 

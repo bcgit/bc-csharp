@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
     public sealed class FrodoPrivateKeyParameters
         : FrodoKeyParameters
     {
-        internal byte[] privateKey;
+        internal readonly byte[] privateKey;
 
         public FrodoPrivateKeyParameters(FrodoParameters parameters, byte[] privateKey)
             : base(true, parameters)

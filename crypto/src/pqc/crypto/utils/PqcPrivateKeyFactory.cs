@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
@@ -77,6 +78,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 CmceParameters spParams = PqcUtilities.McElieceParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
 
                 return new CmcePrivateKeyParameters(spParams, cmceKey.Delta, cmceKey.C, cmceKey.G, cmceKey.Alpha, cmceKey.S);
+            }
+            if (algOID.On(BCObjectIdentifiers.pqc_kem_frodo))
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
+                FrodoParameters spParams = PqcUtilities.FrodoParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+
+                return new FrodoPrivateKeyParameters(spParams, keyEnc);
             }
             if (algOID.On(BCObjectIdentifiers.sphincsPlus))
             {

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -6,6 +5,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -17,12 +17,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     {
         private static readonly Dictionary<string, FrodoParameters> Parameters = new Dictionary<string, FrodoParameters>()
         {
-            { "PQCkemKAT_19888.rsp", FrodoParameters.frodokem19888r3 },
-            { "PQCkemKAT_31296.rsp", FrodoParameters.frodokem31296r3 },
-            { "PQCkemKAT_43088.rsp", FrodoParameters.frodokem43088r3 },
-            { "PQCkemKAT_19888_shake.rsp", FrodoParameters.frodokem19888shaker3 },
-            { "PQCkemKAT_31296_shake.rsp", FrodoParameters.frodokem31296shaker3 },
-            { "PQCkemKAT_43088_shake.rsp", FrodoParameters.frodokem43088shaker3 },
+            { "PQCkemKAT_19888.rsp", FrodoParameters.frodokem640aes },
+            { "PQCkemKAT_31296.rsp", FrodoParameters.frodokem976aes },
+            { "PQCkemKAT_43088.rsp", FrodoParameters.frodokem1344aes },
+            { "PQCkemKAT_19888_shake.rsp", FrodoParameters.frodokem640shake },
+            { "PQCkemKAT_31296_shake.rsp", FrodoParameters.frodokem976shake },
+            { "PQCkemKAT_43088_shake.rsp", FrodoParameters.frodokem1344shake },
         };
 
         private static readonly string[] TestVectorFilesAes =
@@ -42,12 +42,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [Test]
         public void TestParameters()
         {
-            Assert.AreEqual(128, FrodoParameters.frodokem19888r3.DefaultKeySize);
-            Assert.AreEqual(128, FrodoParameters.frodokem19888shaker3.DefaultKeySize);
-            Assert.AreEqual(192, FrodoParameters.frodokem31296r3.DefaultKeySize);
-            Assert.AreEqual(192, FrodoParameters.frodokem31296shaker3.DefaultKeySize);
-            Assert.AreEqual(256, FrodoParameters.frodokem43088r3.DefaultKeySize);
-            Assert.AreEqual(256, FrodoParameters.frodokem43088shaker3.DefaultKeySize);
+            Assert.AreEqual(128, FrodoParameters.frodokem640aes.DefaultKeySize);
+            Assert.AreEqual(128, FrodoParameters.frodokem640shake.DefaultKeySize);
+            Assert.AreEqual(192, FrodoParameters.frodokem976aes.DefaultKeySize);
+            Assert.AreEqual(192, FrodoParameters.frodokem976shake.DefaultKeySize);
+            Assert.AreEqual(256, FrodoParameters.frodokem1344aes.DefaultKeySize);
+            Assert.AreEqual(256, FrodoParameters.frodokem1344shake.DefaultKeySize);
         }
 
         [TestCaseSource(nameof(TestVectorFilesAes))]
@@ -84,8 +84,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             kpGen.Init(genParams);
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-            FrodoPublicKeyParameters pubParams = (FrodoPublicKeyParameters)kp.Public;
-            FrodoPrivateKeyParameters privParams = (FrodoPrivateKeyParameters)kp.Private;
+            FrodoPublicKeyParameters pubParams = (FrodoPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((FrodoPublicKeyParameters)kp.Public));
+            FrodoPrivateKeyParameters privParams = (FrodoPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((FrodoPrivateKeyParameters)kp.Private));
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), $"{name} {count} : public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), $"{name} {count} : secret key");

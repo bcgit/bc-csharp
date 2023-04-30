@@ -1,4 +1,3 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
@@ -7,16 +6,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
     public class FrodoKeyGenerationParameters
         : KeyGenerationParameters
     {
-        private FrodoParameters parameters;
+        private readonly FrodoParameters m_parameters;
 
-        public FrodoKeyGenerationParameters(
-            SecureRandom random,
-            FrodoParameters frodoParameters)
+        public FrodoKeyGenerationParameters(SecureRandom random, FrodoParameters frodoParameters)
             : base(random, 256)
         {
-            this.parameters = frodoParameters;
+            m_parameters = frodoParameters;
         }
 
-        public FrodoParameters Parameters => parameters;
+        public FrodoParameters Parameters => m_parameters;
     }
 }

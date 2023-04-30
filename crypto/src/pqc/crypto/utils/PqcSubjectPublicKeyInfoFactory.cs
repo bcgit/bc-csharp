@@ -10,6 +10,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
+using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
@@ -70,6 +71,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new CmcePublicKey(encoding));
+            }
+            else if (publicKey is FrodoPublicKeyParameters frodoPublicKeyParameters)
+            {
+                byte[] encoding = frodoPublicKeyParameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.FrodoOidLookup(frodoPublicKeyParameters.Parameters));
+
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
             if (publicKey is SaberPublicKeyParameters saberPublicKeyParameters)
             {
