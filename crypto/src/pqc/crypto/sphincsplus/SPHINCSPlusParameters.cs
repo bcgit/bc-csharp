@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
@@ -12,7 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         SphincsPlusEngine Get();
     }
 
-    public sealed class SphincsPlusParameters
+    public sealed class SphincsPlusParameters : ICipherParameters
     {
         public static SphincsPlusParameters sha2_128f = new SphincsPlusParameters("sha2-128f-robust",
             new Sha2EngineProvider(true, 16, 16, 22, 6, 33, 66));
