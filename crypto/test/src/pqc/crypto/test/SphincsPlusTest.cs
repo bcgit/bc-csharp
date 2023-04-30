@@ -16,9 +16,6 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
-using PqcPrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyFactory;
-using PqcPublicKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPublicKeyFactory;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
     [TestFixture]

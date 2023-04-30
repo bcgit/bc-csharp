@@ -5,14 +5,10 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
-
-using PqcPrivateKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyFactory;
-using PqcPrivateKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPrivateKeyInfoFactory;
-using PqcPublicKeyFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcPublicKeyFactory;
-using PqcSubjectPublicKeyInfoFactory = Org.BouncyCastle.Pqc.Crypto.Utilities.PqcSubjectPublicKeyInfoFactory;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
