@@ -42,14 +42,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             DilithiumEngine engine = privKey.Parameters.GetEngine(random);
             byte[] sig = new byte[engine.CryptoBytes];
-            engine.Sign(sig, sig.Length, message, message.Length, privKey.rho, privKey.k, privKey.tr, privKey.t0, privKey.s1, privKey.s2);
+            engine.Sign(sig, sig.Length, message, message.Length, privKey.m_rho, privKey.m_k, privKey.m_tr,
+                privKey.m_t0, privKey.m_s1, privKey.m_s2);
             return sig;
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             DilithiumEngine engine = pubKey.Parameters.GetEngine(random);
-            return engine.SignOpen(message,signature, signature.Length, pubKey.rho, pubKey.t1 );
+            return engine.SignOpen(message,signature, signature.Length, pubKey.m_rho, pubKey.m_t1);
         }
     }
 }

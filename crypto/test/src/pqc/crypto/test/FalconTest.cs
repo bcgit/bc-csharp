@@ -108,17 +108,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             FalconKeyGenerationParameters kparam = new FalconKeyGenerationParameters(random, falconParameters);
             FalconKeyPairGenerator kpg = new FalconKeyPairGenerator();
             kpg.Init(kparam);
-            AsymmetricCipherKeyPair ackp = kpg.GenerateKeyPair();
-            byte[] respk = ((FalconPublicKeyParameters)ackp.Public).GetEncoded();
-            byte[] ressk = ((FalconPrivateKeyParameters)ackp.Private).GetEncoded();
-                            
-            //keygen
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+
+            FalconPublicKeyParameters pubParams = (FalconPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((FalconPublicKeyParameters)kp.Public));
+            FalconPrivateKeyParameters privParams = (FalconPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((FalconPrivateKeyParameters)kp.Private));
+
+            byte[] respk = pubParams.GetEncoded();
+            byte[] ressk = privParams.GetEncoded();
+
             Assert.True(Arrays.AreEqual(respk, 0, respk.Length, pk, 1, pk.Length), name + " " + count + " public key");
             Assert.True(Arrays.AreEqual(ressk, 0, ressk.Length, sk, 1, sk.Length), name + " " + count + " private key");
 
             // sign
             FalconSigner signer = new FalconSigner();
-            ParametersWithRandom skwrand = new ParametersWithRandom(ackp.Private, random);
+            ParametersWithRandom skwrand = new ParametersWithRandom(kp.Private, random);
             signer.Init(true, skwrand);
             byte[] sig = signer.GenerateSignature(msg);
             byte[] ressm = new byte[2 + msg.Length + sig.Length];
@@ -131,7 +136,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
          
             // verify
             FalconSigner verifier = new FalconSigner();
-            FalconPublicKeyParameters pkparam = (FalconPublicKeyParameters)ackp.Public;
+            FalconPublicKeyParameters pkparam = (FalconPublicKeyParameters)kp.Public;
             verifier.Init(false, pkparam);
             bool vrfyrespass = verifier.VerifySignature(msg, sig);
             sig[42]++; // changing the signature by 1 byte should cause it to fail

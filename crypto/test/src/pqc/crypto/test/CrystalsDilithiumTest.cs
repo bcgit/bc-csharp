@@ -67,13 +67,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             DilithiumKeyGenerationParameters kparam = new DilithiumKeyGenerationParameters(random, DilithiumParameters.Dilithium2);
             DilithiumKeyPairGenerator kpg = new DilithiumKeyPairGenerator();
             kpg.Init(kparam);
-            AsymmetricCipherKeyPair ackp = kpg.GenerateKeyPair();
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
 
-            AsymmetricKeyParameter pub = ackp.Public;
-            AsymmetricKeyParameter priv = ackp.Private;
+            AsymmetricKeyParameter pub = kp.Public;
+            AsymmetricKeyParameter priv = kp.Private;
 
-            AsymmetricKeyParameter pubDec = PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
-            AsymmetricKeyParameter privDec = PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
+            AsymmetricKeyParameter pubDec = PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
+            AsymmetricKeyParameter privDec = PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
 
             Assert.AreEqual(((DilithiumPublicKeyParameters)pub).GetEncoded(), ((DilithiumPublicKeyParameters)pubDec).GetEncoded());
             Assert.AreEqual(((DilithiumPrivateKeyParameters)priv).GetEncoded(), ((DilithiumPrivateKeyParameters)privDec).GetEncoded());
@@ -126,17 +128,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             // Generate keys and test.
             //
             kpGen.Init(genParams);
-            AsymmetricCipherKeyPair ackp = kpGen.GenerateKeyPair();
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
-
-            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters)ackp.Public;
-            DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters)ackp.Private;
-
-            //Console.WriteLine(string.Format("{0} Expected pk       = {1}", pk.Length, Convert.ToHexString(pk)));
-            //Console.WriteLine(String.Format("{0} Actual Public key = {1}", pubParams.GetEncoded().Length, Convert.ToHexString(pubParams.GetEncoded())));
-
-            pubParams = (DilithiumPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ackp.Public));
-            privParams = (DilithiumPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(ackp.Private));
+            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((DilithiumPublicKeyParameters)kp.Public));
+            DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((DilithiumPrivateKeyParameters)kp.Private));
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
@@ -145,7 +142,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             // Signature test
             //
             DilithiumSigner signer = new DilithiumSigner();
-            DilithiumPrivateKeyParameters skparam = (DilithiumPrivateKeyParameters)ackp.Private;
+            DilithiumPrivateKeyParameters skparam = (DilithiumPrivateKeyParameters)kp.Private;
 
             signer.Init(true, skparam);
             byte[] sigGenerated = signer.GenerateSignature(msg);

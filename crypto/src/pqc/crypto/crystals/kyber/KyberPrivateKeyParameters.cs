@@ -11,7 +11,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         private readonly byte[] m_t;
         private readonly byte[] m_rho;
 
-        public KyberPrivateKeyParameters(KyberParameters parameters, byte[] s, byte[] hpk, byte[] nonce, byte[] t, byte[] rho)
+        public KyberPrivateKeyParameters(KyberParameters parameters, byte[] s, byte[] hpk, byte[] nonce, byte[] t,
+            byte[] rho)
             : base(true, parameters)
         {
             m_s = Arrays.Clone(s);
@@ -21,16 +22,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             m_rho = Arrays.Clone(rho);
         }
 
-        public byte[] GetEncoded()
-        {
-            return Arrays.ConcatenateAll(m_s, m_t, m_rho, m_hpk, m_nonce);
-        }
+        public byte[] GetEncoded() => Arrays.ConcatenateAll(m_s, m_t, m_rho, m_hpk, m_nonce);
 
-        internal byte[] S => m_s;
-        internal byte[] Hpk => m_hpk;
-        internal byte[] Nonce => m_nonce;
-        internal byte[] T => m_t;
-        internal byte[] Rho => m_rho;
+        public byte[] GetHpk() => Arrays.Clone(m_hpk);
 
+        public byte[] GetNonce() => Arrays.Clone(m_nonce);
+
+        public byte[] GetPublicKey() => KyberPublicKeyParameters.GetEncoded(m_t, m_rho);
+
+        public KyberPublicKeyParameters GetPublicKeyParameters() =>
+            new KyberPublicKeyParameters(Parameters, m_t, m_rho);
+
+        public byte[] GetRho() => Arrays.Clone(m_rho);
+
+        public byte[] GetS() => Arrays.Clone(m_s);
+
+        public byte[] GetT() => Arrays.Clone(m_t);
     }
 }

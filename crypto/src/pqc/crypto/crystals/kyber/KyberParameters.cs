@@ -3,7 +3,7 @@ using Org.BouncyCastle.Crypto;
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
     public sealed class KyberParameters
-        : ICipherParameters
+        : IKemParameters
     {
         public static KyberParameters kyber512 = new KyberParameters("kyber512", 2, 128, false);
         public static KyberParameters kyber768 = new KyberParameters("kyber768", 3, 192, false);

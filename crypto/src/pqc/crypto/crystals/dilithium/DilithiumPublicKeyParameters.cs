@@ -5,31 +5,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
     public sealed class DilithiumPublicKeyParameters
         : DilithiumKeyParameters
     {
-        internal byte[] rho;
-        internal byte[] t1;
+        internal static byte[] GetEncoded(byte[] rho, byte[] t1) => Arrays.Concatenate(rho, t1);
 
-        public DilithiumPublicKeyParameters(DilithiumParameters parameters, byte[] pkEncoded)
-            : base(false, parameters)
-        {
-            this.rho = Arrays.CopyOfRange(pkEncoded, 0, DilithiumEngine.SeedBytes);
-            this.t1 = Arrays.CopyOfRange(pkEncoded, DilithiumEngine.SeedBytes, pkEncoded.Length);
-        }
+        internal readonly byte[] m_rho;
+        internal readonly byte[] m_t1;
 
         public DilithiumPublicKeyParameters(DilithiumParameters parameters, byte[] rho, byte[] t1)
             : base(false, parameters)
         {
-            this.rho = Arrays.Clone(rho);
-            this.t1 = Arrays.Clone(t1);
+            m_rho = Arrays.Clone(rho);
+            m_t1 = Arrays.Clone(t1);
         }
 
-        public byte[] GetEncoded()
+        public DilithiumPublicKeyParameters(DilithiumParameters parameters, byte[] pkEncoded)
+            : base(false, parameters)
         {
-            return Arrays.Concatenate(rho, t1);
+            m_rho = Arrays.CopyOfRange(pkEncoded, 0, DilithiumEngine.SeedBytes);
+            m_t1 = Arrays.CopyOfRange(pkEncoded, DilithiumEngine.SeedBytes, pkEncoded.Length);
         }
 
-        internal byte[] Rho => rho;
+        public byte[] GetEncoded() => GetEncoded(m_rho, m_t1);
 
-        internal byte[] T1 => t1;
+        public byte[] GetRho() => Arrays.Clone(m_rho);
 
+        public byte[] GetT1() => Arrays.Clone(m_t1);
     }
 }

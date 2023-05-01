@@ -232,12 +232,12 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_kyber = bc_kem.Branch("6");
 
-        public static readonly DerObjectIdentifier kyber512 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.8.2.2"); // pqc_kem_kyber.Branch("1");
-        public static readonly DerObjectIdentifier kyber768 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.8.3.3"); // pqc_kem_kyber.Branch("2");
-        public static readonly DerObjectIdentifier kyber1024 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.8.4.4"); // pqc_kem_kyber.Branch("3");
-        public static readonly DerObjectIdentifier kyber512_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.10.2.2"); // pqc_kem_kyber.Branch("4");
-        public static readonly DerObjectIdentifier kyber768_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.10.3.3"); // pqc_kem_kyber.Branch("5");
-        public static readonly DerObjectIdentifier kyber1024_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.10.4.4"); // pqc_kem_kyber.Branch("6");
+        public static readonly DerObjectIdentifier kyber512 = pqc_kem_kyber.Branch("1");
+        public static readonly DerObjectIdentifier kyber768 = pqc_kem_kyber.Branch("2");
+        public static readonly DerObjectIdentifier kyber1024 = pqc_kem_kyber.Branch("3");
+        public static readonly DerObjectIdentifier kyber512_aes = pqc_kem_kyber.Branch("4");
+        public static readonly DerObjectIdentifier kyber768_aes = pqc_kem_kyber.Branch("5");
+        public static readonly DerObjectIdentifier kyber1024_aes = pqc_kem_kyber.Branch("6");
 
         /**
          * BIKE

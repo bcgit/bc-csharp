@@ -4,7 +4,7 @@ using Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets;
 namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {
     public sealed class NtruParameters
-        : ICipherParameters
+        : IKemParameters
     {
         public static readonly NtruParameters NtruHps2048509 =
             new NtruParameters("ntruhps2048509", new NtruHps2048509());
