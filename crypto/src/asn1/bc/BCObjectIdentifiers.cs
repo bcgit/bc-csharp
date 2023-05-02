@@ -77,21 +77,47 @@ namespace Org.BouncyCastle.Asn1.BC
         /**
          * XMSS
          */
-        public static readonly DerObjectIdentifier xmss                      = bc_sig.Branch("2");
-        public static readonly DerObjectIdentifier xmss_with_SHA256          = xmss.Branch("1");
-        public static readonly DerObjectIdentifier xmss_with_SHA512          = xmss.Branch("2");
-        public static readonly DerObjectIdentifier xmss_with_SHAKE128        = xmss.Branch("3");
-        public static readonly DerObjectIdentifier xmss_with_SHAKE256        = xmss.Branch("4");
+        public static readonly DerObjectIdentifier xmss = bc_sig.Branch("2");
+        public static readonly DerObjectIdentifier xmss_SHA256ph = xmss.Branch("1");
+        public static readonly DerObjectIdentifier xmss_SHA512ph = xmss.Branch("2");
+        public static readonly DerObjectIdentifier xmss_SHAKE128ph = xmss.Branch("3");
+        public static readonly DerObjectIdentifier xmss_SHAKE256ph = xmss.Branch("4");
+        public static readonly DerObjectIdentifier xmss_SHA256 = xmss.Branch("5");
+        public static readonly DerObjectIdentifier xmss_SHA512 = xmss.Branch("6");
+        public static readonly DerObjectIdentifier xmss_SHAKE128 = xmss.Branch("7");
+        public static readonly DerObjectIdentifier xmss_SHAKE256 = xmss.Branch("8");
 
         /**
          * XMSS^MT
          */
-        public static readonly DerObjectIdentifier xmss_mt                      = bc_sig.Branch("3");
-        public static readonly DerObjectIdentifier xmss_mt_with_SHA256          = xmss_mt.Branch("1");
-        public static readonly DerObjectIdentifier xmss_mt_with_SHA512          = xmss_mt.Branch("2");
-        public static readonly DerObjectIdentifier xmss_mt_with_SHAKE128        = xmss_mt.Branch("3");
-        public static readonly DerObjectIdentifier xmss_mt_with_SHAKE256        = xmss_mt.Branch("4");
-        
+        public static readonly DerObjectIdentifier xmss_mt = bc_sig.Branch("3");
+        public static readonly DerObjectIdentifier xmss_mt_SHA256ph = xmss_mt.Branch("1");
+        public static readonly DerObjectIdentifier xmss_mt_SHA512ph = xmss_mt.Branch("2");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE128ph = xmss_mt.Branch("3");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE256ph = xmss_mt.Branch("4");
+        public static readonly DerObjectIdentifier xmss_mt_SHA256 = xmss_mt.Branch("5");
+        public static readonly DerObjectIdentifier xmss_mt_SHA512 = xmss_mt.Branch("6");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE128 = xmss_mt.Branch("7");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE256 = xmss_mt.Branch("8");
+
+        [Obsolete("Use 'xmss_SHA256ph' instead")]
+        public static readonly DerObjectIdentifier xmss_with_SHA256 = xmss_SHA256ph;
+        [Obsolete("Use 'xmss_SHA512ph' instead")]
+        public static readonly DerObjectIdentifier xmss_with_SHA512 = xmss_SHA512ph;
+        [Obsolete("Use 'xmss_SHAKE128ph' instead")]
+        public static readonly DerObjectIdentifier xmss_with_SHAKE128 = xmss_SHAKE128ph;
+        [Obsolete("Use 'xmss_SHAKE256ph' instead")]
+        public static readonly DerObjectIdentifier xmss_with_SHAKE256 = xmss_SHAKE256ph;
+
+        [Obsolete("Use 'xmss_mt_SHA256ph' instead")]
+        public static readonly DerObjectIdentifier xmss_mt_with_SHA256 = xmss_mt_SHA256ph;
+        [Obsolete("Use 'xmss_mt_SHA512ph' instead")]
+        public static readonly DerObjectIdentifier xmss_mt_with_SHA512 = xmss_mt_SHA512ph;
+        [Obsolete("Use 'xmss_mt_SHAKE128ph' instead")]
+        public static readonly DerObjectIdentifier xmss_mt_with_SHAKE128 = xmss_mt_SHAKE128ph;
+        [Obsolete("Use 'xmss_mt_SHAKE256ph' instead")]
+        public static readonly DerObjectIdentifier xmss_mt_with_SHAKE256 = xmss_mt_SHAKE256ph;
+
         /**
          * SPHINCS+
          */

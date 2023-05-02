@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.GM;
+using Org.BouncyCastle.Asn1.Isara;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -150,15 +151,37 @@ namespace Org.BouncyCastle.Cms
             m_algorithms["SHA256WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
             m_algorithms["SM3WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
 
-            m_algorithms["SHA256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA256;
-            m_algorithms["SHA512WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA512;
-            m_algorithms["SHAKE128WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHAKE128;
-            m_algorithms["SHAKE256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHAKE256;
+            m_algorithms["SHA256WITHXMSS"] = BCObjectIdentifiers.xmss_SHA256ph;
+            m_algorithms["SHA512WITHXMSS"] = BCObjectIdentifiers.xmss_SHA512ph;
+            m_algorithms["SHAKE128WITHXMSS"] = BCObjectIdentifiers.xmss_SHAKE128ph;
+            m_algorithms["SHAKE256WITHXMSS"] = BCObjectIdentifiers.xmss_SHAKE256ph;
 
-            m_algorithms["SHA256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHA256;
-            m_algorithms["SHA512WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHA512;
-            m_algorithms["SHAKE128WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHAKE128;
-            m_algorithms["SHAKE256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHAKE256;
+            m_algorithms["SHA256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_SHA256ph;
+            m_algorithms["SHA512WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_SHA512ph;
+            m_algorithms["SHAKE128WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_SHAKE128ph;
+            m_algorithms["SHAKE256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_SHAKE256ph;
+
+            m_algorithms["SHA256WITHXMSS-SHA256"] = BCObjectIdentifiers.xmss_SHA256ph;
+            m_algorithms["SHA512WITHXMSS-SHA512"] = BCObjectIdentifiers.xmss_SHA512ph;
+            m_algorithms["SHAKE128WITHXMSS-SHAKE128"] = BCObjectIdentifiers.xmss_SHAKE128ph;
+            m_algorithms["SHAKE256WITHXMSS-SHAKE256"] = BCObjectIdentifiers.xmss_SHAKE256ph;
+
+            m_algorithms["SHA256WITHXMSSMT-SHA256"] = BCObjectIdentifiers.xmss_mt_SHA256ph;
+            m_algorithms["SHA512WITHXMSSMT-SHA512"] = BCObjectIdentifiers.xmss_mt_SHA512ph;
+            m_algorithms["SHAKE128WITHXMSSMT-SHAKE128"] = BCObjectIdentifiers.xmss_mt_SHAKE128ph;
+            m_algorithms["SHAKE256WITHXMSSMT-SHAKE256"] = BCObjectIdentifiers.xmss_mt_SHAKE256ph;
+
+            m_algorithms["XMSS"] = IsaraObjectIdentifiers.id_alg_xmss;
+            m_algorithms["XMSS-SHA256"] = BCObjectIdentifiers.xmss_SHA256;
+            m_algorithms["XMSS-SHA512"] = BCObjectIdentifiers.xmss_SHA512;
+            m_algorithms["XMSS-SHAKE128"] = BCObjectIdentifiers.xmss_SHAKE128;
+            m_algorithms["XMSS-SHAKE256"] = BCObjectIdentifiers.xmss_SHAKE256;
+
+            m_algorithms["XMSSMT"] = IsaraObjectIdentifiers.id_alg_xmssmt;
+            m_algorithms["XMSSMT-SHA256"] = BCObjectIdentifiers.xmss_mt_SHA256;
+            m_algorithms["XMSSMT-SHA512"] = BCObjectIdentifiers.xmss_mt_SHA512;
+            m_algorithms["XMSSMT-SHAKE128"] = BCObjectIdentifiers.xmss_mt_SHAKE128;
+            m_algorithms["XMSSMT-SHAKE256"] = BCObjectIdentifiers.xmss_mt_SHAKE256;
 
 
             //
@@ -202,14 +225,26 @@ namespace Org.BouncyCastle.Cms
             //
             // XMSS
             //
-            noParams.Add(BCObjectIdentifiers.xmss_with_SHA256);
-            noParams.Add(BCObjectIdentifiers.xmss_with_SHA512);
-            noParams.Add(BCObjectIdentifiers.xmss_with_SHAKE128);
-            noParams.Add(BCObjectIdentifiers.xmss_with_SHAKE256);
-            noParams.Add(BCObjectIdentifiers.xmss_mt_with_SHA256);
-            noParams.Add(BCObjectIdentifiers.xmss_mt_with_SHA512);
-            noParams.Add(BCObjectIdentifiers.xmss_mt_with_SHAKE128);
-            noParams.Add(BCObjectIdentifiers.xmss_mt_with_SHAKE256);
+            noParams.Add(BCObjectIdentifiers.xmss_SHA256ph);
+            noParams.Add(BCObjectIdentifiers.xmss_SHA512ph);
+            noParams.Add(BCObjectIdentifiers.xmss_SHAKE128ph);
+            noParams.Add(BCObjectIdentifiers.xmss_SHAKE256ph);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHA256ph);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHA512ph);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHAKE128ph);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHAKE256ph);
+
+            noParams.Add(BCObjectIdentifiers.xmss_SHA256);
+            noParams.Add(BCObjectIdentifiers.xmss_SHA512);
+            noParams.Add(BCObjectIdentifiers.xmss_SHAKE128);
+            noParams.Add(BCObjectIdentifiers.xmss_SHAKE256);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHA256);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHA512);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHAKE128);
+            noParams.Add(BCObjectIdentifiers.xmss_mt_SHAKE256);
+
+            noParams.Add(IsaraObjectIdentifiers.id_alg_xmss);
+            noParams.Add(IsaraObjectIdentifiers.id_alg_xmssmt);
 
             //
             // SM2
