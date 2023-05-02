@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
             byte[] K = new byte[parameters.LByte];
             byte[] c01 = new byte[parameters.RByte + parameters.LByte];
-            byte[] h = key.PublicKey;
+            byte[] h = key.m_publicKey;
 
             engine.Encaps(c01, K, h, sr);
 

@@ -34,11 +34,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         static PqcPublicKeyFactory()
         {
             Converters[PkcsObjectIdentifiers.IdAlgHssLmsHashsig] = new LmsConverter();
-
-            Converters[BCObjectIdentifiers.sphincsPlus] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_shake_256] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha_256] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha_512] = new SphincsPlusConverter();
             
             Converters[BCObjectIdentifiers.mceliece348864_r3] = new CmceConverter();
             Converters[BCObjectIdentifiers.mceliece348864f_r3] = new CmceConverter();
@@ -126,6 +121,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.hqc128] = new HqcConverter();
             Converters[BCObjectIdentifiers.hqc192] = new HqcConverter();
             Converters[BCObjectIdentifiers.hqc256] = new HqcConverter();
+
+
+            Converters[BCObjectIdentifiers.sphincsPlus] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_128s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_128f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_128s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_128f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_192s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_192f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_192s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_192f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_256s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_256f_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3] = new SphincsPlusConverter();
         }
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -206,7 +222,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                SphincsPlusParameters spParams = SphincsPlusParameters.GetParams((int)Pack.BE_To_UInt32(keyEnc, 0));
+                SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
                 return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
             }

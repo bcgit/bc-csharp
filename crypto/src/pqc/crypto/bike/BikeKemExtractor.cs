@@ -26,9 +26,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             byte[] c0 = Arrays.CopyOfRange(encapsulation, 0, secretKey.Parameters.RByte);
             byte[] c1 = Arrays.CopyOfRange(encapsulation, secretKey.Parameters.RByte, encapsulation.Length);
 
-            byte[] h0 = secretKey.GetH0();
-            byte[] h1 = secretKey.GetH1();
-            byte[] sigma = secretKey.GetSigma();
+            byte[] h0 = secretKey.m_h0;
+            byte[] h1 = secretKey.m_h1;
+            byte[] sigma = secretKey.m_sigma;
 
             engine.Decaps(session_key, h0, h1, sigma, c0, c1);
             return Arrays.CopyOfRange(session_key, 0, defaultKeySize / 8);

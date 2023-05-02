@@ -32,6 +32,11 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return new CmcePrivateKey(Asn1Sequence.GetInstance(o));
         }
 
+        public static CmcePrivateKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private int version;
         private byte[] delta;
         private byte[] c;

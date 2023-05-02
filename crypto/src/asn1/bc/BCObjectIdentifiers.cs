@@ -119,13 +119,51 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier xmss_mt_with_SHAKE256 = xmss_mt_SHAKE256ph;
 
         /**
+         * qTESLA
+         */
+        public static readonly DerObjectIdentifier qTESLA = bc_sig.Branch("4");
+
+        public static readonly DerObjectIdentifier qTESLA_Rnd1_I = qTESLA.Branch("1");
+        public static readonly DerObjectIdentifier qTESLA_Rnd1_III_size = qTESLA.Branch("2");
+        public static readonly DerObjectIdentifier qTESLA_Rnd1_III_speed = qTESLA.Branch("3");
+        public static readonly DerObjectIdentifier qTESLA_Rnd1_p_I = qTESLA.Branch("4");
+        public static readonly DerObjectIdentifier qTESLA_Rnd1_p_III = qTESLA.Branch("5");
+
+        public static readonly DerObjectIdentifier qTESLA_p_I = qTESLA.Branch("11");
+        public static readonly DerObjectIdentifier qTESLA_p_III = qTESLA.Branch("12");
+
+        /**
          * SPHINCS+
          */
         public static readonly DerObjectIdentifier sphincsPlus = bc_sig.Branch("5");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_128s_r3 = sphincsPlus.Branch("1");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_128f_r3 = sphincsPlus.Branch("2");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_128s_r3 = sphincsPlus.Branch("3");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_128f_r3 = sphincsPlus.Branch("4");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_128s_r3 = sphincsPlus.Branch("5");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_128f_r3 = sphincsPlus.Branch("6");
+
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_192s_r3 = sphincsPlus.Branch("7");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_192f_r3 = sphincsPlus.Branch("8");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_192s_r3 = sphincsPlus.Branch("9");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_192f_r3 = sphincsPlus.Branch("10");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_192s_r3 = sphincsPlus.Branch("11");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_192f_r3 = sphincsPlus.Branch("12");
+
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_256s_r3 = sphincsPlus.Branch("13");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_256f_r3 = sphincsPlus.Branch("14");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_256s_r3 = sphincsPlus.Branch("15");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_256f_r3 = sphincsPlus.Branch("16");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_256s_r3 = sphincsPlus.Branch("17");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3 = sphincsPlus.Branch("18");
+
+        [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.Branch("1");
+        [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_sha_256 = sphincsPlus.Branch("2");
+        [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_sha_512 = sphincsPlus.Branch("3");
-        
+
         /**
          * Picnic
          */

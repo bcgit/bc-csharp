@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
@@ -26,9 +25,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             m_pk = pk;
         }
 
-        public byte[] GetSeed()
+        public byte[] GetEncoded()
         {
-            return Arrays.Clone(m_pk.seed);
+            return Arrays.ConcatenateAll(Parameters.GetEncoded(), m_pk.seed, m_pk.root);
         }
 
         public byte[] GetRoot()
@@ -36,10 +35,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return Arrays.Clone(m_pk.root);
         }
 
-        public byte[] GetEncoded()
+        public byte[] GetSeed()
         {
-            var id = Pack.UInt32_To_BE((uint)SphincsPlusParameters.GetID(Parameters));
-            return Arrays.ConcatenateAll(id, m_pk.seed, m_pk.root);
+            return Arrays.Clone(m_pk.seed);
         }
     }
 }

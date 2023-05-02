@@ -15,7 +15,14 @@ namespace Org.BouncyCastle.Pqc.Asn1
                 return null;
             if (o is CmcePublicKey cmcePublicKey)
                 return cmcePublicKey;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new CmcePublicKey(Asn1Sequence.GetInstance(o));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static CmcePublicKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private byte[] t;
@@ -25,6 +32,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
             this.t = t;
         }
 
+        [Obsolete("Use 'GetInstance' instead")]
         public CmcePublicKey(Asn1Sequence seq)
         {
             t = Arrays.Clone(Asn1OctetString.GetInstance(seq[0]).GetOctets());

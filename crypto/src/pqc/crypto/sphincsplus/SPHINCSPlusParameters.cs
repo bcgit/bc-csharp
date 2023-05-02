@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
@@ -152,94 +153,96 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         private static uint sphincsPlus_haraka_256s_simple = 0x030206;
 
 
-        private static Dictionary<uint, SphincsPlusParameters> oidToParams = new Dictionary<uint, SphincsPlusParameters>();
-        private static Dictionary<SphincsPlusParameters, uint> paramsToOid = new Dictionary<SphincsPlusParameters, uint>();
+        private static readonly Dictionary<uint, SphincsPlusParameters> OidToParams =
+            new Dictionary<uint, SphincsPlusParameters>();
+        private static readonly Dictionary<SphincsPlusParameters, uint> ParamsToOid =
+            new Dictionary<SphincsPlusParameters, uint>();
 
         static SphincsPlusParameters()
         {
-            oidToParams[sphincsPlus_sha2_128f_robust] = SphincsPlusParameters.sha2_128f;
-            oidToParams[sphincsPlus_sha2_128s_robust] = SphincsPlusParameters.sha2_128s;
-            oidToParams[sphincsPlus_sha2_192f_robust] = SphincsPlusParameters.sha2_192f;
-            oidToParams[sphincsPlus_sha2_192s_robust] = SphincsPlusParameters.sha2_192s;
-            oidToParams[sphincsPlus_sha2_256f_robust] = SphincsPlusParameters.sha2_256f;
-            oidToParams[sphincsPlus_sha2_256s_robust] = SphincsPlusParameters.sha2_256s;
+            OidToParams[sphincsPlus_sha2_128f_robust] = SphincsPlusParameters.sha2_128f;
+            OidToParams[sphincsPlus_sha2_128s_robust] = SphincsPlusParameters.sha2_128s;
+            OidToParams[sphincsPlus_sha2_192f_robust] = SphincsPlusParameters.sha2_192f;
+            OidToParams[sphincsPlus_sha2_192s_robust] = SphincsPlusParameters.sha2_192s;
+            OidToParams[sphincsPlus_sha2_256f_robust] = SphincsPlusParameters.sha2_256f;
+            OidToParams[sphincsPlus_sha2_256s_robust] = SphincsPlusParameters.sha2_256s;
 
-            oidToParams[sphincsPlus_sha2_128f_simple] = SphincsPlusParameters.sha2_128f_simple;
-            oidToParams[sphincsPlus_sha2_128s_simple] = SphincsPlusParameters.sha2_128s_simple;
-            oidToParams[sphincsPlus_sha2_192f_simple] = SphincsPlusParameters.sha2_192f_simple;
-            oidToParams[sphincsPlus_sha2_192s_simple] = SphincsPlusParameters.sha2_192s_simple;
-            oidToParams[sphincsPlus_sha2_256f_simple] = SphincsPlusParameters.sha2_256f_simple;
-            oidToParams[sphincsPlus_sha2_256s_simple] = SphincsPlusParameters.sha2_256s_simple;
+            OidToParams[sphincsPlus_sha2_128f_simple] = SphincsPlusParameters.sha2_128f_simple;
+            OidToParams[sphincsPlus_sha2_128s_simple] = SphincsPlusParameters.sha2_128s_simple;
+            OidToParams[sphincsPlus_sha2_192f_simple] = SphincsPlusParameters.sha2_192f_simple;
+            OidToParams[sphincsPlus_sha2_192s_simple] = SphincsPlusParameters.sha2_192s_simple;
+            OidToParams[sphincsPlus_sha2_256f_simple] = SphincsPlusParameters.sha2_256f_simple;
+            OidToParams[sphincsPlus_sha2_256s_simple] = SphincsPlusParameters.sha2_256s_simple;
 
-            oidToParams[sphincsPlus_shake_128f_robust] = SphincsPlusParameters.shake_128f;
-            oidToParams[sphincsPlus_shake_128s_robust] = SphincsPlusParameters.shake_128s;
-            oidToParams[sphincsPlus_shake_192f_robust] = SphincsPlusParameters.shake_192f;
-            oidToParams[sphincsPlus_shake_192s_robust] = SphincsPlusParameters.shake_192s;
-            oidToParams[sphincsPlus_shake_256f_robust] = SphincsPlusParameters.shake_256f;
-            oidToParams[sphincsPlus_shake_256s_robust] = SphincsPlusParameters.shake_256s;
+            OidToParams[sphincsPlus_shake_128f_robust] = SphincsPlusParameters.shake_128f;
+            OidToParams[sphincsPlus_shake_128s_robust] = SphincsPlusParameters.shake_128s;
+            OidToParams[sphincsPlus_shake_192f_robust] = SphincsPlusParameters.shake_192f;
+            OidToParams[sphincsPlus_shake_192s_robust] = SphincsPlusParameters.shake_192s;
+            OidToParams[sphincsPlus_shake_256f_robust] = SphincsPlusParameters.shake_256f;
+            OidToParams[sphincsPlus_shake_256s_robust] = SphincsPlusParameters.shake_256s;
 
-            oidToParams[sphincsPlus_shake_128f_simple] = SphincsPlusParameters.shake_128f_simple;
-            oidToParams[sphincsPlus_shake_128s_simple] = SphincsPlusParameters.shake_128s_simple;
-            oidToParams[sphincsPlus_shake_192f_simple] = SphincsPlusParameters.shake_192f_simple;
-            oidToParams[sphincsPlus_shake_192s_simple] = SphincsPlusParameters.shake_192s_simple;
-            oidToParams[sphincsPlus_shake_256f_simple] = SphincsPlusParameters.shake_256f_simple;
-            oidToParams[sphincsPlus_shake_256s_simple] = SphincsPlusParameters.shake_256s_simple;
+            OidToParams[sphincsPlus_shake_128f_simple] = SphincsPlusParameters.shake_128f_simple;
+            OidToParams[sphincsPlus_shake_128s_simple] = SphincsPlusParameters.shake_128s_simple;
+            OidToParams[sphincsPlus_shake_192f_simple] = SphincsPlusParameters.shake_192f_simple;
+            OidToParams[sphincsPlus_shake_192s_simple] = SphincsPlusParameters.shake_192s_simple;
+            OidToParams[sphincsPlus_shake_256f_simple] = SphincsPlusParameters.shake_256f_simple;
+            OidToParams[sphincsPlus_shake_256s_simple] = SphincsPlusParameters.shake_256s_simple;
 
-            oidToParams[sphincsPlus_haraka_128f_simple] = SphincsPlusParameters.haraka_128f_simple;
-            oidToParams[sphincsPlus_haraka_128f_robust] = SphincsPlusParameters.haraka_128f;
-            oidToParams[sphincsPlus_haraka_192f_simple] = SphincsPlusParameters.haraka_192f_simple;
-            oidToParams[sphincsPlus_haraka_192f_robust] = SphincsPlusParameters.haraka_192f;
-            oidToParams[sphincsPlus_haraka_256f_simple] = SphincsPlusParameters.haraka_256f_simple;
-            oidToParams[sphincsPlus_haraka_256f_robust] = SphincsPlusParameters.haraka_256f;
+            OidToParams[sphincsPlus_haraka_128f_simple] = SphincsPlusParameters.haraka_128f_simple;
+            OidToParams[sphincsPlus_haraka_128f_robust] = SphincsPlusParameters.haraka_128f;
+            OidToParams[sphincsPlus_haraka_192f_simple] = SphincsPlusParameters.haraka_192f_simple;
+            OidToParams[sphincsPlus_haraka_192f_robust] = SphincsPlusParameters.haraka_192f;
+            OidToParams[sphincsPlus_haraka_256f_simple] = SphincsPlusParameters.haraka_256f_simple;
+            OidToParams[sphincsPlus_haraka_256f_robust] = SphincsPlusParameters.haraka_256f;
 
-            oidToParams[sphincsPlus_haraka_128s_simple] = SphincsPlusParameters.haraka_128s_simple;
-            oidToParams[sphincsPlus_haraka_128s_robust] = SphincsPlusParameters.haraka_128s;
-            oidToParams[sphincsPlus_haraka_192s_simple] = SphincsPlusParameters.haraka_192s_simple;
-            oidToParams[sphincsPlus_haraka_192s_robust] = SphincsPlusParameters.haraka_192s;
-            oidToParams[sphincsPlus_haraka_256s_simple] = SphincsPlusParameters.haraka_256s_simple;
-            oidToParams[sphincsPlus_haraka_256s_robust] = SphincsPlusParameters.haraka_256s;
+            OidToParams[sphincsPlus_haraka_128s_simple] = SphincsPlusParameters.haraka_128s_simple;
+            OidToParams[sphincsPlus_haraka_128s_robust] = SphincsPlusParameters.haraka_128s;
+            OidToParams[sphincsPlus_haraka_192s_simple] = SphincsPlusParameters.haraka_192s_simple;
+            OidToParams[sphincsPlus_haraka_192s_robust] = SphincsPlusParameters.haraka_192s;
+            OidToParams[sphincsPlus_haraka_256s_simple] = SphincsPlusParameters.haraka_256s_simple;
+            OidToParams[sphincsPlus_haraka_256s_robust] = SphincsPlusParameters.haraka_256s;
 
 
-            paramsToOid[SphincsPlusParameters.sha2_128f] = sphincsPlus_sha2_128f_robust;
-            paramsToOid[SphincsPlusParameters.sha2_128s] = sphincsPlus_sha2_128s_robust;
-            paramsToOid[SphincsPlusParameters.sha2_192f] = sphincsPlus_sha2_192f_robust;
-            paramsToOid[SphincsPlusParameters.sha2_192s] = sphincsPlus_sha2_192s_robust;
-            paramsToOid[SphincsPlusParameters.sha2_256f] = sphincsPlus_sha2_256f_robust;
-            paramsToOid[SphincsPlusParameters.sha2_256s] = sphincsPlus_sha2_256s_robust;
+            ParamsToOid[SphincsPlusParameters.sha2_128f] = sphincsPlus_sha2_128f_robust;
+            ParamsToOid[SphincsPlusParameters.sha2_128s] = sphincsPlus_sha2_128s_robust;
+            ParamsToOid[SphincsPlusParameters.sha2_192f] = sphincsPlus_sha2_192f_robust;
+            ParamsToOid[SphincsPlusParameters.sha2_192s] = sphincsPlus_sha2_192s_robust;
+            ParamsToOid[SphincsPlusParameters.sha2_256f] = sphincsPlus_sha2_256f_robust;
+            ParamsToOid[SphincsPlusParameters.sha2_256s] = sphincsPlus_sha2_256s_robust;
 
-            paramsToOid[SphincsPlusParameters.sha2_128f_simple] = sphincsPlus_sha2_128f_simple;
-            paramsToOid[SphincsPlusParameters.sha2_128s_simple] = sphincsPlus_sha2_128s_simple;
-            paramsToOid[SphincsPlusParameters.sha2_192f_simple] = sphincsPlus_sha2_192f_simple;
-            paramsToOid[SphincsPlusParameters.sha2_192s_simple] = sphincsPlus_sha2_192s_simple;
-            paramsToOid[SphincsPlusParameters.sha2_256f_simple] = sphincsPlus_sha2_256f_simple;
-            paramsToOid[SphincsPlusParameters.sha2_256s_simple] = sphincsPlus_sha2_256s_simple;
+            ParamsToOid[SphincsPlusParameters.sha2_128f_simple] = sphincsPlus_sha2_128f_simple;
+            ParamsToOid[SphincsPlusParameters.sha2_128s_simple] = sphincsPlus_sha2_128s_simple;
+            ParamsToOid[SphincsPlusParameters.sha2_192f_simple] = sphincsPlus_sha2_192f_simple;
+            ParamsToOid[SphincsPlusParameters.sha2_192s_simple] = sphincsPlus_sha2_192s_simple;
+            ParamsToOid[SphincsPlusParameters.sha2_256f_simple] = sphincsPlus_sha2_256f_simple;
+            ParamsToOid[SphincsPlusParameters.sha2_256s_simple] = sphincsPlus_sha2_256s_simple;
 
-            paramsToOid[SphincsPlusParameters.shake_128f] = sphincsPlus_shake_128f_robust;
-            paramsToOid[SphincsPlusParameters.shake_128s] = sphincsPlus_shake_128s_robust;
-            paramsToOid[SphincsPlusParameters.shake_192f] = sphincsPlus_shake_192f_robust;
-            paramsToOid[SphincsPlusParameters.shake_192s] = sphincsPlus_shake_192s_robust;
-            paramsToOid[SphincsPlusParameters.shake_256f] = sphincsPlus_shake_256f_robust;
-            paramsToOid[SphincsPlusParameters.shake_256s] = sphincsPlus_shake_256s_robust;
+            ParamsToOid[SphincsPlusParameters.shake_128f] = sphincsPlus_shake_128f_robust;
+            ParamsToOid[SphincsPlusParameters.shake_128s] = sphincsPlus_shake_128s_robust;
+            ParamsToOid[SphincsPlusParameters.shake_192f] = sphincsPlus_shake_192f_robust;
+            ParamsToOid[SphincsPlusParameters.shake_192s] = sphincsPlus_shake_192s_robust;
+            ParamsToOid[SphincsPlusParameters.shake_256f] = sphincsPlus_shake_256f_robust;
+            ParamsToOid[SphincsPlusParameters.shake_256s] = sphincsPlus_shake_256s_robust;
 
-            paramsToOid[SphincsPlusParameters.shake_128f_simple] = sphincsPlus_shake_128f_simple;
-            paramsToOid[SphincsPlusParameters.shake_128s_simple] = sphincsPlus_shake_128s_simple;
-            paramsToOid[SphincsPlusParameters.shake_192f_simple] = sphincsPlus_shake_192f_simple;
-            paramsToOid[SphincsPlusParameters.shake_192s_simple] = sphincsPlus_shake_192s_simple;
-            paramsToOid[SphincsPlusParameters.shake_256f_simple] = sphincsPlus_shake_256f_simple;
-            paramsToOid[SphincsPlusParameters.shake_256s_simple] = sphincsPlus_shake_256s_simple;
+            ParamsToOid[SphincsPlusParameters.shake_128f_simple] = sphincsPlus_shake_128f_simple;
+            ParamsToOid[SphincsPlusParameters.shake_128s_simple] = sphincsPlus_shake_128s_simple;
+            ParamsToOid[SphincsPlusParameters.shake_192f_simple] = sphincsPlus_shake_192f_simple;
+            ParamsToOid[SphincsPlusParameters.shake_192s_simple] = sphincsPlus_shake_192s_simple;
+            ParamsToOid[SphincsPlusParameters.shake_256f_simple] = sphincsPlus_shake_256f_simple;
+            ParamsToOid[SphincsPlusParameters.shake_256s_simple] = sphincsPlus_shake_256s_simple;
 
-            paramsToOid[SphincsPlusParameters.haraka_128f_simple] = sphincsPlus_haraka_128f_simple;
-            paramsToOid[SphincsPlusParameters.haraka_192f_simple] = sphincsPlus_haraka_192f_simple;
-            paramsToOid[SphincsPlusParameters.haraka_256f_simple] = sphincsPlus_haraka_256f_simple;
-            paramsToOid[SphincsPlusParameters.haraka_128s_simple] = sphincsPlus_haraka_128s_simple;
-            paramsToOid[SphincsPlusParameters.haraka_192s_simple] = sphincsPlus_haraka_192s_simple;
-            paramsToOid[SphincsPlusParameters.haraka_256s_simple] = sphincsPlus_haraka_256s_simple;
-            paramsToOid[SphincsPlusParameters.haraka_128f] = sphincsPlus_haraka_128f_robust;
-            paramsToOid[SphincsPlusParameters.haraka_192f] = sphincsPlus_haraka_192f_robust;
-            paramsToOid[SphincsPlusParameters.haraka_256f] = sphincsPlus_haraka_256f_robust;
-            paramsToOid[SphincsPlusParameters.haraka_128s] = sphincsPlus_haraka_128s_robust;
-            paramsToOid[SphincsPlusParameters.haraka_192s] = sphincsPlus_haraka_192s_robust;
-            paramsToOid[SphincsPlusParameters.haraka_256s] = sphincsPlus_haraka_256s_robust;
+            ParamsToOid[SphincsPlusParameters.haraka_128f_simple] = sphincsPlus_haraka_128f_simple;
+            ParamsToOid[SphincsPlusParameters.haraka_192f_simple] = sphincsPlus_haraka_192f_simple;
+            ParamsToOid[SphincsPlusParameters.haraka_256f_simple] = sphincsPlus_haraka_256f_simple;
+            ParamsToOid[SphincsPlusParameters.haraka_128s_simple] = sphincsPlus_haraka_128s_simple;
+            ParamsToOid[SphincsPlusParameters.haraka_192s_simple] = sphincsPlus_haraka_192s_simple;
+            ParamsToOid[SphincsPlusParameters.haraka_256s_simple] = sphincsPlus_haraka_256s_simple;
+            ParamsToOid[SphincsPlusParameters.haraka_128f] = sphincsPlus_haraka_128f_robust;
+            ParamsToOid[SphincsPlusParameters.haraka_192f] = sphincsPlus_haraka_192f_robust;
+            ParamsToOid[SphincsPlusParameters.haraka_256f] = sphincsPlus_haraka_256f_robust;
+            ParamsToOid[SphincsPlusParameters.haraka_128s] = sphincsPlus_haraka_128s_robust;
+            ParamsToOid[SphincsPlusParameters.haraka_192s] = sphincsPlus_haraka_192s_robust;
+            ParamsToOid[SphincsPlusParameters.haraka_256s] = sphincsPlus_haraka_256s_robust;
         }
 
         private readonly string m_name;
@@ -268,7 +271,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          */
         public static SphincsPlusParameters GetParams(int id)
         {
-            return oidToParams[Convert.ToUInt32(id)];
+            return CollectionUtilities.GetValueOrNull(OidToParams, Convert.ToUInt32(id));
         }
 
         /**
@@ -279,7 +282,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          */
         public static int GetID(SphincsPlusParameters parameters)
         {
-            return Convert.ToInt32(paramsToOid[parameters]);
+            if (ParamsToOid.TryGetValue(parameters, out uint value))
+                return Convert.ToInt32(value);
+
+            return -1;
         }
 
         public byte[] GetEncoded()
