@@ -15,253 +15,153 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
     public sealed class SphincsPlusParameters
     {
-        public static SphincsPlusParameters sha2_128f = new SphincsPlusParameters("sha2-128f-robust",
-            new Sha2EngineProvider(true, 16, 16, 22, 6, 33, 66));
+        // SHA-2
 
-        public static SphincsPlusParameters sha2_128s = new SphincsPlusParameters("sha2-128s-robust",
-            new Sha2EngineProvider(true, 16, 16, 7, 12, 14, 63));
+        public static readonly SphincsPlusParameters sha2_128f = new SphincsPlusParameters(
+            0x010101, "sha2-128f-robust", new Sha2EngineProvider(true, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters sha2_128s = new SphincsPlusParameters(
+            0x010102, "sha2-128s-robust", new Sha2EngineProvider(true, 16, 16, 7, 12, 14, 63));
 
-        public static SphincsPlusParameters sha2_192f = new SphincsPlusParameters("sha2-192f-robust",
-            new Sha2EngineProvider(true, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters sha2_192f = new SphincsPlusParameters(
+            0x010103, "sha2-192f-robust", new Sha2EngineProvider(true, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters sha2_192s = new SphincsPlusParameters(
+            0x010104, "sha2-192s-robust", new Sha2EngineProvider(true, 24, 16, 7, 14, 17, 63));
 
-        public static SphincsPlusParameters sha2_192s = new SphincsPlusParameters("sha2-192s-robust",
-            new Sha2EngineProvider(true, 24, 16, 7, 14, 17, 63));
+        public static readonly SphincsPlusParameters sha2_256f = new SphincsPlusParameters(
+            0x010105, "sha2-256f-robust", new Sha2EngineProvider(true, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters sha2_256s = new SphincsPlusParameters(
+            0x010106, "sha2-256s-robust", new Sha2EngineProvider(true, 32, 16, 8, 14, 22, 64));
 
-        public static SphincsPlusParameters sha2_256f = new SphincsPlusParameters("sha2-256f-robust",
-            new Sha2EngineProvider(true, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters sha2_128f_simple = new SphincsPlusParameters(
+            0x010201, "sha2-128f-simple", new Sha2EngineProvider(false, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters sha2_128s_simple = new SphincsPlusParameters(
+            0x010202, "sha2-128s-simple", new Sha2EngineProvider(false, 16, 16, 7, 12, 14, 63));
 
-        public static SphincsPlusParameters sha2_256s = new SphincsPlusParameters("sha2-256s-robust",
-            new Sha2EngineProvider(true, 32, 16, 8, 14, 22, 64));
+        public static readonly SphincsPlusParameters sha2_192f_simple = new SphincsPlusParameters(
+            0x010203, "sha2-192f-simple", new Sha2EngineProvider(false, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters sha2_192s_simple = new SphincsPlusParameters(
+            0x010204, "sha2-192s-simple", new Sha2EngineProvider(false, 24, 16, 7, 14, 17, 63));
 
-        public static SphincsPlusParameters sha2_128f_simple = new SphincsPlusParameters("sha2-128f-simple",
-            new Sha2EngineProvider(false, 16, 16, 22, 6, 33, 66));
-
-        public static SphincsPlusParameters sha2_128s_simple = new SphincsPlusParameters("sha2-128s-simple",
-            new Sha2EngineProvider(false, 16, 16, 7, 12, 14, 63));
-
-        public static SphincsPlusParameters sha2_192f_simple = new SphincsPlusParameters("sha2-192f-simple",
-            new Sha2EngineProvider(false, 24, 16, 22, 8, 33, 66));
-
-        public static SphincsPlusParameters sha2_192s_simple = new SphincsPlusParameters("sha2-192s-simple",
-            new Sha2EngineProvider(false, 24, 16, 7, 14, 17, 63));
-
-        public static SphincsPlusParameters sha2_256f_simple = new SphincsPlusParameters("sha2-256f-simple",
-            new Sha2EngineProvider(false, 32, 16, 17, 9, 35, 68));
-
-        public static SphincsPlusParameters sha2_256s_simple = new SphincsPlusParameters("sha2-256s-simple",
-            new Sha2EngineProvider(false, 32, 16, 8, 14, 22, 64));
+        public static readonly SphincsPlusParameters sha2_256f_simple = new SphincsPlusParameters(
+            0x010205, "sha2-256f-simple", new Sha2EngineProvider(false, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters sha2_256s_simple = new SphincsPlusParameters(
+            0x010206, "sha2-256s-simple", new Sha2EngineProvider(false, 32, 16, 8, 14, 22, 64));
 
         // SHAKE-256.
 
-        public static SphincsPlusParameters shake_128f = new SphincsPlusParameters("shake-128f-robust",
-            new Shake256EngineProvider(true, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters shake_128f = new SphincsPlusParameters(
+            0x020101, "shake-128f-robust", new Shake256EngineProvider(true, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters shake_128s = new SphincsPlusParameters(
+            0x020102, "shake-128s-robust", new Shake256EngineProvider(true, 16, 16, 7, 12, 14, 63));
 
-        public static SphincsPlusParameters shake_128s = new SphincsPlusParameters("shake-128s-robust",
-            new Shake256EngineProvider(true, 16, 16, 7, 12, 14, 63));
+        public static readonly SphincsPlusParameters shake_192f = new SphincsPlusParameters(
+            0x020103, "shake-192f-robust", new Shake256EngineProvider(true, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters shake_192s = new SphincsPlusParameters(
+            0x020104, "shake-192s-robust", new Shake256EngineProvider(true, 24, 16, 7, 14, 17, 63));
 
-        public static SphincsPlusParameters shake_192f = new SphincsPlusParameters("shake-192f-robust",
-            new Shake256EngineProvider(true, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters shake_256f = new SphincsPlusParameters(
+            0x020105, "shake-256f-robust", new Shake256EngineProvider(true, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters shake_256s = new SphincsPlusParameters(
+            0x020106, "shake-256s-robust", new Shake256EngineProvider(true, 32, 16, 8, 14, 22, 64));
 
-        public static SphincsPlusParameters shake_192s = new SphincsPlusParameters("shake-192s-robust",
-            new Shake256EngineProvider(true, 24, 16, 7, 14, 17, 63));
+        public static readonly SphincsPlusParameters shake_128f_simple = new SphincsPlusParameters(
+            0x020201, "shake-128f-simple", new Shake256EngineProvider(false, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters shake_128s_simple = new SphincsPlusParameters(
+            0x020202, "shake-128s-simple", new Shake256EngineProvider(false, 16, 16, 7, 12, 14, 63));
 
-        public static SphincsPlusParameters shake_256f = new SphincsPlusParameters("shake-256f-robust",
-            new Shake256EngineProvider(true, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters shake_192f_simple = new SphincsPlusParameters(
+            0x020203, "shake-192f-simple", new Shake256EngineProvider(false, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters shake_192s_simple = new SphincsPlusParameters(
+            0x020204, "shake-192s-simple", new Shake256EngineProvider(false, 24, 16, 7, 14, 17, 63));
 
-        public static SphincsPlusParameters shake_256s = new SphincsPlusParameters("shake-256s-robust",
-            new Shake256EngineProvider(true, 32, 16, 8, 14, 22, 64));
-
-        public static SphincsPlusParameters shake_128f_simple = new SphincsPlusParameters("shake-128f-simple",
-            new Shake256EngineProvider(false, 16, 16, 22, 6, 33, 66));
-
-        public static SphincsPlusParameters shake_128s_simple = new SphincsPlusParameters("shake-128s-simple",
-            new Shake256EngineProvider(false, 16, 16, 7, 12, 14, 63));
-
-        public static SphincsPlusParameters shake_192f_simple = new SphincsPlusParameters("shake-192f-simple",
-            new Shake256EngineProvider(false, 24, 16, 22, 8, 33, 66));
-
-        public static SphincsPlusParameters shake_192s_simple = new SphincsPlusParameters("shake-192s-simple",
-            new Shake256EngineProvider(false, 24, 16, 7, 14, 17, 63));
-
-        public static SphincsPlusParameters shake_256f_simple = new SphincsPlusParameters("shake-256f-simple",
-            new Shake256EngineProvider(false, 32, 16, 17, 9, 35, 68));
-
-        public static SphincsPlusParameters shake_256s_simple = new SphincsPlusParameters("shake-256s-simple",
-            new Shake256EngineProvider(false, 32, 16, 8, 14, 22, 64));
+        public static readonly SphincsPlusParameters shake_256f_simple = new SphincsPlusParameters(
+            0x020205, "shake-256f-simple", new Shake256EngineProvider(false, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters shake_256s_simple = new SphincsPlusParameters(
+            0x020206, "shake-256s-simple", new Shake256EngineProvider(false, 32, 16, 8, 14, 22, 64));
 
         // Haraka.
 
-        public static SphincsPlusParameters haraka_128f = new SphincsPlusParameters("haraka-128f-robust", new Haraka256EngineProvider(true, 16, 16, 22, 6, 33, 66));
-        public static SphincsPlusParameters haraka_128s = new SphincsPlusParameters("haraka-128s-robust", new Haraka256EngineProvider(true, 16, 16, 7, 12, 14, 63));
+        public static readonly SphincsPlusParameters haraka_128f = new SphincsPlusParameters(
+            0x030101, "haraka-128f-robust", new HarakaSEngineProvider(true, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters haraka_128s = new SphincsPlusParameters(
+            0x030102, "haraka-128s-robust", new HarakaSEngineProvider(true, 16, 16, 7, 12, 14, 63));
 
-        public static SphincsPlusParameters haraka_256f = new SphincsPlusParameters("haraka-256f-robust", new Haraka256EngineProvider(true, 32, 16, 17, 9, 35, 68));
-        public static SphincsPlusParameters haraka_256s = new SphincsPlusParameters("haraka-256s-robust", new Haraka256EngineProvider(true, 32, 16, 8, 14, 22, 64));
+        public static readonly SphincsPlusParameters haraka_192f = new SphincsPlusParameters(
+            0x030103, "haraka-192f-robust", new HarakaSEngineProvider(true, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters haraka_192s = new SphincsPlusParameters(
+            0x030104, "haraka-192s-robust", new HarakaSEngineProvider(true, 24, 16, 7, 14, 17, 63));
 
-        public static SphincsPlusParameters haraka_192f = new SphincsPlusParameters("haraka-192f-robust", new Haraka256EngineProvider(true, 24, 16, 22, 8, 33, 66));
-        public static SphincsPlusParameters haraka_192s = new SphincsPlusParameters("haraka-192s-robust", new Haraka256EngineProvider(true, 24, 16, 7, 14, 17, 63));
+        public static readonly SphincsPlusParameters haraka_256f = new SphincsPlusParameters(
+            0x030105, "haraka-256f-robust", new HarakaSEngineProvider(true, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters haraka_256s = new SphincsPlusParameters(
+            0x030106, "haraka-256s-robust", new HarakaSEngineProvider(true, 32, 16, 8, 14, 22, 64));
 
-        public static SphincsPlusParameters haraka_128f_simple = new SphincsPlusParameters("haraka-128f-simple", new Haraka256EngineProvider(false, 16, 16, 22, 6, 33, 66));
-        public static SphincsPlusParameters haraka_128s_simple = new SphincsPlusParameters("haraka-128s-simple", new Haraka256EngineProvider(false, 16, 16, 7, 12, 14, 63));
+        public static readonly SphincsPlusParameters haraka_128f_simple = new SphincsPlusParameters(
+            0x030201, "haraka-128f-simple", new HarakaSEngineProvider(false, 16, 16, 22, 6, 33, 66));
+        public static readonly SphincsPlusParameters haraka_128s_simple = new SphincsPlusParameters(
+            0x030202, "haraka-128s-simple", new HarakaSEngineProvider(false, 16, 16, 7, 12, 14, 63));
 
-        public static SphincsPlusParameters haraka_192f_simple = new SphincsPlusParameters("haraka-192f-simple", new Haraka256EngineProvider(false, 24, 16, 22, 8, 33, 66));
-        public static SphincsPlusParameters haraka_192s_simple = new SphincsPlusParameters("haraka-192s-simple", new Haraka256EngineProvider(false, 24, 16, 7, 14, 17, 63));
+        public static readonly SphincsPlusParameters haraka_192f_simple = new SphincsPlusParameters(
+            0x030203, "haraka-192f-simple", new HarakaSEngineProvider(false, 24, 16, 22, 8, 33, 66));
+        public static readonly SphincsPlusParameters haraka_192s_simple = new SphincsPlusParameters(
+            0x030204, "haraka-192s-simple", new HarakaSEngineProvider(false, 24, 16, 7, 14, 17, 63));
 
-        public static SphincsPlusParameters haraka_256f_simple = new SphincsPlusParameters("haraka-256f-simple", new Haraka256EngineProvider(false, 32, 16, 17, 9, 35, 68));
-        public static SphincsPlusParameters haraka_256s_simple = new SphincsPlusParameters("haraka-256s-simple", new Haraka256EngineProvider(false, 32, 16, 8, 14, 22, 64));
+        public static readonly SphincsPlusParameters haraka_256f_simple = new SphincsPlusParameters(
+            0x030205, "haraka-256f-simple", new HarakaSEngineProvider(false, 32, 16, 17, 9, 35, 68));
+        public static readonly SphincsPlusParameters haraka_256s_simple = new SphincsPlusParameters(
+            0x030206, "haraka-256s-simple", new HarakaSEngineProvider(false, 32, 16, 8, 14, 22, 64));
 
-
-        private static uint sphincsPlus_sha2_128f_robust = 0x010101;
-        private static uint sphincsPlus_sha2_128s_robust = 0x010102;
-        private static uint sphincsPlus_sha2_192f_robust = 0x010103;
-        private static uint sphincsPlus_sha2_192s_robust = 0x010104;
-        private static uint sphincsPlus_sha2_256f_robust = 0x010105;
-        private static uint sphincsPlus_sha2_256s_robust = 0x010106;
-
-        private static uint sphincsPlus_sha2_128f_simple = 0x010201;
-        private static uint sphincsPlus_sha2_128s_simple = 0x010202;
-        private static uint sphincsPlus_sha2_192f_simple = 0x010203;
-        private static uint sphincsPlus_sha2_192s_simple = 0x010204;
-        private static uint sphincsPlus_sha2_256f_simple = 0x010205;
-        private static uint sphincsPlus_sha2_256s_simple = 0x010206;
-
-        private static uint sphincsPlus_shake_128f_robust = 0x020101;
-        private static uint sphincsPlus_shake_128s_robust = 0x020102;
-        private static uint sphincsPlus_shake_192f_robust = 0x020103;
-        private static uint sphincsPlus_shake_192s_robust = 0x020104;
-        private static uint sphincsPlus_shake_256f_robust = 0x020105;
-        private static uint sphincsPlus_shake_256s_robust = 0x020106;
-
-        private static uint sphincsPlus_shake_128f_simple = 0x020201;
-        private static uint sphincsPlus_shake_128s_simple = 0x020202;
-        private static uint sphincsPlus_shake_192f_simple = 0x020203;
-        private static uint sphincsPlus_shake_192s_simple = 0x020204;
-        private static uint sphincsPlus_shake_256f_simple = 0x020205;
-        private static uint sphincsPlus_shake_256s_simple = 0x020206;
-
-        private static uint sphincsPlus_haraka_128f_robust = 0x030101;
-        private static uint sphincsPlus_haraka_128s_robust = 0x030102;
-        private static uint sphincsPlus_haraka_192f_robust = 0x030103;
-        private static uint sphincsPlus_haraka_192s_robust = 0x030104;
-        private static uint sphincsPlus_haraka_256f_robust = 0x030105;
-        private static uint sphincsPlus_haraka_256s_robust = 0x030106;
-
-        private static uint sphincsPlus_haraka_128f_simple = 0x030201;
-        private static uint sphincsPlus_haraka_128s_simple = 0x030202;
-        private static uint sphincsPlus_haraka_192f_simple = 0x030203;
-        private static uint sphincsPlus_haraka_192s_simple = 0x030204;
-        private static uint sphincsPlus_haraka_256f_simple = 0x030205;
-        private static uint sphincsPlus_haraka_256s_simple = 0x030206;
-
-
-        private static readonly Dictionary<uint, SphincsPlusParameters> OidToParams =
-            new Dictionary<uint, SphincsPlusParameters>();
-        private static readonly Dictionary<SphincsPlusParameters, uint> ParamsToOid =
-            new Dictionary<SphincsPlusParameters, uint>();
+        private static readonly Dictionary<int, SphincsPlusParameters> IdToParams =
+            new Dictionary<int, SphincsPlusParameters>();
 
         static SphincsPlusParameters()
         {
-            OidToParams[sphincsPlus_sha2_128f_robust] = SphincsPlusParameters.sha2_128f;
-            OidToParams[sphincsPlus_sha2_128s_robust] = SphincsPlusParameters.sha2_128s;
-            OidToParams[sphincsPlus_sha2_192f_robust] = SphincsPlusParameters.sha2_192f;
-            OidToParams[sphincsPlus_sha2_192s_robust] = SphincsPlusParameters.sha2_192s;
-            OidToParams[sphincsPlus_sha2_256f_robust] = SphincsPlusParameters.sha2_256f;
-            OidToParams[sphincsPlus_sha2_256s_robust] = SphincsPlusParameters.sha2_256s;
+            SphincsPlusParameters[] all = new SphincsPlusParameters[]{
+                SphincsPlusParameters.sha2_128f, SphincsPlusParameters.sha2_128s,
+                SphincsPlusParameters.sha2_192f, SphincsPlusParameters.sha2_192s,
+                SphincsPlusParameters.sha2_256f, SphincsPlusParameters.sha2_256s,
+                SphincsPlusParameters.sha2_128f_simple, SphincsPlusParameters.sha2_128s_simple,
+                SphincsPlusParameters.sha2_192f_simple, SphincsPlusParameters.sha2_192s_simple,
+                SphincsPlusParameters.sha2_256f_simple, SphincsPlusParameters.sha2_256s_simple,
+                SphincsPlusParameters.shake_128f, SphincsPlusParameters.shake_128s,
+                SphincsPlusParameters.shake_192f, SphincsPlusParameters.shake_192s,
+                SphincsPlusParameters.shake_256f, SphincsPlusParameters.shake_256s,
+                SphincsPlusParameters.shake_128f_simple, SphincsPlusParameters.shake_128s_simple,
+                SphincsPlusParameters.shake_192f_simple, SphincsPlusParameters.shake_192s_simple,
+                SphincsPlusParameters.shake_256f_simple, SphincsPlusParameters.shake_256s_simple,
+                SphincsPlusParameters.haraka_128f, SphincsPlusParameters.haraka_128s,
+                SphincsPlusParameters.haraka_192f, SphincsPlusParameters.haraka_192s,
+                SphincsPlusParameters.haraka_256f, SphincsPlusParameters.haraka_256s,
+                SphincsPlusParameters.haraka_128f_simple, SphincsPlusParameters.haraka_128s_simple,
+                SphincsPlusParameters.haraka_192f_simple, SphincsPlusParameters.haraka_192s_simple,
+                SphincsPlusParameters.haraka_256f_simple, SphincsPlusParameters.haraka_256s_simple,
+            };
 
-            OidToParams[sphincsPlus_sha2_128f_simple] = SphincsPlusParameters.sha2_128f_simple;
-            OidToParams[sphincsPlus_sha2_128s_simple] = SphincsPlusParameters.sha2_128s_simple;
-            OidToParams[sphincsPlus_sha2_192f_simple] = SphincsPlusParameters.sha2_192f_simple;
-            OidToParams[sphincsPlus_sha2_192s_simple] = SphincsPlusParameters.sha2_192s_simple;
-            OidToParams[sphincsPlus_sha2_256f_simple] = SphincsPlusParameters.sha2_256f_simple;
-            OidToParams[sphincsPlus_sha2_256s_simple] = SphincsPlusParameters.sha2_256s_simple;
-
-            OidToParams[sphincsPlus_shake_128f_robust] = SphincsPlusParameters.shake_128f;
-            OidToParams[sphincsPlus_shake_128s_robust] = SphincsPlusParameters.shake_128s;
-            OidToParams[sphincsPlus_shake_192f_robust] = SphincsPlusParameters.shake_192f;
-            OidToParams[sphincsPlus_shake_192s_robust] = SphincsPlusParameters.shake_192s;
-            OidToParams[sphincsPlus_shake_256f_robust] = SphincsPlusParameters.shake_256f;
-            OidToParams[sphincsPlus_shake_256s_robust] = SphincsPlusParameters.shake_256s;
-
-            OidToParams[sphincsPlus_shake_128f_simple] = SphincsPlusParameters.shake_128f_simple;
-            OidToParams[sphincsPlus_shake_128s_simple] = SphincsPlusParameters.shake_128s_simple;
-            OidToParams[sphincsPlus_shake_192f_simple] = SphincsPlusParameters.shake_192f_simple;
-            OidToParams[sphincsPlus_shake_192s_simple] = SphincsPlusParameters.shake_192s_simple;
-            OidToParams[sphincsPlus_shake_256f_simple] = SphincsPlusParameters.shake_256f_simple;
-            OidToParams[sphincsPlus_shake_256s_simple] = SphincsPlusParameters.shake_256s_simple;
-
-            OidToParams[sphincsPlus_haraka_128f_simple] = SphincsPlusParameters.haraka_128f_simple;
-            OidToParams[sphincsPlus_haraka_128f_robust] = SphincsPlusParameters.haraka_128f;
-            OidToParams[sphincsPlus_haraka_192f_simple] = SphincsPlusParameters.haraka_192f_simple;
-            OidToParams[sphincsPlus_haraka_192f_robust] = SphincsPlusParameters.haraka_192f;
-            OidToParams[sphincsPlus_haraka_256f_simple] = SphincsPlusParameters.haraka_256f_simple;
-            OidToParams[sphincsPlus_haraka_256f_robust] = SphincsPlusParameters.haraka_256f;
-
-            OidToParams[sphincsPlus_haraka_128s_simple] = SphincsPlusParameters.haraka_128s_simple;
-            OidToParams[sphincsPlus_haraka_128s_robust] = SphincsPlusParameters.haraka_128s;
-            OidToParams[sphincsPlus_haraka_192s_simple] = SphincsPlusParameters.haraka_192s_simple;
-            OidToParams[sphincsPlus_haraka_192s_robust] = SphincsPlusParameters.haraka_192s;
-            OidToParams[sphincsPlus_haraka_256s_simple] = SphincsPlusParameters.haraka_256s_simple;
-            OidToParams[sphincsPlus_haraka_256s_robust] = SphincsPlusParameters.haraka_256s;
-
-
-            ParamsToOid[SphincsPlusParameters.sha2_128f] = sphincsPlus_sha2_128f_robust;
-            ParamsToOid[SphincsPlusParameters.sha2_128s] = sphincsPlus_sha2_128s_robust;
-            ParamsToOid[SphincsPlusParameters.sha2_192f] = sphincsPlus_sha2_192f_robust;
-            ParamsToOid[SphincsPlusParameters.sha2_192s] = sphincsPlus_sha2_192s_robust;
-            ParamsToOid[SphincsPlusParameters.sha2_256f] = sphincsPlus_sha2_256f_robust;
-            ParamsToOid[SphincsPlusParameters.sha2_256s] = sphincsPlus_sha2_256s_robust;
-
-            ParamsToOid[SphincsPlusParameters.sha2_128f_simple] = sphincsPlus_sha2_128f_simple;
-            ParamsToOid[SphincsPlusParameters.sha2_128s_simple] = sphincsPlus_sha2_128s_simple;
-            ParamsToOid[SphincsPlusParameters.sha2_192f_simple] = sphincsPlus_sha2_192f_simple;
-            ParamsToOid[SphincsPlusParameters.sha2_192s_simple] = sphincsPlus_sha2_192s_simple;
-            ParamsToOid[SphincsPlusParameters.sha2_256f_simple] = sphincsPlus_sha2_256f_simple;
-            ParamsToOid[SphincsPlusParameters.sha2_256s_simple] = sphincsPlus_sha2_256s_simple;
-
-            ParamsToOid[SphincsPlusParameters.shake_128f] = sphincsPlus_shake_128f_robust;
-            ParamsToOid[SphincsPlusParameters.shake_128s] = sphincsPlus_shake_128s_robust;
-            ParamsToOid[SphincsPlusParameters.shake_192f] = sphincsPlus_shake_192f_robust;
-            ParamsToOid[SphincsPlusParameters.shake_192s] = sphincsPlus_shake_192s_robust;
-            ParamsToOid[SphincsPlusParameters.shake_256f] = sphincsPlus_shake_256f_robust;
-            ParamsToOid[SphincsPlusParameters.shake_256s] = sphincsPlus_shake_256s_robust;
-
-            ParamsToOid[SphincsPlusParameters.shake_128f_simple] = sphincsPlus_shake_128f_simple;
-            ParamsToOid[SphincsPlusParameters.shake_128s_simple] = sphincsPlus_shake_128s_simple;
-            ParamsToOid[SphincsPlusParameters.shake_192f_simple] = sphincsPlus_shake_192f_simple;
-            ParamsToOid[SphincsPlusParameters.shake_192s_simple] = sphincsPlus_shake_192s_simple;
-            ParamsToOid[SphincsPlusParameters.shake_256f_simple] = sphincsPlus_shake_256f_simple;
-            ParamsToOid[SphincsPlusParameters.shake_256s_simple] = sphincsPlus_shake_256s_simple;
-
-            ParamsToOid[SphincsPlusParameters.haraka_128f_simple] = sphincsPlus_haraka_128f_simple;
-            ParamsToOid[SphincsPlusParameters.haraka_192f_simple] = sphincsPlus_haraka_192f_simple;
-            ParamsToOid[SphincsPlusParameters.haraka_256f_simple] = sphincsPlus_haraka_256f_simple;
-            ParamsToOid[SphincsPlusParameters.haraka_128s_simple] = sphincsPlus_haraka_128s_simple;
-            ParamsToOid[SphincsPlusParameters.haraka_192s_simple] = sphincsPlus_haraka_192s_simple;
-            ParamsToOid[SphincsPlusParameters.haraka_256s_simple] = sphincsPlus_haraka_256s_simple;
-            ParamsToOid[SphincsPlusParameters.haraka_128f] = sphincsPlus_haraka_128f_robust;
-            ParamsToOid[SphincsPlusParameters.haraka_192f] = sphincsPlus_haraka_192f_robust;
-            ParamsToOid[SphincsPlusParameters.haraka_256f] = sphincsPlus_haraka_256f_robust;
-            ParamsToOid[SphincsPlusParameters.haraka_128s] = sphincsPlus_haraka_128s_robust;
-            ParamsToOid[SphincsPlusParameters.haraka_192s] = sphincsPlus_haraka_192s_robust;
-            ParamsToOid[SphincsPlusParameters.haraka_256s] = sphincsPlus_haraka_256s_robust;
+            for (int i = 0; i < all.Length; ++i)
+            {
+                SphincsPlusParameters parameters = all[i];
+                IdToParams.Add(parameters.ID, parameters);
+            }
         }
 
+        private readonly int m_id;
         private readonly string m_name;
         private readonly ISphincsPlusEngineProvider m_engineProvider;
 
-        private SphincsPlusParameters(string name, ISphincsPlusEngineProvider engineProvider)
+        private SphincsPlusParameters(int id, string name, ISphincsPlusEngineProvider engineProvider)
         {
+            m_id = id;
             m_name = name;
             m_engineProvider = engineProvider;
         }
+
+        public int ID => m_id;
 
         public string Name => m_name;
 
         internal int N => m_engineProvider.N;
 
-        internal SphincsPlusEngine GetEngine()
-        {
-            return m_engineProvider.Get();
-        }
+        internal SphincsPlusEngine GetEngine() => m_engineProvider.Get();
 
         /**
          * Return the SPHINCS+ parameters that map to the passed in parameter ID.
@@ -269,10 +169,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          * @param id the oid of interest.
          * @return the parameter set.
          */
-        public static SphincsPlusParameters GetParams(int id)
-        {
-            return CollectionUtilities.GetValueOrNull(OidToParams, Convert.ToUInt32(id));
-        }
+        public static SphincsPlusParameters GetParams(int id) => CollectionUtilities.GetValueOrNull(IdToParams, id);
 
         /**
          * Return the OID that maps to the passed in SPHINCS+ parameters.
@@ -280,18 +177,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          * @param params the parameters of interest.
          * @return the OID for the parameter set.
          */
-        public static int GetID(SphincsPlusParameters parameters)
-        {
-            if (ParamsToOid.TryGetValue(parameters, out uint value))
-                return Convert.ToInt32(value);
+        [Obsolete("Use 'ID' property instead")]
+        public static int GetID(SphincsPlusParameters parameters) => parameters.ID;
 
-            return -1;
-        }
-
-        public byte[] GetEncoded()
-        {
-            return Pack.UInt32_To_BE((uint)GetID(this));
-        }
+        public byte[] GetEncoded() => Pack.UInt32_To_BE((uint)ID);
     }
 
     internal sealed class Sha2EngineProvider
@@ -354,7 +243,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
     }
 
-    internal sealed class Haraka256EngineProvider
+    internal sealed class HarakaSEngineProvider
         : ISphincsPlusEngineProvider
     {
         private readonly bool robust;
@@ -365,7 +254,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         private readonly int k;
         private readonly uint h;
 
-        public Haraka256EngineProvider(bool robust, int n, uint w, uint d, int a, int k, uint h)
+        public HarakaSEngineProvider(bool robust, int n, uint w, uint d, int a, int k, uint h)
         {
             this.robust = robust;
             this.n = n;
