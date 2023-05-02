@@ -11,7 +11,7 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.X509.Store
 {
 	public class X509CrlStoreSelector
-		: ISelector<X509Crl>
+		: ISelector<X509Crl>, ICheckingCertificate
 	{
 		// TODO Missing criteria?
 
@@ -276,4 +276,9 @@ namespace Org.BouncyCastle.X509.Store
 			return true;
 		}
 	}
+
+    public interface ICheckingCertificate
+    {
+        X509Certificate CertificateChecking { get; }
+    }
 }

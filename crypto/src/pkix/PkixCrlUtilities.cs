@@ -7,10 +7,15 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
-	public class PkixCrlUtilities
+    public class PkixCrlUtilities
 	{
-        // TODO bc-fips-csharp implements this for ISelector<X509Crl>, using optional ICheckingCertificate
-        public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
+		// TODO[api] Redundant
+		public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
+		{
+            return FindCrls((ISelector<X509Crl>)crlSelector, paramsPkix);
+        }
+
+        public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix)
         {
             // get complete CRL(s)
             try
@@ -23,8 +28,14 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        // TODO bc-fips-csharp implements this for ISelector<X509Crl>, using optional ICheckingCertificate
+        // TODO[api] Redundant
         public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
+			DateTime currentDate)
+		{
+            return FindCrls((ISelector<X509Crl>)crlSelector, paramsPkix, currentDate);
+        }
+
+        public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
 			DateTime currentDate)
 		{
             var initialSet = FindCrls(crlSelector, paramsPkix);
@@ -37,7 +48,11 @@ namespace Org.BouncyCastle.Pkix
 				validityDate = paramsPkix.Date.Value;
 			}
 
-            X509Certificate cert = crlSelector.CertificateChecking;
+            X509Certificate cert = null;
+            if (crlSelector is ICheckingCertificate checkingCertificate)
+            {
+                cert = checkingCertificate.CertificateChecking;
+            }
 
             // based on RFC 5280 6.3.3
             foreach (X509Crl crl in initialSet)
@@ -84,12 +99,12 @@ namespace Org.BouncyCastle.Pkix
 				}
 				catch (Exception e)
 				{
-					lastException = new Exception("Exception searching in X.509 CRL store.", e);
+					lastException = e;
 				}
 			}
 
 	        if (!foundValidStore && lastException != null)
-	            throw lastException;
+                throw new Exception("Exception searching in X.509 CRL store.", lastException);
 
 			return crls;
 		}
