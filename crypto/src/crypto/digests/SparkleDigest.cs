@@ -24,12 +24,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             ESCH384
         }
 
-        private const int RATE_BITS = 128;
         private const int RATE_BYTES = 16;
-        private const int RATE_UINTS = 4;
-
-        private static readonly uint[] RCON = { 0xB7E15162U, 0xBF715880U, 0x38B4DA56U, 0x324E7738U, 0xBB1185EBU,
-            0x4F7C7B57U, 0xCFBFA1C8U, 0xC2B3293DU };
+        private const int RATE_WORDS = 4;
 
         private string algorithmName;
         private readonly uint[] state;
@@ -37,7 +33,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private readonly int DIGEST_BYTES;
         private readonly int SPARKLE_STEPS_SLIM;
         private readonly int SPARKLE_STEPS_BIG;
-        private readonly int STATE_UINTS;
+        private readonly int STATE_WORDS;
 
         private int m_bufPos = 0;
 
@@ -50,20 +46,20 @@ namespace Org.BouncyCastle.Crypto.Digests
                 DIGEST_BYTES = 32;
                 SPARKLE_STEPS_SLIM = 7;
                 SPARKLE_STEPS_BIG = 11;
-                STATE_UINTS = 12;
+                STATE_WORDS = 12;
                 break;
             case SparkleParameters.ESCH384:
                 algorithmName = "ESCH-384";
                 DIGEST_BYTES = 48;
                 SPARKLE_STEPS_SLIM = 8;
                 SPARKLE_STEPS_BIG = 12;
-                STATE_UINTS = 16;
+                STATE_WORDS = 16;
                 break;
             default:
                 throw new ArgumentException("Invalid definition of ESCH instance");
             }
 
-            state = new uint[STATE_UINTS];
+            state = new uint[STATE_WORDS];
         }
 
         public string AlgorithmName => algorithmName;
@@ -165,7 +161,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             // addition of constant M1 or M2 to the state
             if (m_bufPos < RATE_BYTES)
             {
-                state[(STATE_UINTS >> 1) - 1] ^= 1U << 24;
+                state[(STATE_WORDS >> 1) - 1] ^= 1U << 24;
 
                 // padding
                 m_buf[m_bufPos] = 0x80;
@@ -176,25 +172,24 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             else
             {
-                state[(STATE_UINTS >> 1) - 1] ^= 1U << 25;
+                state[(STATE_WORDS >> 1) - 1] ^= 1U << 25;
             }
 
-            // addition of last msg block (incl. padding)
             ProcessBlock(m_buf, 0, SPARKLE_STEPS_BIG);
 
-            Pack.UInt32_To_LE(state, 0, RATE_UINTS, output, outOff);
+            Pack.UInt32_To_LE(state, 0, RATE_WORDS, output, outOff);
 
-            if (STATE_UINTS == 16)
+            if (STATE_WORDS == 16)
             {
                 SparkleEngine.SparkleOpt16(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state, 0, RATE_UINTS, output, outOff + 16);
+                Pack.UInt32_To_LE(state, 0, RATE_WORDS, output, outOff + 16);
                 SparkleEngine.SparkleOpt16(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state, 0, RATE_UINTS, output, outOff + 32);
+                Pack.UInt32_To_LE(state, 0, RATE_WORDS, output, outOff + 32);
             }
             else
             {
                 SparkleEngine.SparkleOpt12(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state, 0, RATE_UINTS, output, outOff + 16);
+                Pack.UInt32_To_LE(state, 0, RATE_WORDS, output, outOff + 16);
             }
 
             Reset();
@@ -208,7 +203,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             // addition of constant M1 or M2 to the state
             if (m_bufPos < RATE_BYTES)
             {
-                state[(STATE_UINTS >> 1) - 1] ^= 1U << 24;
+                state[(STATE_WORDS >> 1) - 1] ^= 1U << 24;
 
                 // padding
                 m_buf[m_bufPos] = 0x80;
@@ -219,25 +214,25 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             else
             {
-                state[(STATE_UINTS >> 1) - 1] ^= 1U << 25;
+                state[(STATE_WORDS >> 1) - 1] ^= 1U << 25;
             }
 
             // addition of last msg block (incl. padding)
             ProcessBlock(m_buf, SPARKLE_STEPS_BIG);
 
-            Pack.UInt32_To_LE(state[..RATE_UINTS], output);
+            Pack.UInt32_To_LE(state[..RATE_WORDS], output);
 
-            if (STATE_UINTS == 16)
+            if (STATE_WORDS == 16)
             {
                 SparkleEngine.SparkleOpt16(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state[..RATE_UINTS], output[16..]);
+                Pack.UInt32_To_LE(state[..RATE_WORDS], output[16..]);
                 SparkleEngine.SparkleOpt16(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state[..RATE_UINTS], output[32..]);
+                Pack.UInt32_To_LE(state[..RATE_WORDS], output[32..]);
             }
             else
             {
                 SparkleEngine.SparkleOpt12(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state[..RATE_UINTS], output[16..]);
+                Pack.UInt32_To_LE(state[..RATE_WORDS], output[16..]);
             }
 
             Reset();
@@ -280,7 +275,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             state[3] ^= t3 ^ tx;
             state[4] ^= ty;
             state[5] ^= tx;
-            if (STATE_UINTS == 16)
+            if (STATE_WORDS == 16)
             {
                 state[6] ^= ty;
                 state[7] ^= tx;

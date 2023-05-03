@@ -563,7 +563,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     uint s_j = state[j];
                     if (forEncryption)
                     {
-                        state[i] = s_j       ^ buffer[i] ^ state[RATE_WORDS + i];
+                        state[i] =       s_j ^ buffer[i] ^ state[RATE_WORDS + i];
                         state[j] = s_i ^ s_j ^ buffer[j] ^ state[RATE_WORDS + (j & CAP_MASK)];
                     }
                     else
@@ -817,7 +817,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 uint d_i = Pack.LE_To_UInt32(buffer, bufOff + (i * 4));
                 uint d_j = Pack.LE_To_UInt32(buffer, bufOff + (j * 4));
 
-                state[i] = s_j       ^ d_i ^ state[RATE_WORDS + i];
+                state[i] =       s_j ^ d_i ^ state[RATE_WORDS + i];
                 state[j] = s_i ^ s_j ^ d_j ^ state[RATE_WORDS + (j & CAP_MASK)];
             }
 
@@ -868,7 +868,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 uint d_i = Pack.LE_To_UInt32(buffer, bufOff + (i * 4));
                 uint d_j = Pack.LE_To_UInt32(buffer, bufOff + (j * 4));
 
-                state[i] = s_j       ^ d_i ^ state[RATE_WORDS + i];
+                state[i] =       s_j ^ d_i ^ state[RATE_WORDS + i];
                 state[j] = s_i ^ s_j ^ d_j ^ state[RATE_WORDS + (j & CAP_MASK)];
 
                 Pack.UInt32_To_LE(d_i ^ s_i, output, outOff + (i * 4));
@@ -883,26 +883,35 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void ProcessFinalAad()
         {
-            // Authentication of Last Block
-
-            // addition of ant A0 or A1 to the state
-            state[STATE_WORDS - 1] ^= (m_bufPos < RATE_BYTES) ? _A0 : _A1;
-
-            // Rho and rate-whitening for the authentication of the last associated-data block.
-            uint[] buffer = new uint[RATE_WORDS];
-            for (int i = 0; i < m_bufPos; ++i)
-            {
-                buffer[i >> 2] |= (uint)m_buf[i] << ((i & 3) << 3);
-            }
+            // addition of constant A0 or A1 to the state
             if (m_bufPos < RATE_BYTES)
-            {  // padding
-                buffer[m_bufPos >> 2] |= 0x80U << ((m_bufPos & 3) << 3);
-            }
-            for (int i = 0, j = RATE_WORDS / 2; i < RATE_WORDS / 2; i++, j++)
             {
-                uint tmp = state[i];
-                state[i] = state[j] ^ buffer[i] ^ state[RATE_WORDS + i];
-                state[j] ^= tmp ^ buffer[j] ^ state[RATE_WORDS + (j & CAP_MASK)];
+                state[STATE_WORDS - 1] ^= _A0;
+
+                // padding
+                m_buf[m_bufPos] = 0x80;
+                while (++m_bufPos < RATE_BYTES)
+                {
+                    m_buf[m_bufPos] = 0x00;
+                }
+            }
+            else
+            {
+                state[STATE_WORDS - 1] ^= _A1;
+            }
+
+            for (int i = 0; i < RATE_WORDS / 2; ++i)
+            {
+                int j = i + (RATE_WORDS / 2);
+
+                uint s_i = state[i];
+                uint s_j = state[j];
+
+                uint d_i = Pack.LE_To_UInt32(m_buf, i * 4);
+                uint d_j = Pack.LE_To_UInt32(m_buf, j * 4);
+
+                state[i] =       s_j ^ d_i ^ state[RATE_WORDS + i];
+                state[j] = s_i ^ s_j ^ d_j ^ state[RATE_WORDS + (j & CAP_MASK)];
             }
 
             SparkleOpt(state, SPARKLE_STEPS_BIG);
