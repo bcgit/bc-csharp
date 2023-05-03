@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Cms
             object obj)
         {
 			if (obj == this)
-				return false;
+				return true;
 
 			SignerID id = obj as SignerID;
 
