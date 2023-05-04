@@ -291,7 +291,7 @@ namespace Org.BouncyCastle.X509.Store
 		protected internal bool MatchesIssuer(X509CertStoreSelector other) => IssuersMatch(issuer, other.issuer);
 
 		protected internal bool MatchesSerialNumber(X509CertStoreSelector other) =>
-			Objects.Equals(serialNumber, other.SerialNumber);
+			Objects.Equals(serialNumber, other.serialNumber);
 
         protected internal bool MatchesSubjectKeyIdentifier(X509CertStoreSelector other) =>
 			Arrays.AreEqual(subjectKeyIdentifier, other.subjectKeyIdentifier);
