@@ -167,29 +167,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 if (version != 0)
                     throw new IOException("unknown private key version: " + version);
 
-                if (keyInfo.PublicKeyData != null)
+                byte[] t1 = null;
+
+                DerBitString publicKeyData = keyInfo.PublicKeyData;
+                if (publicKeyData != null)
                 {
-                    Asn1Sequence pubKey = Asn1Sequence.GetInstance(keyInfo.PublicKeyData.GetOctets());
-                    return new DilithiumPrivateKeyParameters(spParams,
-                        DerBitString.GetInstance(keyEnc[1]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[2]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[3]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[4]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[5]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[6]).GetOctets(),
-                        Asn1OctetString.GetInstance(pubKey[1]).GetOctets()); // encT1
+                    var pubParams = PqcPublicKeyFactory.DilithiumConverter.GetPublicKeyParameters(spParams,
+                        publicKeyData);
+
+                    t1 = pubParams.GetT1();
                 }
-                else
-                {
-                    return new DilithiumPrivateKeyParameters(spParams,
-                        DerBitString.GetInstance(keyEnc[1]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[2]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[3]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[4]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[5]).GetOctets(),
-                        DerBitString.GetInstance(keyEnc[6]).GetOctets(),
-                        null);
-                }
+
+                return new DilithiumPrivateKeyParameters(spParams,
+                    DerBitString.GetInstance(keyEnc[1]).GetOctets(),
+                    DerBitString.GetInstance(keyEnc[2]).GetOctets(),
+                    DerBitString.GetInstance(keyEnc[3]).GetOctets(),
+                    DerBitString.GetInstance(keyEnc[4]).GetOctets(),
+                    DerBitString.GetInstance(keyEnc[5]).GetOctets(),
+                    DerBitString.GetInstance(keyEnc[6]).GetOctets(),
+                    t1); // encT1
             }
             if (algOid.Equals(BCObjectIdentifiers.falcon_512) ||
                 algOid.Equals(BCObjectIdentifiers.falcon_1024))

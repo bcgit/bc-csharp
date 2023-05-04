@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return converter.GetPublicKeyParameters(keyInfo, defaultParams);
         }
 
-        private abstract class SubjectPublicKeyInfoConverter
+        internal abstract class SubjectPublicKeyInfoConverter
         {
             internal abstract AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams);
         }
@@ -280,6 +280,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new PicnicPublicKeyParameters(picnicParams, keyEnc);
             }
         }
+
         [Obsolete("Will be removed")]
         private class SikeConverter
             : SubjectPublicKeyInfoConverter
@@ -293,21 +294,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new SikePublicKeyParameters(sikeParams, keyEnc);
             }
         }
-        private class DilithiumConverter
+
+        internal class DilithiumConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo,
+                object defaultParams)
             {
-                DilithiumParameters dilithiumParams = PqcUtilities.DilithiumParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                var dilithiumParameters = PqcUtilities.DilithiumParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
+                return GetPublicKeyParameters(dilithiumParameters, keyInfo.PublicKeyData);
+            }
+
+            internal static DilithiumPublicKeyParameters GetPublicKeyParameters(DilithiumParameters dilithiumParameters,
+                DerBitString publicKeyData)
+            {
                 try
                 {
-                    Asn1Object obj = keyInfo.ParsePublicKey();
-                    if (obj is Asn1Sequence)
+                    Asn1Object obj = Asn1Object.FromByteArray(publicKeyData.GetOctets());
+                    if (obj is Asn1Sequence keySeq)
                     {
-                        Asn1Sequence keySeq = Asn1Sequence.GetInstance(obj);
-
-                        return new DilithiumPublicKeyParameters(dilithiumParams,
+                        return new DilithiumPublicKeyParameters(dilithiumParameters,
                             Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
                             Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
                     }
@@ -315,13 +322,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     {
                         byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
 
-                        return new DilithiumPublicKeyParameters(dilithiumParams, encKey);
+                        return new DilithiumPublicKeyParameters(dilithiumParameters, encKey);
                     }
                 }
                 catch (Exception)
                 {
-                    // raw encoding
-                    return new DilithiumPublicKeyParameters(dilithiumParams, keyInfo.PublicKeyData.GetOctets());
+                    // we're a raw encoding
+                    return new DilithiumPublicKeyParameters(dilithiumParameters, publicKeyData.GetOctets());
                 }
             }
         }
