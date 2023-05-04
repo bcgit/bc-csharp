@@ -110,8 +110,8 @@ namespace Org.BouncyCastle.X509.Store
 
 		public bool[] KeyUsage
 		{
-			get { return CopyBoolArray(keyUsage); }
-			set { keyUsage = CopyBoolArray(value); }
+			get { return Arrays.Clone(keyUsage); }
+			set { keyUsage = Arrays.Clone(value); }
 		}
 
 		/// <summary>
@@ -286,17 +286,19 @@ namespace Org.BouncyCastle.X509.Store
 			return true;
 		}
 
-		internal static bool IssuersMatch(
-			X509Name	a,
-			X509Name	b)
+		protected internal int GetHashCodeOfSubjectKeyIdentifier() => Arrays.GetHashCode(subjectKeyIdentifier);
+
+		protected internal bool MatchesIssuer(X509CertStoreSelector other) => IssuersMatch(issuer, other.issuer);
+
+		protected internal bool MatchesSerialNumber(X509CertStoreSelector other) =>
+			Objects.Equals(serialNumber, other.SerialNumber);
+
+        protected internal bool MatchesSubjectKeyIdentifier(X509CertStoreSelector other) =>
+			Arrays.AreEqual(subjectKeyIdentifier, other.subjectKeyIdentifier);
+
+		private static bool IssuersMatch(X509Name a, X509Name b)
 		{
 			return a == null ? b == null : a.Equivalent(b, true);
-		}
-
-		private static bool[] CopyBoolArray(
-			bool[] b)
-		{
-			return b == null ? null : (bool[]) b.Clone();
 		}
 
 		private static ISet<T> CopySet<T>(ISet<T> s)
@@ -304,16 +306,12 @@ namespace Org.BouncyCastle.X509.Store
 			return s == null ? null : new HashSet<T>(s);
 		}
 
-		private static SubjectPublicKeyInfo GetSubjectPublicKey(
-			X509Certificate c)
+		private static SubjectPublicKeyInfo GetSubjectPublicKey(X509Certificate c)
 		{
-			return SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(c.GetPublicKey());
+			return c.CertificateStructure.SubjectPublicKeyInfo;
 		}
 
-		private static bool MatchExtension(
-			byte[]				b,
-			X509Certificate		c,
-			DerObjectIdentifier	oid)
+		private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier	oid)
 		{
 			if (b == null)
 				return true;
