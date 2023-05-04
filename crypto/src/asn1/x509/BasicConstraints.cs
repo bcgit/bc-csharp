@@ -82,10 +82,11 @@ namespace Org.BouncyCastle.Asn1.X509
             return cA != null && cA.IsTrue;
         }
 
-		public BigInteger PathLenConstraint
-        {
-            get { return pathLenConstraint == null ? null : pathLenConstraint.Value; }
-        }
+        // TODO[api] Return DerInteger
+        public BigInteger PathLenConstraint => pathLenConstraint?.Value;
+
+        internal int PathLenConstraint_Int32 =>
+            pathLenConstraint == null ? int.MaxValue : pathLenConstraint.IntValueExact;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.

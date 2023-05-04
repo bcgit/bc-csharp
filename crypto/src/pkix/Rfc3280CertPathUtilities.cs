@@ -1776,19 +1776,9 @@ namespace Org.BouncyCastle.Pkix
 			{
 				throw new PkixCertPathValidatorException("Basic constraints extension cannot be decoded.", e, index);
 			}
-			if (bc != null)
+			if (bc != null && bc.IsCA())
 			{
-				BigInteger _pathLengthConstraint = bc.PathLenConstraint;
-
-				if (_pathLengthConstraint != null)
-				{
-					int _plc = _pathLengthConstraint.IntValue;
-
-					if (_plc < maxPathLength)
-					{
-						return _plc;
-					}
-				}
+				maxPathLength = System.Math.Min(maxPathLength, bc.PathLenConstraint_Int32);
 			}
 			return maxPathLength;
 		}
