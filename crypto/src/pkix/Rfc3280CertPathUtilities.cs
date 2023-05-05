@@ -1778,8 +1778,12 @@ namespace Org.BouncyCastle.Pkix
 			}
 			if (bc != null && bc.IsCA())
 			{
-				maxPathLength = System.Math.Min(maxPathLength, bc.PathLenConstraint_Int32);
-			}
+				var pathLenConstraint = bc.PathLenConstraintInteger;
+				if (pathLenConstraint != null)
+				{
+                    maxPathLength = System.Math.Min(maxPathLength, pathLenConstraint.IntPositiveValueExact);
+                }
+            }
 			return maxPathLength;
 		}
 

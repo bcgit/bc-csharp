@@ -367,7 +367,11 @@ namespace Org.BouncyCastle.X509
             if (basicConstraints == null || !basicConstraints.IsCA())
                 return -1;
 
-            return basicConstraints.PathLenConstraint_Int32;
+            var pathLenConstraint = basicConstraints.PathLenConstraintInteger;
+            if (pathLenConstraint == null)
+                return int.MaxValue;
+
+            return pathLenConstraint.IntPositiveValueExact;
         }
 
         public virtual GeneralNames GetIssuerAlternativeNameExtension()
