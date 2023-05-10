@@ -175,7 +175,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Shuffle(ulong x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Bmi2.X64.IsSupported)
             {
                 return Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL)
                     |  Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
@@ -203,11 +203,39 @@ namespace Org.BouncyCastle.Math.Raw
             }
 #endif
 
-            // "shuffle" (twice) low half to even bits and high half to odd bits
-            x = Bits.BitPermuteStep(x, 0x00AA00AAU, 7);
-            x = Bits.BitPermuteStep(x, 0x0000CCCCU, 14);
-            x = Bits.BitPermuteStep(x, 0x00F000F0U, 4);
-            x = Bits.BitPermuteStep(x, 0x0000FF00U, 8);
+            // 4 3 2 1 0 => 2 1 4 3 0
+            x = Bits.BitPermuteStep(x, 0x0000F0F0U, 12);
+            x = Bits.BitPermuteStep(x, 0x00CC00CCU, 6);
+
+            // 2 1 4 3 0 => 2 1 4 0 3
+            x = Bits.BitPermuteStep(x, 0x22222222U, 1);
+
+            // 2 1 4 0 3 => 2 1 0 4 3
+            x = Bits.BitPermuteStep(x, 0x0C0C0C0CU, 2);
+
+            return x;
+        }
+
+        internal static ulong Shuffle2(ulong x)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                return Bmi2.X64.ParallelBitDeposit(x >> 48, 0x8888888888888888UL)
+                    |  Bmi2.X64.ParallelBitDeposit(x >> 32, 0x4444444444444444UL)
+                    |  Bmi2.X64.ParallelBitDeposit(x >> 16, 0x2222222222222222UL)
+                    |  Bmi2.X64.ParallelBitDeposit(x      , 0x1111111111111111UL);
+            }
+#endif
+
+            // 5 4 3 2 1 0 => 3 2 5 4 1 0
+            x = Bits.BitPermuteStep(x, 0x00000000FF00FF00UL, 24);
+            x = Bits.BitPermuteStep(x, 0x0000F0F00000F0F0UL, 12);
+
+            // 3 2 5 4 1 0 => 3 2 1 0 5 4
+            x = Bits.BitPermuteStep(x, 0x00CC00CC00CC00CCUL, 6);
+            x = Bits.BitPermuteStep(x, 0x0A0A0A0A0A0A0A0AUL, 3);
+
             return x;
         }
 
@@ -293,11 +321,47 @@ namespace Org.BouncyCastle.Math.Raw
             }
 #endif
 
-            // "unshuffle" (twice) even bits to low half and odd bits to high half
-            x = Bits.BitPermuteStep(x, 0x0000FF00U, 8);
-            x = Bits.BitPermuteStep(x, 0x00F000F0U, 4);
-            x = Bits.BitPermuteStep(x, 0x0000CCCCU, 14);
-            x = Bits.BitPermuteStep(x, 0x00AA00AAU, 7);
+            // 4 3 2 1 0 => 4 3 1 2 0
+            x = Bits.BitPermuteStep(x, 0x0C0C0C0CU, 2);
+
+            // 4 3 1 2 0 => 4 3 1 0 2
+            x = Bits.BitPermuteStep(x, 0x22222222U, 1);
+
+            // 4 3 1 0 2 => 1 0 4 3 2
+            x = Bits.BitPermuteStep(x, 0x0000F0F0U, 12);
+            x = Bits.BitPermuteStep(x, 0x00CC00CCU, 6);
+
+            return x;
+        }
+
+        internal static ulong Unshuffle2(ulong x)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                return Bmi2.X64.ParallelBitExtract(x, 0x8888888888888888UL) << 48
+                    |  Bmi2.X64.ParallelBitExtract(x, 0x4444444444444444UL) << 32
+                    |  Bmi2.X64.ParallelBitExtract(x, 0x2222222222222222UL) << 16
+                    |  Bmi2.X64.ParallelBitExtract(x, 0x1111111111111111UL);
+            }
+#endif
+
+            // 5 4 3 2 1 0 => 5 4 1 0 3 2
+            x = Bits.BitPermuteStep(x, 0x00CC00CC00CC00CCUL, 6);
+            x = Bits.BitPermuteStep(x, 0x0A0A0A0A0A0A0A0AUL, 3);
+
+            // 5 4 1 0 3 2 => 1 0 5 4 3 2
+            x = Bits.BitPermuteStep(x, 0x00000000FF00FF00UL, 24);
+            x = Bits.BitPermuteStep(x, 0x0000F0F00000F0F0UL, 12);
+
+            return x;
+        }
+
+        internal static ulong Transpose(ulong x)
+        {
+            x = Bits.BitPermuteStep(x, 0x00000000F0F0F0F0UL, 28);
+            x = Bits.BitPermuteStep(x, 0x0000CCCC0000CCCCUL, 14);
+            x = Bits.BitPermuteStep(x, 0x00AA00AA00AA00AAUL, 7);
             return x;
         }
     }
