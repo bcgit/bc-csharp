@@ -853,16 +853,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(u, 0, points[0].z, 0);
         }
 
-        //private static bool IsNeutralElementVar(uint[] x, uint[] y)
-        //{
-        //    return F.IsZeroVar(x) && F.IsOneVar(y);
-        //}
-
-        private static bool IsNeutralElementVar(uint[] x, uint[] y, uint[] z)
-        {
-            return F.IsZeroVar(x) && F.AreEqualVar(y, z);
-        }
-
         private static void NormalizeToAffine(ref PointProjective p, ref PointAffine r)
         {
             F.Inv(p.z, r.y);
@@ -878,7 +868,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Normalize(p.y);
             F.Normalize(p.z);
 
-            return IsNeutralElementVar(p.x, p.y, p.z);
+            return F.IsZeroVar(p.x) && F.AreEqualVar(p.y, p.z);
         }
 
         private static void PointAdd(ref PointAffine p, ref PointProjective r, ref PointTemp t)
