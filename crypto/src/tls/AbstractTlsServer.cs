@@ -604,7 +604,7 @@ namespace Org.BouncyCastle.Tls
                  * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
                  * negotiated afresh.
                  */
-                if (m_clientExtensions.ContainsKey(ExtensionType.connection_id))
+                if (m_clientExtensions != null && m_clientExtensions.ContainsKey(ExtensionType.connection_id))
                 {
                     var serverConnectionID = GetNewConnectionID();
                     if (serverConnectionID != null)
