@@ -5730,5 +5730,14 @@ namespace Org.BouncyCastle.Tls
 
             return 1000;
         }
+
+        // TODO[api] Not needed once NotifyConnectionClosed() has been added to TlsPeer
+        internal static void NotifyConnectionClosed(TlsPeer tlsPeer)
+        {
+            if (tlsPeer is AbstractTlsPeer abstractTlsPeer)
+            {
+                abstractTlsPeer.NotifyConnectionClosed();
+            }
+        }
     }
 }

@@ -109,6 +109,10 @@ namespace Org.BouncyCastle.Tls
         /// <param name="alertDescription"><see cref="AlertDescription"/></param>
         void NotifyAlertReceived(short alertLevel, short alertDescription);
 
+        /// <summary>Notifies the peer that the connection has been closed.</summary>
+        // TODO[api]
+        //void NotifyConnectionClosed();
+
         /// <summary>Notifies the peer that the handshake has been successfully completed.</summary>
         /// <exception cref="IOException"/>
         void NotifyHandshakeComplete();

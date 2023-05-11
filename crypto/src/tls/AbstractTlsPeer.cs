@@ -148,6 +148,10 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        public virtual void NotifyConnectionClosed()
+        {
+        }
+
         /// <exception cref="IOException"/>
         public virtual void NotifyHandshakeComplete()
         {
