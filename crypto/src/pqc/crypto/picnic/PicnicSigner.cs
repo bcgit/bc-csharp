@@ -1,5 +1,7 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
@@ -33,18 +35,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             byte[] sig = new byte[engine.GetSignatureSize(message.Length)];
             engine.crypto_sign(sig, message, privKey.GetEncoded());
 
-            return Arrays.CopyOfRange(sig, message.Length + 4,  engine.GetTrueSignatureSize() + message.Length);
+            byte[] signature = new byte[engine.GetTrueSignatureSize()];
+            Array.Copy(sig, message.Length + 4, signature, 0, engine.GetTrueSignatureSize());
+            return signature;
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             PicnicEngine engine = pubKey.Parameters.GetEngine();
             byte[] verify_message = new byte[message.Length];
-            bool verify = engine.crypto_sign_open(verify_message, signature, pubKey.GetEncoded());
+            byte[] attached_signature = Arrays.ConcatenateAll(Pack.UInt32_To_LE((uint)signature.Length), message, signature);
+
+            bool verify = engine.crypto_sign_open(verify_message, attached_signature, pubKey.GetEncoded());
             if (!Arrays.AreEqual(message, verify_message))
-            {
                 return false;
-            }
 
             return verify;
         }

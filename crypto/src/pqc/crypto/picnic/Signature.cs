@@ -2,9 +2,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     internal class Signature
     {
-        internal byte[] challengeBits;
-        internal byte[] salt;
-        internal Proof[] proofs;
+        internal readonly byte[] challengeBits;
+        internal readonly byte[] salt;
+        internal readonly Proof[] proofs;
 
         internal Signature(PicnicEngine engine)
         {
@@ -19,20 +19,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         internal class Proof
         {
-            internal byte[] seed1;
-            internal byte[] seed2;
+            internal readonly byte[] seed1;
+            internal readonly byte[] seed2;
 
-            internal uint[] inputShare; // Input share of the party which does not derive it from the seed (not included if challenge is 0)
+            internal readonly uint[] inputShare; // Input share of the party which does not derive it from the seed (not included if challenge is 0)
 
-            internal byte[] communicatedBits;
-            internal byte[] view3Commitment;
-            internal byte[] view3UnruhG; // we include the max length, but we will only serialize the bytes we use
+            internal readonly byte[] communicatedBits;
+            internal readonly byte[] view3Commitment;
+            internal readonly byte[] view3UnruhG; // we include the max length, but we will only serialize the bytes we use
 
             internal Proof(PicnicEngine engine)
             {
                 seed1 = new byte[engine.seedSizeBytes];
                 seed2 = new byte[engine.seedSizeBytes];
-                inputShare = new uint[engine.stateSizeBytes];
+                inputShare = new uint[engine.stateSizeWords];
                 communicatedBits = new byte[engine.andSizeBytes];
                 view3Commitment = new byte[engine.digestSizeBytes];
                 if (engine.UnruhGWithInputBytes > 0)

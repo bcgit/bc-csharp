@@ -1,5 +1,5 @@
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
@@ -67,9 +67,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
     //        {System.out.printf("%08x ", key[i]);}System.out.Println();
 
 
-            if(inputs != null)
+            if (inputs != null)
             {
-                Pack.UInt32_To_LE(Arrays.CopyOf(key, engine.stateSizeWords), inputs, 0);
+                Pack.UInt32_To_LE(key, 0, engine.stateSizeWords, inputs, 0);
             }
 
 
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 current = engine._lowmcConstants.KMatrix(engine, r);
                 engine.matrix_mul(roundKey, key, current.GetData(), current.GetMatrixPointer());    // roundKey = key * KMatrix(r)
 
-                engine.xor_array(x, x, roundKey, 0, engine.stateSizeWords);
+                Nat.XorTo(engine.stateSizeWords, roundKey, x);
 
                 current = engine._lowmcConstants.LMatrixInv(engine, r-1);
                 engine.matrix_mul(y, x, current.GetData(), current.GetMatrixPointer());

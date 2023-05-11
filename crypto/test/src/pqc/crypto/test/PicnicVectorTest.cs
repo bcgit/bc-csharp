@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -32,6 +33,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         };
 
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
+
+        [Test]
+        public void TestPicnicRandom()
+        {
+            byte[] msg = Strings.ToByteArray("Hello World!");
+            PicnicKeyPairGenerator keyGen = new PicnicKeyPairGenerator();
+
+            SecureRandom random = new SecureRandom();
+
+            keyGen.Init(new PicnicKeyGenerationParameters(random, PicnicParameters.picnic3l1));
+
+            for (int i = 0; i != 100; i++)
+            {
+                AsymmetricCipherKeyPair keyPair = keyGen.GenerateKeyPair();
+
+                // sign
+                PicnicSigner signer = new PicnicSigner();
+                PicnicPrivateKeyParameters skparam = (PicnicPrivateKeyParameters)keyPair.Private;
+                signer.Init(true, skparam);
+
+                byte[] sigGenerated = signer.GenerateSignature(msg);
+
+                // verify
+                PicnicSigner verifier = new PicnicSigner();
+                PicnicPublicKeyParameters pkparam = (PicnicPublicKeyParameters)keyPair.Public;
+                verifier.Init(false, pkparam);
+
+                Assert.True(verifier.VerifySignature(msg, sigGenerated), "count = " + i);
+            }
+        }
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
@@ -82,7 +113,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(smlen == attachedSig.Length, name + " " + count + ": signature length");
 
             signer.Init(false, pubParams);
-            Assert.True(signer.VerifySignature(msg, attachedSig), (name + " " + count + ": signature verify"));
+            Assert.True(signer.VerifySignature(msg, sigGenerated), (name + " " + count + ": signature verify"));
             Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
         }
 

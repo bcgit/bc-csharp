@@ -1,7 +1,3 @@
-#if NETCOREAPP3_0_OR_GREATER
-using System.Runtime.Intrinsics.X86;
-#endif
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
@@ -66,6 +62,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return (byte)((array[arrayPos] >> bitPos) & 1);
         }
 
+        /* Get a crumb (i.e. two bits) from a byte array. */
+        internal static byte GetCrumbAligned(byte[] array, int crumbNumber)
+        {
+            int arrayPos = crumbNumber >> 2, bitPos = ((crumbNumber << 1) & 6) ^ 6;
+            uint b = (uint)array[arrayPos] >> bitPos;
+            return (byte)((b & 1) << 1 | (b & 2) >> 1);
+        }
+
         internal static uint GetBit(uint word, int bitNumber)
         {
             int bitPos = bitNumber ^ 7;
@@ -106,13 +110,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             array[arrayPos] = t;
         }
 
-        internal static void ZeroTrailingBits(byte[] data, int bitLength)
+        internal static void ZeroTrailingBits(uint[] data, int bitLength)
         {
-            int partial = bitLength & 7;
-            if (partial != 0)
+            int partialWord = bitLength & 31;
+            if (partialWord != 0)
             {
-                data[bitLength >> 3] &= (byte)(0xFF00 >> partial);
+                data[bitLength >> 5] &= GetTrailingBitsMask(bitLength);
             }
+        }
+
+        internal static uint GetTrailingBitsMask(int bitLength)
+        {
+            int partialShift = bitLength & ~7;
+            uint mask = ~(0xFFFFFFFFU << partialShift);
+
+            int partialByte = bitLength & 7;
+            if (partialByte != 0)
+            {
+                mask ^= ((0xFF00U >> partialByte) & 0xFFU) << partialShift;
+            }
+
+            return mask;
         }
     }
 }

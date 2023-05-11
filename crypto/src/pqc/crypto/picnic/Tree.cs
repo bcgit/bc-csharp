@@ -148,9 +148,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             {
                 inLen -= (uint)engine.seedSizeBytes;
                 if (inLen < 0)
-                {
                     return -1;
-                }
 
                 System.Array.Copy(input, i * engine.seedSizeBytes, this.nodes[revealed[i]], 0, engine.seedSizeBytes);
                 this.haveNode[revealed[i]] = true;
