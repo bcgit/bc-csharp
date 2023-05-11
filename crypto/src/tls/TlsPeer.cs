@@ -31,13 +31,15 @@ namespace Org.BouncyCastle.Tls
         /// <returns>the handshake timeout, in milliseconds.</returns>
         int GetHandshakeTimeoutMillis();
 
+        // TODO[api]
+        /*
         /// <summary>Specify the time, in milliseconds, after which a handshake packet is resent.</summary>
         /// <remarks>
         /// NOTE: Currently only respected by DTLS protocols.
         /// </remarks>
         /// <returns>the handshake resend time, in milliseconds.</returns>
-        // TODO[api]
-        //int GetHandshakeResendTimeMillis();
+        int GetHandshakeResendTimeMillis();
+        */
 
         bool AllowLegacyResumption();
 
@@ -109,9 +111,11 @@ namespace Org.BouncyCastle.Tls
         /// <param name="alertDescription"><see cref="AlertDescription"/></param>
         void NotifyAlertReceived(short alertLevel, short alertDescription);
 
-        /// <summary>Notifies the peer that the connection has been closed.</summary>
         // TODO[api]
-        //void NotifyConnectionClosed();
+        /*
+        /// <summary>Notifies the peer that the connection has been closed.</summary>
+        void NotifyConnectionClosed();
+        */
 
         /// <summary>Notifies the peer that the handshake has been successfully completed.</summary>
         /// <exception cref="IOException"/>
