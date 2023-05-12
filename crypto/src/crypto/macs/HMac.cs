@@ -56,19 +56,25 @@ namespace Org.BouncyCastle.Crypto.Macs
         {
             digest.Reset();
 
-            byte[] key = ((KeyParameter)parameters).GetKey();
-			int keyLength = key.Length;
+            KeyParameter keyParameter = (KeyParameter)parameters;
 
+            int keyLength = keyParameter.KeyLength;
             if (keyLength > blockLength)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.BlockUpdate(keyParameter.Key);
+#else
+                byte[] key = keyParameter.GetKey();
                 digest.BlockUpdate(key, 0, keyLength);
+#endif
+
                 digest.DoFinal(inputPad, 0);
 
 				keyLength = digestSize;
             }
             else
             {
-				Array.Copy(key, 0, inputPad, 0, keyLength);
+                keyParameter.CopyTo(inputPad, 0, keyLength);
             }
 
 			Array.Clear(inputPad, keyLength, blockLength - keyLength);
@@ -77,19 +83,20 @@ namespace Org.BouncyCastle.Crypto.Macs
 			XorPad(inputPad, blockLength, IPAD);
             XorPad(outputBuf, blockLength, OPAD);
 
-			if (digest is IMemoable)
+			if (digest is IMemoable memoable)
 			{
-				opadState = ((IMemoable)digest).Copy();
+				opadState = memoable.Copy();
 
 				((IDigest)opadState).BlockUpdate(outputBuf, 0, blockLength);
-			}
 
-			digest.BlockUpdate(inputPad, 0, inputPad.Length);
+			    digest.BlockUpdate(inputPad, 0, inputPad.Length);
 
-			if (digest is IMemoable)
-			{
-				ipadState = ((IMemoable)digest).Copy();
-			}
+				ipadState = memoable.Copy();
+            }
+            else
+            {
+                digest.BlockUpdate(inputPad, 0, inputPad.Length);
+            }
         }
 
         public virtual int GetMacSize()
