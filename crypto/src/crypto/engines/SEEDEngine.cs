@@ -1,14 +1,17 @@
 using System;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-	/**
+    /**
 	* Implementation of the SEED algorithm as described in RFC 4009
 	*/
-	public class SeedEngine
+    public class SeedEngine
 		: IBlockCipher
 	{
 		private const int BlockSize = 16;
@@ -173,48 +176,51 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
 			this.forEncryption = forEncryption;
-			wKey = CreateWorkingKey(((KeyParameter)parameters).GetKey());
+			wKey = CreateWorkingKey((KeyParameter)parameters);
 		}
 
-        public virtual string AlgorithmName
-		{
-			get { return "SEED"; }
-		}
+        public virtual string AlgorithmName => "SEED";
 
-        public virtual int GetBlockSize()
-		{
-			return BlockSize;
-		}
+        public virtual int GetBlockSize() => BlockSize;
 
         public virtual int ProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
 		{
-			if (wKey == null)
-				throw new InvalidOperationException("SEED engine not initialised");
-
             Check.DataLength(inBuf, inOff, BlockSize, "input buffer too short");
             Check.OutputLength(outBuf, outOff, BlockSize, "output buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return ProcessBlock(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
+#else
+			if (wKey == null)
+                throw new InvalidOperationException("SEED engine not initialised");
 
             long l = (long)Pack.BE_To_UInt64(inBuf, inOff + 0);
 			long r = (long)Pack.BE_To_UInt64(inBuf, inOff + 8);
 
 			if (forEncryption)
 			{
-				for (int i = 0; i < 16; i++)
+				for (int i = 0; i < 32; i += 4)
 				{
-					long nl = r;
+					int w0 = wKey[i + 0];
+                    int w1 = wKey[i + 1];
+                    int w2 = wKey[i + 2];
+                    int w3 = wKey[i + 3];
 
-					r = l ^ F(wKey[2 * i], wKey[(2 * i) + 1], r);
-					l = nl;
-				}
-			}
+                    l ^= F(w0, w1, r);
+                    r ^= F(w2, w3, l);
+                }
+            }
 			else
 			{
-				for (int i = 15; i >= 0; i--)
+				for (int i = 28; i >= 0; i -= 4)
 				{
-					long nl = r;
+                    int w0 = wKey[i + 0];
+                    int w1 = wKey[i + 1];
+                    int w2 = wKey[i + 2];
+                    int w3 = wKey[i + 3];
 
-					r = l ^ F(wKey[2 * i], wKey[(2 * i) + 1], r);
-					l = nl;
+                    l ^= F(w2, w3, r);
+                    r ^= F(w0, w1, l);
 				}
 			}
 
@@ -222,6 +228,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Pack.UInt64_To_BE((ulong)l, outBuf, outOff + 8);
 
 			return BlockSize;
+#endif
 		}
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -236,129 +243,105 @@ namespace Org.BouncyCastle.Crypto.Engines
 			long l = (long)Pack.BE_To_UInt64(input);
 			long r = (long)Pack.BE_To_UInt64(input[8..]);
 
-			if (forEncryption)
-			{
-				for (int i = 0; i < 16; i++)
-				{
-					long nl = r;
+            if (forEncryption)
+            {
+                for (int i = 0; i < 32; i += 4)
+                {
+                    int w0 = wKey[i + 0];
+                    int w1 = wKey[i + 1];
+                    int w2 = wKey[i + 2];
+                    int w3 = wKey[i + 3];
 
-					r = l ^ F(wKey[2 * i], wKey[(2 * i) + 1], r);
-					l = nl;
-				}
-			}
-			else
-			{
-				for (int i = 15; i >= 0; i--)
-				{
-					long nl = r;
+                    l ^= F(w0, w1, r);
+                    r ^= F(w2, w3, l);
+                }
+            }
+            else
+            {
+                for (int i = 28; i >= 0; i -= 4)
+                {
+                    int w0 = wKey[i + 0];
+                    int w1 = wKey[i + 1];
+                    int w2 = wKey[i + 2];
+                    int w3 = wKey[i + 3];
 
-					r = l ^ F(wKey[2 * i], wKey[(2 * i) + 1], r);
-					l = nl;
-				}
-			}
+                    l ^= F(w2, w3, r);
+                    r ^= F(w0, w1, l);
+                }
+            }
 
-			Pack.UInt64_To_BE((ulong)r, output);
+            Pack.UInt64_To_BE((ulong)r, output);
 			Pack.UInt64_To_BE((ulong)l, output[8..]);
 
 			return BlockSize;
 		}
 #endif
 
-		private int[] CreateWorkingKey(byte[] inKey)
+		private static int[] CreateWorkingKey(KeyParameter keyParameter)
 		{
-			if (inKey.Length != 16)
+			if (keyParameter.KeyLength != 16)
 				throw new ArgumentException("key size must be 128 bits");
 
-			int[] key = new int[32];
-			long lower = (long)Pack.BE_To_UInt64(inKey, 0);
-			long upper = (long)Pack.BE_To_UInt64(inKey, 8);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var inKey = keyParameter.Key;
+#else
+            byte[] inKey = keyParameter.GetKey();
+#endif
 
-			int key0 = extractW0(lower);
-			int key1 = extractW1(lower);
-			int key2 = extractW0(upper);
-			int key3 = extractW1(upper);
+            int[] key = new int[32];
 
-			for (int i = 0; i < 16; i++)
+			uint key0 = Pack.BE_To_UInt32(inKey, 0);
+            uint key1 = Pack.BE_To_UInt32(inKey, 4);
+            uint key2 = Pack.BE_To_UInt32(inKey, 8);
+            uint key3 = Pack.BE_To_UInt32(inKey, 12);
+
+            for (int i = 0; i < 16; i += 2)
 			{
-				key[2 * i] = G(key0 + key2 - (int)KC[i]);
-				key[2 * i + 1] = G(key1 - key3 + (int)KC[i]);
+				uint KC_i, keyt;
 
-				if (i % 2 == 0)
-				{
-					lower = rotateRight8(lower);
-					key0 = extractW0(lower);
-					key1 = extractW1(lower);
-				}
-				else
-				{
-					upper = rotateLeft8(upper);
-					key2 = extractW0(upper);
-					key3 = extractW1(upper);
-				}
-			}
+                KC_i = KC[i];
+                key[2 * i + 0] = G((int)(key0 + key2 - KC_i));
+				key[2 * i + 1] = G((int)(key1 - key3 + KC_i));
 
-			return key;
+				keyt = key0 >> 8 | key1 << 24;
+                key1 = key1 >> 8 | key0 << 24;
+				key0 = keyt;
+
+                KC_i = KC[i + 1];
+                key[2 * i + 2] = G((int)(key0 + key2 - KC_i));
+                key[2 * i + 3] = G((int)(key1 - key3 + KC_i));
+
+                keyt = key2 << 8 | key3 >> 24;
+                key3 = key3 << 8 | key2 >> 24;
+                key2 = keyt;
+            }
+
+            return key;
 		}
 
-		private int extractW1(
-			long lVal)
-		{
-			return (int)lVal;
-		}
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private static long F(int ki0, int ki1, long r)
+        {
+            int r0 = ki0 ^ (int)(r >> 32);
+            int r1 = ki1 ^ (int)r;
 
-		private int extractW0(
-			long lVal)
-		{
-			return (int)(lVal >> 32);
-		}
+			int t0 = G(r0 ^ r1);
+			int t1 = G(r0 + t0);
 
-		private long rotateLeft8(
-			long x)
-		{
-			return (x << 8) | ((long)((ulong) x >> 56));
-		}
+            int rd1 = G(t1 + t0);
+            int rd0 = rd1 + t1;
 
-		private long rotateRight8(
-			long x)
-		{
-			return ((long)((ulong) x >> 8)) | (x << 56);
-		}
+            return (long)rd0 << 32 | rd1 & 0xFFFFFFFFL;
+        }
 
-		private int G(
-			int x)
-		{
-			return (int)(SS0[x & 0xff] ^ SS1[(x >> 8) & 0xff] ^ SS2[(x >> 16) & 0xff] ^ SS3[(x >> 24) & 0xff]);
-		}
-
-		private long F(
-			int		ki0,
-			int		ki1,
-			long	r)
-		{
-			int r0 = (int)(r >> 32);
-			int r1 = (int)r;
-			int rd1 = phaseCalc2(r0, ki0, r1, ki1);
-			int rd0 = rd1 + phaseCalc1(r0, ki0, r1, ki1);
-
-			return ((long)rd0 << 32) | (rd1 & 0xffffffffL);
-		}
-
-		private int phaseCalc1(
-			int	r0,
-			int	ki0,
-			int	r1,
-			int	ki1)
-		{
-			return G(G((r0 ^ ki0) ^ (r1 ^ ki1)) + (r0 ^ ki0));
-		}
-
-		private int phaseCalc2(
-			int	r0,
-			int	ki0,
-			int	r1,
-			int	ki1)
-		{
-			return G(phaseCalc1(r0, ki0, r1, ki1) + G((r0 ^ ki0) ^ (r1 ^ ki1)));
-		}
-	}
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private static int G(int x)
+        {
+            return (int)(SS0[x & 0xff] ^ SS1[(x >> 8) & 0xff] ^ SS2[(x >> 16) & 0xff] ^ SS3[(x >> 24) & 0xff]);
+        }
+    }
 }
