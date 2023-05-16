@@ -210,7 +210,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         protected virtual int GetHeaderLength(byte[] connectionID)
         {
-            if (m_cryptoParams.ServerVersion.IsSsl)
+            if (TlsImplUtilities.IsSsl(m_cryptoParams))
             {
                 return 11;
             }

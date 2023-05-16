@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public class TlsNullCipher
         : TlsCipher, TlsCipherExt
     {
+        // TODO[api] Remove (unused)
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly TlsSuiteHmac m_readMac, m_writeMac;
         protected readonly byte[] m_decryptConnectionID, m_encryptConnectionID;
