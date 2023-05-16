@@ -133,16 +133,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             if (pos != keyBlockSize)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 #endif
-
-            int nonceLength = m_fixed_iv_length + m_record_iv_length;
-
-            // NOTE: Ensure dummy nonce is not part of the generated sequence(s)
-            byte[] dummyNonce = new byte[nonceLength];
-            dummyNonce[0] = (byte)~m_encryptNonce[0];
-            dummyNonce[1] = (byte)~m_decryptNonce[1];
-
-            encryptCipher.Init(dummyNonce, macSize, null);
-            decryptCipher.Init(dummyNonce, macSize, null);
         }
 
         public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
@@ -211,6 +201,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             // TODO[tls13, cid] If we support adding padding to (D)TLSInnerPlaintext, this will need review
             int innerPlaintextLength = plaintextLength + (m_encryptUseInnerPlaintext ? 1 : 0);
 
+            m_encryptCipher.Init(nonce, m_macSize, null);
+
             int encryptionLength = m_encryptCipher.GetOutputSize(innerPlaintextLength);
             int ciphertextLength = m_record_iv_length + encryptionLength;
 
@@ -240,7 +232,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                     output[outputPos + plaintextLength] = (byte)contentType;
                 }
 
-                m_encryptCipher.Init(nonce, m_macSize, null);
                 outputPos += m_encryptCipher.DoFinal(additionalData, output, outputPos, innerPlaintextLength, output,
                     outputPos);
             }
@@ -290,6 +281,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             // TODO[tls13, cid] If we support adding padding to (D)TLSInnerPlaintext, this will need review
             int innerPlaintextLength = plaintext.Length + (m_encryptUseInnerPlaintext ? 1 : 0);
 
+            m_encryptCipher.Init(nonce, m_macSize, null);
+
             int encryptionLength = m_encryptCipher.GetOutputSize(innerPlaintextLength);
             int ciphertextLength = m_record_iv_length + encryptionLength;
 
@@ -319,7 +312,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                     output[outputPos + plaintext.Length] = (byte)contentType;
                 }
 
-                m_encryptCipher.Init(nonce, m_macSize, null);
                 outputPos += m_encryptCipher.DoFinal(additionalData, output, outputPos, innerPlaintextLength, output,
                     outputPos);
             }
@@ -514,10 +506,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             cipher.SetKey(key, 0, m_keySize);
             Array.Copy(iv, 0, nonce, 0, m_fixed_iv_length);
-
-            // NOTE: Ensure dummy nonce is not part of the generated sequence(s)
-            iv[0] ^= 0x80;
-            cipher.Init(iv, m_macSize, null);
         }
 
         private static int GetNonceMode(bool isTLSv13, int aeadType)
