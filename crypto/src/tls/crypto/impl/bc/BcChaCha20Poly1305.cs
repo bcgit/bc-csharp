@@ -73,6 +73,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        public int DoFinal(byte[] additionalData, byte[] input, int inputOffset, int inputLength, byte[] output,
+            int outputOffset)
+        {
+            if (additionalData != null)
+            {
+                this.m_additionalDataLength += additionalData.Length;
+                UpdateMac(additionalData, 0, additionalData.Length);
+            }
+
+            return DoFinal(input, inputOffset, inputLength, output, outputOffset);
+        }
+
         public int GetOutputSize(int inputLength)
         {
             return m_isEncrypting ? inputLength + 16 : inputLength - 16;
@@ -98,8 +110,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public void Reset()
         {
-            m_cipher.Reset();
-            m_mac.Reset();
         }
 
         public void SetKey(byte[] key, int keyOff, int keyLen)

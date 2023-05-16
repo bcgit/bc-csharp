@@ -240,8 +240,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                     output[outputPos + plaintextLength] = (byte)contentType;
                 }
 
-                m_encryptCipher.Init(nonce, m_macSize, additionalData);
-                outputPos += m_encryptCipher.DoFinal(output, outputPos, innerPlaintextLength, output, outputPos);
+                m_encryptCipher.Init(nonce, m_macSize, null);
+                outputPos += m_encryptCipher.DoFinal(additionalData, output, outputPos, innerPlaintextLength, output,
+                    outputPos);
             }
             catch (IOException)
             {
@@ -318,8 +319,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                     output[outputPos + plaintext.Length] = (byte)contentType;
                 }
 
-                m_encryptCipher.Init(nonce, m_macSize, additionalData);
-                outputPos += m_encryptCipher.DoFinal(output, outputPos, innerPlaintextLength, output, outputPos);
+                m_encryptCipher.Init(nonce, m_macSize, null);
+                outputPos += m_encryptCipher.DoFinal(additionalData, output, outputPos, innerPlaintextLength, output,
+                    outputPos);
             }
             catch (IOException)
             {
@@ -366,6 +368,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 
+            m_decryptCipher.Init(nonce, m_macSize, null);
+
             int encryptionOffset = ciphertextOffset + m_record_iv_length;
             int encryptionLength = ciphertextLength - m_record_iv_length;
             int innerPlaintextLength = m_decryptCipher.GetOutputSize(encryptionLength);
@@ -376,17 +380,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int outputPos;
             try
             {
-                m_decryptCipher.Init(nonce, m_macSize, additionalData);
-                outputPos = m_decryptCipher.DoFinal(ciphertext, encryptionOffset, encryptionLength, ciphertext,
-                    encryptionOffset);
-            }
-            catch (TlsFatalAlert fatalAlert)
-            {
-                if (AlertDescription.bad_record_mac == fatalAlert.AlertDescription)
-                {
-                    m_decryptCipher.Reset();
-                }
-                throw;
+                outputPos = m_decryptCipher.DoFinal(additionalData, ciphertext, encryptionOffset, encryptionLength,
+                    ciphertext, encryptionOffset);
             }
             catch (IOException)
             {
@@ -394,7 +389,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
             catch (Exception e)
             {
-                m_decryptCipher.Reset();
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac, e);
             }
 

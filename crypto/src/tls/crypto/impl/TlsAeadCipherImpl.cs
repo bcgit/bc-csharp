@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         void SetKey(ReadOnlySpan<byte> key);
 #endif
 
+        // TODO[api] Remove additionalData parameter
         /// <summary>Initialise the parameters for the AEAD operator.</summary>
         /// <param name="nonce">the nonce.</param>
         /// <param name="macSize">MAC size in bytes.</param>
@@ -29,6 +30,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <returns>the maximum size of the output.</returns>
         int GetOutputSize(int inputLength);
 
+        // TODO[api] Remove unused variant
         /// <summary>Perform the cipher encryption/decryption returning the output in output.</summary>
         /// <remarks>
         /// Note: we have to use DoFinal() here as it is the only way to guarantee output from the underlying cipher.
@@ -42,6 +44,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <exception cref="IOException">in case of failure.</exception>
         int DoFinal(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset);
 
+        /// <summary>Perform the cipher encryption/decryption returning the output in output.</summary>
+        /// <remarks>
+        /// Note: we have to use DoFinal() here as it is the only way to guarantee output from the underlying cipher.
+        /// </remarks>
+        /// <param name="additionalData">any additional data to be included in the MAC calculation.</param>
+        /// <param name="input">array holding input data to the cipher.</param>
+        /// <param name="inputOffset">offset into input array data starts at.</param>
+        /// <param name="inputLength">length of the input data in the array.</param>
+        /// <param name="output">array to hold the cipher output.</param>
+        /// <param name="outputOffset">offset into output array to start saving output.</param>
+        /// <returns>the amount of data written to output.</returns>
+        /// <exception cref="IOException">in case of failure.</exception>
+        int DoFinal(byte[] additionalData, byte[] input, int inputOffset, int inputLength, byte[] output,
+            int outputOffset);
+
+        // TODO[api] Remove
         void Reset();
     }
 }

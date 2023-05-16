@@ -136,6 +136,7 @@ namespace Org.BouncyCastle.Tls
         /// <returns>the <see cref="HeartbeatMode"/> value.</returns>
         short GetHeartbeatPolicy();
 
+        // TODO[api] Remove this and treat it as default 'true'
         /// <summary>Indicates whether a DTLS connection should ignore corrupt records (bad_record_mac) instead of
         /// failing the connection.</summary>
         /// <remarks>Called only once at the start of a connection and applies throughout.</remarks>

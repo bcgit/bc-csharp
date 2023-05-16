@@ -58,9 +58,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return len;
         }
 
+        public virtual int DoFinal(byte[] additionalData, byte[] input, int inputOffset, int inputLength, byte[] output,
+            int outputOffset)
+        {
+            if (additionalData != null)
+            {
+                m_cipher.ProcessAadBytes(additionalData, 0, additionalData.Length);
+            }
+
+            return DoFinal(input, inputOffset, inputLength, output, outputOffset);
+        }
+
         public void Reset()
         {
-            m_cipher.Reset();
         }
     }
 }
