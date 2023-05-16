@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
@@ -76,9 +77,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         public int DoFinal(byte[] additionalData, byte[] input, int inputOffset, int inputLength, byte[] output,
             int outputOffset)
         {
-            if (additionalData != null)
+            if (!Arrays.IsNullOrEmpty(additionalData))
             {
-                this.m_additionalDataLength += additionalData.Length;
+                if (m_additionalDataLength != 0)
+                    throw new InvalidOperationException();
+
+                m_additionalDataLength = additionalData.Length;
                 UpdateMac(additionalData, 0, additionalData.Length);
             }
 
@@ -97,13 +101,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             m_cipher.Init(m_isEncrypting, new ParametersWithIV(null, nonce));
             InitMac();
-            if (additionalData == null)
+            if (Arrays.IsNullOrEmpty(additionalData))
             {
-                this.m_additionalDataLength = 0;
+                m_additionalDataLength = 0;
             }
             else
             {
-                this.m_additionalDataLength = additionalData.Length;
+                m_additionalDataLength = additionalData.Length;
                 UpdateMac(additionalData, 0, additionalData.Length);
             }
         }
