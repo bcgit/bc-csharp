@@ -221,15 +221,13 @@ namespace Org.BouncyCastle.Crypto.IO
 
             int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
 
-            byte[] output = null;
-            if (outputSize > 0)
-            {
-                output = new byte[outputSize];
-            }
+            Span<byte> output = outputSize <= Streams.DefaultBufferSize
+                ? stackalloc byte[outputSize]
+                : new byte[outputSize];
 
             try
             {
-                int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output));
+                int length = m_writeCipher.ProcessBytes(buffer, output);
                 if (length > 0)
                 {
                     m_stream.Write(output[..length]);
@@ -237,10 +235,7 @@ namespace Org.BouncyCastle.Crypto.IO
             }
             finally
             {
-                if (output != null)
-                {
-                    Array.Clear(output, 0, output.Length);
-                }
+                output.Fill(0x00);
             }
         }
 
