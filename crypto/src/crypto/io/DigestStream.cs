@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using System.Threading;
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
 using System.Threading.Tasks;
 #endif
 
@@ -27,20 +27,11 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public IDigest WriteDigest => m_writeDigest;
 
-        public override bool CanRead
-        {
-            get { return m_stream.CanRead; }
-        }
+        public override bool CanRead => m_stream.CanRead;
 
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
+        public override bool CanSeek => false;
 
-        public override bool CanWrite
-        {
-            get { return m_stream.CanWrite; }
-        }
+        public override bool CanWrite => m_stream.CanWrite;
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void CopyTo(Stream destination, int bufferSize)
@@ -115,51 +106,84 @@ namespace Org.BouncyCastle.Crypto.IO
             return b;
         }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new NotSupportedException();
-        }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
 
-        public override void SetLength(long length)
-        {
-            throw new NotSupportedException();
-        }
+        public override void SetLength(long length) => throw new NotSupportedException();
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            m_stream.Write(buffer, offset, count);
-
-            if (m_writeDigest != null && count > 0)
+            if (m_writeDigest != null)
             {
-                m_writeDigest.BlockUpdate(buffer, offset, count);
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
+                if (count > 0)
+                {
+                    m_writeDigest.BlockUpdate(buffer, offset, count);
+                }
             }
+
+            m_stream.Write(buffer, offset, count);
         }
+
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            if (m_writeDigest != null)
+            {
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
+                if (count > 0)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return Task.FromCanceled(cancellationToken);
+
+                    m_writeDigest.BlockUpdate(buffer, offset, count);
+                }
+            }
+
+            return m_stream.WriteAsync(buffer, offset, count, cancellationToken);
+        }
+#endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void Write(ReadOnlySpan<byte> buffer)
         {
-            m_stream.Write(buffer);
-
-            if (m_writeDigest != null && !buffer.IsEmpty)
+            if (m_writeDigest != null)
             {
-                m_writeDigest.BlockUpdate(buffer);
+                if (!buffer.IsEmpty)
+                {
+                    m_writeDigest.BlockUpdate(buffer);
+                }
             }
+
+            m_stream.Write(buffer);
         }
 
         public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
         {
-            return Streams.WriteAsync(WriteDestination, buffer, cancellationToken);
+            if (m_writeDigest != null)
+            {
+                if (!buffer.IsEmpty)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return ValueTask.FromCanceled(cancellationToken);
+
+                    m_writeDigest.BlockUpdate(buffer.Span);
+                }
+            }
+
+            return m_stream.WriteAsync(buffer, cancellationToken);
         }
 #endif
 
         public override void WriteByte(byte value)
         {
-            m_stream.WriteByte(value);
-
             if (m_writeDigest != null)
             {
                 m_writeDigest.Update(value);
             }
+
+            m_stream.WriteByte(value);
         }
 
         protected override void Dispose(bool disposing)
@@ -172,6 +196,5 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 
         private Stream ReadSource => m_readDigest == null ? m_stream : this;
-        private Stream WriteDestination => m_writeDigest == null ? m_stream : this;
     }
 }

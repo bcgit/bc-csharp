@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
-using System.Threading;
+#endif
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
 using System.Threading.Tasks;
 #endif
 
@@ -156,10 +158,10 @@ namespace Org.BouncyCastle.Utilities.IO
 
             byte[] sharedBuffer = new byte[buffer.Length];
 			var readTask = source.ReadAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
-            return FinishReadAsync(readTask, sharedBuffer, buffer);
+            return ReadAsyncCompletion(readTask, sharedBuffer, buffer);
         }
 
-        private static async ValueTask<int> FinishReadAsync(Task<int> readTask, byte[] localBuffer,
+        internal static async ValueTask<int> ReadAsyncCompletion(Task<int> readTask, byte[] localBuffer,
 			Memory<byte> localDestination)
         {
             try
@@ -170,7 +172,7 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             finally
             {
-                Array.Fill<byte>(localBuffer, 0x00);
+                Array.Clear(localBuffer, 0, localBuffer.Length);
             }
         }
 #endif
@@ -220,6 +222,30 @@ namespace Org.BouncyCastle.Utilities.IO
 				throw new ArgumentOutOfRangeException("count");
 		}
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        internal static async Task WriteAsyncCompletion(Task writeTask, byte[] localBuffer)
+        {
+            try
+            {
+                await writeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                Array.Clear(localBuffer, 0, localBuffer.Length);
+            }
+        }
+
+        internal static Task WriteAsyncDirect(Stream destination, byte[] buffer, int offset, int count,
+            CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return Task.FromCanceled(cancellationToken);
+
+            destination.Write(buffer, offset, count);
+            return Task.CompletedTask;
+        }
+#endif
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ValueTask WriteAsync(Stream destination, ReadOnlyMemory<byte> buffer,
             CancellationToken cancellationToken = default)
@@ -232,10 +258,10 @@ namespace Org.BouncyCastle.Utilities.IO
 
             byte[] sharedBuffer = buffer.ToArray();
             var writeTask = destination.WriteAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
-            return new ValueTask(FinishWriteAsync(writeTask, sharedBuffer));
+            return new ValueTask(WriteAsyncCompletion(writeTask, sharedBuffer));
         }
 
-        private static async Task FinishWriteAsync(Task writeTask, byte[] localBuffer)
+        internal static async ValueTask WriteAsyncCompletion(ValueTask writeTask, byte[] localBuffer)
         {
             try
             {
@@ -243,8 +269,18 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             finally
             {
-                Array.Fill<byte>(localBuffer, 0x00);
+                Array.Clear(localBuffer, 0, localBuffer.Length);
             }
+        }
+
+        internal static ValueTask WriteAsyncDirect(Stream destination, ReadOnlyMemory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return ValueTask.FromCanceled(cancellationToken);
+
+            destination.Write(buffer.Span);
+            return ValueTask.CompletedTask;
         }
 #endif
 

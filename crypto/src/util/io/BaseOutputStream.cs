@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using System.Threading;
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
 using System.Threading.Tasks;
 #endif
 
@@ -43,6 +43,7 @@ namespace Org.BouncyCastle.Utilities.IO
             throw new NotSupportedException();
         }
 #endif
+        // TODO[api] ReadByte
         public sealed override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
         public sealed override void SetLength(long value) { throw new NotSupportedException(); }
 
