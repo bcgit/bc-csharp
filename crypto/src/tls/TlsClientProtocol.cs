@@ -1771,7 +1771,7 @@ namespace Org.BouncyCastle.Tls
             int bindersSize = null == m_clientBinders ? 0 : m_clientBinders.m_bindersSize;
 
             this.m_clientHello = new ClientHello(legacy_version, securityParameters.ClientRandom, legacy_session_id,
-                null, offeredCipherSuites, m_clientExtensions, bindersSize);
+                cookie: null, offeredCipherSuites, m_clientExtensions, bindersSize);
 
             SendClientHelloMessage();
         }

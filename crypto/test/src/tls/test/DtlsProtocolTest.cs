@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 
 using NUnit.Framework;
@@ -70,7 +71,36 @@ namespace Org.BouncyCastle.Tls.Tests
                 try
                 {
                     MockDtlsServer server = new MockDtlsServer();
-                    DtlsTransport dtlsServer = m_serverProtocol.Accept(server, m_serverTransport);
+
+                    DtlsRequest request = null;
+
+                    // Use DtlsVerifier to require a HelloVerifyRequest cookie exchange before accepting
+                    {
+                        DtlsVerifier verifier = new DtlsVerifier(server.Crypto);
+
+                        // NOTE: Test value only - would typically be the client IP address
+                        byte[] clientID = Encoding.UTF8.GetBytes("MockDtlsClient");
+
+                        int receiveLimit = m_serverTransport.GetReceiveLimit();
+                        int dummyOffset = server.Crypto.SecureRandom.Next(16) + 1;
+                        byte[] transportBuf = new byte[dummyOffset + m_serverTransport.GetReceiveLimit()];
+
+                        do
+                        {
+                            if (m_isShutdown)
+                                return;
+
+                            int length = m_serverTransport.Receive(transportBuf, dummyOffset, receiveLimit, 1000);
+                            if (length > 0)
+                            {
+                                request = verifier.VerifyRequest(clientID, transportBuf, dummyOffset, length,
+                                    m_serverTransport);
+                            }
+                        }
+                        while (request == null);
+                    }
+
+                    DtlsTransport dtlsServer = m_serverProtocol.Accept(server, m_serverTransport, request);
                     byte[] buf = new byte[dtlsServer.GetReceiveLimit()];
                     while (!m_isShutdown)
                     {
