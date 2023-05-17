@@ -312,6 +312,8 @@ namespace Org.BouncyCastle.Tls
             }
 
             CloseConnection();
+
+            TlsUtilities.NotifyConnectionClosed(Peer);
         }
 
         /// <exception cref="IOException"/>
