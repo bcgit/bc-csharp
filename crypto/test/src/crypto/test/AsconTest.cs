@@ -405,7 +405,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void ImplTestExceptionsDigest(AsconDigest.AsconParameters asconParameters)
         {
-            var ascon = new AsconDigest(asconParameters);
+            var ascon = CreateDigest(asconParameters);
 
             try
             {
@@ -805,8 +805,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "iv bytes of " + ascon.AlgorithmName + " is not correct");
 
             var parameters = new ParametersWithIV(new KeyParameter(new byte[keySize]), new byte[ivSize]);
-            ascon.Init(true, parameters);
 
+            ascon.Init(true, parameters);
             Assert.AreEqual(macSize, ascon.GetOutputSize(0),
                 "GetOutputSize of " + ascon.AlgorithmName + " is incorrect for encryption");
 
@@ -929,7 +929,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void ImplTestVectorsXof(AsconXof.AsconParameters asconParameters, string filename)
         {
-            AsconXof ascon = new AsconXof(asconParameters);
+            var ascon = CreateXof(asconParameters);
             var buf = new Dictionary<string, string>();
             using (var src = new StreamReader(
                 SimpleTest.GetTestDataAsStream("crypto.ascon." + filename + "_LWC_HASH_KAT_256.txt")))
