@@ -13,7 +13,12 @@ namespace Org.BouncyCastle.Tls.Tests
         : DefaultTlsServer
     {
         internal MockDtlsServer()
-            : base(new BcTlsCrypto())
+            : this(new BcTlsCrypto())
+        {
+        }
+
+        internal MockDtlsServer(TlsCrypto crypto)
+            : base(crypto)
         {
         }
 
