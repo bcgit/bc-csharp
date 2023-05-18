@@ -366,7 +366,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void ImplTestExceptionsDigest(SparkleDigest.SparkleParameters sparkleParameters)
         {
-            var sparkle = new SparkleDigest(sparkleParameters);
+            var sparkle = CreateDigest(sparkleParameters);
 
             try
             {
@@ -383,7 +383,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 sparkle.DoFinal(new byte[sparkle.GetDigestSize() - 1], 2);
                 Assert.Fail(sparkle.AlgorithmName + ": output for Dofinal is too short");
             }
-            catch (DataLengthException)
+            catch (OutputLengthException)
             {
                 //expected
             }
@@ -391,7 +391,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void ImplTestExceptionsEngine(SparkleEngine.SparkleParameters sparkleParameters)
         {
-            var sparkle = new SparkleEngine(sparkleParameters);
+            var sparkle = CreateEngine(sparkleParameters);
 
             int keysize = sparkle.GetKeyBytesSize(), ivsize = sparkle.GetIVBytesSize();
             int offset;
@@ -548,6 +548,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 //expected
             }
+            sparkle.Init(true, param);
+            try
+            {
+                int need = sparkle.GetUpdateOutputSize(64);
+                sparkle.ProcessBytes(new byte[64], 0, 64, new byte[need], 1);
+                Assert.Fail("output for ProcessBytes is too short");
+            }
+            catch (OutputLengthException)
+            {
+                //expected
+            }
             try
             {
                 sparkle.DoFinal(new byte[2], 2);
@@ -639,10 +650,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] c7 = new byte[sparkle.GetOutputSize(m7.Length)];
             byte[] c8 = new byte[c7.Length];
             byte[] c9 = new byte[c7.Length];
-            sparkle.Init(true, param);
             sparkle.ProcessAadBytes(aad2, 0, aad2.Length);
             offset = sparkle.ProcessBytes(m7, 0, m7.Length, c7, 0);
-            sparkle.DoFinal(c7, offset);
+            offset += sparkle.DoFinal(c7, offset);
 
             // TODO Maybe use a different IV for this
             sparkle.Init(true, param);
@@ -658,6 +668,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = sparkle.ProcessBytes(m7, 0, split, c9, 0);
             offset += sparkle.ProcessBytes(m7, split, m7.Length - split, c9, offset);
             offset += sparkle.DoFinal(c9, offset);
+
             if (!Arrays.AreEqual(c7, c8) || !Arrays.AreEqual(c7, c9))
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
@@ -780,7 +791,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                         if (ptByte.Length > 1)
                         {
-                            int split = random.Next(1, ptByte.Length - 1);
+                            int split = random.Next(1, ptByte.Length);
                             sparkle.BlockUpdate(ptByte, 0, split);
                             sparkle.BlockUpdate(ptByte, split, ptByte.Length - split);
                             sparkle.DoFinal(hash, 0);

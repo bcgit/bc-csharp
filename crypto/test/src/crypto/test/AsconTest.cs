@@ -586,6 +586,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 //expected
             }
+            ascon.Init(true, param);
+            try
+            {
+                int need = ascon.GetUpdateOutputSize(64);
+                ascon.ProcessBytes(new byte[64], 0, 64, new byte[need], 1);
+                Assert.Fail("output for ProcessBytes is too short");
+            }
+            catch (OutputLengthException)
+            {
+                //expected
+            }
             try
             {
                 ascon.DoFinal(new byte[2], 2);
@@ -695,6 +706,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             offset = ascon.ProcessBytes(m7, 0, split, c9, 0);
             offset += ascon.ProcessBytes(m7, split, m7.Length - split, c9, offset);
             offset += ascon.DoFinal(c9, offset);
+
             if (!Arrays.AreEqual(c7, c8) || !Arrays.AreEqual(c7, c9))
             {
                 Assert.Fail("Splitting input of plaintext should output the same ciphertext");
@@ -825,6 +837,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void ImplTestVectorsDigest(AsconDigest.AsconParameters asconParameters, string filename)
         {
+            Random random = new Random();
             var ascon = CreateDigest(asconParameters);
             var map = new Dictionary<string, string>();
             using (var src = new StreamReader(
@@ -840,10 +853,20 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
 
-                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
                         byte[] hash = new byte[ascon.GetDigestSize()];
+
+                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
                         ascon.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(expected, hash));
+
+                        if (ptByte.Length > 1)
+                        {
+                            int split = random.Next(1, ptByte.Length);
+                            ascon.BlockUpdate(ptByte, 0, split);
+                            ascon.BlockUpdate(ptByte, split, ptByte.Length - split);
+                            ascon.DoFinal(hash, 0);
+                            Assert.IsTrue(Arrays.AreEqual(expected, hash));
+                        }
                     }
                     else
                     {
@@ -865,7 +888,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             Random random = new Random();
             var asconEngine = CreateEngine(asconParameters);
             var buf = new Dictionary<string, string>();
-            //TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.ascon.LWC_AEAD_KAT_" + filename + ".txt")))
             {
                 Dictionary<string, string> map = new Dictionary<string, string>();
@@ -929,6 +951,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void ImplTestVectorsXof(AsconXof.AsconParameters asconParameters, string filename)
         {
+            Random random = new Random();
             var ascon = CreateXof(asconParameters);
             var buf = new Dictionary<string, string>();
             using (var src = new StreamReader(
@@ -945,10 +968,20 @@ namespace Org.BouncyCastle.Crypto.Tests
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
 
-                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
                         byte[] hash = new byte[ascon.GetDigestSize()];
+
+                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
                         ascon.DoFinal(hash, 0);
                         Assert.True(Arrays.AreEqual(expected, hash));
+
+                        if (ptByte.Length > 1)
+                        {
+                            int split = random.Next(1, ptByte.Length);
+                            ascon.BlockUpdate(ptByte, 0, split);
+                            ascon.BlockUpdate(ptByte, split, ptByte.Length - split);
+                            ascon.DoFinal(hash, 0);
+                            Assert.IsTrue(Arrays.AreEqual(expected, hash));
+                        }
                     }
                     else
                     {
