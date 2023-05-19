@@ -9,6 +9,8 @@ using System.Runtime.Intrinsics.X86;
 
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -1052,28 +1054,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         }
 
         /* Used in mov columns*/
-        static private ulong SameMask64(ushort x, ushort y)
+        private static ulong SameMask64(ushort x, ushort y)
         {
-            ulong mask;
-
-            mask = (ulong)(x ^ y);
-            mask -= 1;
-            mask >>= 63;
-            mask = (ulong)-(long)mask; // todo change with ~
-
-            return mask;
+            return (ulong)(((long)(x ^ y) - 1L) >> 63);
         }
 
         /* Used in error vector generation*/
         private static byte SameMask32(short x, short y)
         {
-            uint mask;
-
-            mask = (uint)(x ^ y);
-            mask -= 1;
-            mask >>= 31;
-            mask = (uint)-mask;
-            return (byte)(mask & 0xFF);
+            return (byte)(((x ^ y) - 1) >> 31);
         }
 
         private static void Layer(ushort[] p, byte[] output, int ptrIndex, int s, int n)
@@ -1404,10 +1393,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             for (i = 1; i < (1 << GFBITS); i++)
             {
                 if ((buf[i - 1] >> 31) == (buf[i] >> 31))
-                {
-                    //                System.out.println("FAIL 1");
                     return -1;
-                }
             }
 
             // FieldOrdering 2.4.2 - 4.
@@ -1430,8 +1416,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 inv[i] = gf.GFInv(inv[i]);
             }
+
             byte[][] mat = new byte[PK_NROWS][];
-            byte b;
             for (i = 0; i < PK_NROWS; i++)
             {
                 mat[i] = new byte[(SYS_N / 8)];
@@ -1441,25 +1427,53 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 for (j = 0; j < SYS_N; j += 8)
                 {
-                    for (k = 0; k < GFBITS; k++)
-                    {
-                        b = (byte)((inv[j + 7] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 6] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 5] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 4] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 3] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 2] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 1] >> k) & 1);
-                        b <<= 1;
-                        b |= (byte)((inv[j + 0] >> k) & 1);
+                    //for (k = 0; k < GFBITS; k++)
+                    //{
+                    //    byte b;
+                    //    b  = (byte)((inv[j + 7] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 6] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 5] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 4] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 3] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 2] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 1] >> k) & 1);
+                    //    b <<= 1;
+                    //    b |= (byte)((inv[j + 0] >> k) & 1);
 
-                        mat[i * GFBITS + k][j / 8] = b;
+                    //    mat[i * GFBITS + k][j / 8] = b;
+                    //}
+
+                    ulong t0 = (ulong)inv[j + 0] | (ulong)inv[j + 2] << 16 | (ulong)inv[j + 4] << 32 | (ulong)inv[j + 6] << 48;
+                    ulong t1 = (ulong)inv[j + 1] | (ulong)inv[j + 3] << 16 | (ulong)inv[j + 5] << 32 | (ulong)inv[j + 7] << 48;
+
+                    Bits.BitPermuteStep2(ref t1, ref t0, 0x00FF00FF00FF00FFU, 8);
+
+                    t0 = Interleave.Transpose(t0);
+                    t1 = Interleave.Transpose(t1);
+
+                    mat[i * GFBITS + 0][j / 8] = (byte)t0;
+                    mat[i * GFBITS + 1][j / 8] = (byte)(t0 >> 8);
+                    mat[i * GFBITS + 2][j / 8] = (byte)(t0 >> 16);
+                    mat[i * GFBITS + 3][j / 8] = (byte)(t0 >> 24);
+                    mat[i * GFBITS + 4][j / 8] = (byte)(t0 >> 32);
+                    mat[i * GFBITS + 5][j / 8] = (byte)(t0 >> 40);
+                    mat[i * GFBITS + 6][j / 8] = (byte)(t0 >> 48);
+                    mat[i * GFBITS + 7][j / 8] = (byte)(t0 >> 56);
+
+                    mat[i * GFBITS + 8][j / 8] = (byte)t1;
+                    mat[i * GFBITS + 9][j / 8] = (byte)(t1 >> 8);
+                    mat[i * GFBITS + 10][j / 8] = (byte)(t1 >> 16);
+                    mat[i * GFBITS + 11][j / 8] = (byte)(t1 >> 24);
+
+                    if (GFBITS > 12)
+                    {
+                        mat[i * GFBITS + 12][j / 8] = (byte)(t1 >> 32);
                     }
                 }
 
@@ -1470,23 +1484,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             }
 
             // gaussian elimination
-            int row, c;
-            byte mask;
-            for (row = 0; row < PK_NROWS; row++)
+            for (int row = 0; row < PK_NROWS; row++)
             {
                 i = row >> 3;
                 j = row & 7;
 
-                if (usePivots)
+                if (usePivots && row == PK_NROWS - 32)
                 {
-                    if (row == PK_NROWS - 32)
-                    {
-                        if (MovColumns(mat, pi, pivots) != 0)
-                        {
-                            //System.out.println("failed mov column!");
-                            return -1;
-                        }
-                    }
+                    if (MovColumns(mat, pi, pivots) != 0)
+                        return -1;
                 }
 
                 byte[] mat_row = mat[row];
@@ -1494,11 +1500,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                 for (k = row + 1; k < PK_NROWS; k++)
                 {
                     byte[] mat_k = mat[k];
-                    mask = (byte)(mat_row[i] ^ mat_k[i]);
+                    byte mask = (byte)(mat_row[i] ^ mat_k[i]);
                     mask >>= j;
                     mask &= 1;
 
-                    c = 0;
+                    int c = 0;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     if (Vector.IsHardwareAccelerated)
@@ -1562,10 +1568,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     if (k != row)
                     {
                         byte[] mat_k = mat[k];
-                        mask = (byte)(mat_k[i] >> j);
+                        byte mask = (byte)(mat_k[i] >> j);
                         mask &= 1;
 
-                        c = 0;
+                        int c = 0;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                         if (Vector.IsHardwareAccelerated)
@@ -1623,15 +1629,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             {
                 if (usePadding)
                 {
+                    int min = (PK_NROWS - 1) / 8, max = SYS_N / 8;
                     int pk_index = 0, tail = PK_NROWS % 8;
-                    for (i = 0; i < PK_NROWS; i++)
+                    if (tail == 0)
                     {
-                        byte[] mat_i = mat[i];
-                        for (j = (PK_NROWS - 1) / 8; j < SYS_N / 8 - 1; j++)
+                        int len = max - min;
+                        for (i = 0; i < PK_NROWS; i++)
                         {
-                            pk[pk_index++] = (byte)(((mat_i[j] & 0xff) >> tail) | (mat_i[j + 1] << (8 - tail)));
+                            Array.Copy(mat[i], min, pk, pk_index, len);
+                            pk_index += len;
                         }
-                        pk[pk_index++] = (byte)((mat_i[j] & 0xff) >> tail);
+                    }
+                    else
+                    {
+                        for (i = 0; i < PK_NROWS; i++)
+                        {
+                            byte[] mat_i = mat[i];
+
+                            //for (j = min; j < max - 1; j++)
+                            //{
+                            //    pk[pk_index++] = (byte)((uint)mat_i[j] >> tail | (uint)mat_i[j + 1] << (8 - tail));
+                            //}
+                            //pk[pk_index++] = (byte)((uint)mat_i[j] >> tail);
+
+                            ulong prev = Pack.LE_To_UInt64(mat_i, min);
+                            for (j = min + 8; j < max - 8; j += 8)
+                            {
+                                ulong next = Pack.LE_To_UInt64(mat_i, j);
+                                ulong result = prev >> tail | next << (64 - tail);
+                                Pack.UInt64_To_LE(result, pk, pk_index);
+                                pk_index += 8;
+                                prev = next;
+                            }
+                            {
+                                int partial = max - j;
+                                ulong next = Pack.LE_To_UInt64_Low(mat_i, j, partial);
+                                ulong result = prev >> tail | next << (64 - tail);
+                                Pack.UInt64_To_LE(result, pk, pk_index);
+                                pk_index += 8;
+                                Pack.UInt64_To_LE_Low(next >> tail, pk, pk_index, partial);
+                                pk_index += partial;
+                            }
+                        }
                     }
                 }
                 else

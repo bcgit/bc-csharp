@@ -522,6 +522,23 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+        internal static void UInt32_To_LE_High(uint n, byte[] bs, int off, int len)
+        {
+            UInt32_To_LE_Low(n >> ((4 - len) << 3), bs, off, len);
+        }
+
+        internal static void UInt32_To_LE_Low(uint n, byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 4);
+
+            bs[off] = (byte)n;
+            for (int i = 1; i < len; ++i)
+            {
+                n >>= 8;
+                bs[off + i] = (byte)n;
+            }
+        }
+
         internal static byte[] UInt32_To_LE(uint[] ns)
         {
             byte[] bs = new byte[4 * ns.Length];
@@ -649,6 +666,23 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+        internal static void UInt64_To_LE_High(ulong n, byte[] bs, int off, int len)
+        {
+            UInt64_To_LE_Low(n >> ((8 - len) << 3), bs, off, len);
+        }
+
+        internal static void UInt64_To_LE_Low(ulong n, byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 8);
+
+            bs[off] = (byte)n;
+            for (int i = 1; i < len; ++i)
+            {
+                n >>= 8;
+                bs[off + i] = (byte)n;
+            }
+        }
+
         internal static byte[] UInt64_To_LE(ulong[] ns)
         {
             byte[] bs = new byte[8 * ns.Length];
@@ -694,6 +728,25 @@ namespace Org.BouncyCastle.Crypto.Utilities
             uint hi = LE_To_UInt32(bs, off + 4);
             return ((ulong)hi << 32) | (ulong)lo;
 #endif
+        }
+
+        internal static ulong LE_To_UInt64_High(byte[] bs, int off, int len)
+        {
+            return LE_To_UInt64_Low(bs, off, len) << ((8 - len) << 3);
+        }
+
+        internal static ulong LE_To_UInt64_Low(byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 8);
+
+            ulong result = bs[off];
+            int pos = 0;
+            for (int i = 1; i < len; ++i)
+            {
+                pos += 8;
+                result |= (ulong)bs[off + i] << pos;
+            }
+            return result;
         }
 
         internal static void LE_To_UInt64(byte[] bs, int off, ulong[] ns)
