@@ -257,6 +257,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             A(D);
         }
 
+        // TODO[api] Make private and take a KeyParameter instead
         protected static byte[][] KeySchedule(bool forEncryption, byte[] K)
         {
             int keyLen = K.Length;
