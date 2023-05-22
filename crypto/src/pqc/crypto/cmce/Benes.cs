@@ -1,11 +1,18 @@
 
+using System;
+
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
     internal abstract class Benes
     {
-        protected int SYS_N;
-        protected int SYS_T;
-        protected int GFBITS;
+        private static readonly ulong[] TransposeMasks = { 0x5555555555555555UL, 0x3333333333333333UL,
+            0x0F0F0F0F0F0F0F0FUL, 0x00FF00FF00FF00FFUL, 0x0000FFFF0000FFFFUL, 0x00000000FFFFFFFFUL };
+
+        protected readonly int SYS_N;
+        protected readonly int SYS_T;
+        protected readonly int GFBITS;
 
         internal Benes(int n, int t, int m)
         {
@@ -18,72 +25,44 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         /* outputput: output, transpose of in */
         internal static void Transpose64x64(ulong[] output, ulong[] input)
         {
-            int i, j, s, d;
-
-            ulong x, y;
-            ulong[,] masks =
-            {
-                {0x5555555555555555L, 0xAAAAAAAAAAAAAAAAL},
-                {0x3333333333333333L, 0xCCCCCCCCCCCCCCCCL},
-                {0x0F0F0F0F0F0F0F0FL, 0xF0F0F0F0F0F0F0F0L},
-                {0x00FF00FF00FF00FFL, 0xFF00FF00FF00FF00L},
-                {0x0000FFFF0000FFFFL, 0xFFFF0000FFFF0000L},
-                {0x00000000FFFFFFFFL, 0xFFFFFFFF00000000L}
-            };
-
-            for (i = 0; i < 64; i++)
-                output[i] = input[i];
-
-            for (d = 5; d >= 0; d--)
-            {
-                s = 1 << d;
-                for (i = 0; i < 64; i += s * 2)
-                {
-                    for (j = i; j < i + s; j++)
-                    {
-                        x = (output[j] & masks[d, 0]) | ((output[j + s] & masks[d, 0]) << s);
-                        y = ((output[j] & masks[d, 1]) >> s) | (output[j + s] & masks[d, 1]);
-
-                        output[j + 0] = x;
-                        output[j + s] = y;
-                    }
-                }
-            }
+            Transpose64x64(output, input, 0);
         }
 
         internal static void Transpose64x64(ulong[] output, ulong[] input, int offset)
         {
-            int i, j, s, d;
+            Array.Copy(input, offset, output, offset, 64);
 
-            ulong x, y;
-            ulong[,] masks =
+            int d = 5;
+            do
             {
-                {0x5555555555555555L, 0xAAAAAAAAAAAAAAAAL},
-                {0x3333333333333333L, 0xCCCCCCCCCCCCCCCCL},
-                {0x0F0F0F0F0F0F0F0FL, 0xF0F0F0F0F0F0F0F0L},
-                {0x00FF00FF00FF00FFL, 0xFF00FF00FF00FF00L},
-                {0x0000FFFF0000FFFFL, 0xFFFF0000FFFF0000L},
-                {0x00000000FFFFFFFFL, 0xFFFFFFFF00000000L}
-            };
-
-            for (i = 0; i < 64; i++)
-                output[i + offset] = input[i + offset];
-
-            for (d = 5; d >= 0; d--)
-            {
-                s = 1 << d;
-                for (i = 0; i < 64; i += s * 2)
+                ulong m = TransposeMasks[d];
+                int s = 1 << d;
+                for (int i = offset; i < offset + 64; i += s * 2)
                 {
-                    for (j = i; j < i + s; j++)
+                    for (int j = i; j < i + s; j += 4)
                     {
-                        x = (output[j + offset] & masks[d, 0]) | ((output[j + s + offset] & masks[d, 0]) << s);
-                        y = ((output[j + offset] & masks[d, 1]) >> s) | (output[j + s + offset] & masks[d, 1]);
-
-                        output[j + 0 + offset] = x;
-                        output[j + s + offset] = y;
+                        Bits.BitPermuteStep2(ref output[j + s + 0], ref output[j + 0], m, s);
+                        Bits.BitPermuteStep2(ref output[j + s + 1], ref output[j + 1], m, s);
+                        Bits.BitPermuteStep2(ref output[j + s + 2], ref output[j + 2], m, s);
+                        Bits.BitPermuteStep2(ref output[j + s + 3], ref output[j + 3], m, s);
                     }
                 }
             }
+            while (--d >= 2);
+
+            do
+            {
+                ulong m = TransposeMasks[d];
+                int s = 1 << d;
+                for (int i = offset; i < offset + 64; i += s * 2)
+                {
+                    for (int j = i; j < i + s; ++j)
+                    {
+                        Bits.BitPermuteStep2(ref output[j + s], ref output[j], m, s);
+                    }
+                }
+            }
+            while (--d >= 0);
         }
 
         internal abstract void SupportGen(ushort[] s, byte[] c);

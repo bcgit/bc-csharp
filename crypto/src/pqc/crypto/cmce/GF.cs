@@ -50,7 +50,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     temp[i - length + poly[j]] ^= temp_i;
                 }
                 {
-                    temp[i - length] ^= GFMulExt(GFReduce(temp_i), 2);
+                    // NOTE: Safe because GFReduce allows up to 24 bits, but GFMulExt(Par) only produces 23.
+                    temp[i - length] ^= temp_i << 1;
                 }
             }
 
@@ -79,7 +80,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                     temp[i - length + poly[j]] ^= temp_i;
                 }
                 {
-                    temp[i - length] ^= GFMulExt(GFReduce(temp_i), 2);
+                    // NOTE: Safe because GFReduce allows up to 24 bits, but GFSqExt only produces 23.
+                    temp[i - length] ^= temp_i << 1;
                 }
             }
 
