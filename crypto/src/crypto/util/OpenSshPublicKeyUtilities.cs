@@ -30,18 +30,19 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         /**
-        * Encode a public key from an AsymmetricKeyParameter instance.
-        *
-        * @param cipherParameters The key to encode.
-        * @return the key OpenSSH encoded.
-        * @throws IOException
-        */
+         * Encode a public key from an AsymmetricKeyParameter instance.
+         *
+         * @param cipherParameters The key to encode.
+         * @return the key OpenSSH encoded.
+         * @throws IOException
+         */
         public static byte[] EncodePublicKey(AsymmetricKeyParameter cipherParameters)
         {
             if (cipherParameters == null)
                 throw new ArgumentNullException(nameof(cipherParameters));
             if (cipherParameters.IsPrivate)
                 throw new ArgumentException("Not a public key", nameof(cipherParameters));
+
             if (cipherParameters is RsaKeyParameters rsaPubKey)
             {
                 SshBuilder builder = new SshBuilder();
@@ -53,11 +54,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
             else if (cipherParameters is ECPublicKeyParameters ecPublicKey)
             {
                 string curveName = null;
+
                 var oid = ecPublicKey.PublicKeyParamSet;
                 if (oid != null)
                 {
                     curveName = SshNamedCurves.GetName(oid);
                 }
+
                 if (curveName == null)
                     throw new ArgumentException("unable to derive ssh curve name for EC public key");
 
