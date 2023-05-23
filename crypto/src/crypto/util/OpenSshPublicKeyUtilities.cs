@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 return builder.GetBytes();
             }
 
-            throw new ArgumentException("unable to convert " + Platform.GetTypeName(cipherParameters) + " to private key");
+            throw new ArgumentException("unable to convert " + Platform.GetTypeName(cipherParameters) + " to public key");
         }
 
         /**
