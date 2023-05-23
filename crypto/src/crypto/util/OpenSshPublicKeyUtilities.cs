@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -32,10 +33,11 @@ namespace Org.BouncyCastle.Crypto.Utilities
          * Encode a public key from an AsymmetricKeyParameter instance.
          *
          * @param cipherParameters The key to encode.
+         * @param comments The comments of the public key.
          * @return the key OpenSSH encoded.
          * @throws IOException
          */
-        public static byte[] EncodePublicKey(AsymmetricKeyParameter cipherParameters)
+        public static string EncodePublicKey(AsymmetricKeyParameter cipherParameters, string comments)
         {
             if (cipherParameters == null)
                 throw new ArgumentNullException(nameof(cipherParameters));
@@ -45,10 +47,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             if (cipherParameters is RsaKeyParameters rsaPubKey)
             {
                 SshBuilder builder = new SshBuilder();
-                builder.WriteStringAscii(RSA);
                 builder.WriteMpint(rsaPubKey.Exponent);
                 builder.WriteMpint(rsaPubKey.Modulus);
-                return builder.GetBytes();
+                return $"{RSA} {Base64.ToBase64String(builder.GetBytes())} {comments}";
             }
             else if (cipherParameters is ECPublicKeyParameters ecPublicKey)
             {
@@ -64,32 +65,28 @@ namespace Org.BouncyCastle.Crypto.Utilities
                     throw new ArgumentException("unable to derive ssh curve name for EC public key");
 
                 SshBuilder builder = new SshBuilder();
-                builder.WriteStringAscii(ECDSA + "-sha2-" + curveName); // Magic
-                builder.WriteStringAscii(curveName);
                 builder.WriteBlock(ecPublicKey.Q.GetEncoded(false)); //Uncompressed
-                return builder.GetBytes();
+                return $"{ECDSA}-sha2-{curveName} {Base64.ToBase64String(builder.GetBytes())} {comments}";
             }
             else if (cipherParameters is DsaPublicKeyParameters dsaPubKey)
             {
                 DsaParameters dsaParams = dsaPubKey.Parameters;
 
                 SshBuilder builder = new SshBuilder();
-                builder.WriteStringAscii(DSS);
                 builder.WriteMpint(dsaParams.P);
                 builder.WriteMpint(dsaParams.Q);
                 builder.WriteMpint(dsaParams.G);
                 builder.WriteMpint(dsaPubKey.Y);
-                return builder.GetBytes();
+                return $"{DSS} {Base64.ToBase64String(builder.GetBytes())} {comments}";
             }
             else if (cipherParameters is Ed25519PublicKeyParameters ed25519PublicKey)
             {
                 SshBuilder builder = new SshBuilder();
-                builder.WriteStringAscii(ED_25519);
                 builder.WriteBlock(ed25519PublicKey.GetEncoded());
-                return builder.GetBytes();
+                return $"{ED_25519} {Base64.ToBase64String(builder.GetBytes())} {comments}";
             }
 
-            throw new ArgumentException("unable to convert " + Platform.GetTypeName(cipherParameters) + " to private key");
+            throw new ArgumentException("unable to convert " + Platform.GetTypeName(cipherParameters) + " to public key");
         }
 
         /**
