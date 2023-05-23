@@ -65,6 +65,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                     throw new ArgumentException("unable to derive ssh curve name for EC public key");
 
                 SshBuilder builder = new SshBuilder();
+                builder.WriteStringAscii(curveName);
                 builder.WriteBlock(ecPublicKey.Q.GetEncoded(false)); //Uncompressed
                 return $"{ECDSA}-sha2-{curveName} {Base64.ToBase64String(builder.GetBytes())} {comments}";
             }
