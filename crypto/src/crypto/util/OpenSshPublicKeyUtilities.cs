@@ -30,14 +30,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         /**
-         * Encode a public key from an AsymmetricKeyParameter instance.
+         * Format a public key from an AsymmetricKeyParameter instance to OpenSSH public key format.
          *
          * @param cipherParameters The key to encode.
          * @param comments The comments of the public key.
-         * @return the key OpenSSH encoded.
+         * @return the key OpenSSH formatted.
          * @throws IOException
          */
-        public static string EncodePublicKey(AsymmetricKeyParameter cipherParameters, string comments)
+        public static string FormatPublicKey(AsymmetricKeyParameter cipherParameters, string comments)
         {
             if (cipherParameters == null)
                 throw new ArgumentNullException(nameof(cipherParameters));
