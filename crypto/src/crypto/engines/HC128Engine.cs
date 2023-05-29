@@ -22,38 +22,28 @@ namespace Org.BouncyCastle.Crypto.Engines
 	public class HC128Engine
 		: IStreamCipher
 	{
-		private uint[] p = new uint[512];
-		private uint[] q = new uint[512];
+		private readonly uint[] p = new uint[512];
+		private readonly uint[] q = new uint[512];
 		private uint cnt = 0;
 
 		private static uint F1(uint x)
 		{
-			return RotateRight(x, 7) ^ RotateRight(x, 18) ^ (x >> 3);
+			return Integers.RotateRight(x, 7) ^ Integers.RotateRight(x, 18) ^ (x >> 3);
 		}
 
 		private static uint F2(uint x)
 		{
-			return RotateRight(x, 17) ^ RotateRight(x, 19) ^ (x >> 10);
+			return Integers.RotateRight(x, 17) ^ Integers.RotateRight(x, 19) ^ (x >> 10);
 		}
 
 		private uint G1(uint x, uint y, uint z)
 		{
-			return (RotateRight(x, 10) ^ RotateRight(z, 23)) + RotateRight(y, 8);
+			return (Integers.RotateRight(x, 10) ^ Integers.RotateRight(z, 23)) + Integers.RotateRight(y, 8);
 		}
 
 		private uint G2(uint x, uint y, uint z)
 		{
-			return (RotateLeft(x, 10) ^ RotateLeft(z, 23)) + RotateLeft(y, 8);
-		}
-
-		private static uint RotateLeft(uint	x, int bits)
-		{
-			return (x << bits) | (x >> -bits);
-		}
-
-		private static uint RotateRight(uint x, int bits)
-		{
-			return (x >> bits) | (x << -bits);
+			return (Integers.RotateLeft(x, 10) ^ Integers.RotateLeft(z, 23)) + Integers.RotateLeft(y, 8);
 		}
 
 		private uint H1(uint x)
@@ -106,22 +96,18 @@ namespace Org.BouncyCastle.Crypto.Engines
 		{
 			if (key.Length != 16)
 				throw new ArgumentException("The key must be 128 bits long");
+            if (iv.Length != 16)
+                throw new ArgumentException("The IV must be 128 bits long");
 
             idx = 0;
             cnt = 0;
 
 			uint[] w = new uint[1280];
 
-			for (int i = 0; i < 16; i++)
-			{
-				w[i >> 2] |= ((uint)key[i] << (8 * (i & 0x3)));
-			}
+			Pack.LE_To_UInt32(key, 0, w, 0, 4);
 			Array.Copy(w, 0, w, 4, 4);
 
-			for (int i = 0; i < iv.Length && i < 16; i++)
-			{
-				w[(i >> 2) + 8] |= ((uint)iv[i] << (8 * (i & 0x3)));
-			}
+			Pack.LE_To_UInt32(iv, 0, w, 8, 4);
 			Array.Copy(w, 8, w, 12, 4);
 
 			for (uint i = 16; i < 1280; i++)
@@ -144,10 +130,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			cnt = 0;
 		}
 
-        public virtual string AlgorithmName
-		{
-			get { return "HC-128"; }
-		}
+        public virtual string AlgorithmName => "HC-128";
 
 		/**
 		* Initialise a HC-128 cipher.
@@ -158,38 +141,27 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @throws ArgumentException if the params argument is
 		*                                  inappropriate (ie. the key is not 128 bit long).
 		*/
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			ICipherParameters keyParam = parameters;
+            if (!(parameters is ParametersWithIV ivParams))
+                throw new ArgumentException("HC-128 Init parameters must include an IV");
 
-			if (parameters is ParametersWithIV)
-			{
-				iv = ((ParametersWithIV)parameters).GetIV();
-				keyParam = ((ParametersWithIV)parameters).Parameters;
-			}
-			else
-			{
-				iv = new byte[0];
-			}
+            if (!(ivParams.Parameters is KeyParameter keyParams))
+            {
+                throw new ArgumentException(
+                    "Invalid parameter passed to HC128 init - " + Platform.GetTypeName(parameters),
+                    "parameters");
+            }
 
-			if (keyParam is KeyParameter)
-			{
-				key = ((KeyParameter)keyParam).GetKey();
-				Init();
-			}
-			else
-			{
-				throw new ArgumentException(
-					"Invalid parameter passed to HC128 init - " + Platform.GetTypeName(parameters),
-					"parameters");
-			}
+            key = keyParams.GetKey();
+            iv = ivParams.GetIV();
 
-			initialised = true;
-		}
+            Init();
 
-		private byte[] buf = new byte[4];
+            initialised = true;
+        }
+
+        private readonly byte[] buf = new byte[4];
 		private int idx = 0;
 
 		private byte GetByte()
@@ -199,16 +171,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 				Pack.UInt32_To_LE(Step(), buf);				
 			}
 			byte ret = buf[idx];
-			idx = idx + 1 & 0x3;
+			idx = (idx + 1) & 0x3;
 			return ret;
 		}
 
-        public virtual void ProcessBytes(
-			byte[]	input,
-			int		inOff,
-			int		len,
-			byte[]	output,
-			int		outOff)
+        public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
 		{
 			if (!initialised)
 				throw new InvalidOperationException(AlgorithmName + " not initialised");

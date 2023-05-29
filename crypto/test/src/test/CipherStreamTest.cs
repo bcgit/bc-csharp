@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Tests
 			+ "F9E460BC65EF95DA58F740B7D1DBB0AA");
 
 		private static readonly byte[] HCIN = new byte[64];
-		private static readonly byte[] HCIV = new byte[32];
+		private static readonly byte[] HCIV = new byte[16];
 
 		private static readonly byte[] HCK256A = new byte[32];
 		private static readonly byte[] HC256A = Hex.Decode(
