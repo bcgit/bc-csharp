@@ -66,6 +66,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private void Init()
 		{
+			// TODO[api] Strictly require 32 bytes for both key and IV
 			if (key.Length != 32 && key.Length != 16)
 				throw new ArgumentException("The key must be 128/256 bits long");
 			if (iv.Length < 16)
