@@ -1,5 +1,3 @@
-using System;
-
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC.Multiplier;
@@ -8,17 +6,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-    class DHKeyGeneratorHelper
+    internal static class DHKeyGeneratorHelper
     {
-        internal static readonly DHKeyGeneratorHelper Instance = new DHKeyGeneratorHelper();
-
-        private DHKeyGeneratorHelper()
-        {
-        }
-
-        internal BigInteger CalculatePrivate(
-            DHParameters	dhParams,
-            SecureRandom	random)
+        internal static BigInteger CalculatePrivate(DHParameters dhParams, SecureRandom	random)
         {
             int limit = dhParams.L;
 
@@ -29,9 +19,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 {
                     BigInteger x = new BigInteger(limit, random).SetBit(limit - 1);
                     if (WNafUtilities.GetNafWeight(x) >= minWeight)
-                    {
                         return x;
-                    }
                 }
             }
 
@@ -42,11 +30,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 min = BigInteger.One.ShiftLeft(m - 1);
             }
 
-            BigInteger q = dhParams.Q;
-            if (q == null)
-            {
-                q = dhParams.P;
-            }
+            BigInteger q = dhParams.Q ?? dhParams.P;
             BigInteger max = q.Subtract(BigInteger.Two);
 
             {
@@ -55,16 +39,12 @@ namespace Org.BouncyCastle.Crypto.Generators
                 {
                     BigInteger x = BigIntegers.CreateRandomInRange(min, max, random);
                     if (WNafUtilities.GetNafWeight(x) >= minWeight)
-                    {
                         return x;
-                    }
                 }
             }
         }
 
-        internal BigInteger CalculatePublic(
-            DHParameters	dhParams,
-            BigInteger		x)
+        internal static BigInteger CalculatePublic(DHParameters	dhParams, BigInteger x)
         {
             return dhParams.G.ModPow(x, dhParams.P);
         }

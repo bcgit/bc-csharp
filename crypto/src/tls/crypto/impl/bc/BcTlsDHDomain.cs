@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            DHBasicKeyPairGenerator keyPairGenerator = new DHBasicKeyPairGenerator();
+            DHKeyPairGenerator keyPairGenerator = new DHKeyPairGenerator();
             keyPairGenerator.Init(new DHKeyGenerationParameters(m_crypto.SecureRandom, m_domainParameters));
             return keyPairGenerator.GenerateKeyPair();
         }
