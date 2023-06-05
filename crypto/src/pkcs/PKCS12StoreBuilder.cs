@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Pkcs
 		{
 		}
 
-		public Pkcs12Store Build()
+		public Pkcs12Store Build(bool isReverse = false)
 		{
-			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding);
+			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding, isReverse);
 		}
+
 
 		public Pkcs12StoreBuilder SetCertAlgorithm(DerObjectIdentifier certAlgorithm)
 		{

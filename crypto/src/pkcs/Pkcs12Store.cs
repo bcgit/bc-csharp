@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Pkcs
         private readonly DerObjectIdentifier keyPrfAlgorithm;
         private readonly DerObjectIdentifier certAlgorithm;
         private readonly bool useDerEncoding;
+        private readonly bool isReverse;
 
         private AsymmetricKeyEntry unmarkedKeyEntry = null;
 
@@ -75,12 +76,13 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         internal Pkcs12Store(DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm,
-            DerObjectIdentifier certAlgorithm, bool useDerEncoding)
+            DerObjectIdentifier certAlgorithm, bool useDerEncoding, bool isReverse)
         {
             this.keyAlgorithm = keyAlgorithm;
             this.keyPrfAlgorithm = keyPrfAlgorithm;
             this.certAlgorithm = certAlgorithm;
             this.useDerEncoding = useDerEncoding;
+            this.isReverse = isReverse;
         }
 
         protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes)
@@ -283,7 +285,11 @@ namespace Org.BouncyCastle.Pkcs
             m_certs.Clear();
             m_chainCerts.Clear();
             m_keyCerts.Clear();
-
+            // m_certOrder.Clear();
+            if (isReverse)
+            {
+                certBags.Reverse();
+            }
             foreach (SafeBag b in certBags)
             {
                 CertBag certBag = CertBag.GetInstance(b.BagValue);
@@ -348,6 +354,7 @@ namespace Org.BouncyCastle.Pkcs
                 X509CertificateEntry certEntry = new X509CertificateEntry(cert, attributes);
 
                 m_chainCerts[certID] = certEntry;
+                // m_certOrder.Add(certID);
 
                 if (unmarkedKeyEntry != null)
                 {
@@ -587,7 +594,9 @@ namespace Org.BouncyCastle.Pkcs
 
             if (CollectionUtilities.Remove(m_certs, alias, out var certEntry))
             {
-                m_chainCerts.Remove(new CertID(certEntry));
+                CertID certId = new CertID(certEntry);
+                // m_certOrder.Remove(certId);
+                m_chainCerts.Remove(certId);
             }
 
             if (m_keys.Remove(alias))
@@ -596,7 +605,9 @@ namespace Org.BouncyCastle.Pkcs
                 {
                     if (CollectionUtilities.Remove(m_keyCerts, id, out var keyCertEntry))
                     {
-                        m_chainCerts.Remove(new CertID(keyCertEntry));
+                        CertID certId = new CertID(certEntry);
+                        // m_certOrder.Remove(certId);
+                        m_chainCerts.Remove(certId);
                     }
                 }
             }
