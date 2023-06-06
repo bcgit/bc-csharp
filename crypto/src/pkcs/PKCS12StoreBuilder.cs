@@ -11,16 +11,22 @@ namespace Org.BouncyCastle.Pkcs
 		private DerObjectIdentifier	certAlgorithm = PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc;
 		private DerObjectIdentifier keyPrfAlgorithm = null;
 		private bool useDerEncoding = false;
+		private bool reverseCertificate = false;
 
 		public Pkcs12StoreBuilder()
 		{
 		}
 
-		public Pkcs12Store Build(bool isReverse = false)
+		public Pkcs12Store Build()
 		{
-			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding, isReverse);
+			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding, reverseCertificate);
 		}
 
+		public Pkcs12StoreBuilder SetReverseCertificates(bool reverseCertificate)
+		{
+			this.reverseCertificate = reverseCertificate;
+			return this;
+		}
 
 		public Pkcs12StoreBuilder SetCertAlgorithm(DerObjectIdentifier certAlgorithm)
 		{
