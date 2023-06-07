@@ -77,14 +77,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             int partialBits = m_bits & 63;
             int partialBytes = (partialBits + 7) >> 3;
             Pack.LE_To_UInt64(bs, 0, z, 0, Size - 1);
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> last = stackalloc byte[8];
-            bs.AsSpan((Size - 1) << 3, partialBytes).CopyTo(last);
-#else
-            byte[] last = new byte[8];
-            Array.Copy(bs, (Size - 1) << 3, last, 0, partialBytes);
-#endif
-            z[Size - 1] = Pack.LE_To_UInt64(last);
+            z[Size - 1] = Pack.LE_To_UInt64_Low(bs, (Size - 1) << 3, partialBytes);
             Debug.Assert((z[Size - 1] >> partialBits) == 0UL);
         }
 
@@ -105,19 +98,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             int partialBytes = (partialBits + 7) >> 3;
             Debug.Assert((x[Size - 1] >> partialBits) == 0UL);
             Pack.UInt64_To_LE(x, 0, Size - 1, bs, 0);
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> last = stackalloc byte[8];
-            Pack.UInt64_To_LE(x[Size - 1], last);
-            last[..partialBytes].CopyTo(bs.AsSpan((Size - 1) << 3));
-#else
-            byte[] last = new byte[8];
-            Pack.UInt64_To_LE(x[Size - 1], last);
-            Array.Copy(last, 0, bs, (Size - 1) << 3, partialBytes);
-#endif
+            Pack.UInt64_To_LE_Low(x[Size - 1], bs, (Size - 1) << 3, partialBytes);
         }
 
         internal void Inv(ulong[] a, ulong[] z)
         {
+            /*
+             * Algorithm for inversion is based on https://ia.cr/2020/298 (Nir Drucker, Shay Gueron, Dusan Kostic,
+             * "Fast polynomial inversion for post quantum QC-MDPC cryptography"), in particular replacing large
+             * squarings with permutations. However we precompute only powers-of-half instead of full tables.
+             */
+
             ulong[] f = Create();
             ulong[] g = Create();
             ulong[] t = Create();
@@ -224,31 +215,116 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 #if NETCOREAPP3_0_OR_GREATER
             if (Pclmulqdq.IsSupported)
             {
-                int i = 0, limit = Size - 2;
-                while (i <= limit)
+                int i = 0;
+
+                int limit4 = Size - 4;
+                while (i <= limit4)
                 {
-                    var X01 = Vector128.Create(x[xOff + i], x[xOff + i + 1]);
+                    var X01 = Vector128.Create(x[xOff + i + 0], x[xOff + i + 1]);
+                    var X23 = Vector128.Create(x[xOff + i + 2], x[xOff + i + 3]);
 
                     int j = 0;
-                    while (j <= limit)
+                    while (j <= limit4)
                     {
-                        var Y01 = Vector128.Create(y[yOff + j], y[yOff + j + 1]);
+                        var Y01 = Vector128.Create(y[yOff + j + 0], y[yOff + j + 1]);
+                        var Y23 = Vector128.Create(y[yOff + j + 2], y[yOff + j + 3]);
 
                         var Z01 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
                         var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
                                            Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
                         var Z23 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11);
 
+                        var T23 = Pclmulqdq.CarrylessMultiply(X01, Y23, 0x00);
+                        var T34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y23, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X01, Y23, 0x10));
+                        var T45 = Pclmulqdq.CarrylessMultiply(X01, Y23, 0x11);
+
+                        var U23 = Pclmulqdq.CarrylessMultiply(X23, Y01, 0x00);
+                        var U34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y01, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X23, Y01, 0x10));
+                        var U45 = Pclmulqdq.CarrylessMultiply(X23, Y01, 0x11);
+
+                        var Z45 = Pclmulqdq.CarrylessMultiply(X23, Y23, 0x00);
+                        var Z56 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X23, Y23, 0x10));
+                        var Z67 = Pclmulqdq.CarrylessMultiply(X23, Y23, 0x11);
+
+                        Z23 = Sse2.Xor(Z23, T23);
+                        Z23 = Sse2.Xor(Z23, U23);
+                        var Z34 = Sse2.Xor(T34, U34);
+                        Z45 = Sse2.Xor(Z45, T45);
+                        Z45 = Sse2.Xor(Z45, U45);
+
+                        Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
+                        Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+
+                        Z23 = Sse2.Xor(Z23, Sse2.ShiftLeftLogical128BitLane (Z34, 8));
+                        Z45 = Sse2.Xor(Z45, Sse2.ShiftRightLogical128BitLane(Z34, 8));
+
+                        Z45 = Sse2.Xor(Z45, Sse2.ShiftLeftLogical128BitLane (Z56, 8));
+                        Z67 = Sse2.Xor(Z67, Sse2.ShiftRightLogical128BitLane(Z56, 8));
+
+                        zz[i + j + 0] ^= Z01.GetElement(0);
+                        zz[i + j + 1] ^= Z01.GetElement(1);
+                        zz[i + j + 2] ^= Z23.GetElement(0);
+                        zz[i + j + 3] ^= Z23.GetElement(1);
+                        zz[i + j + 4] ^= Z45.GetElement(0);
+                        zz[i + j + 5] ^= Z45.GetElement(1);
+                        zz[i + j + 6] ^= Z67.GetElement(0);
+                        zz[i + j + 7] ^= Z67.GetElement(1);
+
+                        j += 4;
+                    }
+
+                    i += 4;
+                }
+
+                int limit2 = Size - 2;
+                if (i <= limit2)
+                {
+                    var Xi = Vector128.Create(x[xOff + i], x[xOff + i + 1]);
+                    var Yi = Vector128.Create(y[yOff + i], y[yOff + i + 1]);
+
+                    for (int j = 0; j < i; j += 2)
+                    {
+                        var Xj = Vector128.Create(x[xOff + j], x[xOff + j + 1]);
+                        var Yj = Vector128.Create(y[yOff + j], y[yOff + j + 1]);
+
+                        var U01 = Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x00);
+                        var U12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x10));
+                        var U23 = Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x11);
+
+                        var V01 = Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x00);
+                        var V12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x10));
+                        var V23 = Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x11);
+
+                        var Z01 = Sse2.Xor(U01, V01);
+                        var Z12 = Sse2.Xor(U12, V12);
+                        var Z23 = Sse2.Xor(U23, V23);
+
                         zz[i + j + 0] ^= Z01.GetElement(0);
                         zz[i + j + 1] ^= Z01.GetElement(1) ^ Z12.GetElement(0);
                         zz[i + j + 2] ^= Z23.GetElement(0) ^ Z12.GetElement(1);
                         zz[i + j + 3] ^= Z23.GetElement(1);
+                    }
 
-                        j += 2;
+                    {
+                        var Z01 = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x00);
+                        var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x10));
+                        var Z23 = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x11);
+
+                        zz[i + i + 0] ^= Z01.GetElement(0);
+                        zz[i + i + 1] ^= Z01.GetElement(1) ^ Z12.GetElement(0);
+                        zz[i + i + 2] ^= Z23.GetElement(0) ^ Z12.GetElement(1);
+                        zz[i + i + 3] ^= Z23.GetElement(1);
                     }
 
                     i += 2;
                 }
+
                 if (i < Size)
                 {
                     var Xi = Vector128.CreateScalar(x[xOff + i]);
