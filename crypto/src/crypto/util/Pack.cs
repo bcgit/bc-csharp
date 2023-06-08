@@ -1037,6 +1037,26 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt32_To_LE_High(uint n, Span<byte> bs)
+        {
+            UInt32_To_LE_Low(n >> ((4 - bs.Length) << 3), bs);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt32_To_LE_Low(uint n, Span<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 4);
+
+            bs[0] = (byte)n;
+            for (int i = 1; i < len; ++i)
+            {
+                n >>= 8;
+                bs[i] = (byte)n;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt64_To_BE(ulong n, Span<byte> bs)
         {
             BinaryPrimitives.WriteUInt64BigEndian(bs, n);
