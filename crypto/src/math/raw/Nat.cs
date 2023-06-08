@@ -2,6 +2,7 @@
 using System.Diagnostics;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Numerics;
+using System.Runtime.InteropServices;
 #endif
 
 using Org.BouncyCastle.Crypto.Utilities;
@@ -2742,6 +2743,9 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static BigInteger ToBigInteger(int len, ReadOnlySpan<uint> x)
         {
+            if (BitConverter.IsLittleEndian)
+                return new BigInteger(1, MemoryMarshal.AsBytes(x), bigEndian: false);
+
             int bsLen = len << 2;
             Span<byte> bs = bsLen <= 512
                 ? stackalloc byte[bsLen]
