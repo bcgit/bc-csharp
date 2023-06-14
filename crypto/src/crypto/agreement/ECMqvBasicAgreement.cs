@@ -7,9 +7,11 @@ using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
+    // TODO[api] sealed
     public class ECMqvBasicAgreement
         : IBasicAgreement
     {
+        // TODO[api] private
         protected internal MqvPrivateParameters privParams;
 
         public virtual void Init(ICipherParameters parameters)
@@ -19,7 +21,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
                 parameters = withRandom.Parameters;
             }
 
-            this.privParams = (MqvPrivateParameters)parameters;
+            if (!(parameters is MqvPrivateParameters mqvPrivateParameters))
+                throw new ArgumentException("ECMqvBasicAgreement expects MqvPrivateParameters");
+
+            this.privParams = mqvPrivateParameters;
         }
 
         public virtual int GetFieldSize()
@@ -27,8 +32,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             return (privParams.StaticPrivateKey.Parameters.Curve.FieldSize + 7) / 8;
         }
 
-        public virtual BigInteger CalculateAgreement(
-            ICipherParameters pubKey)
+        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
         {
             MqvPublicParameters pubParams = (MqvPublicParameters)pubKey;
 

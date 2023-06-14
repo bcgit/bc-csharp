@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
      * (if you want that just use ECDHBasicAgreement and note they both implement
      * BasicAgreement!).</p>
      */
+    // TODO[api] sealed
     public class ECDHCBasicAgreement
         : IBasicAgreement
     {
@@ -49,8 +50,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             return (privKey.Parameters.Curve.FieldSize + 7) / 8;
         }
 
-        public virtual BigInteger CalculateAgreement(
-            ICipherParameters pubKey)
+        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;
             ECDomainParameters dp = privKey.Parameters;
