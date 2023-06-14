@@ -56,9 +56,13 @@ namespace Org.BouncyCastle.Security
 			throw new SecurityUtilityException("Basic Agreement " + algorithm + " not recognised.");
 		}
 
-		public static IBasicAgreement GetBasicAgreementWithKdf(
-			DerObjectIdentifier oid,
-			string				wrapAlgorithm)
+        public static IBasicAgreement GetBasicAgreementWithKdf(DerObjectIdentifier agreeAlgOid,
+			DerObjectIdentifier wrapAlgOid)
+        {
+            return GetBasicAgreementWithKdf(agreeAlgOid.Id, wrapAlgOid.Id);
+        }
+
+        public static IBasicAgreement GetBasicAgreementWithKdf(DerObjectIdentifier oid, string wrapAlgorithm)
 		{
 			return GetBasicAgreementWithKdf(oid.Id, wrapAlgorithm);
 		}

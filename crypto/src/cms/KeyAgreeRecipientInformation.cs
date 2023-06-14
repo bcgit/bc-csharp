@@ -123,10 +123,8 @@ namespace Org.BouncyCastle.Cms
             throw new CmsException("No support for 'originator' as IssuerAndSerialNumber or SubjectKeyIdentifier");
         }
 
-        private KeyParameter CalculateAgreedWrapKey(
-            string					wrapAlg,
-            AsymmetricKeyParameter	senderPublicKey,
-            AsymmetricKeyParameter	receiverPrivateKey)
+        private KeyParameter CalculateAgreedWrapKey(DerObjectIdentifier wrapAlgOid,
+            AsymmetricKeyParameter senderPublicKey, AsymmetricKeyParameter receiverPrivateKey)
         {
             DerObjectIdentifier agreeAlgID = keyEncAlg.Algorithm;
 
@@ -150,23 +148,20 @@ namespace Org.BouncyCastle.Cms
                     (ECPrivateKeyParameters)receiverPrivateParams);
             }
 
-            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(
-                agreeAlgID, wrapAlg);
+            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgID, wrapAlgOid);
             agreement.Init(receiverPrivateParams);
             BigInteger agreedValue = agreement.CalculateAgreement(senderPublicParams);
 
-            int wrapKeySize = GeneratorUtilities.GetDefaultKeySize(wrapAlg) / 8;
+            int wrapKeySize = GeneratorUtilities.GetDefaultKeySize(wrapAlgOid) / 8;
             byte[] wrapKeyBytes = X9IntegerConverter.IntegerToBytes(agreedValue, wrapKeySize);
-            return ParameterUtilities.CreateKeyParameter(wrapAlg, wrapKeyBytes);
+            return ParameterUtilities.CreateKeyParameter(wrapAlgOid, wrapKeyBytes);
         }
 
-        private KeyParameter UnwrapSessionKey(
-            string			wrapAlg,
-            KeyParameter	agreedKey)
+        private KeyParameter UnwrapSessionKey(DerObjectIdentifier wrapAlgOid, KeyParameter agreedKey)
         {
             byte[] encKeyOctets = encryptedKey.GetOctets();
 
-            IWrapper keyCipher = WrapperUtilities.GetWrapper(wrapAlg);
+            IWrapper keyCipher = WrapperUtilities.GetWrapper(wrapAlgOid);
             keyCipher.Init(false, agreedKey);
             byte[] sKeyBytes = keyCipher.Unwrap(encKeyOctets, 0, encKeyOctets.Length);
             return ParameterUtilities.CreateKeyParameter(GetContentAlgorithmName(), sKeyBytes);
@@ -177,16 +172,14 @@ namespace Org.BouncyCastle.Cms
         {
             try
             {
-                string wrapAlg = DerObjectIdentifier.GetInstance(
-                    Asn1Sequence.GetInstance(keyEncAlg.Parameters)[0]).Id;
+                var wrapAlgOid = DerObjectIdentifier.GetInstance(Asn1Sequence.GetInstance(keyEncAlg.Parameters)[0]);
 
                 AsymmetricKeyParameter senderPublicKey = GetSenderPublicKey(
                     receiverPrivateKey, info.Originator);
 
-                KeyParameter agreedWrapKey = CalculateAgreedWrapKey(wrapAlg,
-                    senderPublicKey, receiverPrivateKey);
+                KeyParameter agreedWrapKey = CalculateAgreedWrapKey(wrapAlgOid, senderPublicKey, receiverPrivateKey);
 
-                return UnwrapSessionKey(wrapAlg, agreedWrapKey);
+                return UnwrapSessionKey(wrapAlgOid, agreedWrapKey);
             }
             catch (SecurityUtilityException e)
             {
