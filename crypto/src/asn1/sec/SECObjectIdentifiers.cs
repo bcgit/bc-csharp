@@ -48,5 +48,27 @@ namespace Org.BouncyCastle.Asn1.Sec
 
 		public static readonly DerObjectIdentifier SecP192r1 = X9ObjectIdentifiers.Prime192v1;
 		public static readonly DerObjectIdentifier SecP256r1 = X9ObjectIdentifiers.Prime256v1;
+
+        public static readonly DerObjectIdentifier secg_scheme = new DerObjectIdentifier("1.3.132.1");
+
+        public static readonly DerObjectIdentifier dhSinglePass_stdDH_sha224kdf_scheme = secg_scheme.Branch("11.0");
+		public static readonly DerObjectIdentifier dhSinglePass_stdDH_sha256kdf_scheme = secg_scheme.Branch("11.1");
+		public static readonly DerObjectIdentifier dhSinglePass_stdDH_sha384kdf_scheme = secg_scheme.Branch("11.2");
+		public static readonly DerObjectIdentifier dhSinglePass_stdDH_sha512kdf_scheme = secg_scheme.Branch("11.3");
+
+		public static readonly DerObjectIdentifier dhSinglePass_cofactorDH_sha224kdf_scheme = secg_scheme.Branch("14.0");
+		public static readonly DerObjectIdentifier dhSinglePass_cofactorDH_sha256kdf_scheme = secg_scheme.Branch("14.1");
+		public static readonly DerObjectIdentifier dhSinglePass_cofactorDH_sha384kdf_scheme = secg_scheme.Branch("14.2");
+		public static readonly DerObjectIdentifier dhSinglePass_cofactorDH_sha512kdf_scheme = secg_scheme.Branch("14.3");
+
+		public static readonly DerObjectIdentifier mqvSinglePass_sha224kdf_scheme = secg_scheme.Branch("15.0");
+		public static readonly DerObjectIdentifier mqvSinglePass_sha256kdf_scheme = secg_scheme.Branch("15.1");
+		public static readonly DerObjectIdentifier mqvSinglePass_sha384kdf_scheme = secg_scheme.Branch("15.2");
+		public static readonly DerObjectIdentifier mqvSinglePass_sha512kdf_scheme = secg_scheme.Branch("15.3");
+
+		public static readonly DerObjectIdentifier mqvFull_sha224kdf_scheme = secg_scheme.Branch("16.0");
+		public static readonly DerObjectIdentifier mqvFull_sha256kdf_scheme = secg_scheme.Branch("16.1");
+		public static readonly DerObjectIdentifier mqvFull_sha384kdf_scheme = secg_scheme.Branch("16.2");
+		public static readonly DerObjectIdentifier mqvFull_sha512kdf_scheme = secg_scheme.Branch("16.3");
 	}
 }
