@@ -345,7 +345,7 @@ namespace Org.BouncyCastle.Tls
             if (!IsLegacyConnectionState())
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            if (securityParameters.IsResumedSession)
+            if (securityParameters.IsResumedSession && type != HandshakeType.hello_request)
             {
                 if (type != HandshakeType.finished || m_connectionState != CS_SERVER_HELLO)
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
