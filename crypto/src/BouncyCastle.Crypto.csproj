@@ -16,7 +16,7 @@
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageIconUrl>https://www.bouncycastle.org/images/nuget_packageIcon.png</PackageIconUrl>
     <PackageId>BouncyCastle.Cryptography</PackageId>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
