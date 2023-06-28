@@ -41,6 +41,9 @@ namespace Org.BouncyCastle.Tls
         /// </returns>
         IList<int> GetEarlyKeyShareGroups();
 
+        // TODO[api]
+        //bool ShouldUseCompatibilityMode();
+
         /// <exception cref="IOException"/>
         void NotifyServerVersion(ProtocolVersion selectedVersion);
 

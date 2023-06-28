@@ -5739,5 +5739,14 @@ namespace Org.BouncyCastle.Tls
                 abstractTlsPeer.NotifyConnectionClosed();
             }
         }
+
+        // TODO[api] Not needed once ShouldUseCompatibilityMode() has been added to TlsClient
+        internal static bool ShouldUseCompatibilityMode(TlsClient tlsClient)
+        {
+            if (tlsClient is AbstractTlsClient abstractTlsClient)
+                return abstractTlsClient.ShouldUseCompatibilityMode();
+
+            return true;
+        }
     }
 }

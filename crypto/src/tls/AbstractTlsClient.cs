@@ -421,6 +421,11 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.VectorOfOne(m_supportedGroups[0]);
         }
 
+        public virtual bool ShouldUseCompatibilityMode()
+        {
+            return true;
+        }
+
         /// <exception cref="IOException"/>
         public virtual void NotifyServerVersion(ProtocolVersion serverVersion)
         {
