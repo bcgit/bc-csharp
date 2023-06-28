@@ -2,7 +2,7 @@ using System;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.X509.Store;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
 {
@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.X509
 	 */
 	public class AttributeCertificateIssuer
 		//: CertSelector, Selector
-		: IX509Selector
+		: ISelector<X509Certificate>
 	{
 		internal readonly Asn1Encodable form;
 
@@ -132,9 +132,11 @@ namespace Org.BouncyCastle.X509
 			return new AttributeCertificateIssuer(AttCertIssuer.GetInstance(form));
 		}
 
-		public bool Match(
-			X509Certificate x509Cert)
+		public bool Match(X509Certificate x509Cert)
 		{
+			if (x509Cert == null)
+				return false;
+
 			if (form is V2Form)
 			{
 				V2Form issuer = (V2Form) form;
@@ -147,42 +149,23 @@ namespace Org.BouncyCastle.X509
 				return MatchesDN(x509Cert.SubjectDN, issuer.IssuerName);
 			}
 
-			return MatchesDN(x509Cert.SubjectDN, (GeneralNames) form);
+			return MatchesDN(x509Cert.SubjectDN, (GeneralNames)form);
 		}
 
-		public override bool Equals(
-			object obj)
+		public override bool Equals(object obj)
 		{
 			if (obj == this)
-			{
 				return true;
-			}
 
-			if (!(obj is AttributeCertificateIssuer))
-			{
+			if (!(obj is AttributeCertificateIssuer that))
 				return false;
-			}
 
-			AttributeCertificateIssuer other = (AttributeCertificateIssuer)obj;
-
-			return this.form.Equals(other.form);
+			return this.form.Equals(that.form);
 		}
 
 		public override int GetHashCode()
 		{
 			return this.form.GetHashCode();
-		}
-
-		public bool Match(
-			object obj)
-		{
-			if (!(obj is X509Certificate))
-			{
-				return false;
-			}
-
-			//return Match((Certificate)obj);
-			return Match((X509Certificate)obj);
 		}
 	}
 }

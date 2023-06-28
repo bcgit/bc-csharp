@@ -34,6 +34,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             int len = ReadLength(input, ch);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return string.Create(len, input, (chars, input) =>
+            {
+                for (int i = 0; i < chars.Length; ++i)
+                {
+                    chars[i] = Convert.ToChar(input.ReadByte());
+                }
+            });
+#else
             char[] chars = new char[len];
 
             for (int i = 0; i != chars.Length; i++)
@@ -42,6 +51,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
 
             return new string(chars);
+#endif
         }
 
         internal static byte[] ReadBytes(Stream input, int ch)
@@ -61,7 +71,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             string alg = ReadString(input, input.ReadByte());
             byte[] iv = ReadBytes(input, input.ReadByte());
-            long iterationCount = Int64.Parse(ReadString(input, input.ReadByte()));
+            long iterationCount = long.Parse(ReadString(input, input.ReadByte()));
 
             SkipCloseParenthesis(input);
 

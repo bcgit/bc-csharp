@@ -16,9 +16,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
-        protected override IDsa CreateDsaImpl(int cryptoHashAlgorithm)
+        protected override IDsa CreateDsaImpl()
         {
-            return new ECDsaSigner(new HMacDsaKCalculator(m_crypto.CreateDigest(cryptoHashAlgorithm)));
+            return new ECDsaSigner();
         }
 
         protected override short SignatureAlgorithm

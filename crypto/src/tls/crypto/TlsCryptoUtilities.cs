@@ -1,6 +1,11 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
+
 namespace Org.BouncyCastle.Tls.Crypto
 {
     public abstract class TlsCryptoUtilities
@@ -108,6 +113,30 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        public static DerObjectIdentifier GetOidForHash(int cryptoHashAlgorithm)
+        {
+            switch (cryptoHashAlgorithm)
+            {
+            case CryptoHashAlgorithm.md5:
+                return PkcsObjectIdentifiers.MD5;
+            case CryptoHashAlgorithm.sha1:
+                return X509ObjectIdentifiers.IdSha1;
+            case CryptoHashAlgorithm.sha224:
+                return NistObjectIdentifiers.IdSha224;
+            case CryptoHashAlgorithm.sha256:
+                return NistObjectIdentifiers.IdSha256;
+            case CryptoHashAlgorithm.sha384:
+                return NistObjectIdentifiers.IdSha384;
+            case CryptoHashAlgorithm.sha512:
+                return NistObjectIdentifiers.IdSha512;
+            // TODO[RFC 8998]
+            //case CryptoHashAlgorithm.sm3:
+            //    return GMObjectIdentifiers.sm3;
+            default:
+                throw new ArgumentException();
+            }
+        }
+
         public static int GetSignature(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)
@@ -134,6 +163,12 @@ namespace Org.BouncyCastle.Tls.Crypto
                 return CryptoSignatureAlgorithm.rsa_pss_pss_sha384;
             case SignatureAlgorithm.rsa_pss_pss_sha512:
                 return CryptoSignatureAlgorithm.rsa_pss_pss_sha512;
+            case SignatureAlgorithm.ecdsa_brainpoolP256r1tls13_sha256:
+                return CryptoSignatureAlgorithm.ecdsa_brainpoolP256r1tls13_sha256;
+            case SignatureAlgorithm.ecdsa_brainpoolP384r1tls13_sha384:
+                return CryptoSignatureAlgorithm.ecdsa_brainpoolP384r1tls13_sha384;
+            case SignatureAlgorithm.ecdsa_brainpoolP512r1tls13_sha512:
+                return CryptoSignatureAlgorithm.ecdsa_brainpoolP512r1tls13_sha512;
             case SignatureAlgorithm.gostr34102012_256:
                 return CryptoSignatureAlgorithm.gostr34102012_256;
             case SignatureAlgorithm.gostr34102012_512:
@@ -148,6 +183,9 @@ namespace Org.BouncyCastle.Tls.Crypto
         public static TlsSecret HkdfExpandLabel(TlsSecret secret, int cryptoHashAlgorithm, string label,
             byte[] context, int length)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return HkdfExpandLabel(secret, cryptoHashAlgorithm, label.AsSpan(), context.AsSpan(), length);
+#else
             int labelLength = label.Length;
             if (labelLength < 1)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -184,6 +222,53 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
 
             return secret.HkdfExpand(cryptoHashAlgorithm, hkdfLabel, length);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        public static TlsSecret HkdfExpandLabel(TlsSecret secret, int cryptoHashAlgorithm, ReadOnlySpan<char> label,
+            ReadOnlySpan<byte> context, int length)
+        {
+            int labelLength = label.Length;
+            if (labelLength < 1)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            int contextLength = context.Length;
+            int expandedLabelLength = Tls13Prefix.Length + labelLength;
+
+            int hkdfLabelLength = 2 + (1 + expandedLabelLength) + (1 + contextLength);
+            Span<byte> hkdfLabel = hkdfLabelLength <= 512
+                ? stackalloc byte[hkdfLabelLength]
+                : new byte[hkdfLabelLength];
+
+            // uint16 length
+            {
+                TlsUtilities.CheckUint16(length);
+                TlsUtilities.WriteUint16(length, hkdfLabel);
+            }
+
+            // opaque label<7..255>
+            {
+                TlsUtilities.CheckUint8(expandedLabelLength);
+                TlsUtilities.WriteUint8(expandedLabelLength, hkdfLabel[2..]);
+
+                Tls13Prefix.CopyTo(hkdfLabel[3..]);
+
+                int labelPos = 2 + (1 + Tls13Prefix.Length);
+                for (int i = 0; i < labelLength; ++i)
+                {
+                    hkdfLabel[labelPos + i] = (byte)label[i];
+                }
+            }
+
+            // context
+            {
+                TlsUtilities.WriteOpaque8(context, hkdfLabel.Slice(2 + (1 + expandedLabelLength)));
+            }
+
+            return secret.HkdfExpand(cryptoHashAlgorithm, hkdfLabel, length);
+        }
+#endif
     }
 }

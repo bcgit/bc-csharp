@@ -5,7 +5,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Nat160
+    internal static class Nat160
     {
         private const ulong M = 0xFFFFFFFFUL;
 

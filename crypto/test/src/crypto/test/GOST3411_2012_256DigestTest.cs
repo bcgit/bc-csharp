@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Tests;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -17,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class GOST3411_2012_256DigestTest
         : DigestTest
     {
-        private static readonly String[] messages;
+        private static readonly string[] messages;
 
         private static char[] M1 =
             {
@@ -55,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             messages = new string[] { new string(M1), new string(M2) };
         }
 
-        private static readonly String[] digests = {
+        private static readonly string[] digests = {
             "9d151eefd8590b89daa6ba6cb74af9275dd051026bb149a452fd84e5e57b5500",
             "9dd2fe4e90409e5da87f53976d7405b0c0cac628fc669a741d50063c557e8f50"
         };

@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 		int BlockSize { get; }
 
-	    /**
+        /**
 	     * Populate a passed in array with random data.
 	     *
 	     * @param output output array for generated bits.
@@ -23,13 +23,23 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     *
 	     * @return number of bits generated, -1 if a reseed required.
 	     */
-	    int Generate(byte[] output, byte[] additionalInput, bool predictionResistant);
+        int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput, bool predictionResistant);
 
-	    /**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int Generate(Span<byte> output, bool predictionResistant);
+
+        int GenerateWithInput(Span<byte> output, ReadOnlySpan<byte> additionalInput, bool predictionResistant);
+#endif
+
+        /**
 	     * Reseed the DRBG.
 	     *
 	     * @param additionalInput additional input to be added to the DRBG in this step.
 	     */
-	    void Reseed(byte[] additionalInput);
-	}
+        void Reseed(byte[] additionalInput);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void Reseed(ReadOnlySpan<byte> additionalInput);
+#endif
+    }
 }

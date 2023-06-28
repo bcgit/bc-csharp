@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Utilities;
 
@@ -11,31 +10,23 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         private readonly Asn1OctetString iv;
         private readonly DerObjectIdentifier paramSet;
 
-		public static Gost28147Parameters GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static Gost28147Parameters GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static Gost28147Parameters GetInstance(
-            object obj)
+		public static Gost28147Parameters GetInstance(object obj)
         {
             if (obj == null || obj is Gost28147Parameters)
-            {
                 return (Gost28147Parameters) obj;
-            }
 
-            if (obj is Asn1Sequence)
-            {
-                return new Gost28147Parameters((Asn1Sequence) obj);
-            }
+            if (obj is Asn1Sequence seq)
+                return new Gost28147Parameters(seq);
 
             throw new ArgumentException("Invalid GOST3410Parameter: " + Platform.GetTypeName(obj));
         }
 
-        private Gost28147Parameters(
-            Asn1Sequence seq)
+        private Gost28147Parameters(Asn1Sequence seq)
         {
 			if (seq.Count != 2)
 				throw new ArgumentException("Wrong number of elements in sequence", "seq");

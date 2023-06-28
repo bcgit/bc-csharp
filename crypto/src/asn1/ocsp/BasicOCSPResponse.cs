@@ -62,33 +62,15 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             }
         }
 
-		[Obsolete("Use TbsResponseData property instead")]
-		public ResponseData GetTbsResponseData()
-        {
-            return tbsResponseData;
-        }
-
 		public ResponseData TbsResponseData
 		{
 			get { return tbsResponseData; }
 		}
 
-		[Obsolete("Use SignatureAlgorithm property instead")]
-		public AlgorithmIdentifier GetSignatureAlgorithm()
-        {
-            return signatureAlgorithm;
-        }
-
 		public AlgorithmIdentifier SignatureAlgorithm
 		{
 			get { return signatureAlgorithm; }
 		}
-
-		[Obsolete("Use Signature property instead")]
-		public DerBitString GetSignature()
-        {
-            return signature;
-        }
 
 		public DerBitString Signature
 		{
@@ -98,12 +80,6 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         public byte[] GetSignatureOctets()
         {
             return signature.GetOctets();
-        }
-
-        [Obsolete("Use Certs property instead")]
-		public Asn1Sequence GetCerts()
-        {
-            return certs;
         }
 
 		public Asn1Sequence Certs

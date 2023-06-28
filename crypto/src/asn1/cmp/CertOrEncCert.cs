@@ -1,86 +1,81 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class CertOrEncCert
 		: Asn1Encodable, IAsn1Choice
 	{
-		private readonly CmpCertificate certificate;
-		private readonly EncryptedValue encryptedCert;
+        public static CertOrEncCert GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+            if (obj is CertOrEncCert certOrEncCert)
+                return certOrEncCert;
+            return new CertOrEncCert(Asn1TaggedObject.GetInstance(obj));
+        }
 
-		private CertOrEncCert(Asn1TaggedObject tagged)
+        public static CertOrEncCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+        }
+
+        private readonly CmpCertificate m_certificate;
+		private readonly EncryptedKey m_encryptedCert;
+
+		private CertOrEncCert(Asn1TaggedObject taggedObject)
 		{
-			if (tagged.TagNo == 0)
+			if (taggedObject.TagNo == 0)
 			{
-				certificate = CmpCertificate.GetInstance(tagged.GetObject());
+				m_certificate = CmpCertificate.GetInstance(taggedObject.GetObject());
 			}
-			else if (tagged.TagNo == 1)
+			else if (taggedObject.TagNo == 1)
 			{
-				encryptedCert = EncryptedValue.GetInstance(tagged.GetObject());
+                m_encryptedCert = EncryptedKey.GetInstance(taggedObject.GetObject());
 			}
 			else
 			{
-				throw new ArgumentException("unknown tag: " + tagged.TagNo, "tagged");
-			}
-		}
-		
-		public static CertOrEncCert GetInstance(object obj)
-		{
-			if (obj is CertOrEncCert)
-				return (CertOrEncCert)obj;
-
-			if (obj is Asn1TaggedObject)
-				return new CertOrEncCert((Asn1TaggedObject)obj);
-
-			throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
+				throw new ArgumentException("unknown tag: " + taggedObject.TagNo, nameof(taggedObject));
+            }
+        }
 
 		public CertOrEncCert(CmpCertificate certificate)
 		{
-			if (certificate == null)
-				throw new ArgumentNullException("certificate");
+			m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+        }
 
-			this.certificate = certificate;
-		}
-
-		public CertOrEncCert(EncryptedValue encryptedCert)
+		public CertOrEncCert(EncryptedValue encryptedValue)
 		{
-			if (encryptedCert == null)
-				throw new ArgumentNullException("encryptedCert");
-
-			this.encryptedCert = encryptedCert;
+			m_encryptedCert = new EncryptedKey(
+				encryptedValue ?? throw new ArgumentNullException(nameof(encryptedValue)));
 		}
 
-		public virtual CmpCertificate Certificate
-		{
-			get { return certificate; }
-		}
+        public CertOrEncCert(EncryptedKey encryptedKey)
+        {
+            m_encryptedCert = encryptedKey ?? throw new ArgumentNullException(nameof(encryptedKey));
+        }
 
-		public virtual EncryptedValue EncryptedCert
-		{
-			get { return encryptedCert; }
-		}
+		public virtual CmpCertificate Certificate => m_certificate;
 
-		/**
+		public virtual EncryptedKey EncryptedCert => m_encryptedCert;
+
+        /**
 		 * <pre>
 		 * CertOrEncCert ::= CHOICE {
 		 *                      certificate     [0] CMPCertificate,
-		 *                      encryptedCert   [1] EncryptedValue
+		 *                      encryptedCert   [1] EncryptedKey
 		 *           }
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
 		{
-			if (certificate != null)
-			{
-				return new DerTaggedObject(true, 0, certificate);
-			}
-
-			return new DerTaggedObject(true, 1, encryptedCert);
+			if (m_certificate != null)
+				return new DerTaggedObject(true, 0, m_certificate);
+			if (m_encryptedCert != null)
+				return new DerTaggedObject(true, 1, m_encryptedCert);
+			throw new InvalidOperationException();
 		}
 	}
 }

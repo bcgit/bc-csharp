@@ -10,11 +10,11 @@ namespace Org.BouncyCastle.Bcpg
         public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
-
-			pOut.WritePacket(this);
-
-			return bOut.ToArray();
+            using (var pOut = new BcpgOutputStream(bOut))
+            {
+                pOut.WritePacket(this);
+            }
+            return bOut.ToArray();
         }
 
 		public abstract void Encode(BcpgOutputStream bcpgOut);

@@ -49,9 +49,9 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.IA5String:                // [UNIVERSAL 22] IMPLICIT OCTET STRING (encode as if)
                 return DerIA5String.Meta.Instance;
             case Asn1Tags.UtcTime:                  // [UNIVERSAL 23] IMPLICIT VisibleString (restricted values)
-                return DerUtcTime.Meta.Instance;
+                return Asn1UtcTime.Meta.Instance;
             case Asn1Tags.GeneralizedTime:          // [UNIVERSAL 24] IMPLICIT VisibleString (restricted values)
-                return DerGeneralizedTime.Meta.Instance;
+                return Asn1GeneralizedTime.Meta.Instance;
             case Asn1Tags.GraphicString:            // [UNIVERSAL 25] IMPLICIT OCTET STRING (encode as if)
                 return DerGraphicString.Meta.Instance;
             case Asn1Tags.VisibleString:            // [UNIVERSAL 26] IMPLICIT OCTET STRING (encode as if)
@@ -65,7 +65,14 @@ namespace Org.BouncyCastle.Asn1
 
             case Asn1Tags.Real:
             case Asn1Tags.EmbeddedPdv:
+            case Asn1Tags.Time:
             case Asn1Tags.UnrestrictedString:
+            case Asn1Tags.Date:
+            case Asn1Tags.TimeOfDay:
+            case Asn1Tags.DateTime:
+            case Asn1Tags.Duration:
+            case Asn1Tags.ObjectIdentifierIri:
+            case Asn1Tags.RelativeOidIri:
             default:
                 return null;
             }

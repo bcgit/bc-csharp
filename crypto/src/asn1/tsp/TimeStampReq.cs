@@ -24,8 +24,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TimeStampReq(Asn1Sequence.GetInstance(obj));
         }
 
-        private TimeStampReq(
-			Asn1Sequence seq)
+        private TimeStampReq(Asn1Sequence seq)
 		{
 			int nbObjects = seq.Count;
 			int seqStart = 0;
@@ -39,24 +38,23 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			for (int opt = seqStart; opt < nbObjects; opt++)
 			{
 				// tsaPolicy
-				if (seq[opt] is DerObjectIdentifier)
+				if (seq[opt] is DerObjectIdentifier oid)
 				{
-					tsaPolicy = DerObjectIdentifier.GetInstance(seq[opt]);
+					tsaPolicy = oid;
 				}
 				// nonce
-				else if (seq[opt] is DerInteger)
+				else if (seq[opt] is DerInteger derInteger)
 				{
-					nonce = DerInteger.GetInstance(seq[opt]);
+					nonce = derInteger;
 				}
 				// certReq
-				else if (seq[opt] is DerBoolean)
+				else if (seq[opt] is DerBoolean derBoolean)
 				{
-					certReq = DerBoolean.GetInstance(seq[opt]);
+					certReq = derBoolean;
 				}
 				// extensions
-				else if (seq[opt] is Asn1TaggedObject)
+				else if (seq[opt] is Asn1TaggedObject tagged)
 				{
-					Asn1TaggedObject tagged = (Asn1TaggedObject) seq[opt];
 					if (tagged.TagNo == 0)
 					{
 						extensions = X509Extensions.GetInstance(tagged, false);

@@ -10,7 +10,7 @@
 //
 //namespace Org.BouncyCastle.Math.EC.Tests
 //{
-//	[TestFixture, Explicit]
+//	[TestFixture]
 //	public class TnafTest
 //	{
 //		private Random m_rand = new Random();
@@ -79,7 +79,7 @@
 //			Console.WriteLine();
 //		}
 //
-//		[Test]
+//		[Test, Ignore]
 //		public void TestMultiplyTnaf() 
 //		{
 //			Console.WriteLine("\n\n\n*****  Start test multiplications on F2m (Koblitz) *****");
@@ -91,7 +91,7 @@
 //			ImplTestMultiplyTnaf("sect571k1");
 //		}
 //
-//		private void ImplTestMultiplyWnaf(String curveName) 
+//		private void ImplTestMultiplyWnaf(string curveName) 
 //		{
 //			X9ECParameters x9ECParameters = SecNamedCurves.GetByName(curveName);
 //
@@ -127,7 +127,7 @@
 //			Console.WriteLine();
 //		}
 //
-//		[Test]
+//		[Test, Ignore]
 //		public void TestMultiplyWnaf() 
 //		{
 //			Console.WriteLine("\n\n\n*****  Start test multiplications on F2m *****");

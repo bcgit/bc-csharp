@@ -7,7 +7,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.X509.Store;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
 {
@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.X509
 	/// </remarks>
 	public class AttributeCertificateHolder
 		//: CertSelector, Selector
-		: IX509Selector
+		: ISelector<X509Certificate>
 	{
 		internal readonly Holder holder;
 
@@ -325,9 +325,11 @@ namespace Org.BouncyCastle.X509
 			return new AttributeCertificateHolder((Asn1Sequence)holder.ToAsn1Object());
 		}
 
-		public bool Match(
-			X509Certificate x509Cert)
+		public bool Match(X509Certificate x509Cert)
 		{
+			if (x509Cert == null)
+				return false;
+
 			try
 			{
 				if (holder.BaseCertificateID != null)
@@ -358,26 +360,26 @@ namespace Org.BouncyCastle.X509
 
 					switch (DigestedObjectType)
 					{
-						case ObjectDigestInfo.PublicKey:
-						{
-							// TODO: DSA Dss-parms
+					case ObjectDigestInfo.PublicKey:
+					{
+						// TODO: DSA Dss-parms
 
-							//byte[] b = x509Cert.GetPublicKey().getEncoded();
-							// TODO Is this the right way to encode?
-							byte[] b = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
-								x509Cert.GetPublicKey()).GetEncoded();
-							md.BlockUpdate(b, 0, b.Length);
-							break;
-						}
+						//byte[] b = x509Cert.GetPublicKey().getEncoded();
+						// TODO Is this the right way to encode?
+						byte[] b = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
+							x509Cert.GetPublicKey()).GetEncoded();
+						md.BlockUpdate(b, 0, b.Length);
+						break;
+					}
 
-						case ObjectDigestInfo.PublicKeyCert:
-						{
-							byte[] b = x509Cert.GetEncoded();
-							md.BlockUpdate(b, 0, b.Length);
-							break;
-						}
+					case ObjectDigestInfo.PublicKeyCert:
+					{
+						byte[] b = x509Cert.GetEncoded();
+						md.BlockUpdate(b, 0, b.Length);
+						break;
+					}
 
-						// TODO Default handler?
+					// TODO Default handler?
 					}
 
 					// TODO Shouldn't this be the other way around?
@@ -416,18 +418,6 @@ namespace Org.BouncyCastle.X509
 		public override int GetHashCode()
 		{
 			return this.holder.GetHashCode();
-		}
-
-		public bool Match(
-			object obj)
-		{
-			if (!(obj is X509Certificate))
-			{
-				return false;
-			}
-
-//			return Match((Certificate)obj);
-			return Match((X509Certificate)obj);
 		}
 	}
 }

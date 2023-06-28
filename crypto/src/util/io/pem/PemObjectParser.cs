@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		/// A <see cref="PemObject"/>
 		/// </param>
 		/// <returns>
-		/// A <see cref="System.Object"/>
+		/// An <see cref="object"/>
 		/// </returns>
 		/// <exception cref="IOException"></exception>
 		object ParseObject(PemObject obj);

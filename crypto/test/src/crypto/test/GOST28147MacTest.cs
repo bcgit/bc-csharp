@@ -85,15 +85,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Gost28147Mac"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			ITest test = new Gost28147MacTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

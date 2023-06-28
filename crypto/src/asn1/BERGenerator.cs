@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities.IO;
@@ -7,20 +8,16 @@ namespace Org.BouncyCastle.Asn1
     public abstract class BerGenerator
         : Asn1Generator
     {
-        private bool      _tagged = false;
-        private bool      _isExplicit;
-        private int          _tagNo;
+        private bool _tagged = false;
+        private bool _isExplicit;
+        private int _tagNo;
 
-        protected BerGenerator(
-            Stream outStream)
+        protected BerGenerator(Stream outStream)
             : base(outStream)
         {
         }
 
-        protected BerGenerator(
-            Stream outStream,
-            int tagNo,
-            bool isExplicit)
+        protected BerGenerator(Stream outStream, int tagNo, bool isExplicit)
             : base(outStream)
         {
             _tagged = true;
@@ -28,35 +25,33 @@ namespace Org.BouncyCastle.Asn1
             _tagNo = tagNo;
         }
 
-		public override void AddObject(Asn1Encodable obj)
+        protected override void Finish()
+        {
+            WriteBerEnd();
+        }
+
+        public override void AddObject(Asn1Encodable obj)
 		{
-            obj.EncodeTo(Out);
+            obj.EncodeTo(OutStream);
 		}
 
         public override void AddObject(Asn1Object obj)
         {
-            obj.EncodeTo(Out);
+            obj.EncodeTo(OutStream);
         }
 
         public override Stream GetRawOutputStream()
         {
-            return Out;
+            return OutStream;
         }
 
-		public override void Close()
-		{
-			WriteBerEnd();
-		}
-
-        private void WriteHdr(
-            int tag)
+        private void WriteHdr(int tag)
         {
-            Out.WriteByte((byte) tag);
-            Out.WriteByte(0x80);
+            OutStream.WriteByte((byte)tag);
+            OutStream.WriteByte(0x80);
         }
 
-        protected void WriteBerHeader(
-            int tag)
+        protected void WriteBerHeader(int tag)
         {
             if (_tagged)
             {
@@ -85,22 +80,33 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		protected void WriteBerBody(
-            Stream contentStream)
+		protected void WriteBerBody(Stream contentStream)
         {
-			Streams.PipeAll(contentStream, Out);
+			Streams.PipeAll(contentStream, OutStream);
         }
 
 		protected void WriteBerEnd()
         {
-            Out.WriteByte(0x00);
-            Out.WriteByte(0x00);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> data = stackalloc byte[4]{ 0x00, 0x00, 0x00, 0x00 };
+            if (_tagged && _isExplicit)  // write extra end for tag header
+            {
+                OutStream.Write(data[..4]);
+            }
+            else
+            {
+                OutStream.Write(data[..2]);
+            }
+#else
+            OutStream.WriteByte(0x00);
+            OutStream.WriteByte(0x00);
 
             if (_tagged && _isExplicit)  // write extra end for tag header
             {
-                Out.WriteByte(0x00);
-                Out.WriteByte(0x00);
+                OutStream.WriteByte(0x00);
+                OutStream.WriteByte(0x00);
             }
+#endif
         }
     }
 }

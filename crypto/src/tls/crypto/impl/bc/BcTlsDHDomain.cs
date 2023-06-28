@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         private static int GetValueLength(DHParameters dh)
         {
-            return (dh.P.BitLength + 7) / 8;
+            return BigIntegers.GetUnsignedByteLength(dh.P);
         }
 
         public static BcTlsSecret CalculateDHAgreement(BcTlsCrypto crypto, DHPrivateKeyParameters privateKey,
@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            DHBasicKeyPairGenerator keyPairGenerator = new DHBasicKeyPairGenerator();
+            DHKeyPairGenerator keyPairGenerator = new DHKeyPairGenerator();
             keyPairGenerator.Init(new DHKeyGenerationParameters(m_crypto.SecureRandom, m_domainParameters));
             return keyPairGenerator.GenerateKeyPair();
         }

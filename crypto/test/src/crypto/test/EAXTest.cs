@@ -3,8 +3,6 @@ using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -117,7 +115,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			checkVectors(10, K10, 128, N10, A10, P10, T10, C10);
 			checkVectors(11, K11, 32, N11, A11, P11, T11, C11);
 
-			EaxBlockCipher eax = new EaxBlockCipher(new AesEngine());
+			EaxBlockCipher eax = new EaxBlockCipher(AesUtilities.CreateEngine());
 			ivParamTest(1, eax, K1, N1);
 
 			//
@@ -186,8 +184,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] t,
             byte[] c)
         {
-			EaxBlockCipher encEax = new EaxBlockCipher(new AesEngine());
-			EaxBlockCipher decEax = new EaxBlockCipher(new AesEngine());
+			EaxBlockCipher encEax = new EaxBlockCipher(AesUtilities.CreateEngine());
+			EaxBlockCipher decEax = new EaxBlockCipher(AesUtilities.CreateEngine());
 
 			AeadParameters parameters = new AeadParameters(new KeyParameter(k), macSize, n, a);
 			encEax.Init(true, parameters);
@@ -313,7 +311,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			srng.NextBytes(datIn);
 			srng.NextBytes(key);
 
-            IBlockCipher engine = new AesEngine();
+            IBlockCipher engine = AesUtilities.CreateEngine();
 			KeyParameter sessKey = new KeyParameter(key);
 			EaxBlockCipher eaxCipher = new EaxBlockCipher(engine);
 
@@ -333,12 +331,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("EAX roundtrip failed to match");
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new EaxTest());
 		}
 
 		[Test]

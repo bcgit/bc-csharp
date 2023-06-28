@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Tls
                 return false;
 
             return this.m_obfuscatedTicketAge == that.m_obfuscatedTicketAge
-                && Arrays.ConstantTimeAreEqual(this.m_identity, that.m_identity);
+                && Arrays.FixedTimeEquals(this.m_identity, that.m_identity);
         }
 
         public override int GetHashCode()

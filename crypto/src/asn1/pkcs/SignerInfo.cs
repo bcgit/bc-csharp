@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
@@ -20,21 +16,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private Asn1OctetString         encryptedDigest;
         private Asn1Set                 unauthenticatedAttributes;
 
-		public static SignerInfo GetInstance(
-            object obj)
+        public static SignerInfo GetInstance(object obj)
         {
-            if (obj is SignerInfo)
-            {
-                return (SignerInfo) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new SignerInfo((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+            if (obj == null)
+                return null;
+            if (obj is SignerInfo signerInfo)
+                return signerInfo;
+            return new SignerInfo(Asn1Sequence.GetInstance(obj));
+        }
 
 		public SignerInfo(
             DerInteger              version,
@@ -57,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public SignerInfo(
             Asn1Sequence seq)
         {
-            IEnumerator e = seq.GetEnumerator();
+            var e = seq.GetEnumerator();
 
 			e.MoveNext();
             version = (DerInteger) e.Current;
@@ -69,11 +58,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             digAlgorithm = AlgorithmIdentifier.GetInstance(e.Current);
 
 			e.MoveNext();
-            object obj = e.Current;
+            var obj = e.Current;
 
-			if (obj is Asn1TaggedObject)
+			if (obj is Asn1TaggedObject tagged)
             {
-                authenticatedAttributes = Asn1Set.GetInstance((Asn1TaggedObject) obj, false);
+                authenticatedAttributes = Asn1Set.GetInstance(tagged, false);
 
 				e.MoveNext();
                 digEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(e.Current);
@@ -85,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             }
 
 			e.MoveNext();
-            encryptedDigest = DerOctetString.GetInstance(e.Current);
+            encryptedDigest = Asn1OctetString.GetInstance(e.Current);
 
 			if (e.MoveNext())
             {

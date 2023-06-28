@@ -18,18 +18,16 @@ namespace Org.BouncyCastle.Asn1
             ToAsn1Object().EncodeTo(output, encoding);
         }
 
+		// TODO[api] Make virtual and override in Asn1Object
 		public byte[] GetEncoded()
         {
-            MemoryStream bOut = new MemoryStream();
-            ToAsn1Object().EncodeTo(bOut);
-            return bOut.ToArray();
+            return ToAsn1Object().InternalGetEncoded(Ber);
         }
 
+        // TODO[api] Make virtual and override in Asn1Object
         public byte[] GetEncoded(string encoding)
         {
-            MemoryStream bOut = new MemoryStream();
-            ToAsn1Object().EncodeTo(bOut, encoding);
-            return bOut.ToArray();
+			return ToAsn1Object().InternalGetEncoded(encoding);
         }
 
         /**
@@ -54,19 +52,16 @@ namespace Org.BouncyCastle.Asn1
 			return ToAsn1Object().CallAsn1GetHashCode();
 		}
 
-		public sealed override bool Equals(
-			object obj)
+		public sealed override bool Equals(object obj)
 		{
 			if (obj == this)
 				return true;
 
-			IAsn1Convertible other = obj as IAsn1Convertible;
-
-			if (other == null)
+			if (!(obj is IAsn1Convertible that))
 				return false;
 
-			Asn1Object o1 = ToAsn1Object();
-			Asn1Object o2 = other.ToAsn1Object();
+			Asn1Object o1 = this.ToAsn1Object();
+			Asn1Object o2 = that.ToAsn1Object();
 
 			return o1 == o2 || (null != o2 && o1.CallAsn1Equals(o2));
 		}

@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 
@@ -22,9 +21,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
         }
 
-        [Obsolete("Use GetInstance() instead")]
-        public IssuerAndSerialNumber(
-            Asn1Sequence seq)
+        private IssuerAndSerialNumber(Asn1Sequence seq)
         {
             this.name = X509Name.GetInstance(seq[0]);
             this.serialNumber = (DerInteger) seq[1];

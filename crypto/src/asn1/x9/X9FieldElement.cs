@@ -19,25 +19,6 @@ namespace Org.BouncyCastle.Asn1.X9
             this.f = f;
         }
 
-        [Obsolete("Will be removed")]
-        public X9FieldElement(
-            BigInteger		p,
-            Asn1OctetString	s)
-            : this(new FpFieldElement(p, new BigInteger(1, s.GetOctets())))
-        {
-        }
-
-        [Obsolete("Will be removed")]
-        public X9FieldElement(
-            int				m,
-            int				k1,
-            int				k2,
-            int				k3,
-            Asn1OctetString	s)
-            : this(new F2mFieldElement(m, k1, k2, k3, new BigInteger(1, s.GetOctets())))
-        {
-        }
-
         public ECFieldElement Value
         {
             get { return f; }

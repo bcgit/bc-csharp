@@ -1,16 +1,15 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    [Obsolete("Will be removed")]
     public class Tables1kGcmExponentiator
         : IGcmExponentiator
     {
         // A lookup table of the power-of-two powers of 'x'
         // - lookupPowX2[i] = x^(2^i)
-        private IList lookupPowX2;
+        private IList<GcmUtilities.FieldElement> lookupPowX2;
 
         public void Init(byte[] x)
         {
@@ -19,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             if (lookupPowX2 != null && y.Equals(lookupPowX2[0]))
                 return;
 
-            lookupPowX2 = Platform.CreateArrayList(8);
+            lookupPowX2 = new List<GcmUtilities.FieldElement>(8);
             lookupPowX2.Add(y);
         }
 

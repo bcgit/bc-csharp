@@ -1,36 +1,30 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Security
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
-#endif
     public class SecurityUtilityException
 		: Exception
     {
-        /**
-        * base constructor.
-        */
-        public SecurityUtilityException()
-        {
-        }
+		public SecurityUtilityException()
+			: base()
+		{
+		}
 
-		/**
-         * create a SecurityUtilityException with the given message.
-         *
-         * @param message the message to be carried with the exception.
-         */
-        public SecurityUtilityException(
-            string message)
+		public SecurityUtilityException(string message)
 			: base(message)
-        {
-        }
+		{
+		}
 
-		public SecurityUtilityException(
-            string		message,
-            Exception	exception)
-			: base(message, exception)
-        {
-        }
-    }
+		public SecurityUtilityException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected SecurityUtilityException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
+	}
 }

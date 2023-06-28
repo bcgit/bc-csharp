@@ -74,17 +74,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				// expected
 			}
+
+			DigestTest.SpanConsistencyTests(this, new ShortenedDigest(new Sha1Digest(), 10));
 		}
 
 		public override string Name
 		{
 			get { return "ShortenedDigest"; }
-		}
-
-		public static void Main(
-			string[]    args)
-		{
-			RunTest(new ShortenedDigestTest());
 		}
 
 		[Test]

@@ -87,24 +87,12 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override string Name
         {
-            get
-            {
-                return "ECNR";
-            }
+            get { return "ECNR"; }
         }
 
         public override void PerformTest()
         {
             ecNR239bitPrime();
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            EcNrTest test = new EcNrTest();
-            ITestResult result = test.Perform();
-
-            Console.WriteLine(result);
         }
 
         [Test]

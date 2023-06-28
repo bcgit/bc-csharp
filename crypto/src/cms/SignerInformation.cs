@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Cms
 			SignerInfo			info,
 			DerObjectIdentifier	contentType,
 			CmsProcessable		content,
-			IDigestCalculator	digestCalculator)
+			byte[]				calculatedDigest)
 		{
 			this.info = info;
 			this.sid = new SignerID();
@@ -83,8 +83,9 @@ namespace Org.BouncyCastle.Cms
 			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
 
 			this.content = content;
-			this.calculatedDigest = (digestCalculator != null) ? digestCalculator.GetDigest() : null;
-		}
+			this.calculatedDigest = calculatedDigest;
+
+        }
 
         /**
          * Protected constructor. In some cases clients have their own idea about how to encode
@@ -256,10 +257,10 @@ namespace Org.BouncyCastle.Cms
 			Asn1.Cms.AttributeTable unsignedAttributeTable = UnsignedAttributes;
 			if (unsignedAttributeTable == null)
 			{
-                return new SignerInformationStore(Platform.CreateArrayList(0));
+                return new SignerInformationStore(new List<SignerInformation>(0));
 			}
 
-            IList counterSignatures = Platform.CreateArrayList();
+            var counterSignatures = new List<SignerInformation>();
 
 			/*
 			The UnsignedAttributes syntax is defined as a SET OF Attributes.  The
@@ -300,8 +301,10 @@ namespace Org.BouncyCastle.Cms
 					SignerInfo si = SignerInfo.GetInstance(asn1Obj.ToAsn1Object());
 
                     string digestName = CmsSignedHelper.Instance.GetDigestAlgName(si.DigestAlgorithm.Algorithm.Id);
+                    IDigest digest = CmsSignedHelper.Instance.GetDigestInstance(digestName);
+                    byte[] hash = DigestUtilities.DoFinal(digest, GetSignature());
 
-					counterSignatures.Add(new SignerInformation(si, null, null, new CounterSignatureDigestCalculator(digestName, GetSignature())));
+					counterSignatures.Add(new SignerInformation(si, null, null, hash));
 				}
 			}
 
@@ -433,10 +436,8 @@ namespace Org.BouncyCastle.Cms
 					if (isCounterSignature)
 						throw new CmsException("[For counter signatures,] the signedAttributes field MUST NOT contain a content-type attribute");
 
-					if (!(validContentType is DerObjectIdentifier))
+					if (!(validContentType is DerObjectIdentifier signedContentType))
 						throw new CmsException("content-type attribute value not of ASN.1 type 'OBJECT IDENTIFIER'");
-
-					DerObjectIdentifier signedContentType = (DerObjectIdentifier)validContentType;
 
 					if (!signedContentType.Equals(contentType))
 						throw new CmsException("content-type attribute value does not match eContentType");
@@ -454,12 +455,8 @@ namespace Org.BouncyCastle.Cms
 				}
 				else
 				{
-					if (!(validMessageDigest is Asn1OctetString))
-					{
+					if (!(validMessageDigest is Asn1OctetString signedMessageDigest))
 						throw new CmsException("message-digest attribute value not of ASN.1 type 'OCTET STRING'");
-					}
-
-					Asn1OctetString signedMessageDigest = (Asn1OctetString)validMessageDigest;
 
 					if (!Arrays.AreEqual(resultDigest, signedMessageDigest.GetOctets()))
 						throw new CmsException("message-digest attribute value does not match calculated value");
@@ -578,7 +575,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				if (algorithm.Equals("RSA"))
 				{
-					IBufferedCipher c = CmsEnvelopedHelper.Instance.CreateAsymmetricCipher("RSA/ECB/PKCS1Padding");
+					IBufferedCipher c = CipherUtilities.GetCipher(Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption);
 
 					c.Init(false, key);
 
@@ -598,7 +595,7 @@ namespace Org.BouncyCastle.Cms
 
 					byte[] sigHash = digInfo.GetDigest();
 
-					return Arrays.ConstantTimeAreEqual(digest, sigHash);
+					return Arrays.FixedTimeEquals(digest, sigHash);
 				}
 				else if (algorithm.Equals("DSA"))
 				{
@@ -615,9 +612,9 @@ namespace Org.BouncyCastle.Cms
 					throw new CmsException("algorithm: " + algorithm + " not supported in base signatures.");
 				}
 			}
-			catch (SecurityUtilityException e)
+			catch (SecurityUtilityException)
 			{
-				throw e;
+				throw;
 			}
 			catch (GeneralSecurityException e)
 			{
@@ -657,7 +654,7 @@ namespace Org.BouncyCastle.Cms
 			Asn1.Cms.Time signingTime = GetSigningTime();
 			if (signingTime != null)
 			{
-				cert.CheckValidity(signingTime.Date);
+				cert.CheckValidity(signingTime.ToDateTime());
 			}
 
 			return DoVerify(cert.GetPublicKey());
@@ -787,12 +784,12 @@ namespace Org.BouncyCastle.Cms
 			}
 			else
 			{
-				v = new Asn1EncodableVector();
+				v = new Asn1EncodableVector(1);
 			}
 
-			Asn1EncodableVector sigs = new Asn1EncodableVector();
-
-			foreach (SignerInformation sigInf in counterSigners.GetSigners())
+			var signers = counterSigners.GetSigners();
+            Asn1EncodableVector sigs = new Asn1EncodableVector(signers.Count);
+            foreach (SignerInformation sigInf in signers)
 			{
 				sigs.Add(sigInf.ToSignerInfo());
 			}

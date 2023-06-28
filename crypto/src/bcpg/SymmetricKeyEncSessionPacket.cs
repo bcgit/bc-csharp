@@ -68,24 +68,21 @@ namespace Org.BouncyCastle.Bcpg
 			get { return version; }
         }
 
-        public override void Encode(
-            BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut)
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
+            using (var pOut = new BcpgOutputStream(bOut))
+            {
+                pOut.Write((byte)version, (byte)encAlgorithm);
+                pOut.WriteObject(s2k);
 
-            pOut.Write(
-				(byte) version,
-				(byte) encAlgorithm);
-
-			pOut.WriteObject(s2k);
-
-			if (secKeyData != null && secKeyData.Length > 0)
-			{
-                pOut.Write(secKeyData);
+                if (secKeyData != null && secKeyData.Length > 0)
+                {
+                    pOut.Write(secKeyData);
+                }
             }
 
-			bcpgOut.WritePacket(PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray());
         }
     }
 }

@@ -8,12 +8,12 @@ namespace Org.BouncyCastle.Asn1.Cms
         : Asn1Encodable
     {
         private Asn1OctetString      subjectKeyIdentifier;
-        private DerGeneralizedTime   date;
+        private Asn1GeneralizedTime  date;
         private OtherKeyAttribute    other;
 
 		public RecipientKeyIdentifier(
             Asn1OctetString         subjectKeyIdentifier,
-            DerGeneralizedTime      date,
+            Asn1GeneralizedTime     date,
             OtherKeyAttribute       other)
         {
             this.subjectKeyIdentifier = subjectKeyIdentifier;
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		public RecipientKeyIdentifier(
 			byte[]				subjectKeyIdentifier,
-			DerGeneralizedTime	date,
+            Asn1GeneralizedTime date,
 			OtherKeyAttribute	other)
 		{
 			this.subjectKeyIdentifier = new DerOctetString(subjectKeyIdentifier);
@@ -37,32 +37,30 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.other = other;
 		}
 
-		public RecipientKeyIdentifier(
-            Asn1Sequence seq)
+		public RecipientKeyIdentifier(Asn1Sequence seq)
         {
-            subjectKeyIdentifier = Asn1OctetString.GetInstance(
-				seq[0]);
+            subjectKeyIdentifier = Asn1OctetString.GetInstance(seq[0]);
 
 			switch(seq.Count)
             {
-				case 1:
-					break;
-				case 2:
-					if (seq[1] is DerGeneralizedTime)
-					{
-						date = (DerGeneralizedTime) seq[1];
-					}
-					else
-					{
-						other = OtherKeyAttribute.GetInstance(seq[2]);
-					}
-					break;
-				case 3:
-					date  = (DerGeneralizedTime) seq[1];
+			case 1:
+				break;
+			case 2:
+				if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
+				{
+					date = asn1GeneralizedTime;
+				}
+				else
+				{
 					other = OtherKeyAttribute.GetInstance(seq[2]);
-					break;
-				default:
-					throw new ArgumentException("Invalid RecipientKeyIdentifier");
+				}
+				break;
+			case 3:
+				date = (Asn1GeneralizedTime)seq[1];
+				other = OtherKeyAttribute.GetInstance(seq[2]);
+				break;
+			default:
+				throw new ArgumentException("Invalid RecipientKeyIdentifier");
             }
         }
 
@@ -105,7 +103,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			get { return subjectKeyIdentifier; }
 		}
 
-		public DerGeneralizedTime Date
+		public Asn1GeneralizedTime Date
 		{
 			get { return date; }
 		}

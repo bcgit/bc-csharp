@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
@@ -16,23 +16,23 @@ namespace Org.BouncyCastle.Tls.Tests
             /*
              * TLS 1.3
              */
-            CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
             CipherSuite.TLS_AES_256_GCM_SHA384,
             CipherSuite.TLS_AES_128_GCM_SHA256,
+            CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
 
             /*
              * pre-TLS 1.3
              */
-            CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+            CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-            CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
             CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
             CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+            CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
             CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
             CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
             CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Tls.Tests
             if (m_config.serverCertReq == TlsTestConfig.SERVER_CERT_REQ_NONE)
                 return null;
 
-            IList serverSigAlgs = null;
+            IList<SignatureAndHashAlgorithm> serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(m_context.ServerVersion))
             {
                 serverSigAlgs = m_config.serverCertReqSigAlgs;
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 }
             }
 
-            IList certificateAuthorities = new ArrayList();
+            var certificateAuthorities = new List<X509Name>();
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-dsa.pem").Subject);
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-ecdsa.pem").Subject);
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-rsa.pem").Subject);
@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 byte[] certificateRequestContext = TlsUtilities.EmptyBytes;
 
                 // TODO[tls13] Add TlsTestConfig.serverCertReqSigAlgsCert
-                IList serverSigAlgsCert = null;
+                IList<SignatureAndHashAlgorithm> serverSigAlgsCert = null;
 
                 return new CertificateRequest(certificateRequestContext, serverSigAlgs, serverSigAlgsCert,
                     certificateAuthorities);
@@ -254,13 +254,35 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        protected virtual IList GetSupportedSignatureAlgorithms()
+        public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessClientExtensions(clientExtensions);
+        }
+
+        public override IDictionary<int, byte[]> GetServerExtensions()
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetServerExtensions();
+        }
+
+        public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.GetServerExtensionsForConnection(serverExtensions);
+        }
+
+        protected virtual IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
         {
             if (TlsUtilities.IsTlsV12(m_context) && m_config.serverAuthSigAlg != null)
             {
-                IList signatureAlgorithms = new ArrayList(1);
-                signatureAlgorithms.Add(m_config.serverAuthSigAlg);
-                return signatureAlgorithms;
+                return TlsUtilities.VectorOfOne(m_config.serverAuthSigAlg);
             }
 
             return m_context.SecurityParameters.ClientSigAlgs;

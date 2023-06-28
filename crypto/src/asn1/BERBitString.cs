@@ -6,7 +6,10 @@ namespace Org.BouncyCastle.Asn1
     public class BerBitString
         : DerBitString
     {
-        private const int DefaultSegmentLimit = 1000;
+        public static BerBitString FromSequence(Asn1Sequence seq)
+        {
+            return new BerBitString(seq.MapElements(GetInstance));
+        }
 
         internal static byte[] FlattenBitStrings(DerBitString[] bitStrings)
         {
@@ -53,14 +56,12 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private readonly int segmentLimit;
         private readonly DerBitString[] elements;
 
         public BerBitString(byte data, int padBits)
             : base(data, padBits)
         {
             this.elements = null;
-            this.segmentLimit = DefaultSegmentLimit;
         }
 
         public BerBitString(byte[] data)
@@ -69,22 +70,34 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public BerBitString(byte[] data, int padBits)
-            : this(data, padBits, DefaultSegmentLimit)
+            : base(data, padBits)
 		{
+            this.elements = null;
         }
 
+        [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerBitString(byte[] data, int padBits, int segmentLimit)
+            : this(data, padBits)
+        {
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public BerBitString(ReadOnlySpan<byte> data)
+            : this(data, 0)
+        {
+        }
+
+        public BerBitString(ReadOnlySpan<byte> data, int padBits)
             : base(data, padBits)
         {
             this.elements = null;
-            this.segmentLimit = segmentLimit;
         }
+#endif
 
         public BerBitString(int namedBits)
             : base(namedBits)
         {
             this.elements = null;
-            this.segmentLimit = DefaultSegmentLimit;
         }
 
         public BerBitString(Asn1Encodable obj)
@@ -93,22 +106,21 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public BerBitString(DerBitString[] elements)
-            : this(elements, DefaultSegmentLimit)
-        {
-        }
-
-        public BerBitString(DerBitString[] elements, int segmentLimit)
             : base(FlattenBitStrings(elements), false)
         {
             this.elements = elements;
-            this.segmentLimit = segmentLimit;
+        }
+
+        [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
+        public BerBitString(DerBitString[] elements, int segmentLimit)
+            : this(elements)
+        {
         }
 
         internal BerBitString(byte[] contents, bool check)
             : base(contents, check)
         {
             this.elements = null;
-            this.segmentLimit = DefaultSegmentLimit;
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)

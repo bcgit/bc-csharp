@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Bcpg
             DerObjectIdentifier oid,
             ECPoint point)
         {
-            this.point = new BigInteger(1, point.GetEncoded(false));
+            this.point = MPInteger.ToMpiBigInteger(point);
             this.oid = oid;
         }
 

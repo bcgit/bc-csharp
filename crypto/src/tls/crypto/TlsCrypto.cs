@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Math;
@@ -10,11 +11,33 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// cryptography in the API.</summary>
     public interface TlsCrypto
     {
-        /// <summary>Return true if this TlsCrypto can perform raw signatures and verifications for all supported
-        /// algorithms.</summary>
-        /// <returns>true if this instance can perform raw signatures and verifications for all supported algorithms,
-        /// false otherwise.</returns>
-        bool HasAllRawSignatureAlgorithms();
+        /// <summary>Return true if this TlsCrypto would use a stream verifier for any of the passed in algorithms.
+        /// </summary>
+        /// <remarks>This method is only relevant to handshakes negotiating (D)TLS 1.2.</remarks>
+        /// <param name="signatureAndHashAlgorithms">A <see cref="IList{T}">list</see> of
+        /// <see cref="SignatureAndHashAlgorithm"/> values.</param>
+        /// <returns>true if this instance would use a stream verifier for any of the passed in algorithms, otherwise
+        /// false.</returns>
+        bool HasAnyStreamVerifiers(IList<SignatureAndHashAlgorithm> signatureAndHashAlgorithms);
+
+        /// <summary>Return true if this TlsCrypto would use a stream verifier for any of the passed in algorithms.
+        /// </summary>
+        /// <remarks>This method is only relevant to handshakes negotiating (D)TLS versions older than 1.2.</remarks>
+        /// <param name="clientCertificateTypes">An array of <see cref="ClientCertificateType"/> values.</param>
+        /// <returns>true if this instance would use a stream verifier for any of the passed in algorithms, otherwise
+        /// false.</returns>
+        bool HasAnyStreamVerifiersLegacy(short[] clientCertificateTypes);
+
+        /// <summary>Return true if this TlsCrypto can support the passed in hash algorithm.</summary>
+        /// <param name="cryptoHashAlgorithm">the algorithm of interest.</param>
+        /// <returns>true if cryptoHashAlgorithm is supported, false otherwise.</returns>
+        bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm);
+
+        /// <summary>Return true if this TlsCrypto can support the passed in signature algorithm (not necessarily in
+        /// combination with EVERY hash algorithm).</summary>
+        /// <param name="cryptoSignatureAlgorithm">the algorithm of interest.</param>
+        /// <returns>true if cryptoSignatureAlgorithm is supported, false otherwise.</returns>
+        bool HasCryptoSignatureAlgorithm(int cryptoSignatureAlgorithm);
 
         /// <summary>Return true if this TlsCrypto can support DH key agreement.</summary>
         /// <returns>true if this instance can support DH key agreement, false otherwise.</returns>
@@ -30,16 +53,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>true if encryptionAlgorithm is supported, false otherwise.</returns>
         bool HasEncryptionAlgorithm(int encryptionAlgorithm);
 
-        /// <summary>Return true if this TlsCrypto can support the passed in hash algorithm.</summary>
+        /// <summary>Return true if this TlsCrypto can support HKDF with the passed in hash algorithm.</summary>
         /// <param name="cryptoHashAlgorithm">the algorithm of interest.</param>
-        /// <returns>true if cryptoHashAlgorithm is supported, false otherwise.</returns>
-        bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm);
-
-        /// <summary>Return true if this TlsCrypto can support the passed in signature algorithm (not necessarily in
-        /// combination with EVERY hash algorithm).</summary>
-        /// <param name="cryptoSignatureAlgorithm">the algorithm of interest.</param>
-        /// <returns>true if cryptoSignatureAlgorithm is supported, false otherwise.</returns>
-        bool HasCryptoSignatureAlgorithm(int cryptoSignatureAlgorithm);
+        /// <returns>true if HKDF is supported with cryptoHashAlgorithm, false otherwise.</returns>
+        bool HasHkdfAlgorithm(int cryptoHashAlgorithm);
 
         /// <summary>Return true if this TlsCrypto can support the passed in MAC algorithm.</summary>
         /// <param name="macAlgorithm">the algorithm of interest.</param>
@@ -94,6 +111,13 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>a TlsCertificate.</returns>
         /// <exception cref="IOException">if there is an issue on decoding or constructing the certificate.</exception>
         TlsCertificate CreateCertificate(byte[] encoding);
+
+        /// <summary>Create a TlsCertificate from an ASN.1 binary encoding of a certificate.</summary>
+        /// <param name="type">Certificate type as per IANA TLS Certificate Types registry.</param>
+        /// <param name="encoding">DER/BER encoding of the certificate of interest.</param>
+        /// <returns>a TlsCertificate.</returns>
+        /// <exception cref="IOException">if there is an issue on decoding or constructing the certificate.</exception>
+        TlsCertificate CreateCertificate(short type, byte[] encoding);
 
         /// <summary>Create a cipher for the specified encryption and MAC algorithms.</summary>
         /// <remarks>
@@ -155,6 +179,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <param name="additionalSeedMaterial">context-specific seed material</param>
         /// <returns>a <see cref="TlsNonceGenerator"/>.</returns>
         TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial);
+#endif
 
         /// <summary>Create an SRP-6 client.</summary>
         /// <param name="srpConfig">client config.</param>

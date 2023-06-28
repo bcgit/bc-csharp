@@ -36,9 +36,10 @@ namespace Org.BouncyCastle.Tests
 			+ "F9E460BC65EF95DA58F740B7D1DBB0AA");
 
 		private static readonly byte[] HCIN = new byte[64];
-		private static readonly byte[] HCIV = new byte[32];
+		private static readonly byte[] HCIV128 = new byte[16];
+        private static readonly byte[] HCIV256 = new byte[32];
 
-		private static readonly byte[] HCK256A = new byte[32];
+        private static readonly byte[] HCK256A = new byte[32];
 		private static readonly byte[] HC256A = Hex.Decode(
 			  "5B078985D8F6F30D42C5C02FA6B67951"
 			+ "53F06534801F89F24E74248B720B4818"
@@ -342,7 +343,7 @@ namespace Org.BouncyCastle.Tests
 		[Test]
 		public void TestHC128Algorithm()
 		{
-			doTestAlgorithm("HC128", HCK128A, HCIV, HCIN, HC128A);
+			doTestAlgorithm("HC128", HCK128A, HCIV128, HCIN, HC128A);
 		}
 
 		[Test]
@@ -360,7 +361,7 @@ namespace Org.BouncyCastle.Tests
 		[Test]
 		public void TestHC256Algorithm()
 		{
-			doTestAlgorithm("HC256", HCK256A, HCIV, HCIN, HC256A);
+			doTestAlgorithm("HC256", HCK256A, HCIV256, HCIN, HC256A);
 		}
 
 		[Test]
@@ -438,12 +439,6 @@ namespace Org.BouncyCastle.Tests
 		public override string Name
 		{
 			get { return "CipherStreamTest"; }
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CipherStreamTest());
 		}
 	}
 }

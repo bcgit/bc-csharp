@@ -1,10 +1,9 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Security
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
-#endif
     public class GeneralSecurityException
 		: Exception
 	{
@@ -13,16 +12,18 @@ namespace Org.BouncyCastle.Security
 		{
 		}
 
-		public GeneralSecurityException(
-			string message)
+		public GeneralSecurityException(string message)
 			: base(message)
 		{
 		}
 
-		public GeneralSecurityException(
-			string		message,
-			Exception	exception)
-			: base(message, exception)
+		public GeneralSecurityException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected GeneralSecurityException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
 		{
 		}
 	}

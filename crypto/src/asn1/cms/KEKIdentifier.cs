@@ -8,12 +8,12 @@ namespace Org.BouncyCastle.Asn1.Cms
         : Asn1Encodable
     {
         private Asn1OctetString		keyIdentifier;
-        private DerGeneralizedTime	date;
+        private Asn1GeneralizedTime date;
         private OtherKeyAttribute	other;
 
 		public KekIdentifier(
             byte[]              keyIdentifier,
-            DerGeneralizedTime  date,
+            Asn1GeneralizedTime date,
             OtherKeyAttribute   other)
         {
             this.keyIdentifier = new DerOctetString(keyIdentifier);
@@ -21,19 +21,18 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.other = other;
         }
 
-		public KekIdentifier(
-            Asn1Sequence seq)
+		public KekIdentifier(Asn1Sequence seq)
         {
-            keyIdentifier = (Asn1OctetString) seq[0];
+            keyIdentifier = (Asn1OctetString)seq[0];
 
 			switch (seq.Count)
             {
             case 1:
 				break;
             case 2:
-				if (seq[1] is DerGeneralizedTime)
+				if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
 				{
-					date = (DerGeneralizedTime) seq[1];
+					date = asn1GeneralizedTime;
 				}
 				else
 				{
@@ -41,7 +40,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 				}
 				break;
             case 3:
-				date  = (DerGeneralizedTime) seq[1];
+				date = (Asn1GeneralizedTime)seq[1];
 				other = OtherKeyAttribute.GetInstance(seq[2]);
 				break;
             default:
@@ -88,7 +87,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			get { return keyIdentifier; }
 		}
 
-		public DerGeneralizedTime Date
+		public Asn1GeneralizedTime Date
 		{
 			get { return date; }
 		}

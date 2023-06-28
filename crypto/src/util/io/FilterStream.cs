@@ -1,12 +1,20 @@
+using System;
 using System.IO;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
+using System.Threading.Tasks;
+#endif
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-    public class FilterStream : Stream
+    public class FilterStream
+        : Stream
     {
+        protected readonly Stream s;
+
         public FilterStream(Stream s)
         {
-            this.s = s;
+            this.s = s ?? throw new ArgumentNullException(nameof(s));
         }
         public override bool CanRead
         {
@@ -20,6 +28,22 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             get { return s.CanWrite; }
         }
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
+        {
+            Streams.CopyTo(s, destination, bufferSize);
+        }
+#endif
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(s, destination, bufferSize, cancellationToken);
+        }
+#endif
+        public override void Flush()
+        {
+            s.Flush();
+        }
         public override long Length
         {
             get { return s.Length; }
@@ -29,25 +53,23 @@ namespace Org.BouncyCastle.Utilities.IO
             get { return s.Position; }
             set { s.Position = value; }
         }
-#if PORTABLE
-        protected override void Dispose(bool disposing)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            if (disposing)
-            {
-                Platform.Dispose(s);
-            }
-            base.Dispose(disposing);
+            return s.Read(buffer, offset, count);
         }
-#else
-        public override void Close()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
         {
-            Platform.Dispose(s);
-            base.Close();
+            return s.Read(buffer);
+        }
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(s, buffer, cancellationToken);
         }
 #endif
-        public override void Flush()
+        public override int ReadByte()
         {
-            s.Flush();
+            return s.ReadByte();
         }
         public override long Seek(long offset, SeekOrigin origin)
         {
@@ -57,22 +79,36 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             s.SetLength(value);
         }
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return s.Read(buffer, offset, count);
-        }
-        public override int ReadByte()
-        {
-            return s.ReadByte();
-        }
         public override void Write(byte[] buffer, int offset, int count)
         {
             s.Write(buffer, offset, count);
         }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            s.Write(buffer);
+        }
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.WriteAsync(s, buffer, cancellationToken);
+        }
+#endif
         public override void WriteByte(byte value)
         {
             s.WriteByte(value);
         }
-        protected readonly Stream s;
+        protected void Detach(bool disposing)
+        {
+            base.Dispose(disposing);
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                s.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

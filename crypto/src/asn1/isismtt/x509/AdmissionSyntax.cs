@@ -172,20 +172,19 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         *
         * @param seq The ASN.1 sequence.
         */
-        private AdmissionSyntax(
-            Asn1Sequence seq)
+        private AdmissionSyntax(Asn1Sequence seq)
         {
             switch (seq.Count)
             {
-                case 1:
-                    this.contentsOfAdmissions = DerSequence.GetInstance(seq[0]);
-                    break;
-                case 2:
-                    admissionAuthority = GeneralName.GetInstance(seq[0]);
-                    contentsOfAdmissions = DerSequence.GetInstance(seq[1]);
-                    break;
-                default:
-                    throw new ArgumentException("Bad sequence size: " + seq.Count);
+            case 1:
+                this.contentsOfAdmissions = Asn1Sequence.GetInstance(seq[0]);
+                break;
+            case 2:
+                admissionAuthority = GeneralName.GetInstance(seq[0]);
+                contentsOfAdmissions = Asn1Sequence.GetInstance(seq[1]);
+                break;
+            default:
+                throw new ArgumentException("Bad sequence size: " + seq.Count);
             }
         }
 
@@ -243,7 +242,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptional(admissionAuthority);
             v.Add(contentsOfAdmissions);
             return new DerSequence(v);

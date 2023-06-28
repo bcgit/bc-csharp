@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			private int blockSize;
 			private int outputSize;
 
-			public Case(int blockSize, int outputSize, String message, String key, String digest)
+			public Case(int blockSize, int outputSize, string message, string key, string digest)
 			{
 				this.blockSize = blockSize;
 				this.outputSize = outputSize;
@@ -60,10 +60,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			public override string ToString()
 			{
-				return String.Format("new Case({0}, {1}, \"{2}\", \"{3}\", \"{4}\"),", blockSize, outputSize,
-				                     Hex.ToHexString(message), Hex.ToHexString(key), Hex.ToHexString(digest));
+				return string.Format("new Case({0}, {1}, \"{2}\", \"{3}\", \"{4}\"),", blockSize, outputSize,
+					Hex.ToHexString(message), Hex.ToHexString(key), Hex.ToHexString(digest));
 			}
-
 		}
 
 		// Test cases from skein_golden_kat.txt in Skein 1.3 NIST CD
@@ -154,12 +153,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 				     + Hex.ToHexString(dc.getDigest()) + "\n Actual   " + Hex.ToHexString(output));
 			}
 
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SkeinMacTest());
 		}
 
 		[Test]

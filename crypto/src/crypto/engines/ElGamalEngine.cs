@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -28,22 +29,18 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @param forEncryption true if we are encrypting, false otherwise.
 		* @param param the necessary ElGamal key parameters.
 		*/
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				ParametersWithRandom p = (ParametersWithRandom) parameters;
-
-				this.key = (ElGamalKeyParameters) p.Parameters;
-				this.random = p.Random;
+				this.key = (ElGamalKeyParameters)withRandom.Parameters;
+				this.random = withRandom.Random;
 			}
 			else
 			{
-				this.key = (ElGamalKeyParameters) parameters;
-				this.random = new SecureRandom();
-			}
+				this.key = (ElGamalKeyParameters)parameters;
+				this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom() : null;
+            }
 
 			this.forEncryption = forEncryption;
 			this.bitSize = key.Parameters.P.BitLength;
@@ -51,16 +48,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			if (forEncryption)
 			{
 				if (!(key is ElGamalPublicKeyParameters))
-				{
 					throw new ArgumentException("ElGamalPublicKeyParameters are required for encryption.");
-				}
 			}
 			else
 			{
 				if (!(key is ElGamalPrivateKeyParameters))
-				{
 					throw new ArgumentException("ElGamalPrivateKeyParameters are required for decryption.");
-				}
 			}
 		}
 
@@ -165,14 +158,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				output = new byte[this.GetOutputBlockSize()];
 
-				// TODO Add methods to allow writing BigInteger to existing byte array?
-				byte[] out1 = gamma.ToByteArrayUnsigned();
-				byte[] out2 = phi.ToByteArrayUnsigned();
-				out1.CopyTo(output, output.Length / 2 - out1.Length);
-				out2.CopyTo(output, output.Length - out2.Length);
-			}
+				int mid = output.Length / 2;
+                BigIntegers.AsUnsignedByteArray(gamma, output, 0, mid);
+                BigIntegers.AsUnsignedByteArray(phi, output, mid, output.Length - mid);
+            }
 
-			return output;
+            return output;
 		}
 	}
 }

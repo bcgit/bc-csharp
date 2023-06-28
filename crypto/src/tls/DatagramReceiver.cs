@@ -10,5 +10,10 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         int Receive(byte[] buf, int off, int len, int waitMillis);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        int Receive(Span<byte> buffer, int waitMillis);
+#endif
     }
 }

@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 		public DesEdeKeyGenerator()
 		{
 		}
-
+            
 		internal DesEdeKeyGenerator(
 			int defaultStrength)
 			: base(defaultStrength)
@@ -26,8 +26,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         *
         * @param param the parameters to be used for key generation
         */
-        protected override void engineInit(
-			KeyGenerationParameters parameters)
+        protected override void EngineInit(KeyGenerationParameters parameters)
         {
 			this.random = parameters.Random;
 			this.strength = (parameters.Strength + 7) / 8;
@@ -50,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        protected override byte[] engineGenerateKey()
+        protected override byte[] EngineGenerateKey()
         {
             byte[] newKey = new byte[strength];
 
@@ -59,9 +58,24 @@ namespace Org.BouncyCastle.Crypto.Generators
                 random.NextBytes(newKey);
                 DesEdeParameters.SetOddParity(newKey);
             }
-            while (DesEdeParameters.IsWeakKey(newKey, 0, newKey.Length) || !DesEdeParameters.IsRealEdeKey(newKey, 0));
+            while (DesEdeParameters.IsWeakKey(newKey) || !DesEdeParameters.IsRealEdeKey(newKey, 0));
 
             return newKey;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected override KeyParameter EngineGenerateKeyParameter()
+        {
+            return KeyParameter.Create(strength, random, (bytes, random) =>
+            {
+                do
+                {
+                    random.NextBytes(bytes);
+                    DesEdeParameters.SetOddParity(bytes);
+                }
+                while (DesEdeParameters.IsWeakKey(bytes) || !DesEdeParameters.IsRealEdeKey(bytes));
+            });
+        }
+#endif
     }
 }

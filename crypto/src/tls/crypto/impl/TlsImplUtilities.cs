@@ -60,5 +60,23 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             byte[] seed = Arrays.Concatenate(securityParameters.ServerRandom, securityParameters.ClientRandom);
             return master_secret.DeriveUsingPrf(prfAlgorithm, ExporterLabel.key_expansion, seed, length).Extract();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void CalculateKeyBlock(TlsCryptoParameters cryptoParams, Span<byte> keyBlock)
+        {
+            SecurityParameters securityParameters = cryptoParams.SecurityParameters;
+            TlsSecret master_secret = securityParameters.MasterSecret;
+            int prfAlgorithm = securityParameters.PrfAlgorithm;
+
+            Span<byte> cr = securityParameters.ClientRandom, sr = securityParameters.ServerRandom;
+            Span<byte> seed = stackalloc byte[sr.Length + cr.Length];
+            sr.CopyTo(seed);
+            cr.CopyTo(seed[sr.Length..]);
+
+            TlsSecret derived = master_secret.DeriveUsingPrf(prfAlgorithm, ExporterLabel.key_expansion, seed,
+                keyBlock.Length);
+            derived.ExtractTo(keyBlock);
+        }
+#endif
     }
 }

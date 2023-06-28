@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Utilities;
@@ -37,25 +36,18 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		private readonly string					namingAuthorityUrl;
 		private readonly DirectoryString		namingAuthorityText;
 
-		public static NamingAuthority GetInstance(
-			object obj)
+		public static NamingAuthority GetInstance(object obj)
 		{
 			if (obj == null || obj is NamingAuthority)
-			{
 				return (NamingAuthority) obj;
-			}
 
-			if (obj is Asn1Sequence)
-			{
-				return new NamingAuthority((Asn1Sequence) obj);
-			}
+			if (obj is Asn1Sequence seq)
+				return new NamingAuthority(seq);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
 
-		public static NamingAuthority GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
+		public static NamingAuthority GetInstance(Asn1TaggedObject obj, bool isExplicit)
 		{
 			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
 		}
@@ -75,24 +67,23 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private NamingAuthority(
-			Asn1Sequence seq)
+		private NamingAuthority(Asn1Sequence seq)
 		{
 			if (seq.Count > 3)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 
 			if (e.MoveNext())
 			{
-				Asn1Encodable o = (Asn1Encodable) e.Current;
-				if (o is DerObjectIdentifier)
+				Asn1Encodable o = e.Current;
+				if (o is DerObjectIdentifier oid)
 				{
-					namingAuthorityID = (DerObjectIdentifier) o;
+					namingAuthorityID = oid;
 				}
-				else if (o is DerIA5String)
+				else if (o is DerIA5String ia5)
 				{
-					namingAuthorityUrl = DerIA5String.GetInstance(o).GetString();
+					namingAuthorityUrl = ia5.GetString();
 				}
 				else if (o is IAsn1String)
 				{
@@ -106,10 +97,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 
 			if (e.MoveNext())
 			{
-				Asn1Encodable o = (Asn1Encodable) e.Current;
-				if (o is DerIA5String)
+				Asn1Encodable o = e.Current;
+				if (o is DerIA5String ia5)
 				{
-					namingAuthorityUrl = DerIA5String.GetInstance(o).GetString();
+					namingAuthorityUrl = ia5.GetString();
 				}
 				else if (o is IAsn1String)
 				{
@@ -123,7 +114,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 
 			if (e.MoveNext())
 			{
-				Asn1Encodable o = (Asn1Encodable) e.Current;
+				Asn1Encodable o = e.Current;
 				if (o is IAsn1String)
 				{
 					namingAuthorityText = DirectoryString.GetInstance(o);
@@ -196,7 +187,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptional(namingAuthorityID);
 
 			if (namingAuthorityUrl != null)

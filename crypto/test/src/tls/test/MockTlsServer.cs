@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -14,16 +13,30 @@ namespace Org.BouncyCastle.Tls.Tests
         : DefaultTlsServer
     {
         internal MockTlsServer()
-            : base(new BcTlsCrypto(new SecureRandom()))
+            : base(new BcTlsCrypto())
         {
         }
 
-        protected override IList GetProtocolNames()
+        protected override IList<ProtocolName> GetProtocolNames()
         {
-            IList protocolNames = new ArrayList();
+            var protocolNames = new List<ProtocolName>();
             protocolNames.Add(ProtocolName.Http_2_Tls);
             protocolNames.Add(ProtocolName.Http_1_1);
             return protocolNames;
+        }
+
+        public override TlsCredentials GetCredentials()
+        {
+            /*
+             * TODO[tls13] Should really be finding the first client-supported signature scheme that the
+             * server also supports and has credentials for.
+             */
+            if (TlsUtilities.IsTlsV13(m_context))
+            {
+                return GetRsaSignerCredentials();
+            }
+
+            return base.GetCredentials();
         }
 
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
@@ -60,16 +73,13 @@ namespace Org.BouncyCastle.Tls.Tests
 
         public override CertificateRequest GetCertificateRequest()
         {
-            short[] certificateTypes = new short[]{ ClientCertificateType.rsa_sign,
-                ClientCertificateType.dss_sign, ClientCertificateType.ecdsa_sign };
-
-            IList serverSigAlgs = null;
+            IList<SignatureAndHashAlgorithm> serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(m_context.ServerVersion))
             {
                 serverSigAlgs = TlsUtilities.GetDefaultSupportedSignatureAlgorithms(m_context);
             }
 
-            IList certificateAuthorities = new ArrayList();
+            var certificateAuthorities = new List<X509Name>();
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-dsa.pem").Subject);
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-ecdsa.pem").Subject);
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-rsa.pem").Subject);
@@ -77,7 +87,24 @@ namespace Org.BouncyCastle.Tls.Tests
             // All the CA certificates are currently configured with this subject
             certificateAuthorities.Add(new X509Name("CN=BouncyCastle TLS Test CA"));
 
-            return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
+            if (TlsUtilities.IsTlsV13(m_context))
+            {
+                // TODO[tls13] Support for non-empty request context
+                byte[] certificateRequestContext = TlsUtilities.EmptyBytes;
+
+                // TODO[tls13] Add TlsTestConfig.serverCertReqSigAlgsCert
+                IList<SignatureAndHashAlgorithm> serverSigAlgsCert = null;
+
+                return new CertificateRequest(certificateRequestContext, serverSigAlgs, serverSigAlgsCert,
+                    certificateAuthorities);
+            }
+            else
+            {
+                short[] certificateTypes = new short[]{ ClientCertificateType.rsa_sign,
+                    ClientCertificateType.dss_sign, ClientCertificateType.ecdsa_sign };
+
+                return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
+            }
         }
 
         public override void NotifyClientCertificate(Certificate clientCertificate)
@@ -127,6 +154,33 @@ namespace Org.BouncyCastle.Tls.Tests
 
             byte[] tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
             Console.WriteLine("Server 'tls-unique': " + ToHexString(tlsUnique));
+
+            byte[] tlsExporter = m_context.ExportChannelBinding(ChannelBinding.tls_exporter);
+            Console.WriteLine("Server 'tls-exporter': " + ToHexString(tlsExporter));
+        }
+
+        public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessClientExtensions(clientExtensions);
+        }
+
+        public override IDictionary<int, byte[]> GetServerExtensions()
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetServerExtensions();
+        }
+
+        public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.GetServerExtensionsForConnection(serverExtensions);
         }
 
         protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials()
@@ -137,7 +191,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         protected override TlsCredentialedSigner GetRsaSignerCredentials()
         {
-            IList clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
+            var clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
             return TlsTestUtilities.LoadSignerCredentialsServer(m_context, clientSigAlgs, SignatureAlgorithm.rsa);
         }
 

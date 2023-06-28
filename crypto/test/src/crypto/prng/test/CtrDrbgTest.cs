@@ -23,11 +23,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             get { return "CTRDRBGTest"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new CtrDrbgTest());
-        }
-
         [Test]
         public void TestFunction()
         {
@@ -149,7 +144,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 .AddAdditionalInput("606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C")
                 .AddAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBC"),
                 new DrbgTestVector(
-                    new AesEngine(), 128,
+                    AesUtilities.CreateEngine(), 128,
                     new Bit256EntropyProvider().Get(256),
                     false,
                     "2021222324252627",
@@ -161,7 +156,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                     }
                 ),
                 new DrbgTestVector(
-                    new AesEngine(), 128,
+                    AesUtilities.CreateEngine(), 128,
                     new Bit256EntropyProvider().Get(256),
                     false,
                     "2021222324252627",
@@ -175,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 .AddAdditionalInput("606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F")
                 .AddAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF"),
                 new DrbgTestVector(
-                    new AesEngine(), 128,
+                    AesUtilities.CreateEngine(), 128,
                     new Bit256EntropyProvider().Get(256),
                     false,
                     "2021222324252627",
@@ -188,7 +183,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 )
                .SetPersonalizationString("404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F"),
                 new DrbgTestVector(
-                    new AesEngine(), 128,
+                    AesUtilities.CreateEngine(), 128,
                     new Bit256EntropyProvider().Get(256),
                     true,
                     "2021222324252627",
@@ -200,7 +195,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                     }
                 ),
                 new DrbgTestVector(
-                    new AesEngine(), 128,
+                    AesUtilities.CreateEngine(), 128,
                     new Bit256EntropyProvider().Get(256),
                     true,
                     "2021222324252627",
@@ -214,7 +209,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 .AddAdditionalInput("606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F")
                 .AddAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF"),
                 new DrbgTestVector(
-                    new AesEngine(), 128,
+                    AesUtilities.CreateEngine(), 128,
                     new Bit256EntropyProvider().Get(256),
                     true,
                     "2021222324252627",
@@ -227,7 +222,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 )
                .SetPersonalizationString("404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F"),
                 new DrbgTestVector(
-                    new AesEngine(), 192,
+                    AesUtilities.CreateEngine(), 192,
                     new Bit320EntropyProvider().Get(320),
                     false,
                     "202122232425262728292A2B",
@@ -240,7 +235,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 )
                 .SetPersonalizationString("404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F6061626364656667"),
                 new DrbgTestVector(
-                    new AesEngine(), 192,
+                    AesUtilities.CreateEngine(), 192,
                     new Bit320EntropyProvider().Get(320),
                     true,
                     "202122232425262728292A2B",
@@ -253,7 +248,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 )
                 .SetPersonalizationString("404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F6061626364656667"),
                 new DrbgTestVector(
-                    new AesEngine(), 256,
+                    AesUtilities.CreateEngine(), 256,
                     new Bit384EntropyProvider().Get(384),
                     false,
                     "202122232425262728292A2B2C2D2E2F",
@@ -268,7 +263,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 .AddAdditionalInput("606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F")
                 .AddAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
                 new DrbgTestVector(
-                    new AesEngine(), 256,
+                    AesUtilities.CreateEngine(), 256,
                     new Bit384EntropyProvider().Get(384),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -282,7 +277,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 .AddAdditionalInput("606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F")
                 .AddAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
                 new DrbgTestVector(
-                    new AesEngine(), 256,
+                    AesUtilities.CreateEngine(), 256,
                     new Bit384EntropyProvider().Get(384),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -295,7 +290,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 )
                 .SetPersonalizationString("404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F"),
                 new DrbgTestVector(
-                    new AesEngine(), 256,
+                    AesUtilities.CreateEngine(), 256,
                     new Bit384EntropyProvider().Get(384),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -310,7 +305,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 .AddAdditionalInput("606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F")
                 .AddAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
                 new DrbgTestVector(
-                    new AesEngine(), 256,
+                    AesUtilities.CreateEngine(), 256,
                     new Bit384EntropyProvider().Get(384),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -345,7 +340,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
                 output = new byte[tv.GetExpectedValue(0).Length];
 
-                d.Generate(output, tv.GetAdditionalInput(0), tv.PredictionResistance);
+                d.Generate(output, 0, output.Length, tv.GetAdditionalInput(0), tv.PredictionResistance);
 
                 byte[] expected = tv.GetExpectedValue(0);
 
@@ -356,7 +351,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
                 output = new byte[tv.GetExpectedValue(0).Length];
 
-                d.Generate(output, tv.GetAdditionalInput(1), tv.PredictionResistance);
+                d.Generate(output, 0, output.Length, tv.GetAdditionalInput(1), tv.PredictionResistance);
 
                 expected = tv.GetExpectedValue(1);
                 if (!AreEqual(expected, output))
@@ -373,12 +368,12 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
             output = new byte[tv.GetExpectedValue(0).Length];
 
-            drbg.Generate(output, tv.GetAdditionalInput(0), tv.PredictionResistance);
+            drbg.Generate(output, 0, output.Length, tv.GetAdditionalInput(0), tv.PredictionResistance);
 
             // Exception tests
             try
             {
-                d = new CtrSP800Drbg(new AesEngine(), 256, 256, new Bit232EntropyProvider().Get(128), null, null);
+                d = new CtrSP800Drbg(AesUtilities.CreateEngine(), 256, 256, new Bit232EntropyProvider().Get(128), null, null);
                 Fail("no exception thrown");
             }
             catch (ArgumentException e)
@@ -417,7 +412,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
             try
             {
-                d = new CtrSP800Drbg(new AesEngine(), 192, 256, new Bit232EntropyProvider().Get(232), null, null);
+                d = new CtrSP800Drbg(AesUtilities.CreateEngine(), 192, 256, new Bit232EntropyProvider().Get(232), null, null);
                 Fail("no exception thrown");
             }
             catch (ArgumentException e)
@@ -497,14 +492,9 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 cipher.Init(forEncryption, parameters);
             }
 
-            public String AlgorithmName
+            public string AlgorithmName
             {
                 get { return cipher.AlgorithmName; }
-            }
-
-            public bool IsPartialBlockOkay
-            {
-                get { return false; }
             }
 
             public int GetBlockSize()
@@ -517,10 +507,14 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 return cipher.ProcessBlock(input, inOff, output, outOff);
             }
 
-            public void Reset()
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
             {
-                cipher.Reset();
+                return cipher.ProcessBlock(input, output);
             }
+#endif
         }
     }
 }

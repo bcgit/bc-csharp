@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -57,12 +57,12 @@ namespace Org.BouncyCastle.Tls
             catch (TlsFatalAlert fatalAlert)
             {
                 AbortServerHandshake(state, recordLayer, fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -89,7 +89,8 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters securityParameters = state.serverContext.SecurityParameters;
 
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.serverContext, recordLayer,
-                state.server.GetHandshakeTimeoutMillis(), request);
+                state.server.GetHandshakeTimeoutMillis(), TlsUtilities.GetHandshakeResendTimeMillis(state.server),
+                request);
 
             DtlsReliableHandshake.Message clientMessage = null;
 
@@ -147,7 +148,7 @@ namespace Org.BouncyCastle.Tls
 
             handshake.HandshakeHash.NotifyPrfDetermined();
 
-            IList serverSupplementalData = state.server.GetServerSupplementalData();
+            var serverSupplementalData = state.server.GetServerSupplementalData();
             if (serverSupplementalData != null)
             {
                 byte[] supplementalDataBody = GenerateSupplementalData(serverSupplementalData);
@@ -155,7 +156,13 @@ namespace Org.BouncyCastle.Tls
             }
 
             state.keyExchange = TlsUtilities.InitKeyExchangeServer(state.serverContext, state.server);
-            state.serverCredentials = TlsUtilities.EstablishServerCredentials(state.server);
+
+            state.serverCredentials = null;
+
+            if (!KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm))
+            {
+                state.serverCredentials = TlsUtilities.EstablishServerCredentials(state.server);
+            }
 
             // Server certificate
             {
@@ -225,17 +232,34 @@ namespace Org.BouncyCastle.Tls
 
                     TlsUtilities.EstablishServerSigAlgs(securityParameters, state.certificateRequest);
 
-                    TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
+                    if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+                    {
+                        TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
 
-                    byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
-                    handshake.SendMessage(HandshakeType.certificate_request, certificateRequestBody);
+                        if (state.serverContext.Crypto.HasAnyStreamVerifiers(securityParameters.ServerSigAlgs))
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
+                    else
+                    {
+                        if (state.serverContext.Crypto.HasAnyStreamVerifiersLegacy(state.certificateRequest.CertificateTypes))
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
                 }
             }
 
-            handshake.SendMessage(HandshakeType.server_hello_done, TlsUtilities.EmptyBytes);
+            handshake.HandshakeHash.SealHashAlgorithms();
 
-            bool forceBuffering = false;
-            TlsUtilities.SealHandshakeHash(state.serverContext, handshake.HandshakeHash, forceBuffering);
+            if (null != state.certificateRequest)
+            {
+                byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
+                handshake.SendMessage(HandshakeType.certificate_request, certificateRequestBody);
+            }
+
+            handshake.SendMessage(HandshakeType.server_hello_done, TlsUtilities.EmptyBytes);
 
             clientMessage = handshake.ReceiveMessage();
 
@@ -358,7 +382,7 @@ namespace Org.BouncyCastle.Tls
 
             recordLayer.InitHeartbeat(state.heartbeat, HeartbeatMode.peer_allowed_to_send == state.heartbeatPolicy);
 
-            return new DtlsTransport(recordLayer);
+            return new DtlsTransport(recordLayer, state.server.IgnoreCorruptDtlsRecords);
         }
 
         /// <exception cref="IOException"/>
@@ -526,6 +550,24 @@ namespace Org.BouncyCastle.Tls
                 state.serverExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
+            // Connection ID
+            if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+            {
+                /*
+                 * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
+                 * negotiated afresh.
+                 */
+                var serverConnectionID = TlsExtensionsUtilities.GetConnectionIDExtension(state.serverExtensions);
+                if (serverConnectionID != null)
+                {
+                    var clientConnectionID = TlsExtensionsUtilities.GetConnectionIDExtension(state.clientExtensions)
+                        ?? throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                    securityParameters.m_connectionIDLocal = clientConnectionID;
+                    securityParameters.m_connectionIDPeer = serverConnectionID;
+                }
+            }
+
             /*
              * TODO RFC 3546 2.3 If [...] the older session is resumed, then the server MUST ignore
              * extensions appearing in the client hello, and send a server hello containing no
@@ -614,7 +656,11 @@ namespace Org.BouncyCastle.Tls
             MemoryStream buf = new MemoryStream(body, false);
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(state.server.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(
+                    state.clientExtensions, CertificateType.X509),
+                MaxChainLength = state.server.GetMaxCertificateChainLength(),
+            };
 
             Certificate clientCertificate = Certificate.Parse(options, state.serverContext, buf, null);
 
@@ -644,7 +690,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessClientHello(ServerHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            ClientHello clientHello = ClientHello.Parse(buf, new NullOutputStream());
+            ClientHello clientHello = ClientHello.Parse(buf, Stream.Null);
             ProcessClientHello(state, clientHello);
         }
 
@@ -742,7 +788,7 @@ namespace Org.BouncyCastle.Tls
                      */
                     securityParameters.m_secureRenegotiation = true;
 
-                    if (!Arrays.ConstantTimeAreEqual(renegExtData,
+                    if (!Arrays.FixedTimeEquals(renegExtData,
                         TlsProtocol.CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
                     {
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
@@ -806,7 +852,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessClientSupplementalData(ServerHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            IList clientSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
+            var clientSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
             state.server.ProcessClientSupplementalData(clientSupplementalData);
         }
 
@@ -830,8 +876,8 @@ namespace Org.BouncyCastle.Tls
             internal TlsSecret sessionMasterSecret = null;
             internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
-            internal IDictionary clientExtensions = null;
-            internal IDictionary serverExtensions = null;
+            internal IDictionary<int, byte[]> clientExtensions = null;
+            internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool offeredExtendedMasterSecret = false;
             internal bool resumedSession = false;
             internal bool expectSessionTicket = false;

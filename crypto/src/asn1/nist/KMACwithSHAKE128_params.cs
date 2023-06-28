@@ -56,9 +56,9 @@ public class KMacWithShake128Params : Asn1Encodable
         }
         else if (seq.Count == 1)
         {
-            if (seq[0] is DerInteger)
+            if (seq[0] is DerInteger derInteger)
             {
-                this.outputLength = DerInteger.GetInstance(seq[0]).IntValueExact;
+                this.outputLength = derInteger.IntValueExact;
                 this.customizationString = EMPTY_STRING;
             }
             else
@@ -86,7 +86,7 @@ public class KMacWithShake128Params : Asn1Encodable
 
     public override Asn1Object ToAsn1Object()
     {
-        Asn1EncodableVector v = new Asn1EncodableVector();
+        Asn1EncodableVector v = new Asn1EncodableVector(2);
         if (outputLength != DEF_LENGTH)
         {
             v.Add(new DerInteger(outputLength));

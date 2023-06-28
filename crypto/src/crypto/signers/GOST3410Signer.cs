@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 	 * Gost R 34.10-94 Signature Algorithm
 	 */
 	public class Gost3410Signer
-		: IDsaExt
+		: IDsa
 	{
 		private Gost3410KeyParameters key;
 		private SecureRandom random;
@@ -21,22 +21,18 @@ namespace Org.BouncyCastle.Crypto.Signers
 			get { return "GOST3410"; }
 		}
 
-        public virtual void Init(
-			bool				forSigning,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
 		{
 			if (forSigning)
 			{
-				if (parameters is ParametersWithRandom)
+				if (parameters is ParametersWithRandom rParam)
 				{
-					ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
 					this.random = rParam.Random;
 					parameters = rParam.Parameters;
 				}
 				else
 				{
-					this.random = new SecureRandom();
+					this.random = CryptoServicesRegistrar.GetSecureRandom();
 				}
 
 				if (!(parameters is Gost3410PrivateKeyParameters))
@@ -65,11 +61,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		 *
 		 * @param message the message that will be verified later.
 		 */
-        public virtual BigInteger[] GenerateSignature(
-			byte[] message)
+        public virtual BigInteger[] GenerateSignature(byte[] message)
 		{
-            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
-			BigInteger m = new BigInteger(1, mRev);
+			BigInteger m = new BigInteger(1, message, bigEndian: false);
 			Gost3410Parameters parameters = key.Parameters;
 			BigInteger k;
 
@@ -93,13 +87,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		 * the passed in message for standard Gost3410 the message should be a
 		 * Gost3411 hash of the real message to be verified.
 		 */
-        public virtual bool VerifySignature(
-			byte[]		message,
-			BigInteger	r,
-			BigInteger	s)
+        public virtual bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
 		{
-            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
-            BigInteger m = new BigInteger(1, mRev);
+            BigInteger m = new BigInteger(1, message, bigEndian: false);
 			Gost3410Parameters parameters = key.Parameters;
 
 			if (r.SignValue < 0 || parameters.Q.CompareTo(r) <= 0)

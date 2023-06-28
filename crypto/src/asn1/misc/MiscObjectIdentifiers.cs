@@ -40,17 +40,17 @@ namespace Org.BouncyCastle.Asn1.Misc
         // Novell
         //       iso/itu(2) country(16) us(840) organization(1) novell(113719)
         //
-        public static readonly string				Novell					= "2.16.840.1.113719";
-        public static readonly DerObjectIdentifier NovellSecurityAttribs	= new DerObjectIdentifier(Novell + ".1.9.4.1");
+        public static readonly DerObjectIdentifier Novell = new DerObjectIdentifier("2.16.840.1.113719");
+        public static readonly DerObjectIdentifier NovellSecurityAttribs = Novell.Branch("1.9.4.1");
 
         //
         // Entrust
         //       iso(1) member-body(16) us(840) nortelnetworks(113533) entrust(7)
         //
-        public static readonly string				Entrust					= "1.2.840.113533.7";
-        public static readonly DerObjectIdentifier EntrustVersionExtension = new DerObjectIdentifier(Entrust + ".65.0");
+        public static readonly DerObjectIdentifier Entrust = new DerObjectIdentifier("1.2.840.113533.7");
+        public static readonly DerObjectIdentifier EntrustVersionExtension = Entrust.Branch("65.0");
 
-        public static readonly DerObjectIdentifier cast5CBC = new DerObjectIdentifier(Entrust+ ".66.10");
+        public static readonly DerObjectIdentifier cast5CBC = Entrust.Branch("66.10");
 
         //
         // HMAC-SHA1       hMAC-SHA1 OBJECT IDENTIFIER ::= { iso(1) identified-organization(3)
@@ -89,8 +89,32 @@ namespace Org.BouncyCastle.Asn1.Misc
         public static readonly DerObjectIdentifier id_blake2s224 = blake2.Branch("2.7");
         public static readonly DerObjectIdentifier id_blake2s256 = blake2.Branch("2.8");
 
+        public static readonly DerObjectIdentifier blake3 = blake2.Branch("3");
+
+        public static readonly DerObjectIdentifier blake3_256 = blake3.Branch("8");
+
         //
         // Scrypt
         public static readonly DerObjectIdentifier id_scrypt = new DerObjectIdentifier("1.3.6.1.4.1.11591.4.11");
+
+        // Composite key/signature oid - prototyping
+        //
+        //    id-alg-composite OBJECT IDENTIFIER ::= {
+        //        iso(1)  identified-organization(3) dod(6) internet(1) private(4)
+        //        enterprise(1) OpenCA(18227) Algorithms(2) id-alg-composite(1) }
+        public static readonly DerObjectIdentifier id_alg_composite = new DerObjectIdentifier("1.3.6.1.4.1.18227.2.1");
+
+        // -- To be replaced by IANA
+        //
+        //id-composite-key OBJECT IDENTIFIER ::= {
+        //
+        //    joint-iso-itu-t(2) country(16) us(840) organization(1) entrust(114027)
+        //
+        //    Algorithm(80) Composite(4) CompositeKey(1)
+        public static readonly DerObjectIdentifier id_composite_key =
+            new DerObjectIdentifier("2.16.840.1.114027.80.4.1");
+
+        public static readonly DerObjectIdentifier id_oracle_pkcs12_trusted_key_usage =
+            new DerObjectIdentifier("2.16.840.1.113894.746875.1.1");
     }
 }

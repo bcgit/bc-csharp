@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
@@ -12,37 +11,20 @@ namespace Org.BouncyCastle.Asn1.Sec
     public class ECPrivateKeyStructure
         : Asn1Encodable
     {
-        private readonly Asn1Sequence seq;
+        private readonly Asn1Sequence m_seq;
 
         public static ECPrivateKeyStructure GetInstance(object obj)
         {
             if (obj == null)
                 return null;
-            if (obj is ECPrivateKeyStructure)
-                return (ECPrivateKeyStructure)obj;
+            if (obj is ECPrivateKeyStructure ecPrivateKeyStructure)
+                return ecPrivateKeyStructure;
             return new ECPrivateKeyStructure(Asn1Sequence.GetInstance(obj));
         }
 
-        [Obsolete("Use 'GetInstance' instead")]
-        public ECPrivateKeyStructure(
-            Asn1Sequence seq)
+        private ECPrivateKeyStructure(Asn1Sequence seq)
         {
-            if (seq == null)
-                throw new ArgumentNullException("seq");
-
-            this.seq = seq;
-        }
-
-        [Obsolete("Use constructor which takes 'orderBitLength' instead, to guarantee correct encoding")]
-        public ECPrivateKeyStructure(
-            BigInteger key)
-        {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
-            this.seq = new DerSequence(
-                new DerInteger(1),
-                new DerOctetString(key.ToByteArrayUnsigned()));
+            m_seq = seq ?? throw new ArgumentNullException(nameof(seq));
         }
 
         public ECPrivateKeyStructure(
@@ -50,40 +32,6 @@ namespace Org.BouncyCastle.Asn1.Sec
             BigInteger  key)
             : this(orderBitLength, key, null)
         {
-        }
-
-        [Obsolete("Use constructor which takes 'orderBitLength' instead, to guarantee correct encoding")]
-        public ECPrivateKeyStructure(
-            BigInteger		key,
-            Asn1Encodable	parameters)
-            : this(key, null, parameters)
-        {
-        }
-
-        [Obsolete("Use constructor which takes 'orderBitLength' instead, to guarantee correct encoding")]
-        public ECPrivateKeyStructure(
-            BigInteger		key,
-            DerBitString	publicKey,
-            Asn1Encodable	parameters)
-        {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
-            Asn1EncodableVector v = new Asn1EncodableVector(
-                new DerInteger(1),
-                new DerOctetString(key.ToByteArrayUnsigned()));
-
-            if (parameters != null)
-            {
-                v.Add(new DerTaggedObject(true, 0, parameters));
-            }
-
-            if (publicKey != null)
-            {
-                v.Add(new DerTaggedObject(true, 1, publicKey));
-            }
-
-            this.seq = new DerSequence(v);
         }
 
         public ECPrivateKeyStructure(
@@ -101,9 +49,9 @@ namespace Org.BouncyCastle.Asn1.Sec
             Asn1Encodable   parameters)
         {
             if (key == null)
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             if (orderBitLength < key.BitLength)
-                throw new ArgumentException("must be >= key bitlength", "orderBitLength");
+                throw new ArgumentException("must be >= key bitlength", nameof(orderBitLength));
 
             byte[] bytes = BigIntegers.AsUnsignedByteArray((orderBitLength + 7) / 8, key);
 
@@ -111,48 +59,42 @@ namespace Org.BouncyCastle.Asn1.Sec
                 new DerInteger(1),
                 new DerOctetString(bytes));
 
-            if (parameters != null)
-            {
-                v.Add(new DerTaggedObject(true, 0, parameters));
-            }
+            v.AddOptionalTagged(true, 0, parameters);
+            v.AddOptionalTagged(true, 1, publicKey);
 
-            if (publicKey != null)
-            {
-                v.Add(new DerTaggedObject(true, 1, publicKey));
-            }
-
-            this.seq = new DerSequence(v);
+            m_seq = new DerSequence(v);
         }
 
         public virtual BigInteger GetKey()
         {
-            Asn1OctetString octs = (Asn1OctetString) seq[1];
+            Asn1OctetString octs = (Asn1OctetString)m_seq[1];
 
             return new BigInteger(1, octs.GetOctets());
         }
 
         public virtual DerBitString GetPublicKey()
         {
-            return (DerBitString) GetObjectInTag(1);
+            return (DerBitString)GetObjectInTag(1, Asn1Tags.BitString);
         }
 
         public virtual Asn1Object GetParameters()
         {
-            return GetObjectInTag(0);
+            return GetObjectInTag(0, -1);
         }
 
-        private Asn1Object GetObjectInTag(int tagNo)
+        private Asn1Object GetObjectInTag(int tagNo, int baseTagNo)
         {
-            foreach (Asn1Encodable ae in seq)
+            foreach (Asn1Encodable ae in m_seq)
             {
                 Asn1Object obj = ae.ToAsn1Object();
 
-                if (obj is Asn1TaggedObject)
+                if (obj is Asn1TaggedObject tag)
                 {
-                    Asn1TaggedObject tag = (Asn1TaggedObject) obj;
-                    if (tag.TagNo == tagNo)
+                    if (tag.HasContextTag(tagNo))
                     {
-                        return tag.GetObject();
+                        return baseTagNo < 0
+                            ? tag.GetExplicitBaseObject().ToAsn1Object()
+                            : tag.GetBaseUniversal(true, baseTagNo);
                     }
                 }
             }
@@ -169,7 +111,7 @@ namespace Org.BouncyCastle.Asn1.Sec
          */
         public override Asn1Object ToAsn1Object()
         {
-            return seq;
+            return m_seq;
         }
     }
 }

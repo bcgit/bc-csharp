@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsProtocol.AssertEmpty(buf);
 
-            if (!Arrays.ConstantTimeAreEqual(expected_verify_data, verify_data))
+            if (!Arrays.FixedTimeEquals(expected_verify_data, verify_data))
                 throw new TlsFatalAlert(AlertDescription.handshake_failure);
         }
 
@@ -39,8 +39,9 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static short EvaluateMaxFragmentLengthExtension(bool resumedSession, IDictionary clientExtensions,
-            IDictionary serverExtensions, short alertDescription)
+        internal static short EvaluateMaxFragmentLengthExtension(bool resumedSession,
+            IDictionary<int, byte[]> clientExtensions, IDictionary<int, byte[]> serverExtensions,
+            short alertDescription)
         {
             short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
             if (maxFragmentLength >= 0)
@@ -64,7 +65,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static byte[] GenerateSupplementalData(IList supplementalData)
+        internal static byte[] GenerateSupplementalData(IList<SupplementalDataEntry> supplementalData)
         {
             MemoryStream buf = new MemoryStream();
             TlsProtocol.WriteSupplementalData(buf, supplementalData);

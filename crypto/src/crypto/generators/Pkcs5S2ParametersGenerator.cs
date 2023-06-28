@@ -99,19 +99,6 @@ namespace Org.BouncyCastle.Crypto.Generators
             return outBytes;
         }
 
-        /**
-        * Generate a key parameter derived from the password, salt, and iteration
-        * count we are currently initialised with.
-        *
-        * @param keySize the size of the key we want (in bits)
-        * @return a KeyParameter object.
-        */
-        public override ICipherParameters GenerateDerivedParameters(
-            int keySize)
-        {
-            return GenerateDerivedMacParameters(keySize);
-        }
-
         public override ICipherParameters GenerateDerivedParameters(
             string	algorithm,
             int		keySize)
@@ -121,27 +108,6 @@ namespace Org.BouncyCastle.Crypto.Generators
             byte[] dKey = GenerateDerivedKey(keySize);
 
             return ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
-        }
-
-        /**
-        * Generate a key with initialisation vector parameter derived from
-        * the password, salt, and iteration count we are currently initialised
-        * with.
-        *
-        * @param keySize the size of the key we want (in bits)
-        * @param ivSize the size of the iv we want (in bits)
-        * @return a ParametersWithIV object.
-        */
-        public override ICipherParameters GenerateDerivedParameters(
-            int	keySize,
-            int	ivSize)
-        {
-            keySize /= 8;
-            ivSize /= 8;
-
-            byte[] dKey = GenerateDerivedKey(keySize + ivSize);
-
-            return new ParametersWithIV(new KeyParameter(dKey, 0, keySize), dKey, keySize, ivSize);
         }
 
         public override ICipherParameters GenerateDerivedParameters(

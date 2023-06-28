@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] res = new byte[32];
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue( Arrays.AreEqual(Hex.Decode("E5780B0D3EA6F7D3A429C5706AA43A00FADBD7D49628839E3187243F456EE14E"), res), "oops: " + Hex.ToHexString(res));
 
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[32];
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue( Arrays.AreEqual(Hex.Decode("3B1FBA963CD8B0B59E8C1A6D71888B7143651AF8BA0A7070C0979E2811324AA5"), res), "oops: " + Hex.ToHexString(res));
 
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[32];
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("1F5B4E6CCA02209E0DCB5CA635B89A15E271ECC760071DFD805FAA38F9729230"), res), "oops:" + Hex.ToHexString(res));
 
@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[64];
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("20C570C31346F703C9AC36C61C03CB64C3970D0CFC787E9B79599D273A68D2F7F69D4CC3DE9D104A351689F27CF6F5951F0103F33F4F24871024D9C27773A8DD"), res), "oops:" + Hex.ToHexString(res));
 
@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[64];
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("75358CF39E41494E949707927CEE0AF20A3FF553904C86B08F21CC414BCFD691589D27CF5E15369CBBFF8B9A4C2EB17800855D0235FF635DA82533EC6B759B69"), res), "oops:" + Hex.ToHexString(res));
 
@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             res = new byte[64];
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("B58618F71F92E1D56C1B8C55DDD7CD188B97B4CA4D99831EB2699A837DA2E4D970FBACFDE50033AEA585F1A2708510C32D07880801BD182898FE476876FC8965"), res), "oops:" + Hex.ToHexString(res));
 
@@ -151,29 +151,29 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] res = new byte[32];
 
-            kmac.DoOutput(res, 0, res.Length);
+            kmac.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("31a44527b4ed9f5c6101d11de6d26f0620aa5c341def41299657fe9df1a3b16c"), res), Hex.ToHexString(res));
 
-            kmac.DoOutput(res, 0, res.Length);
+            kmac.Output(res, 0, res.Length);
 
             Assert.IsTrue(!Arrays.AreEqual(Hex.Decode("31a44527b4ed9f5c6101d11de6d26f0620aa5c341def41299657fe9df1a3b16c"), res));
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             kmac.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("3B1FBA963CD8B0B59E8C1A6D71888B7143651AF8BA0A7070C0979E2811324AA5"), res));
 
             kmac.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
-            kmac.DoOutput(res, 0, res.Length);
+            kmac.Output(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("31a44527b4ed9f5c6101d11de6d26f0620aa5c341def41299657fe9df1a3b16c"), res));
 
-            kmac.DoFinal(res, 0, res.Length);
+            kmac.OutputFinal(res, 0, res.Length);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("ffcb48c7620ccd67d1c83224186892cef2f2a99278d5cfdde10e48bdc89718c2"), res), Hex.ToHexString(res));
         }
@@ -218,14 +218,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             KMac k128 = new KMac(128, new byte[0]);
             k128.Init(new KeyParameter(new byte[163]));
             k128.BlockUpdate(data, 0, data.Length);
-            k128.DoOutput(out_, 0, out_.Length);
+            k128.Output(out_, 0, out_.Length);
 
             Assert.IsTrue( Arrays.AreEqual(out_, Hex.Decode("6e6ab56468c7445f81c679f89f45c90a95a9c01afbaab5f7065b7e2e96f7d2bb")),"128 failed");
 
             KMac k256 = new KMac(256, new byte[0]);
             k256.Init(new KeyParameter(new byte[131]));
             k256.BlockUpdate(data, 0, data.Length);
-            k256.DoOutput(out_, 0, out_.Length);
+            k256.Output(out_, 0, out_.Length);
 
             Assert.IsTrue(Arrays.AreEqual(out_, Hex.Decode("f6302d4f854b4872e811b37993b6bfe027258089b6a9fbb26a755b1ebfc0d830")), "256 failed");
         }
@@ -243,16 +243,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] res1 = new byte[32];
             byte[] res2 = new byte[32];
 
-            ref_.DoFinal(res1, 0, res1.Length);
-            kmac.DoFinal(res2, 0, res2.Length);
+            ref_.OutputFinal(res1, 0, res1.Length);
+            kmac.OutputFinal(res2, 0, res2.Length);
 
             Assert.IsTrue(Arrays.AreEqual(res1, res2));
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new KMacTest());
         }
 
         [Test]

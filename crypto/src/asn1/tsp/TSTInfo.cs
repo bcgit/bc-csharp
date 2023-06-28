@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
@@ -14,7 +11,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		private readonly DerObjectIdentifier	tsaPolicyId;
 		private readonly MessageImprint			messageImprint;
 		private readonly DerInteger				serialNumber;
-		private readonly DerGeneralizedTime		genTime;
+		private readonly Asn1GeneralizedTime	genTime;
 		private readonly Accuracy				accuracy;
 		private readonly DerBoolean				ordering;
 		private readonly DerInteger				nonce;
@@ -30,10 +27,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TstInfo(Asn1Sequence.GetInstance(obj));
 		}
 
-		private TstInfo(
-			Asn1Sequence seq)
+		private TstInfo(Asn1Sequence seq)
 		{
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 
 			// version
 			e.MoveNext();
@@ -53,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
 			// genTime
 			e.MoveNext();
-			genTime = DerGeneralizedTime.GetInstance(e.Current);
+			genTime = Asn1GeneralizedTime.GetInstance(e.Current);
 
 			// default for ordering
 			ordering = DerBoolean.False;
@@ -62,24 +58,22 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			{
 				Asn1Object o = (Asn1Object) e.Current;
 
-				if (o is Asn1TaggedObject)
+				if (o is Asn1TaggedObject tagged)
 				{
-					DerTaggedObject tagged = (DerTaggedObject) o;
-
 					switch (tagged.TagNo)
 					{
-						case 0:
-							tsa = GeneralName.GetInstance(tagged, true);
-							break;
-						case 1:
-							extensions = X509Extensions.GetInstance(tagged, false);
-							break;
-						default:
-							throw new ArgumentException("Unknown tag value " + tagged.TagNo);
+					case 0:
+						tsa = GeneralName.GetInstance(tagged, true);
+						break;
+					case 1:
+						extensions = X509Extensions.GetInstance(tagged, false);
+						break;
+					default:
+						throw new ArgumentException("Unknown tag value " + tagged.TagNo);
 					}
 				}
 
-				if (o is DerSequence)
+				if (o is Asn1Sequence)
 				{
 					accuracy = Accuracy.GetInstance(o);
 				}
@@ -100,7 +94,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			DerObjectIdentifier	tsaPolicyId,
 			MessageImprint		messageImprint,
 			DerInteger			serialNumber,
-			DerGeneralizedTime	genTime,
+            Asn1GeneralizedTime genTime,
 			Accuracy			accuracy,
 			DerBoolean			ordering,
 			DerInteger			nonce,
@@ -144,7 +138,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			get { return accuracy; }
 		}
 
-		public DerGeneralizedTime GenTime
+		public Asn1GeneralizedTime GenTime
 		{
 			get { return genTime; }
 		}

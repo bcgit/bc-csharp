@@ -5,7 +5,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -30,20 +29,14 @@ namespace Org.BouncyCastle.Cms
 	public class CmsAuthenticatedDataGenerator
 	    : CmsAuthenticatedGenerator
 	{
-	    /**
-	     * base constructor
-	     */
 	    public CmsAuthenticatedDataGenerator()
 	    {
 	    }
 
-	    /**
-	     * constructor allowing specific source of randomness
-	     * @param rand instance of SecureRandom to use
-	     */
-	    public CmsAuthenticatedDataGenerator(
-	        SecureRandom rand)
-	        : base(rand)
+        /// <summary>Constructor allowing specific source of randomness</summary>
+        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+	    public CmsAuthenticatedDataGenerator(SecureRandom random)
+	        : base(random)
 	    {
 	    }
 
@@ -69,9 +62,7 @@ namespace Org.BouncyCastle.Cms
 
 				Asn1Encodable asn1Params = GenerateAsn1Parameters(macOid, encKeyBytes);
 
-				ICipherParameters cipherParameters;
-				macAlgId = GetAlgorithmIdentifier(
-				macOid, encKey, asn1Params, out cipherParameters);
+				macAlgId = GetAlgorithmIdentifier(macOid, encKey, asn1Params, out var cipherParameters);
 
 				IMac mac = MacUtilities.GetMac(macOid);
 				// TODO Confirm no ParametersWithRandom needed
@@ -79,12 +70,11 @@ namespace Org.BouncyCastle.Cms
 //	            mac.Init(cipherParameters);
 				mac.Init(encKey);
 
-				MemoryStream bOut = new MemoryStream();
-				Stream mOut = new TeeOutputStream(bOut, new MacSink(mac));
-
-				content.Write(mOut);
-
-                Platform.Dispose(mOut);
+				var bOut = new MemoryStream();
+				using (var mOut = new TeeOutputStream(bOut, new MacSink(mac)))
+				{
+					content.Write(mOut);
+				}
 
                 encContent = new BerOctetString(bOut.ToArray());
 
@@ -104,13 +94,13 @@ namespace Org.BouncyCastle.Cms
 				throw new CmsException("exception decoding algorithm parameters.", e);
 			}
 
-			Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+			var recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
 			foreach (RecipientInfoGenerator rig in recipientInfoGenerators) 
 			{
 				try
 				{
-					recipientInfos.Add(rig.Generate(encKey, rand));
+					recipientInfos.Add(rig.Generate(encKey, m_random));
 				}
 				catch (InvalidKeyException e)
 				{
@@ -121,13 +111,13 @@ namespace Org.BouncyCastle.Cms
 					throw new CmsException("error making encrypted content.", e);
 				}
 			}
-			
-			ContentInfo eci = new ContentInfo(CmsObjectIdentifiers.Data, encContent);
-			
-			ContentInfo contentInfo = new ContentInfo(
-			CmsObjectIdentifiers.AuthenticatedData,
-			new AuthenticatedData(null, new DerSet(recipientInfos), macAlgId, null, eci, null, macResult, null));
-			
+
+			var eci = new ContentInfo(CmsObjectIdentifiers.Data, encContent);
+
+			var contentInfo = new ContentInfo(
+				CmsObjectIdentifiers.AuthenticatedData,
+				new AuthenticatedData(null, new DerSet(recipientInfos), macAlgId, null, eci, null, macResult, null));
+
 			return new CmsAuthenticatedData(contentInfo);
 		}
 
@@ -143,7 +133,7 @@ namespace Org.BouncyCastle.Cms
 				// FIXME Will this work for macs?
 				CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-				keyGen.Init(new KeyGenerationParameters(rand, keyGen.DefaultStrength));
+				keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
 				return Generate(content, encryptionOid, keyGen);
             }

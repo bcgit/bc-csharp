@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				ProcurationSyntax.GetInstance(new Object());
+				ProcurationSyntax.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -92,12 +92,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("typeOfSubstitution", typeOfSubstitution, procuration.TypeOfSubstitution);
 			checkOptionalField("thirdPerson", thirdPerson, procuration.ThirdPerson);
 			checkOptionalField("certRef", certRef, procuration.CertRef);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new ProcurationSyntaxUnitTest());
 		}
 
 		[Test]

@@ -1,24 +1,17 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Tls
 {
     /// <summary>A queue for bytes. This file could be more optimized.</summary>
     public sealed class ByteQueue
     {
         /// <returns>The smallest number which can be written as 2^x which is bigger than i.</returns>
-        public static int NextTwoPow(int i)
+        private static int GetAllocationSize(int i)
         {
-            /*
-             * This code is based of a lot of code I found on the Internet which mostly
-             * referenced a book called "Hacking delight".
-             */
-            i |= i >> 1;
-            i |= i >> 2;
-            i |= i >> 4;
-            i |= i >> 8;
-            i |= i >> 16;
-            return i + 1;
+            return Integers.HighestOneBit((256 | i) << 1);
         }
 
         /// <summary>The buffer where we store our data.</summary>
@@ -56,12 +49,24 @@ namespace Org.BouncyCastle.Tls
         /// <param name="len">How many bytes to read from the array.</param>
         public void AddData(byte[] buf, int off, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            AddData(buf.AsSpan(off, len));
+#else
             if (m_readOnlyBuf)
                 throw new InvalidOperationException("Cannot add data to read-only buffer");
 
-            if ((m_skipped + m_available + len) > m_databuf.Length)
+            if (m_available == 0)
             {
-                int desiredSize = ByteQueue.NextTwoPow(m_available + len);
+                if (len > m_databuf.Length)
+                {
+                    int desiredSize = GetAllocationSize(len);
+                    m_databuf = new byte[desiredSize];
+                }
+                m_skipped = 0;
+            }
+            else if ((m_skipped + m_available + len) > m_databuf.Length)
+            {
+                int desiredSize = GetAllocationSize(m_available + len);
                 if (desiredSize > m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
@@ -77,7 +82,45 @@ namespace Org.BouncyCastle.Tls
 
             Array.Copy(buf, off, m_databuf, m_skipped + m_available, len);
             m_available += len;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void AddData(ReadOnlySpan<byte> buffer)
+        {
+            if (m_readOnlyBuf)
+                throw new InvalidOperationException("Cannot add data to read-only buffer");
+
+            int len = buffer.Length;
+            if (m_available == 0)
+            {
+                if (len > m_databuf.Length)
+                {
+                    int desiredSize = GetAllocationSize(len);
+                    m_databuf = new byte[desiredSize];
+                }
+                m_skipped = 0;
+            }
+            else if ((m_skipped + m_available + len) > m_databuf.Length)
+            {
+                int desiredSize = GetAllocationSize(m_available + len);
+                if (desiredSize > m_databuf.Length)
+                {
+                    byte[] tmp = new byte[desiredSize];
+                    Array.Copy(m_databuf, m_skipped, tmp, 0, m_available);
+                    m_databuf = tmp;
+                }
+                else
+                {
+                    Array.Copy(m_databuf, m_skipped, m_databuf, 0, m_available);
+                }
+                m_skipped = 0;
+            }
+
+            buffer.CopyTo(m_databuf.AsSpan(m_skipped + m_available));
+            m_available += len;
+        }
+#endif
 
         /// <returns>The number of bytes which are available in this buffer.</returns>
         public int Available
@@ -115,6 +158,16 @@ namespace Org.BouncyCastle.Tls
             Array.Copy(m_databuf, m_skipped + skip, buf, offset, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Read(Span<byte> buffer, int skip)
+        {
+            if ((m_available - skip) < buffer.Length)
+                throw new InvalidOperationException("Not enough data to read");
+
+            buffer.CopyFrom(m_databuf.AsSpan(m_skipped + skip));
+        }
+#endif
+
         /// <summary>Return a <see cref="HandshakeMessageInput"/> over some bytes at the beginning of the data.
         /// </summary>
         /// <param name="length">How many bytes will be readable.</param>
@@ -138,6 +191,22 @@ namespace Org.BouncyCastle.Tls
                 throw new InvalidOperationException("Not enough data to read");
 
             return TlsUtilities.ReadInt32(m_databuf, m_skipped);
+        }
+
+        public short ReadUint8(int skip)
+        {
+            if (m_available < skip + 1)
+                throw new InvalidOperationException("Not enough data to read");
+
+            return TlsUtilities.ReadUint8(m_databuf, m_skipped + skip);
+        }
+
+        public int ReadUint16(int skip)
+        {
+            if (m_available < skip + 2)
+                throw new InvalidOperationException("Not enough data to read");
+
+            return TlsUtilities.ReadUint16(m_databuf, m_skipped + skip);
         }
 
         /// <summary>Remove some bytes from our data from the beginning.</summary>
@@ -165,6 +234,14 @@ namespace Org.BouncyCastle.Tls
             RemoveData(skip + len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void RemoveData(Span<byte> buffer, int skip)
+        {
+            Read(buffer, skip);
+            RemoveData(skip + buffer.Length);
+        }
+#endif
+
         public byte[] RemoveData(int len, int skip)
         {
             byte[] buf = new byte[len];
@@ -181,7 +258,7 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
-                int desiredSize = ByteQueue.NextTwoPow(m_available);
+                int desiredSize = GetAllocationSize(m_available);
                 if (desiredSize < m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];

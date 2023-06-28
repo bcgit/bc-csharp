@@ -135,12 +135,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-		public static void Main(
-            string[] args)
-        {
-            RunTest(new TypeOfBiometricDataUnitTest());
-        }
-
 		[Test]
         public void TestFunction()
         {

@@ -74,6 +74,15 @@ namespace Org.BouncyCastle.Crypto.Tests
                 pCipher.DoFinal(myOutput, 0);
                 IsTrue("Encryption mismatch", Arrays.AreEqual(myExpected, myOutput));
 
+                if (myData.Length >= 2)
+                {
+                    /* Repeat processing checking processBytes with non-empty internal buffer */
+                    pCipher.ProcessByte(myData[0], null, 0);
+                    pCipher.ProcessBytes(myData, 1, myData.Length - 1, null, 0);
+                    pCipher.DoFinal(myOutput, 0);
+                    IsTrue("Encryption mismatch", Arrays.AreEqual(myExpected, myOutput));
+                }
+
                 /* Re-initialise the cipher */
                 pCipher.Init(false, myParams);
                 pCipher.ProcessBytes(myOutput, 0, myOutput.Length, null, 0);
@@ -440,11 +449,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 pTest.TestSivCipher(new GcmSivBlockCipher(), KEY_1, NONCE_1, EMPTY, DATA_1, EXPECTED_1);
                 pTest.TestSivCipher(new GcmSivBlockCipher(), KEY_1, NONCE_1, EMPTY, DATA_2, EXPECTED_2);
             }
-        }
-
-        public static void Main(string[] args)
-        {
-            RunTest(new GcmSivTest());
         }
 
         [Test]

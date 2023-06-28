@@ -247,11 +247,5 @@ namespace Org.BouncyCastle.Tests
 			TestIndirectCrl();
 			TestDirectCrl();
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Crl5Test());
-		}
 	}
 }

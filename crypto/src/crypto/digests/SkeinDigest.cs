@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-
 	/// <summary>
 	/// Implementation of the Skein parameterised hash function in 256, 512 and 1024 bit block sizes,
 	/// based on the <see cref="Org.BouncyCastle.Crypto.Engines.ThreefishEngine">Threefish</see> tweakable block cipher.
@@ -68,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return new SkeinDigest(this);
 		}
 
-		public String AlgorithmName
+		public string AlgorithmName
 		{
 			get { return "Skein-" + (engine.BlockSize * 8) + "-" + (engine.OutputSize * 8); }
 		}
@@ -105,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 		public void BlockUpdate(byte[] inBytes, int inOff, int len)
 		{
-			engine.Update(inBytes, inOff, len);
+			engine.BlockUpdate(inBytes, inOff, len);
 		}
 
 		public int DoFinal(byte[] outBytes, int outOff)
@@ -113,5 +110,16 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return engine.DoFinal(outBytes, outOff);
 		}
 
-	}
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            engine.BlockUpdate(input);
+        }
+
+        public int DoFinal(Span<byte> output)
+        {
+            return engine.DoFinal(output);
+        }
+#endif
+    }
 }

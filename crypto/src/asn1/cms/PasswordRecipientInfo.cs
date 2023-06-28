@@ -33,21 +33,20 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.encryptedKey = encryptedKey;
 		}
 
-		public PasswordRecipientInfo(
-            Asn1Sequence seq)
+		public PasswordRecipientInfo(Asn1Sequence seq)
         {
-            version = (DerInteger) seq[0];
+            version = (DerInteger)seq[0];
 
-			if (seq[1] is Asn1TaggedObject)
+			if (seq[1] is Asn1TaggedObject taggedObject)
             {
-                keyDerivationAlgorithm = AlgorithmIdentifier.GetInstance((Asn1TaggedObject) seq[1], false);
+                keyDerivationAlgorithm = AlgorithmIdentifier.GetInstance(taggedObject, false);
                 keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[2]);
-                encryptedKey = (Asn1OctetString) seq[3];
+                encryptedKey = (Asn1OctetString)seq[3];
             }
             else
             {
                 keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[1]);
-                encryptedKey = (Asn1OctetString) seq[2];
+                encryptedKey = (Asn1OctetString)seq[2];
             }
         }
 

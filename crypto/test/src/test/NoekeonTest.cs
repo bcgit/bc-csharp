@@ -140,12 +140,6 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new NoekeonTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

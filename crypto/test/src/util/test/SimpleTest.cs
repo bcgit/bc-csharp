@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Utilities.Test
 {
@@ -111,7 +108,7 @@ namespace Org.BouncyCastle.Utilities.Test
             }
             catch (TestFailedException e)
             {
-                return e.GetResult();
+                return e.Result;
             }
             catch (Exception e)
             {
@@ -143,7 +140,7 @@ namespace Org.BouncyCastle.Utilities.Test
 		{
 			string fullName = GetFullName(name);
 
-			return Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
+			return GetAssembly().GetManifestResourceStream(fullName);
 		}
 
 		internal static string[] GetTestDataEntries(
@@ -151,8 +148,8 @@ namespace Org.BouncyCastle.Utilities.Test
 		{
 			string fullPrefix = GetFullName(prefix);
 
-			ArrayList result = new ArrayList();
-			string[] fullNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+			var result = new List<string>();
+			string[] fullNames = GetAssembly().GetManifestResourceNames();
 			foreach (string fullName in fullNames)
 			{
 				if (fullName.StartsWith(fullPrefix))
@@ -161,55 +158,28 @@ namespace Org.BouncyCastle.Utilities.Test
 					result.Add(name);
 				}
 			}
-			return (string[])result.ToArray(typeof(String));
+            return result.ToArray();
 		}
 
-		private static string GetFullName(
-			string name)
+        private static Assembly GetAssembly()
+        {
+            return typeof(SimpleTest).Assembly;
+        }
+
+        private static string GetFullName(string name)
 		{
-#if SEPARATE_UNIT_TESTS
-			return "UnitTests.data." + name;
-#elif PORTABLE
-			return "crypto.tests." + name;
-#else
-            return "crypto.test.data." + name;
-#endif
+            return "Org.BouncyCastle.data." + name;
+        }
+
+        private static string GetShortName(string fullName)
+		{
+            return fullName.Substring("Org.BouncyCastle.data.".Length);
 		}
 
-		private static string GetShortName(
-			string fullName)
-		{
-#if SEPARATE_UNIT_TESTS
-			return fullName.Substring("UnitTests.data.".Length);
-#elif PORTABLE
-			return fullName.Substring("crypto.tests.".Length);
-#else
-            return fullName.Substring("crypto.test.data.".Length);
-#endif
-		}
-
-#if NETCF_1_0 || NETCF_2_0
-		private static string GetNewLine()
-		{
-			MemoryStream buf = new MemoryStream();
-			StreamWriter w = new StreamWriter(buf, Encoding.ASCII);
-			w.WriteLine();
-			w.Close();
-			byte[] bs = buf.ToArray();
-			return Encoding.ASCII.GetString(bs, 0, bs.Length);
-		}
-
-		internal static string GetEnvironmentVariable(
-			string variable)
-		{
-			return null;
-		}
-#else
 		private static string GetNewLine()
 		{
 			return Environment.NewLine;
 		}
-#endif
 
 		internal static readonly string NewLine = GetNewLine();
 
@@ -217,20 +187,19 @@ namespace Org.BouncyCastle.Utilities.Test
 
         public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second)
         {
-#if PORTABLE
             return new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
-#else
-            return new DateTime(year, month, day, hour, minute, second);
-#endif
         }
 
         public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
-#if PORTABLE
             return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
-#else
-            return new DateTime(year, month, day, hour, minute, second, millisecond);
-#endif
+        }
+
+        public static void TestBitStringConstant(int bitNo, int value)
+        {
+            int expectedValue = 1 << ((bitNo | 7) - (bitNo & 7));
+            if (expectedValue != value)
+                throw new ArgumentException("bit value " + bitNo + " wrong");
         }
     }
 }

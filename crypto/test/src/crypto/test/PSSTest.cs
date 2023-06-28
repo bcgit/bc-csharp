@@ -26,23 +26,27 @@ namespace Org.BouncyCastle.Crypto.Tests
 		{
 			private readonly byte[] vals;
 
-			public FixedRandom(
-				byte[] vals)
+			public FixedRandom(byte[] vals)
+				: base(null)
 			{
 				this.vals = vals;
 			}
 
-			public override void NextBytes(
-				byte[] bytes)
+			public override void NextBytes(byte[] buf)
 			{
-				Array.Copy(vals, 0, bytes, 0, vals.Length);
+				NextBytes(buf, 0, buf.Length);
 			}
-		}
 
-		//
-		// Example 1: A 1024-bit RSA keypair
-		//
-		private RsaKeyParameters pub1 = new RsaKeyParameters(false,
+			public override void NextBytes(byte[] buf, int off, int len)
+			{
+				Array.Copy(vals, 0, buf, off, len);
+			}
+        }
+
+        //
+        // Example 1: A 1024-bit RSA keypair
+        //
+        private RsaKeyParameters pub1 = new RsaKeyParameters(false,
 			new BigInteger("a56e4a0e701017589a5187dc7ea841d156f2ec0e36ad52a44dfeb1e61f7ad991d8c51056ffedb162b4c0f283a12a88a394dff526ab7291cbb307ceabfce0b1dfd5cd9508096d5b2b8b6df5d671ef6377c0921cb23c270a70e2598e6ff89d19f105acc2d3f0cb35f29280e1386b6f64c4ef22e1e1f20d0ce8cffb2249bd9a2137",16),
 			new BigInteger("010001",16));
 
@@ -356,12 +360,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Fail("fixed salt failure verfied");
             }
         }
-
-        public static void Main(
-			string[] args)
-		{
-			RunTest(new PssTest());
-		}
 
 		[Test]
 		public void TestFunction()

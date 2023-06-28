@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -46,12 +46,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static bool EqualsIgnoreCase(string a, string b)
         {
-            return ToUpperInvariant(a) == ToUpperInvariant(b);
-        }
-
-        internal static string ToUpperInvariant(string s)
-        {
-            return s.ToUpper(CultureInfo.InvariantCulture);
+            return string.Equals(a, b, StringComparison.InvariantCultureIgnoreCase);
         }
 
         internal static string Fingerprint(X509CertificateStructure c)
@@ -59,7 +54,7 @@ namespace Org.BouncyCastle.Tls.Tests
             byte[] der = c.GetEncoded();
             byte[] hash = Sha256DigestOf(der);
             byte[] hexBytes = Hex.Encode(hash);
-            string hex = ToUpperInvariant(Encoding.ASCII.GetString(hexBytes));
+            string hex = Encoding.ASCII.GetString(hexBytes).ToUpperInvariant();
 
             StringBuilder fp = new StringBuilder();
             int i = 0;
@@ -235,7 +230,8 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal static TlsCredentialedSigner LoadSignerCredentials(TlsContext context,
-            IList supportedSignatureAlgorithms, short signatureAlgorithm, string certResource, string keyResource)
+            IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, short signatureAlgorithm,
+            string certResource, string keyResource)
         {
             if (supportedSignatureAlgorithms == null)
             {
@@ -262,7 +258,7 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal static TlsCredentialedSigner LoadSignerCredentialsServer(TlsContext context,
-            IList supportedSignatureAlgorithms, short signatureAlgorithm)
+            IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, short signatureAlgorithm)
         {
             string sigName = GetResourceName(signatureAlgorithm);
 
@@ -294,7 +290,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     TlsCertificate certificate = LoadCertificateResource(crypto, resources[i]);
 
                     // TODO[tls13] Add possibility of specifying e.g. CertificateStatus 
-                    IDictionary extensions = null;
+                    IDictionary<int, byte[]> extensions = null;
 
                     certificateEntryList[i] = new CertificateEntry(certificate, extensions);
                 }
@@ -370,13 +366,12 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal static PemObject LoadPemResource(string resource)
-           
         {
             Stream s = SimpleTest.GetTestDataAsStream("tls." + resource);
-            PemReader p = new PemReader(new StreamReader(s));
-            PemObject o = p.ReadPemObject();
-            p.Reader.Close();
-            return o;
+            using (var p = new PemReader(new StreamReader(s)))
+            {
+                return p.ReadPemObject();
+            }
         }
 
         internal static bool AreSameCertificate(TlsCrypto crypto, TlsCertificate cert, string resource)

@@ -41,15 +41,6 @@ namespace Org.BouncyCastle.Tls.Tests
             get { return true; }
         }
 
-        public override void Close()
-        {
-            lock (this)
-            {
-                m_closed = true;
-                Monitor.PulseAll(this);
-            }
-        }
-
         public override void Flush()
         {
         }
@@ -80,7 +71,7 @@ namespace Org.BouncyCastle.Tls.Tests
             lock (m_other)
             {
                 WaitForData();
-                int len = (int)System.Math.Min(count, m_other.m_buf.Position - m_readPos);
+                int len = System.Math.Min(count, Convert.ToInt32(m_other.m_buf.Position - m_readPos));
                 Array.Copy(m_other.m_buf.GetBuffer(), m_readPos, buffer, offset, len);
                 m_readPos += len;
                 return len;
@@ -92,7 +83,7 @@ namespace Org.BouncyCastle.Tls.Tests
             lock (m_other)
             {
                 WaitForData();
-                bool eof = (m_readPos >= m_other.m_buf.Position);
+                bool eof = m_readPos >= m_other.m_buf.Position;
                 return eof ? -1 : m_other.m_buf.GetBuffer()[m_readPos++];
             }
         }
@@ -117,10 +108,25 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                lock (this)
+                {
+                    if (!m_closed)
+                    {
+                        m_closed = true;
+                        Monitor.PulseAll(this);
+                    }
+                }
+            }
+        }
+
         private void CheckOpen()
         {
             if (m_closed)
-                throw new ObjectDisposedException(this.GetType().Name);
+                throw new ObjectDisposedException(GetType().FullName);
         }
 
         private void WaitForData()

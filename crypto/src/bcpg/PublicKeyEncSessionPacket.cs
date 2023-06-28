@@ -90,26 +90,22 @@ namespace Org.BouncyCastle.Bcpg
 			return data;
 		}
 
-        public override void Encode(
-			BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut)
 		{
 			MemoryStream bOut = new MemoryStream();
-			BcpgOutputStream pOut = new BcpgOutputStream(bOut);
+			using (var pOut = new BcpgOutputStream(bOut))
+			{
+				pOut.WriteByte((byte)version);
+				pOut.WriteLong(keyId);
+				pOut.WriteByte((byte)algorithm);
 
-			pOut.WriteByte((byte) version);
+				for (int i = 0; i < data.Length; ++i)
+				{
+					pOut.Write(data[i]);
+				}
+			}
 
-			pOut.WriteLong(keyId);
-
-			pOut.WriteByte((byte)algorithm);
-
-            for (int i = 0; i < data.Length; ++i)
-            {
-                pOut.Write(data[i]);
-            }
-
-            Platform.Dispose(pOut);
-
-            bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession , bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession, bOut.ToArray());
 		}
 	}
 }

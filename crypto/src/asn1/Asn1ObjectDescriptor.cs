@@ -36,32 +36,34 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1ObjectDescriptor GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1ObjectDescriptor)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1ObjectDescriptor asn1ObjectDescriptor)
+                return asn1ObjectDescriptor;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1ObjectDescriptor)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1ObjectDescriptor converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1ObjectDescriptor)
-                    return (Asn1ObjectDescriptor)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1ObjectDescriptor)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1ObjectDescriptor)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct object descriptor from byte[]: " + e.Message);
                 }
             }
-            else if (obj is ArraySegment<byte>)
+            else if (obj is ArraySegment<byte> arraySegment)
             {
                 try
                 {
-                    return (Asn1ObjectDescriptor)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                    return (Asn1ObjectDescriptor)Meta.Instance.FromByteArray(arraySegment);
                 }
                 catch (IOException e)
                 {
@@ -108,6 +110,16 @@ namespace Org.BouncyCastle.Asn1
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             return m_baseGraphicString.GetEncodingImplicit(encoding, tagClass, tagNo);
+        }
+
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return m_baseGraphicString.GetEncodingDerImplicit(Asn1Tags.Universal, Asn1Tags.ObjectDescriptor);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return m_baseGraphicString.GetEncodingDerImplicit(tagClass, tagNo);
         }
 
         protected override int Asn1GetHashCode()

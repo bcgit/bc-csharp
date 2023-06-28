@@ -1,7 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Collections;
-using System.Text;
 
 using NUnit.Framework;
 
@@ -226,16 +223,10 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-		public override String Name
+		public override string Name
 		{
 			get { return "PkixTest"; }
         }
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkixTest());
-		}
 
 		[Test]
 		public void TestFunction()

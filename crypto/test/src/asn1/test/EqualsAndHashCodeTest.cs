@@ -23,14 +23,13 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new BerSequence(new DerPrintableString("hello world")),
                 new BerSet(new DerPrintableString("hello world")),
                 new BerTaggedObject(0, new DerPrintableString("hello world")),
-				new DerApplicationSpecific(0, data),
                 new DerBitString(data),
                 new DerBmpString("hello world"),
                 DerBoolean.True,
                 DerBoolean.False,
                 new DerEnumerated(100),
-				new DerGeneralizedTime("20070315173729Z"),
-				new DerGeneralString("hello world"),
+                new DerGeneralizedTime("20070315173729Z"),
+                new DerGeneralString("hello world"),
                 new DerIA5String("hello"),
                 new DerInteger(1000),
                 DerNull.Instance,
@@ -44,7 +43,10 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerT61String("hello world"),
                 new DerTaggedObject(0, new DerPrintableString("hello world")),
                 new DerUniversalString(data),
-                new DerUtcTime(new DateTime()),
+#pragma warning disable CS0618 // Type or member is obsolete
+                new DerUtcTime(DateTime.Now),
+#pragma warning restore CS0618 // Type or member is obsolete
+                new DerUtcTime(DateTime.Now, 2049),
                 new DerUtf8String("hello world"),
                 new DerVisibleString("hello world"),
                 new DerGraphicString(Hex.Decode("deadbeef")),
@@ -52,26 +54,28 @@ namespace Org.BouncyCastle.Asn1.Tests
             };
 
 			MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
-
-            for (int i = 0; i != values.Length; i++)
+            using (var asn1Out = Asn1OutputStream.Create(bOut))
             {
-                aOut.WriteObject(values[i]);
+                for (int i = 0; i != values.Length; i++)
+                {
+                    asn1Out.WriteObject(values[i]);
+                }
             }
 
-			Asn1InputStream aIn = new Asn1InputStream(bOut.ToArray());
-
-			for (int i = 0; i != values.Length; i++)
+            byte[] output = bOut.ToArray();
+            using (var asn1In = new Asn1InputStream(output))
             {
-                Asn1Object o = aIn.ReadObject();
-                if (!o.Equals(values[i]))
+                for (int i = 0; i != values.Length; i++)
                 {
-                    Fail("Failed equality test for " + o.GetType().Name);
-                }
-
-                if (o.GetHashCode() != values[i].GetHashCode())
-                {
-                    Fail("Failed hashCode test for " + o.GetType().Name);
+                    Asn1Object o = asn1In.ReadObject();
+                    if (!o.Equals(values[i]))
+                    {
+                        Fail("Failed equality test for " + o.GetType().Name);
+                    }
+                    if (o.GetHashCode() != values[i].GetHashCode())
+                    {
+                        Fail("Failed hashCode test for " + o.GetType().Name);
+                    }
                 }
             }
         }
@@ -80,12 +84,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			get { return "EqualsAndHashCode"; }
 		}
-
-        public static void Main(
-            string[] args)
-        {
-			RunTest(new EqualsAndHashCodeTest());
-        }
 
 		[Test]
         public void TestFunction()

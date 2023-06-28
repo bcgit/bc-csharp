@@ -135,18 +135,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			switch (blocksizeBits)
 			{
-				case BLOCKSIZE_256:
+			case BLOCKSIZE_256:
 				cipher = new Threefish256Cipher(kw, t);
 				break;
-				case BLOCKSIZE_512:
+			case BLOCKSIZE_512:
 				cipher = new Threefish512Cipher(kw, t);
 				break;
-				case BLOCKSIZE_1024:
+			case BLOCKSIZE_1024:
 				cipher = new Threefish1024Cipher(kw, t);
 				break;
-				default:
-				throw new ArgumentException(
-					"Invalid blocksize - Threefish is defined with block size of 256, 512, or 1024 bits");
+			default:
+				throw new ArgumentException("Invalid blocksize - Threefish is defined with block size of 256, 512, or 1024 bits");
 			}
 		}
 
@@ -189,10 +188,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 					                            + " bytes)");
 				}
 				keyWords = new ulong[blocksizeWords];
-				for (int i = 0; i < keyWords.Length; i++)
-				{
-					keyWords[i] = BytesToWord(keyBytes, i * 8);
-				}
+				Pack.LE_To_UInt64(keyBytes, 0, keyWords);
 			}
 			if (tweakBytes != null)
 			{
@@ -200,7 +196,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 				{
 					throw new ArgumentException("Threefish tweak must be " + TWEAK_SIZE_BYTES + " bytes");
 				}
-				tweakWords = new ulong[]{BytesToWord(tweakBytes, 0), BytesToWord(tweakBytes, 8)};
+				tweakWords = new ulong[2];
+				Pack.LE_To_UInt64(tweakBytes, 0, tweakWords);
 			}
 			Init(forEncryption, keyWords, tweakWords);
 		}
@@ -272,44 +269,34 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Threefish-" + (blocksizeBytes * 8); }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return blocksizeBytes;
 		}
 
-        public virtual void Reset()
-		{
-		}
-
         public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
-			if ((outOff + blocksizeBytes) > outBytes.Length)
-			{
-				throw new DataLengthException("Output buffer too short");
-			}
+			Check.DataLength(inBytes, inOff, blocksizeBytes, "input buffer too short");
+			Check.OutputLength(outBytes, outOff, blocksizeBytes, "output buffer too short");
 
-			if ((inOff + blocksizeBytes) > inBytes.Length)
-			{
-				throw new DataLengthException("Input buffer too short");
-			}
-
-			for (int i = 0; i < blocksizeBytes; i += 8)
-			{
-				currentBlock[i >> 3] = BytesToWord(inBytes, inOff + i);
-			}
+			Pack.LE_To_UInt64(inBytes, inOff, currentBlock);
 			ProcessBlock(this.currentBlock, this.currentBlock);
-			for (int i = 0; i < blocksizeBytes; i += 8)
-			{
-				WordToBytes(this.currentBlock[i >> 3], outBytes, outOff + i);
-			}
-
+			Pack.UInt64_To_LE(currentBlock, outBytes, outOff);
 			return blocksizeBytes;
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			Check.DataLength(input, blocksizeBytes, "input buffer too short");
+			Check.OutputLength(output, blocksizeBytes, "output buffer too short");
+
+			Pack.LE_To_UInt64(input, currentBlock);
+			ProcessBlock(this.currentBlock, this.currentBlock);
+			Pack.UInt64_To_LE(currentBlock, output);
+			return blocksizeBytes;
+		}
+#endif
 
 		/// <summary>
 		/// Process a block of data represented as 64 bit words.
@@ -327,13 +314,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 
 			if (inWords.Length != blocksizeWords)
-			{
-				throw new DataLengthException("Input buffer too short");
-			}
+				throw new DataLengthException("input buffer too short");
 			if (outWords.Length != blocksizeWords)
-			{
-				throw new DataLengthException("Output buffer too short");
-			}
+				throw new OutputLengthException("output buffer too short");
 
 			if (forEncryption)
 			{
@@ -345,54 +328,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 
 			return blocksizeWords;
-		}
-
-		/// <summary>
-		/// Read a single 64 bit word from input in LSB first order.
-		/// </summary>
-		internal static ulong BytesToWord(byte[] bytes, int off)
-		{
-			if ((off + 8) > bytes.Length)
-			{
-				// Help the JIT avoid index checks
-				throw new ArgumentException();
-			}
-
-			ulong word = 0;
-			int index = off;
-
-			word = (bytes[index++] & 0xffUL);
-			word |= (bytes[index++] & 0xffUL) << 8;
-			word |= (bytes[index++] & 0xffUL) << 16;
-			word |= (bytes[index++] & 0xffUL) << 24;
-			word |= (bytes[index++] & 0xffUL) << 32;
-			word |= (bytes[index++] & 0xffUL) << 40;
-			word |= (bytes[index++] & 0xffUL) << 48;
-			word |= (bytes[index++] & 0xffUL) << 56;
-
-			return word;
-		}
-
-		/// <summary>
-		/// Write a 64 bit word to output in LSB first order.
-		/// </summary>
-		internal static void WordToBytes(ulong word, byte[] bytes, int off)
-		{
-			if ((off + 8) > bytes.Length)
-			{
-				// Help the JIT avoid index checks
-				throw new ArgumentException();
-			}
-			int index = off;
-
-			bytes[index++] = (byte)word;
-			bytes[index++] = (byte)(word >> 8);
-			bytes[index++] = (byte)(word >> 16);
-			bytes[index++] = (byte)(word >> 24);
-			bytes[index++] = (byte)(word >> 32);
-			bytes[index++] = (byte)(word >> 40);
-			bytes[index++] = (byte)(word >> 48);
-			bytes[index++] = (byte)(word >> 56);
 		}
 
 		/**

@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -8,7 +8,6 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -23,30 +22,30 @@ namespace Org.BouncyCastle.Tsp
 
         private int failInfo;
         private TimeStampTokenGenerator tokenGenerator;
-        private IList acceptedAlgorithms;
-        private IList acceptedPolicies;
-        private IList acceptedExtensions;
+        private IList<string> acceptedAlgorithms;
+        private IList<string> acceptedPolicies;
+        private IList<string> acceptedExtensions;
 
         public TimeStampResponseGenerator(
             TimeStampTokenGenerator tokenGenerator,
-            IList acceptedAlgorithms)
+            IList<string> acceptedAlgorithms)
             : this(tokenGenerator, acceptedAlgorithms, null, null)
         {
         }
 
         public TimeStampResponseGenerator(
             TimeStampTokenGenerator tokenGenerator,
-            IList acceptedAlgorithms,
-            IList acceptedPolicy)
+            IList<string> acceptedAlgorithms,
+            IList<string> acceptedPolicy)
             : this(tokenGenerator, acceptedAlgorithms, acceptedPolicy, null)
         {
         }
 
         public TimeStampResponseGenerator(
             TimeStampTokenGenerator tokenGenerator,
-            IList acceptedAlgorithms,
-            IList acceptedPolicies,
-            IList acceptedExtensions)
+            IList<string> acceptedAlgorithms,
+            IList<string> acceptedPolicies,
+            IList<string> acceptedExtensions)
         {
             this.tokenGenerator = tokenGenerator;
             this.acceptedAlgorithms = acceptedAlgorithms;
@@ -81,15 +80,7 @@ namespace Org.BouncyCastle.Tsp
                 v.Add(new FailInfo(failInfo));
             }
 
-            return new PkiStatusInfo(new DerSequence(v));
-        }
-
-        public TimeStampResponse Generate(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTime genTime)
-        {
-            return Generate(request, serialNumber, new DateTimeObject(genTime));
+            return PkiStatusInfo.GetInstance(new DerSequence(v));
         }
 
         /**
@@ -107,10 +98,7 @@ namespace Org.BouncyCastle.Tsp
          * @throws TSPException
          * </p>
          */
-        public TimeStampResponse Generate(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTimeObject genTime)
+        public TimeStampResponse Generate(TimeStampRequest request, BigInteger serialNumber, DateTime? genTime)
         {
             TimeStampResp resp;
 
@@ -164,13 +152,8 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-
-        public TimeStampResponse GenerateGrantedResponse(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTimeObject genTime, 
-            String statusString, 
-            X509Extensions additionalExtensions)
+        public TimeStampResponse GenerateGrantedResponse(TimeStampRequest request, BigInteger serialNumber,
+            DateTime? genTime, string statusString, X509Extensions additionalExtensions)
         {
             TimeStampResp resp;
 

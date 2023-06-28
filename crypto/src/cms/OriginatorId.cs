@@ -1,51 +1,30 @@
 using System;
 
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-    * a basic index for an originator.
-    */
+    // TODO[api] sealed
     public class OriginatorID
-        : X509CertStoreSelector
+        : X509CertStoreSelector, IEquatable<OriginatorID>
     {
-        public override int GetHashCode()
+        public virtual bool Equals(OriginatorID other)
         {
-            int code = Arrays.GetHashCode(this.SubjectKeyIdentifier);
-
-			BigInteger serialNumber = this.SerialNumber;
-			if (serialNumber != null)
-            {
-                code ^= serialNumber.GetHashCode();
-            }
-
-			X509Name issuer = this.Issuer;
-            if (issuer != null)
-            {
-                code ^= issuer.GetHashCode();
-            }
-
-			return code;
+            return other == null ? false
+                :  other == this ? true
+                :  MatchesSubjectKeyIdentifier(other)
+                && MatchesSerialNumber(other)
+                && MatchesIssuer(other);
         }
 
-        public override bool Equals(
-            object obj)
+        public override bool Equals(object obj) => Equals(obj as OriginatorID);
+
+        public override int GetHashCode()
         {
-			if (obj == this)
-				return false;
-
-			OriginatorID id = obj as OriginatorID;
-
-			if (id == null)
-				return false;
-
-			return Arrays.AreEqual(SubjectKeyIdentifier, id.SubjectKeyIdentifier)
-				&& Platform.Equals(SerialNumber, id.SerialNumber)
-				&& IssuersMatch(Issuer, id.Issuer);
+            return GetHashCodeOfSubjectKeyIdentifier()
+                ^  Objects.GetHashCode(SerialNumber)
+                ^  Objects.GetHashCode(Issuer);
         }
     }
 }

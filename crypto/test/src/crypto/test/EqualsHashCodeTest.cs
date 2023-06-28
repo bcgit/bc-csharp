@@ -252,11 +252,5 @@ namespace Org.BouncyCastle.Crypto.Tests
 			TestGost3410();
 			TestDsa();
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new EqualsHashCodeTest());
-		}
 	}
 }

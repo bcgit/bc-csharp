@@ -29,15 +29,6 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
         }
 
-        public static void Main(
-			string[] args)
-        {
-            ITest test = new Cast5Test();
-            ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-        }
-
 		[Test]
         public void TestFunction()
         {

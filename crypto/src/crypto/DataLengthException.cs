@@ -1,42 +1,35 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Crypto
 {
-    /**
-     * this exception is thrown if a buffer that is meant to have output
-     * copied into it turns out to be too short, or if we've been given
-     * insufficient input. In general this exception will Get thrown rather
-     * than an ArrayOutOfBounds exception.
-     */
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
-    [Serializable]
-#endif
+	/// <summary>This exception is thrown if a buffer that is meant to have output copied into it turns out to be too
+	/// short, or if we've been given insufficient input.</summary>
+	/// <remarks>
+	/// In general this exception will get thrown rather than an <see cref="IndexOutOfRangeException"/>.
+	/// </remarks>
+	[Serializable]
     public class DataLengthException
 		: CryptoException
 	{
-        /**
-        * base constructor.
-		*/
-        public DataLengthException()
-        {
-        }
-
-		/**
-         * create a DataLengthException with the given message.
-         *
-         * @param message the message to be carried with the exception.
-         */
-        public DataLengthException(
-            string message)
-			: base(message)
-        {
+		public DataLengthException()
+			: base()
+		{
 		}
 
-		public DataLengthException(
-            string		message,
-            Exception	exception)
-			: base(message, exception)
-        {
-        }
+		public DataLengthException(string message)
+			: base(message)
+		{
+		}
+
+		public DataLengthException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected DataLengthException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
 	}
 }

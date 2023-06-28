@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Org.BouncyCastle.Asn1.Cms
+﻿namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OtherRevocationInfoFormat
         : Asn1Encodable
@@ -44,8 +42,8 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public static OtherRevocationInfoFormat GetInstance(object obj)
         {
-            if (obj is OtherRevocationInfoFormat)
-                return (OtherRevocationInfoFormat)obj;
+            if (obj is OtherRevocationInfoFormat otherRevocationInfoFormat)
+                return otherRevocationInfoFormat;
             if (obj != null)
                 return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj));
             return null;

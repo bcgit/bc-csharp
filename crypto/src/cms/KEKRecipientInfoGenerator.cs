@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			byte[] keyBytes = contentEncryptionKey.GetKey();
 
-            IWrapper keyWrapper = Helper.CreateWrapper(keyEncryptionAlgorithm.Algorithm.Id);
+            IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyEncryptionAlgorithm.Algorithm.Id);
 			keyWrapper.Init(true, new ParametersWithRandom(keyEncryptionKey, random));
         	Asn1OctetString encryptedKey = new DerOctetString(
 				keyWrapper.Wrap(keyBytes, 0, keyBytes.Length));
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Cms
 			}
 			else if (Platform.StartsWith(algorithm, "AES"))
 			{
-				int length = key.GetKey().Length * 8;
+				int length = key.KeyLength * 8;
 				DerObjectIdentifier wrapOid;
 
 				if (length == 128)
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Cms
 			}
 			else if (Platform.StartsWith(algorithm, "CAMELLIA"))
 			{
-				int length = key.GetKey().Length * 8;
+				int length = key.KeyLength * 8;
 				DerObjectIdentifier wrapOid;
 
 				if (length == 128)

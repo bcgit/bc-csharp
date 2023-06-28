@@ -167,7 +167,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		{
 			return p.Equals(other.p)
 				&& g.Equals(other.g)
-				&& Platform.Equals(q, other.q);
+				&& Objects.Equals(q, other.q);
 		}
 
 		public override int GetHashCode()

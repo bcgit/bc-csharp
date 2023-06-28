@@ -180,11 +180,5 @@ namespace Org.BouncyCastle.Tests
 			TestOids();
 			TestWrapOids();
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SeedTest());
-		}
 	}
 }

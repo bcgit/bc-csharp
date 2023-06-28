@@ -57,17 +57,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
          * @param offset offset into the byte array the key starts at
          * @param length number of bytes making up the key
          */
-        public static bool IsWeakKey(
-            byte[]  key,
-            int     offset,
-            int     length)
+        public static bool IsWeakKey(byte[] key, int offset, int length)
         {
             for (int i = offset; i < length; i += DesKeyLength)
             {
                 if (DesParameters.IsWeakKey(key, i))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -79,18 +74,28 @@ namespace Org.BouncyCastle.Crypto.Parameters
          * @param key bytes making up the key
          * @param offset offset into the byte array the key starts at
          */
-        public static new bool IsWeakKey(
-            byte[]	key,
-            int		offset)
+        public static new bool IsWeakKey(byte[] key, int offset)
         {
             return IsWeakKey(key, offset, key.Length - offset);
         }
 
-		public static new bool IsWeakKey(
-			byte[] key)
+		public static new bool IsWeakKey(byte[] key)
 		{
 			return IsWeakKey(key, 0, key.Length);
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static new bool IsWeakKey(ReadOnlySpan<byte> key)
+        {
+            for (int i = 0; i < key.Length; i += DesKeyLength)
+            {
+                if (DesParameters.IsWeakKey(key[i..]))
+                    return true;
+            }
+
+            return false;
+        }
+#endif
 
         /**
          * return true if the passed in key is a real 2/3 part DES-EDE key.
@@ -136,5 +141,34 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
             return diff12 && diff13 && diff23;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool IsRealEdeKey(ReadOnlySpan<byte> key)
+        {
+            return key.Length == 16 ? IsReal2Key(key) : IsReal3Key(key);
+        }
+
+        public static bool IsReal2Key(ReadOnlySpan<byte> key)
+        {
+            bool isValid = false;
+            for (int i = 0; i != 8; i++)
+            {
+                isValid |= (key[i] != key[i + 8]);
+            }
+            return isValid;
+        }
+
+        public static bool IsReal3Key(ReadOnlySpan<byte> key)
+        {
+            bool diff12 = false, diff13 = false, diff23 = false;
+            for (int i = 0; i != 8; i++)
+            {
+                diff12 |= (key[i] != key[i + 8]);
+                diff13 |= (key[i] != key[i + 16]);
+                diff23 |= (key[i + 8] != key[i + 16]);
+            }
+            return diff12 && diff13 && diff23;
+        }
+#endif
     }
 }

@@ -44,36 +44,23 @@ namespace Org.BouncyCastle.Crypto
             this.mIterationCount = iterationCount;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterationCount)
+        {
+            this.mPassword = password.ToArray();
+            this.mSalt = salt.ToArray();
+            this.mIterationCount = iterationCount;
+        }
+#endif
+
         public virtual byte[] Password
         {
             get { return Arrays.Clone(mPassword); }
         }
 
-        /**
-         * return the password byte array.
-         *
-         * @return the password byte array.
-         */
-        [Obsolete("Use 'Password' property")]
-        public byte[] GetPassword()
-        {
-            return Password;
-        }
-
         public virtual byte[] Salt
         {
             get { return Arrays.Clone(mSalt); }
-        }
-
-        /**
-         * return the salt byte array.
-         *
-         * @return the salt byte array.
-         */
-        [Obsolete("Use 'Salt' property")]
-        public byte[] GetSalt()
-        {
-            return Salt;
         }
 
         /**
@@ -86,26 +73,7 @@ namespace Org.BouncyCastle.Crypto
             get { return mIterationCount; }
         }
 
-        /**
-         * Generate derived parameters for a key of length keySize.
-         *
-         * @param keySize the length, in bits, of the key required.
-         * @return a parameters object representing a key.
-         */
-        [Obsolete("Use version with 'algorithm' parameter")]
-        public abstract ICipherParameters GenerateDerivedParameters(int keySize);
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize);
-
-        /**
-         * Generate derived parameters for a key of length keySize, and
-         * an initialisation vector (IV) of length ivSize.
-         *
-         * @param keySize the length, in bits, of the key required.
-         * @param ivSize the length, in bits, of the iv required.
-         * @return a parameters object representing a key and an IV.
-         */
-        [Obsolete("Use version with 'algorithm' parameter")]
-        public abstract ICipherParameters GenerateDerivedParameters(int keySize, int ivSize);
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize, int ivSize);
 
         /**
@@ -133,16 +101,6 @@ namespace Org.BouncyCastle.Crypto
             return Strings.ToByteArray(password);
         }
 
-        [Obsolete("Use version taking 'char[]' instead")]
-        public static byte[] Pkcs5PasswordToBytes(
-            string password)
-        {
-            if (password == null)
-                return new byte[0];
-
-            return Strings.ToByteArray(password);
-        }
-
         /**
          * converts a password to a byte array according to the scheme in
          * PKCS5 (UTF-8, no padding)
@@ -156,18 +114,20 @@ namespace Org.BouncyCastle.Crypto
             if (password == null)
                 return new byte[0];
 
-            return Encoding.UTF8.GetBytes(password);
+            return Strings.ToUtf8ByteArray(password);
         }
 
-        [Obsolete("Use version taking 'char[]' instead")]
-        public static byte[] Pkcs5PasswordToUtf8Bytes(
-            string password)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] Pkcs5PasswordToBytes(ReadOnlySpan<char> password)
         {
-            if (password == null)
-                return new byte[0];
-
-            return Encoding.UTF8.GetBytes(password);
+            return Strings.ToByteArray(password);
         }
+
+        public static byte[] Pkcs5PasswordToUtf8Bytes(ReadOnlySpan<char> password)
+        {
+            return Strings.ToUtf8ByteArray(password);
+        }
+#endif
 
         /**
          * converts a password to a byte array according to the scheme in
@@ -198,5 +158,25 @@ namespace Org.BouncyCastle.Crypto
 
             return bytes;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password)
+        {
+            return Pkcs12PasswordToBytes(password, false);
+        }
+
+        public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password, bool wrongPkcs12Zero)
+        {
+            if (password.IsEmpty)
+                return new byte[wrongPkcs12Zero ? 2 : 0];
+
+            // +1 for extra 2 pad bytes.
+            byte[] bytes = new byte[(password.Length + 1) * 2];
+
+            Encoding.BigEndianUnicode.GetBytes(password, bytes);
+
+            return bytes;
+        }
+#endif
     }
 }

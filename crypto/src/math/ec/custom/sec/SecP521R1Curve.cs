@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected readonly SecP521R1Point m_infinity;
 
         public SecP521R1Curve()
-            : base(q)
+            : base(q, true)
         {
             this.m_infinity = new SecP521R1Point(this, null, null);
 
@@ -67,14 +67,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return new SecP521R1FieldElement(x);
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
         {
-            return new SecP521R1Point(this, x, y, withCompression);
+            return new SecP521R1Point(this, x, y);
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
         {
-            return new SecP521R1Point(this, x, y, zs, withCompression);
+            return new SecP521R1Point(this, x, y, zs);
         }
 
         public override ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)
@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             private ECPoint CreatePoint(uint[] x, uint[] y)
             {
-                return m_outer.CreateRawPoint(new SecP521R1FieldElement(x), new SecP521R1FieldElement(y), SECP521R1_AFFINE_ZS, false);
+                return m_outer.CreateRawPoint(new SecP521R1FieldElement(x), new SecP521R1FieldElement(y), SECP521R1_AFFINE_ZS);
             }
         }
     }

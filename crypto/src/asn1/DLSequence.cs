@@ -28,6 +28,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /**
+		 * create a sequence containing two objects
+		 */
+        public DLSequence(Asn1Encodable element1, Asn1Encodable element2)
+            : base(element1, element2)
+        {
+        }
+
         internal DLSequence(params Asn1Encodable[] elements)
             : base(elements)
         {
@@ -69,11 +77,10 @@ namespace Org.BouncyCastle.Asn1
             return new DLBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
         }
 
-        // TODO[asn1] DLExternal
-        //internal override DerExternal ToAsn1External()
-        //{
-        //    return new DLExternal(this);
-        //}
+        internal override DerExternal ToAsn1External()
+        {
+            return new DLExternal(this);
+        }
 
         internal override Asn1Set ToAsn1Set()
         {

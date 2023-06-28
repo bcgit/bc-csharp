@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
@@ -141,7 +140,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return new WrappedGeneratorStream(this, pkOut);
 		}
 
-#if !PORTABLE || DOTNET
         /// <summary>
 		/// <p>
 		/// Open a literal data packet for the passed in <c>FileInfo</c> object, returning
@@ -163,20 +161,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
 			return Open(outStr, format, file.Name, file.Length, file.LastWriteTime);
         }
-#endif
 
-		/// <summary>
-		/// Close the literal data packet - this is equivalent to calling Close()
-		/// on the stream returned by the Open() method.
-		/// </summary>
+        [Obsolete("Dispose any opened Stream directly")]
         public void Close()
-        {
-			if (pkOut != null)
-			{
-				pkOut.Finish();
-				pkOut.Flush();
-				pkOut = null;
-			}
-		}
+		{
+            if (pkOut != null)
+            {
+                pkOut.Finish();
+                pkOut.Flush();
+                pkOut = null;
+            }
+        }
 	}
 }

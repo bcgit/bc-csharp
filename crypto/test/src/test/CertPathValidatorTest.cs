@@ -1,17 +1,14 @@
 using System;
-using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tests
 {
@@ -138,49 +135,40 @@ namespace Org.BouncyCastle.Tests
             X509Crl rootCrl = crlParser.ReadCrl(CertPathTest.rootCrlBin);
             X509Crl interCrl = crlParser.ReadCrl(CertPathTest.interCrlBin);
 
-            IList x509Certs = new ArrayList();
+            var x509Certs = new List<X509Certificate>();
             x509Certs.Add(rootCert);
             x509Certs.Add(interCert);
             x509Certs.Add(finalCert);
 
-            IList x509Crls = new ArrayList();
+            var x509Crls = new List<X509Crl>();
             x509Crls.Add(rootCrl);
             x509Crls.Add(interCrl);
 
-//			CollectionCertStoreParameters ccsp = new CollectionCertStoreParameters(list);
-//			CertStore store = CertStore.GetInstance("Collection", ccsp);
-//			X509CollectionStoreParameters ccsp = new X509CollectionStoreParameters(list);
-            IX509Store x509CertStore = X509StoreFactory.Create(
-                "Certificate/Collection",
-                new X509CollectionStoreParameters(x509Certs));
-            IX509Store x509CrlStore = X509StoreFactory.Create(
-                "CRL/Collection",
-                new X509CollectionStoreParameters(x509Crls));
+            var x509CertStore = CollectionUtilities.CreateStore(x509Certs);
+            var x509CrlStore = CollectionUtilities.CreateStore(x509Crls);
 
             // NB: Month is 1-based in .NET
             //DateTime validDate = new DateTime(2008,9,4,14,49,10).ToUniversalTime();
             DateTime validDate = new DateTime(2008, 9, 4, 5, 49, 10);
 
             //validating path
-            IList certchain = new ArrayList();
+            var certchain = new List<X509Certificate>();
             certchain.Add(finalCert);
             certchain.Add(interCert);
 
-//			CertPath cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
             PkixCertPath cp = new PkixCertPath(certchain);
-            ISet trust = new HashSet();
+            var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
-//			CertPathValidator cpv = CertPathValidator.GetInstance("PKIX");
             PkixCertPathValidator cpv = new PkixCertPathValidator();
             PkixParameters param = new PkixParameters(trust);
-            param.AddStore(x509CertStore);
-            param.AddStore(x509CrlStore);
-            param.Date = new DateTimeObject(validDate);
+            param.AddStoreCert(x509CertStore);
+            param.AddStoreCrl(x509CrlStore);
+            param.Date = validDate;
             MyChecker checker = new MyChecker();
             param.AddCertPathChecker(checker);
 
-            PkixCertPathValidatorResult result = (PkixCertPathValidatorResult)cpv.Validate(cp, param);
+            PkixCertPathValidatorResult result = cpv.Validate(cp, param);
             PkixPolicyNode policyTree = result.PolicyTree;
             AsymmetricKeyParameter subjectPublicKey = result.SubjectPublicKey;
 
@@ -206,13 +194,13 @@ namespace Org.BouncyCastle.Tests
 
             cpv = new PkixCertPathValidator();
             param = new PkixParameters(trust);
-            param.AddStore(x509CertStore);
-            param.AddStore(x509CrlStore);
-            param.Date = new DateTimeObject(validDate);
+            param.AddStoreCert(x509CertStore);
+            param.AddStoreCrl(x509CrlStore);
+            param.Date = validDate;
             checker = new MyChecker();
             param.AddCertPathChecker(checker);
 
-            result = (PkixCertPathValidatorResult)cpv.Validate(cp, param);
+            result = cpv.Validate(cp, param);
 
             IsTrue(result.TrustAnchor.TrustedCert.Equals(rootCert));
 
@@ -226,40 +214,33 @@ namespace Org.BouncyCastle.Tests
                 interCert = certParser.ReadCertificate(AC_PR);
                 finalCert = certParser.ReadCertificate(schefer);
 
-                x509Certs = new ArrayList();
+                x509Certs = new List<X509Certificate>();
                 x509Certs.Add(rootCert);
                 x509Certs.Add(interCert);
                 x509Certs.Add(finalCert);
 
-//				ccsp = new CollectionCertStoreParameters(list);
-//				store = CertStore.GetInstance("Collection", ccsp);
-//				ccsp = new X509CollectionStoreParameters(list);
-                x509CertStore = X509StoreFactory.Create(
-                    "Certificate/Collection",
-                    new X509CollectionStoreParameters(x509Certs));
+                x509CertStore = CollectionUtilities.CreateStore(x509Certs);
 
                 // NB: Month is 1-based in .NET
                 //validDate = new DateTime(2004,3,21,2,21,10).ToUniversalTime();
                 validDate = new DateTime(2004, 3, 20, 19, 21, 10);
 
                 //validating path
-                certchain = new ArrayList();
+                certchain = new List<X509Certificate>();
                 certchain.Add(finalCert);
                 certchain.Add(interCert);
 
-//				cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
                 cp = new PkixCertPath(certchain);
-                trust = new HashSet();
+                trust = new HashSet<TrustAnchor>();
                 trust.Add(new TrustAnchor(rootCert, null));
 
-//				cpv = CertPathValidator.GetInstance("PKIX");
                 cpv = new PkixCertPathValidator();
                 param = new PkixParameters(trust);
-                param.AddStore(x509CertStore);
+                param.AddStoreCert(x509CertStore);
                 param.IsRevocationEnabled = false;
-                param.Date = new DateTimeObject(validDate);
+                param.Date = validDate;
 
-                result =(PkixCertPathValidatorResult) cpv.Validate(cp, param);
+                result = cpv.Validate(cp, param);
                 policyTree = result.PolicyTree;
                 subjectPublicKey = result.SubjectPublicKey;
 
@@ -279,12 +260,6 @@ namespace Org.BouncyCastle.Tests
         public override string Name
         {
             get { return "CertPathValidator"; }
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new CertPathValidatorTest());
         }
 
         [Test]
@@ -309,12 +284,12 @@ namespace Org.BouncyCastle.Tests
                 return true;
             }
 
-            public override ISet GetSupportedExtensions()
+            public override ISet<string> GetSupportedExtensions()
             {
                 return null;
             }
 
-            public override void Check(X509Certificate cert, ISet unresolvedCritExts)
+            public override void Check(X509Certificate cert, ISet<string> unresolvedCritExts)
             {
                 count++;
             }

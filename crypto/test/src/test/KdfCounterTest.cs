@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
@@ -14,9 +15,6 @@ namespace Org.BouncyCastle.Tests
     [TestFixture]
     public class KdfCounterTest : SimpleTest
     {
-        //private string kdfCtr = @"";
-
-
         [Test]
         public void TestCMAC_AES128_BEFORE_FIXED_8_BITS()
         {
@@ -25,7 +23,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("dff1e50ac0b69dc40f1051d46c2b069c"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("dff1e50ac0b69dc40f1051d46c2b069c"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("c16e6e02c5a3dcc8d78b9ac1306877761310455b4e41469951d9e6c2245a064b33fd8c3b01203a7824485bf0a64060c4648b707d2607935699316ea5");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -47,7 +45,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("30ec5f6fa1def33cff008178c4454211"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("30ec5f6fa1def33cff008178c4454211"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("c95e7b1d4f2570259abfc05bb00730f0284c3bb9a61d07259848a1cb57c81d8a6c3382c500bf801dfc8f70726b082cf4c3fa34386c1e7bf0e5471438");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -69,7 +67,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("ca1cf43e5ccd512cc719a2f9de41734c"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("ca1cf43e5ccd512cc719a2f9de41734c"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("e3884ac963196f02ddd09fc04c20c88b60faa775b5ef6feb1faf8c5e098b5210e2b4e45d62cc0bf907fd68022ee7b15631b5c8daf903d99642c5b831");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -91,7 +89,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("c10b152e8c97b77e18704e0f0bd38305"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("c10b152e8c97b77e18704e0f0bd38305"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("98cd4cbbbebe15d17dc86e6dbad800a2dcbd64f7c7ad0e78e9cf94ffdba89d03e97eadf6c4f7b806caf52aa38f09d0eb71d71f497bcc6906b48d36c4");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -113,7 +111,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("e61a51e1633e7d0de704dcebbd8f962f"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("e61a51e1633e7d0de704dcebbd8f962f"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("5eef88f8cb188e63e08e23c957ee424a3345da88400c567548b57693931a847501f8e1bce1c37a09ef8c6e2ad553dd0f603b52cc6d4e4cbb76eb6c8f");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -135,7 +133,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("b03616e032b6d1aa53352a8d7dfabcfe"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("b03616e032b6d1aa53352a8d7dfabcfe"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("fba6aea08c2ccf83f7142b72a476839a98a7d967125c9dfc83ae82f1fb6c913afc82bf65342356d2e7f929528589bc94c2f54d52b2487ee9f4a52510");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -157,7 +155,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("03dd577bd0e65a26502453d5de9e682b"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("03dd577bd0e65a26502453d5de9e682b"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("bf4e85e80ee83637bbe972a371c5a74d0511e0eeb9485f3d1d075f1fdbb00f5ea7f64b080cf2c8d21b213bb1e96cd047ddc3f005851bf4b07e7a0232");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -179,7 +177,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("02f9ff0a7b136bdbdb09bc420a35d46f"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("02f9ff0a7b136bdbdb09bc420a35d46f"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("ebdacfb0d14c6e38602dc95b43cea8d354596c360b31a02ea780d4fe35728ec75de2fb357c36c1210c10d35369982989ad02ab4f4094fdc86618e3f9");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -201,7 +199,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("b6e04abd1651f8794d4326f4c684e631"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("b6e04abd1651f8794d4326f4c684e631"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("93612f7256c46a3d856d3e951e32dbf15fe11159d0b389ad38d603850fee6d18d22031435ed36ee20da76745fbea4b10fe1e");
                 byte[] DataAfterCtrData = Hex.Decode("99322aae605a5f01e32b");
@@ -224,7 +222,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("63cf79372dbe425d2c5832603fb96d93"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("63cf79372dbe425d2c5832603fb96d93"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("91f5b0021524e8f85dc4af0bb83a9386e89635d19f9e4652d8d1837d2cdcd0b20fa50c1397ed450410cc9109b2ae1bad0b85");
                 byte[] DataAfterCtrData = Hex.Decode("81205d2dc8429ce7e428");
@@ -247,7 +245,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("bc1b3659d7c2fcf008b0da456fd876c5"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("bc1b3659d7c2fcf008b0da456fd876c5"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("c8e13862185cbbee6544c2a7367d5216becf6352464b35e362c328f31b378f3481cdc09c46efed015dead1958db5701a940d");
                 byte[] DataAfterCtrData = Hex.Decode("a75853711d59f7b819b0");
@@ -270,7 +268,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("90e33a1e76adedcabd2214326be71abf"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("90e33a1e76adedcabd2214326be71abf"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("3d2f38c571575807eecd0ec9e3fd860fb605f0b17139ce01904abba7ae688a50e620341787f69f00b872343f42b18c979f6f");
                 byte[] DataAfterCtrData = Hex.Decode("8885034123cb45e27440");
@@ -293,7 +291,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("53d1705caab7b06886e2dbb53eea349aa7419a034e2d92b9"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("53d1705caab7b06886e2dbb53eea349aa7419a034e2d92b9"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("b120f7ce30235784664deae3c40723ca0539b4521b9aece43501366cc5df1d9ea163c602702d0974665277c8a7f6a057733d66f928eb7548cf43e374");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -315,7 +313,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("d7e8eefc503a39e70d931f16645958ad06fb789f0cbc518b"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("d7e8eefc503a39e70d931f16645958ad06fb789f0cbc518b"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("b10ea2d67904a8b3b7ce5eef7d9ee49768e8deb3506ee74a2ad8dd8661146fde74137a8f6dfc69a370945d15335e0d6403fa029da19d34140c7e3da0");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -337,7 +335,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("f7c1e0682a12f1f17d23dc8af5c463b8aa28f87ed82fad22"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("f7c1e0682a12f1f17d23dc8af5c463b8aa28f87ed82fad22"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("890ec4966a8ac3fd635bd264a4c726c87341611c6e282766b7ffe621080d0c00ac9cf8e2784a80166303505f820b2a309e9c3a463d2e3fd4814e3af5");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -359,7 +357,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("f4267280cb8667c2cf82bb37f389da6391f58cc74deba0cc"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("f4267280cb8667c2cf82bb37f389da6391f58cc74deba0cc"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("34abbc9f7b12622309a827de5abfdd51fb5bb824838fcde88ca7bc5f3953abdcb445147f13e809e294f75e6d4e3f13b66e47f2dfc881ed392e3a1bf6");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -381,7 +379,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("aea3dd304d0475e7969d0f278d23abe1fc0c7220f7fd7e73"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("aea3dd304d0475e7969d0f278d23abe1fc0c7220f7fd7e73"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("3e6008930b20b14375f86176714558113284d4142806d9d810b3fe4c02ae375f2b7e6ec05fb15fcd8da82b90c9706cf36b2c9dd96a2c1f46606f6bde");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -403,7 +401,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("ff8902c49d5acf676a9fd0c435a0d340d19622690bf16993"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("ff8902c49d5acf676a9fd0c435a0d340d19622690bf16993"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("4820bac046633e0354dbfba484c60e8a48ee839639484b173fb34c84dd2b94a7a8102f9a9f493656958bfdbe59956963594164c4518a375b87ce9c36");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -425,7 +423,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("b880d5bbadd02b32af31b5d69bd5a2da2654f93e85474d64"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("b880d5bbadd02b32af31b5d69bd5a2da2654f93e85474d64"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("b8434bbf8353167fddb5fef6deb65239cb9db201e7e3cc1a8253b999f80ee04cfcefef3bce8fc4b0afb263d4515c794306cb0300cc07a1b7dce2b341");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -447,7 +445,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("f3bb6d3d0a20c8256fa3ef7586b77dd950ccc1221f07ca82"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("f3bb6d3d0a20c8256fa3ef7586b77dd950ccc1221f07ca82"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("edd3964cdd146f8de1b160565c252c6b513bd3f4be07357ddae662e6b4683fbfa41b6a7df87ceced255051e3713f958305bc822beb96c5aeb4f7af7c");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -469,7 +467,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("e09079196120accdf43293f3593e692481391080e233f40b"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("e09079196120accdf43293f3593e692481391080e233f40b"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("0ec4fb9f0b4c59bbcbbf2c85466f92e1631cac32827e0485b6c56ba2ba5e72252f3c0895fd48ffbe18735d5c8d9a15c3985f");
                 byte[] DataAfterCtrData = Hex.Decode("9a1a87dfa1698b60d0a0");
@@ -492,7 +490,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("60efefde5ac9d43b097b809752e7fc4c21181300101ee03b"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("60efefde5ac9d43b097b809752e7fc4c21181300101ee03b"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("34a86821dee0fdbfd8aef3f7cf86184e7f669c505c3cb4c88f92e9ca514549c334cdc079bfe075338ba21fe0847c7e29a7df");
                 byte[] DataAfterCtrData = Hex.Decode("d8d290cebb39941de12b");
@@ -515,7 +513,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("60c8df63954f410af68f1bde52fdd3432d6baf7079a4c795"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("60c8df63954f410af68f1bde52fdd3432d6baf7079a4c795"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("b1907a06c3428b4e4656672742b0d933773cab80bd6678c2f897339e59fbe790f4391a96d18ca19522d64f4a2e852848c6af");
                 byte[] DataAfterCtrData = Hex.Decode("781103fc1a702a561ced");
@@ -538,7 +536,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("bdb7b0516fca692f5532667c2b34456de348afe6c1e43ad1"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("bdb7b0516fca692f5532667c2b34456de348afe6c1e43ad1"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("6d5fd4790cc1d2b85bdb42e33df3debaeea4dc8ef6868482aa49562e3504f8511111898baa2e63a1e932cb83eb2799d23788");
                 byte[] DataAfterCtrData = Hex.Decode("0bfa079f2f0aeb334ebf");
@@ -561,7 +559,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("aeb7201d055f754212b3e497bd0b25789a49e51da9f363df414a0f80e6f4e42c"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("aeb7201d055f754212b3e497bd0b25789a49e51da9f363df414a0f80e6f4e42c"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("11ec30761780d4c44acb1f26ca1eb770f87c0e74505e15b7e456b019ce0c38103c4d14afa1de71d340db51410596627512cf199fffa20ef8c5f4841e");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -583,7 +581,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("4df60800bf8e2f6055c5ad6be43ee3deb54e2a445bc88a576e111b9f7f66756f"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("4df60800bf8e2f6055c5ad6be43ee3deb54e2a445bc88a576e111b9f7f66756f"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("962adcaf12764c87dad298dbd9ae234b1ff37fed24baee0649562d466a80c0dcf0a65f04fe5b477fd00db6767199fa4d1b26c68158c8e656e740ab4d");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -605,7 +603,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("1612a40daa7fce6c6788b3b71311188ffb850613fd81d0e87a891831348e2f28"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("1612a40daa7fce6c6788b3b71311188ffb850613fd81d0e87a891831348e2f28"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("1696438fcdf9a85284759b2604b64d7ea76199514709e711ecde5a505b5f27ae38d154aba14322481ddc9fd9169364b991460a0c9a05c7fcb2d099c9");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -627,7 +625,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("d0b1b3b70b2393c48ca05159e7e28cbeadea93f28a7cdae964e5136070c45d5c"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("d0b1b3b70b2393c48ca05159e7e28cbeadea93f28a7cdae964e5136070c45d5c"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("dd2f151a3f173492a6fbbb602189d51ddf8ef79fc8e96b8fcbe6dabe73a35b48104f9dff2d63d48786d2b3af177091d646a9efae005bdfacb61a1214");
                 KdfCounterParameters param = new KdfCounterParameters(ki, null, fixedInputData, r);
@@ -649,7 +647,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("d22779384558d1ae649896e8d844f29a4ff3dfc1a9fbb7c34e20738f8c795e17"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("d22779384558d1ae649896e8d844f29a4ff3dfc1a9fbb7c34e20738f8c795e17"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("498cf66c5fd3578ff574ed8c85d072dcd9e18e4f07b0aaecad785c9058fa0f17647673df807984f5f20dec47e699aebd882e485a8afc44c4bc680d07");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -671,7 +669,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("6205ae02dc1e943506ac7049889de1d9e4cfb7e696508ec999f4cb3d06ac5964"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("6205ae02dc1e943506ac7049889de1d9e4cfb7e696508ec999f4cb3d06ac5964"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("b145c7c120101f418f069dd639feda41c36ffc64a251afb5829c4c71572f16a5cdbf8518d8b9fad7a7ef40483ad0f8a8c044aefb7dc8b465923ab403");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -693,7 +691,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("404b2b964f2cc8f50b614f591a58d15c21844c115d8b62472f06bdd82a992a5e"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("404b2b964f2cc8f50b614f591a58d15c21844c115d8b62472f06bdd82a992a5e"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("bdbe08a73cae7a5f6ce100753b981d4fc432da7cd841095a211b60f3c7b0a6297d98b84246cf9fe62bd02022c7b50e88a5cafc400aa881cadc5f8979");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -715,7 +713,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("746c44c4129858d89e50e09dc44aec2ab2158c2e0c6bb73b35588e94e33a1958"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("746c44c4129858d89e50e09dc44aec2ab2158c2e0c6bb73b35588e94e33a1958"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("ebeed6a0462577b6b4e2fe4697c6ae6e1c6b8b9fd14381247bc2cf2c06d7afb55b06389612a85d0a69a1486eb399e7f314b234fd44908396b55f6e67");
                 KdfCounterParameters param = new KdfCounterParameters(ki, fixedInputData, null, r);
@@ -737,7 +735,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 8;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("701c0f5a65a42d07077d6eedf540ef9374bcb74cb89bfe017e5ca1e9df6b2b70"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("701c0f5a65a42d07077d6eedf540ef9374bcb74cb89bfe017e5ca1e9df6b2b70"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("2ce10feb56dda9fdc95da5b5013f05f59d13a89b3a1ad4527bd00612190ac6613b007afdf00fbc920cc6e8d5fd9da9ae267d");
                 byte[] DataAfterCtrData = Hex.Decode("86373a67ab86e7bde5b7");
@@ -760,7 +758,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 16;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("ce7ec625c6dcd1ff21ec48ed35ff70fc0f69946107e6583849f711a725ba1684"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("ce7ec625c6dcd1ff21ec48ed35ff70fc0f69946107e6583849f711a725ba1684"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("14e20e83dbe001af8ab304d0cf14dba30caa751271b976a927b3c8544e24ad0a98e6604eddd9fda2bf2a9ba81ec507f942f5");
                 byte[] DataAfterCtrData = Hex.Decode("43a412a8be794adb0f2e");
@@ -783,7 +781,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 24;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("bcc9da67e6309c4c365de53a040fa6a64f387d48257fd1751cffdfae6644c59a"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("bcc9da67e6309c4c365de53a040fa6a64f387d48257fd1751cffdfae6644c59a"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("6740b398eff3ec6288090caac3ae9210c91809774172e108bb51a216eaa5a67cd0420932146a42254d3e2b8c2c34f9c118ed");
                 byte[] DataAfterCtrData = Hex.Decode("335747e149d25dccf1ff");
@@ -806,7 +804,7 @@ namespace Org.BouncyCastle.Tests
                 int r = 32;
                 //int count = 0;
                 int l = 128;
-                byte[] ki = Hex.Decode("04618a8e172eb80eef23e5b95c736acf6b7aac16b9fdbdae1ef73d777380bb49"); IBlockCipher blockCipher = new AesEngine();
+                byte[] ki = Hex.Decode("04618a8e172eb80eef23e5b95c736acf6b7aac16b9fdbdae1ef73d777380bb49"); IBlockCipher blockCipher = AesUtilities.CreateEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("4cca08a93ba374efbf69cad9601f3782089eb5aeb128a59a8c1f687bee5eba8c56bdb1354e1eb945542df52441667502c82a");
                 byte[] DataAfterCtrData = Hex.Decode("fedd474f5dc3033fa3ca");

@@ -1,16 +1,30 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Pkix
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
-#endif
     public class PkixNameConstraintValidatorException
         : Exception
     {
-        public PkixNameConstraintValidatorException(String msg)
-            : base(msg)
-        {
-        }
+		public PkixNameConstraintValidatorException()
+			: base()
+		{
+		}
+
+		public PkixNameConstraintValidatorException(string message)
+			: base(message)
+		{
+		}
+
+		public PkixNameConstraintValidatorException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected PkixNameConstraintValidatorException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
     }
 }

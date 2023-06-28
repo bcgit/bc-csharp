@@ -80,6 +80,9 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public virtual void BlockUpdate(byte[] input, int offset, int length)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(input.AsSpan(offset, length));
+#else
             int i = 0, fullWords = length & ~7;
             if (wordPos == 0)
             {
@@ -115,7 +118,50 @@ namespace Org.BouncyCastle.Crypto.Macs
                     }
                 }
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            int length = input.Length;
+            int i = 0, fullWords = length & ~7;
+            if (wordPos == 0)
+            {
+                for (; i < fullWords; i += 8)
+                {
+                    m = (long)Pack.LE_To_UInt64(input[i..]);
+                    ProcessMessageWord();
+                }
+                for (; i < length; ++i)
+                {
+                    m = (long)(((ulong)m >> 8) | ((ulong)input[i] << 56));
+                }
+                wordPos = length - fullWords;
+            }
+            else
+            {
+                int bits = wordPos << 3;
+                for (; i < fullWords; i += 8)
+                {
+                    ulong n = Pack.LE_To_UInt64(input[i..]);
+                    m = (long)((n << bits) | ((ulong)m >> -bits));
+                    ProcessMessageWord();
+                    m = (long)n;
+                }
+                for (; i < length; ++i)
+                {
+                    m = (long)(((ulong)m >> 8) | ((ulong)input[i] << 56));
+
+                    if (++wordPos == 8)
+                    {
+                        ProcessMessageWord();
+                        wordPos = 0;
+                    }
+                }
+            }
+        }
+#endif
 
         public virtual long DoFinal()
         {
@@ -143,6 +189,15 @@ namespace Org.BouncyCastle.Crypto.Macs
             Pack.UInt64_To_LE((ulong)result, output, outOff);
             return 8;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            long result = DoFinal();
+            Pack.UInt64_To_LE((ulong)result, output);
+            return 8;
+        }
+#endif
 
         public virtual void Reset()
         {

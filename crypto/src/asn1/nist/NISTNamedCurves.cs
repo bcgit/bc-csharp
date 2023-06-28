@@ -1,31 +1,26 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Nist
 {
-    /**
-    * Utility class for fetching curves using their NIST names as published in FIPS-PUB 186-3
-    */
-    public sealed class NistNamedCurves
+    /// <summary>Elliptic curve registry for NIST curves.</summary>
+    public static class NistNamedCurves
     {
-        private NistNamedCurves()
-        {
-        }
+        private static readonly Dictionary<string, DerObjectIdentifier> objIds =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<DerObjectIdentifier, string> names =
+            new Dictionary<DerObjectIdentifier, string>();
 
-        private static readonly IDictionary objIds = Platform.CreateHashtable();
-        private static readonly IDictionary names = Platform.CreateHashtable();
-
-        private static void DefineCurveAlias(
-            string				name,
-            DerObjectIdentifier	oid)
+        private static void DefineCurveAlias(string name, DerObjectIdentifier oid)
         {
-            objIds.Add(Platform.ToUpperInvariant(name), oid);
+            if (SecNamedCurves.GetByOidLazy(oid) == null)
+                throw new InvalidOperationException();
+
+            objIds.Add(name, oid);
             names.Add(oid, name);
         }
 
@@ -50,62 +45,64 @@ namespace Org.BouncyCastle.Asn1.Nist
             DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
         }
 
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
         public static X9ECParameters GetByName(string name)
         {
             DerObjectIdentifier oid = GetOid(name);
-            return oid == null ? null : SecNamedCurves.GetByOid(oid);
+            return oid == null ? null : GetByOid(oid);
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given name.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="Math.EC.ECCurve">curve</see> without necessarily triggering the creation of
+        /// the full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="name">The name of the curve.</param>
         public static X9ECParametersHolder GetByNameLazy(string name)
         {
             DerObjectIdentifier oid = GetOid(name);
-            return oid == null ? null : SecNamedCurves.GetByOidLazy(oid);
+            return oid == null ? null : GetByOidLazy(oid);
         }
 
-        /**
-        * return the X9ECParameters object for the named curve represented by
-        * the passed in object identifier. Null if the curve isn't present.
-        *
-        * @param oid an object identifier representing a named curve, if present.
-        */
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
-            return names.Contains(oid) ? SecNamedCurves.GetByOid(oid) : null;
+            return GetByOidLazy(oid)?.Parameters;
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="Math.EC.ECCurve">curve</see> without necessarily triggering the creation of
+        /// the full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
         {
-            return names.Contains(oid) ? SecNamedCurves.GetByOidLazy(oid) : null;
+            return names.ContainsKey(oid) ? SecNamedCurves.GetByOidLazy(oid) : null;
         }
 
-        /**
-        * return the object identifier signified by the passed in name. Null
-        * if there is no object identifier associated with name.
-        *
-        * @return the object identifier associated with name, if present.
-        */
-        public static DerObjectIdentifier GetOid(
-            string name)
+        /// <summary>Look up the name of the curve with the given <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
+        public static string GetName(DerObjectIdentifier oid)
         {
-            return (DerObjectIdentifier) objIds[Platform.ToUpperInvariant(name)];
+            return CollectionUtilities.GetValueOrNull(names, oid);
         }
 
-        /**
-        * return the named curve name represented by the given object identifier.
-        */
-        public static string GetName(
-            DerObjectIdentifier  oid)
+        /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
+        public static DerObjectIdentifier GetOid(string name)
         {
-            return (string) names[oid];
+            return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
-        /**
-        * returns an enumeration containing the name strings for curves
-        * contained in this structure.
-        */
-        public static IEnumerable Names
+        /// <summary>Enumerate the available curve names in this registry.</summary>
+        public static IEnumerable<string> Names
         {
-            get { return new EnumerableProxy(names.Values); }
+            get { return CollectionUtilities.Proxy(objIds.Keys); }
         }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crmf
 {
@@ -16,7 +14,7 @@ namespace Org.BouncyCastle.Crmf
         private readonly BigInteger _certReqId;
         private X509ExtensionsGenerator _extGenerator;
         private CertTemplateBuilder _templateBuilder;
-        private IList _controls = Platform.CreateArrayList();
+        private IList<IControl> m_controls = new List<IControl>();
         private ISignatureFactory _popSigner;
         private PKMacBuilder _pkMacBuilder;
         private char[] _password;
@@ -73,9 +71,9 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        public CertificateRequestMessageBuilder SetValidity(Time notBefore, Time notAfter)
+        public CertificateRequestMessageBuilder SetValidity(DateTime? notBefore, DateTime? notAfter)
         {
-            _templateBuilder.SetValidity(new OptionalValidity(notBefore, notAfter));
+            _templateBuilder.SetValidity(new OptionalValidity(CreateTime(notBefore), CreateTime(notAfter)));
             return this;
         }
 
@@ -95,7 +93,7 @@ namespace Org.BouncyCastle.Crmf
 
         public CertificateRequestMessageBuilder AddControl(IControl control)
         {
-            _controls.Add(control);
+            m_controls.Add(control);
             return this;
         }
 
@@ -165,7 +163,13 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        [Obsolete("Use 'SetAuthInfoPKMacBuilder' instead")]
         public CertificateRequestMessageBuilder SetAuthInfoPKMAC(PKMacBuilder pkmacFactory, char[] password)
+        {
+            return SetAuthInfoPKMacBuilder(pkmacFactory, password);
+        }
+
+        public CertificateRequestMessageBuilder SetAuthInfoPKMacBuilder(PKMacBuilder pkmacFactory, char[] password)
         {
             this._pkMacBuilder = pkmacFactory;
             this._password = password;
@@ -195,13 +199,12 @@ namespace Org.BouncyCastle.Crmf
 
             v.Add(_templateBuilder.Build());
 
-            if (_controls.Count > 0)
+            if (m_controls.Count > 0)
             {
-                Asn1EncodableVector controlV = new Asn1EncodableVector();
+                Asn1EncodableVector controlV = new Asn1EncodableVector(m_controls.Count);
 
-                foreach (object item in _controls)
+                foreach (var control in m_controls)
                 {
-                    IControl control = (IControl)item;
                     controlV.Add(new AttributeTypeAndValue(control.Type, control.Value));
                 }
 
@@ -248,9 +251,7 @@ namespace Org.BouncyCastle.Crmf
             }
             else if (_agreeMac != null)
             {
-                v.Add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT,
-                        PopoPrivKey.GetInstance(new DerTaggedObject(false, PopoPrivKey.agreeMAC, _agreeMac), true)));
-
+                v.Add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT, new PopoPrivKey(_agreeMac)));
             }
             else if (_popRaVerified != null)
             {
@@ -258,6 +259,11 @@ namespace Org.BouncyCastle.Crmf
             }
 
             return new CertificateRequestMessage(CertReqMsg.GetInstance(new DerSequence(v)));
+        }
+
+        private static Time CreateTime(DateTime? dateTime)
+        {
+            return dateTime == null ? null : new Time(dateTime.Value);
         }
     }
 }

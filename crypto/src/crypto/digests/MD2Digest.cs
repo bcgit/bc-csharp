@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
@@ -99,6 +98,30 @@ namespace Org.BouncyCastle.Crypto.Digests
             return DigestLength;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            // add padding
+            byte paddingByte = (byte)(M.Length - mOff);
+            for (int i = mOff; i < M.Length; i++)
+            {
+                M[i] = paddingByte;
+            }
+            //do final check sum
+            ProcessChecksum(M);
+            // do final block process
+            ProcessBlock(M);
+
+            ProcessBlock(C);
+
+            X.AsSpan(xOff, 16).CopyTo(output);
+
+            Reset();
+
+            return DigestLength;
+        }
+#endif
+
         /**
         * reset the digest back to it's initial state.
         */
@@ -159,7 +182,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             //
             // process whole words.
             //
-            while (length > 16)
+            while (length >= 16)
             {
                 Array.Copy(input,inOff,M,0,16);
                 ProcessChecksum(M);
@@ -178,6 +201,40 @@ namespace Org.BouncyCastle.Crypto.Digests
                 length--;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            //
+            // fill the current word
+            //
+            while ((mOff != 0) && (input.Length > 0))
+            {
+                Update(input[0]);
+                input = input[1..];
+            }
+
+            //
+            // process whole words.
+            //
+            while (input.Length >= 16)
+            {
+                input[..16].CopyTo(M);
+                ProcessChecksum(M);
+                ProcessBlock(M);
+                input = input[16..];
+            }
+
+            //
+            // load in the remainder.
+            //
+            while (input.Length > 0)
+            {
+                Update(input[0]);
+                input = input[1..];
+            }
+        }
+#endif
 
         internal void ProcessChecksum(byte[] m)
         {

@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -168,7 +166,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptionalTagged(false, 0, keyidentifier);
             v.AddOptionalTagged(false, 1, certissuer);
             v.AddOptionalTagged(false, 2, certserno);

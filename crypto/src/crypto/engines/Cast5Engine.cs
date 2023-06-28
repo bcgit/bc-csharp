@@ -347,24 +347,25 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "CAST5"; }
         }
 
-		public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
-		public virtual int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+		public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-			int blockSize = GetBlockSize();
             if (_workingKey == null)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
 
+            int blockSize = GetBlockSize();
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
             Check.OutputLength(output, outOff, blockSize, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (_encrypting)
+            {
+                return EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+            else
+            {
+                return DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+#else
             if (_encrypting)
             {
                 return EncryptBlock(input, inOff, output, outOff);
@@ -373,11 +374,29 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 return DecryptBlock(input, inOff, output, outOff);
             }
+#endif
         }
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            if (_workingKey == null)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            int blockSize = GetBlockSize();
+            Check.DataLength(input, blockSize, "input buffer too short");
+            Check.OutputLength(output, blockSize, "output buffer too short");
+
+            if (_encrypting)
+            {
+                return EncryptBlock(input, output);
+            }
+            else
+            {
+                return DecryptBlock(input, output);
+            }
         }
+#endif
 
         public virtual int GetBlockSize()
         {
@@ -566,20 +585,45 @@ namespace Org.BouncyCastle.Crypto.Engines
             _Kr[16]=(int)((S5[x[0xE]]^S6[x[0xF]]^S7[x[0x1]]^S8[x[0x0]]^S8[x[0xD]])&0x1f);
         }
 
-        /**
-        * Encrypt the given input starting at the given offset and place
-        * the result in the provided buffer starting at the given offset.
-        *
-        * @param src        The plaintext buffer
-        * @param srcIndex    An offset into src
-        * @param dst        The ciphertext buffer
-        * @param dstIndex    An offset into dst
-        */
-        internal virtual int EncryptBlock(
-            byte[] src,
-            int srcIndex,
-            byte[] dst,
-            int dstIndex)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal virtual int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            // process the input block
+            // batch the units up into a 32 bit chunk and go for it
+            // the array is in bytes, the increment is 8x8 bits = 64
+
+            uint L0 = Pack.BE_To_UInt32(input);
+            uint R0 = Pack.BE_To_UInt32(input[4..]);
+
+            uint[] result = new uint[2];
+            CAST_Encipher(L0, R0, result);
+
+            // now stuff them into the destination block
+            Pack.UInt32_To_BE(result[0], output);
+            Pack.UInt32_To_BE(result[1], output[4..]);
+
+            return BLOCK_SIZE;
+        }
+
+        internal virtual int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            // process the input block
+            // batch the units up into a 32 bit chunk and go for it
+            // the array is in bytes, the increment is 8x8 bits = 64
+            uint L16 = Pack.BE_To_UInt32(input);
+            uint R16 = Pack.BE_To_UInt32(input[4..]);
+
+            uint[] result = new uint[2];
+            CAST_Decipher(L16, R16, result);
+
+            // now stuff them into the destination block
+            Pack.UInt32_To_BE(result[0], output);
+            Pack.UInt32_To_BE(result[1], output[4..]);
+
+            return BLOCK_SIZE;
+        }
+#else
+        internal virtual int EncryptBlock(byte[] src, int srcIndex, byte[] dst, int dstIndex)
         {
             // process the input block
             // batch the units up into a 32 bit chunk and go for it
@@ -598,20 +642,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        /**
-        * Decrypt the given input starting at the given offset and place
-        * the result in the provided buffer starting at the given offset.
-        *
-        * @param src        The plaintext buffer
-        * @param srcIndex    An offset into src
-        * @param dst        The ciphertext buffer
-        * @param dstIndex    An offset into dst
-        */
-        internal virtual int DecryptBlock(
-            byte[] src,
-            int srcIndex,
-            byte[] dst,
-            int dstIndex)
+        internal virtual int DecryptBlock(byte[] src, int srcIndex, byte[] dst, int dstIndex)
         {
             // process the input block
             // batch the units up into a 32 bit chunk and go for it
@@ -628,6 +659,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             return BLOCK_SIZE;
         }
+#endif
 
         /**
         * The first of the three processing functions for the
@@ -702,28 +734,28 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Li = Rp;
                 switch (i)
                 {
-                    case  1:
-                    case  4:
-                    case  7:
-                    case 10:
-                    case 13:
-                    case 16:
-                        Ri = Lp ^ F1(Rp, _Km[i], _Kr[i]);
-                        break;
-                    case  2:
-                    case  5:
-                    case  8:
-                    case 11:
-                    case 14:
-                        Ri = Lp ^ F2(Rp, _Km[i], _Kr[i]);
-                        break;
-                    case  3:
-                    case  6:
-                    case  9:
-                    case 12:
-                    case 15:
-                        Ri = Lp ^ F3(Rp, _Km[i], _Kr[i]);
-                        break;
+                case  1:
+                case  4:
+                case  7:
+                case 10:
+                case 13:
+                case 16:
+                    Ri = Lp ^ F1(Rp, _Km[i], _Kr[i]);
+                    break;
+                case  2:
+                case  5:
+                case  8:
+                case 11:
+                case 14:
+                    Ri = Lp ^ F2(Rp, _Km[i], _Kr[i]);
+                    break;
+                case  3:
+                case  6:
+                case  9:
+                case 12:
+                case 15:
+                    Ri = Lp ^ F3(Rp, _Km[i], _Kr[i]);
+                    break;
                 }
             }
 
@@ -752,28 +784,28 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Li = Rp;
                 switch (i)
                 {
-                    case  1:
-                    case  4:
-                    case  7:
-                    case 10:
-                    case 13:
-                    case 16:
-                        Ri = Lp ^ F1(Rp, _Km[i], _Kr[i]);
-                        break;
-                    case  2:
-                    case  5:
-                    case  8:
-                    case 11:
-                    case 14:
-                        Ri = Lp ^ F2(Rp, _Km[i], _Kr[i]);
-                        break;
-                    case  3:
-                    case  6:
-                    case  9:
-                    case 12:
-                    case 15:
-                        Ri = Lp ^ F3(Rp, _Km[i], _Kr[i]);
-                        break;
+                case  1:
+                case  4:
+                case  7:
+                case 10:
+                case 13:
+                case 16:
+                    Ri = Lp ^ F1(Rp, _Km[i], _Kr[i]);
+                    break;
+                case  2:
+                case  5:
+                case  8:
+                case 11:
+                case 14:
+                    Ri = Lp ^ F2(Rp, _Km[i], _Kr[i]);
+                    break;
+                case  3:
+                case  6:
+                case  9:
+                case 12:
+                case 15:
+                    Ri = Lp ^ F3(Rp, _Km[i], _Kr[i]);
+                    break;
                 }
             }
 

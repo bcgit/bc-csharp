@@ -1,47 +1,40 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class ProtectedPart
 		: Asn1Encodable
 	{
-		private readonly PkiHeader header;
-		private readonly PkiBody body;
-		
+        public static ProtectedPart GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is ProtectedPart popoDecKeyRespContent)
+                return popoDecKeyRespContent;
+            return new ProtectedPart(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static ProtectedPart GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly PkiHeader m_header;
+		private readonly PkiBody m_body;
+
 		private ProtectedPart(Asn1Sequence seq)
 		{
-			header = PkiHeader.GetInstance(seq[0]);
-			body = PkiBody.GetInstance(seq[1]);
-		}
-
-		public static ProtectedPart GetInstance(object obj)
-		{
-			if (obj is ProtectedPart)
-				return (ProtectedPart)obj;
-
-			if (obj is Asn1Sequence)
-				return new ProtectedPart((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+			m_header = PkiHeader.GetInstance(seq[0]);
+			m_body = PkiBody.GetInstance(seq[1]);
 		}
 
 		public ProtectedPart(PkiHeader header, PkiBody body)
 		{
-			this.header = header;
-			this.body = body;
+			m_header = header;
+			m_body = body;
 		}
 
-		public virtual PkiHeader Header
-		{
-			get { return header; }
-		}
+		public virtual PkiHeader Header => m_header;
 
-		public virtual PkiBody Body
-		{
-			get { return body; }
-		}
+		public virtual PkiBody Body => m_body;
 
 		/**
 		 * <pre>
@@ -54,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return new DerSequence(header, body);
+			return new DerSequence(m_header, m_body);
 		}
 	}
 }

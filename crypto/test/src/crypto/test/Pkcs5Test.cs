@@ -218,12 +218,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new Pkcs5Test());
-        }
-
         [Test]
         public void TestFunction()
         {

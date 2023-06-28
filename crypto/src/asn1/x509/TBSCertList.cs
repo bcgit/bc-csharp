@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -14,13 +13,10 @@ namespace Org.BouncyCastle.Asn1.X509
 		internal Time			revocationDate;
 		internal X509Extensions	crlEntryExtensions;
 
-		public CrlEntry(
-			Asn1Sequence seq)
+		public CrlEntry(Asn1Sequence seq)
 		{
 			if (seq.Count < 2 || seq.Count > 3)
-			{
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
 
 			this.seq = seq;
 
@@ -82,33 +78,42 @@ namespace Org.BouncyCastle.Asn1.X509
         : Asn1Encodable
     {
 		private class RevokedCertificatesEnumeration
-			: IEnumerable
+			: IEnumerable<CrlEntry>
 		{
-			private readonly IEnumerable en;
+			private readonly IEnumerable<Asn1Encodable> en;
 
-			internal RevokedCertificatesEnumeration(
-				IEnumerable en)
+			internal RevokedCertificatesEnumeration(IEnumerable<Asn1Encodable> en)
 			{
 				this.en = en;
 			}
 
-			public IEnumerator GetEnumerator()
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+				return GetEnumerator();
+            }
+
+			public IEnumerator<CrlEntry> GetEnumerator()
 			{
 				return new RevokedCertificatesEnumerator(en.GetEnumerator());
 			}
 
-			private class RevokedCertificatesEnumerator
-				: IEnumerator
+			private sealed class RevokedCertificatesEnumerator
+				: IEnumerator<CrlEntry>
 			{
-				private readonly IEnumerator e;
+				private readonly IEnumerator<Asn1Encodable> e;
 
-				internal RevokedCertificatesEnumerator(
-					IEnumerator e)
+				internal RevokedCertificatesEnumerator(IEnumerator<Asn1Encodable> e)
 				{
 					this.e = e;
 				}
 
-				public bool MoveNext()
+				public void Dispose()
+				{
+					e.Dispose();
+                    GC.SuppressFinalize(this);
+                }
+
+                public bool MoveNext()
 				{
 					return e.MoveNext();
 				}
@@ -118,7 +123,12 @@ namespace Org.BouncyCastle.Asn1.X509
 					e.Reset();
 				}
 
-				public object Current
+				object System.Collections.IEnumerator.Current
+                {
+					get { return Current; }
+                }
+
+				public CrlEntry Current
 				{
 					get { return new CrlEntry(Asn1Sequence.GetInstance(e.Current)); }
 				}
@@ -134,46 +144,33 @@ namespace Org.BouncyCastle.Asn1.X509
 		internal Asn1Sequence			revokedCertificates;
 		internal X509Extensions			crlExtensions;
 
-		public static TbsCertificateList GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static TbsCertificateList GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+			if (obj is TbsCertificateList tbsCertificateList)
+				return tbsCertificateList;
+			return new TbsCertificateList(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static TbsCertificateList GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static TbsCertificateList GetInstance(
-            object obj)
-        {
-            TbsCertificateList list = obj as TbsCertificateList;
-
-			if (obj == null || list != null)
-            {
-                return list;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new TbsCertificateList((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-        }
-
-		internal TbsCertificateList(
-            Asn1Sequence seq)
+        private TbsCertificateList(Asn1Sequence seq)
         {
 			if (seq.Count < 3 || seq.Count > 7)
-			{
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
 
 			int seqPos = 0;
 
 			this.seq = seq;
 
-			if (seq[seqPos] is DerInteger)
+			if (seq[seqPos] is DerInteger derInteger)
             {
-				version = DerInteger.GetInstance(seq[seqPos++]);
+				version = derInteger;
+				++seqPos;
 			}
             else
             {
@@ -185,8 +182,8 @@ namespace Org.BouncyCastle.Asn1.X509
             thisUpdate = Time.GetInstance(seq[seqPos++]);
 
 			if (seqPos < seq.Count
-                && (seq[seqPos] is DerUtcTime
-                   || seq[seqPos] is DerGeneralizedTime
+                && (seq[seqPos] is Asn1UtcTime
+                   || seq[seqPos] is Asn1GeneralizedTime
                    || seq[seqPos] is Time))
             {
                 nextUpdate = Time.GetInstance(seq[seqPos++]);
@@ -252,12 +249,10 @@ namespace Org.BouncyCastle.Asn1.X509
 			return entries;
 		}
 
-		public IEnumerable GetRevokedCertificateEnumeration()
+		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
 		{
 			if (revokedCertificates == null)
-			{
-				return EmptyEnumerable.Instance;
-			}
+				return new List<CrlEntry>(0);
 
 			return new RevokedCertificatesEnumeration(revokedCertificates);
 		}

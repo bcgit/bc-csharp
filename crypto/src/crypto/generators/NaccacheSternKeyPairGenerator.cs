@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -52,9 +49,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 			SecureRandom rand = param.Random;
 			int certainty = param.Certainty;
 
-			IList smallPrimes = findFirstPrimes(param.CountSmallPrimes);
+			var smallPrimes = FindFirstPrimes(param.CountSmallPrimes);
 
-			smallPrimes = permuteList(smallPrimes, rand);
+			smallPrimes = PermuteList(smallPrimes, rand);
 
 			BigInteger u = BigInteger.One;
 			BigInteger v = BigInteger.One;
@@ -77,8 +74,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 			// remainingStrength = strength - sigma.bitLength() - _p.bitLength() -
 			// _q.bitLength() - 1 -1
 			int remainingStrength = strength - sigma.BitLength - 48;
-			BigInteger a = generatePrime(remainingStrength / 2 + 1, certainty, rand);
-			BigInteger b = generatePrime(remainingStrength / 2 + 1, certainty, rand);
+			BigInteger a = GeneratePrime(remainingStrength / 2 + 1, certainty, rand);
+			BigInteger b = GeneratePrime(remainingStrength / 2 + 1, certainty, rand);
 
 			BigInteger _p;
 			BigInteger _q;
@@ -94,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 			{
 				tries++;
 
-				_p = generatePrime(24, certainty, rand);
+				_p = GeneratePrime(24, certainty, rand);
 
 				p = _p.Multiply(_2au).Add(BigInteger.One);
 
@@ -103,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 				for (;;)
 				{
-					_q = generatePrime(24, certainty, rand);
+					_q = GeneratePrime(24, certainty, rand);
 
 					if (_p.Equals(_q))
 						continue;
@@ -135,17 +132,17 @@ namespace Org.BouncyCastle.Crypto.Generators
 			for (;;)
 			{
 				// TODO After the first loop, just regenerate one randomly-selected gPart each time?
-				IList gParts = Platform.CreateArrayList();
+				var gParts = new List<BigInteger>();
 				for (int ind = 0; ind != smallPrimes.Count; ind++)
 				{
-					BigInteger i = (BigInteger)smallPrimes[ind];
+					BigInteger i = smallPrimes[ind];
 					BigInteger e = phi_n.Divide(i);
 
 					for (;;)
 					{
 						tries++;
 
-						g = generatePrime(strength, certainty, rand);
+						g = GeneratePrime(strength, certainty, rand);
 
 						if (!g.ModPow(e, n).Equals(BigInteger.One))
 						{
@@ -209,10 +206,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n));
 		}
 
-		private static BigInteger generatePrime(
-			int bitLength,
-			int certainty,
-			SecureRandom rand)
+		private static BigInteger GeneratePrime(int bitLength, int certainty, SecureRandom rand)
 		{
 			return new BigInteger(bitLength, certainty, rand);
 		}
@@ -227,15 +221,13 @@ namespace Org.BouncyCastle.Crypto.Generators
 		 *            the source of Randomness for permutation
 		 * @return a new IList with the permuted elements.
 		 */
-		private static IList permuteList(
-			IList           arr,
-			SecureRandom    rand)
+		private static IList<T> PermuteList<T>(IList<T> arr, SecureRandom rand)
 		{
             // TODO Create a utility method for generating permutation of first 'n' integers
 
-            IList retval = Platform.CreateArrayList(arr.Count);
+            var retval = new List<T>(arr.Count);
 
-			foreach (object element in arr)
+			foreach (var element in arr)
 			{
 				int index = rand.Next(retval.Count + 1);
 				retval.Insert(index, element);
@@ -251,10 +243,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 		 *            the number of primes to find
 		 * @return a vector containing the found primes as Integer
 		 */
-		private static IList findFirstPrimes(
-			int count)
+		private static IList<BigInteger> FindFirstPrimes(int count)
 		{
-			IList primes = Platform.CreateArrayList(count);
+			var primes = new List<BigInteger>(count);
 
 			for (int i = 0; i != count; i++)
 			{

@@ -92,6 +92,8 @@ namespace Org.BouncyCastle.Bcpg
 			{
 			case SignatureSubpacketTag.CreationTime:
 				return new SignatureCreationTime(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.EmbeddedSignature:
+                return new EmbeddedSignature(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.KeyExpireTime:
                 return new KeyExpirationTime(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.ExpireTime:
@@ -100,6 +102,8 @@ namespace Org.BouncyCastle.Bcpg
                 return new Revocable(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.Exportable:
                 return new Exportable(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.Features:
+                return new Features(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.IssuerKeyId:
                 return new IssuerKeyId(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.TrustSig:
@@ -107,19 +111,30 @@ namespace Org.BouncyCastle.Bcpg
 			case SignatureSubpacketTag.PreferredCompressionAlgorithms:
 			case SignatureSubpacketTag.PreferredHashAlgorithms:
 			case SignatureSubpacketTag.PreferredSymmetricAlgorithms:
+			case SignatureSubpacketTag.PreferredAeadAlgorithms:
                 return new PreferredAlgorithms(type, isCritical, isLongLength, data);
 			case SignatureSubpacketTag.KeyFlags:
                 return new KeyFlags(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.PolicyUrl:
+                return new PolicyUrl(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.PrimaryUserId:
                 return new PrimaryUserId(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.SignerUserId:
                 return new SignerUserId(isCritical, isLongLength, data);
 			case SignatureSubpacketTag.NotationData:
                 return new NotationData(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.RegExp:
+                return new RegularExpression(isCritical, isLongLength, data);
             case SignatureSubpacketTag.RevocationReason:
                 return new RevocationReason(isCritical, isLongLength, data);
             case SignatureSubpacketTag.RevocationKey:
                 return new RevocationKey(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.SignatureTarget:
+                return new SignatureTarget(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.IssuerFingerprint:
+                return new IssuerFingerprint(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.IntendedRecipientFingerprint:
+                return new IntendedRecipientFingerprint(isCritical, isLongLength, data);
             }
             return new SignatureSubpacket(type, isCritical, isLongLength, data);
 		}

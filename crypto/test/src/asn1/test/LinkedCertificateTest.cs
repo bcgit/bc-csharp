@@ -81,11 +81,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             checkOptionalField("caCerts", caCerts, linked.CACerts);
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new LinkedCertificateTest());
-        }
-
         [Test]
         public void TestFunction()
         {

@@ -1,25 +1,28 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
 	public class CmsTestUtil
 	{
-		public static SecureRandom rand;
+		public static readonly SecureRandom Random = new SecureRandom();
+
 		private static IAsymmetricCipherKeyPairGenerator kpg;
 		private static IAsymmetricCipherKeyPairGenerator gostKpg;
 		private static IAsymmetricCipherKeyPairGenerator dsaKpg;
@@ -85,7 +88,7 @@ namespace Org.BouncyCastle.Cms.Tests
 				{
 					kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 					kpg.Init(new RsaKeyGenerationParameters(
-						BigInteger.ValueOf(17), rand, 1024, 25));
+						BigInteger.ValueOf(17), Random, 1024, 25));
 				}
 
 				return kpg;
@@ -101,7 +104,7 @@ namespace Org.BouncyCastle.Cms.Tests
 					gostKpg = GeneratorUtilities.GetKeyPairGenerator("GOST3410");
 					gostKpg.Init(
 						new Gost3410KeyGenerationParameters(
-							rand,
+							Random,
 							CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
 				}
 
@@ -120,7 +123,7 @@ namespace Org.BouncyCastle.Cms.Tests
 						new BigInteger("1138656671590261728308283492178581223478058193247"),
 						new BigInteger("4182906737723181805517018315469082619513954319976782448649747742951189003482834321192692620856488639629011570381138542789803819092529658402611668375788410"));
 					dsaKpg = GeneratorUtilities.GetKeyPairGenerator("DSA");
-					dsaKpg.Init(new DsaKeyGenerationParameters(rand, dsaSpec));
+					dsaKpg.Init(new DsaKeyGenerationParameters(Random, dsaSpec));
 				}
 
 				return dsaKpg;
@@ -151,7 +154,7 @@ namespace Org.BouncyCastle.Cms.Tests
 				if (ecDsaKpg == null)
 				{
 					ecDsaKpg = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
-					ecDsaKpg.Init(new KeyGenerationParameters(rand, 239));
+					ecDsaKpg.Init(new KeyGenerationParameters(Random, 239));
 				}
 
 				return ecDsaKpg;
@@ -162,25 +165,23 @@ namespace Org.BouncyCastle.Cms.Tests
 		{
 		    try
 		    {
-		        rand = new SecureRandom();
-
 				aes192kg = GeneratorUtilities.GetKeyGenerator("AES");
-				aes192kg.Init(new KeyGenerationParameters(rand, 192));
+				aes192kg.Init(new KeyGenerationParameters(Random, 192));
 
 		        desede128kg = GeneratorUtilities.GetKeyGenerator("DESEDE");
-				desede128kg.Init(new KeyGenerationParameters(rand, 112));
+				desede128kg.Init(new KeyGenerationParameters(Random, 112));
 
 				desede192kg = GeneratorUtilities.GetKeyGenerator("DESEDE");
-				desede192kg.Init(new KeyGenerationParameters(rand, 168));
+				desede192kg.Init(new KeyGenerationParameters(Random, 168));
 
 				rc240kg = GeneratorUtilities.GetKeyGenerator("RC2");
-				rc240kg.Init(new KeyGenerationParameters(rand, 40));
+				rc240kg.Init(new KeyGenerationParameters(Random, 40));
 
 				rc264kg = GeneratorUtilities.GetKeyGenerator("RC2");
-				rc264kg.Init(new KeyGenerationParameters(rand, 64));
+				rc264kg.Init(new KeyGenerationParameters(Random, 64));
 
 				rc2128kg = GeneratorUtilities.GetKeyGenerator("RC2");
-				rc2128kg.Init(new KeyGenerationParameters(rand, 128));
+				rc2128kg.Init(new KeyGenerationParameters(Random, 128));
 
 				aesKg = GeneratorUtilities.GetKeyGenerator("AES");
 
@@ -207,24 +208,20 @@ namespace Org.BouncyCastle.Cms.Tests
 			{
 				if (i + 64 < data.Length)
 				{
-					buf.Append(Encoding.Default.GetString(data, i, 64));
+					buf.Append(Encoding.ASCII.GetString(data, i, 64));
 				}
 				else
 				{
-					buf.Append(Encoding.Default.GetString(data, i, data.Length - i));
+					buf.Append(Encoding.ASCII.GetString(data, i, data.Length - i));
 				}
-				buf.Append('\n');
+				buf.AppendLine();
 			}
 
 			return buf.ToString();
 		}
 
-		public static IX509AttributeCertificate GetAttributeCertificate()
+		public static X509V2AttributeCertificate GetAttributeCertificate()
 		{
-//			X509StreamParser parser = X509StreamParser.GetInstance("AttributeCertificate");
-//			parser.Init(CmsTestUtil.attrCert);
-//			return (X509AttributeCertificate) parser.Read();
-
 			return new X509AttrCertParser().ReadAttrCert(attrCert);
 		}
 
@@ -291,7 +288,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		public static KeyParameter MakeAesKey(
 			int keySize)
 		{
-			aesKg.Init(new KeyGenerationParameters(rand, keySize));
+			aesKg.Init(new KeyGenerationParameters(Random, keySize));
 
 			return ParameterUtilities.CreateKeyParameter("AES", aesKg.GenerateKey());
 		}
@@ -299,7 +296,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		public static KeyParameter MakeCamelliaKey(
 			int keySize)
 		{
-			camelliaKg.Init(new KeyGenerationParameters(rand, keySize));
+			camelliaKg.Init(new KeyGenerationParameters(Random, keySize));
 
 			return ParameterUtilities.CreateKeyParameter("CAMELLIA", camelliaKg.GenerateKey());
 		}
@@ -323,8 +320,10 @@ namespace Org.BouncyCastle.Cms.Tests
 			AsymmetricKeyParameter issPriv = issKP.Private;
 			AsymmetricKeyParameter issPub = issKP.Public;
 
-			X509V1CertificateGenerator v1CertGen = new X509V1CertificateGenerator();
+			string signatureAlgorithm = GetSignatureAlgorithm(issPub);
+			ISignatureFactory signatureFactory = new Asn1SignatureFactory(signatureAlgorithm, issPriv, Random);
 
+			X509V1CertificateGenerator v1CertGen = new X509V1CertificateGenerator();
 			v1CertGen.Reset();
 			v1CertGen.SetSerialNumber(AllocateSerialNumber());
 			v1CertGen.SetIssuerDN(new X509Name(_issDN));
@@ -332,33 +331,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			v1CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
 			v1CertGen.SetSubjectDN(new X509Name(_subDN));
 			v1CertGen.SetPublicKey(subPub);
-
-			if (issPub is RsaKeyParameters)
-			{
-				v1CertGen.SetSignatureAlgorithm("SHA1WithRSA");
-			}
-			else if (issPub is DsaPublicKeyParameters)
-			{
-				v1CertGen.SetSignatureAlgorithm("SHA1withDSA");
-			}
-			else if (issPub is ECPublicKeyParameters)
-			{
-				ECPublicKeyParameters ecPub = (ECPublicKeyParameters)issPub;
-				if (ecPub.AlgorithmName == "ECGOST3410")
-				{
-					v1CertGen.SetSignatureAlgorithm("GOST3411withECGOST3410");
-				}
-				else
-				{
-					v1CertGen.SetSignatureAlgorithm("SHA1withECDSA");
-				}	
-			}
-			else
-			{
-				v1CertGen.SetSignatureAlgorithm("GOST3411WithGOST3410");
-			}
-
-			X509Certificate _cert = v1CertGen.Generate(issPriv);
+			X509Certificate _cert = v1CertGen.Generate(signatureFactory);
 
 			_cert.CheckValidity(DateTime.UtcNow);
 			_cert.Verify(issPub);
@@ -374,8 +347,10 @@ namespace Org.BouncyCastle.Cms.Tests
 			AsymmetricKeyParameter issPriv = issKP.Private;
 			AsymmetricKeyParameter issPub = issKP.Public;
 
-			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
+			string signatureAlgorithm = GetSignatureAlgorithm(issPub);
+			ISignatureFactory signatureFactory = new Asn1SignatureFactory(signatureAlgorithm, issPriv, Random);
 
+			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
 			v3CertGen.Reset();
 			v3CertGen.SetSerialNumber(AllocateSerialNumber());
 			v3CertGen.SetIssuerDN(new X509Name(_issDN));
@@ -383,27 +358,6 @@ namespace Org.BouncyCastle.Cms.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
 			v3CertGen.SetSubjectDN(new X509Name(_subDN));
 			v3CertGen.SetPublicKey(subPub);
-
-			if (issPub is RsaKeyParameters)
-			{
-				v3CertGen.SetSignatureAlgorithm("SHA1WithRSA");
-			}
-			else if (issPub is ECPublicKeyParameters)
-			{
-				ECPublicKeyParameters ecPub = (ECPublicKeyParameters) issPub;
-				if (ecPub.AlgorithmName == "ECGOST3410")
-				{
-					v3CertGen.SetSignatureAlgorithm("GOST3411withECGOST3410");
-				}
-				else
-				{
-					v3CertGen.SetSignatureAlgorithm("SHA1withECDSA");
-				}
-			}
-			else
-			{
-				v3CertGen.SetSignatureAlgorithm("GOST3411WithGOST3410");
-			}
 
 			v3CertGen.AddExtension(
 				X509Extensions.SubjectKeyIdentifier,
@@ -420,7 +374,7 @@ namespace Org.BouncyCastle.Cms.Tests
 				false,
 				new BasicConstraints(_ca));
 
-			X509Certificate _cert = v3CertGen.Generate(issPriv);
+			X509Certificate _cert = v3CertGen.Generate(signatureFactory);
 
 			_cert.CheckValidity();
 			_cert.Verify(issPub);
@@ -438,51 +392,77 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			crlGen.SetThisUpdate(now);
 			crlGen.SetNextUpdate(now.AddSeconds(100));
-			crlGen.SetSignatureAlgorithm("SHA256WithRSAEncryption");
 
 			crlGen.AddCrlEntry(BigInteger.One, now, CrlReason.PrivilegeWithdrawn);
 
 			crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
 
-			return crlGen.Generate(pair.Private);
+			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
 		}
 
-		/*
+        /*
 		*
 		*  INTERNAL METHODS
 		*
 		*/
-        internal static IX509Store MakeAttrCertStore(params IX509AttributeCertificate[] attrCerts)
+
+        internal static string GetSignatureAlgorithm(AsymmetricKeyParameter publicKey)
         {
-            IList attrCertList = new ArrayList();
-            foreach (IX509AttributeCertificate attrCert in attrCerts)
+            if (publicKey is RsaKeyParameters)
+                return "SHA1WithRSA";
+
+            if (publicKey is DsaPublicKeyParameters)
+                return "SHA1withDSA";
+
+            if (publicKey is ECPublicKeyParameters ecPub)
+            {
+                return ecPub.AlgorithmName == "ECGOST3410" ? "GOST3411withECGOST3410" : "SHA1withECDSA";
+            }
+
+            return "GOST3411WithGOST3410";
+        }
+
+        internal static IStore<X509V2AttributeCertificate> MakeAttrCertStore(
+			params X509V2AttributeCertificate[] attrCerts)
+        {
+			var attrCertList = new List<X509V2AttributeCertificate>();
+			foreach (var attrCert in attrCerts)
             {
                 attrCertList.Add(attrCert);
             }
 
-            return X509StoreFactory.Create("AttributeCertificate/Collection", new X509CollectionStoreParameters(attrCertList));
+			return CollectionUtilities.CreateStore(attrCertList);
         }
 
-        internal static IX509Store MakeCertStore(params X509Certificate[] certs)
+        internal static IStore<X509Certificate> MakeCertStore(params X509Certificate[] certs)
         {
-            IList certList = new ArrayList();
-            foreach (X509Certificate cert in certs)
+            var certList = new List<X509Certificate>();
+            foreach (var cert in certs)
             {
                 certList.Add(cert);
             }
 
-            return X509StoreFactory.Create("Certificate/Collection", new X509CollectionStoreParameters(certList));
+			return CollectionUtilities.CreateStore(certList);
         }
 
-        internal static IX509Store MakeCrlStore(params X509Crl[] crls)
+        internal static IStore<X509Crl> MakeCrlStore(params X509Crl[] crls)
         {
-            IList crlList = new ArrayList();
-            foreach (X509Crl crl in crls)
+            var crlList = new List<X509Crl>();
+            foreach (var crl in crls)
             {
                 crlList.Add(crl);
             }
 
-            return X509StoreFactory.Create("CRL/Collection", new X509CollectionStoreParameters(crlList));
+			return CollectionUtilities.CreateStore(crlList);
+        }
+
+        internal static IStore<Asn1Encodable> MakeOtherRevocationInfoStore(byte[] ocspResponseBytes)
+        {
+            var otherRevocationInfoList = new List<Asn1Encodable>
+            {
+                Asn1Object.FromByteArray(ocspResponseBytes)
+            };
+            return CollectionUtilities.CreateStore(otherRevocationInfoList);
         }
 
         private static AuthorityKeyIdentifier CreateAuthorityKeyId(

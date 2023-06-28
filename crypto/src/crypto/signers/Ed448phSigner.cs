@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Rfc8032;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -19,7 +17,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public Ed448phSigner(byte[] context)
         {
-            this.context = Arrays.Clone(context);
+            if (null == context)
+                throw new ArgumentNullException(nameof(context));
+
+            this.context = (byte[])context.Clone();
         }
 
         public virtual string AlgorithmName
@@ -55,14 +56,23 @@ namespace Org.BouncyCastle.Crypto.Signers
             prehash.BlockUpdate(buf, off, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            prehash.BlockUpdate(input);
+        }
+#endif
+
+        public virtual int GetMaxSignatureSize() => Ed448.SignatureSize;
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning || null == privateKey)
                 throw new InvalidOperationException("Ed448phSigner not initialised for signature generation.");
 
             byte[] msg = new byte[Ed448.PrehashSize];
-            if (Ed448.PrehashSize != prehash.DoFinal(msg, 0, Ed448.PrehashSize))
-                throw new InvalidOperationException("Prehash digest failed");
+            if (Ed448.PrehashSize != prehash.OutputFinal(msg, 0, Ed448.PrehashSize))
+                throw new InvalidOperationException("Prehash calculation failed");
 
             byte[] signature = new byte[Ed448PrivateKeyParameters.SignatureSize];
             privateKey.Sign(Ed448.Algorithm.Ed448ph, context, msg, 0, Ed448.PrehashSize, signature, 0);
@@ -79,8 +89,11 @@ namespace Org.BouncyCastle.Crypto.Signers
                 return false;
             }
 
-            byte[] pk = publicKey.GetEncoded();
-            return Ed448.VerifyPrehash(signature, 0, pk, 0, context, prehash);
+            byte[] msg = new byte[Ed448.PrehashSize];
+            if (Ed448.PrehashSize != prehash.OutputFinal(msg, 0, Ed448.PrehashSize))
+                throw new InvalidOperationException("Prehash calculation failed");
+
+            return publicKey.Verify(Ed448.Algorithm.Ed448ph, context, msg, 0, Ed448.PrehashSize, signature, 0);
         }
 
         public void Reset()

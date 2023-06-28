@@ -30,32 +30,34 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerUtf8String GetInstance(object obj)
         {
-            if (obj == null || obj is DerUtf8String)
+            if (obj == null)
+                return null;
+
+            if (obj is DerUtf8String derUtf8String)
+                return derUtf8String;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerUtf8String)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerUtf8String converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerUtf8String)
-                    return (DerUtf8String)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerUtf8String)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerUtf8String)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct UTF8 string from byte[]: " + e.Message);
                 }
             }
-            else if (obj is ArraySegment<byte>)
+            else if (obj is ArraySegment<byte> arraySegment)
             {
                 try
                 {
-                    return (DerUtf8String)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                    return (DerUtf8String)Meta.Instance.FromByteArray(arraySegment);
                 }
                 catch (IOException e)
                 {
@@ -123,6 +125,16 @@ namespace Org.BouncyCastle.Asn1
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             return new PrimitiveEncoding(tagClass, tagNo, m_contents);
+        }
+
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, m_contents);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
         internal static DerUtf8String CreatePrimitive(byte[] contents)

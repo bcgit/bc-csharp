@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
@@ -13,22 +12,22 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 3546 3.6</summary>
     public sealed class OcspStatusRequest
     {
-        private readonly IList m_responderIDList;
+        private readonly IList<ResponderID> m_responderIDList;
         private readonly X509Extensions m_requestExtensions;
 
-        /// <param name="responderIDList">an <see cref="IList"/> of <see cref="ResponderID"/>, specifying the list of
+        /// <param name="responderIDList">an <see cref="IList{T}"/> of <see cref="ResponderID"/>, specifying the list of
         /// trusted OCSP responders. An empty list has the special meaning that the responders are implicitly known to
         /// the server - e.g., by prior arrangement.</param>
         /// <param name="requestExtensions">OCSP request extensions. A null value means that there are no extensions.
         /// </param>
-        public OcspStatusRequest(IList responderIDList, X509Extensions requestExtensions)
+        public OcspStatusRequest(IList<ResponderID> responderIDList, X509Extensions requestExtensions)
         {
             this.m_responderIDList = responderIDList;
             this.m_requestExtensions = requestExtensions;
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="ResponderID"/>.</returns>
-        public IList ResponderIDList
+        /// <returns>an <see cref="IList{T}"/> of <see cref="ResponderID"/>.</returns>
+        public IList<ResponderID> ResponderIDList
         {
             get { return m_responderIDList; }
         }
@@ -57,8 +56,8 @@ namespace Org.BouncyCastle.Tls
                     TlsUtilities.WriteOpaque16(derEncoding, buf);
                 }
                 TlsUtilities.CheckUint16(buf.Length);
-                TlsUtilities.WriteUint16((int)buf.Length, output);
-                Streams.WriteBufTo(buf, output);
+                TlsUtilities.WriteUint16(Convert.ToInt32(buf.Length), output);
+                buf.WriteTo(output);
             }
 
             if (m_requestExtensions == null)
@@ -80,7 +79,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public static OcspStatusRequest Parse(Stream input)
         {
-            IList responderIDList = Platform.CreateArrayList();
+            var responderIDList = new List<ResponderID>();
             {
                 byte[] data = TlsUtilities.ReadOpaque16(input);
                 if (data.Length > 0)

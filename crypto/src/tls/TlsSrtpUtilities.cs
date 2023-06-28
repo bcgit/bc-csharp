@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Org.BouncyCastle.Tls
@@ -8,13 +8,13 @@ namespace Org.BouncyCastle.Tls
     public abstract class TlsSrtpUtilities
 {
         /// <exception cref="IOException"/>
-        public static void AddUseSrtpExtension(IDictionary extensions, UseSrtpData useSrtpData)
+        public static void AddUseSrtpExtension(IDictionary<int, byte[]> extensions, UseSrtpData useSrtpData)
         {
             extensions[ExtensionType.use_srtp] = CreateUseSrtpExtension(useSrtpData);
         }
 
         /// <exception cref="IOException"/>
-        public static UseSrtpData GetUseSrtpExtension(IDictionary extensions)
+        public static UseSrtpData GetUseSrtpExtension(IDictionary<int, byte[]> extensions)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.use_srtp);
             return extensionData == null ? null : ReadUseSrtpExtension(extensionData);

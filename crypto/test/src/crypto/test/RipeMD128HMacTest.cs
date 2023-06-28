@@ -80,15 +80,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new SimpleTestResult(true, Name + ": Okay");
         }
 
-        public static void Main(
-            string[] args)
-        {
-            ITest test = new RipeMD128HMacTest();
-            ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-        }
-
 		[Test]
         public void TestFunction()
         {

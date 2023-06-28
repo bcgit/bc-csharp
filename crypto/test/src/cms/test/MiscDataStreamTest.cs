@@ -1,22 +1,15 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.Oiw;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
-using Org.BouncyCastle.Utilities.Test;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -92,21 +85,19 @@ namespace Org.BouncyCastle.Cms.Tests
 			get { return origCrl == null ? (origCrl = CmsTestUtil.MakeCrl(OrigKP)) : origCrl; }
 		}
 
-		private void VerifySignatures(
-			CmsSignedDataParser	sp,
-			byte[]				contentDigest)
+		private void VerifySignatures(CmsSignedDataParser sp, byte[] contentDigest)
 		{
-			IX509Store certStore = sp.GetCertificates("Collection");
+			IStore<X509Certificate> certStore = sp.GetCertificates();
 			SignerInformationStore signers = sp.GetSignerInfos();
 
 			foreach (SignerInformation signer in signers.GetSigners())
 			{
-				ICollection certCollection = certStore.GetMatches(signer.SignerID);
+				var certCollection = certStore.EnumerateMatches(signer.SignerID);
 
-				IEnumerator certEnum = certCollection.GetEnumerator();
+				var certEnum = certCollection.GetEnumerator();
 
 				certEnum.MoveNext();
-				X509Certificate	cert = (X509Certificate) certEnum.Current;
+				X509Certificate	cert = certEnum.Current;
 
 				Assert.IsTrue(signer.Verify(cert));
 
@@ -123,53 +114,46 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sp, null);
 		}
 
-		private void VerifyEncodedData(
-			MemoryStream bOut)
-		{
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+		//private void VerifyEncodedData(MemoryStream bOut)
+		//{
+		//	using (var sp = new CmsSignedDataParser(bOut.ToArray()))
+		//	{
+		//		sp.GetSignedContent().Drain();
 
-			sp.GetSignedContent().Drain();
-
-			VerifySignatures(sp);
-
-			sp.Close();
-		}
+		//		VerifySignatures(sp);
+		//	}
+		//}
 
 		private void CheckSigParseable(byte[] sig)
 		{
-			CmsSignedDataParser sp = new CmsSignedDataParser(sig);
-			sp.Version.ToString();
-			CmsTypedStream sc = sp.GetSignedContent();
-			if (sc != null)
+			using (var sp = new CmsSignedDataParser(sig))
 			{
-				sc.Drain();
-			}
-			sp.GetAttributeCertificates("Collection");
-			sp.GetCertificates("Collection");
-			sp.GetCrls("Collection");
-			sp.GetSignerInfos();
-			sp.Close();
-		}
+                sp.Version.ToString();
+                CmsTypedStream sc = sp.GetSignedContent();
+                if (sc != null)
+                {
+                    sc.Drain();
+                }
+                sp.GetAttributeCertificates();
+                sp.GetCertificates();
+                sp.GetCrls();
+                sp.GetSignerInfos();
+            }
+        }
 
 		[Test]
 		public void TestSha1WithRsa()
 		{
-			IList certList = new ArrayList();
-			IList crlList = new ArrayList();
-			MemoryStream bOut = new MemoryStream();
-
+			var certList = new List<X509Certificate>();
 			certList.Add(OrigCert);
 			certList.Add(SignCert);
 
+			var crlList = new List<X509Crl>();
 			crlList.Add(SignCrl);
 			crlList.Add(OrigCrl);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-			IX509Store x509Crls = X509StoreFactory.Create(
-				"CRL/Collection",
-				new X509CollectionStoreParameters(crlList));
+			var x509Certs = CollectionUtilities.CreateStore(certList);
+			var x509Crls = CollectionUtilities.CreateStore(crlList);
 
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 
@@ -178,6 +162,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			gen.AddCertificates(x509Certs);
 			gen.AddCrls(x509Crls);
 
+			MemoryStream bOut = new MemoryStream();
 			Stream sigOut = gen.Open(bOut);
 
 			CmsCompressedDataStreamGenerator cGen = new CmsCompressedDataStreamGenerator();

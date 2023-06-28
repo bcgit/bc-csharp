@@ -28,7 +28,15 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public BerSequence(params Asn1Encodable[] elements)
+        /**
+		 * create a sequence containing two objects
+		 */
+        public BerSequence(Asn1Encodable element1, Asn1Encodable element2)
+            : base(element1, element2)
+        {
+        }
+
+        public BerSequence(params Asn1Encodable[] elements)
             : base(elements)
 		{
 		}
@@ -71,9 +79,8 @@ namespace Org.BouncyCastle.Asn1
 
         internal override DerExternal ToAsn1External()
         {
-            // TODO There is currently no BerExternal class (or ToDLObject/ToDerObject)
-            //return ((Asn1Sequence)ToDLObject()).ToAsn1External();
-            return new DLSequence(elements).ToAsn1External();
+            // TODO[asn1] There is currently no BerExternal (or Asn1External)
+            return new DLExternal(this);
         }
 
         internal override Asn1OctetString ToAsn1OctetString()

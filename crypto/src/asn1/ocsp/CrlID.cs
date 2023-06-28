@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
@@ -8,11 +7,26 @@ namespace Org.BouncyCastle.Asn1.Ocsp
     {
         private readonly DerIA5String		crlUrl;
         private readonly DerInteger			crlNum;
-        private readonly DerGeneralizedTime	crlTime;
+        private readonly Asn1GeneralizedTime crlTime;
 
-		// TODO Add GetInstance method(s) and amke this private?
-		public CrlID(
-            Asn1Sequence seq)
+        public static CrlID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        public static CrlID GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CrlID crlID)
+                return crlID;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CrlID(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public CrlID(Asn1Sequence seq)
         {
 			foreach (Asn1TaggedObject o in seq)
 			{
@@ -25,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                     crlNum = DerInteger.GetInstance(o, true);
                     break;
                 case 2:
-                    crlTime = DerGeneralizedTime.GetInstance(o, true);
+                    crlTime = Asn1GeneralizedTime.GetInstance(o, true);
                     break;
                 default:
                     throw new ArgumentException("unknown tag number: " + o.TagNo);
@@ -43,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			get { return crlNum; }
 		}
 
-		public DerGeneralizedTime CrlTime
+		public Asn1GeneralizedTime CrlTime
 		{
 			get { return crlTime; }
 		}
@@ -59,7 +73,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptionalTagged(true, 0, crlUrl);
             v.AddOptionalTagged(true, 1, crlNum);
             v.AddOptionalTagged(true, 2, crlTime);

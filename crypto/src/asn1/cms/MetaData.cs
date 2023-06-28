@@ -28,15 +28,17 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			int index = 1;
 
-			if (index < seq.Count && seq[index] is DerUtf8String)
+			if (index < seq.Count && seq[index] is DerUtf8String utf8)
 			{
-				this.fileName = DerUtf8String.GetInstance(seq[index++]);
+				this.fileName = utf8;
+				++index;
 			}
-			if (index < seq.Count && seq[index] is DerIA5String)
+			if (index < seq.Count && seq[index] is DerIA5String ia5)
 			{
-				this.mediaType = DerIA5String.GetInstance(seq[index++]);
-			}
-			if (index < seq.Count)
+				this.mediaType = ia5;
+                ++index;
+            }
+            if (index < seq.Count)
 			{
 				this.otherMetaData = Attributes.GetInstance(seq[index++]);
 			}

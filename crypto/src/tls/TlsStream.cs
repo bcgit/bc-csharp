@@ -1,5 +1,11 @@
 ﻿using System;
 using System.IO;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
+using System.Threading.Tasks;
+#endif
+
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -10,12 +16,12 @@ namespace Org.BouncyCastle.Tls
 
         internal TlsStream(TlsProtocol handler)
         {
-            this.m_handler = handler;
+            m_handler = handler;
         }
 
         public override bool CanRead
         {
-            get { return !m_handler.IsClosed; }
+            get { return true; }
         }
 
         public override bool CanSeek
@@ -25,10 +31,23 @@ namespace Org.BouncyCastle.Tls
 
         public override bool CanWrite
         {
-            get { return !m_handler.IsClosed; }
+            get { return true; }
         }
 
-#if PORTABLE
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
+        {
+            Streams.CopyTo(this, destination, bufferSize);
+        }
+#endif
+
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(this, destination, bufferSize, cancellationToken);
+        }
+#endif
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -37,13 +56,6 @@ namespace Org.BouncyCastle.Tls
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-        {
-            m_handler.Close();
-            base.Close();
-        }
-#endif
 
         public override void Flush()
         {
@@ -61,15 +73,27 @@ namespace Org.BouncyCastle.Tls
             set { throw new NotSupportedException(); }
         }
 
-        public override int Read(byte[] buf, int off, int len)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            return m_handler.ReadApplicationData(buf, off, len);
+            return m_handler.ReadApplicationData(buffer, offset, count);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            return m_handler.ReadApplicationData(buffer);
+        }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(this, buffer, cancellationToken);
+        }
+#endif
 
         public override int ReadByte()
         {
             byte[] buf = new byte[1];
-            int ret = Read(buf, 0, 1);
+            int ret = m_handler.ReadApplicationData(buf, 0, 1);
             return ret <= 0 ? -1 : buf[0];
         }
 
@@ -83,14 +107,26 @@ namespace Org.BouncyCastle.Tls
             throw new NotSupportedException();
         }
 
-        public override void Write(byte[] buf, int off, int len)
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            m_handler.WriteApplicationData(buf, off, len);
+            m_handler.WriteApplicationData(buffer, offset, count);
         }
 
-        public override void WriteByte(byte b)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
         {
-            Write(new byte[]{ b }, 0, 1);
+            m_handler.WriteApplicationData(buffer);
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.WriteAsync(this, buffer, cancellationToken);
+        }
+#endif
+
+        public override void WriteByte(byte value)
+        {
+            m_handler.WriteApplicationData(new byte[]{ value }, 0, 1);
         }
     }
 }

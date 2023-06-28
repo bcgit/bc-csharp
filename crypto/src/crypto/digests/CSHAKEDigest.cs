@@ -78,11 +78,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             get { return "CSHAKE" + fixedOutputLength; }
         }
 
-        public override int DoOutput(byte[] output, int outOff, int outLen)
+        public override int Output(byte[] output, int outOff, int outLen)
         {
             if (diff == null)
             {
-                return base.DoOutput(output, outOff, outLen);
+                return base.Output(output, outOff, outLen);
             }
 
             if (!squeezing)
@@ -94,6 +94,25 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             return outLen;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Output(Span<byte> output)
+        {
+            if (diff == null)
+            {
+                return base.Output(output);
+            }
+
+            if (!squeezing)
+            {
+                AbsorbBits(0x00, 2);
+            }
+
+            Squeeze(output);
+
+            return output.Length;
+        }
+#endif
 
         public override void Reset()
         {

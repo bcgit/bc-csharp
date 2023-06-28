@@ -30,16 +30,20 @@ namespace Org.BouncyCastle.Crypto.Tests
 		{
 			private readonly byte[] vals;
 
-			public FixedRandom(
-				byte[] vals)
+			public FixedRandom(byte[] vals)
+				: base(null)
 			{
 				this.vals = vals;
 			}
 
-			public override void NextBytes(
-				byte[] bytes)
+			public override void NextBytes(byte[] buf)
 			{
-				Array.Copy(vals, 0, bytes, 0, vals.Length);
+				NextBytes(buf, 0, buf.Length);
+			}
+
+			public override void NextBytes(byte[] buf, int off, int len)
+			{
+				Array.Copy(vals, 0, buf, off, len);
 			}
 		}
 
@@ -380,12 +384,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("loop test with key generation failed - failures: " + failed);
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PssBlindTest());
 		}
 
 		[Test]

@@ -8,20 +8,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class Revocable
         : SignatureSubpacket
     {
-        private static byte[] BooleanToByteArray(
-            bool    value)
+        private static byte[] BooleanToByteArray(bool value)
         {
-            byte[]    data = new byte[1];
-
-            if (value)
-            {
-                data[0] = 1;
-                return data;
-            }
-            else
-            {
-                return data;
-            }
+            return new byte[1]{ Convert.ToByte(value) };
         }
 
         public Revocable(

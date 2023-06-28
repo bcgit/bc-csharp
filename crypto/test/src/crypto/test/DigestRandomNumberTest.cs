@@ -153,11 +153,5 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new DigestRandomNumberTest());
-		}
 	}
 }

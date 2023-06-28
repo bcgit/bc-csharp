@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 using NUnit.Framework;
 
@@ -15,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class GOST3411_2012_512DigestTest
         : DigestTest
     {
-        private static readonly String[] messages;
+        private static readonly string[] messages;
 
         private static char[] M1 =
             {
@@ -52,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             messages = new string[]{ new string(M1), new string(M2) };
         }
 
-        private static readonly String[] digests = {
+        private static readonly string[] digests = {
             "1b54d01a4af5b9d5cc3d86d68d285462b19abc2475222f35c085122be4ba1ffa00ad30f8767b3a82384c6574f024c311e2a481332b08ef7f41797891c1646f48",
             "1e88e62226bfca6f9994f1f2d51569e0daf8475a3b0fe61a5300eee46d961376035fe83549ada2b8620fcd7c496ce5b33f0cb9dddc2b6460143b03dabac9fb28",
         };

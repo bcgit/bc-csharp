@@ -1,71 +1,72 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class PollRepContent
+    /**
+     * PollRepContent ::= SEQUENCE OF SEQUENCE {
+     * certReqId    INTEGER,
+     * checkAfter   INTEGER,  -- time in seconds
+     * reason       PKIFreeText OPTIONAL }
+     */
+    public class PollRepContent
 		: Asn1Encodable
 	{
-		private readonly DerInteger certReqId;
-		private readonly DerInteger checkAfter;
-		private readonly PkiFreeText reason;
+        public static PollRepContent GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PollRepContent pollRepContent)
+                return pollRepContent;
+            return new PollRepContent(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PollRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly DerInteger[] m_certReqID;
+		private readonly DerInteger[] m_checkAfter;
+		private readonly PkiFreeText[] m_reason;
 
 		private PollRepContent(Asn1Sequence seq)
 		{
-			certReqId = DerInteger.GetInstance(seq[0]);
-			checkAfter = DerInteger.GetInstance(seq[1]);
+			int count = seq.Count;
+			m_certReqID = new DerInteger[count];
+			m_checkAfter = new DerInteger[count];
+			m_reason = new PkiFreeText[count];
 
-			if (seq.Count > 2)
+			for (int i = 0; i != count; i++)
 			{
-				reason = PkiFreeText.GetInstance(seq[2]);
+				Asn1Sequence s = Asn1Sequence.GetInstance(seq[i]);
+
+				m_certReqID[i] = DerInteger.GetInstance(s[0]);
+				m_checkAfter[i] = DerInteger.GetInstance(s[1]);
+
+				if (s.Count > 2)
+				{
+					m_reason[i] = PkiFreeText.GetInstance(s[2]);
+				}
 			}
 		}
 
-		public static PollRepContent GetInstance(object obj)
-		{
-			if (obj is PollRepContent)
-				return (PollRepContent)obj;
-
-			if (obj is Asn1Sequence)
-				return new PollRepContent((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-	    public PollRepContent(
-	        DerInteger certReqId,
-	        DerInteger checkAfter)
+	    public PollRepContent(DerInteger certReqID, DerInteger checkAfter)
+			: this(certReqID, checkAfter, null)
 	    {
-	        this.certReqId = certReqId;
-	        this.checkAfter = checkAfter;
-	        this.reason = null;
 	    }
 
-        public PollRepContent(
-	        DerInteger certReqId,
-	        DerInteger checkAfter,
-	        PkiFreeText reason)
+        public PollRepContent(DerInteger certReqID, DerInteger checkAfter, PkiFreeText reason)
 	    {
-	        this.certReqId = certReqId;
-	        this.checkAfter = checkAfter;
-	        this.reason = reason;
-	    }
+            m_certReqID = new DerInteger[1]{ certReqID };
+            m_checkAfter = new DerInteger[1]{ checkAfter };
+            m_reason = new PkiFreeText[1]{ reason };
+        }
 
-		public virtual DerInteger CertReqID
-		{
-			get { return certReqId; }
-		}
+        public virtual int Count => m_certReqID.Length;
 
-		public virtual DerInteger CheckAfter
-		{
-			get { return checkAfter; }
-		}
+        public virtual DerInteger GetCertReqID(int index) => m_certReqID[index];
 
-		public virtual PkiFreeText Reason
-		{
-			get { return reason; }
-		}
+		public virtual DerInteger GetCheckAfter(int index) => m_checkAfter[index];
+
+		public virtual PkiFreeText GetReason(int index) => m_reason[index];
 
 		/**
 		 * <pre>
@@ -79,9 +80,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(certReqId, checkAfter);
-			v.AddOptional(reason);
-			return new DerSequence(v);
+			Asn1EncodableVector outer = new Asn1EncodableVector(m_certReqID.Length);
+
+			for (int i = 0; i != m_certReqID.Length; i++)
+			{
+				Asn1EncodableVector v = new Asn1EncodableVector(3);
+
+				v.Add(m_certReqID[i]);
+				v.Add(m_checkAfter[i]);
+				v.AddOptional(m_reason[i]);
+
+				outer.Add(new DerSequence(v));
+			}
+
+			return new DerSequence(outer);
 		}
 	}
 }

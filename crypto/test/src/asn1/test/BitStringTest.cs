@@ -217,12 +217,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "BitString"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new BitStringTest());
-        }
-
         [Test]
         public void TestFunction()
         {

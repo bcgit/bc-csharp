@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -146,7 +143,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptionalTagged(true, 0, policyAuthority);
             v.Add(new DerSequence(values));
             return new DerSequence(v);

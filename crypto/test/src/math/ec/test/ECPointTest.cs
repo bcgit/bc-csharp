@@ -1,14 +1,12 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Tests
@@ -88,7 +86,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             internal static readonly ECPoint infinity = curve.Infinity;
 
-            internal static readonly String[] pointSource = { "0010", "1111", "1100", "1100",
+            internal static readonly string[] pointSource = { "0010", "1111", "1100", "1100",
                     "0001", "0001", "1011", "0010" };
 
             internal static readonly ECPoint[] p = new ECPoint[pointSource.Length / 2];
@@ -535,11 +533,11 @@ namespace Org.BouncyCastle.Math.EC.Tests
         [Test]
         public void TestAddSubtractMultiplyTwiceEncoding()
         {
-            ArrayList names = new ArrayList();
-            CollectionUtilities.AddRange(names, ECNamedCurveTable.Names);
-            CollectionUtilities.AddRange(names, CustomNamedCurves.Names);
+            var names = new List<string>();
+            names.AddRange(ECNamedCurveTable.Names);
+            names.AddRange(CustomNamedCurves.Names);
 
-            ISet uniqNames = new HashSet(names);
+            var uniqNames = new HashSet<string>(names);
 
             foreach (string name in uniqNames)
             {

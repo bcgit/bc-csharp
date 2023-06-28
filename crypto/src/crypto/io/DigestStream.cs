@@ -1,151 +1,200 @@
 using System;
 using System.IO;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
+using System.Threading.Tasks;
+#endif
 
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-	public class DigestStream
-		: Stream
-	{
-		protected readonly Stream stream;
-		protected readonly IDigest inDigest;
-		protected readonly IDigest outDigest;
+    public sealed class DigestStream
+        : Stream
+    {
+        private readonly Stream m_stream;
+        private readonly IDigest m_readDigest;
+        private readonly IDigest m_writeDigest;
 
-		public DigestStream(
-			Stream	stream,
-			IDigest	readDigest,
-			IDigest	writeDigest)
-		{
-			this.stream = stream;
-			this.inDigest = readDigest;
-			this.outDigest = writeDigest;
-		}
+        public DigestStream(Stream stream, IDigest readDigest, IDigest writeDigest)
+        {
+            m_stream = stream;
+            m_readDigest = readDigest;
+            m_writeDigest = writeDigest;
+        }
 
-		public virtual IDigest ReadDigest()
-		{
-			return inDigest;
-		}
+        public IDigest ReadDigest => m_readDigest;
 
-		public virtual IDigest WriteDigest()
-		{
-			return outDigest;
-		}
+        public IDigest WriteDigest => m_writeDigest;
 
-		public override int Read(
-			byte[]	buffer,
-			int		offset,
-			int		count)
-		{
-			int n = stream.Read(buffer, offset, count);
-			if (inDigest != null)
-			{
-				if (n > 0)
-				{
-					inDigest.BlockUpdate(buffer, offset, n);
-				}
-			}
-			return n;
-		}
+        public override bool CanRead => m_stream.CanRead;
 
-		public override int ReadByte()
-		{
-			int b = stream.ReadByte();
-			if (inDigest != null)
-			{
-				if (b >= 0)
-				{
-					inDigest.Update((byte)b);
-				}
-			}
-			return b;
-		}
+        public override bool CanSeek => false;
 
-		public override void Write(
-			byte[]	buffer,
-			int		offset,
-			int		count)
-		{
-			if (outDigest != null)
-			{
-				if (count > 0)
-				{
-					outDigest.BlockUpdate(buffer, offset, count);
-				}
-			}
-			stream.Write(buffer, offset, count);
-		}
+        public override bool CanWrite => m_stream.CanWrite;
 
-		public override void WriteByte(
-			byte b)
-		{
-			if (outDigest != null)
-			{
-				outDigest.Update(b);
-			}
-			stream.WriteByte(b);
-		}
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
+        {
+            Streams.CopyTo(ReadSource, destination, bufferSize);
+        }
+#endif
 
-		public override bool CanRead
-		{
-			get { return stream.CanRead; }
-		}
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
+        }
+#endif
 
-		public override bool CanWrite
-		{
-			get { return stream.CanWrite; }
-		}
+        public override void Flush()
+        {
+            m_stream.Flush();
+        }
 
-		public override bool CanSeek
-		{
-			get { return stream.CanSeek; }
-		}
+        public override long Length
+        {
+            get { throw new NotSupportedException(); }
+        }
 
-		public override long Length
-		{
-			get { return stream.Length; }
-		}
+        public override long Position
+        {
+            get { throw new NotSupportedException(); }
+            set { throw new NotSupportedException(); }
+        }
 
-		public override long Position
-		{
-			get { return stream.Position; }
-			set { stream.Position = value; }
-		}
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            int n = m_stream.Read(buffer, offset, count);
 
-#if PORTABLE
+            if (m_readDigest != null && n > 0)
+            {
+                m_readDigest.BlockUpdate(buffer, offset, n);
+            }
+
+            return n;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int n = m_stream.Read(buffer);
+
+            if (m_readDigest != null && n > 0)
+            {
+                m_readDigest.BlockUpdate(buffer[..n]);
+            }
+
+            return n;
+        }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
+        }
+#endif
+
+        public override int ReadByte()
+        {
+            int b = m_stream.ReadByte();
+
+            if (m_readDigest != null && b >= 0)
+            {
+                m_readDigest.Update((byte)b);
+            }
+
+            return b;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long length) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (m_writeDigest != null)
+            {
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
+                if (count > 0)
+                {
+                    m_writeDigest.BlockUpdate(buffer, offset, count);
+                }
+            }
+
+            m_stream.Write(buffer, offset, count);
+        }
+
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            if (m_writeDigest != null)
+            {
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
+                if (count > 0)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return Task.FromCanceled(cancellationToken);
+
+                    m_writeDigest.BlockUpdate(buffer, offset, count);
+                }
+            }
+
+            return m_stream.WriteAsync(buffer, offset, count, cancellationToken);
+        }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (m_writeDigest != null)
+            {
+                if (!buffer.IsEmpty)
+                {
+                    m_writeDigest.BlockUpdate(buffer);
+                }
+            }
+
+            m_stream.Write(buffer);
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            if (m_writeDigest != null)
+            {
+                if (!buffer.IsEmpty)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return ValueTask.FromCanceled(cancellationToken);
+
+                    m_writeDigest.BlockUpdate(buffer.Span);
+                }
+            }
+
+            return m_stream.WriteAsync(buffer, cancellationToken);
+        }
+#endif
+
+        public override void WriteByte(byte value)
+        {
+            if (m_writeDigest != null)
+            {
+                m_writeDigest.Update(value);
+            }
+
+            m_stream.WriteByte(value);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                Platform.Dispose(stream);
+                m_stream.Dispose();
             }
             base.Dispose(disposing);
         }
-#else
-		public override void Close()
-		{
-            Platform.Dispose(stream);
-            base.Close();
-		}
-#endif
 
-        public override void Flush()
-		{
-			stream.Flush();
-		}
-
-		public override long Seek(
-			long		offset,
-			SeekOrigin	origin)
-		{
-			return stream.Seek(offset, origin);
-		}
-
-		public override void SetLength(
-			long length)
-		{
-			stream.SetLength(length);
-		}
-	}
+        private Stream ReadSource => m_readDigest == null ? m_stream : this;
+    }
 }
-

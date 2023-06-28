@@ -85,14 +85,13 @@ namespace Org.BouncyCastle.Utilities.Test
             }
         }
 
-        protected FixedSecureRandom(
-			byte[] data)
+        protected FixedSecureRandom(byte[] data)
+            : base(null)
 		{
 			_data = data;
 		}
 
-		public static FixedSecureRandom From(
-			params byte[][] values)
+		public static FixedSecureRandom From(params byte[][] values)
 		{
 			MemoryStream bOut = new MemoryStream();
 
@@ -112,8 +111,8 @@ namespace Org.BouncyCastle.Utilities.Test
 			return new FixedSecureRandom(bOut.ToArray());
 		}
 
-        public FixedSecureRandom(
-            Source[] sources)
+        public FixedSecureRandom(Source[] sources)
+            : base(null)
         {
             MemoryStream bOut = new MemoryStream();
 
@@ -211,28 +210,31 @@ namespace Org.BouncyCastle.Utilities.Test
 
         public override byte[] GenerateSeed(int numBytes)
         {
-            return SecureRandom.GetNextBytes(this, numBytes);
+            return GetNextBytes(this, numBytes);
         }
 
-        public override void NextBytes(
-			byte[] buf)
-		{
-			Array.Copy(_data, _index, buf, 0, buf.Length);
+        // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void GenerateSeed(Span<byte> seed)
+        {
+            NextBytes(seed);
+        }
+#endif
 
-			_index += buf.Length;
+        public override void NextBytes(byte[] buf)
+		{
+            NextBytes(buf, 0, buf.Length);
 		}
 
-		public override void NextBytes(
-			byte[]	buf,
-			int		off,
-			int		len)
+		public override void NextBytes(byte[] buf, int off, int len)
 		{
 			Array.Copy(_data, _index, buf, off, len);
 
 			_index += len;
 		}
 
-		public bool IsExhausted
+        public bool IsExhausted
 		{
 			get { return _index == _data.Length; }
 		}
@@ -243,11 +245,21 @@ namespace Org.BouncyCastle.Utilities.Test
             byte[] data = Hex.Decode("01020304ffffffff0506070811111111");
             int    index = 0;
 
-            public override void NextBytes(byte[] bytes)
+            internal RandomChecker()
+                : base(null)
             {
-                Array.Copy(data, index, bytes, 0, bytes.Length);
+            }
 
-                index += bytes.Length;
+            public override void NextBytes(byte[] buf)
+            {
+                NextBytes(buf, 0, buf.Length);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                Array.Copy(data, index, buf, off, len);
+
+                index += len;
             }
         }
 

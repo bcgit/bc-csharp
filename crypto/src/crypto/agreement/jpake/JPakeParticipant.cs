@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         ///      Caller should clear the input password as soon as possible.</param>
         /// <param name="group">Prime order group. See JPakePrimeOrderGroups for standard groups.</param>
         public JPakeParticipant(string participantId, char[] password, JPakePrimeOrderGroup group)
-            : this(participantId, password, group, new Sha256Digest(), new SecureRandom()) { }
+            : this(participantId, password, group, new Sha256Digest(), CryptoServicesRegistrar.GetSecureRandom()) { }
 
 
         /// <summary>
@@ -162,7 +162,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// <param name="digest">Digest to use during zero knowledge proofs and key confirmation
         ///     (SHA-256 or stronger preferred).</param>
         /// <param name="random">Source of secure random data for x1 and x2, and for the zero knowledge proofs.</param>
-        public JPakeParticipant(string participantId, char[] password, JPakePrimeOrderGroup group, IDigest digest, SecureRandom random)
+        public JPakeParticipant(string participantId, char[] password, JPakePrimeOrderGroup group, IDigest digest,
+            SecureRandom random)
         {
             JPakeUtilities.ValidateNotNull(participantId, "participantId");
             JPakeUtilities.ValidateNotNull(password, "password");
@@ -171,9 +172,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             JPakeUtilities.ValidateNotNull(random, "random");
 
             if (password.Length == 0)
-            {
                 throw new ArgumentException("Password must not be empty.");
-            }
 
             this.participantId = participantId;
 
@@ -279,7 +278,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
                 throw new InvalidOperationException("Round 1 payload must be validated prior to creating round 2 payload for " + this.participantId);
 
             BigInteger gA = JPakeUtilities.CalculateGA(p, gx1, gx3, gx4);
-            BigInteger s = JPakeUtilities.CalculateS(password);
+            BigInteger s = JPakeUtilities.CalculateS(q, password);
             BigInteger x2s = JPakeUtilities.CalculateX2s(q, x2, s);
             BigInteger A = JPakeUtilities.CalculateA(p, q, gA, x2s);
             BigInteger[] knowledgeProofForX2s = JPakeUtilities.CalculateZeroKnowledgeProof(p, q, gA, A, x2s, participantId, digest, random);
@@ -353,7 +352,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             if (this.state < STATE_ROUND_2_VALIDATED)
                 throw new InvalidOperationException("Round 2 payload must be validated prior to creating key for " + participantId);
 
-            BigInteger s = JPakeUtilities.CalculateS(password);
+            BigInteger s = JPakeUtilities.CalculateS(q, password);
 
             // Clear the password array from memory, since we don't need it anymore.
             // Also set the field to null as a flag to indicate that the key has already been calculated.

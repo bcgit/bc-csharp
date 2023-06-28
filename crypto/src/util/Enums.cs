@@ -1,78 +1,46 @@
 using System;
-using System.Text;
-
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
-using System.Collections;
-using System.Reflection;
-#endif
 
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Utilities
 {
-    internal abstract class Enums
+    internal static class Enums
     {
-        internal static Enum GetEnumValue(System.Type enumType, string s)
+        internal static TEnum GetEnumValue<TEnum>(string s)
+            where TEnum : struct, Enum
         {
-            if (!IsEnumType(enumType))
-                throw new ArgumentException("Not an enumeration type", "enumType");
-
             // We only want to parse single named constants
             if (s.Length > 0 && char.IsLetter(s[0]) && s.IndexOf(',') < 0)
             {
                 s = s.Replace('-', '_');
                 s = s.Replace('/', '_');
 
-#if NETCF_1_0
-                FieldInfo field = enumType.GetField(s, BindingFlags.Static | BindingFlags.Public);
-                if (field != null)
-                {
-                    return (Enum)field.GetValue(null);
-                }
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                return Enum.Parse<TEnum>(s, false);
 #else
-                return (Enum)Enum.Parse(enumType, s, false);
-#endif		
+                return (TEnum)Enum.Parse(typeof(TEnum), s, false);
+#endif
             }
 
             throw new ArgumentException();
         }
 
-        internal static Array GetEnumValues(System.Type enumType)
+        internal static TEnum[] GetEnumValues<TEnum>()
+            where TEnum : struct, Enum
         {
-            if (!IsEnumType(enumType))
-                throw new ArgumentException("Not an enumeration type", "enumType");
-
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
-            IList result = Platform.CreateArrayList();
-            FieldInfo[] fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
-            foreach (FieldInfo field in fields)
-            {
-                // Note: Argument to GetValue() ignored since the fields are static,
-                //     but Silverlight for Windows Phone throws exception if we pass null
-                result.Add(field.GetValue(enumType));
-            }
-            object[] arr = new object[result.Count];
-            result.CopyTo(arr, 0);
-            return arr;
+#if NET5_0_OR_GREATER
+            return Enum.GetValues<TEnum>();
 #else
-            return Enum.GetValues(enumType);
+            return (TEnum[])Enum.GetValues(typeof(TEnum));
 #endif
         }
 
-        internal static Enum GetArbitraryValue(System.Type enumType)
+        internal static TEnum GetArbitraryValue<TEnum>()
+            where TEnum : struct, Enum
         {
-            Array values = GetEnumValues(enumType);
+            TEnum[] values = GetEnumValues<TEnum>();
             int pos = (int)(DateTimeUtilities.CurrentUnixMs() & int.MaxValue) % values.Length;
-            return (Enum)values.GetValue(pos);
-        }
-
-        internal static bool IsEnumType(System.Type t)
-        {
-#if NEW_REFLECTION
-            return t.GetTypeInfo().IsEnum;
-#else
-            return t.IsEnum;
-#endif
+            return values[pos];
         }
     }
 }

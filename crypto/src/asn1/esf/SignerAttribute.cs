@@ -26,11 +26,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 				"obj");
 		}
 
-		private SignerAttribute(
-			object obj)
+		private SignerAttribute(object obj)
 		{
-			Asn1Sequence seq = (Asn1Sequence) obj;
-			DerTaggedObject taggedObject = (DerTaggedObject) seq[0];
+			Asn1Sequence seq = (Asn1Sequence)obj;
+			Asn1TaggedObject taggedObject = (Asn1TaggedObject)seq[0];
 			if (taggedObject.TagNo == 0)
 			{
 				claimedAttributes = Asn1Sequence.GetInstance(taggedObject, true);
@@ -80,18 +79,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (claimedAttributes != null)
-			{
-				v.Add(new DerTaggedObject(0, claimedAttributes));
-			}
-			else
-			{
-				v.Add(new DerTaggedObject(1, certifiedAttributes));
-			}
-
-			return new DerSequence(v);
+			return claimedAttributes != null
+				?	new DerSequence(new DerTaggedObject(0, claimedAttributes))
+				:	new DerSequence(new DerTaggedObject(1, certifiedAttributes));
 		}
 	}
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -13,8 +12,8 @@ using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -42,7 +41,7 @@ namespace Org.BouncyCastle.Tsp
 				throw new TspValidationException("ContentInfo object not for a time stamp.");
 			}
 
-			ICollection signers = tsToken.GetSignerInfos().GetSigners();
+			var signers = tsToken.GetSignerInfos().GetSigners();
 
 			if (signers.Count != 1)
 			{
@@ -52,10 +51,10 @@ namespace Org.BouncyCastle.Tsp
 			}
 
 
-			IEnumerator signerEnum = signers.GetEnumerator();
+			var signerEnum = signers.GetEnumerator();
 
 			signerEnum.MoveNext();
-			tsaSignerInfo = (SignerInformation) signerEnum.Current;
+			tsaSignerInfo = signerEnum.Current;
 
 			try
 			{
@@ -134,28 +133,11 @@ namespace Org.BouncyCastle.Tsp
 			get { return tsaSignerInfo.UnsignedAttributes; }
 		}
 
-		public IX509Store GetCertificates(
-			string type)
-		{
-			return tsToken.GetCertificates(type);
-		}
+		public IStore<X509V2AttributeCertificate> GetAttributeCertificates() => tsToken.GetAttributeCertificates();
 
-		public IX509Store GetCrls(
-			string type)
-		{
-			return tsToken.GetCrls(type);
-		}
+		public IStore<X509Certificate> GetCertificates() => tsToken.GetCertificates();
 
-        public IX509Store GetCertificates()
-        {
-			return tsToken.GetCertificates();
-        }
-
-        public IX509Store GetAttributeCertificates(
-			string type)
-	    {
-	        return tsToken.GetAttributeCertificates(type);
-	    }
+		public IStore<X509Crl> GetCrls() => tsToken.GetCrls();
 
 		/**
 		 * Validate the time stamp token.
@@ -179,7 +161,7 @@ namespace Org.BouncyCastle.Tsp
 				byte[] hash = DigestUtilities.CalculateDigest(
 					certID.GetHashAlgorithmName(), cert.GetEncoded());
 
-				if (!Arrays.ConstantTimeAreEqual(certID.GetCertHash(), hash))
+				if (!Arrays.FixedTimeEquals(certID.GetCertHash(), hash))
 					throw new TspValidationException("certificate hash does not match certID hash.");
 
 				if (certID.IssuerSerial != null)

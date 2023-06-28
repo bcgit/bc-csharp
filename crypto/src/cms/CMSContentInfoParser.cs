@@ -3,11 +3,12 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-	public class CmsContentInfoParser
+    // TODO[api] Make abstract
+    public class CmsContentInfoParser
+		: IDisposable
 	{
 		protected ContentInfoParser	contentInfo;
 		protected Stream data;
@@ -36,13 +37,28 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		/**
-		* Close the underlying data stream.
-		* @throws IOException if the close fails.
-		*/
+		[Obsolete("Dispose instead")]
 		public void Close()
 		{
-            Platform.Dispose(this.data);
+            Dispose();
 		}
+
+		#region IDisposable
+
+		public void Dispose()
+		{
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				data.Dispose();
+			}
+		}
+
+		#endregion
 	}
 }

@@ -289,14 +289,19 @@ namespace Org.BouncyCastle.Crypto.Tests
             private readonly byte[] seed;
 
             internal VecRand(byte[] seed)
+                : base(null)
             {
                 this.seed = seed;
             }
 
-            public override void NextBytes(
-                byte[] bytes)
+            public override void NextBytes(byte[] buf)
             {
-                Array.Copy(seed, 0, bytes, 0, bytes.Length);
+                NextBytes(buf, 0, buf.Length);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                Array.Copy(seed, 0, buf, off, len);
             }
         }
 
@@ -925,11 +930,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 }
                 c[i / 8] ^= (byte)(1 << (i & 7));
             }
-        }
-
-        public static void Main(string[] args)
-        {
-            RunTest(new OaepTest());
         }
 
         [Test]

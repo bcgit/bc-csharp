@@ -26,9 +26,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
             }
 
-            internal int MyDoFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
+            internal int MyOutputFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
             {
-                return DoFinal(output, outOff, outLen, partialByte, partialBits);
+                return OutputFinal(output, outOff, outLen, partialByte, partialBits);
             }
         }
 
@@ -40,13 +40,15 @@ namespace Org.BouncyCastle.Crypto.Tests
         public override void PerformTest()
         {
             TestVectors();
+
+            DigestTest.SpanConsistencyTests(this, new ShakeDigest());
         }
 
         public void TestVectors()
         {
             using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHAKETestVectors.txt")))
             {
-                String line;
+                string line;
                 while (null != (line = ReadLine(r)))
                 {
                     if (line.Length != 0)
@@ -97,7 +99,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private int ParseDecimal(string s)
         {
-            return Int32.Parse(s);
+            return int.Parse(s);
         }
 
         private string ReadBlock(StreamReader r)
@@ -185,12 +187,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             if (partialBits == 0)
             {
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoFinal(output, 0, outLen);
+                d.OutputFinal(output, 0, outLen);
             }
             else
             {
                 d.BlockUpdate(m, 0, m.Length - 1);
-                d.MyDoFinal(output, 0, outLen, m[m.Length - 1], partialBits);
+                d.MyOutputFinal(output, 0, outLen, m[m.Length - 1], partialBits);
             }
 
             if (!Arrays.AreEqual(expected, output))
@@ -207,8 +209,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 m = v.Message;
 
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoOutput(output, 0, outLen / 2);
-                d.DoOutput(output, outLen / 2, output.Length - outLen / 2);
+                d.Output(output, 0, outLen / 2);
+                d.Output(output, outLen / 2, output.Length - outLen / 2);
 
                 if (!Arrays.AreEqual(expected, output))
                 {
@@ -233,8 +235,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 m = v.Message;
 
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoOutput(output, 0, outLen / 2);
-                d.DoFinal(output, outLen / 2, output.Length - outLen / 2);
+                d.Output(output, 0, outLen / 2);
+                d.OutputFinal(output, outLen / 2, output.Length - outLen / 2);
 
                 if (!Arrays.AreEqual(expected, output))
                 {
@@ -275,12 +277,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 s = s.Substring(0, i);
             }
             return s;
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new ShakeDigestTest());
         }
 
         [Test]

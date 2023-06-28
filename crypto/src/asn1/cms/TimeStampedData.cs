@@ -26,17 +26,19 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.version = DerInteger.GetInstance(seq[0]);
 			
 			int index = 1;
-			if (seq[index] is DerIA5String)
+			if (seq[index] is DerIA5String ia5)
 			{
-				this.dataUri = DerIA5String.GetInstance(seq[index++]);
+				this.dataUri = ia5;
+				++index;
 			}
 			if (seq[index] is MetaData || seq[index] is Asn1Sequence)
 			{
 				this.metaData = MetaData.GetInstance(seq[index++]);
 			}
-			if (seq[index] is Asn1OctetString)
+			if (seq[index] is Asn1OctetString octets)
 			{
-				this.content = Asn1OctetString.GetInstance(seq[index++]);
+				this.content = octets;
+				++index;
 			}
 			this.temporalEvidence = Evidence.GetInstance(seq[index]);
 		}

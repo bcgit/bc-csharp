@@ -7,46 +7,46 @@ namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class RevRepContentBuilder
 	{
-		private readonly Asn1EncodableVector status = new Asn1EncodableVector();
-		private readonly Asn1EncodableVector revCerts = new Asn1EncodableVector();
-		private readonly Asn1EncodableVector crls = new Asn1EncodableVector();
+		private readonly Asn1EncodableVector m_status = new Asn1EncodableVector();
+		private readonly Asn1EncodableVector m_revCerts = new Asn1EncodableVector();
+		private readonly Asn1EncodableVector m_crls = new Asn1EncodableVector();
 
 		public virtual RevRepContentBuilder Add(PkiStatusInfo status)
 		{
-			this.status.Add(status);
+			m_status.Add(status);
 			return this;
 		}
 
 		public virtual RevRepContentBuilder Add(PkiStatusInfo status, CertId certId)
 		{
-			if (this.status.Count != this.revCerts.Count)
+			if (m_status.Count != m_revCerts.Count)
 				throw new InvalidOperationException("status and revCerts sequence must be in common order");
 
-			this.status.Add(status);
-			this.revCerts.Add(certId);
+			m_status.Add(status);
+			m_revCerts.Add(certId);
 			return this;
 		}
 
 		public virtual RevRepContentBuilder AddCrl(CertificateList crl)
 		{
-			this.crls.Add(crl);
+			m_crls.Add(crl);
 			return this;
 		}
 
 		public virtual RevRepContent Build()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
 
-			v.Add(new DerSequence(status));
+			v.Add(new DerSequence(m_status));
 
-			if (revCerts.Count != 0)
+			if (m_revCerts.Count != 0)
 			{
-				v.Add(new DerTaggedObject(true, 0, new DerSequence(revCerts)));
+				v.Add(new DerTaggedObject(true, 0, new DerSequence(m_revCerts)));
 			}
 
-			if (crls.Count != 0)
+			if (m_crls.Count != 0)
 			{
-				v.Add(new DerTaggedObject(true, 1, new DerSequence(crls)));
+				v.Add(new DerTaggedObject(true, 1, new DerSequence(m_crls)));
 			}
 
 			return RevRepContent.GetInstance(new DerSequence(v));

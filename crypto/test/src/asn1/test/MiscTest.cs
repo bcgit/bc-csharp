@@ -11,6 +11,7 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Asn1.Tests
 {
     [TestFixture]
+    [NonParallelizable] // Environment.SetEnvironmentVariable
     public class MiscTest
         : SimpleTest
     {
@@ -40,41 +41,52 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void DoDerIntegerTest()
         {
+            SetAllowUnsafeProperty(false);
+
             try
             {
-                new DerInteger(new byte[] { 0, 0, 0, 1});
+                new DerInteger(new byte[]{ 0x00, 0x00, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 1: " + e.Message, e.Message.StartsWith("malformed integer"));
             }
 
             try
             {
-                new DerInteger(new byte[] {(byte)0xff, (byte)0x80, 0, 1});
+                new DerInteger(new byte[]{ 0xFF, 0x80, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 2: " + e.Message, e.Message.StartsWith("malformed integer"));
             }
 
             try
             {
-                new DerEnumerated(new byte[] { 0, 0, 0, 1});
+                new DerEnumerated(new byte[]{ 0x00, 0x00, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 3: " + e.Message, e.Message.StartsWith("malformed enumerated"));
             }
 
             try
             {
-                new DerEnumerated(new byte[] {(byte)0xff, (byte)0x80, 0, 1});
+                new DerEnumerated(new byte[]{ 0xFF, 0x80, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 4: " + e.Message, e.Message.StartsWith("malformed enumerated"));
             }
+        }
+
+        private void SetAllowUnsafeProperty(bool allowUnsafe)
+        {
+            Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
         }
 
         public override void PerformTest()
@@ -93,32 +105,33 @@ namespace Org.BouncyCastle.Asn1.Tests
             byte[] data = Base64.Decode("MA4ECAECAwQFBgcIAgIAgAMCBSAWBWhlbGxvMAoECAECAwQFBgcIFgtodHRwOi8vdGVzdA==");
 
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
-
-            for (int i = 0; i != values.Length; i++)
+            using (var asn1Out = Asn1OutputStream.Create(bOut))
             {
-                aOut.WriteObject(values[i]);
+                for (int i = 0; i != values.Length; i++)
+                {
+                    asn1Out.WriteObject(values[i]);
+                }
             }
 
-            if (!Arrays.AreEqual(bOut.ToArray(), data))
+            byte[] output = bOut.ToArray();
+            if (!Arrays.AreEqual(output, data))
             {
                 Fail("Failed data check");
             }
 
-            Asn1InputStream aIn = new Asn1InputStream(bOut.ToArray());
-
-            for (int i = 0; i != values.Length; i++)
+            using (var asn1In = new Asn1InputStream(output))
             {
-                Asn1Object o = aIn.ReadObject();
-
-                if (!values[i].Equals(o))
+                for (int i = 0; i != values.Length; i++)
                 {
-                    Fail("Failed equality test for " + o);
-                }
-
-                if (o.GetHashCode() != values[i].GetHashCode())
-                {
-                    Fail("Failed hashCode test for " + o);
+                    Asn1Object o = asn1In.ReadObject();
+                    if (!values[i].Equals(o))
+                    {
+                        Fail("Failed equality test for " + o);
+                    }
+                    if (o.GetHashCode() != values[i].GetHashCode())
+                    {
+                        Fail("Failed hashCode test for " + o);
+                    }
                 }
             }
 
@@ -129,12 +142,6 @@ namespace Org.BouncyCastle.Asn1.Tests
         public override string Name
         {
             get { return "Misc"; }
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new MiscTest());
         }
 
         [Test]

@@ -403,11 +403,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new ArmoredInputStreamTest());
-        }
-
         [Test]
         public void TestFunction()
         {

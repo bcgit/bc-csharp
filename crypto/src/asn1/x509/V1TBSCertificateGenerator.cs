@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
 		public void SetStartDate(
-            DerUtcTime startDate)
+            Asn1UtcTime startDate)
         {
             this.startDate = new Time(startDate);
         }
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
 		public void SetEndDate(
-            DerUtcTime endDate)
+            Asn1UtcTime endDate)
         {
             this.endDate = new Time(endDate);
         }
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new InvalidOperationException("not all mandatory fields set in V1 TBScertificate generator");
             }
 
-			return new TbsCertificateStructure(
+			return TbsCertificateStructure.GetInstance(
 				new DerSequence(
 					//version, - not required as default value
 					serialNumber,

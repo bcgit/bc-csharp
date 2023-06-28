@@ -53,19 +53,19 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public override int DoFinal(byte[] output, int outOff)
         {
-            return DoFinal(output, outOff, GetDigestSize());
+            return OutputFinal(output, outOff, GetDigestSize());
         }
 
-        public virtual int DoFinal(byte[] output, int outOff, int outLen)
+        public virtual int OutputFinal(byte[] output, int outOff, int outLen)
         {
-            int length = DoOutput(output, outOff, outLen);
+            int length = Output(output, outOff, outLen);
 
             Reset();
 
             return length;
         }
 
-        public virtual int DoOutput(byte[] output, int outOff, int outLen)
+        public virtual int Output(byte[] output, int outOff, int outLen)
         {
             if (!squeezing)
             {
@@ -77,18 +77,46 @@ namespace Org.BouncyCastle.Crypto.Digests
             return outLen;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            return OutputFinal(output[..GetDigestSize()]);
+        }
+
+        public virtual int OutputFinal(Span<byte> output)
+        {
+            int length = Output(output);
+
+            Reset();
+
+            return length;
+        }
+
+        public virtual int Output(Span<byte> output)
+        {
+            if (!squeezing)
+            {
+                AbsorbBits(0x0F, 4);
+            }
+
+            Squeeze(output);
+
+            return output.Length;
+        }
+#endif
+
         /*
          * TODO Possible API change to support partial-byte suffixes.
          */
         protected override int DoFinal(byte[] output, int outOff, byte partialByte, int partialBits)
         {
-            return DoFinal(output, outOff, GetDigestSize(), partialByte, partialBits);
+            return OutputFinal(output, outOff, GetDigestSize(), partialByte, partialBits);
         }
 
         /*
          * TODO Possible API change to support partial-byte suffixes.
          */
-        protected virtual int DoFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
+        protected virtual int OutputFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
         {
             if (partialBits < 0 || partialBits > 7)
                 throw new ArgumentException("must be in the range [0,7]", "partialBits");

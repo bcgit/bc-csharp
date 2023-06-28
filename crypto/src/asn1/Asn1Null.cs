@@ -25,32 +25,34 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1Null GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1Null)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1Null asn1Null)
+                return asn1Null;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1Null)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1Null converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1Null)
-                    return (Asn1Null)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1Null)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1Null)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct NULL from byte[]: " + e.Message);
                 }
             }
-            else if (obj is ArraySegment<byte>)
+            else if (obj is ArraySegment<byte> arraySegment)
             {
                 try
                 {
-                    return (Asn1Null)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                    return (Asn1Null)Meta.Instance.FromByteArray(arraySegment);
                 }
                 catch (IOException e)
                 {

@@ -7,7 +7,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    public class KCcmBlockCipher: IAeadBlockCipher
+    public class KCcmBlockCipher
+        : IAeadBlockCipher
     {
         private static readonly int BYTES_IN_INT = 4;
         private static readonly int BITS_IN_BYTE = 8;
@@ -41,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         private int Nb_ = 4;
 
-        private void setNb(int Nb)
+        private void SetNb(int Nb)
         {
             if (Nb == 4 || Nb == 6 || Nb == 8)
             {
@@ -84,38 +85,32 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.buffer = new byte[engine.GetBlockSize()];
             this.s = new byte[engine.GetBlockSize()];
             this.counter = new byte[engine.GetBlockSize()];
-            setNb(Nb);
+            SetNb(Nb);
         }
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-
-                ICipherParameters cipherParameters;
-            if (parameters is AeadParameters)
+            ICipherParameters cipherParameters;
+            if (parameters is AeadParameters param)
             {
+                if (param.MacSize > MAX_MAC_BIT_LENGTH || param.MacSize < MIN_MAC_BIT_LENGTH || param.MacSize % 8 != 0)
+                    throw new ArgumentException("Invalid mac size specified");
 
-                    AeadParameters param = (AeadParameters)parameters;
-
-                    if (param.MacSize > MAX_MAC_BIT_LENGTH || param.MacSize < MIN_MAC_BIT_LENGTH || param.MacSize % 8 != 0)
-                    {
-                        throw new ArgumentException("Invalid mac size specified");
-                    }
-
-                    nonce = param.GetNonce();
-                    macSize = param.MacSize / BITS_IN_BYTE;
-                    initialAssociatedText = param.GetAssociatedText();
-                    cipherParameters = param.Key;
+                nonce = param.GetNonce();
+                macSize = param.MacSize / BITS_IN_BYTE;
+                initialAssociatedText = param.GetAssociatedText();
+                cipherParameters = param.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV paramsWithIV)
             {
-                    nonce = ((ParametersWithIV)parameters).GetIV();
-                    macSize = engine.GetBlockSize(); // use default blockSize for MAC if it is not specified
-                    initialAssociatedText = null;
-                    cipherParameters = ((ParametersWithIV)parameters).Parameters;
+                nonce = paramsWithIV.GetIV();
+                macSize = engine.GetBlockSize(); // use default blockSize for MAC if it is not specified
+                initialAssociatedText = null;
+                cipherParameters = paramsWithIV.Parameters;
             }
             else
             {
-                    throw new ArgumentException("Invalid parameters specified");
+                throw new ArgumentException("Invalid parameters specified");
             }
 
             this.mac = new byte[macSize];
@@ -130,23 +125,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual String AlgorithmName
-        {
-            get
-            {
-                return engine.AlgorithmName + "/KCCM";
-            }
-        }
+        public virtual string AlgorithmName => engine.AlgorithmName + "/KCCM";
 
-        public virtual int GetBlockSize()
-        {
-            return engine.GetBlockSize();
-        }
+        public virtual int GetBlockSize() => engine.GetBlockSize();
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public virtual IBlockCipher UnderlyingCipher => engine;
 
         public virtual void ProcessAadByte(byte input)
         {
@@ -157,6 +140,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             associatedText.Write(input, inOff, len);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            associatedText.Write(input);
+        }
+#endif
 
         private void ProcessAAD(byte[] assocText, int assocOff, int assocLen, int dataLen)
         {
@@ -227,6 +217,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
+            data.WriteByte(input);
+
+            return 0;
+        }
+#endif
+
         public virtual int ProcessBytes(byte[] input, int inOff, int inLen, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -236,22 +235,29 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            data.Write(input);
+
+            return 0;
+        }
+#endif
+
         public int ProcessPacket(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
             Check.OutputLength(output, outOff, len, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessPacket(input.AsSpan(inOff, len), output.AsSpan(outOff));
+#else
             if (associatedText.Length > 0)
             {
-#if PORTABLE
-                byte[] aad = associatedText.ToArray();
-                int aadLen = aad.Length;
-#else
                 byte[] aad = associatedText.GetBuffer();
-                int aadLen = (int)associatedText.Length;
-#endif
+                int aadLen = Convert.ToInt32(associatedText.Length);
 
-                int dataLen = forEncryption ? (int)data.Length : ((int)data.Length - macSize);
+                int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
 
                 ProcessAAD(aad, 0, aadLen, dataLen);
             }
@@ -266,7 +272,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 int totalLength = len;
                 while (totalLength > 0)
                 {
-                    ProcessBlock(input, inOff, len, output, outOff);
+                    ProcessBlock(input, inOff, output, outOff);
                     totalLength -= engine.GetBlockSize();
                     inOff += engine.GetBlockSize();
                     outOff += engine.GetBlockSize();
@@ -300,7 +306,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 for (int blockNum = 0; blockNum<blocks; blockNum++)
                 {
-                    ProcessBlock(input, inOff, len, output, outOff);
+                    ProcessBlock(input, inOff, output, outOff);
 
                     inOff += engine.GetBlockSize();
                     outOff += engine.GetBlockSize();
@@ -339,7 +345,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Copy(buffer, 0, calculatedMac, 0, macSize);
 
-                if (!Arrays.ConstantTimeAreEqual(mac, calculatedMac))
+                if (!Arrays.FixedTimeEquals(mac, calculatedMac))
                 {
                     throw new InvalidCipherTextException("mac check failed");
                 }
@@ -348,9 +354,171 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 return len - macSize;
             }
+#endif
         }
 
-        private void ProcessBlock(byte[] input, int inOff, int len, byte[] output, int outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessPacket(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = input.Length;
+            Check.OutputLength(output, len, "output buffer too short");
+
+            if (associatedText.Length > 0)
+            {
+                byte[] aad = associatedText.GetBuffer();
+                int aadLen = Convert.ToInt32(associatedText.Length);
+
+                int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
+
+                ProcessAAD(aad, 0, aadLen, dataLen);
+            }
+
+            int blockSize = engine.GetBlockSize(), index = 0;
+            if (forEncryption)
+            {
+                Check.DataLength(len % blockSize != 0, "partial blocks not supported");
+
+                CalculateMac(input);
+                engine.ProcessBlock(nonce, s);
+
+                int totalLength = len;
+                while (totalLength > 0)
+                {
+                    ProcessBlock(input[index..], output[index..]);
+                    totalLength -= blockSize;
+                    index += blockSize;
+                }
+
+                for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
+                {
+                    s[byteIndex] += counter[byteIndex];
+                }
+
+                engine.ProcessBlock(s, buffer);
+
+                for (int byteIndex = 0; byteIndex < macSize; byteIndex++)
+                {
+                    output[index + byteIndex] = (byte)(buffer[byteIndex] ^ macBlock[byteIndex]);
+                }
+
+                Array.Copy(macBlock, 0, mac, 0, macSize);
+
+                Reset();
+
+                return len + macSize;
+            }
+            else
+            {
+                Check.DataLength((len - macSize) % blockSize != 0, "partial blocks not supported");
+
+                engine.ProcessBlock(nonce, 0, s, 0);
+
+                int blocks = len / engine.GetBlockSize();
+
+                for (int blockNum = 0; blockNum < blocks; blockNum++)
+                {
+                    ProcessBlock(input[index..], output[index..]);
+                    index += blockSize;
+                }
+
+                if (len > index)
+                {
+                    for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
+                    {
+                        s[byteIndex] += counter[byteIndex];
+                    }
+
+                    engine.ProcessBlock(s, buffer);
+
+                    for (int byteIndex = 0; byteIndex < macSize; byteIndex++)
+                    {
+                        output[index + byteIndex] = (byte)(buffer[byteIndex] ^ input[index + byteIndex]);
+                    }
+                    index += macSize;
+                }
+
+                for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
+                {
+                    s[byteIndex] += counter[byteIndex];
+                }
+
+                engine.ProcessBlock(s, buffer);
+
+                output[(index - macSize)..index].CopyTo(buffer);
+
+                CalculateMac(output[..(index - macSize)]);
+
+                Array.Copy(macBlock, 0, mac, 0, macSize);
+
+                Span<byte> calculatedMac = macSize <= 64
+                    ? stackalloc byte[macSize]
+                    : new byte[macSize];
+
+                calculatedMac.CopyFrom(buffer);
+
+                if (!Arrays.FixedTimeEquals(mac.AsSpan(0, macSize), calculatedMac))
+                    throw new InvalidCipherTextException("mac check failed");
+
+                Reset();
+
+                return len - macSize;
+            }
+        }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void CalculateMac(ReadOnlySpan<byte> authText)
+        {
+            int blockSize = engine.GetBlockSize();
+
+            while (!authText.IsEmpty)
+            {
+                for (int byteIndex = 0; byteIndex < blockSize; byteIndex++)
+                {
+                    macBlock[byteIndex] ^= authText[byteIndex];
+                }
+
+                engine.ProcessBlock(macBlock, macBlock);
+
+                authText = authText[blockSize..];
+            }
+        }
+
+        private void ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
+            {
+                s[byteIndex] += counter[byteIndex];
+            }
+
+            engine.ProcessBlock(s, buffer);
+
+            int blockSize = engine.GetBlockSize();
+            for (int byteIndex = 0; byteIndex < blockSize; byteIndex++)
+            {
+                output[byteIndex] = (byte)(buffer[byteIndex] ^ input[byteIndex]);
+            }
+        }
+#else
+        private void CalculateMac(byte[] authText, int authOff, int len)
+        {
+            int blockSize = engine.GetBlockSize();
+            int totalLen = len;
+            while (totalLen > 0)
+            {
+                for (int byteIndex = 0; byteIndex < blockSize; byteIndex++)
+                {
+                    macBlock[byteIndex] ^= authText[authOff + byteIndex];
+                }
+
+                engine.ProcessBlock(macBlock, 0, macBlock, 0);
+
+                totalLen -= blockSize;
+                authOff += blockSize;
+            }
+        }
+
+        private void ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 
             for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
@@ -365,40 +533,37 @@ namespace Org.BouncyCastle.Crypto.Modes
                 output[outOff + byteIndex] = (byte)(buffer[byteIndex] ^ input[inOff + byteIndex]);
             }
         }
-
-        private void CalculateMac(byte[] authText, int authOff, int len)
-        {
-            int totalLen = len;
-            while (totalLen > 0)
-            {
-                for (int byteIndex = 0; byteIndex < engine.GetBlockSize(); byteIndex++)
-                {
-                    macBlock[byteIndex] ^= authText[authOff + byteIndex];
-                }
-
-                engine.ProcessBlock(macBlock, 0, macBlock, 0);
-
-                totalLen -= engine.GetBlockSize();
-                authOff += engine.GetBlockSize();
-            }
-        }
+#endif
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
-#if PORTABLE
-            byte[] buf = data.ToArray();
-            int bufLen = buf.Length;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
 #else
             byte[] buf = data.GetBuffer();
-            int bufLen = (int)data.Length;
-#endif
+            int bufLen = Convert.ToInt32(data.Length);
 
             int len = ProcessPacket(buf, 0, bufLen, output, outOff);
 
             Reset();
 
             return len;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            byte[] buf = data.GetBuffer();
+            int bufLen = Convert.ToInt32(data.Length);
+
+            int len = ProcessPacket(buf.AsSpan(0, bufLen), output);
+
+            Reset();
+
+            return len;
+        }
+#endif
 
         public virtual byte[] GetMac()
         {
@@ -476,7 +641,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     break;
             }
 
-            String binaryNb = Convert.ToString(Nb_ - 1, 2);
+            string binaryNb = Convert.ToString(Nb_ - 1, 2);
             while (binaryNb.Length < 4)
             {
                 binaryNb = new StringBuilder(binaryNb).Insert(0, "0").ToString();

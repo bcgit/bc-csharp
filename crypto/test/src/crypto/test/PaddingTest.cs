@@ -152,12 +152,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "PaddingTest"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PaddingTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

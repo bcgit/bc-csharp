@@ -5,27 +5,26 @@ namespace Org.BouncyCastle.Asn1
 	public class DerExternalParser
 		: Asn1Encodable
 	{
-		private readonly Asn1StreamParser _parser;
+		private readonly Asn1StreamParser m_parser;
 
-        [Obsolete("Will be removed")]
-		public DerExternalParser(Asn1StreamParser parser)
+		internal DerExternalParser(Asn1StreamParser parser)
 		{
-			this._parser = parser;
+			m_parser = parser;
 		}
 
 		public IAsn1Convertible ReadObject()
 		{
-			return _parser.ReadObject();
+			return m_parser.ReadObject();
 		}
 
 		public override Asn1Object ToAsn1Object()
 		{
-            return Parse(_parser);
+            return Parse(m_parser);
 		}
 
         internal static DerExternal Parse(Asn1StreamParser sp)
         {
-            return new DerExternal(sp.ReadVector());
+            return new DLExternal(sp.ReadVector());
         }
     }
 }

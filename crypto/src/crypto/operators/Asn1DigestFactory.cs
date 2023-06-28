@@ -8,14 +8,15 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
-    public class Asn1DigestFactory : IDigestFactory
+    public class Asn1DigestFactory
+        : IDigestFactory
     {
         public static Asn1DigestFactory Get(DerObjectIdentifier oid)
         {
             return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);          
         }
 
-        public static Asn1DigestFactory Get(String mechanism)
+        public static Asn1DigestFactory Get(string mechanism)
         {
             DerObjectIdentifier oid = DigestUtilities.GetObjectIdentifier(mechanism);
             return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);
@@ -40,13 +41,14 @@ namespace Org.BouncyCastle.Crypto.Operators
             get { return mDigest.GetDigestSize(); }
         }
 
-        public virtual IStreamCalculator CreateCalculator()
+        public virtual IStreamCalculator<IBlockResult> CreateCalculator()
         {
             return new DfDigestStream(mDigest);
         }
     }
 
-    internal class DfDigestStream : IStreamCalculator
+    internal class DfDigestStream
+        : IStreamCalculator<SimpleBlockResult>
     {
         private readonly DigestSink mStream;
 
@@ -60,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             get { return mStream; }
         }
 
-        public object GetResult()
+        public SimpleBlockResult GetResult()
         {
             byte[] result = new byte[mStream.Digest.GetDigestSize()];
             mStream.Digest.DoFinal(result, 0);

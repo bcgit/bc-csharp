@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class TlsClientTest
     {
-        [Test, Ignore]
+        [Test, Explicit]
         public void TestConnection()
         {
             string host = "localhost";
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 Console.WriteLine("<<< " + line);
 
-                string upperLine = TlsTestUtilities.ToUpperInvariant(line);
+                string upperLine = line.ToUpperInvariant();
 
                 // TEST CODE ONLY. This is not a robust way of parsing the result!
                 foreach (string end in ends)

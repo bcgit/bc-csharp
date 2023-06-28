@@ -1,26 +1,46 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BouncyCastle", "crypto\BouncyCastle.csproj", "{4C235092-820C-4DEB-9074-D356FB797D8B}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F8F54480-386E-4CE7-8C0E-537922E2A634}"
+	ProjectSection(SolutionItems) = preProject
+		.gitlab-ci.yml = .gitlab-ci.yml
+		Directory.Build.props = Directory.Build.props
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+		signfile.bat = signfile.bat
+		version.json = version.json
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "crypto\test\UnitTests.csproj", "{D4EB669D-7C88-48C0-A480-C5CC73A7369B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BouncyCastle.Crypto", "crypto\src\BouncyCastle.Crypto.csproj", "{25326952-177B-4D34-9448-3024AF0D7B46}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BouncyCastle.Crypto.Tests", "crypto\test\BouncyCastle.Crypto.Tests.csproj", "{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Publish|Any CPU = Publish|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4C235092-820C-4DEB-9074-D356FB797D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C235092-820C-4DEB-9074-D356FB797D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C235092-820C-4DEB-9074-D356FB797D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C235092-820C-4DEB-9074-D356FB797D8B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Publish|Any CPU.ActiveCfg = Publish|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Publish|Any CPU.Build.0 = Publish|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Publish|Any CPU.ActiveCfg = Publish|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Publish|Any CPU.Build.0 = Publish|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = crypto\BouncyCastle.csproj
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {491E9412-DD09-44EE-86A7-2D0C51842AFC}
 	EndGlobalSection
 EndGlobal

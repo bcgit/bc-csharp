@@ -361,18 +361,6 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return System.Math.Max(2, System.Math.Min(maxWidth, w + 2));
         }
 
-        [Obsolete]
-        public static ECPoint MapPointWithPrecomp(ECPoint p, int minWidth, bool includeNegated,
-            ECPointMap pointMap)
-        {
-            ECCurve c = p.Curve;
-            WNafPreCompInfo infoP = Precompute(p, minWidth, includeNegated);
-
-            ECPoint q = pointMap.Map(p);
-            c.Precompute(q, PRECOMP_NAME, new MapPointCallback(infoP, includeNegated, pointMap));
-            return q;
-        }
-
         public static WNafPreCompInfo Precompute(ECPoint p, int minWidth, bool includeNegated)
         {
             return (WNafPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME,

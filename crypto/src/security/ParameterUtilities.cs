@@ -1,7 +1,8 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Misc;
@@ -12,18 +13,16 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
-    public sealed class ParameterUtilities
+    public static class ParameterUtilities
     {
-        private ParameterUtilities()
-        {
-        }
-
-        private static readonly IDictionary algorithms = Platform.CreateHashtable();
-        private static readonly IDictionary basicIVSizes = Platform.CreateHashtable();
+        private static readonly IDictionary<string, string> Algorithms =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly IDictionary<string, int> BasicIVSizes =
+            new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         static ParameterUtilities()
         {
@@ -120,7 +119,7 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("GOST28147",
                 "GOST",
                 "GOST-28147",
-                CryptoProObjectIdentifiers.GostR28147Cbc);
+                CryptoProObjectIdentifiers.GostR28147Gcfb);
             AddAlgorithm("HC128");
             AddAlgorithm("HC256");
             AddAlgorithm("IDEA",
@@ -164,15 +163,13 @@ namespace Org.BouncyCastle.Security
             // "RIJNDAEL", "SKIPJACK", "TWOFISH"
         }
 
-        private static void AddAlgorithm(
-            string			canonicalName,
-            params object[]	aliases)
+        private static void AddAlgorithm(string canonicalName, params object[] aliases)
         {
-            algorithms[canonicalName] = canonicalName;
+            Algorithms[canonicalName] = canonicalName;
 
             foreach (object alias in aliases)
             {
-                algorithms[alias.ToString()] = canonicalName;
+                Algorithms[alias.ToString()] = canonicalName;
             }
         }
 
@@ -180,26 +177,21 @@ namespace Org.BouncyCastle.Security
         {
             foreach (string algorithm in algorithms)
             {
-                basicIVSizes.Add(algorithm, size);
+                BasicIVSizes.Add(algorithm, size);
             }
         }
 
-        public static string GetCanonicalAlgorithmName(
-            string algorithm)
+        public static string GetCanonicalAlgorithmName(string algorithm)
         {
-            return (string) algorithms[Platform.ToUpperInvariant(algorithm)];
+            return CollectionUtilities.GetValueOrNull(Algorithms, algorithm);
         }
 
-        public static KeyParameter CreateKeyParameter(
-            DerObjectIdentifier algOid,
-            byte[]				keyBytes)
+        public static KeyParameter CreateKeyParameter(DerObjectIdentifier algOid, byte[] keyBytes)
         {
             return CreateKeyParameter(algOid.Id, keyBytes, 0, keyBytes.Length);
         }
 
-        public static KeyParameter CreateKeyParameter(
-            string	algorithm,
-            byte[]	keyBytes)
+        public static KeyParameter CreateKeyParameter(string algorithm, byte[] keyBytes)
         {
             return CreateKeyParameter(algorithm, keyBytes, 0, keyBytes.Length);
         }
@@ -220,7 +212,7 @@ namespace Org.BouncyCastle.Security
             int		length)
         {
             if (algorithm == null)
-                throw new ArgumentNullException("algorithm");
+                throw new ArgumentNullException(nameof(algorithm));
 
             string canonical = GetCanonicalAlgorithmName(algorithm);
 
@@ -254,6 +246,30 @@ namespace Org.BouncyCastle.Security
         {
             if (algorithm == null)
                 throw new ArgumentNullException("algorithm");
+
+            if (NistObjectIdentifiers.IdAes128Gcm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes192Gcm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes256Gcm.Id.Equals(algorithm))
+            {
+                if (!(key is KeyParameter keyParameter))
+                    throw new ArgumentException("key data must be accessible for GCM operation");
+
+                var gcmParameters = GcmParameters.GetInstance(asn1Params);
+
+                return new AeadParameters(keyParameter, gcmParameters.IcvLen * 8, gcmParameters.GetNonce());
+            }
+
+            if (NistObjectIdentifiers.IdAes128Ccm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes192Ccm.Id.Equals(algorithm) ||
+                NistObjectIdentifiers.IdAes256Ccm.Id.Equals(algorithm))
+            {
+                if (!(key is KeyParameter keyParameter))
+                    throw new ArgumentException("key data must be accessible for CCM operation");
+
+                var ccmParameters = CcmParameters.GetInstance(asn1Params);
+
+                return new AeadParameters(keyParameter, ccmParameters.IcvLen * 8, ccmParameters.GetNonce());
+            }
 
             string canonical = GetCanonicalAlgorithmName(algorithm);
 
@@ -348,9 +364,7 @@ namespace Org.BouncyCastle.Security
             return cp;
         }
 
-        private static Asn1OctetString CreateIVOctetString(
-            SecureRandom	random,
-            int				ivLength)
+        private static Asn1OctetString CreateIVOctetString(SecureRandom random, int ivLength)
         {
             return new DerOctetString(CreateIV(random, ivLength));
         }
@@ -360,13 +374,9 @@ namespace Org.BouncyCastle.Security
             return SecureRandom.GetNextBytes(random, ivLength);
         }
 
-        private static int FindBasicIVSize(
-            string canonicalName)
+        private static int FindBasicIVSize(string canonicalName)
         {
-            if (!basicIVSizes.Contains(canonicalName))
-                return -1;
-
-            return (int)basicIVSizes[canonicalName];
+            return BasicIVSizes.TryGetValue(canonicalName, out int keySize) ? keySize : -1;
         }
     }
 }

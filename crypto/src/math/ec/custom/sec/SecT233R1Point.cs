@@ -1,30 +1,19 @@
 ﻿using System;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecT233R1Point
         : AbstractF2mPoint
     {
-        /**
-         * @deprecated Use ECCurve.createPoint to construct points
-         */
-        public SecT233R1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
-            : this(curve, x, y, false)
+        internal SecT233R1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
+            : base(curve, x, y)
         {
         }
 
-        /**
-         * @deprecated per-point compression property will be removed, refer {@link #getEncoded(bool)}
-         */
-        public SecT233R1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
-            : base(curve, x, y, withCompression)
-        {
-            if ((x == null) != (y == null))
-                throw new ArgumentException("Exactly one of the field elements is null");
-        }
-
-        internal SecT233R1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
-            : base(curve, x, y, zs, withCompression)
+        internal SecT233R1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
+            : base(curve, x, y, zs)
         {
         }
 
@@ -134,7 +123,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 X3 = L.Square().Add(L).Add(X1).AddOne();
                 if (X3.IsZero)
                 {
-                    return new SecT233R1Point(curve, X3, curve.B.Sqrt(), IsCompressed);
+                    return new SecT233R1Point(curve, X3, curve.B.Sqrt());
                 }
 
                 ECFieldElement Y3 = L.Multiply(X1.Add(X3)).Add(X3).Add(Y1);
@@ -151,7 +140,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 X3 = AU1.Multiply(AU2);
                 if (X3.IsZero)
                 {
-                    return new SecT233R1Point(curve, X3, curve.B.Sqrt(), IsCompressed);
+                    return new SecT233R1Point(curve, X3, curve.B.Sqrt());
                 }
 
                 ECFieldElement ABZ2 = A.Multiply(B);
@@ -169,7 +158,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 }
             }
 
-            return new SecT233R1Point(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+            return new SecT233R1Point(curve, X3, L3, new ECFieldElement[]{ Z3 });
         }
 
         public override ECPoint Twice()
@@ -179,31 +168,69 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             ECCurve curve = this.Curve;
 
-            ECFieldElement X1 = this.RawXCoord;
+            SecT233FieldElement X1 = (SecT233FieldElement)this.RawXCoord;
             if (X1.IsZero)
             {
                 // A point with X == 0 is its own additive inverse
                 return curve.Infinity;
             }
 
-            ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
+            SecT233FieldElement L1 = (SecT233FieldElement)this.RawYCoord, Z1 = (SecT233FieldElement)this.RawZCoords[0];
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<ulong> tt0 = stackalloc ulong[8];
+#else
+            ulong[] tt0 = Nat256.CreateExt64();
+#endif
+            ulong[] _X3 = Nat256.Create64();
+            ulong[] _L3 = Nat256.Create64();
+            ulong[] _Z3 = Nat256.Create64();
 
             bool Z1IsOne = Z1.IsOne;
-            ECFieldElement L1Z1 = Z1IsOne ? L1 : L1.Multiply(Z1);
-            ECFieldElement Z1Sq = Z1IsOne ? Z1 : Z1.Square();
-            ECFieldElement T = L1.Square().Add(L1Z1).Add(Z1Sq);
-            if (T.IsZero)
+            if (Z1IsOne)
             {
-                return new SecT233R1Point(curve, T, curve.B.Sqrt(), IsCompressed);
+                SecT233Field.Square(L1.x, _Z3);
+                SecT233Field.AddBothTo(L1.x, Z1.x, _Z3);
+
+                if (Nat256.IsZero64(_Z3))
+                    return new SecT233R1Point(curve, new SecT233FieldElement(_Z3), curve.B.Sqrt());
+
+                SecT233Field.Square(_Z3, _X3);
+
+                SecT233Field.SquareExt(X1.x, tt0);
+                SecT233Field.MultiplyAddToExt(_Z3, L1.x, tt0);
+            }
+            else
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<ulong> t1 = stackalloc ulong[4];
+#else
+                ulong[] t1 = Nat256.Create64();
+#endif
+
+                SecT233Field.Multiply(L1.x, Z1.x, t1);      // L1Z1
+                SecT233Field.Square(Z1.x, tt0);             // Z1Sq
+
+                SecT233Field.Square(L1.x, _X3);
+                SecT233Field.AddBothTo(t1, tt0, _X3);       // T
+
+                if (Nat256.IsZero64(_X3))
+                    return new SecT233R1Point(curve, new SecT233FieldElement(_X3), curve.B.Sqrt());
+
+                SecT233Field.Multiply(_X3, tt0, _Z3);
+                SecT233Field.Multiply(X1.x, Z1.x, tt0);     // X1Z1
+
+                SecT233Field.SquareExt(tt0, tt0);
+                SecT233Field.MultiplyAddToExt(_X3, t1, tt0);
+
+                SecT233Field.Square(_X3, _X3);
             }
 
-            ECFieldElement X3 = T.Square();
-            ECFieldElement Z3 = Z1IsOne ? T : T.Multiply(Z1Sq);
+            SecT233Field.Reduce(tt0, _L3);
+            SecT233Field.AddBothTo(_X3, _Z3, _L3);
 
-            ECFieldElement X1Z1 = Z1IsOne ? X1 : X1.Multiply(Z1);
-            ECFieldElement L3 = X1Z1.SquarePlusProduct(T, L1Z1).Add(X3).Add(Z3);
-
-            return new SecT233R1Point(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+            return new SecT233R1Point(curve, new SecT233FieldElement(_X3), new SecT233FieldElement(_L3),
+                new ECFieldElement[]{ new SecT233FieldElement(_Z3) });
         }
 
         public override ECPoint TwicePlus(ECPoint b)
@@ -215,50 +242,75 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             ECCurve curve = this.Curve;
 
-            ECFieldElement X1 = this.RawXCoord;
+            SecT233FieldElement X1 = (SecT233FieldElement)this.RawXCoord;
             if (X1.IsZero)
             {
                 // A point with X == 0 is its own additive inverse
                 return b;
             }
 
-            ECFieldElement X2 = b.RawXCoord, Z2 = b.RawZCoords[0];
+            SecT233FieldElement X2 = (SecT233FieldElement)b.RawXCoord, Z2 = (SecT233FieldElement)b.RawZCoords[0];
             if (X2.IsZero || !Z2.IsOne)
             {
                 return Twice().Add(b);
             }
 
-            ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
-            ECFieldElement L2 = b.RawYCoord;
+            SecT233FieldElement L1 = (SecT233FieldElement)this.RawYCoord, Z1 = (SecT233FieldElement)this.RawZCoords[0];
+            SecT233FieldElement L2 = (SecT233FieldElement)b.RawYCoord;
 
-            ECFieldElement X1Sq = X1.Square();
-            ECFieldElement L1Sq = L1.Square();
-            ECFieldElement Z1Sq = Z1.Square();
-            ECFieldElement L1Z1 = L1.Multiply(Z1);
+            ulong[] tt0 = Nat256.CreateExt64();
+            ulong[] t1 = Nat256.Create64();
+            ulong[] t2 = Nat256.Create64();
+            ulong[] t3 = Nat256.Create64();
+            ulong[] t4 = Nat256.Create64();
+            ulong[] t5 = Nat256.Create64();
 
-            ECFieldElement T = Z1Sq.Add(L1Sq).Add(L1Z1);
-            ECFieldElement A = L2.Multiply(Z1Sq).Add(L1Sq).MultiplyPlusProduct(T, X1Sq, Z1Sq);
-            ECFieldElement X2Z1Sq = X2.Multiply(Z1Sq);
-            ECFieldElement B = X2Z1Sq.Add(T).Square();
+            SecT233Field.Square(X1.x, t1);              // X1Sq
+            SecT233Field.Square(L1.x, t2);              // L1Sq
+            SecT233Field.Square(Z1.x, t3);              // Z1Sq
+            SecT233Field.Multiply(L1.x, Z1.x, t4);      // L1Z1
 
-            if (B.IsZero)
+            SecT233Field.AddBothTo(t2, t3, t4);         // T
+
+            SecT233Field.MultiplyExt(t1, t3, tt0);
+            SecT233Field.Multiply(L2.x, t3, t1);
+            SecT233Field.AddTo(t2, t1);
+            SecT233Field.MultiplyAddToExt(t4, t1, tt0);
+            SecT233Field.Reduce(tt0, t1);               // A
+
+            SecT233Field.Multiply(X2.x, t3, t2);        // X2Z1Sq
+            SecT233Field.Add(t4, t2, t5);
+            SecT233Field.Square(t5, t5);                // B
+
+            if (Nat256.IsZero64(t5))
             {
-                if (A.IsZero)
+                if (Nat256.IsZero64(t1))
                     return b.Twice();
 
                 return curve.Infinity;
             }
 
-            if (A.IsZero)
-            {
-                return new SecT233R1Point(curve, A, curve.B.Sqrt(), IsCompressed);
-            }
+            if (Nat256.IsZero64(t1))
+                return new SecT233R1Point(curve, new SecT233FieldElement(t1), curve.B.Sqrt());
 
-            ECFieldElement X3 = A.Square().Multiply(X2Z1Sq);
-            ECFieldElement Z3 = A.Multiply(B).Multiply(Z1Sq);
-            ECFieldElement L3 = A.Add(B).Square().MultiplyPlusProduct(T, L2.AddOne(), Z3);
+            ulong[] _X3 = t2;
+            SecT233Field.Square(t1, tt0);
+            SecT233Field.Multiply(_X3, tt0, _X3);
 
-            return new SecT233R1Point(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+            ulong[] _Z3 = t3;
+            SecT233Field.Multiply(_Z3, t1, _Z3);
+            SecT233Field.Multiply(_Z3, t5, _Z3);
+
+            ulong[] _L3 = t1;
+            SecT233Field.AddTo(t5, _L3);
+            SecT233Field.Square(_L3, _L3);
+            SecT233Field.MultiplyExt(_L3, t4, tt0);
+            SecT233Field.MultiplyAddToExt(L2.x, _Z3, tt0);
+            SecT233Field.Reduce(tt0, _L3);
+            SecT233Field.AddTo(_Z3, _L3);
+
+            return new SecT233R1Point(curve, new SecT233FieldElement(_X3), new SecT233FieldElement(_L3),
+                new ECFieldElement[]{ new SecT233FieldElement(_Z3) });
         }
 
         public override ECPoint Negate()
@@ -272,7 +324,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             // L is actually Lambda (X + Y/X) here
             ECFieldElement L = this.RawYCoord, Z = this.RawZCoords[0];
-            return new SecT233R1Point(Curve, X, L.Add(Z), new ECFieldElement[] { Z }, IsCompressed);
+            return new SecT233R1Point(Curve, X, L.Add(Z), new ECFieldElement[]{ Z });
         }
     }
 }

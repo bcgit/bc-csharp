@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -162,17 +161,7 @@ namespace Org.BouncyCastle.Cms
 
 				if (s != null)
 				{
-					Asn1EncodableVector v = new Asn1EncodableVector();
-
-					IAsn1Convertible o;
-					while ((o = s.ReadObject()) != null)
-					{
-						Asn1SequenceParser seq = (Asn1SequenceParser)o;
-
-						v.Add(seq.ToAsn1Object());
-					}
-
-					authAttrs = new Asn1.Cms.AttributeTable(new DerSet(v));
+                    authAttrs = CmsUtilities.ParseAttributeTable(s);
 				}
 			}
 
@@ -194,21 +183,11 @@ namespace Org.BouncyCastle.Cms
 
 				if (s != null)
 				{
-					Asn1EncodableVector v = new Asn1EncodableVector();
-
-					IAsn1Convertible o;
-					while ((o = s.ReadObject()) != null)
-					{
-						Asn1SequenceParser seq = (Asn1SequenceParser)o;
-
-						v.Add(seq.ToAsn1Object());
-					}
-
-					unauthAttrs = new Asn1.Cms.AttributeTable(new DerSet(v));
+					unauthAttrs = CmsUtilities.ParseAttributeTable(s);
 				}
 			}
 
 			return unauthAttrs;
 		}
-	}
+    }
 }

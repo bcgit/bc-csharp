@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -34,21 +35,23 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerObjectIdentifier GetInstance(object obj)
         {
-            if (obj == null || obj is DerObjectIdentifier)
+            if (obj == null)
+                return null;
+
+            if (obj is DerObjectIdentifier derObjectIdentifier)
+                return derObjectIdentifier;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerObjectIdentifier)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerObjectIdentifier converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerObjectIdentifier)
-                    return (DerObjectIdentifier)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerObjectIdentifier)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerObjectIdentifier)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
@@ -87,9 +90,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerObjectIdentifier)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        private const long LongLimit = (Int64.MaxValue >> 7) - 0x7F;
+        private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
 
-        private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
+        private static readonly DerObjectIdentifier[] Cache = new DerObjectIdentifier[1024];
 
         private readonly string identifier;
         private byte[] contents;
@@ -166,6 +169,16 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, GetContents());
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.ObjectIdentifier, GetContents());
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, GetContents());
+        }
+
         private void DoOutput(MemoryStream bOut)
         {
             OidTokenizer tok = new OidTokenizer(identifier);
@@ -176,7 +189,7 @@ namespace Org.BouncyCastle.Asn1
             token = tok.NextToken();
             if (token.Length <= 18)
             {
-                Asn1RelativeOid.WriteField(bOut, first + Int64.Parse(token));
+                Asn1RelativeOid.WriteField(bOut, first + long.Parse(token));
             }
             else
             {
@@ -188,7 +201,7 @@ namespace Org.BouncyCastle.Asn1
                 token = tok.NextToken();
                 if (token.Length <= 18)
                 {
-                    Asn1RelativeOid.WriteField(bOut, Int64.Parse(token));
+                    Asn1RelativeOid.WriteField(bOut, long.Parse(token));
                 }
                 else
                 {
@@ -214,19 +227,26 @@ namespace Org.BouncyCastle.Asn1
 
         internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
         {
-            int hashCode = Arrays.GetHashCode(contents);
-            int first = hashCode & 1023;
+            int index = Arrays.GetHashCode(contents);
 
-            lock (cache)
+            index ^= index >> 20;
+            index ^= index >> 10;
+            index &= 1023;
+
+            var originalEntry = Volatile.Read(ref Cache[index]);
+            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.GetContents()))
+                return originalEntry;
+
+            var newEntry = new DerObjectIdentifier(contents, clone);
+
+            var exchangedEntry = Interlocked.CompareExchange(ref Cache[index], newEntry, originalEntry);
+            if (exchangedEntry != originalEntry)
             {
-                DerObjectIdentifier entry = cache[first];
-                if (entry != null && Arrays.AreEqual(contents, entry.GetContents()))
-                {
-                    return entry;
-                }
-
-                return cache[first] = new DerObjectIdentifier(contents, clone);
+                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.GetContents()))
+                    return exchangedEntry;
             }
+
+            return newEntry;
         }
 
         private static bool IsValidIdentifier(string identifier)

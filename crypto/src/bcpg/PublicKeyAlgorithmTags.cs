@@ -10,13 +10,15 @@ namespace Org.BouncyCastle.Bcpg
         RsaSign = 3,			// RSA Sign-Only
         ElGamalEncrypt = 16,	// Elgamal (Encrypt-Only), see [ELGAMAL]
         Dsa = 17,				// DSA (Digital Signature Standard)
-        [Obsolete("Use 'ECDH' instead")]
-        EC = 18,				// Reserved for Elliptic Curve
         ECDH = 18,              // Reserved for Elliptic Curve (actual algorithm name)
         ECDsa = 19,				// Reserved for ECDSA
         ElGamalGeneral = 20,	// Elgamal (Encrypt or Sign)
         DiffieHellman = 21,		// Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME)
+
+        // TODO Mark obsolete once Ed25519, Ed448 available
+        //[Obsolete("Use Ed25519 or Ed448 instead")]
         EdDsa = 22,             // EdDSA - (internet draft, but appearing in use)
+        EdDsa_Legacy = 22,      // new name for old EdDSA tag.
 
         Experimental_1 = 100,
         Experimental_2 = 101,

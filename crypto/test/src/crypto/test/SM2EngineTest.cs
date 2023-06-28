@@ -39,7 +39,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();
 
-            ECKeyGenerationParameters aKeyGenParams = new ECKeyGenerationParameters(domainParams, new TestRandomBigInteger("1649AB77A00637BD5E2EFE283FBF353534AA7F7CB89463F208DDBC2920BB0DA0", 16));
+            ECKeyGenerationParameters aKeyGenParams = new ECKeyGenerationParameters(domainParams,
+                new TestRandomBigInteger("1649AB77A00637BD5E2EFE283FBF353534AA7F7CB89463F208DDBC2920BB0DA0", 16));
 
             keyPairGenerator.Init(aKeyGenParams);
 
@@ -52,7 +53,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] m = Strings.ToByteArray("encryption standard");
 
-            sm2Engine.Init(true, new ParametersWithRandom(aPub, new TestRandomBigInteger("4C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F", 16)));
+            sm2Engine.Init(true, new ParametersWithRandom(aPub,
+                new TestRandomBigInteger("4C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F", 16)));
 
             byte[] enc = sm2Engine.ProcessBlock(m, 0, m.Length);
 
@@ -89,7 +91,89 @@ namespace Org.BouncyCastle.Crypto.Tests
                 m[i] = (byte)i;
             }
 
-            sm2Engine.Init(true, new ParametersWithRandom(aPub, new TestRandomBigInteger("4C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F", 16)));
+            sm2Engine.Init(true, new ParametersWithRandom(aPub,
+                new TestRandomBigInteger("4C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F", 16)));
+
+            enc = sm2Engine.ProcessBlock(m, 0, m.Length);
+
+            sm2Engine.Init(false, aPriv);
+
+            dec = sm2Engine.ProcessBlock(enc, 0, enc.Length);
+
+            IsTrue("dec wrong", Arrays.AreEqual(m, dec));
+        }
+
+        private void DoEngineTestFpC1C3C2()
+        {
+            BigInteger SM2_ECC_P = new BigInteger("8542D69E4C044F18E8B92435BF6FF7DE457283915C45517D722EDB8B08F1DFC3", 16);
+            BigInteger SM2_ECC_A = new BigInteger("787968B4FA32C3FD2417842E73BBFEFF2F3C848B6831D7E0EC65228B3937E498", 16);
+            BigInteger SM2_ECC_B = new BigInteger("63E4C6D3B23B0C849CF84241484BFE48F61D59A5B16BA06E6E12D1DA27C5249A", 16);
+            BigInteger SM2_ECC_N = new BigInteger("8542D69E4C044F18E8B92435BF6FF7DD297720630485628D5AE74EE7C32E79B7", 16);
+            BigInteger SM2_ECC_H = BigInteger.One;
+            BigInteger SM2_ECC_GX = new BigInteger("421DEBD61B62EAB6746434EBC3CC315E32220B3BADD50BDC4C4E6C147FEDD43D", 16);
+            BigInteger SM2_ECC_GY = new BigInteger("0680512BCBB42C07D47349D2153B70C4E5D7FDFCBFA36EA1A85841B9E46E09A2", 16);
+
+            ECCurve curve = new FpCurve(SM2_ECC_P, SM2_ECC_A, SM2_ECC_B, SM2_ECC_N, SM2_ECC_H);
+
+            ECPoint g = curve.CreatePoint(SM2_ECC_GX, SM2_ECC_GY);
+            ECDomainParameters domainParams = new ECDomainParameters(curve, g, SM2_ECC_N);
+
+            ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();
+
+            ECKeyGenerationParameters aKeyGenParams = new ECKeyGenerationParameters(domainParams,
+                new TestRandomBigInteger("1649AB77A00637BD5E2EFE283FBF353534AA7F7CB89463F208DDBC2920BB0DA0", 16));
+
+            keyPairGenerator.Init(aKeyGenParams);
+
+            AsymmetricCipherKeyPair aKp = keyPairGenerator.GenerateKeyPair();
+
+            ECPublicKeyParameters aPub = (ECPublicKeyParameters)aKp.Public;
+            ECPrivateKeyParameters aPriv = (ECPrivateKeyParameters)aKp.Private;
+
+            SM2Engine sm2Engine = new SM2Engine(SM2Engine.Mode.C1C3C2);
+
+            byte[] m = Strings.ToByteArray("encryption standard");
+
+            sm2Engine.Init(true, new ParametersWithRandom(aPub,
+                new TestRandomBigInteger("4C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F", 16)));
+
+            byte[] enc = sm2Engine.ProcessBlock(m, 0, m.Length);
+
+            IsTrue("enc wrong", Arrays.AreEqual(Hex.Decode(
+                "04245C26 FB68B1DD DDB12C4B 6BF9F2B6 D5FE60A3 83B0D18D 1C4144AB F17F6252" +
+                "E776CB92 64C2A7E8 8E52B199 03FDC473 78F605E3 6811F5C0 7423A24B 84400F01" +
+                "B8 9C3D7360 C30156FA B7C80A02" +
+                "76712DA9 D8094A63 4B766D3A 285E0748 0653426D 650053 A89B41C4 18B0C3AA D00D886C 00286467"), enc));
+
+            sm2Engine.Init(false, aPriv);
+
+            byte[] dec = sm2Engine.ProcessBlock(enc, 0, enc.Length);
+
+            IsTrue("dec wrong", Arrays.AreEqual(m, dec));
+
+            enc[80] = (byte)(enc[80] + 1);
+
+            try
+            {
+                sm2Engine.ProcessBlock(enc, 0, enc.Length);
+                Fail("no exception");
+            }
+            catch (InvalidCipherTextException e)
+            {
+                IsTrue("wrong exception", "invalid cipher text".Equals(e.Message));
+            }
+
+            // long message
+            sm2Engine = new SM2Engine(SM2Engine.Mode.C1C3C2);
+
+            m = new byte[4097];
+            for (int i = 0; i != m.Length; i++)
+            {
+                m[i] = (byte)i;
+            }
+
+            sm2Engine.Init(true, new ParametersWithRandom(aPub,
+                new TestRandomBigInteger("4C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F", 16)));
 
             enc = sm2Engine.ProcessBlock(m, 0, m.Length);
 
@@ -150,11 +234,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             DoEngineTestFp();
             DoEngineTestF2m();
-        }
-
-        public static void Main(string[] args)
-        {
-            RunTest(new SM2EngineTest());
+            DoEngineTestFpC1C3C2();
         }
 
         [Test]

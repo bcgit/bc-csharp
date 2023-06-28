@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				MonetaryLimit.GetInstance(new Object());
+				MonetaryLimit.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -74,12 +74,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("currency", currency, limit.Currency);
 			checkMandatoryField("amount", amount, limit.Amount.IntValue);
 			checkMandatoryField("exponent", exponent, limit.Exponent.IntValue);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new MonetaryLimitUnitTest());
 		}
 
 		[Test]

@@ -1,7 +1,5 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -28,23 +26,16 @@ namespace Org.BouncyCastle.Asn1.X509
 	public class SubjectDirectoryAttributes
 		: Asn1Encodable
 	{
-		private readonly IList attributes;
+		private readonly List<AttributeX509> m_attributes;
 
-		public static SubjectDirectoryAttributes GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is SubjectDirectoryAttributes)
-			{
-				return (SubjectDirectoryAttributes) obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new SubjectDirectoryAttributes((Asn1Sequence) obj);
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        public static SubjectDirectoryAttributes GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SubjectDirectoryAttributes subjectDirectoryAttributes)
+                return subjectDirectoryAttributes;
+            return new SubjectDirectoryAttributes(Asn1Sequence.GetInstance(obj));
+        }
 
 		/**
 		 * Constructor from Asn1Sequence.
@@ -70,22 +61,14 @@ namespace Org.BouncyCastle.Asn1.X509
 		private SubjectDirectoryAttributes(
 			Asn1Sequence seq)
 		{
-            this.attributes = Platform.CreateArrayList();
+            m_attributes = new List<AttributeX509>();
+
             foreach (object o in seq)
 			{
 				Asn1Sequence s = Asn1Sequence.GetInstance(o);
-				attributes.Add(AttributeX509.GetInstance(s));
+				m_attributes.Add(AttributeX509.GetInstance(s));
 			}
 		}
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public SubjectDirectoryAttributes(
-            ArrayList attributes)
-            : this((IList)attributes)
-        {
-        }
-#endif
 
         /**
 		 * Constructor from an ArrayList of attributes.
@@ -95,11 +78,10 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param attributes The attributes.
 		 *
 		 */
-		public SubjectDirectoryAttributes(
-			IList attributes)
+		public SubjectDirectoryAttributes(IList<AttributeX509> attributes)
 		{
-            this.attributes = Platform.CreateArrayList(attributes);
-        }
+			m_attributes = new List<AttributeX509>(attributes);
+		}
 
 		/**
 		 * Produce an object suitable for an Asn1OutputStream.
@@ -123,20 +105,15 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-            AttributeX509[] v = new AttributeX509[attributes.Count];
-            for (int i = 0; i < attributes.Count; ++i)
-            {
-                v[i] = (AttributeX509)attributes[i];
-            }
-            return new DerSequence(v);
+            return new DerSequence(m_attributes.ToArray());
 		}
 
         /**
 		 * @return Returns the attributes.
 		 */
-		public IEnumerable Attributes
+		public IEnumerable<AttributeX509> Attributes
 		{
-			get { return new EnumerableProxy(attributes); }
+			get { return CollectionUtilities.Proxy(m_attributes); }
 		}
 	}
 }

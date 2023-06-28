@@ -17,8 +17,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 	{
 		private readonly DirectoryString restriction;
 
-		public static Restriction GetInstance(
-			object obj)
+		public static Restriction GetInstance(object obj)
 		{
 			if (obj is Restriction)
 				return (Restriction) obj;
@@ -40,8 +39,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param restriction A IAsn1String.
 		*/
-		private Restriction(
-			DirectoryString restriction)
+		private Restriction(DirectoryString restriction)
 		{
 			this.restriction = restriction;
 		}
@@ -51,8 +49,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param restriction The description of the restriction.
 		*/
-		public Restriction(
-			string restriction)
+		public Restriction(string restriction)
 		{
 			this.restriction = new DirectoryString(restriction);
 		}

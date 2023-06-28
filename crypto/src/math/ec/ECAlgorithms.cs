@@ -38,12 +38,12 @@ namespace Org.BouncyCastle.Math.EC
             int count = ps.Length;
             switch (count)
             {
-                case 1:
-                    return ps[0].Multiply(ks[0]);
-                case 2:
-                    return SumOfTwoMultiplies(ps[0], ks[0], ps[1], ks[1]);
-                default:
-                    break;
+            case 1:
+                return ps[0].Multiply(ks[0]);
+            case 2:
+                return SumOfTwoMultiplies(ps[0], ks[0], ps[1], ks[1]);
+            default:
+                break;
             }
 
             ECPoint p = ps[0];
@@ -56,8 +56,7 @@ namespace Org.BouncyCastle.Math.EC
                 imported[i] = ImportPoint(c, ps[i]);
             }
 
-            GlvEndomorphism glvEndomorphism = c.GetEndomorphism() as GlvEndomorphism;
-            if (glvEndomorphism != null)
+            if (c.GetEndomorphism() is GlvEndomorphism glvEndomorphism)
             {
                 return ImplCheckResult(ImplSumOfMultipliesGlv(imported, ks, glvEndomorphism));
             }
@@ -72,18 +71,14 @@ namespace Org.BouncyCastle.Math.EC
 
             // Point multiplication for Koblitz curves (using WTNAF) beats Shamir's trick
             {
-                AbstractF2mCurve f2mCurve = cp as AbstractF2mCurve;
-                if (f2mCurve != null && f2mCurve.IsKoblitz)
-                {
+                if (cp is AbstractF2mCurve f2mCurve && f2mCurve.IsKoblitz)
                     return ImplCheckResult(P.Multiply(a).Add(Q.Multiply(b)));
-                }
             }
 
-            GlvEndomorphism glvEndomorphism = cp.GetEndomorphism() as GlvEndomorphism;
-            if (glvEndomorphism != null)
+            if (cp.GetEndomorphism() is GlvEndomorphism glvEndomorphism)
             {
                 return ImplCheckResult(
-                    ImplSumOfMultipliesGlv(new ECPoint[] { P, Q }, new BigInteger[] { a, b }, glvEndomorphism));
+                    ImplSumOfMultipliesGlv(new ECPoint[]{ P, Q }, new BigInteger[]{ a, b }, glvEndomorphism));
             }
 
             return ImplCheckResult(ImplShamirsTrickWNaf(P, a, Q, b));
@@ -213,9 +208,18 @@ namespace Org.BouncyCastle.Math.EC
         {
             ECCurve cp = p.Curve;
             if (!c.Equals(cp))
-                throw new ArgumentException("Point must be on the same curve", "p");
+                throw new ArgumentException("Point must be on the same curve", nameof(p));
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int encodedLength = p.GetEncodedLength(false);
+            Span<byte> encoding = encodedLength <= 512
+                ? stackalloc byte[encodedLength]
+                : new byte[encodedLength];
+            p.EncodeTo(false, encoding);
+            return c.DecodePoint(encoding);
+#else
             return c.DecodePoint(p.GetEncoded(false));
+#endif
         }
 
         internal static ECPoint ImplCheckResult(ECPoint p)
@@ -560,21 +564,31 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             int width = widthP;
-
             int d = (combSize + width - 1) / width;
+            int fullComb = d * width;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int len = Nat.GetLengthForBits(fullComb);
+            Span<uint> K = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(fullComb, k, K);
+            Span<uint> L = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(fullComb, l, L);
+#else
+            uint[] K = Nat.FromBigInteger(fullComb, k);
+            uint[] L = Nat.FromBigInteger(fullComb, l);
+#endif
 
             ECPoint R = c.Infinity;
 
-            int fullComb = d * width;
-            uint[] K = Nat.FromBigInteger(fullComb, k);
-            uint[] L = Nat.FromBigInteger(fullComb, l);
-
-            int top = fullComb - 1; 
-            for (int i = 0; i < d; ++i)
+            for (int i = 1; i <= d; ++i)
             {
                 uint secretIndexK = 0, secretIndexL = 0;
 
-                for (int j = top - i; j >= 0; j -= d)
+                for (int j = fullComb - i; j >= 0; j -= d)
                 {
                     uint secretBitK = K[j >> 5] >> (j & 0x1F);
                     secretIndexK ^= secretBitK >> 1;

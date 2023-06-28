@@ -1,30 +1,27 @@
 using System;
-using System.Collections;
-using System.IO;
-
-using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Cms
 {
     public class SignerInformationStore
     {
-        private readonly IList all; //ArrayList[SignerInformation]
-        private readonly IDictionary table = Platform.CreateHashtable(); // Hashtable[SignerID, ArrayList[SignerInformation]]
+        private readonly IList<SignerInformation> m_all;
+        private readonly IDictionary<SignerID, IList<SignerInformation>> m_table =
+            new Dictionary<SignerID, IList<SignerInformation>>();
 
         /**
          * Create a store containing a single SignerInformation object.
          *
          * @param signerInfo the signer information to contain.
          */
-        public SignerInformationStore(
-            SignerInformation signerInfo)
+        public SignerInformationStore(SignerInformation signerInfo)
         {
-            this.all = Platform.CreateArrayList(1);
-            this.all.Add(signerInfo);
+            m_all = new List<SignerInformation>(1);
+            m_all.Add(signerInfo);
 
             SignerID sid = signerInfo.SignerID;
 
-            table[sid] = all;
+            m_table[sid] = m_all;
         }
 
         /**
@@ -32,23 +29,22 @@ namespace Org.BouncyCastle.Cms
          *
          * @param signerInfos a collection signer information objects to contain.
          */
-        public SignerInformationStore(
-            ICollection signerInfos)
+        public SignerInformationStore(IEnumerable<SignerInformation> signerInfos)
         {
+            m_all = new List<SignerInformation>(signerInfos);
+
             foreach (SignerInformation signer in signerInfos)
             {
                 SignerID sid = signer.SignerID;
-                IList list = (IList)table[sid];
 
-                if (list == null)
+                if (!m_table.TryGetValue(sid, out var list))
                 {
-                    table[sid] = list = Platform.CreateArrayList(1);
+                    list = new List<SignerInformation>(1);
+                    m_table[sid] = list;
                 }
 
                 list.Add(signer);
             }
-
-            this.all = Platform.CreateArrayList(signerInfos);
         }
 
         /**
@@ -58,24 +54,24 @@ namespace Org.BouncyCastle.Cms
         * @param selector to identify a signer
         * @return a single SignerInformation object. Null if none matches.
         */
-        public SignerInformation GetFirstSigner(
-            SignerID selector)
+        public SignerInformation GetFirstSigner(SignerID selector)
         {
-            IList list = (IList) table[selector];
+            if (m_table.TryGetValue(selector, out var list))
+                return list[0];
 
-            return list == null ? null : (SignerInformation) list[0];
+            return null;
         }
 
         /// <summary>The number of signers in the collection.</summary>
         public int Count
         {
-            get { return all.Count; }
+            get { return m_all.Count; }
         }
 
         /// <returns>An ICollection of all signers in the collection</returns>
-        public ICollection GetSigners()
+        public IList<SignerInformation> GetSigners()
         {
-            return Platform.CreateArrayList(all);
+            return new List<SignerInformation>(m_all);
         }
 
         /**
@@ -84,12 +80,12 @@ namespace Org.BouncyCastle.Cms
         * @param selector a signer id to select against.
         * @return a collection of SignerInformation objects.
         */
-        public ICollection GetSigners(
-            SignerID selector)
+        public IList<SignerInformation> GetSigners(SignerID selector)
         {
-            IList list = (IList) table[selector];
+            if (m_table.TryGetValue(selector, out var list))
+                return new List<SignerInformation>(list);
 
-            return list == null ? Platform.CreateArrayList() : Platform.CreateArrayList(list);
+            return new List<SignerInformation>(0);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class PskTls13ServerTest
     {
-        [Test, Ignore]
+        [Test, Explicit]
         public void TestConnection()
         {
             int port = 5556;

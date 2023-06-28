@@ -21,6 +21,18 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public DLBitString(ReadOnlySpan<byte> data)
+            : this(data, 0)
+        {
+        }
+
+        public DLBitString(ReadOnlySpan<byte> data, int padBits)
+            : base(data, padBits)
+        {
+        }
+#endif
+
         public DLBitString(int namedBits)
             : base(namedBits)
         {

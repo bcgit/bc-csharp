@@ -31,6 +31,16 @@ namespace Org.BouncyCastle.Tls
         /// <returns>the handshake timeout, in milliseconds.</returns>
         int GetHandshakeTimeoutMillis();
 
+        // TODO[api]
+        /*
+        /// <summary>Specify the time, in milliseconds, after which a handshake packet is resent.</summary>
+        /// <remarks>
+        /// NOTE: Currently only respected by DTLS protocols.
+        /// </remarks>
+        /// <returns>the handshake resend time, in milliseconds.</returns>
+        int GetHandshakeResendTimeMillis();
+        */
+
         bool AllowLegacyResumption();
 
         int GetMaxCertificateChainLength();
@@ -101,6 +111,12 @@ namespace Org.BouncyCastle.Tls
         /// <param name="alertDescription"><see cref="AlertDescription"/></param>
         void NotifyAlertReceived(short alertLevel, short alertDescription);
 
+        // TODO[api]
+        /*
+        /// <summary>Notifies the peer that the connection has been closed.</summary>
+        void NotifyConnectionClosed();
+        */
+
         /// <summary>Notifies the peer that the handshake has been successfully completed.</summary>
         /// <exception cref="IOException"/>
         void NotifyHandshakeComplete();
@@ -119,5 +135,13 @@ namespace Org.BouncyCastle.Tls
         /// </remarks>
         /// <returns>the <see cref="HeartbeatMode"/> value.</returns>
         short GetHeartbeatPolicy();
+
+        // TODO[api] Remove this and treat it as default 'true'
+        /// <summary>Indicates whether a DTLS connection should ignore corrupt records (bad_record_mac) instead of
+        /// failing the connection.</summary>
+        /// <remarks>Called only once at the start of a connection and applies throughout.</remarks>
+        /// <returns>The value <c>true</c> to ignore corrupt DTLS records, or <c>false</c> to fail the connection.
+        /// </returns>
+        bool IgnoreCorruptDtlsRecords { get; }
     }
 }

@@ -21,20 +21,24 @@ namespace Org.BouncyCastle.Crypto.Agreement
      * DL/ECKAS-DH2. It assumes that the input keys are valid (see also
      * Section 7.2.2).
      */
+    // TODO[api] sealed
     public class ECDHBasicAgreement
         : IBasicAgreement
     {
+        // TODO[api] private
         protected internal ECPrivateKeyParameters privKey;
 
-        public virtual void Init(
-            ICipherParameters parameters)
+        public virtual void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                parameters = ((ParametersWithRandom)parameters).Parameters;
+                parameters = withRandom.Parameters;
             }
 
-            this.privKey = (ECPrivateKeyParameters)parameters;
+            if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
+                throw new ArgumentException("ECDHBasicAgreement expects ECPrivateKeyParameters");
+
+            this.privKey = ecPrivateKeyParameters;
         }
 
         public virtual int GetFieldSize()
@@ -42,8 +46,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             return (privKey.Parameters.Curve.FieldSize + 7) / 8;
         }
 
-        public virtual BigInteger CalculateAgreement(
-            ICipherParameters pubKey)
+        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;
             ECDomainParameters dp = privKey.Parameters;

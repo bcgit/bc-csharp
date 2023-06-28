@@ -19,9 +19,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private ScvpReqRes(Asn1Sequence seq)
         {
-            if (seq[0] is Asn1TaggedObject)
+            if (seq[0] is Asn1TaggedObject taggedObject)
             {
-                this.request = ContentInfo.GetInstance(Asn1TaggedObject.GetInstance(seq[0]), true);
+                this.request = ContentInfo.GetInstance(taggedObject, true);
                 this.response = ContentInfo.GetInstance(seq[1]);
             }
             else
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptionalTagged(true, 0, request);
             v.Add(response);
             return new DerSequence(v);

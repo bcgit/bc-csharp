@@ -57,12 +57,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new RipeMD320Digest((RipeMD320Digest)digest);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new RipeMD320DigestTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

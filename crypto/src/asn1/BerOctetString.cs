@@ -1,25 +1,14 @@
 using System;
-using System.Collections;
 using System.Diagnostics;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
     public class BerOctetString
-        : DerOctetString, IEnumerable
+        : DerOctetString
     {
-        private const int DefaultSegmentLimit = 1000;
-
         public static BerOctetString FromSequence(Asn1Sequence seq)
         {
-            int count = seq.Count;
-            Asn1OctetString[] v = new Asn1OctetString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                v[i] = GetInstance(seq[i]);
-            }
-            return new BerOctetString(v);
+            return new BerOctetString(seq.MapElements(GetInstance));
         }
 
         internal static byte[] FlattenOctetStrings(Asn1OctetString[] octetStrings)
@@ -54,71 +43,43 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private static Asn1OctetString[] ToOctetStringArray(IEnumerable e)
-        {
-            IList list = Platform.CreateArrayList(e);
-
-            int count = list.Count;
-            Asn1OctetString[] v = new Asn1OctetString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                v[i] = GetInstance(list[i]);
-            }
-            return v;
-        }
-
-        private readonly int segmentLimit;
         private readonly Asn1OctetString[] elements;
 
-        [Obsolete("Will be removed")]
-        public BerOctetString(IEnumerable e)
-            : this(ToOctetStringArray(e))
-        {
-        }
-
         public BerOctetString(byte[] contents)
-			: this(contents, DefaultSegmentLimit)
+			: this(contents, null)
 		{
 		}
 
         public BerOctetString(Asn1OctetString[] elements)
-            : this(elements, DefaultSegmentLimit)
+            : this(FlattenOctetStrings(elements), elements)
         {
         }
 
+        [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerOctetString(byte[] contents, int segmentLimit)
-            : this(contents, null, segmentLimit)
+            : this(contents)
         {
         }
 
+        [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerOctetString(Asn1OctetString[] elements, int segmentLimit)
-            : this(FlattenOctetStrings(elements), elements, segmentLimit)
+            : this(elements)
         {
         }
 
-        private BerOctetString(byte[] contents, Asn1OctetString[] elements, int segmentLimit)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal BerOctetString(ReadOnlySpan<byte> contents)
+            : base(contents)
+        {
+            this.elements = null;
+        }
+#endif
+
+        private BerOctetString(byte[] contents, Asn1OctetString[] elements)
             : base(contents)
         {
             this.elements = elements;
-            this.segmentLimit = segmentLimit;
         }
-
-        /**
-         * return the DER octets that make up this string.
-         */
-		public IEnumerator GetEnumerator()
-		{
-			if (elements == null)
-                return new ChunkEnumerator(contents, segmentLimit);
-
-			return elements.GetEnumerator();
-		}
-
-		[Obsolete("Use GetEnumerator() instead")]
-        public IEnumerator GetObjects()
-        {
-			return GetEnumerator();
-		}
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
@@ -142,55 +103,6 @@ namespace Org.BouncyCastle.Asn1
 
             return new ConstructedILEncoding(tagClass, tagNo,
                 Asn1OutputStream.GetContentsEncodings(encoding, elements));
-        }
-
-        private class ChunkEnumerator
-            : IEnumerator
-        {
-            private readonly byte[] octets;
-            private readonly int segmentLimit;
-
-            private DerOctetString currentSegment = null;
-            private int nextSegmentPos = 0;
-
-            internal ChunkEnumerator(byte[] octets, int segmentLimit)
-            {
-                this.octets = octets;
-                this.segmentLimit = segmentLimit;
-            }
-
-            public object Current
-            {
-                get
-                {
-                    if (null == currentSegment)
-                        throw new InvalidOperationException();
-
-                    return currentSegment;
-                }
-            }
-
-            public bool MoveNext()
-            {
-                if (nextSegmentPos >= octets.Length)
-                {
-                    this.currentSegment = null;
-                    return false;
-                }
-
-                int length = System.Math.Min(octets.Length - nextSegmentPos, segmentLimit);
-                byte[] segment = new byte[length];
-                Array.Copy(octets, nextSegmentPos, segment, 0, length);
-                this.currentSegment = new DerOctetString(segment);
-                this.nextSegmentPos += length;
-                return true;
-            }
-
-            public void Reset()
-            {
-                this.currentSegment = null;
-                this.nextSegmentPos = 0;
-            }
         }
     }
 }

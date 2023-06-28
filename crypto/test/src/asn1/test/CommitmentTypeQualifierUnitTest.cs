@@ -90,12 +90,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new CommitmentTypeQualifierUnitTest());
-        }
-
         [Test]
         public void TestFunction()
         {

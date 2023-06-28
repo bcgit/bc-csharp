@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
     /// <summary>A generic TLS 1.0-1.2 block cipher. This can be used for AES or 3DES for example.</summary>
     public class TlsBlockCipher
-        : TlsCipher
+        : TlsCipher, TlsCipherExt
     {
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly byte[] m_randomData;
@@ -18,7 +18,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         protected readonly bool m_useExtraPadding;
 
         protected readonly TlsBlockCipherImpl m_decryptCipher, m_encryptCipher;
-        protected readonly TlsSuiteMac m_readMac, m_writeMac;
+        protected readonly TlsSuiteHmac m_readMac, m_writeMac;
+        protected readonly byte[] m_decryptConnectionID, m_encryptConnectionID;
+        protected readonly bool m_decryptUseInnerPlaintext, m_encryptUseInnerPlaintext;
 
         /// <exception cref="IOException"/>
         public TlsBlockCipher(TlsCryptoParameters cryptoParams, TlsBlockCipherImpl encryptCipher,
@@ -29,6 +31,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (TlsImplUtilities.IsTlsV13(negotiatedVersion))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            m_decryptConnectionID = securityParameters.ConnectionIDPeer;
+            m_encryptConnectionID = securityParameters.ConnectionIDLocal;
+
+            m_decryptUseInnerPlaintext = !Arrays.IsNullOrEmpty(m_decryptConnectionID);
+            m_encryptUseInnerPlaintext = !Arrays.IsNullOrEmpty(m_encryptConnectionID);
 
             this.m_cryptoParams = cryptoParams;
             this.m_randomData = cryptoParams.NonceGenerator.GenerateNonce(256);
@@ -65,27 +73,55 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 serverCipher = decryptCipher;
             }
 
-            int key_block_size = (2 * cipherKeySize) + clientMac.MacLength + serverMac.MacLength;
+            int keyBlockSize = (2 * cipherKeySize) + clientMac.MacLength + serverMac.MacLength;
 
             // From TLS 1.1 onwards, block ciphers don't need IVs from the key_block
             if (!m_useExplicitIV)
             {
-                key_block_size += clientCipher.GetBlockSize() + serverCipher.GetBlockSize();
+                keyBlockSize += clientCipher.GetBlockSize() + serverCipher.GetBlockSize();
             }
 
-            byte[] key_block = TlsImplUtilities.CalculateKeyBlock(cryptoParams, key_block_size);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> keyBlock = keyBlockSize <= 512
+                ? stackalloc byte[keyBlockSize]
+                : new byte[keyBlockSize];
+            TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
 
-            int offset = 0;
+            clientMac.SetKey(keyBlock[..clientMac.MacLength]); keyBlock = keyBlock[clientMac.MacLength..];
+            serverMac.SetKey(keyBlock[..serverMac.MacLength]); keyBlock = keyBlock[serverMac.MacLength..];
 
-            clientMac.SetKey(key_block, offset, clientMac.MacLength);
-            offset += clientMac.MacLength;
-            serverMac.SetKey(key_block, offset, serverMac.MacLength);
-            offset += serverMac.MacLength;
+            clientCipher.SetKey(keyBlock[..cipherKeySize]); keyBlock = keyBlock[cipherKeySize..];
+            serverCipher.SetKey(keyBlock[..cipherKeySize]); keyBlock = keyBlock[cipherKeySize..];
 
-            clientCipher.SetKey(key_block, offset, cipherKeySize);
-            offset += cipherKeySize;
-            serverCipher.SetKey(key_block, offset, cipherKeySize);
-            offset += cipherKeySize;
+            int clientIVLength = clientCipher.GetBlockSize();
+            int serverIVLength = serverCipher.GetBlockSize();
+
+            if (m_useExplicitIV)
+            {
+                clientCipher.Init(clientIVLength <= 64 ? stackalloc byte[clientIVLength] : new byte[clientIVLength]);
+                serverCipher.Init(serverIVLength <= 64 ? stackalloc byte[serverIVLength] : new byte[serverIVLength]);
+            }
+            else
+            {
+                clientCipher.Init(keyBlock[..clientIVLength]); keyBlock = keyBlock[clientIVLength..];
+                serverCipher.Init(keyBlock[..serverIVLength]); keyBlock = keyBlock[serverIVLength..];
+            }
+
+            if (!keyBlock.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+#else
+            byte[] keyBlock = TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlockSize);
+            int pos = 0;
+
+            clientMac.SetKey(keyBlock, pos, clientMac.MacLength);
+            pos += clientMac.MacLength;
+            serverMac.SetKey(keyBlock, pos, serverMac.MacLength);
+            pos += serverMac.MacLength;
+
+            clientCipher.SetKey(keyBlock, pos, cipherKeySize);
+            pos += cipherKeySize;
+            serverCipher.SetKey(keyBlock, pos, cipherKeySize);
+            pos += cipherKeySize;
 
             int clientIVLength = clientCipher.GetBlockSize();
             int serverIVLength = serverCipher.GetBlockSize();
@@ -97,14 +133,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
             else
             {
-                clientCipher.Init(key_block, offset, clientIVLength);
-                offset += clientIVLength;
-                serverCipher.Init(key_block, offset, serverIVLength);
-                offset += serverIVLength;
+                clientCipher.Init(keyBlock, pos, clientIVLength);
+                pos += clientIVLength;
+                serverCipher.Init(keyBlock, pos, serverIVLength);
+                pos += serverIVLength;
             }
 
-            if (offset != key_block_size)
+            if (pos != keyBlockSize)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
+#endif
 
             if (cryptoParams.IsServer)
             {
@@ -123,57 +160,62 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int blockSize = m_decryptCipher.GetBlockSize();
             int macSize = m_readMac.Size;
             int maxPadding = 256;
+            int innerPlaintextLimit = plaintextLimit + (m_decryptUseInnerPlaintext ? 1 : 0);
 
-            return GetCiphertextLength(blockSize, macSize, maxPadding, plaintextLimit);
+            return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
         public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
+            plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
+
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
             int maxPadding = m_useExtraPadding ? 256 : blockSize;
+            int innerPlaintextLimit = plaintextLimit + (m_encryptUseInnerPlaintext ? 1 : 0);
 
-            return GetCiphertextLength(blockSize, macSize, maxPadding, plaintextLength);
+            return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
+        // TODO[api] Remove
         public virtual int GetPlaintextLimit(int ciphertextLimit)
+        {
+            return GetPlaintextEncodeLimit(ciphertextLimit);
+        }
+
+        public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
+        {
+            int blockSize = m_decryptCipher.GetBlockSize();
+            int macSize = m_readMac.Size;
+
+            int innerPlaintextLimit = GetPlaintextLength(blockSize, macSize, ciphertextLimit);
+
+            return innerPlaintextLimit - (m_decryptUseInnerPlaintext ? 1 : 0);
+        }
+
+        public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
 
-            int plaintextLimit = ciphertextLimit;
+            int innerPlaintextLimit = GetPlaintextLength(blockSize, macSize, ciphertextLimit);
 
-            // Leave room for the MAC, and require block-alignment
-            if (m_encryptThenMac)
-            {
-                plaintextLimit -= macSize;
-                plaintextLimit -= plaintextLimit % blockSize;
-            }
-            else
-            {
-                plaintextLimit -= plaintextLimit % blockSize;
-                plaintextLimit -= macSize;
-            }
-
-            // Minimum 1 byte of padding
-            --plaintextLimit;
-
-            // An explicit IV consumes 1 block
-            if (m_useExplicitIV)
-            {
-                plaintextLimit -= blockSize;
-            }
-
-            return plaintextLimit;
+            return innerPlaintextLimit - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return EncodePlaintext(seqNo, contentType, recordVersion, headerAllocation, plaintext.AsSpan(offset, len));
+#else
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
 
-            int enc_input_length = len;
+            // TODO[cid] If we support adding padding to DTLSInnerPlaintext, this will need review
+            int innerPlaintextLength = len + (m_encryptUseInnerPlaintext ? 1 : 0);
+
+            int enc_input_length = innerPlaintextLength;
             if (!m_encryptThenMac)
             {
                 enc_input_length += macSize;
@@ -188,7 +230,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 padding_length += actualExtraPadBlocks * blockSize;
             }
 
-            int totalSize = len + macSize + padding_length;
+            int totalSize = innerPlaintextLength + macSize + padding_length;
             if (m_useExplicitIV)
             {
                 totalSize += blockSize;
@@ -205,12 +247,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 outOff += blockSize;
             }
 
+            int innerPlaintextOffset = outOff;
+
             Array.Copy(plaintext, offset, outBuf, outOff, len);
             outOff += len;
 
+            short recordType = contentType;
+            if (m_encryptUseInnerPlaintext)
+            {
+                outBuf[outOff++] = (byte)contentType;
+                recordType = ContentType.tls12_cid;
+            }
+
             if (!m_encryptThenMac)
             {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext, offset, len);
+                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID, outBuf,
+                    innerPlaintextOffset, innerPlaintextLength);
                 Array.Copy(mac, 0, outBuf, outOff, mac.Length);
                 outOff += mac.Length;
             }
@@ -225,7 +277,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (m_encryptThenMac)
             {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, outBuf, headerAllocation,
+                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID, outBuf, headerAllocation,
                     outOff - headerAllocation);
                 Array.Copy(mac, 0, outBuf, outOff, mac.Length);
                 outOff += mac.Length;
@@ -234,8 +286,94 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             if (outOff != outBuf.Length)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            return new TlsEncodeResult(outBuf, 0, outBuf.Length, contentType);
+            return new TlsEncodeResult(outBuf, 0, outBuf.Length, recordType);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
+            int headerAllocation, ReadOnlySpan<byte> plaintext)
+        {
+            int blockSize = m_encryptCipher.GetBlockSize();
+            int macSize = m_writeMac.Size;
+
+            // TODO[cid] If we support adding padding to DTLSInnerPlaintext, this will need review
+            int innerPlaintextLength = plaintext.Length + (m_encryptUseInnerPlaintext ? 1 : 0);
+
+            int enc_input_length = innerPlaintextLength;
+            if (!m_encryptThenMac)
+            {
+                enc_input_length += macSize;
+            }
+
+            int padding_length = blockSize - (enc_input_length % blockSize);
+            if (m_useExtraPadding)
+            {
+                // Add a random number of extra blocks worth of padding
+                int maxExtraPadBlocks = (256 - padding_length) / blockSize;
+                int actualExtraPadBlocks = ChooseExtraPadBlocks(maxExtraPadBlocks);
+                padding_length += actualExtraPadBlocks * blockSize;
+            }
+
+            int totalSize = innerPlaintextLength + macSize + padding_length;
+            if (m_useExplicitIV)
+            {
+                totalSize += blockSize;
+            }
+
+            byte[] outBuf = new byte[headerAllocation + totalSize];
+            int outOff = headerAllocation;
+
+            if (m_useExplicitIV)
+            {
+                // Technically the explicit IV will be the encryption of this nonce
+                byte[] explicitIV = m_cryptoParams.NonceGenerator.GenerateNonce(blockSize);
+                Array.Copy(explicitIV, 0, outBuf, outOff, blockSize);
+                outOff += blockSize;
+            }
+
+            int innerPlaintextOffset = outOff;
+
+            plaintext.CopyTo(outBuf.AsSpan(outOff));
+            outOff += plaintext.Length;
+
+            short recordType = contentType;
+            if (m_encryptUseInnerPlaintext)
+            {
+                outBuf[outOff++] = (byte)contentType;
+                recordType = ContentType.tls12_cid;
+            }
+
+            if (!m_encryptThenMac)
+            {
+                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
+                    outBuf.AsSpan(innerPlaintextOffset, innerPlaintextLength));
+                mac.CopyTo(outBuf.AsSpan(outOff));
+                outOff += mac.Length;
+            }
+
+            byte padByte = (byte)(padding_length - 1);
+            for (int i = 0; i < padding_length; ++i)
+            {
+                outBuf[outOff++] = padByte;
+            }
+
+            m_encryptCipher.DoFinal(outBuf, headerAllocation, outOff - headerAllocation, outBuf, headerAllocation);
+
+            if (m_encryptThenMac)
+            {
+                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
+                    outBuf.AsSpan(headerAllocation, outOff - headerAllocation));
+                Array.Copy(mac, 0, outBuf, outOff, mac.Length);
+                outOff += mac.Length;
+            }
+
+            if (outOff != outBuf.Length)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return new TlsEncodeResult(outBuf, 0, outBuf.Length, recordType);
+        }
+#endif
 
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
@@ -272,7 +410,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (m_encryptThenMac)
             {
-                byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, ciphertext, offset, len - macSize);
+                byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, m_decryptConnectionID, ciphertext,
+                    offset, len - macSize);
 
                 bool checkMac = TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
                     offset + len - macSize);
@@ -303,23 +442,43 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 m_encryptThenMac ? 0 : macSize);
             bool badMac = (totalPad == 0);
 
-            int dec_output_length = blocks_length - totalPad;
+            int innerPlaintextLength = blocks_length - totalPad;
 
             if (!m_encryptThenMac)
             {
-                dec_output_length -= macSize;
+                innerPlaintextLength -= macSize;
 
-                byte[] expectedMac = m_readMac.CalculateMacConstantTime(seqNo, recordType, ciphertext, offset,
-                    dec_output_length, blocks_length - macSize, m_randomData);
+                byte[] expectedMac = m_readMac.CalculateMacConstantTime(seqNo, recordType, m_decryptConnectionID,
+                    ciphertext, offset, innerPlaintextLength, blocks_length - macSize, m_randomData);
 
                 badMac |= !TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
-                    offset + dec_output_length);
+                    offset + innerPlaintextLength);
             }
 
             if (badMac)
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 
-            return new TlsDecodeResult(ciphertext, offset, dec_output_length, recordType);
+            short contentType = recordType;
+            int plaintextLength = innerPlaintextLength;
+
+            if (m_decryptUseInnerPlaintext)
+            {
+                // Strip padding and read true content type from DTLSInnerPlaintext
+                for (;;)
+                {
+                    if (--plaintextLength < 0)
+                        throw new TlsFatalAlert(AlertDescription.unexpected_message);
+
+                    byte octet = ciphertext[offset + plaintextLength];
+                    if (0 != octet)
+                    {
+                        contentType = (short)(octet & 0xFF);
+                        break;
+                    }
+                }
+            }
+
+            return new TlsDecodeResult(ciphertext, offset, plaintextLength, contentType);
         }
 
         public virtual void RekeyDecoder()
@@ -418,6 +577,34 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
 
             return ciphertextLength;
+        }
+
+        protected virtual int GetPlaintextLength(int blockSize, int macSize, int ciphertextLength)
+        {
+            int plaintextLength = ciphertextLength;
+
+            // Leave room for the MAC, and require block-alignment
+            if (m_encryptThenMac)
+            {
+                plaintextLength -= macSize;
+                plaintextLength -= plaintextLength % blockSize;
+            }
+            else
+            {
+                plaintextLength -= plaintextLength % blockSize;
+                plaintextLength -= macSize;
+            }
+
+            // Minimum 1 byte of padding
+            --plaintextLength;
+
+            // An explicit IV consumes 1 block
+            if (m_useExplicitIV)
+            {
+                plaintextLength -= blockSize;
+            }
+
+            return plaintextLength;
         }
     }
 }

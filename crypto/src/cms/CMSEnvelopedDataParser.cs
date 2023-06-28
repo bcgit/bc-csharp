@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -108,15 +106,7 @@ namespace Org.BouncyCastle.Cms
 		 * return the ASN.1 encoded encryption algorithm parameters, or null if
 		 * there aren't any.
 		 */
-		public Asn1Object EncryptionAlgParams
-		{
-			get
-			{
-				Asn1Encodable ae = _encAlg.Parameters;
-
-				return ae == null ? null : ae.ToAsn1Object();
-			}
-		}
+		public Asn1Object EncryptionAlgParams => _encAlg.Parameters?.ToAsn1Object();
 
 		/**
 		 * return a store of the intended recipients for this message
@@ -141,17 +131,7 @@ namespace Org.BouncyCastle.Cms
 
 				if (asn1Set != null)
 				{
-					Asn1EncodableVector v = new Asn1EncodableVector();
-					IAsn1Convertible o;
-
-					while ((o = asn1Set.ReadObject()) != null)
-					{
-						Asn1SequenceParser seq = (Asn1SequenceParser)o;
-
-						v.Add(seq.ToAsn1Object());
-					}
-
-					_unprotectedAttributes = new Asn1.Cms.AttributeTable(new DerSet(v));
+                    _unprotectedAttributes = CmsUtilities.ParseAttributeTable(asn1Set);
 				}
 			}
 

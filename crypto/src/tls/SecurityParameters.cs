@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections.Generic;
 
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -8,6 +7,7 @@ namespace Org.BouncyCastle.Tls
     public sealed class SecurityParameters
     {
         internal int m_entity = -1;
+        internal bool m_resumedSession = false;
         internal bool m_secureRenegotiation = false;
         internal int m_cipherSuite = Tls.CipherSuite.TLS_NULL_WITH_NULL_NULL;
         internal short m_maxFragmentLength = -1;
@@ -39,22 +39,28 @@ namespace Org.BouncyCastle.Tls
         internal ProtocolName m_applicationProtocol = null;
         internal bool m_applicationProtocolSet = false;
         internal short[] m_clientCertTypes = null;
-        internal IList m_clientServerNames = null;
-        internal IList m_clientSigAlgs = null;
-        internal IList m_clientSigAlgsCert = null;
+        internal IList<ServerName> m_clientServerNames = null;
+        internal IList<SignatureAndHashAlgorithm> m_clientSigAlgs = null;
+        internal IList<SignatureAndHashAlgorithm> m_clientSigAlgsCert = null;
         internal int[] m_clientSupportedGroups = null;
-        internal IList m_serverSigAlgs = null;
-        internal IList m_serverSigAlgsCert = null;
+        internal IList<SignatureAndHashAlgorithm> m_serverSigAlgs = null;
+        internal IList<SignatureAndHashAlgorithm> m_serverSigAlgsCert = null;
         internal int[] m_serverSupportedGroups = null;
         internal int m_keyExchangeAlgorithm = -1;
         internal Certificate m_localCertificate = null;
         internal Certificate m_peerCertificate = null;
         internal ProtocolVersion m_negotiatedVersion = null;
         internal int m_statusRequestVersion = 0;
+        internal short m_clientCertificateType = -1;
 
         // TODO[tls-ops] Investigate whether we can handle verify data using TlsSecret
         internal byte[] m_localVerifyData = null;
         internal byte[] m_peerVerifyData = null;
+
+        /// <summary>Connection ID we use during communication to the peer.</summary>
+        internal byte[] m_connectionIDLocal;
+        /// <summary>Connection ID our peer uses for communication to us.</summary>
+        internal byte[] m_connectionIDPeer;
 
         internal void Clear()
         {
@@ -99,6 +105,11 @@ namespace Org.BouncyCastle.Tls
             get { return m_cipherSuite; }
         }
 
+        public short ClientCertificateType
+        {
+            get { return m_clientCertificateType; }
+        }
+
         public short[] ClientCertTypes
         {
             get { return m_clientCertTypes; }
@@ -109,17 +120,17 @@ namespace Org.BouncyCastle.Tls
             get { return m_clientRandom; }
         }
 
-        public IList ClientServerNames
+        public IList<ServerName> ClientServerNames
         {
             get { return m_clientServerNames; }
         }
 
-        public IList ClientSigAlgs
+        public IList<SignatureAndHashAlgorithm> ClientSigAlgs
         {
             get { return m_clientSigAlgs; }
         }
 
-        public IList ClientSigAlgsCert
+        public IList<SignatureAndHashAlgorithm> ClientSigAlgsCert
         {
             get { return m_clientSigAlgsCert; }
         }
@@ -128,6 +139,10 @@ namespace Org.BouncyCastle.Tls
         {
             get { return m_clientSupportedGroups; }
         }
+
+        public byte[] ConnectionIDLocal => m_connectionIDLocal;
+
+        public byte[] ConnectionIDPeer => m_connectionIDPeer;
 
         public TlsSecret EarlyExporterMasterSecret
         {
@@ -172,6 +187,11 @@ namespace Org.BouncyCastle.Tls
         public bool IsExtendedPadding
         {
             get { return m_extendedPadding; }
+        }
+
+        public bool IsResumedSession
+        {
+            get { return m_resumedSession; }
         }
 
         public bool IsSecureRenegotiation
@@ -249,12 +269,12 @@ namespace Org.BouncyCastle.Tls
             get { return m_serverRandom; }
         }
 
-        public IList ServerSigAlgs
+        public IList<SignatureAndHashAlgorithm> ServerSigAlgs
         {
             get { return m_serverSigAlgs; }
         }
 
-        public IList ServerSigAlgsCert
+        public IList<SignatureAndHashAlgorithm> ServerSigAlgsCert
         {
             get { return m_serverSigAlgsCert; }
         }

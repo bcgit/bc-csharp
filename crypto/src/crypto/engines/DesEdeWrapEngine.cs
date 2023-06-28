@@ -52,46 +52,40 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param forWrapping
         * @param param
         */
-        public virtual void Init(
-			bool				forWrapping,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forWrapping, ICipherParameters parameters)
         {
             this.forWrapping = forWrapping;
             this.engine = new CbcBlockCipher(new DesEdeEngine());
 
-			SecureRandom sr;
-			if (parameters is ParametersWithRandom)
+			SecureRandom random = null;
+			if (parameters is ParametersWithRandom pr)
 			{
-				ParametersWithRandom pr = (ParametersWithRandom) parameters;
 				parameters = pr.Parameters;
-				sr = pr.Random;
-			}
-			else
-			{
-				sr = new SecureRandom();
+                random = pr.Random;
 			}
 
-			if (parameters is KeyParameter)
+			if (parameters is KeyParameter keyParameter)
             {
-                this.param = (KeyParameter) parameters;
+                this.param = keyParameter;
                 if (this.forWrapping)
 				{
                     // Hm, we have no IV but we want to wrap ?!?
                     // well, then we have to create our own IV.
                     this.iv = new byte[8];
-					sr.NextBytes(iv);
+
+                    CryptoServicesRegistrar.GetSecureRandom(random).NextBytes(iv);
 
 					this.paramPlusIV = new ParametersWithIV(this.param, this.iv);
                 }
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
 				if (!forWrapping)
 					throw new ArgumentException("You should not supply an IV for unwrapping");
 
-				this.paramPlusIV = (ParametersWithIV) parameters;
-                this.iv = this.paramPlusIV.GetIV();
-                this.param = (KeyParameter) this.paramPlusIV.Parameters;
+				this.paramPlusIV = withIV;
+                this.iv = withIV.GetIV();
+                this.param = (KeyParameter)withIV.Parameters;
 
 				if (this.iv.Length != 8)
 					throw new ArgumentException("IV is not 8 octets", "parameters");
@@ -159,8 +153,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(this.iv, 0, TEMP2, 0, this.iv.Length);
             Array.Copy(TEMP1, 0, TEMP2, this.iv.Length, TEMP1.Length);
 
-            // Reverse the order of the octets in TEMP2 and call the result TEMP3.
-            byte[] TEMP3 = reverse(TEMP2);
+            // Reverse the order of the octets in TEMP2.
+            Array.Reverse(TEMP2);
 
 			// Encrypt TEMP3 in CBC mode using the KEK and an initialization vector
             // of 0x 4a dd a2 2c 79 e8 21 05. The resulting cipher text is the desired
@@ -168,12 +162,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             ParametersWithIV param2 = new ParametersWithIV(this.param, IV2);
             this.engine.Init(true, param2);
 
-            for (int currentBytePos = 0; currentBytePos != TEMP3.Length; currentBytePos += blockSize)
+            for (int currentBytePos = 0; currentBytePos != TEMP2.Length; currentBytePos += blockSize)
 			{
-                engine.ProcessBlock(TEMP3, currentBytePos, TEMP3, currentBytePos);
+                engine.ProcessBlock(TEMP2, currentBytePos, TEMP2, currentBytePos);
             }
 
-            return TEMP3;
+            return TEMP2;
         }
 
 		/**
@@ -226,15 +220,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             ParametersWithIV param2 = new ParametersWithIV(this.param, IV2);
             this.engine.Init(false, param2);
 
-            byte [] TEMP3 = new byte[length];
+            byte [] TEMP2 = new byte[length];
 
-			for (int currentBytePos = 0; currentBytePos != TEMP3.Length; currentBytePos += blockSize)
+			for (int currentBytePos = 0; currentBytePos != TEMP2.Length; currentBytePos += blockSize)
 			{
-				engine.ProcessBlock(input, inOff + currentBytePos, TEMP3, currentBytePos);
+				engine.ProcessBlock(input, inOff + currentBytePos, TEMP2, currentBytePos);
             }
 
-            // Reverse the order of the octets in TEMP3 and call the result TEMP2.
-            byte[] TEMP2 = reverse(TEMP3);
+            // Reverse the order of the octets in TEMP2.
+            Array.Reverse(TEMP2);
 
 			// Decompose TEMP2 into IV, the first 8 octets, and TEMP1, the remaining octets.
             this.iv = new byte[8];
@@ -285,8 +279,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @throws Exception
         * @see http://www.w3.org/TR/xmlenc-core/#sec-CMSKeyChecksum
         */
-        private byte[] CalculateCmsKeyChecksum(
-            byte[] key)
+        private byte[] CalculateCmsKeyChecksum(byte[] key)
         {
 			sha1.BlockUpdate(key, 0, key.Length);
             sha1.DoFinal(digest, 0);
@@ -302,21 +295,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @return
         * @see http://www.w3.org/TR/xmlenc-core/#sec-CMSKeyChecksum
         */
-        private bool CheckCmsKeyChecksum(
-            byte[]	key,
-            byte[]	checksum)
+        private bool CheckCmsKeyChecksum(byte[]	key, byte[]	checksum)
         {
-			return Arrays.ConstantTimeAreEqual(CalculateCmsKeyChecksum(key), checksum);
+			return Arrays.FixedTimeEquals(CalculateCmsKeyChecksum(key), checksum);
         }
-
-		private static byte[] reverse(byte[] bs)
-		{
-			byte[] result = new byte[bs.Length];
-			for (int i = 0; i < bs.Length; i++) 
-			{
-				result[i] = bs[bs.Length - (i + 1)];
-			}
-			return result;
-		}
     }
 }

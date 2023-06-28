@@ -55,9 +55,9 @@ namespace Org.BouncyCastle.Asn1.Misc
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
-            v.AddOptional(iv);
-            return new DerSequence(v);
+            return iv != null
+                ?   new DerSequence(iv)
+                :   DerSequence.Empty;
         }
     }
 }

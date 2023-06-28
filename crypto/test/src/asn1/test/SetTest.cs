@@ -104,12 +104,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			s = new DerSet(v);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SetTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

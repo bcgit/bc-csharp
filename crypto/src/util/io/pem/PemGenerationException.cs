@@ -1,10 +1,9 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
-#endif
     public class PemGenerationException
 		: Exception
 	{
@@ -13,16 +12,18 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		{
 		}
 
-		public PemGenerationException(
-			string message)
+		public PemGenerationException(string message)
 			: base(message)
 		{
 		}
 
-		public PemGenerationException(
-			string		message,
-			Exception	exception)
-			: base(message, exception)
+		public PemGenerationException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected PemGenerationException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
 		{
 		}
 	}

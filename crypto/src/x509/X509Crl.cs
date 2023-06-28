@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -12,14 +12,12 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
 {
-	/**
+    /**
 	 * The following extensions are listed in RFC 2459 as relevant to CRLs
 	 *
 	 * Authority Key Identifier
@@ -28,7 +26,7 @@ namespace Org.BouncyCastle.X509
 	 * Delta CRL Indicator (critical)
 	 * Issuing Distribution Point (critical)
 	 */
-	public class X509Crl
+    public class X509Crl
 		: X509ExtensionBase
 		// TODO Add interface Crl?
 	{
@@ -65,7 +63,6 @@ namespace Org.BouncyCastle.X509
 		private readonly byte[] sigAlgParams;
 		private readonly bool isIndirect;
 
-        private readonly object cacheLock = new object();
         private CachedEncoding cachedEncoding;
 
         private volatile bool hashValueSet;
@@ -107,10 +104,49 @@ namespace Org.BouncyCastle.X509
 				:	null;
 		}
 
-		public virtual void Verify(
-			AsymmetricKeyParameter publicKey)
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
+        {
+            return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
+        }
+
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+        }
+
+        public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            var tbsCertList = c.TbsCertList;
+            var extensions = tbsCertList.Extensions;
+
+            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
+            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
+
+            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
+
+            Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertList.ToAsn1Object());
+            Asn1EncodableVector v = new Asn1EncodableVector();
+
+            int start = 1;    //  want to skip signature field
+            if (tbsSeq[0] is DerInteger version)
+            {
+                v.Add(version);
+                start++;
+            }
+
+            for (int i = start; i < tbsSeq.Count - 1; i++)
+            {
+                v.Add(tbsSeq[i]);
+            }
+
+            v.Add(X509Utilities.TrimExtensions(0, extensions));
+
+			return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
+        }
+
+		public virtual void Verify(AsymmetricKeyParameter publicKey)
 		{
-            Verify(new Asn1VerifierFactoryProvider(publicKey));
+			CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, publicKey));
 		}
 
         /// <summary>
@@ -119,34 +155,38 @@ namespace Org.BouncyCastle.X509
         /// <param name="verifierProvider">An appropriate provider for verifying the CRL's signature.</param>
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If verifier provider is not appropriate or the CRL algorithm is invalid.</exception>
-        public virtual void Verify(
-            IVerifierFactoryProvider verifierProvider)
+        public virtual void Verify(IVerifierFactoryProvider verifierProvider)
         {
             CheckSignature(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
         }
 
-        protected virtual void CheckSignature(
-            IVerifierFactory verifier)
+        /// <summary>Verify the CRL's alternative signature using a verifier created using the passed in
+        /// verifier provider.</summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the CRL's alternative signature.
+		/// </param>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the CRL alternative signature
+        /// algorithm is invalid.</exception>
+        public virtual void VerifyAltSignature(IVerifierFactoryProvider verifierProvider)
         {
-            if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
-            {
-                throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
-            }
+            if (!IsAlternativeSignatureValid(verifierProvider))
+                throw new InvalidKeyException("CRL alternative signature does not verify with supplied public key.");
+        }
 
-            Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
-
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
-
-            byte[] b = this.GetTbsCertList();
-
-            streamCalculator.Stream.Write(b, 0, b.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
-            {
+        protected virtual void CheckSignature(IVerifierFactory verifier)
+        {
+			if (!CheckSignatureValid(verifier))
                 throw new InvalidKeyException("CRL does not verify with supplied public key.");
-            }
+        }
+
+        protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
+        {
+            var tbsCertList = c.TbsCertList;
+
+            // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
+            if (!c.SignatureAlgorithm.Equals(tbsCertList.Signature))
+                throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
+
+			return X509Utilities.VerifySignature(verifier, tbsCertList, c.Signature);
         }
 
         public virtual int Version
@@ -164,23 +204,15 @@ namespace Org.BouncyCastle.X509
 			get { return c.ThisUpdate.ToDateTime(); }
 		}
 
-		public virtual DateTimeObject NextUpdate
-		{
-			get
-			{
-				return c.NextUpdate == null
-					?	null
-					:	new DateTimeObject(c.NextUpdate.ToDateTime());
-			}
-		}
+		public virtual DateTime? NextUpdate => c.NextUpdate?.ToDateTime();
 
-		private ISet LoadCrlEntries()
+		private ISet<X509CrlEntry> LoadCrlEntries()
 		{
-			ISet entrySet = new HashSet();
-			IEnumerable certs = c.GetRevokedCertificateEnumeration();
+			var entrySet = new HashSet<X509CrlEntry>();
+			var revoked = c.GetRevokedCertificateEnumeration();
 
 			X509Name previousCertificateIssuer = IssuerDN;
-			foreach (CrlEntry entry in certs)
+			foreach (CrlEntry entry in revoked)
 			{
 				X509CrlEntry crlEntry = new X509CrlEntry(entry, isIndirect, previousCertificateIssuer);
 				entrySet.Add(crlEntry);
@@ -193,7 +225,7 @@ namespace Org.BouncyCastle.X509
 		public virtual X509CrlEntry GetRevokedCertificate(
 			BigInteger serialNumber)
 		{
-			IEnumerable certs = c.GetRevokedCertificateEnumeration();
+			var certs = c.GetRevokedCertificateEnumeration();
 
 			X509Name previousCertificateIssuer = IssuerDN;
 			foreach (CrlEntry entry in certs)
@@ -211,14 +243,12 @@ namespace Org.BouncyCastle.X509
 			return null;
 		}
 
-		public virtual ISet GetRevokedCertificates()
+		public virtual ISet<X509CrlEntry> GetRevokedCertificates()
 		{
-			ISet entrySet = LoadCrlEntries();
+			var entrySet = LoadCrlEntries();
 
 			if (entrySet.Count > 0)
-			{
-				return entrySet; // TODO? Collections.unmodifiableSet(entrySet);
-			}
+				return entrySet;
 
 			return null;
 		}
@@ -315,40 +345,39 @@ namespace Org.BouncyCastle.X509
 		public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
-			string nl = Platform.NewLine;
 
-			buf.Append("              Version: ").Append(this.Version).Append(nl);
-			buf.Append("             IssuerDN: ").Append(this.IssuerDN).Append(nl);
-			buf.Append("          This update: ").Append(this.ThisUpdate).Append(nl);
-			buf.Append("          Next update: ").Append(this.NextUpdate).Append(nl);
-			buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).Append(nl);
+			buf.Append("              Version: ").Append(this.Version).AppendLine();
+			buf.Append("             IssuerDN: ").Append(this.IssuerDN).AppendLine();
+			buf.Append("          This update: ").Append(this.ThisUpdate).AppendLine();
+			buf.Append("          Next update: ").Append(this.NextUpdate).AppendLine();
+			buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).AppendLine();
 
 			byte[] sig = this.GetSignature();
 
 			buf.Append("            Signature: ");
-			buf.Append(Hex.ToHexString(sig, 0, 20)).Append(nl);
+			buf.AppendLine(Hex.ToHexString(sig, 0, 20));
 
 			for (int i = 20; i < sig.Length; i += 20)
 			{
 				int count = System.Math.Min(20, sig.Length - i);
 				buf.Append("                       ");
-				buf.Append(Hex.ToHexString(sig, i, count)).Append(nl);
+				buf.AppendLine(Hex.ToHexString(sig, i, count));
 			}
 
 			X509Extensions extensions = c.TbsCertList.Extensions;
 
 			if (extensions != null)
 			{
-				IEnumerator e = extensions.ExtensionOids.GetEnumerator();
+				var e = extensions.ExtensionOids.GetEnumerator();
 
 				if (e.MoveNext())
 				{
-					buf.Append("           Extensions: ").Append(nl);
+					buf.AppendLine("           Extensions:");
 				}
 
 				do
 				{
-					DerObjectIdentifier oid = (DerObjectIdentifier) e.Current;
+					DerObjectIdentifier oid = e.Current;
 					X509Extension ext = extensions.GetExtension(oid);
 
 					if (ext.Value != null)
@@ -360,7 +389,7 @@ namespace Org.BouncyCastle.X509
 						{
 							if (oid.Equals(X509Extensions.CrlNumber))
 							{
-								buf.Append(new CrlNumber(DerInteger.GetInstance(asn1Value).PositiveValue)).Append(nl);
+								buf.Append(new CrlNumber(DerInteger.GetInstance(asn1Value).PositiveValue)).AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.DeltaCrlIndicator))
 							{
@@ -368,49 +397,49 @@ namespace Org.BouncyCastle.X509
 									"Base CRL: "
 									+ new CrlNumber(DerInteger.GetInstance(
 									asn1Value).PositiveValue))
-									.Append(nl);
+									.AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.IssuingDistributionPoint))
 							{
-								buf.Append(IssuingDistributionPoint.GetInstance((Asn1Sequence) asn1Value)).Append(nl);
+								buf.Append(IssuingDistributionPoint.GetInstance((Asn1Sequence) asn1Value)).AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.CrlDistributionPoints))
 							{
-								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).Append(nl);
+								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.FreshestCrl))
 							{
-								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).Append(nl);
+								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).AppendLine();
 							}
 							else
 							{
 								buf.Append(oid.Id);
 								buf.Append(" value = ").Append(
 									Asn1Dump.DumpAsString(asn1Value))
-									.Append(nl);
+									.AppendLine();
 							}
 						}
 						catch (Exception)
 						{
 							buf.Append(oid.Id);
-							buf.Append(" value = ").Append("*****").Append(nl);
+							buf.Append(" value = ").Append("*****").AppendLine();
 						}
 					}
 					else
 					{
-						buf.Append(nl);
+						buf.AppendLine();
 					}
 				}
 				while (e.MoveNext());
 			}
 
-			ISet certSet = GetRevokedCertificates();
+			var certSet = GetRevokedCertificates();
 			if (certSet != null)
 			{
 				foreach (X509CrlEntry entry in certSet)
 				{
 					buf.Append(entry);
-					buf.Append(nl);
+					buf.AppendLine();
 				}
 			}
 
@@ -424,15 +453,7 @@ namespace Org.BouncyCastle.X509
 		 * @return true if the given certificate is on this CRL,
 		 * false otherwise.
 		 */
-//		public bool IsRevoked(
-//			Certificate cert)
-//		{
-//			if (!cert.getType().Equals("X.509"))
-//			{
-//				throw new RuntimeException("X.509 CRL used with non X.509 Cert");
-//			}
-		public virtual bool IsRevoked(
-			X509Certificate cert)
+		public virtual bool IsRevoked(X509Certificate cert)
 		{
 			CrlEntry[] certs = c.GetRevokedCertificates();
 
@@ -478,12 +499,11 @@ namespace Org.BouncyCastle.X509
 
         private CachedEncoding GetCachedEncoding()
         {
-            lock (cacheLock)
-            {
-                if (null != cachedEncoding)
-                    return cachedEncoding;
-            }
+			return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+        }
 
+		private static CachedEncoding CreateCachedEncoding(CertificateList c)
+		{
             byte[] encoding = null;
             CrlException exception = null;
             try
@@ -495,17 +515,7 @@ namespace Org.BouncyCastle.X509
                 exception = new CrlException("Failed to DER-encode CRL", e);
             }
 
-            CachedEncoding temp = new CachedEncoding(encoding, exception);
-
-            lock (cacheLock)
-            {
-                if (null == cachedEncoding)
-                {
-                    cachedEncoding = temp;
-                }
-
-                return cachedEncoding;
-            }
+            return new CachedEncoding(encoding, exception);
         }
     }
 }

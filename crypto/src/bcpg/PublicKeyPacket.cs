@@ -28,30 +28,33 @@ namespace Org.BouncyCastle.Bcpg
                 validDays = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
             }
 
-            algorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
+            algorithm = (PublicKeyAlgorithmTag)bcpgIn.ReadByte();
 
-            switch ((PublicKeyAlgorithmTag) algorithm)
+            switch (algorithm)
             {
-                case PublicKeyAlgorithmTag.RsaEncrypt:
-                case PublicKeyAlgorithmTag.RsaGeneral:
-                case PublicKeyAlgorithmTag.RsaSign:
-                    key = new RsaPublicBcpgKey(bcpgIn);
-                    break;
-                case PublicKeyAlgorithmTag.Dsa:
-                    key = new DsaPublicBcpgKey(bcpgIn);
-                    break;
-                case PublicKeyAlgorithmTag.ElGamalEncrypt:
-                case PublicKeyAlgorithmTag.ElGamalGeneral:
-                    key = new ElGamalPublicBcpgKey(bcpgIn);
-                    break;
-                case PublicKeyAlgorithmTag.ECDH:
-                    key = new ECDHPublicBcpgKey(bcpgIn);
-                    break;
-                case PublicKeyAlgorithmTag.ECDsa:
-                    key = new ECDsaPublicBcpgKey(bcpgIn);
-                    break;
-                default:
-                    throw new IOException("unknown PGP public key algorithm encountered");
+            case PublicKeyAlgorithmTag.RsaEncrypt:
+            case PublicKeyAlgorithmTag.RsaGeneral:
+            case PublicKeyAlgorithmTag.RsaSign:
+                key = new RsaPublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.Dsa:
+                key = new DsaPublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.ElGamalEncrypt:
+            case PublicKeyAlgorithmTag.ElGamalGeneral:
+                key = new ElGamalPublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.ECDH:
+                key = new ECDHPublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.ECDsa:
+                key = new ECDsaPublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
+                key = new EdDsaPublicBcpgKey(bcpgIn);
+                break;
+            default:
+                throw new IOException("unknown PGP public key algorithm encountered");
             }
         }
 
@@ -95,27 +98,25 @@ namespace Org.BouncyCastle.Bcpg
         public virtual byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
-
-            pOut.WriteByte((byte) version);
-            pOut.WriteInt((int) time);
-
-            if (version <= 3)
+            using (var pOut = new BcpgOutputStream(bOut))
             {
-                pOut.WriteShort((short) validDays);
+                pOut.WriteByte((byte)version);
+                pOut.WriteInt((int)time);
+
+                if (version <= 3)
+                {
+                    pOut.WriteShort((short)validDays);
+                }
+
+                pOut.WriteByte((byte)algorithm);
+                pOut.WriteObject((BcpgObject)key);
             }
-
-            pOut.WriteByte((byte) algorithm);
-
-            pOut.WriteObject((BcpgObject)key);
-
             return bOut.ToArray();
         }
 
-        public override void Encode(
-            BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut)
         {
-            bcpgOut.WritePacket(PacketTag.PublicKey, GetEncodedContents(), true);
+            bcpgOut.WritePacket(PacketTag.PublicKey, GetEncodedContents());
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Org.BouncyCastle.Crypto
+﻿using System;
+
+namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
     /// Operators that reduce their input to the validation of a signature produce this type.
@@ -21,5 +23,10 @@
         /// <param name="length">The number of bytes in source making up the signature.</param>
         /// <returns>true if the signature verifies, false otherwise.</returns>
         bool IsVerified(byte[] source, int off, int length);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api]
+        //bool IsVerified(ReadOnlySpan<byte> data);
+#endif
     }
 }

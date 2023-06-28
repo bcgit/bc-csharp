@@ -1,150 +1,200 @@
 using System;
 using System.IO;
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+using System.Threading;
+using System.Threading.Tasks;
+#endif
 
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-	public class MacStream
-		: Stream
-	{
-		protected readonly Stream stream;
-		protected readonly IMac inMac;
-		protected readonly IMac outMac;
+    public sealed class MacStream
+        : Stream
+    {
+        private readonly Stream m_stream;
+        private readonly IMac m_readMac;
+        private readonly IMac m_writeMac;
 
-		public MacStream(
-			Stream	stream,
-			IMac	readMac,
-			IMac	writeMac)
-		{
-			this.stream = stream;
-			this.inMac = readMac;
-			this.outMac = writeMac;
-		}
-
-		public virtual IMac ReadMac()
-		{
-			return inMac;
-		}
-
-		public virtual IMac WriteMac()
-		{
-			return outMac;
-		}
-
-		public override int Read(
-			byte[]	buffer,
-			int		offset,
-			int		count)
-		{
-			int n = stream.Read(buffer, offset, count);
-			if (inMac != null)
-			{
-				if (n > 0)
-				{
-					inMac.BlockUpdate(buffer, offset, n);
-				}
-			}
-			return n;
-		}
-
-		public override int ReadByte()
-		{
-			int b = stream.ReadByte();
-			if (inMac != null)
-			{
-				if (b >= 0)
-				{
-					inMac.Update((byte)b);
-				}
-			}
-			return b;
-		}
-
-		public override void Write(
-			byte[]	buffer,
-			int		offset,
-			int		count)
-		{
-			if (outMac != null)
-			{
-				if (count > 0)
-				{
-					outMac.BlockUpdate(buffer, offset, count);
-				}
-			}
-			stream.Write(buffer, offset, count);
-		}
-
-		public override void WriteByte(byte b)
-		{
-			if (outMac != null)
-			{
-				outMac.Update(b);
-			}
-			stream.WriteByte(b);
-		}
-
-		public override bool CanRead
-		{
-			get { return stream.CanRead; }
-		}
-
-		public override bool CanWrite
-		{
-			get { return stream.CanWrite; }
-		}
-
-		public override bool CanSeek
-		{
-			get { return stream.CanSeek; }
-		}
-
-		public override long Length
-		{
-			get { return stream.Length; }
-		}
-
-		public override long Position
-		{
-			get { return stream.Position; }
-			set { stream.Position = value; }
-		}
-
-#if PORTABLE
-        protected override void Dispose(bool disposing)
+        public MacStream(Stream stream, IMac readMac, IMac writeMac)
         {
-            if (disposing)
-            {
-                Platform.Dispose(stream);
-            }
-            base.Dispose(disposing);
+            m_stream = stream;
+            m_readMac = readMac;
+            m_writeMac = writeMac;
         }
-#else
-        public override void Close()
+
+        public IMac ReadMac => m_readMac;
+
+        public IMac WriteMac => m_writeMac;
+
+        public override bool CanRead => m_stream.CanRead;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => m_stream.CanWrite;
+
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
         {
-            Platform.Dispose(stream);
-            base.Close();
+            Streams.CopyTo(ReadSource, destination, bufferSize);
+        }
+#endif
+
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
         }
 #endif
 
         public override void Flush()
-		{
-			stream.Flush();
-		}
+        {
+            m_stream.Flush();
+        }
 
-		public override long Seek(
-			long		offset,
-			SeekOrigin	origin)
-		{
-			return stream.Seek(offset,origin);
-		}
+        public override long Length
+        {
+            get { throw new NotSupportedException(); }
+        }
 
-		public override void SetLength(
-			long length)
-		{
-			stream.SetLength(length);
-		}
-	}
+        public override long Position
+        {
+            get { throw new NotSupportedException(); }
+            set { throw new NotSupportedException(); }
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            int n = m_stream.Read(buffer, offset, count);
+
+            if (m_readMac != null && n > 0)
+            {
+                m_readMac.BlockUpdate(buffer, offset, n);
+            }
+
+            return n;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int n = m_stream.Read(buffer);
+
+            if (m_readMac != null && n > 0)
+            {
+                m_readMac.BlockUpdate(buffer[..n]);
+            }
+
+            return n;
+        }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
+        }
+#endif
+
+        public override int ReadByte()
+        {
+            int b = m_stream.ReadByte();
+
+            if (m_readMac != null && b >= 0)
+            {
+                m_readMac.Update((byte)b);
+            }
+
+            return b;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long length) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (m_writeMac != null)
+            {
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
+                if (count > 0)
+                {
+                    m_writeMac.BlockUpdate(buffer, offset, count);
+                }
+            }
+
+            m_stream.Write(buffer, offset, count);
+        }
+
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            if (m_writeMac != null)
+            {
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
+                if (count > 0)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return Task.FromCanceled(cancellationToken);
+
+                    m_writeMac.BlockUpdate(buffer, offset, count);
+                }
+            }
+
+            return m_stream.WriteAsync(buffer, offset, count, cancellationToken);
+        }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (m_writeMac != null)
+            {
+                if (!buffer.IsEmpty)
+                {
+                    m_writeMac.BlockUpdate(buffer);
+                }
+            }
+
+            m_stream.Write(buffer);
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            if (m_writeMac != null)
+            {
+                if (!buffer.IsEmpty)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return ValueTask.FromCanceled(cancellationToken);
+
+                    m_writeMac.BlockUpdate(buffer.Span);
+                }
+            }
+
+            return m_stream.WriteAsync(buffer, cancellationToken);
+        }
+#endif
+
+        public override void WriteByte(byte value)
+        {
+            if (m_writeMac != null)
+            {
+                m_writeMac.Update(value);
+            }
+
+            m_stream.WriteByte(value);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_stream.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private Stream ReadSource => m_readMac == null ? m_stream : this;
+    }
 }
-

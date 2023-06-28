@@ -1,6 +1,5 @@
 using System;
-using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -41,10 +40,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             DerObjectIdentifier	oid,
             string				value)
         {
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(oid, value);
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(oid);
 
             X509Name name = new X509Name(ord, attrs);
@@ -60,10 +59,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             DerObjectIdentifier	oid,
             string				val)
         {
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(oid, val);
 
-            IList ord = new ArrayList(attrs.Keys);
+            var ord = new List<DerObjectIdentifier>(attrs.Keys);
 
             X509Name name = new X509Name(new X509Name(ord, attrs).ToString());
 
@@ -101,12 +100,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             string				val)
         {
             IAsn1Convertible converted = createEntryValue(oid, val);
-            if (!(converted is DerGeneralizedTime))
+            if (!(converted is Asn1GeneralizedTime))
             {
                 Fail("encoding for " + oid + " not GeneralizedTime");
             }
             converted = createEntryValueFromString(oid, val);
-            if (!(converted is DerGeneralizedTime))
+            if (!(converted is Asn1GeneralizedTime))
             {
                 Fail("encoding for " + oid + " not GeneralizedTime");
             }
@@ -127,14 +126,14 @@ namespace Org.BouncyCastle.Asn1.Tests
             //
             // composite
             //
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
             attrs.Add(X509Name.L, "Melbourne");
             attrs.Add(X509Name.ST, "Victoria");
             attrs.Add(X509Name.E, "feedback-crypto@bouncycastle.org");
 
-            IList order = new ArrayList();
+            var order = new List<DerObjectIdentifier>();
             order.Add(X509Name.C);
             order.Add(X509Name.O);
             order.Add(X509Name.L);
@@ -170,7 +169,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("Failed same name test - in Order");
             }
 
-            IList ord1 = new ArrayList();
+            var ord1 = new List<DerObjectIdentifier>();
 
             ord1.Add(X509Name.C);
             ord1.Add(X509Name.O);
@@ -178,7 +177,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             ord1.Add(X509Name.ST);
             ord1.Add(X509Name.E);
 
-            IList ord2 = new ArrayList();
+            var ord2 = new List<DerObjectIdentifier>();
 
             ord2.Add(X509Name.E);
             ord2.Add(X509Name.ST);
@@ -210,13 +209,13 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("Failed reverse name test - in Order false");
             }
 
-            IList oids = name1.GetOidList();
+            var oids = name1.GetOidList();
             if (!CompareVectors(oids, ord1))
             {
                 Fail("oid comparison test");
             }
 
-            IList val1 = new ArrayList();
+            var val1 = new List<string>();
 
             val1.Add("AU");
             val1.Add("The Legion of the Bouncy Castle");
@@ -226,13 +225,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             name1 = new X509Name(ord1, val1);
 
-            IList values = name1.GetValueList();
+            var values = name1.GetValueList();
             if (!CompareVectors(values, val1))
             {
                 Fail("value comparison test");
             }
 
-            ord2 = new ArrayList();
+            ord2 = new List<DerObjectIdentifier>();
 
             ord2.Add(X509Name.ST);
             ord2.Add(X509Name.ST);
@@ -248,7 +247,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("Failed different name test");
             }
 
-            ord2 = new ArrayList();
+            ord2 = new List<DerObjectIdentifier>();
 
             ord2.Add(X509Name.ST);
             ord2.Add(X509Name.L);
@@ -270,14 +269,14 @@ namespace Org.BouncyCastle.Asn1.Tests
             //
             // getValues test
             //
-            IList v1 = name1.GetValueList(X509Name.O);
+            var v1 = name1.GetValueList(X509Name.O);
 
             if (v1.Count != 1 || !v1[0].Equals("The Legion of the Bouncy Castle"))
             {
                 Fail("O test failed");
             }
 
-            IList v2 = name1.GetValueList(X509Name.L);
+            var v2 = name1.GetValueList(X509Name.L);
 
             if (v2.Count != 1 || !v2[0].Equals("Melbourne"))
             {
@@ -505,7 +504,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("# string not properly escaped.");
             }
 
-            IList vls = n.GetValueList(X509Name.CN);
+            var vls = n.GetValueList(X509Name.CN);
             if (vls.Count != 1 || !vls[0].Equals("#nothex#string"))
             {
                 Fail("Escaped # not reduced properly");
@@ -583,7 +582,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("Failed composite to string test got: " + n.ToString());
             }
 
-            IDictionary symbols = X509Name.DefaultSymbols;
+            var symbols = X509Name.DefaultSymbols;
             if (!n.ToString(true, symbols).Equals("L=Melbourne+OU=Ascot Vale,O=The Legion of the Bouncy Castle,C=AU"))
             {
                 Fail("Failed composite to string test got: " + n.ToString(true, symbols));
@@ -633,29 +632,18 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        private bool CompareVectors(
-            IList	one,
-            IList	two)
+        private bool CompareVectors<T>(IList<T> one, IList<T> two)
         {
             if (one.Count != two.Count)
                 return false;
 
             for (int i = 0; i < one.Count; ++i)
             {
-                if (!one[i].Equals(two[i]))
+                if (!Equals(one[i], two[i]))
                     return false;
             }
 
             return true;
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            ITest test = new X509NameTest();
-            ITestResult result = test.Perform();
-
-            Console.WriteLine(result);
         }
 
         [Test]

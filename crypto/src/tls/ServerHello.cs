@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -16,15 +16,15 @@ namespace Org.BouncyCastle.Tls
         private readonly byte[] m_random;
         private readonly byte[] m_sessionID;
         private readonly int m_cipherSuite;
-        private readonly IDictionary m_extensions;
+        private readonly IDictionary<int, byte[]> m_extensions;
 
-        public ServerHello(byte[] sessionID, int cipherSuite, IDictionary extensions)
+        public ServerHello(byte[] sessionID, int cipherSuite, IDictionary<int, byte[]> extensions)
             : this(ProtocolVersion.TLSv12, Arrays.Clone(HelloRetryRequestMagic), sessionID, cipherSuite, extensions)
         {
         }
 
         public ServerHello(ProtocolVersion version, byte[] random, byte[] sessionID, int cipherSuite,
-            IDictionary extensions)
+            IDictionary<int, byte[]> extensions)
         {
             this.m_version = version;
             this.m_random = random;
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_cipherSuite; }
         }
 
-        public IDictionary Extensions
+        public IDictionary<int, byte[]> Extensions
         {
             get { return m_extensions; }
         }
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Tls
             if (CompressionMethod.cls_null != compressionMethod)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            IDictionary extensions = TlsProtocol.ReadExtensions(input);
+            var extensions = TlsProtocol.ReadExtensions(input);
 
             return new ServerHello(version, random, sessionID, cipherSuite, extensions);
         }

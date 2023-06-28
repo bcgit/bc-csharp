@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;netcoreapp3.1;net472;net461</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <SignAssembly>false</SignAssembly>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <NoWarn>618;1591</NoWarn>
+    <RootNamespace>Org.BouncyCastle</RootNamespace>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+    <Configurations>Debug;Release;Publish</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Publish'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\**\*.cs" Exclude="**\examples\**\*.cs" />
+    <EmbeddedResource Include="data\**\*.*" Exclude="**\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\BouncyCastle.Crypto.csproj">
+      <SetTargetFramework Condition="'$(TargetFramework)' == 'net472'">TargetFramework=netstandard2.0</SetTargetFramework>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -379,10 +379,15 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* Calculate the necessary round keys
 		* The number of calculations depends on keyBits and blockBits
 		*/
-		private long[][] GenerateWorkingKey(
-			byte[]      key)
+		private long[][] GenerateWorkingKey(KeyParameter keyParameter)
 		{
-			int         KC;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var key = keyParameter.Key;
+#else
+            byte[] key = keyParameter.GetKey();
+#endif
+
+            int KC;
 			int         t, rconpointer = 0;
 			int         keyBits = key.Length * 8;
 			byte[,]    tk = new byte[4,MAXKC];
@@ -572,18 +577,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @exception ArgumentException if the parameters argument is
 		* inappropriate.
 		*/
-        public virtual void Init(
-			bool           forEncryption,
-			ICipherParameters  parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (typeof(KeyParameter).IsInstanceOfType(parameters))
-			{
-				workingKey = GenerateWorkingKey(((KeyParameter)parameters).GetKey());
-				this.forEncryption = forEncryption;
-				return;
-			}
+            if (!(parameters is KeyParameter keyParameter))
+                throw new ArgumentException("invalid parameter passed to Rijndael init - "
+					+ Platform.GetTypeName(parameters));
 
-			throw new ArgumentException("invalid parameter passed to Rijndael init - " + Platform.GetTypeName(parameters));
+			this.workingKey = GenerateWorkingKey(keyParameter);
+			this.forEncryption = forEncryption;
 		}
 
         public virtual string AlgorithmName
@@ -591,21 +592,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Rijndael"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return BC / 2;
 		}
 
-        public virtual int ProcessBlock(
-			byte[]	input,
-			int		inOff,
-			byte[]	output,
-			int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
 		{
 			if (workingKey == null)
 				throw new InvalidOperationException("Rijndael engine not initialised");
@@ -613,7 +605,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, (BC / 2), "input buffer too short");
             Check.OutputLength(output, outOff, (BC / 2), "output buffer too short");
 
-            UnPackBlock(input, inOff);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			UnPackBlock(input.AsSpan(inOff));
+#else
+			UnPackBlock(input, inOff);
+#endif
 
 			if (forEncryption)
 			{
@@ -624,20 +620,76 @@ namespace Org.BouncyCastle.Crypto.Engines
 				DecryptBlock(workingKey);
 			}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			PackBlock(output.AsSpan(outOff));
+#else
 			PackBlock(output, outOff);
+#endif
 
 			return BC / 2;
 		}
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
 		{
+			if (workingKey == null)
+				throw new InvalidOperationException("Rijndael engine not initialised");
+
+			Check.DataLength(input, (BC / 2), "input buffer too short");
+			Check.OutputLength(output, (BC / 2), "output buffer too short");
+
+			UnPackBlock(input);
+
+			if (forEncryption)
+			{
+				EncryptBlock(workingKey);
+			}
+			else
+			{
+				DecryptBlock(workingKey);
+			}
+
+			PackBlock(output);
+
+			return BC / 2;
+		}
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		private void UnPackBlock(ReadOnlySpan<byte> input)
+		{
+			int index = 0;
+
+			A0 = (long)(input[index++] & 0xff);
+			A1 = (long)(input[index++] & 0xff);
+			A2 = (long)(input[index++] & 0xff);
+			A3 = (long)(input[index++] & 0xff);
+
+			for (int j = 8; j != BC; j += 8)
+			{
+				A0 |= (long)(input[index++] & 0xff) << j;
+				A1 |= (long)(input[index++] & 0xff) << j;
+				A2 |= (long)(input[index++] & 0xff) << j;
+				A3 |= (long)(input[index++] & 0xff) << j;
+			}
 		}
 
-		private void UnPackBlock(
-			byte[]      bytes,
-			int         off)
+		private void PackBlock(Span<byte> output)
 		{
-			int     index = off;
+			int index = 0;
+
+			for (int j = 0; j != BC; j += 8)
+			{
+				output[index++] = (byte)(A0 >> j);
+				output[index++] = (byte)(A1 >> j);
+				output[index++] = (byte)(A2 >> j);
+				output[index++] = (byte)(A3 >> j);
+			}
+		}
+#else
+		private void UnPackBlock(byte[] bytes, int off)
+		{
+			int index = off;
 
 			A0 = (long)(bytes[index++] & 0xff);
 			A1 = (long)(bytes[index++] & 0xff);
@@ -653,11 +705,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 
-		private  void PackBlock(
-			byte[]      bytes,
-			int         off)
+		private void PackBlock(byte[] bytes, int off)
 		{
-			int     index = off;
+			int index = off;
 
 			for (int j = 0; j != BC; j += 8)
 			{
@@ -667,8 +717,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 				bytes[index++] = (byte)(A3 >> j);
 			}
 		}
+#endif
 
-		private  void EncryptBlock(
+		private void EncryptBlock(
 			long[][] rk)
 		{
 			int r;

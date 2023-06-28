@@ -19,17 +19,29 @@ namespace Org.BouncyCastle.Tls.Crypto
             get { return m_hash; }
         }
 
-        public override void WriteByte(byte b)
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            m_hash.Update(new byte[] { b }, 0, 1);
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
+            if (count > 0)
+            {
+                m_hash.Update(buffer, offset, count);
+            }
         }
 
-        public override void Write(byte[] buf, int off, int len)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
         {
-            if (len > 0)
+            if (!buffer.IsEmpty)
             {
-                m_hash.Update(buf, off, len);
+                m_hash.Update(buffer);
             }
+        }
+#endif
+
+        public override void WriteByte(byte value)
+        {
+            m_hash.Update(new byte[]{ value }, 0, 1);
         }
     }
 }

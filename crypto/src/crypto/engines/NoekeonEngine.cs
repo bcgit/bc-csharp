@@ -36,11 +36,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Noekeon"; }
 		}
 
-		public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return Size;
@@ -92,11 +87,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             this._initialised = true;
         }
 
-        public virtual int ProcessBlock(
-			byte[]	input,
-			int		inOff,
-			byte[]	output,
-			int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
 		{
 			if (!_initialised)
 				throw new InvalidOperationException(AlgorithmName + " not initialised");
@@ -104,15 +95,175 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, Size, "input buffer too short");
             Check.OutputLength(output, outOff, Size, "output buffer too short");
 
-            return _forEncryption
-				?	EncryptBlock(input, inOff, output, outOff)
-				:	DecryptBlock(input, inOff, output, outOff);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return _forEncryption
+				? EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff))
+				: DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+#else
+			return _forEncryption
+				? EncryptBlock(input, inOff, output, outOff)
+				: DecryptBlock(input, inOff, output, outOff);
+#endif
 		}
 
-		public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
 		{
+			if (!_initialised)
+				throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+			Check.DataLength(input, Size, "input buffer too short");
+			Check.OutputLength(output, Size, "output buffer too short");
+
+			return _forEncryption
+				? EncryptBlock(input, output)
+				: DecryptBlock(input, output);
+		}
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		private int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			uint a0 = Pack.BE_To_UInt32(input);
+			uint a1 = Pack.BE_To_UInt32(input[4..]);
+			uint a2 = Pack.BE_To_UInt32(input[8..]);
+			uint a3 = Pack.BE_To_UInt32(input[12..]);
+
+			uint k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3];
+
+			int round = 0;
+			for (;;)
+			{
+				a0 ^= RoundConstants[round];
+
+				// theta(a, k);
+				{
+					uint t02 = a0 ^ a2;
+					t02 ^= Integers.RotateLeft(t02, 8) ^ Integers.RotateLeft(t02, 24);
+
+					a0 ^= k0;
+					a1 ^= k1;
+					a2 ^= k2;
+					a3 ^= k3;
+
+                    uint t13 = a1 ^ a3;
+                    t13 ^= Integers.RotateLeft(t13, 8) ^ Integers.RotateLeft(t13, 24);
+
+                    a0 ^= t13;
+                    a1 ^= t02;
+                    a2 ^= t13;
+                    a3 ^= t02;
+				}
+
+				if (++round > Size)
+					break;
+
+				// pi1(a);
+				{
+					a1 = Integers.RotateLeft(a1, 1);
+					a2 = Integers.RotateLeft(a2, 5);
+					a3 = Integers.RotateLeft(a3, 2);
+				}
+
+				// gamma(a);
+				{
+                    uint t = a3;
+                    a1 ^= a3 | a2;
+                    a3 = a0 ^ (a2 & ~a1);
+
+                    a2 = t ^ ~a1 ^ a2 ^ a3;
+
+                    a1 ^= a3 | a2;
+                    a0 = t ^ (a2 & a1);
+				}
+
+				// pi2(a);
+				{
+					a1 = Integers.RotateLeft(a1, 31);
+					a2 = Integers.RotateLeft(a2, 27);
+					a3 = Integers.RotateLeft(a3, 30);
+				}
+			}
+
+			Pack.UInt32_To_BE(a0, output);
+			Pack.UInt32_To_BE(a1, output[4..]);
+			Pack.UInt32_To_BE(a2, output[8..]);
+			Pack.UInt32_To_BE(a3, output[12..]);
+
+			return Size;
 		}
 
+		private int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			uint a0 = Pack.BE_To_UInt32(input);
+			uint a1 = Pack.BE_To_UInt32(input[4..]);
+			uint a2 = Pack.BE_To_UInt32(input[8..]);
+			uint a3 = Pack.BE_To_UInt32(input[12..]);
+
+			uint k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3];
+
+			int round = Size;
+			for (;;)
+			{
+				// theta(a, k);
+				{
+                    uint t02 = a0 ^ a2;
+                    t02 ^= Integers.RotateLeft(t02, 8) ^ Integers.RotateLeft(t02, 24);
+
+                    a0 ^= k0;
+                    a1 ^= k1;
+                    a2 ^= k2;
+                    a3 ^= k3;
+
+                    uint t13 = a1 ^ a3;
+                    t13 ^= Integers.RotateLeft(t13, 8) ^ Integers.RotateLeft(t13, 24);
+
+                    a0 ^= t13;
+                    a1 ^= t02;
+                    a2 ^= t13;
+                    a3 ^= t02;
+                }
+
+                a0 ^= RoundConstants[round];
+
+				if (--round < 0)
+					break;
+
+				// pi1(a);
+				{
+					a1 = Integers.RotateLeft(a1, 1);
+					a2 = Integers.RotateLeft(a2, 5);
+					a3 = Integers.RotateLeft(a3, 2);
+				}
+
+				// gamma(a);
+				{
+                    uint t = a3;
+                    a1 ^= a3 | a2;
+                    a3 = a0 ^ (a2 & ~a1);
+
+                    a2 = t ^ ~a1 ^ a2 ^ a3;
+
+                    a1 ^= a3 | a2;
+                    a0 = t ^ (a2 & a1);
+                }
+
+                // pi2(a);
+                {
+					a1 = Integers.RotateLeft(a1, 31);
+					a2 = Integers.RotateLeft(a2, 27);
+					a3 = Integers.RotateLeft(a3, 30);
+				}
+			}
+
+			Pack.UInt32_To_BE(a0, output);
+			Pack.UInt32_To_BE(a1, output[4..]);
+			Pack.UInt32_To_BE(a2, output[8..]);
+			Pack.UInt32_To_BE(a3, output[12..]);
+
+			return Size;
+		}
+#else
 		private int EncryptBlock(byte[]	input, int inOff, byte[] output, int outOff)
 		{
 			uint a0 = Pack.BE_To_UInt32(input, inOff);
@@ -254,5 +405,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			return Size;
 		}
+#endif
 	}
 }

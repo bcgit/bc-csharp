@@ -1,56 +1,64 @@
-using System;
-
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class RevDetails
+    /**
+     * <pre>
+     * RevDetails ::= SEQUENCE {
+     *          certDetails         CertTemplate,
+     *          -- allows requester to specify as much as they can about
+     *          -- the cert. for which revocation is requested
+     *          -- (e.g., for cases in which serialNumber is not available)
+     *          crlEntryDetails     Extensions       OPTIONAL
+     *          -- requested crlEntryExtensions
+     *      }
+     * </pre>
+     */
+    public class RevDetails
 		: Asn1Encodable
 	{
-		private readonly CertTemplate certDetails;
-		private readonly X509Extensions crlEntryDetails;
+        public static RevDetails GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is RevDetails revDetails)
+                return revDetails;
+            return new RevDetails(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static RevDetails GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly CertTemplate m_certDetails;
+		private readonly X509Extensions m_crlEntryDetails;
 
         private RevDetails(Asn1Sequence seq)
 		{
-			certDetails = CertTemplate.GetInstance(seq[0]);
-            crlEntryDetails = seq.Count <= 1
-                ?   null
-                :   X509Extensions.GetInstance(seq[1]);
-		}
+			m_certDetails = CertTemplate.GetInstance(seq[0]);
 
-        public static RevDetails GetInstance(object obj)
-		{
-			if (obj is RevDetails)
-				return (RevDetails)obj;
-
-			if (obj is Asn1Sequence)
-				return new RevDetails((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+            if (seq.Count > 1)
+            {
+                m_crlEntryDetails = X509Extensions.GetInstance(seq[1]);
+            }
 		}
 
 		public RevDetails(CertTemplate certDetails)
-            :   this(certDetails, null)
+            : this(certDetails, null)
 		{
 		}
 
         public RevDetails(CertTemplate certDetails, X509Extensions crlEntryDetails)
 		{
-            this.certDetails = certDetails;
-            this.crlEntryDetails = crlEntryDetails;
+            m_certDetails = certDetails;
+            m_crlEntryDetails = crlEntryDetails;
 		}
 
-        public virtual CertTemplate CertDetails
-		{
-			get { return certDetails; }
-		}
+		public virtual CertTemplate CertDetails => m_certDetails;
 
-        public virtual X509Extensions CrlEntryDetails
-		{
-			get { return crlEntryDetails; }
-		}
+        public virtual X509Extensions CrlEntryDetails => m_crlEntryDetails;
 
 		/**
 		* <pre>
@@ -67,8 +75,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(certDetails);
-			v.AddOptional(crlEntryDetails);
+			Asn1EncodableVector v = new Asn1EncodableVector(m_certDetails);
+			v.AddOptional(m_crlEntryDetails);
 			return new DerSequence(v);
 		}
 	}

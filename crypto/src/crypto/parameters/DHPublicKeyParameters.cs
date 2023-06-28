@@ -13,13 +13,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private static BigInteger Validate(BigInteger y, DHParameters dhParams)
         {
             if (y == null)
-                throw new ArgumentNullException("y");
+                throw new ArgumentNullException(nameof(y));
 
             BigInteger p = dhParams.P;
 
             // TLS check
             if (y.CompareTo(BigInteger.Two) < 0 || y.CompareTo(p.Subtract(BigInteger.Two)) > 0)
-                throw new ArgumentException("invalid DH public key", "y");
+                throw new ArgumentException("invalid DH public key", nameof(y));
 
             BigInteger q = dhParams.Q;
 
@@ -41,56 +41,44 @@ namespace Org.BouncyCastle.Crypto.Parameters
                     return y;
             }
 
-            throw new ArgumentException("value does not appear to be in correct group", "y");
+            throw new ArgumentException("value does not appear to be in correct group", nameof(y));
         }
 
-        private readonly BigInteger y;
+        private readonly BigInteger m_y;
 
-		public DHPublicKeyParameters(
-            BigInteger		y,
-            DHParameters	parameters)
+		public DHPublicKeyParameters(BigInteger y, DHParameters	parameters)
 			: base(false, parameters)
         {
-			this.y = Validate(y, parameters);
+			m_y = Validate(y, parameters);
         }
 
-		public DHPublicKeyParameters(
-            BigInteger			y,
-            DHParameters		parameters,
-		    DerObjectIdentifier	algorithmOid)
+		public DHPublicKeyParameters(BigInteger y, DHParameters parameters, DerObjectIdentifier	algorithmOid)
 			: base(false, parameters, algorithmOid)
         {
-            this.y = Validate(y, parameters);
+            m_y = Validate(y, parameters);
         }
 
-        public virtual BigInteger Y
-        {
-            get { return y; }
-        }
+        public virtual BigInteger Y => m_y;
 
-		public override bool Equals(
-			object  obj)
+		public override bool Equals(object obj)
         {
 			if (obj == this)
 				return true;
 
-			DHPublicKeyParameters other = obj as DHPublicKeyParameters;
-
-			if (other == null)
+            if (!(obj is DHPublicKeyParameters other))
 				return false;
 
 			return Equals(other);
         }
 
-		protected bool Equals(
-			DHPublicKeyParameters other)
+		protected bool Equals(DHPublicKeyParameters other)
 		{
-			return y.Equals(other.y) && base.Equals(other);
+			return m_y.Equals(other.m_y) && base.Equals(other);
 		}
 
 		public override int GetHashCode()
         {
-            return y.GetHashCode() ^ base.GetHashCode();
+            return m_y.GetHashCode() ^ base.GetHashCode();
         }
 
         private static int Legendre(BigInteger a, BigInteger b)
@@ -122,12 +110,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
             //return BigInteger.One.Equals(b) ? (1 - (r & 2)) : 0;
 
             int bitLength = b.BitLength;
+            int len = Nat.GetLengthForBits(bitLength);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<uint> A = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(bitLength, a, A);
+            Span<uint> B = len <= 64
+                ? stackalloc uint[len]
+                : new uint[len];
+            Nat.FromBigInteger(bitLength, b, B);
+#else
             uint[] A = Nat.FromBigInteger(bitLength, a);
             uint[] B = Nat.FromBigInteger(bitLength, b);
+#endif
 
             int r = 0;
 
-            int len = B.Length;
             for (;;)
             {
                 while (A[0] == 0)
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (cmp < 0)
                 {
                     r ^= (int)(A[0] & B[0]);
-                    uint[] t = A; A = B; B = t;
+                    var t = A; A = B; B = t;
                 }
 
                 while (A[len - 1] == 0)

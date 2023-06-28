@@ -1,10 +1,11 @@
 ﻿using System;
-using Org.BouncyCastle.Crypto;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public abstract class Gost3411_2012Digest:IDigest,IMemoable
+    public abstract class Gost3411_2012Digest
+        : IDigest, IMemoable
     {
         private readonly byte[] IV = new byte[64];
         private readonly byte[] N = new byte[64];
@@ -21,8 +22,8 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         protected Gost3411_2012Digest(byte[] IV)
         {
-            System.Array.Copy(IV,this.IV,64);
-            System.Array.Copy(IV, h, 64);
+            Array.Copy(IV,this.IV,64);
+            Array.Copy(IV, h, 64);
         }
 
         public abstract string AlgorithmName { get; }
@@ -43,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (bOff != 64)
             {
-                System.Array.Copy(block, bOff, m, 64 - lenM, lenM);
+                Array.Copy(block, bOff, m, 64 - lenM, lenM);
             }
 
             g_N(h, N, m);
@@ -60,6 +61,39 @@ namespace Org.BouncyCastle.Crypto.Digests
             return 64;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            int lenM = 64 - bOff;
+
+            // At this point it is certain that lenM is smaller than 64
+            for (int i = 0; i != 64 - lenM; i++)
+            {
+                m[i] = 0;
+            }
+
+            m[63 - lenM] = 1;
+
+            if (bOff != 64)
+            {
+                Array.Copy(block, bOff, m, 64 - lenM, lenM);
+            }
+
+            g_N(h, N, m);
+            addMod512(N, lenM * 8);
+            addMod512(Sigma, m);
+            g_N(h, Zero, N);
+            g_N(h, Zero, Sigma);
+
+            reverse(h, tmp);
+
+            tmp.CopyTo(output);
+
+            Reset();
+            return 64;
+        }
+#endif
+
         public int GetByteLength()
         {
             return 64;
@@ -73,7 +107,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             bOff = 64;
             Arrays.Fill(N, (byte)0);
             Arrays.Fill(Sigma, (byte)0);
-            System.Array.Copy(IV, 0, h, 0, 64);
+            Array.Copy(IV, 0, h, 0, 64);
             Arrays.Fill(block, (byte)0);
         }
 
@@ -81,14 +115,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             Gost3411_2012Digest o = (Gost3411_2012Digest)other;
 
-            System.Array.Copy(o.IV, 0, this.IV, 0, 64);
-            System.Array.Copy(o.N, 0, this.N, 0, 64);
-            System.Array.Copy(o.Sigma, 0, this.Sigma, 0, 64);
-            System.Array.Copy(o.Ki, 0, this.Ki, 0, 64);
-            System.Array.Copy(o.m, 0, this.m, 0, 64);
-            System.Array.Copy(o.h, 0, this.h, 0, 64);
+            Array.Copy(o.IV, 0, this.IV, 0, 64);
+            Array.Copy(o.N, 0, this.N, 0, 64);
+            Array.Copy(o.Sigma, 0, this.Sigma, 0, 64);
+            Array.Copy(o.Ki, 0, this.Ki, 0, 64);
+            Array.Copy(o.m, 0, this.m, 0, 64);
+            Array.Copy(o.h, 0, this.h, 0, 64);
 
-            System.Array.Copy(o.block, 0, this.block, 0, 64);
+            Array.Copy(o.block, 0, this.block, 0, 64);
             this.bOff = o.bOff;
         }
 
@@ -104,7 +138,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             while (bOff != 64 && len > 0)
@@ -114,7 +147,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             while (len >= 64)
             {
-                System.Array.Copy(input, inOff, tmp, 0, 64);
+                Array.Copy(input, inOff, tmp, 0, 64);
                 reverse(tmp, block);
                 g_N(h, N, block);
                 addMod512(N, 512);
@@ -130,8 +163,31 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-    
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            while (bOff != 64 && input.Length > 0)
+            {
+                Update(input[0]);
+                input = input[1..];
+            }
+            while (input.Length >= 64)
+            {
+                input[..64].CopyTo(tmp.AsSpan());
+                reverse(tmp, block);
+                g_N(h, N, block);
+                addMod512(N, 512);
+                addMod512(Sigma, block);
 
+                input = input[64..];
+            }
+            while (input.Length > 0)
+            {
+                Update(input[0]);
+                input = input[1..];
+            }
+        }
+#endif
 
         private void F(byte[] V)
         {
@@ -307,41 +363,38 @@ namespace Org.BouncyCastle.Crypto.Digests
             V[56] = (byte)(r);
         }
 
-        private void xor512(byte[] A, byte[] B)
+        private static void Xor512(byte[] A, byte[] B)
         {
-            for (int i = 0; i < 64; ++i)
-            {
-                A[i] ^= B[i];
-            }
+            Bytes.XorTo(64, B, A);
         }
 
         private void E(byte[] K, byte[] m)
         {
-            System.Array.Copy(K, 0, Ki, 0, 64);
-            xor512(K, m);
+            Array.Copy(K, 0, Ki, 0, 64);
+            Xor512(K, m);
             F(K);
             for (int i = 0; i < 11; ++i)
             {
-                xor512(Ki, C[i]);
+                Xor512(Ki, C[i]);
                 F(Ki);
-                xor512(K, Ki);
+                Xor512(K, Ki);
                 F(K);
             }
-            xor512(Ki, C[11]);
+            Xor512(Ki, C[11]);
             F(Ki);
-            xor512(K, Ki);
+            Xor512(K, Ki);
         }
 
         private void g_N(byte[] h, byte[] N, byte[] m)
         {
-            System.Array.Copy(h, 0, tmp, 0, 64);
+            Array.Copy(h, 0, tmp, 0, 64);
 
-            xor512(h, N);
+            Xor512(h, N);
             F(h);
 
             E(h, m);
-            xor512(h, tmp);
-            xor512(h, m);
+            Xor512(h, tmp);
+            Xor512(h, m);
         }
 
         private void addMod512(byte[] A, int num)

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    [Obsolete("Will be removed")]
     public class Tables4kGcmMultiplier
         : IGcmMultiplier
     {
@@ -62,8 +63,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 z0 = T[pos].n0 ^ (z0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
             }
 
-            Pack.UInt64_To_BE(z0, x, 0);
-            Pack.UInt64_To_BE(z1, x, 8);
+            GcmUtilities.AsBytes(z0, z1, x);
         }
     }
 }

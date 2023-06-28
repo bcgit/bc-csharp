@@ -3,13 +3,13 @@
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
 {
     [TestFixture]
+    [NonParallelizable] // Environment.SetEnvironmentVariable
     public class Asn1IntegerTest
         : SimpleTest
     {
@@ -24,9 +24,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         public override void PerformTest()
         {
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
-            // Can't SetEnvironmentVariable !
-#else
             SetAllowUnsafeProperty(true);
 
             Asn1Sequence.GetInstance(suspectKey);
@@ -37,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             DoTestInvalidEncoding_ff();
             DoTestInvalidEncoding_00_32bits();
             DoTestInvalidEncoding_ff_32bits();
-            //DoDoTestLooseInvalidValidEncoding_FF_32B();
+            //DoTestLooseInvalidValidEncoding_FF_32B();
             //DoTestLooseInvalidValidEncoding_zero_32B();
             DoTestLooseValidEncoding_zero_32BAligned();
             DoTestLooseValidEncoding_FF_32BAligned();
@@ -114,7 +111,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 CheckArgumentException(e, "malformed enumerated");
             }
-#endif
         }
 
         /**
@@ -255,7 +251,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        public void DoDoTestLooseInvalidValidEncoding_FF_32B()
+        public void DoTestLooseInvalidValidEncoding_FF_32B()
             throws Exception
         {
             //
@@ -339,23 +335,19 @@ namespace Org.BouncyCastle.Asn1.Tests
                 CheckArgumentException(e, "malformed integer");
             }
         }
-        private void CheckArgumentException(ArgumentException e, String expectedMessage)
+        private void CheckArgumentException(ArgumentException e, string expectedMessage)
         {
             IsTrue(e.Message.StartsWith(expectedMessage));
         }
 
-        private void CheckArgumentException(String errorText, ArgumentException e, String expectedMessage)
+        private void CheckArgumentException(string errorText, ArgumentException e, string expectedMessage)
         {
             IsTrue(errorText, e.Message.StartsWith(expectedMessage));
         }
 
         private void SetAllowUnsafeProperty(bool allowUnsafe)
         {
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
-            // Can't SetEnvironmentVariable !
-#else
             Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
-#endif
         }
 
         private void CheckIntValue(DerInteger i, int n)
@@ -374,12 +366,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             IsEquals(val.LongValueExact, n);
             IsEquals(i.LongValueExact, n);
             IsTrue(i.HasValue(n));
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new Asn1IntegerTest());
         }
 
         [Test]

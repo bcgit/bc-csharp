@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
@@ -108,7 +106,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private PrivateKeyInfo(Asn1Sequence seq)
         {
-            IEnumerator e = seq.GetEnumerator();
+            var e = seq.GetEnumerator();
 
             this.version = DerInteger.GetInstance(CollectionUtilities.RequireNext(e));
 

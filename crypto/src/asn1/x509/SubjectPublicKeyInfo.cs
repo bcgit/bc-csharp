@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.IO;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -51,7 +49,15 @@ namespace Org.BouncyCastle.Asn1.X509
             this.algID = algID;
         }
 
-		private SubjectPublicKeyInfo(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public SubjectPublicKeyInfo(AlgorithmIdentifier algID, ReadOnlySpan<byte> publicKey)
+        {
+            this.keyData = new DerBitString(publicKey);
+            this.algID = algID;
+        }
+#endif
+
+        private SubjectPublicKeyInfo(
             Asn1Sequence seq)
         {
 			if (seq.Count != 2)
@@ -76,19 +82,6 @@ namespace Org.BouncyCastle.Asn1.X509
         public Asn1Object ParsePublicKey()
         {
             return Asn1Object.FromByteArray(keyData.GetOctets());
-        }
-
-		/**
-         * for when the public key is an encoded object - if the bitstring
-         * can't be decoded this routine raises an IOException.
-         *
-         * @exception IOException - if the bit string doesn't represent a Der
-         * encoded object.
-         */
-        [Obsolete("Use 'ParsePublicKey' instead")]
-        public Asn1Object GetPublicKey()
-        {
-			return Asn1Object.FromByteArray(keyData.GetOctets());
         }
 
 		/**

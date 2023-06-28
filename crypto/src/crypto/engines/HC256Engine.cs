@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-	/**
+    /**
 	* HC-256 is a software-efficient stream cipher created by Hongjun Wu. It 
 	* generates keystream from a 256-bit secret key and a 256-bit initialization 
 	* vector.
@@ -20,11 +20,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 	* http://www.ecrypt.eu.org/stream/hcp3.html
 	* </p>
 	*/
-	public class HC256Engine
+    public class HC256Engine
 		: IStreamCipher
 	{
-		private uint[] p = new uint[1024];
-		private uint[] q = new uint[1024];
+		private readonly uint[] p = new uint[1024];
+		private readonly uint[] q = new uint[1024];
 		private uint cnt = 0;
 
 		private uint Step()
@@ -33,31 +33,31 @@ namespace Org.BouncyCastle.Crypto.Engines
 			uint ret;
 			if (cnt < 1024)
 			{
-				uint x = p[(j - 3 & 0x3FF)];
-				uint y = p[(j - 1023 & 0x3FF)];
-				p[j] += p[(j - 10 & 0x3FF)]
-					+ (RotateRight(x, 10) ^ RotateRight(y, 23))
-					+ q[((x ^ y) & 0x3FF)];
+				uint x = p[(j - 3) & 0x3FF];
+				uint y = p[(j - 1023) & 0x3FF];
+				p[j] += p[(j - 10) & 0x3FF]
+					+ (Integers.RotateRight(x, 10) ^ Integers.RotateRight(y, 23))
+					+ q[(x ^ y) & 0x3FF];
 
-				x = p[(j - 12 & 0x3FF)];
+				x = p[(j - 12) & 0x3FF];
 				ret = (q[x & 0xFF] + q[((x >> 8) & 0xFF) + 256]
 					+ q[((x >> 16) & 0xFF) + 512] + q[((x >> 24) & 0xFF) + 768])
 					^ p[j];
 			}
 			else
 			{
-				uint x = q[(j - 3 & 0x3FF)];
-				uint y = q[(j - 1023 & 0x3FF)];
-				q[j] += q[(j - 10 & 0x3FF)]
-					+ (RotateRight(x, 10) ^ RotateRight(y, 23))
-					+ p[((x ^ y) & 0x3FF)];
+				uint x = q[(j - 3) & 0x3FF];
+				uint y = q[(j - 1023) & 0x3FF];
+				q[j] += q[(j - 10) & 0x3FF]
+					+ (Integers.RotateRight(x, 10) ^ Integers.RotateRight(y, 23))
+					+ p[(x ^ y) & 0x3FF];
 
-				x = q[(j - 12 & 0x3FF)];
+				x = q[(j - 12) & 0x3FF];
 				ret = (p[x & 0xFF] + p[((x >> 8) & 0xFF) + 256]
 					+ p[((x >> 16) & 0xFF) + 512] + p[((x >> 24) & 0xFF) + 768])
 					^ q[j];
 			}
-			cnt = cnt + 1 & 0x7FF;
+			cnt = (cnt + 1) & 0x7FF;
 			return ret;
 		}
 
@@ -66,9 +66,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private void Init()
 		{
+			// TODO[api] Strictly require 32 bytes for both key and IV
 			if (key.Length != 32 && key.Length != 16)
 				throw new ArgumentException("The key must be 128/256 bits long");
-
 			if (iv.Length < 16)
 				throw new ArgumentException("The IV must be at least 128 bits long");
 
@@ -97,23 +97,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			uint[] w = new uint[2560];
 
-			for (int i = 0; i < 32; i++)
-			{
-				w[i >> 2] |= ((uint)key[i] << (8 * (i & 0x3)));
-			}
-
-			for (int i = 0; i < 32; i++)
-			{
-				w[(i >> 2) + 8] |= ((uint)iv[i] << (8 * (i & 0x3)));
-			}
+			Pack.LE_To_UInt32(key, 0, w, 0, 8);
+            Pack.LE_To_UInt32(iv, 0, w, 8, 8);
 
 			for (uint i = 16; i < 2560; i++)
 			{
 				uint x = w[i - 2];
 				uint y = w[i - 15];
-				w[i] = (RotateRight(x, 17) ^ RotateRight(x, 19) ^ (x >> 10))
+				w[i] = (Integers.RotateRight(x, 17) ^ Integers.RotateRight(x, 19) ^ (x >> 10))
 					+ w[i - 7]
-					+ (RotateRight(y, 7) ^ RotateRight(y, 18) ^ (y >> 3))
+					+ (Integers.RotateRight(y, 7) ^ Integers.RotateRight(y, 18) ^ (y >> 3))
 					+ w[i - 16] + i;
 			}
 
@@ -128,10 +121,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			cnt = 0;
 		}
 
-        public virtual string AlgorithmName
-		{
-			get { return "HC-256"; }
-		}
+        public virtual string AlgorithmName => "HC-256";
 
 		/**
 		* Initialise a HC-256 cipher.
@@ -142,38 +132,27 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @throws ArgumentException if the params argument is
 		*                                  inappropriate (ie. the key is not 256 bit long).
 		*/
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			ICipherParameters keyParam = parameters;
+            if (!(parameters is ParametersWithIV ivParams))
+                throw new ArgumentException("HC-256 Init parameters must include an IV");
 
-			if (parameters is ParametersWithIV)
-			{
-				iv = ((ParametersWithIV)parameters).GetIV();
-				keyParam = ((ParametersWithIV)parameters).Parameters;
-			}
-			else
-			{
-				iv = new byte[0];
-			}
+            if (!(ivParams.Parameters is KeyParameter keyParams))
+            {
+                throw new ArgumentException(
+                    "Invalid parameter passed to HC256 init - " + Platform.GetTypeName(parameters),
+                    "parameters");
+            }
 
-			if (keyParam is KeyParameter)
-			{
-				key = ((KeyParameter)keyParam).GetKey();
-				Init();
-			}
-			else
-			{
-				throw new ArgumentException(
-					"Invalid parameter passed to HC256 init - " + Platform.GetTypeName(parameters),
-					"parameters");
-			}
+            key = keyParams.GetKey();
+            iv = ivParams.GetIV();
 
-			initialised = true;
-		}
+            Init();
 
-		private byte[] buf = new byte[4];
+            initialised = true;
+        }
+
+        private readonly byte[] buf = new byte[4];
 		private int idx = 0;
 
 		private byte GetByte()
@@ -183,16 +162,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 				Pack.UInt32_To_LE(Step(), buf);
 			}
 			byte ret = buf[idx];
-			idx = idx + 1 & 0x3;
+			idx = (idx + 1) & 0x3;
 			return ret;
 		}
 
-        public virtual void ProcessBytes(
-			byte[]	input,
-			int		inOff,
-			int		len,
-			byte[]	output,
-			int		outOff)
+        public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
 		{
 			if (!initialised)
 				throw new InvalidOperationException(AlgorithmName + " not initialised");
@@ -206,6 +180,21 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (!initialised)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                output[i] = (byte)(input[i] ^ GetByte());
+            }
+        }
+#endif
+
         public virtual void Reset()
 		{
 			Init();
@@ -214,11 +203,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual byte ReturnByte(byte input)
 		{
 			return (byte)(input ^ GetByte());
-		}
-
-		private static uint RotateRight(uint x, int bits)
-		{
-			return (x >> bits) | (x << -bits);
 		}
 	}
 }

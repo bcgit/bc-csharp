@@ -194,7 +194,7 @@ namespace Org.BouncyCastle.Tests
             constraintValidator.IntersectPermittedSubtree(new DerSequence(new GeneralSubtree(
                 new GeneralName(GeneralName.DirectoryName,
                     new X509Name(true, "ou=permittedSubtree1, o=Test Certificates 2011, c=US")))));
-            constraintValidator.checkPermitted(
+            constraintValidator.CheckPermittedName(
                 new GeneralName(GeneralName.DirectoryName,
                     new X509Name(true, "cn=Valid DN nameConstraints EE Certificate Test1, ou=permittedSubtree1, o=Test Certificates 2011, c=US")));
 
@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Tests
 
             try
             {
-                validator.checkExcluded(name);
+                validator.CheckExcludedName(name);
             }
             catch (PkixNameConstraintValidatorException e)
             {
@@ -222,7 +222,7 @@ namespace Org.BouncyCastle.Tests
 
             try
             {
-                validator.checkPermitted(name);
+                validator.CheckPermittedName(name);
             }
             catch (PkixNameConstraintValidatorException e)
             {
@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Tests
 				PkixNameConstraintValidator constraintValidator = new PkixNameConstraintValidator();
 				constraintValidator.IntersectPermittedSubtree(new DerSequence(new GeneralSubtree(
 					new GeneralName(nameType, testNameIsConstraint[i]))));
-				constraintValidator.checkPermitted(new GeneralName(nameType, testName));
+				constraintValidator.CheckPermittedName(new GeneralName(nameType, testName));
 			}
 			for (int i = 0; i < testNameIsNotConstraint.Length; i++)
 			{
@@ -271,7 +271,7 @@ namespace Org.BouncyCastle.Tests
 					new GeneralName(nameType, testNameIsNotConstraint[i]))));
 				try
 				{
-					constraintValidator.checkPermitted(new GeneralName(nameType, testName));
+					constraintValidator.CheckPermittedName(new GeneralName(nameType, testName));
 					Fail("not permitted name allowed: " + nameType);
 				}
 				catch (PkixNameConstraintValidatorException)
@@ -286,7 +286,7 @@ namespace Org.BouncyCastle.Tests
 					nameType, testNameIsConstraint[i])));
 				try
 				{
-					constraintValidator.checkExcluded(new GeneralName(nameType, testName));
+					constraintValidator.CheckExcludedName(new GeneralName(nameType, testName));
 					Fail("excluded name missed: " + nameType);
 				}
 				catch (PkixNameConstraintValidatorException)
@@ -299,7 +299,7 @@ namespace Org.BouncyCastle.Tests
 				PkixNameConstraintValidator constraintValidator = new PkixNameConstraintValidator();
 				constraintValidator.AddExcludedSubtree(new GeneralSubtree(new GeneralName(
 					nameType, testNameIsNotConstraint[i])));
-				constraintValidator.checkExcluded(new GeneralName(nameType, testName));
+				constraintValidator.CheckExcludedName(new GeneralName(nameType, testName));
 			}
 			for (int i = 0; i < testNames1.Length; i++)
 			{
@@ -373,7 +373,7 @@ namespace Org.BouncyCastle.Tests
 				constraintValidator.IntersectPermittedSubtree(new DerSequence(new GeneralSubtree(
 					new GeneralName(nameType, new DerOctetString(
 					testNameIsConstraint[i])))));
-				constraintValidator.checkPermitted(new GeneralName(nameType,
+				constraintValidator.CheckPermittedName(new GeneralName(nameType,
 					new DerOctetString(testName)));
 			}
 			for (int i = 0; i < testNameIsNotConstraint.Length; i++)
@@ -384,7 +384,7 @@ namespace Org.BouncyCastle.Tests
 					testNameIsNotConstraint[i])))));
 				try
 				{
-					constraintValidator.checkPermitted(new GeneralName(nameType,
+					constraintValidator.CheckPermittedName(new GeneralName(nameType,
 						new DerOctetString(testName)));
 					Fail("not permitted name allowed: " + nameType);
 				}
@@ -400,7 +400,7 @@ namespace Org.BouncyCastle.Tests
 					nameType, new DerOctetString(testNameIsConstraint[i]))));
 				try
 				{
-					constraintValidator.checkExcluded(new GeneralName(nameType,
+					constraintValidator.CheckExcludedName(new GeneralName(nameType,
 						new DerOctetString(testName)));
 					Fail("excluded name missed: " + nameType);
 				}
@@ -414,7 +414,7 @@ namespace Org.BouncyCastle.Tests
 				PkixNameConstraintValidator constraintValidator = new PkixNameConstraintValidator();
 				constraintValidator.AddExcludedSubtree(new GeneralSubtree(new GeneralName(
 					nameType, new DerOctetString(testNameIsNotConstraint[i]))));
-				constraintValidator.checkExcluded(new GeneralName(nameType,
+				constraintValidator.CheckExcludedName(new GeneralName(nameType,
 					new DerOctetString(testName)));
 			}
 			for (int i = 0; i < testNames1.Length; i++)
@@ -457,12 +457,6 @@ namespace Org.BouncyCastle.Tests
 					Fail("intersection wrong: " + nameType);
 				}
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkixNameConstraintsTest());
 		}
 
 		[Test]

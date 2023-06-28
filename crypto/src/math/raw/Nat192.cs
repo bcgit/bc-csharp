@@ -5,7 +5,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Nat192
+    internal static class Nat192
     {
         private const ulong M = 0xFFFFFFFFUL;
 
@@ -169,6 +169,15 @@ namespace Org.BouncyCastle.Math.Raw
             z[zOff + 2] = x[xOff + 2];
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Copy64(ReadOnlySpan<ulong> x, Span<ulong> z)
+        {
+            z[0] = x[0];
+            z[1] = x[1];
+            z[2] = x[2];
+        }
+#endif
+
         public static uint[] Create()
         {
             return new uint[6];
@@ -310,7 +319,11 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool IsZero64(ReadOnlySpan<ulong> x)
+#else
         public static bool IsZero64(ulong[] x)
+#endif
         {
             for (int i = 0; i < 3; ++i)
             {

@@ -1,8 +1,3 @@
-using System;
-using System.Collections;
-
-using Org.BouncyCastle.Asn1;
-
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     public class ContentInfo
@@ -15,9 +10,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         {
             if (obj == null)
                 return null;
-            ContentInfo existing = obj as ContentInfo;
-            if (existing != null)
-                return existing;
+            if (obj is ContentInfo contentInfo)
+                return contentInfo;
             return new ContentInfo(Asn1Sequence.GetInstance(obj));
         }
 

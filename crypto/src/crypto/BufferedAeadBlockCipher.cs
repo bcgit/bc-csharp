@@ -14,14 +14,10 @@ namespace Org.BouncyCastle.Crypto
 	{
 		private readonly IAeadBlockCipher cipher;
 
-		public BufferedAeadBlockCipher(
-			IAeadBlockCipher cipher)
+		public BufferedAeadBlockCipher(IAeadBlockCipher cipher)
 		{
-			if (cipher == null)
-				throw new ArgumentNullException("cipher");
-
-			this.cipher = cipher;
-		}
+            this.cipher = cipher ?? throw new ArgumentNullException(nameof(cipher));
+        }
 
 		public override string AlgorithmName
 		{
@@ -37,13 +33,11 @@ namespace Org.BouncyCastle.Crypto
 		* @exception ArgumentException if the parameters argument is
 		* inappropriate.
 		*/
-		public override void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+		public override void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
 			cipher.Init(forEncryption, parameters);
@@ -97,12 +91,9 @@ namespace Org.BouncyCastle.Crypto
 		* @exception DataLengthException if there isn't enough space in out.
 		* @exception InvalidOperationException if the cipher isn't initialised.
 		*/
-		public override int ProcessByte(
-			byte	input,
-			byte[]	output,
-			int		outOff)
-		{
-			return cipher.ProcessByte(input, output, outOff);
+        public override int ProcessByte(byte input, byte[] output, int outOff)
+        {
+            return cipher.ProcessByte(input, output, outOff);
 		}
 
 		public override byte[] ProcessByte(
@@ -124,7 +115,14 @@ namespace Org.BouncyCastle.Crypto
 			return outBytes;
 		}
 
-		public override byte[] ProcessBytes(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            return cipher.ProcessByte(input, output);
+        }
+#endif
+
+        public override byte[] ProcessBytes(
 			byte[]	input,
 			int		inOff,
 			int		length)
@@ -172,7 +170,14 @@ namespace Org.BouncyCastle.Crypto
 			return cipher.ProcessBytes(input, inOff, length, output, outOff);
 		}
 
-		public override byte[] DoFinal()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            return cipher.ProcessBytes(input, output);
+        }
+#endif
+
+        public override byte[] DoFinal()
 		{
             byte[] outBytes = new byte[GetOutputSize(0)];
 
@@ -235,11 +240,25 @@ namespace Org.BouncyCastle.Crypto
 			return cipher.DoFinal(output, outOff);
 		}
 
-		/**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+		{
+            return cipher.DoFinal(output);
+        }
+
+        public override int DoFinal(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = cipher.ProcessBytes(input, output);
+            len += cipher.DoFinal(output[len..]);
+            return len;
+        }
+#endif
+
+        /**
 		* Reset the buffer and cipher. After resetting the object is in the same
 		* state as it was after the last init (if there was one).
 		*/
-		public override void Reset()
+        public override void Reset()
 		{
 			cipher.Reset();
 		}

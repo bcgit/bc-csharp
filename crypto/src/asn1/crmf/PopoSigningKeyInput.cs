@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
 
             if (sender != null)
             {

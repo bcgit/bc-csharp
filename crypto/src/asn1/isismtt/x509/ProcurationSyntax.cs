@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X509;
@@ -49,18 +48,13 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		private readonly GeneralName		thirdPerson;
 		private readonly IssuerSerial		certRef;
 
-		public static ProcurationSyntax GetInstance(
-			object obj)
+		public static ProcurationSyntax GetInstance(object obj)
 		{
 			if (obj == null || obj is ProcurationSyntax)
-			{
 				return (ProcurationSyntax) obj;
-			}
 
-			if (obj is Asn1Sequence)
-			{
-				return new ProcurationSyntax((Asn1Sequence) obj);
-			}
+			if (obj is Asn1Sequence seq)
+				return new ProcurationSyntax(seq);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
@@ -86,38 +80,37 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private ProcurationSyntax(
-			Asn1Sequence seq)
+		private ProcurationSyntax(Asn1Sequence seq)
 		{
 			if (seq.Count < 1 || seq.Count > 3)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 
 			while (e.MoveNext())
 			{
 				Asn1TaggedObject o = Asn1TaggedObject.GetInstance(e.Current);
 				switch (o.TagNo)
 				{
-					case 1:
-						country = DerPrintableString.GetInstance(o, true).GetString();
-						break;
-					case 2:
-						typeOfSubstitution = DirectoryString.GetInstance(o, true);
-						break;
-					case 3:
-						Asn1Object signingFor = o.GetObject();
-						if (signingFor is Asn1TaggedObject)
-						{
-							thirdPerson = GeneralName.GetInstance(signingFor);
-						}
-						else
-						{
-							certRef = IssuerSerial.GetInstance(signingFor);
-						}
-						break;
-					default:
-						throw new ArgumentException("Bad tag number: " + o.TagNo);
+				case 1:
+					country = DerPrintableString.GetInstance(o, true).GetString();
+					break;
+				case 2:
+					typeOfSubstitution = DirectoryString.GetInstance(o, true);
+					break;
+				case 3:
+					Asn1Object signingFor = o.GetObject();
+					if (signingFor is Asn1TaggedObject)
+					{
+						thirdPerson = GeneralName.GetInstance(signingFor);
+					}
+					else
+					{
+						certRef = IssuerSerial.GetInstance(signingFor);
+					}
+					break;
+				default:
+					throw new ArgumentException("Bad tag number: " + o.TagNo);
 				}
 			}
 		}
@@ -209,7 +202,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
 
             if (country != null)
             {

@@ -1,23 +1,21 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
 	/**
-	* Implementation of WhirlpoolDigest, based on Java source published by Barreto
-	* and Rijmen.
-	*
+	* Implementation of WhirlpoolDigest, based on Java source published by Barreto and Rijmen.
 	*/
 	public sealed class WhirlpoolDigest
 		: IDigest, IMemoable
 	{
+		private const int BITCOUNT_ARRAY_SIZE = 32;
 		private const int BYTE_LENGTH = 64;
-
 		private const int DIGEST_LENGTH_BYTES = 512 / 8;
-		private const int ROUNDS = 10;
 		private const int REDUCTION_POLYNOMIAL = 0x011d; // 2^8 + 2^4 + 2^3 + 2 + 1;
+		private const int ROUNDS = 10;
 
 		private static readonly int[] SBOX =
 		{
@@ -39,25 +37,23 @@ namespace Org.BouncyCastle.Crypto.Digests
 			0x16, 0x3a, 0x69, 0x09, 0x70, 0xb6, 0xd0, 0xed, 0xcc, 0x42, 0x98, 0xa4, 0x28, 0x5c, 0xf8, 0x86
 		};
 
-		private static readonly long[] C0 = new long[256];
-		private static readonly long[] C1 = new long[256];
-		private static readonly long[] C2 = new long[256];
-		private static readonly long[] C3 = new long[256];
-		private static readonly long[] C4 = new long[256];
-		private static readonly long[] C5 = new long[256];
-		private static readonly long[] C6 = new long[256];
-		private static readonly long[] C7 = new long[256];
-
-		private readonly long[] _rc = new long[ROUNDS + 1];
+		private static readonly ulong[] C0 = new ulong[256];
+		private static readonly ulong[] C1 = new ulong[256];
+		private static readonly ulong[] C2 = new ulong[256];
+		private static readonly ulong[] C3 = new ulong[256];
+		private static readonly ulong[] C4 = new ulong[256];
+		private static readonly ulong[] C5 = new ulong[256];
+		private static readonly ulong[] C6 = new ulong[256];
+		private static readonly ulong[] C7 = new ulong[256];
 
 		/*
-			* increment() can be implemented in this way using 2 arrays or
-			* by having some temporary variables that are used to set the
-			* value provided by EIGHT[i] and carry within the loop.
-			*
-			* not having done any timing, this seems likely to be faster
-			* at the slight expense of 32*(sizeof short) bytes
-			*/
+		* increment() can be implemented in this way using 2 arrays or
+		* by having some temporary variables that are used to set the
+		* value provided by EIGHT[i] and carry within the loop.
+		*
+		* not having done any timing, this seems likely to be faster
+		* at the slight expense of 32*(sizeof short) bytes
+		*/
 		private static readonly short[] EIGHT = new short[BITCOUNT_ARRAY_SIZE];
 
 		static WhirlpoolDigest()
@@ -67,88 +63,78 @@ namespace Org.BouncyCastle.Crypto.Digests
 			for (int i = 0; i < 256; i++)
 			{
 				int v1 = SBOX[i];
-				int v2 = maskWithReductionPolynomial(v1 << 1);
-				int v4 = maskWithReductionPolynomial(v2 << 1);
+				int v2 = MulX(v1);
+				int v4 = MulX(v2);
 				int v5 = v4 ^ v1;
-				int v8 = maskWithReductionPolynomial(v4 << 1);
+				int v8 = MulX(v4);
 				int v9 = v8 ^ v1;
 
-				C0[i] = packIntoLong(v1, v1, v4, v1, v8, v5, v2, v9);
-				C1[i] = packIntoLong(v9, v1, v1, v4, v1, v8, v5, v2);
-				C2[i] = packIntoLong(v2, v9, v1, v1, v4, v1, v8, v5);
-				C3[i] = packIntoLong(v5, v2, v9, v1, v1, v4, v1, v8);
-				C4[i] = packIntoLong(v8, v5, v2, v9, v1, v1, v4, v1);
-				C5[i] = packIntoLong(v1, v8, v5, v2, v9, v1, v1, v4);
-				C6[i] = packIntoLong(v4, v1, v8, v5, v2, v9, v1, v1);
-				C7[i] = packIntoLong(v1, v4, v1, v8, v5, v2, v9, v1);
+				C0[i] = PackIntoUInt64(v1, v1, v4, v1, v8, v5, v2, v9);
+				C1[i] = PackIntoUInt64(v9, v1, v1, v4, v1, v8, v5, v2);
+				C2[i] = PackIntoUInt64(v2, v9, v1, v1, v4, v1, v8, v5);
+				C3[i] = PackIntoUInt64(v5, v2, v9, v1, v1, v4, v1, v8);
+				C4[i] = PackIntoUInt64(v8, v5, v2, v9, v1, v1, v4, v1);
+				C5[i] = PackIntoUInt64(v1, v8, v5, v2, v9, v1, v1, v4);
+				C6[i] = PackIntoUInt64(v4, v1, v8, v5, v2, v9, v1, v1);
+				C7[i] = PackIntoUInt64(v1, v4, v1, v8, v5, v2, v9, v1);
 			}
 		}
+
+		// int's are used to prevent sign extension. The values that are really being used are actually just 0..255
+		private static int MulX(int input)
+		{
+			return (input << 1) ^ (-(input >> 7) & REDUCTION_POLYNOMIAL);
+		}
+
+		private static ulong PackIntoUInt64(int b7, int b6, int b5, int b4, int b3, int b2, int b1, int b0)
+		{
+			return ((ulong)b7 << 56) ^
+				   ((ulong)b6 << 48) ^
+				   ((ulong)b5 << 40) ^
+				   ((ulong)b4 << 32) ^
+				   ((ulong)b3 << 24) ^
+				   ((ulong)b2 << 16) ^
+				   ((ulong)b1 << 8) ^
+				    (ulong)b0;
+		}
+
+		private readonly ulong[] _rc = new ulong[ROUNDS + 1];
 
 		public WhirlpoolDigest()
 		{
-			_rc[0] = 0L;
+			_rc[0] = 0UL;
 			for (int r = 1; r <= ROUNDS; r++)
 			{
 				int i = 8 * (r - 1);
-				_rc[r] = (long)((ulong)C0[i] & 0xff00000000000000L) ^
-					(C1[i + 1] & (long) 0x00ff000000000000L) ^
-					(C2[i + 2] & (long) 0x0000ff0000000000L) ^
-					(C3[i + 3] & (long) 0x000000ff00000000L) ^
-					(C4[i + 4] & (long) 0x00000000ff000000L) ^
-					(C5[i + 5] & (long) 0x0000000000ff0000L) ^
-					(C6[i + 6] & (long) 0x000000000000ff00L) ^
-					(C7[i + 7] & (long) 0x00000000000000ffL);
+				_rc[r] =
+					(C0[i    ] & 0xff00000000000000UL) ^
+					(C1[i + 1] & 0x00ff000000000000UL) ^
+					(C2[i + 2] & 0x0000ff0000000000UL) ^
+					(C3[i + 3] & 0x000000ff00000000UL) ^
+					(C4[i + 4] & 0x00000000ff000000UL) ^
+					(C5[i + 5] & 0x0000000000ff0000UL) ^
+					(C6[i + 6] & 0x000000000000ff00UL) ^
+					(C7[i + 7] & 0x00000000000000ffUL);
 			}
-		}
-
-		private static long packIntoLong(int b7, int b6, int b5, int b4, int b3, int b2, int b1, int b0)
-		{
-			return
-				((long)b7 << 56) ^
-				((long)b6 << 48) ^
-				((long)b5 << 40) ^
-				((long)b4 << 32) ^
-				((long)b3 << 24) ^
-				((long)b2 << 16) ^
-				((long)b1 <<  8) ^
-				b0;
-		}
-
-		/*
-			* int's are used to prevent sign extension.  The values that are really being used are
-			* actually just 0..255
-			*/
-		private static int maskWithReductionPolynomial(int input)
-		{
-			int rv = input;
-			if (rv >= 0x100L) // high bit set
-			{
-				rv ^= REDUCTION_POLYNOMIAL; // reduced by the polynomial
-			}
-			return rv;
 		}
 
 		// --------------------------------------------------------------------------------------//
 
 		// -- buffer information --
-		private const int BITCOUNT_ARRAY_SIZE = 32;
 		private byte[]  _buffer    = new byte[64];
 		private int     _bufferPos;
 		private short[] _bitCount  = new short[BITCOUNT_ARRAY_SIZE];
 
 		// -- internal hash state --
-		private long[] _hash  = new long[8];
-		private long[] _K = new long[8]; // the round key
-		private long[] _L = new long[8];
-		private long[] _block = new long[8]; // mu (buffer)
-		private long[] _state = new long[8]; // the current "cipher" state
-
-
+		private ulong[] _hash  = new ulong[8];
+		private ulong[] _K = new ulong[8]; // the round key
+		private ulong[] _L = new ulong[8];
+		private ulong[] _block = new ulong[8]; // mu (buffer)
+		private ulong[] _state = new ulong[8]; // the current "cipher" state
 
 		/**
-			* Copy constructor. This will copy the state of the provided message
-			* digest.
-			*/
+		* Copy constructor. This will copy the state of the provided message digest.
+		*/
 		public WhirlpoolDigest(WhirlpoolDigest originalDigest)
 		{
 			Reset(originalDigest);
@@ -167,21 +153,32 @@ namespace Org.BouncyCastle.Crypto.Digests
 		public int DoFinal(byte[] output, int outOff)
 		{
 			// sets output[outOff] .. output[outOff+DIGEST_LENGTH_BYTES]
-			finish();
+			Finish();
 
-			for (int i = 0; i < 8; i++)
-			{
-				convertLongToByteArray(_hash[i], output, outOff + (i * 8));
-			}
+			Pack.UInt64_To_BE(_hash, output, outOff);
 
 			Reset();
 
 			return GetDigestSize();
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int DoFinal(Span<byte> output)
+		{
+			// sets output[0..DIGEST_LENGTH_BYTES]
+			Finish();
+
+			Pack.UInt64_To_BE(_hash, output);
+
+			Reset();
+
+			return GetDigestSize();
+		}
+#endif
+
 		/**
-			* Reset the chaining variables
-			*/
+		* Reset the chaining variables
+		*/
 		public void Reset()
 		{
 			// set variables to null, blank, whatever
@@ -196,44 +193,18 @@ namespace Org.BouncyCastle.Crypto.Digests
 		}
 
 		// this takes a buffer of information and fills the block
-		private void processFilledBuffer()
+		private void ProcessFilledBuffer()
 		{
 			// copies into the block...
-			for (int i = 0; i < _state.Length; i++)
-			{
-				_block[i] = bytesToLongFromBuffer(_buffer, i * 8);
-			}
-			processBlock();
+			Pack.BE_To_UInt64(_buffer, 0, _block);
+			ProcessBlock();
 			_bufferPos = 0;
 			Array.Clear(_buffer, 0, _buffer.Length);
 		}
 
-		private static long bytesToLongFromBuffer(byte[] buffer, int startPos)
+		private void ProcessBlock()
 		{
-			long rv = (((buffer[startPos + 0] & 0xffL) << 56) |
-				((buffer[startPos + 1] & 0xffL) << 48) |
-				((buffer[startPos + 2] & 0xffL) << 40) |
-				((buffer[startPos + 3] & 0xffL) << 32) |
-				((buffer[startPos + 4] & 0xffL) << 24) |
-				((buffer[startPos + 5] & 0xffL) << 16) |
-				((buffer[startPos + 6] & 0xffL) <<  8) |
-				((buffer[startPos + 7]) & 0xffL));
-
-			return rv;
-		}
-
-		private static void convertLongToByteArray(long inputLong, byte[] outputArray, int offSet)
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				outputArray[offSet + i] = (byte)((inputLong >> (56 - (i * 8))) & 0xff);
-			}
-		}
-
-		private void processBlock()
-		{
-			// buffer contents have been transferred to the _block[] array via
-			// processFilledBuffer
+			// buffer contents have been transferred to the _block[] array via ProcessFilledBuffer
 
 			// compute and apply K^0
 			for (int i = 0; i < 8; i++)
@@ -246,8 +217,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 			{
 				for (int i = 0; i < 8; i++)
 				{
-					_L[i] = 0;
-					_L[i] ^= C0[(int)(_K[(i - 0) & 7] >> 56) & 0xff];
+					_L[i]  = C0[(int)(_K[(i - 0) & 7] >> 56) & 0xff];
 					_L[i] ^= C1[(int)(_K[(i - 1) & 7] >> 48) & 0xff];
 					_L[i] ^= C2[(int)(_K[(i - 2) & 7] >> 40) & 0xff];
 					_L[i] ^= C3[(int)(_K[(i - 3) & 7] >> 32) & 0xff];
@@ -285,26 +255,20 @@ namespace Org.BouncyCastle.Crypto.Digests
 			{
 				_hash[i] ^= _state[i] ^ _block[i];
 			}
-
 		}
 
 		public void Update(byte input)
 		{
 			_buffer[_bufferPos] = input;
-
-			//Console.WriteLine("adding to buffer = "+_buffer[_bufferPos]);
-
-			++_bufferPos;
-
-			if (_bufferPos == _buffer.Length)
+			if (++_bufferPos == _buffer.Length)
 			{
-				processFilledBuffer();
+				ProcessFilledBuffer();
 			}
 
-			increment();
+			Increment();
 		}
 
-		private void increment()
+		private void Increment()
 		{
 			int carry = 0;
 			for (int i = _bitCount.Length - 1; i >= 0; i--)
@@ -324,31 +288,39 @@ namespace Org.BouncyCastle.Crypto.Digests
 				++inOff;
 				--length;
 			}
-
 		}
 
-		private void finish()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public void BlockUpdate(ReadOnlySpan<byte> input)
+		{
+			for (int i = 0; i < input.Length; ++i)
+			{
+				Update(input[i]);
+			}
+		}
+#endif
+
+		private void Finish()
 		{
 			/*
-				* this makes a copy of the current bit length. at the expense of an
-				* object creation of 32 bytes rather than providing a _stopCounting
-				* boolean which was the alternative I could think of.
-				*/
-			byte[] bitLength = copyBitLength();
+			* this makes a copy of the current bit length. at the expense of an
+			* object creation of 32 bytes rather than providing a _stopCounting
+			* boolean which was the alternative I could think of.
+			*/
+			byte[] bitLength = CopyBitLength();
 
-			_buffer[_bufferPos++] |= 0x80;
-
-			if (_bufferPos == _buffer.Length)
+			_buffer[_bufferPos] |= 0x80;
+			if (++_bufferPos == _buffer.Length)
 			{
-				processFilledBuffer();
+				ProcessFilledBuffer();
 			}
 
 			/*
-				* Final block contains
-				* [ ... data .... ][0][0][0][ length ]
-				*
-				* if [ length ] cannot fit.  Need to create a new block.
-				*/
+			* Final block contains
+			* [ ... data .... ][0][0][0][ length ]
+			*
+			* if [ length ] cannot fit.  Need to create a new block.
+			*/
 			if (_bufferPos > 32)
 			{
 				while (_bufferPos != 0)
@@ -362,14 +334,13 @@ namespace Org.BouncyCastle.Crypto.Digests
 				Update((byte)0);
 			}
 
-			// copy the length information to the final 32 bytes of the
-			// 64 byte block....
+			// copy the length information to the final 32 bytes of the 64 byte block....
 			Array.Copy(bitLength, 0, _buffer, 32, bitLength.Length);
 
-			processFilledBuffer();
+			ProcessFilledBuffer();
 		}
 
-		private byte[] copyBitLength()
+		private byte[] CopyBitLength()
 		{
 			byte[] rv = new byte[BITCOUNT_ARRAY_SIZE];
 			for (int i = 0; i < rv.Length; i++)
@@ -407,7 +378,5 @@ namespace Org.BouncyCastle.Crypto.Digests
 			Array.Copy(originalDigest._block, 0, _block, 0, _block.Length);
 			Array.Copy(originalDigest._state, 0, _state, 0, _state.Length);
 		}
-
-
 	}
 }

@@ -1,7 +1,8 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
@@ -117,7 +118,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		//
 		// pre-defined sbox table
 		//
-		private static readonly IDictionary sBoxes = Platform.CreateHashtable();
+		private static readonly Dictionary<string, byte[]> m_sBoxes =
+			new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
 		static Gost28147Engine()
 		{
@@ -133,7 +135,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private static void AddSBox(string sBoxName, byte[] sBox)
 		{
-			sBoxes.Add(Platform.ToUpperInvariant(sBoxName), sBox);        
+			m_sBoxes.Add(sBoxName, sBox);        
 		}
 
 		/**
@@ -150,14 +152,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @param parameters the parameters required to set up the cipher.
 		* @exception ArgumentException if the parameters argument is inappropriate.
 		*/
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (parameters is ParametersWithSBox)
+			if (parameters is ParametersWithSBox param)
 			{
-				ParametersWithSBox   param = (ParametersWithSBox)parameters;
-
 				//
 				// Set the S-Box
 				//
@@ -172,14 +170,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 				//
 				if (param.Parameters != null)
 				{
-					workingKey = generateWorkingKey(forEncryption,
-							((KeyParameter)param.Parameters).GetKey());
+					workingKey = GenerateWorkingKey(forEncryption, ((KeyParameter)param.Parameters).GetKey());
 				}
 			}
-			else if (parameters is KeyParameter)
+			else if (parameters is KeyParameter keyParameter)
 			{
-				workingKey = generateWorkingKey(forEncryption,
-									((KeyParameter)parameters).GetKey());
+				workingKey = GenerateWorkingKey(forEncryption, keyParameter.GetKey());
 			}
 			else if (parameters != null)
 			{
@@ -193,21 +189,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Gost28147"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return BlockSize;
 		}
 
-        public virtual int ProcessBlock(
-			byte[]	input,
-			int		inOff,
-			byte[]	output,
-			int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
 		{
 			if (workingKey == null)
 				throw new InvalidOperationException("Gost28147 engine not initialised");
@@ -215,30 +202,41 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BlockSize, "input buffer too short");
             Check.OutputLength(output, outOff, BlockSize, "output buffer too short");
 
-            Gost28147Func(workingKey, input, inOff, output, outOff);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			Gost28147Func(workingKey, input.AsSpan(inOff), output.AsSpan(outOff));
+#else
+			Gost28147Func(workingKey, input, inOff, output, outOff);
+#endif
 
 			return BlockSize;
 		}
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
 		{
-		}
+			if (workingKey == null)
+				throw new InvalidOperationException("Gost28147 engine not initialised");
 
-		private int[] generateWorkingKey(
-			bool forEncryption,
-			byte[]  userKey)
+			Check.DataLength(input, BlockSize, "input buffer too short");
+			Check.OutputLength(output, BlockSize, "output buffer too short");
+
+			Gost28147Func(workingKey, input, output);
+
+			return BlockSize;
+		}
+#endif
+
+		private int[] GenerateWorkingKey(bool forEncryption, byte[] userKey)
 		{
 			this.forEncryption = forEncryption;
 
 			if (userKey.Length != 32)
-			{
 				throw new ArgumentException("Key length invalid. Key needs to be 32 byte - 256 bit!!!");
-			}
 
 			int[] key = new int[8];
-			for(int i=0; i!=8; i++)
+			for(int i=0; i != 8; i++)
 			{
-				key[i] = bytesToint(userKey,i*4);
+				key[i] = (int)Pack.LE_To_UInt32(userKey, i * 4);
 			}
 
 			return key;
@@ -266,16 +264,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return omLeft | omRight;
 		}
 
-		private void Gost28147Func(
-			int[]   workingKey,
-			byte[]  inBytes,
-			int     inOff,
-			byte[]  outBytes,
-			int     outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		private void Gost28147Func(int[] workingKey, ReadOnlySpan<byte> input, Span<byte> output)
 		{
-			int N1, N2, tmp;  //tmp -> for saving N1
-			N1 = bytesToint(inBytes, inOff);
-			N2 = bytesToint(inBytes, inOff + 4);
+			int N1 = (int)Pack.LE_To_UInt32(input);
+			int N2 = (int)Pack.LE_To_UInt32(input[4..]);
+			int tmp;  //tmp -> for saving N1
 
 			if (this.forEncryption)
 			{
@@ -321,42 +315,73 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			N2 = N2 ^ Gost28147_mainStep(N1, workingKey[0]);  // 32 step (N1=N1)
 
-			intTobytes(N1, outBytes, outOff);
-			intTobytes(N2, outBytes, outOff + 4);
+			Pack.UInt32_To_LE((uint)N1, output);
+			Pack.UInt32_To_LE((uint)N2, output[4..]);
 		}
-
-		//array of bytes to type int
-		private static int bytesToint(
-			byte[]  inBytes,
-			int     inOff)
+#else
+		private void Gost28147Func(int[] workingKey, byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
-			return  (int)((inBytes[inOff + 3] << 24) & 0xff000000) + ((inBytes[inOff + 2] << 16) & 0xff0000) +
-					((inBytes[inOff + 1] << 8) & 0xff00) + (inBytes[inOff] & 0xff);
-		}
+			int N1 = (int)Pack.LE_To_UInt32(inBytes, inOff);
+			int N2 = (int)Pack.LE_To_UInt32(inBytes, inOff + 4);
+			int tmp;  //tmp -> for saving N1
 
-		//int to array of bytes
-		private static void intTobytes(
-				int     num,
-				byte[]  outBytes,
-				int     outOff)
-		{
-				outBytes[outOff + 3] = (byte)(num >> 24);
-				outBytes[outOff + 2] = (byte)(num >> 16);
-				outBytes[outOff + 1] = (byte)(num >> 8);
-				outBytes[outOff] =     (byte)num;
+			if (this.forEncryption)
+			{
+			for(int k = 0; k < 3; k++)  // 1-24 steps
+			{
+				for(int j = 0; j < 8; j++)
+				{
+					tmp = N1;
+					int step = Gost28147_mainStep(N1, workingKey[j]);
+					N1 = N2 ^ step; // CM2
+					N2 = tmp;
+				}
+			}
+			for(int j = 7; j > 0; j--)  // 25-31 steps
+			{
+				tmp = N1;
+				N1 = N2 ^ Gost28147_mainStep(N1, workingKey[j]); // CM2
+				N2 = tmp;
+			}
+			}
+			else //decrypt
+			{
+			for(int j = 0; j < 8; j++)  // 1-8 steps
+			{
+				tmp = N1;
+				N1 = N2 ^ Gost28147_mainStep(N1, workingKey[j]); // CM2
+				N2 = tmp;
+			}
+			for(int k = 0; k < 3; k++)  //9-31 steps
+			{
+				for(int j = 7; j >= 0; j--)
+				{
+					if ((k == 2) && (j==0))
+					{
+						break; // break 32 step
+					}
+					tmp = N1;
+					N1 = N2 ^ Gost28147_mainStep(N1, workingKey[j]); // CM2
+					N2 = tmp;
+				}
+			}
+			}
+
+			N2 = N2 ^ Gost28147_mainStep(N1, workingKey[0]);  // 32 step (N1=N1)
+
+			Pack.UInt32_To_LE((uint)N1, outBytes, outOff);
+			Pack.UInt32_To_LE((uint)N2, outBytes, outOff + 4);
 		}
+#endif
 
 		/**
 		* Return the S-Box associated with SBoxName
 		* @param sBoxName name of the S-Box
 		* @return byte array representing the S-Box
 		*/
-		public static byte[] GetSBox(
-			string sBoxName)
+		public static byte[] GetSBox(string sBoxName)
 		{
-			byte[] sBox = (byte[])sBoxes[Platform.ToUpperInvariant(sBoxName)];
-
-            if (sBox == null)
+			if (!m_sBoxes.TryGetValue(sBoxName, out var sBox))
 			{
 				throw new ArgumentException("Unknown S-Box - possible types: "
 					+ "\"Default\", \"E-Test\", \"E-A\", \"E-B\", \"E-C\", \"E-D\", \"D-Test\", \"D-A\".");
@@ -367,13 +392,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public static string GetSBoxName(byte[] sBox)
         {
-            foreach (string name in sBoxes.Keys)
+			foreach (var entry in m_sBoxes)
             {
-                byte[] sb = (byte[])sBoxes[name];
-                if (Arrays.AreEqual(sb, sBox))
-                {
-                    return name;
-                }
+                if (Arrays.AreEqual(entry.Value, sBox))
+                    return entry.Key;
             }
 
             throw new ArgumentException("SBOX provided did not map to a known one");

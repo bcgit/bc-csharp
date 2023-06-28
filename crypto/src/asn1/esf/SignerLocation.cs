@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X500;
 
@@ -20,31 +19,30 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class SignerLocation
 		: Asn1Encodable
 	{
-        private DirectoryString countryName;
-        private DirectoryString localityName;
-        private Asn1Sequence postalAddress;
+        private readonly DirectoryString countryName;
+        private readonly DirectoryString localityName;
+        private readonly Asn1Sequence postalAddress;
 
-		public SignerLocation(
-			Asn1Sequence seq)
+		public SignerLocation(Asn1Sequence seq)
 		{
 			foreach (Asn1TaggedObject obj in seq)
 			{
 				switch (obj.TagNo)
 				{
-					case 0:
-						this.countryName = DirectoryString.GetInstance(obj, true);
-						break;
-					case 1:
-                        this.localityName = DirectoryString.GetInstance(obj, true);
-						break;
-					case 2:
-						bool isExplicit = obj.IsExplicit();	// handle erroneous implicitly tagged sequences
-						this.postalAddress = Asn1Sequence.GetInstance(obj, isExplicit);
-						if (postalAddress != null && postalAddress.Count > 6)
-							throw new ArgumentException("postal address must contain less than 6 strings");
-						break;
-					default:
-						throw new ArgumentException("illegal tag");
+				case 0:
+					this.countryName = DirectoryString.GetInstance(obj, true);
+					break;
+				case 1:
+                    this.localityName = DirectoryString.GetInstance(obj, true);
+					break;
+				case 2:
+					bool isExplicit = obj.IsExplicit();	// handle erroneous implicitly tagged sequences
+					this.postalAddress = Asn1Sequence.GetInstance(obj, isExplicit);
+					if (postalAddress != null && postalAddress.Count > 6)
+						throw new ArgumentException("postal address must contain less than 6 strings");
+					break;
+				default:
+					throw new ArgumentException("illegal tag");
 				}
 			}
 		}
@@ -78,13 +76,10 @@ namespace Org.BouncyCastle.Asn1.Esf
         {
         }
 
-        public static SignerLocation GetInstance(
-			object obj)
+        public static SignerLocation GetInstance(object obj)
 		{
 			if (obj == null || obj is SignerLocation)
-			{
 				return (SignerLocation) obj;
-			}
 
 			return new SignerLocation(Asn1Sequence.GetInstance(obj));
 		}
@@ -104,25 +99,7 @@ namespace Org.BouncyCastle.Asn1.Esf
             if (postalAddress == null)
                 return null;
 
-            DirectoryString[] dirStrings = new DirectoryString[postalAddress.Count];
-            for (int i = 0; i != dirStrings.Length; i++)
-            {
-                dirStrings[i] = DirectoryString.GetInstance(postalAddress[i]);
-            }
-
-            return dirStrings;
-        }
-
-        [Obsolete("Use 'Country' property instead")]
-		public DerUtf8String CountryName
-		{
-            get { return countryName == null ? null : new DerUtf8String(countryName.GetString()); }
-		}
-
-        [Obsolete("Use 'Locality' property instead")]
-        public DerUtf8String LocalityName
-        {
-            get { return localityName == null ? null : new DerUtf8String(localityName.GetString()); }
+			return postalAddress.MapElements(element => DirectoryString.GetInstance(element.ToAsn1Object()));
         }
 
 		public Asn1Sequence PostalAddress
@@ -149,7 +126,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.AddOptionalTagged(true, 0, countryName);
             v.AddOptionalTagged(true, 1, localityName);
             v.AddOptionalTagged(true, 2, postalAddress);

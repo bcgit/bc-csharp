@@ -1,56 +1,48 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tls
 {
     internal class DtlsReliableHandshake
     {
-        private const int MAX_RECEIVE_AHEAD = 16;
-        private const int MESSAGE_HEADER_LENGTH = 12;
+        internal const int MessageHeaderLength = 12;
 
-        internal const int INITIAL_RESEND_MILLIS = 1000;
+        private const int MAX_RECEIVE_AHEAD = 16;
         private const int MAX_RESEND_MILLIS = 60000;
 
         /// <exception cref="IOException"/>
-        internal static DtlsRequest ReadClientRequest(byte[] data, int dataOff, int dataLen, Stream dtlsOutput)
+        internal static MemoryStream ReceiveClientHelloMessage(byte[] msg, int msgOff, int msgLen)
         {
             // TODO Support the possibility of a fragmented ClientHello datagram
 
-            byte[] message = DtlsRecordLayer.ReceiveClientHelloRecord(data, dataOff, dataLen);
-            if (null == message || message.Length < MESSAGE_HEADER_LENGTH)
+            if (msgLen < MessageHeaderLength)
                 return null;
 
-            long recordSeq = TlsUtilities.ReadUint48(data, dataOff + 5);
-
-            short msgType = TlsUtilities.ReadUint8(message, 0);
+            short msgType = TlsUtilities.ReadUint8(msg, msgOff);
             if (HandshakeType.client_hello != msgType)
                 return null;
 
-            int length = TlsUtilities.ReadUint24(message, 1);
-            if (message.Length != MESSAGE_HEADER_LENGTH + length)
+            int length = TlsUtilities.ReadUint24(msg, msgOff + 1);
+            if (msgLen != MessageHeaderLength + length)
                 return null;
 
             // TODO Consider stricter HelloVerifyRequest-related checks
-            //int messageSeq = TlsUtilities.ReadUint16(message, 4);
+            //int messageSeq = TlsUtilities.ReadUint16(msg, msgOff + 4);
             //if (messageSeq > 1)
             //    return null;
 
-            int fragmentOffset = TlsUtilities.ReadUint24(message, 6);
+            int fragmentOffset = TlsUtilities.ReadUint24(msg, msgOff + 6);
             if (0 != fragmentOffset)
                 return null;
 
-            int fragmentLength = TlsUtilities.ReadUint24(message, 9);
+            int fragmentLength = TlsUtilities.ReadUint24(msg, msgOff + 9);
             if (length != fragmentLength)
                 return null;
 
-            ClientHello clientHello = ClientHello.Parse(
-                new MemoryStream(message, MESSAGE_HEADER_LENGTH, length, false), dtlsOutput);
-
-            return new DtlsRequest(recordSeq, message, clientHello);
+            return new MemoryStream(msg, msgOff + MessageHeaderLength, length, false);
         }
 
         /// <exception cref="IOException"/>
@@ -60,7 +52,7 @@ namespace Org.BouncyCastle.Tls
 
             int length = 3 + cookie.Length;
 
-            byte[] message = new byte[MESSAGE_HEADER_LENGTH + length];
+            byte[] message = new byte[MessageHeaderLength + length];
             TlsUtilities.WriteUint8(HandshakeType.hello_verify_request, message, 0);
             TlsUtilities.WriteUint24(length, message, 1);
             //TlsUtilities.WriteUint16(0, message, 4);
@@ -68,8 +60,8 @@ namespace Org.BouncyCastle.Tls
             TlsUtilities.WriteUint24(length, message, 9);
 
             // HelloVerifyRequest fields
-            TlsUtilities.WriteVersion(ProtocolVersion.DTLSv10, message, MESSAGE_HEADER_LENGTH + 0);
-            TlsUtilities.WriteOpaque8(cookie, message, MESSAGE_HEADER_LENGTH + 2);
+            TlsUtilities.WriteVersion(ProtocolVersion.DTLSv10, message, MessageHeaderLength + 0);
+            TlsUtilities.WriteOpaque8(cookie, message, MessageHeaderLength + 2);
 
             DtlsRecordLayer.SendHelloVerifyRequestRecord(sender, recordSeq, message);
         }
@@ -82,25 +74,27 @@ namespace Org.BouncyCastle.Tls
 
         private TlsHandshakeHash m_handshakeHash;
 
-        private IDictionary m_currentInboundFlight = Platform.CreateHashtable();
-        private IDictionary m_previousInboundFlight = null;
-        private IList m_outboundFlight = Platform.CreateArrayList();
+        private IDictionary<int, DtlsReassembler> m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
+        private IDictionary<int, DtlsReassembler> m_previousInboundFlight = null;
+        private IList<Message> m_outboundFlight = new List<Message>();
 
+        private readonly int m_initialResendMillis;
         private int m_resendMillis = -1;
         private Timeout m_resendTimeout = null;
 
         private int m_next_send_seq = 0, m_next_receive_seq = 0;
 
         internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis,
-            DtlsRequest request)
+            int initialResendMillis, DtlsRequest request)
         {
             this.m_recordLayer = transport;
             this.m_handshakeHash = new DeferredHash(context);
             this.m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis);
+            m_initialResendMillis = initialResendMillis;
 
             if (null != request)
             {
-                this.m_resendMillis = INITIAL_RESEND_MILLIS;
+                this.m_resendMillis = m_initialResendMillis;
                 this.m_resendTimeout = new Timeout(m_resendMillis);
 
                 long recordSeq = request.RecordSeq;
@@ -111,7 +105,7 @@ namespace Org.BouncyCastle.Tls
 
                 // Simulate a previous flight consisting of the request ClientHello
                 DtlsReassembler reassembler = new DtlsReassembler(HandshakeType.client_hello,
-                    message.Length - MESSAGE_HEADER_LENGTH);
+                    message.Length - MessageHeaderLength);
                 m_currentInboundFlight[messageSeq] = reassembler;
 
                 // We sent HelloVerifyRequest with (message) sequence number 0
@@ -124,9 +118,9 @@ namespace Org.BouncyCastle.Tls
 
         internal void ResetAfterHelloVerifyRequestClient()
         {
-            this.m_currentInboundFlight = Platform.CreateHashtable();
+            this.m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
             this.m_previousInboundFlight = null;
-            this.m_outboundFlight = Platform.CreateArrayList();
+            this.m_outboundFlight = new List<Message>();
 
             this.m_resendMillis = -1;
             this.m_resendTimeout = null;
@@ -215,7 +209,7 @@ namespace Org.BouncyCastle.Tls
             default:
             {
                 byte[] body = message.Body;
-                byte[] buf = new byte[MESSAGE_HEADER_LENGTH];
+                byte[] buf = new byte[MessageHeaderLength];
                 TlsUtilities.WriteUint8(msg_type, buf, 0);
                 TlsUtilities.WriteUint24(body.Length, buf, 1);
                 TlsUtilities.WriteUint16(message.Seq, buf, 4);
@@ -280,8 +274,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         private Message GetPendingMessage()
         {
-            DtlsReassembler next = (DtlsReassembler)m_currentInboundFlight[m_next_receive_seq];
-            if (next != null)
+            if (m_currentInboundFlight.TryGetValue(m_next_receive_seq, out var next))
             {
                 byte[] body = next.GetBodyIfComplete();
                 if (body != null)
@@ -300,10 +293,10 @@ namespace Org.BouncyCastle.Tls
 
             if (null == m_resendTimeout)
             {
-                m_resendMillis = INITIAL_RESEND_MILLIS;
+                m_resendMillis = m_initialResendMillis;
                 m_resendTimeout = new Timeout(m_resendMillis, currentTimeMillis);
 
-                PrepareInboundFlight(Platform.CreateHashtable());
+                PrepareInboundFlight(new Dictionary<int, DtlsReassembler>());
             }
 
             byte[] buf = null;
@@ -349,7 +342,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        private void PrepareInboundFlight(IDictionary nextFlight)
+        private void PrepareInboundFlight(IDictionary<int, DtlsReassembler> nextFlight)
         {
             ResetAll(m_currentInboundFlight);
             m_previousInboundFlight = m_currentInboundFlight;
@@ -361,10 +354,10 @@ namespace Org.BouncyCastle.Tls
         {
             bool checkPreviousFlight = false;
 
-            while (len >= MESSAGE_HEADER_LENGTH)
+            while (len >= MessageHeaderLength)
             {
                 int fragment_length = TlsUtilities.ReadUint24(buf, off + 9);
-                int message_length = fragment_length + MESSAGE_HEADER_LENGTH;
+                int message_length = fragment_length + MessageHeaderLength;
                 if (len < message_length)
                 {
                     // NOTE: Truncated message - ignore it
@@ -395,14 +388,13 @@ namespace Org.BouncyCastle.Tls
                 }
                 else if (message_seq >= m_next_receive_seq)
                 {
-                    DtlsReassembler reassembler = (DtlsReassembler)m_currentInboundFlight[message_seq];
-                    if (reassembler == null)
+                    if (!m_currentInboundFlight.TryGetValue(message_seq, out var reassembler))
                     {
                         reassembler = new DtlsReassembler(msg_type, length);
                         m_currentInboundFlight[message_seq] = reassembler;
                     }
 
-                    reassembler.ContributeFragment(msg_type, length, buf, off + MESSAGE_HEADER_LENGTH, fragment_offset,
+                    reassembler.ContributeFragment(msg_type, length, buf, off + MessageHeaderLength, fragment_offset,
                         fragment_length);
                 }
                 else if (m_previousInboundFlight != null)
@@ -412,10 +404,9 @@ namespace Org.BouncyCastle.Tls
                      * retransmit our last flight
                      */
 
-                    DtlsReassembler reassembler = (DtlsReassembler)m_previousInboundFlight[message_seq];
-                    if (reassembler != null)
+                    if (m_previousInboundFlight.TryGetValue(message_seq, out var reassembler))
                     {
-                        reassembler.ContributeFragment(msg_type, length, buf, off + MESSAGE_HEADER_LENGTH,
+                        reassembler.ContributeFragment(msg_type, length, buf, off + MessageHeaderLength,
                             fragment_offset, fragment_length);
                         checkPreviousFlight = true;
                     }
@@ -449,7 +440,7 @@ namespace Org.BouncyCastle.Tls
         private void WriteMessage(Message message)
         {
             int sendLimit = m_recordLayer.GetSendLimit();
-            int fragmentLimit = sendLimit - MESSAGE_HEADER_LENGTH;
+            int fragmentLimit = sendLimit - MessageHeaderLength;
 
             // TODO Support a higher minimum fragment size?
             if (fragmentLimit < 1)
@@ -474,7 +465,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         private void WriteHandshakeFragment(Message message, int fragment_offset, int fragment_length)
         {
-            RecordLayerBuffer fragment = new RecordLayerBuffer(MESSAGE_HEADER_LENGTH + fragment_length);
+            RecordLayerBuffer fragment = new RecordLayerBuffer(MessageHeaderLength + fragment_length);
             TlsUtilities.WriteUint8(message.Type, fragment);
             TlsUtilities.WriteUint24(message.Body.Length, fragment);
             TlsUtilities.WriteUint16(message.Seq, fragment);
@@ -485,7 +476,7 @@ namespace Org.BouncyCastle.Tls
             fragment.SendToRecordLayer(m_recordLayer);
         }
 
-        private static bool CheckAll(IDictionary inboundFlight)
+        private static bool CheckAll(IDictionary<int, DtlsReassembler> inboundFlight)
         {
             foreach (DtlsReassembler r in inboundFlight.Values)
             {
@@ -495,7 +486,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
-        private static void ResetAll(IDictionary inboundFlight)
+        private static void ResetAll(IDictionary<int, DtlsReassembler> inboundFlight)
         {
             foreach (DtlsReassembler r in inboundFlight.Values)
             {
@@ -542,16 +533,11 @@ namespace Org.BouncyCastle.Tls
 
             internal void SendToRecordLayer(DtlsRecordLayer recordLayer)
             {
-#if PORTABLE
-                byte[] buf = ToArray();
-                int bufLen = buf.Length;
-#else
                 byte[] buf = GetBuffer();
-                int bufLen = (int)Length;
-#endif
+                int bufLen = Convert.ToInt32(Length);
 
                 recordLayer.Send(buf, 0, bufLen);
-                Platform.Dispose(this);
+                Dispose();
             }
         }
 

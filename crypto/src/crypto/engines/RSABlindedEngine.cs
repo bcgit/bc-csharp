@@ -39,16 +39,12 @@ namespace Org.BouncyCastle.Crypto.Engines
          * @param forEncryption true if we are encrypting, false otherwise.
          * @param param the necessary RSA key parameters.
          */
-        public virtual void Init(
-            bool forEncryption,
-            ICipherParameters param)
+        public virtual void Init(bool forEncryption, ICipherParameters param)
         {
             core.Init(forEncryption, param);
 
-            if (param is ParametersWithRandom)
+            if (param is ParametersWithRandom rParam)
             {
-                ParametersWithRandom rParam = (ParametersWithRandom)param;
-
                 this.key = (RsaKeyParameters)rParam.Parameters;
 
                 if (key is RsaPrivateCrtKeyParameters)
@@ -66,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 if (key is RsaPrivateCrtKeyParameters)
                 {
-                    this.random = new SecureRandom();
+                    this.random = CryptoServicesRegistrar.GetSecureRandom();
                 }
                 else
                 {
@@ -108,10 +104,7 @@ namespace Org.BouncyCastle.Crypto.Engines
          * @return the result of the RSA process.
          * @exception DataLengthException the input block is too large.
          */
-        public virtual byte[] ProcessBlock(
-            byte[] inBuf,
-            int inOff,
-            int inLen)
+        public virtual byte[] ProcessBlock(byte[] inBuf, int inOff, int inLen)
         {
             if (key == null)
                 throw new InvalidOperationException("RSA engine not initialised");
@@ -119,30 +112,22 @@ namespace Org.BouncyCastle.Crypto.Engines
             BigInteger input = core.ConvertInput(inBuf, inOff, inLen);
 
             BigInteger result;
-            if (key is RsaPrivateCrtKeyParameters)
+            if (key is RsaPrivateCrtKeyParameters crt)
             {
-                RsaPrivateCrtKeyParameters k = (RsaPrivateCrtKeyParameters)key;
-                BigInteger e = k.PublicExponent;
-                if (e != null)   // can't do blinding without a public exponent
-                {
-                    BigInteger m = k.Modulus;
-                    BigInteger r = BigIntegers.CreateRandomInRange(
-                        BigInteger.One, m.Subtract(BigInteger.One), random);
+                BigInteger e = crt.PublicExponent;
+                BigInteger m = crt.Modulus;
+                BigInteger r = BigIntegers.CreateRandomInRange(
+                    BigInteger.One, m.Subtract(BigInteger.One), random);
 
-                    BigInteger blindedInput = r.ModPow(e, m).Multiply(input).Mod(m);
-                    BigInteger blindedResult = core.ProcessBlock(blindedInput);
+                BigInteger blindedInput = r.ModPow(e, m).Multiply(input).Mod(m);
+                BigInteger blindedResult = core.ProcessBlock(blindedInput);
 
-                    BigInteger rInv = BigIntegers.ModOddInverse(m, r);
-                    result = blindedResult.Multiply(rInv).Mod(m);
+                BigInteger rInv = BigIntegers.ModOddInverse(m, r);
+                result = blindedResult.Multiply(rInv).Mod(m);
 
-                    // defence against Arjen Lenstra’s CRT attack
-                    if (!input.Equals(result.ModPow(e, m)))
-                        throw new InvalidOperationException("RSA engine faulty decryption/signing detected");
-                }
-                else
-                {
-                    result = core.ProcessBlock(input);
-                }
+                // defence against Arjen Lenstra’s CRT attack
+                if (!input.Equals(result.ModPow(e, m)))
+                    throw new InvalidOperationException("RSA engine faulty decryption/signing detected");
             }
             else
             {

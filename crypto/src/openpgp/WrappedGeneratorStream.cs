@@ -1,37 +1,31 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	public class WrappedGeneratorStream
+	internal sealed class WrappedGeneratorStream
 		: FilterStream
 	{
-		private readonly IStreamGenerator gen;
+		private readonly IStreamGenerator m_generator;
 
-		public WrappedGeneratorStream(
-			IStreamGenerator	gen,
-			Stream				str)
-			: base(str)
+		internal WrappedGeneratorStream(IStreamGenerator generator, Stream s)
+			: base(s)
 		{
-			this.gen = gen;
+			m_generator = generator ?? throw new ArgumentNullException(nameof(generator));
 		}
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                gen.Close();
-                return;
-            }
-            base.Dispose(disposing);
-        }
-#else
-		public override void Close()
-		{
-			gen.Close();
+			if (disposing)
+			{
+#pragma warning disable CS0618 // Type or member is obsolete
+				m_generator.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
+			}
+
+			Detach(disposing);
 		}
-#endif
 	}
 }

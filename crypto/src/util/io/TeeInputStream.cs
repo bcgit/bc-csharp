@@ -18,38 +18,43 @@ namespace Org.BouncyCastle.Utilities.IO
 			this.tee = tee;
 		}
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                Platform.Dispose(input);
-                Platform.Dispose(tee);
+                input.Dispose();
+                tee.Dispose();
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-		{
-            Platform.Dispose(input);
-            Platform.Dispose(tee);
-            base.Close();
-		}
-#endif
 
-        public override int Read(byte[] buf, int off, int len)
+        public override int Read(byte[] buffer, int offset, int count)
 		{
-			int i = input.Read(buf, off, len);
+			int i = input.Read(buffer, offset, count);
 
 			if (i > 0)
 			{
-				tee.Write(buf, off, i);
+				tee.Write(buffer, offset, i);
 			}
 
 			return i;
 		}
 
-		public override int ReadByte()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int i = input.Read(buffer);
+
+            if (i > 0)
+            {
+				tee.Write(buffer[..i]);
+            }
+
+            return i;
+        }
+#endif
+
+        public override int ReadByte()
 		{
 			int i = input.ReadByte();
 

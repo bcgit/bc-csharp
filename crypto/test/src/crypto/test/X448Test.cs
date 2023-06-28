@@ -21,11 +21,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "X448"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new X448Test());
-        }
-
         [Test]
         public void TestFunction()
         {

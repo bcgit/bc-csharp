@@ -1,0 +1,118 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;netstandard2.0;net461</TargetFrameworks>
+    <RootNamespace>Org.BouncyCastle</RootNamespace>
+    <AssemblyOriginatorKeyFile>..\..\BouncyCastle.NET.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+	<NoWarn>1591</NoWarn>
+
+    <AssemblyName>BouncyCastle.Cryptography</AssemblyName>
+    <AssemblyTitle>BouncyCastle.NET Cryptography ($(TargetFramework))</AssemblyTitle>
+    <Authors>Legion of the Bouncy Castle Inc.</Authors>
+    <Company>Legion of the Bouncy Castle Inc.</Company>
+    <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2023</Copyright>
+    <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
+    <PackageIcon>packageIcon.png</PackageIcon>
+    <PackageIconUrl>https://www.bouncycastle.org/images/nuget_packageIcon.png</PackageIconUrl>
+    <PackageId>BouncyCastle.Cryptography</PackageId>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
+    <PackageTags>bouncycastle cryptography dtls encryption open-source openpgp post-quantum security tls</PackageTags>
+	<Product>BouncyCastle.NET</Product>
+	<PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Title>BouncyCastle.NET Cryptography</Title>
+    <Configurations>Debug;Release;Publish</Configurations>
+  </PropertyGroup>
+
+  <!-- CI systems other than GitLab might need different conditions -->
+  <PropertyGroup Condition="'$(CI)' != ''">
+    <!-- Deterministic build. -->
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!--Source-Level Debugging-->
+  <PropertyGroup>
+	<!-- Any custom target adding things to the Compile item group needs BeforeTargets="BeforeCompile".	-->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- Tell SourceLink to use this remote to derive the published git repository URL and source links. -->
+    <GitRepositoryRemoteName>public</GitRepositoryRemoteName>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!--Package Validation-->
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>
+
+	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
+    <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
+
+	<!--
+	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
+	  affected interfaces (or abstract classes) will not be backward compatible. There are also several
+	  methods in DotNetUtilities dealing with ECDsa which is only available from net47.
+
+	  TODO: Use suppressions for each individual case of version-dependent methods.
+    -->
+    <NoWarn>$(NoWarn);CP0002;CP0005;CP0006</NoWarn>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DefineConstants />
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Publish'">
+    <DefineConstants />
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Deterministic build. -->
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="**\*.properties" />
+    <None Remove="pqc\crypto\**\*.bz2" />
+    <EmbeddedResource Include="**\*.properties" />
+    <EmbeddedResource Include="pqc\crypto\**\*.bz2" />
+    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\packageIcon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.132">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="FixAssemblyAttributes" AfterTargets="GetBuildVersion">
+    <PropertyGroup>
+		<!-- Here we can override/use any MSBuild properties set by Nerdbank.GitVersioning -->
+    </PropertyGroup>
+  </Target>
+  <Target Name="SignAssemblies" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Publish'">
+    <Exec Command="call &quot;$(ProjectDir)..\..\signfile.bat&quot; &quot;$(TargetPath)&quot;" />
+  </Target>
+</Project>

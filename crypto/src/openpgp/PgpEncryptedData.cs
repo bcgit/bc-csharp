@@ -50,41 +50,72 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				return bufEnd;
 			}
 
-			public override int ReadByte()
-			{
-				if (bufStart < bufEnd)
-					return lookAhead[bufStart++];
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+				Streams.ValidateBufferArguments(buffer, offset, count);
 
-				if (FillBuffer() < 1)
-					return -1;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                return Read(buffer.AsSpan(offset, count));
+#else
+                int avail = bufEnd - bufStart;
 
-				return lookAhead[bufStart++];
-			}
+                int pos = offset;
+                while (count > avail)
+                {
+                    Array.Copy(lookAhead, bufStart, buffer, pos, avail);
 
-			public override int Read(byte[] buf, int off, int len)
-			{
-				int avail = bufEnd - bufStart;
+                    bufStart += avail;
+                    pos += avail;
+                    count -= avail;
 
-				int pos = off;
-				while (len > avail)
-				{
-					Array.Copy(lookAhead, bufStart, buf, pos, avail);
+                    if ((avail = FillBuffer()) < 1)
+                        return pos - offset;
+                }
 
-					bufStart += avail;
-					pos += avail;
-					len -= avail;
+                Array.Copy(lookAhead, bufStart, buffer, pos, count);
+                bufStart += count;
 
-					if ((avail = FillBuffer()) < 1)
-						return pos - off;
-				}
+                return pos + count - offset;
+#endif
+            }
 
-				Array.Copy(lookAhead, bufStart, buf, pos, len);
-				bufStart += len;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override int Read(Span<byte> buffer)
+            {
+                int avail = bufEnd - bufStart;
 
-				return pos + len - off;
-			}
+                int pos = 0, count = buffer.Length;
+                while (count > avail)
+                {
+                    lookAhead.AsSpan(bufStart, avail).CopyTo(buffer[pos..]);
 
-			internal byte[] GetLookAhead()
+                    bufStart += avail;
+                    pos += avail;
+                    count -= avail;
+
+                    if ((avail = FillBuffer()) < 1)
+                        return pos;
+                }
+
+                lookAhead.AsSpan(bufStart, count).CopyTo(buffer[pos..]);
+                bufStart += count;
+
+                return pos + count;
+            }
+#endif
+
+            public override int ReadByte()
+            {
+                if (bufStart < bufEnd)
+                    return lookAhead[bufStart++];
+
+                if (FillBuffer() < 1)
+                    return -1;
+
+                return lookAhead[bufStart++];
+            }
+
+            internal byte[] GetLookAhead()
 			{
 				byte[] temp = new byte[LookAheadSize];
 				Array.Copy(lookAhead, bufStart, temp, 0, LookAheadSize);
@@ -138,14 +169,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
 			byte[] lookAhead = truncStream.GetLookAhead();
 
-			IDigest hash = dIn.ReadDigest();
+			IDigest hash = dIn.ReadDigest;
 			hash.BlockUpdate(lookAhead, 0, 2);
 			byte[] digest = DigestUtilities.DoFinal(hash);
 
 			byte[] streamDigest = new byte[digest.Length];
 			Array.Copy(lookAhead, 2, streamDigest, 0, streamDigest.Length);
 
-			return Arrays.ConstantTimeAreEqual(digest, streamDigest);
+			return Arrays.FixedTimeEquals(digest, streamDigest);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Org.BouncyCastle.Utilities.Encoders
@@ -6,6 +7,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
     /// <summary>
     /// Class to decode and encode Hex.
     /// </summary>
+    // TODO[api] Make static
     public sealed class Hex
     {
         private static readonly HexEncoder encoder = new HexEncoder();
@@ -14,20 +16,62 @@ namespace Org.BouncyCastle.Utilities.Encoders
         {
         }
 
-        public static string ToHexString(
-            byte[] data)
+        public static string ToHexString(byte[] data)
         {
-            return ToHexString(data, 0, data.Length);
+            return ToHexString(data, false);
         }
 
-        public static string ToHexString(
-            byte[]	data,
-            int		off,
-            int		length)
+        public static string ToHexString(byte[] data, bool upperCase)
         {
-            byte[] hex = Encode(data, off, length);
-            return Strings.FromAsciiByteArray(hex);
+            return ToHexString(data, 0, data.Length, upperCase);
         }
+
+        public static string ToHexString(byte[]	data, int off, int length)
+        {
+            return ToHexString(data, off, length, false);
+        }
+
+        public static string ToHexString(byte[] data, int off, int length, bool upperCase)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ToHexString(data.AsMemory(off, length), upperCase);
+#else
+            byte[] hex = Encode(data, off, length);
+            var result = Strings.FromAsciiByteArray(hex);
+            if (upperCase)
+            {
+                result = result.ToUpperInvariant();
+            }
+            return result;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static string ToHexString(ReadOnlyMemory<byte> data, bool upperCase = false)
+        {
+            if (data.Length == 0)
+                return string.Empty;
+            if (data.Length > int.MaxValue / 2)
+                throw new ArgumentOutOfRangeException(nameof(data));
+
+            if (upperCase)
+            {
+                return string.Create(data.Length * 2, data, (chars, data) =>
+                {
+                    int length = HexEncoder.EncodeUpper(data.Span, chars);
+                    Debug.Assert(chars.Length == length);
+                });
+            }
+            else
+            {
+                return string.Create(data.Length * 2, data, (chars, data) =>
+                {
+                    int length = HexEncoder.EncodeLower(data.Span, chars);
+                    Debug.Assert(chars.Length == length);
+                });
+            }
+        }
+#endif
 
         /**
          * encode the input data producing a Hex encoded byte array.

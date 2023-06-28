@@ -99,43 +99,11 @@ namespace Org.BouncyCastle.Tests
 			{
 				Fail("encoding check");
 			}
-
-			pair4 = new X509CertificatePair(rootCert, TestUtilities.CreateExceptionCertificate(false));
-
-			try
-			{
-				pair4.GetEncoded();
-
-				Fail("no exception on bad GetEncoded()");
-			}
-			catch (CertificateEncodingException)
-			{
-				// expected
-			}
-
-			pair4 = new X509CertificatePair(rootCert, TestUtilities.CreateExceptionCertificate(true));
-
-			try
-			{
-				pair4.GetEncoded();
-
-				Fail("no exception on exception GetEncoded()");
-			}
-			catch (CertificateEncodingException)
-			{
-				// expected
-			}
 		}
 
 		public override string Name
 		{
 			get { return "X509CertificatePair"; }
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new X509CertificatePairTest());
 		}
 
 		[Test]

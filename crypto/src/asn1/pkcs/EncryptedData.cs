@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 			{
 				if (data.Count == 3)
 				{
-					DerTaggedObject o = (DerTaggedObject) data[2];
+                    Asn1TaggedObject o = (Asn1TaggedObject)data[2];
 
 					return Asn1OctetString.GetInstance(o, false);
 				}

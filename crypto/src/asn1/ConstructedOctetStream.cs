@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -18,9 +19,14 @@ namespace Org.BouncyCastle.Asn1
 			m_parser = parser;
 		}
 
-		public override int Read(byte[] buf, int off, int len)
+		public override int Read(byte[] buffer, int offset, int count)
 		{
-            if (len < 1)
+			Streams.ValidateBufferArguments(buffer, offset, count);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return Read(buffer.AsSpan(offset, count));
+#else
+			if (count < 1)
                 return 0;
 
 			if (m_currentStream == null)
@@ -40,13 +46,60 @@ namespace Org.BouncyCastle.Asn1
 
 			for (;;)
 			{
-				int numRead = m_currentStream.Read(buf, off + totalRead, len - totalRead);
+				int numRead = m_currentStream.Read(buffer, offset + totalRead, count - totalRead);
 
 				if (numRead > 0)
 				{
 					totalRead += numRead;
 
-					if (totalRead == len)
+					if (totalRead == count)
+						return totalRead;
+				}
+				else
+				{
+                    Asn1OctetStringParser next = GetNextParser();
+                    if (next == null)
+					{
+						m_currentStream = null;
+						return totalRead;
+					}
+
+					m_currentStream = next.GetOctetStream();
+				}
+			}
+#endif
+		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public override int Read(Span<byte> buffer)
+		{
+			if (buffer.IsEmpty)
+                return 0;
+
+			if (m_currentStream == null)
+			{
+				if (!m_first)
+					return 0;
+
+                Asn1OctetStringParser next = GetNextParser();
+                if (next == null)
+                    return 0;
+
+				m_first = false;
+				m_currentStream = next.GetOctetStream();
+			}
+
+			int totalRead = 0;
+
+			for (;;)
+			{
+				int numRead = m_currentStream.Read(buffer[totalRead..]);
+
+				if (numRead > 0)
+				{
+					totalRead += numRead;
+
+					if (totalRead == buffer.Length)
 						return totalRead;
 				}
 				else
@@ -62,6 +115,7 @@ namespace Org.BouncyCastle.Asn1
 				}
 			}
 		}
+#endif
 
 		public override int ReadByte()
 		{

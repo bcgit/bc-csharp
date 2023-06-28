@@ -1,12 +1,10 @@
 using System;
-using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -16,9 +14,7 @@ using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.Utilities.Test;
-using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Tests
@@ -84,14 +80,14 @@ namespace Org.BouncyCastle.Tests
 
             AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
             attrs.Add(X509Name.L, "Melbourne");
             attrs.Add(X509Name.ST, "Victoria");
             attrs.Add(X509Name.EmailAddress, "feedback-crypto@bouncycastle.org");
 
-            IList order = new ArrayList();
+            var order = new List<DerObjectIdentifier>();
             order.Add(X509Name.C);
             order.Add(X509Name.O);
             order.Add(X509Name.L);
@@ -335,8 +331,8 @@ namespace Org.BouncyCastle.Tests
 
             AsymmetricCipherKeyPair pair = keyGen.GenerateKeyPair();
 
-            IList oids = new ArrayList();
-            IList values = new ArrayList();
+            var oids = new List<DerObjectIdentifier>();
+            var values = new List<X509Extension>();
             oids.Add(X509Extensions.BasicConstraints);
             values.Add(new X509Extension(true, new DerOctetString(new BasicConstraints(true))));
             oids.Add(X509Extensions.KeyUsage);
@@ -443,16 +439,6 @@ namespace Org.BouncyCastle.Tests
             //			createPssTest("SHA384withRSAandMGF1");
 
             nullPointerTest();
-        }
-
-
-
-     
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new Pkcs10CertRequestTest());
         }
 
         [Test]

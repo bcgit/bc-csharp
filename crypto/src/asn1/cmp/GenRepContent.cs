@@ -1,43 +1,42 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class GenRepContent
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence content;
+        public static GenRepContent GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is GenRepContent genRepContent)
+                return genRepContent;
+            return new GenRepContent(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static GenRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly Asn1Sequence m_content;
 
 		private GenRepContent(Asn1Sequence seq)
 		{
-			content = seq;
+			m_content = seq;
 		}
 
-		public static GenRepContent GetInstance(object obj)
+        public GenRepContent(InfoTypeAndValue itv)
+        {
+            m_content = new DerSequence(itv);
+        }
+
+        public GenRepContent(params InfoTypeAndValue[] itvs)
 		{
-			if (obj is GenRepContent)
-				return (GenRepContent)obj;
-
-			if (obj is Asn1Sequence)
-				return new GenRepContent((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public GenRepContent(params InfoTypeAndValue[] itv)
-		{
-			content = new DerSequence(itv);
+			m_content = new DerSequence(itvs);
 		}
 
 		public virtual InfoTypeAndValue[] ToInfoTypeAndValueArray()
 		{
-			InfoTypeAndValue[] result = new InfoTypeAndValue[content.Count];
-			for (int i = 0; i != result.Length; ++i)
-			{
-				result[i] = InfoTypeAndValue.GetInstance(content[i]);
-			}
-			return result;
+            return m_content.MapElements(InfoTypeAndValue.GetInstance);
 		}
 
 		/**
@@ -48,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return content;
+			return m_content;
 		}
 	}
 }

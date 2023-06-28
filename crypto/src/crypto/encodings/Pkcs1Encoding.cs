@@ -96,30 +96,22 @@ namespace Org.BouncyCastle.Crypto.Encodings
             this.pLen = fallback.Length;
         }
 
-        public IAsymmetricBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public string AlgorithmName => engine.AlgorithmName + "/PKCS1Padding";
 
-        public string AlgorithmName
-        {
-            get { return engine.AlgorithmName + "/PKCS1Padding"; }
-        }
+        public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             AsymmetricKeyParameter kParam;
-            if (parameters is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
-                this.random = rParam.Random;
-                kParam = (AsymmetricKeyParameter)rParam.Parameters;
+                kParam = (AsymmetricKeyParameter)withRandom.Parameters;
+                this.random = withRandom.Random;
             }
             else
             {
-                this.random = new SecureRandom();
                 kParam = (AsymmetricKeyParameter)parameters;
+                this.random = forEncryption && !kParam.IsPrivate ? CryptoServicesRegistrar.GetSecureRandom() : null;
             }
 
             engine.Init(forEncryption, parameters);
@@ -127,9 +119,6 @@ namespace Org.BouncyCastle.Crypto.Encodings
             this.forPrivateKey = kParam.IsPrivate;
             this.forEncryption = forEncryption;
             this.blockBuffer = new byte[engine.GetOutputBlockSize()];
-
-            if (pLen > 0 && fallback == null && random == null)
-                throw new ArgumentException("encoder requires random");
         }
 
         public int GetInputBlockSize()
@@ -267,15 +256,10 @@ namespace Org.BouncyCastle.Crypto.Encodings
                 throw new InvalidCipherTextException("sorry, this method is only for decryption, not for signing");
 
             byte[] block = engine.ProcessBlock(input, inOff, inLen);
-            byte[] random;
-            if (this.fallback == null)
+            byte[] fallbackResult = fallback;
+            if (fallbackResult == null)
             {
-                random = new byte[this.pLen];
-                this.random.NextBytes(random);
-            }
-            else
-            {
-                random = fallback;
+                fallbackResult = SecureRandom.GetNextBytes(SecureRandom.ArbitraryRandom, pLen);
             }
 
             byte[] data = (useStrictLength & (block.Length != engine.GetOutputBlockSize())) ? blockBuffer : block;
@@ -292,7 +276,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             byte[] result = new byte[this.pLen];
             for (int i = 0; i < this.pLen; i++)
             {
-                result[i] = (byte)((data[i + (data.Length - pLen)] & (~correct)) | (random[i] & correct));
+                result[i] = (byte)((data[i + (data.Length - pLen)] & (~correct)) | (fallbackResult[i] & correct));
             }
 
             Arrays.Fill(data, 0);

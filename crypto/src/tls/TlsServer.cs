@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -29,10 +29,10 @@ namespace Org.BouncyCastle.Tls
         /// Note that this will only be called when TLS 1.3 or higher is amongst the offered protocol versions, and one
         /// or more PSKs are actually offered.
         /// </remarks>
-        /// <param name="identities">an <see cref="IList"/> of <see cref="PskIdentity"/> instances.</param>
+        /// <param name="identities">an <see cref="IList{T}"/> of <see cref="PskIdentity"/> instances.</param>
         /// <returns>The <see cref="TlsPskExternal"/> corresponding to the selected identity, or null to not select
         /// any.</returns>
-        TlsPskExternal GetExternalPsk(IList identities);
+        TlsPskExternal GetExternalPsk(IList<PskIdentity> identities);
 
         void NotifySession(TlsSession session);
 
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <param name="clientExtensions">(Int32 -> byte[])</param>
         /// <exception cref="IOException"/>
-        void ProcessClientExtensions(IDictionary clientExtensions);
+        void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions);
 
         /// <exception cref="IOException"/>
         ProtocolVersion GetServerVersion();
@@ -60,15 +60,15 @@ namespace Org.BouncyCastle.Tls
 
         /// <returns>(Int32 -> byte[])</returns>
         /// <exception cref="IOException"/>
-        IDictionary GetServerExtensions();
+        IDictionary<int, byte[]> GetServerExtensions();
 
         /// <param name="serverExtensions">(Int32 -> byte[])</param>
         /// <exception cref="IOException"/>
-        void GetServerExtensionsForConnection(IDictionary serverExtensions);
+        void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions);
 
         /// <returns>(SupplementalDataEntry)</returns>
         /// <exception cref="IOException"/>
-        IList GetServerSupplementalData();
+        IList<SupplementalDataEntry> GetServerSupplementalData();
 
         /// <summary>Return server credentials to use.</summary>
         /// <remarks>
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <param name="clientSupplementalData">(SupplementalDataEntry)</param>
         /// <exception cref="IOException"/>
-        void ProcessClientSupplementalData(IList clientSupplementalData);
+        void ProcessClientSupplementalData(IList<SupplementalDataEntry> clientSupplementalData);
 
         /// <summary>Called by the protocol handler to report the client certificate, only if
         /// <see cref="GetCertificateRequest"/> returned non-null.</summary>

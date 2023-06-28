@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
@@ -17,8 +18,20 @@ namespace Org.BouncyCastle.Crypto
         /// Store the final result of the operation by copying it into the destination array.
         /// </summary>
         /// <returns>The number of bytes copied into destination.</returns>
-        /// <param name="destination">The byte array to copy the result into.</param>
-        /// <param name="offset">The offset into destination to start copying the result at.</param>
-        int Collect(byte[] destination, int offset);
+        /// <param name="buf">The byte array to copy the result into.</param>
+        /// <param name="off">The offset into destination to start copying the result at.</param>
+        int Collect(byte[] buf, int off);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Store the final result of the operation by copying it into the destination span.
+        /// </summary>
+        /// <returns>The number of bytes copied into destination.</returns>
+        /// <param name="output">The span to copy the result into.</param>
+        int Collect(Span<byte> output);
+#endif
+
+        /// <summary>Return an upper limit for the size of the result.</summary>
+        int GetMaxResultLength();
     }
 }

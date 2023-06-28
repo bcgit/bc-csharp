@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -14,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * EC-DSA as described in X9.62
      */
     public class ECDsaSigner
-        : IDsaExt
+        : IDsa
     {
         private static readonly BigInteger Eight = BigInteger.ValueOf(8);
 
@@ -52,25 +51,23 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                if (parameters is ParametersWithRandom)
+                if (parameters is ParametersWithRandom rParam)
                 {
-                    ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
                     providedRandom = rParam.Random;
                     parameters = rParam.Parameters;
                 }
 
-                if (!(parameters is ECPrivateKeyParameters))
+                if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
                     throw new InvalidKeyException("EC private key required for signing");
 
-                this.key = (ECPrivateKeyParameters)parameters;
+                this.key = ecPrivateKeyParameters;
             }
             else
             {
-                if (!(parameters is ECPublicKeyParameters))
+                if (!(parameters is ECPublicKeyParameters ecPublicKeyParameters))
                     throw new InvalidKeyException("EC public key required for verification");
 
-                this.key = (ECPublicKeyParameters)parameters;
+                this.key = ecPublicKeyParameters;
             }
 
             this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
@@ -240,7 +237,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
         {
-            return !needed ? null : (provided != null) ? provided : new SecureRandom();
+            return !needed ? null : CryptoServicesRegistrar.GetSecureRandom(provided);
         }
     }
 }

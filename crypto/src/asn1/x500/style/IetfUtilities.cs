@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -94,15 +93,15 @@ namespace Org.BouncyCastle.Asn1.X500.Style
 
         public static string Canonicalize(string s)
         {
-            string value = Platform.ToLowerInvariant(s);
+            string value = s.ToLowerInvariant();
 
             if (value.Length > 0 && value[0] == '#')
             {
                 Asn1Object obj = DecodeObject(value);
 
-                if (obj is IAsn1String)
+                if (obj is IAsn1String str)
                 {
-                    value = Platform.ToLowerInvariant(((IAsn1String)obj).GetString());
+                    value = str.GetString().ToLowerInvariant();
                 }
             }
 

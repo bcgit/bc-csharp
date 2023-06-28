@@ -2,13 +2,9 @@ using System;
 using System.Text;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pkix
 {
-	/// <summary>
-	/// Summary description for PkixCertPathValidatorResult.
-	/// </summary>
 	public class PkixCertPathValidatorResult
 		//: ICertPathValidatorResult
 	{
@@ -31,39 +27,27 @@ namespace Org.BouncyCastle.Pkix
 			get { return this.subjectPublicKey; }
 		}
 
-		public PkixCertPathValidatorResult(
-			TrustAnchor				trustAnchor,
-			PkixPolicyNode			policyTree,
-			AsymmetricKeyParameter	subjectPublicKey)
+		public PkixCertPathValidatorResult(TrustAnchor trustAnchor, PkixPolicyNode policyTree,
+			AsymmetricKeyParameter subjectPublicKey)
 		{
-			if (subjectPublicKey == null)
-			{
-				throw new NullReferenceException("subjectPublicKey must be non-null");
-			}
-			if (trustAnchor == null)
-			{
-				throw new NullReferenceException("trustAnchor must be non-null");
-			}
-			
-			this.trustAnchor = trustAnchor;
-			this.policyTree = policyTree;
-			this.subjectPublicKey = subjectPublicKey;
-		}
+			this.trustAnchor = trustAnchor ?? throw new ArgumentNullException(nameof(trustAnchor));
+            this.policyTree = policyTree;
+			this.subjectPublicKey = subjectPublicKey ?? throw new ArgumentNullException(nameof(subjectPublicKey));
+        }
 
 		public object Clone()
 		{
 			return new PkixCertPathValidatorResult(this.TrustAnchor, this.PolicyTree, this.SubjectPublicKey);
 		}
 
-		public override String ToString() 
+		public override string ToString() 
 		{
-			StringBuilder sB = new StringBuilder();
-			sB.Append("PKIXCertPathValidatorResult: [ \n");
-			sB.Append("  Trust Anchor: ").Append(this.TrustAnchor).Append('\n');
-			sB.Append("  Policy Tree: ").Append(this.PolicyTree).Append('\n');
-			sB.Append("  Subject Public Key: ").Append(this.SubjectPublicKey).Append("\n]");
-			return sB.ToString();
+			StringBuilder sb = new StringBuilder();
+			sb.AppendLine("PKIXCertPathValidatorResult: [");
+			sb.Append("  Trust Anchor: ").Append(TrustAnchor).AppendLine();
+			sb.Append("  Policy Tree: ").Append(PolicyTree).AppendLine();
+			sb.Append("  Subject Public Key: ").Append(SubjectPublicKey).AppendLine();
+			return sb.ToString();
 		}
-
 	}
 }

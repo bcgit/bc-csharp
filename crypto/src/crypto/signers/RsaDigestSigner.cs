@@ -1,20 +1,17 @@
 using System;
-using System.Collections;
-using System.IO;
-using System.Text;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
-using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -26,36 +23,37 @@ namespace Org.BouncyCastle.Crypto.Signers
         private readonly IDigest digest;
         private bool forSigning;
 
-        private static readonly IDictionary oidMap = Platform.CreateHashtable();
+        private static readonly IDictionary<string, DerObjectIdentifier> OidMap =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Load oid table.
         /// </summary>
         static RsaDigestSigner()
         {
-            oidMap["RIPEMD128"] = TeleTrusTObjectIdentifiers.RipeMD128;
-            oidMap["RIPEMD160"] = TeleTrusTObjectIdentifiers.RipeMD160;
-            oidMap["RIPEMD256"] = TeleTrusTObjectIdentifiers.RipeMD256;
+            OidMap["RIPEMD128"] = TeleTrusTObjectIdentifiers.RipeMD128;
+            OidMap["RIPEMD160"] = TeleTrusTObjectIdentifiers.RipeMD160;
+            OidMap["RIPEMD256"] = TeleTrusTObjectIdentifiers.RipeMD256;
 
-            oidMap["SHA-1"] = X509ObjectIdentifiers.IdSha1;
-            oidMap["SHA-224"] = NistObjectIdentifiers.IdSha224;
-            oidMap["SHA-256"] = NistObjectIdentifiers.IdSha256;
-            oidMap["SHA-384"] = NistObjectIdentifiers.IdSha384;
-            oidMap["SHA-512"] = NistObjectIdentifiers.IdSha512;
-            oidMap["SHA-512/224"] = NistObjectIdentifiers.IdSha512_224;
-            oidMap["SHA-512/256"] = NistObjectIdentifiers.IdSha512_256;
-            oidMap["SHA3-224"] = NistObjectIdentifiers.IdSha3_224;
-            oidMap["SHA3-256"] = NistObjectIdentifiers.IdSha3_256;
-            oidMap["SHA3-384"] = NistObjectIdentifiers.IdSha3_384;
-            oidMap["SHA3-512"] = NistObjectIdentifiers.IdSha3_512;
+            OidMap["SHA-1"] = X509ObjectIdentifiers.IdSha1;
+            OidMap["SHA-224"] = NistObjectIdentifiers.IdSha224;
+            OidMap["SHA-256"] = NistObjectIdentifiers.IdSha256;
+            OidMap["SHA-384"] = NistObjectIdentifiers.IdSha384;
+            OidMap["SHA-512"] = NistObjectIdentifiers.IdSha512;
+            OidMap["SHA-512/224"] = NistObjectIdentifiers.IdSha512_224;
+            OidMap["SHA-512/256"] = NistObjectIdentifiers.IdSha512_256;
+            OidMap["SHA3-224"] = NistObjectIdentifiers.IdSha3_224;
+            OidMap["SHA3-256"] = NistObjectIdentifiers.IdSha3_256;
+            OidMap["SHA3-384"] = NistObjectIdentifiers.IdSha3_384;
+            OidMap["SHA3-512"] = NistObjectIdentifiers.IdSha3_512;
 
-            oidMap["MD2"] = PkcsObjectIdentifiers.MD2;
-            oidMap["MD4"] = PkcsObjectIdentifiers.MD4;
-            oidMap["MD5"] = PkcsObjectIdentifiers.MD5;
+            OidMap["MD2"] = PkcsObjectIdentifiers.MD2;
+            OidMap["MD4"] = PkcsObjectIdentifiers.MD4;
+            OidMap["MD5"] = PkcsObjectIdentifiers.MD5;
         }
 
         public RsaDigestSigner(IDigest digest)
-            :   this(digest, (DerObjectIdentifier)oidMap[digest.AlgorithmName])
+            :   this(digest, CollectionUtilities.GetValueOrNull(OidMap, digest.AlgorithmName))
         {
         }
 
@@ -102,11 +100,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             ICipherParameters	parameters)
         {
             this.forSigning = forSigning;
-            AsymmetricKeyParameter k;
 
-            if (parameters is ParametersWithRandom)
+            AsymmetricKeyParameter k;
+            if (parameters is ParametersWithRandom withRandom)
             {
-                k = (AsymmetricKeyParameter)((ParametersWithRandom)parameters).Parameters;
+                k = (AsymmetricKeyParameter)withRandom.Parameters;
             }
             else
             {
@@ -124,30 +122,25 @@ namespace Org.BouncyCastle.Crypto.Signers
             rsaEngine.Init(forSigning, parameters);
         }
 
-        /**
-         * update the internal digest with the byte b
-         */
-        public virtual void Update(
-            byte input)
+        public virtual void Update(byte input)
         {
             digest.Update(input);
         }
 
-        /**
-         * update the internal digest with the byte array in
-         */
-        public virtual void BlockUpdate(
-            byte[]	input,
-            int		inOff,
-            int		length)
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            digest.BlockUpdate(input, inOff, length);
+            digest.BlockUpdate(input, inOff, inLen);
         }
 
-        /**
-         * Generate a signature for the message we've been loaded with using
-         * the key we were initialised with.
-         */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            digest.BlockUpdate(input);
+        }
+#endif
+
+        public virtual int GetMaxSignatureSize() => rsaEngine.GetOutputBlockSize();
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning)
@@ -160,12 +153,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return rsaEngine.ProcessBlock(data, 0, data.Length);
         }
 
-        /**
-         * return true if the internal state represents the signature described
-         * in the passed in array.
-         */
-        public virtual bool VerifySignature(
-            byte[] signature)
+        public virtual bool VerifySignature(byte[] signature)
         {
             if (forSigning)
                 throw new InvalidOperationException("RsaDigestSigner not initialised for verification");
@@ -188,7 +176,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (sig.Length == expected.Length)
             {
-                return Arrays.ConstantTimeAreEqual(sig, expected);
+                return Arrays.FixedTimeEquals(sig, expected);
             }
             else if (sig.Length == expected.Length - 2)  // NULL left out
             {

@@ -522,12 +522,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			CheckMalformed();
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CertificateTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

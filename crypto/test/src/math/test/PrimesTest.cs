@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Math.Tests
                             continue;
                         }
 
-                        throw e;
+                        throw;
                     }
                 }
 

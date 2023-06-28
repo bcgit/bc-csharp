@@ -1,38 +1,32 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class PopoDecKeyRespContent
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence content;
+        public static PopoDecKeyRespContent GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PopoDecKeyRespContent popoDecKeyRespContent)
+                return popoDecKeyRespContent;
+            return new PopoDecKeyRespContent(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PopoDecKeyRespContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly Asn1Sequence m_content;
 
 		private PopoDecKeyRespContent(Asn1Sequence seq)
 		{
-			content = seq;
+			m_content = seq;
 		}
 
-		public static PopoDecKeyRespContent GetInstance(object obj)
+		public virtual DerInteger[] ToIntegerArray()
 		{
-			if (obj is PopoDecKeyRespContent)
-				return (PopoDecKeyRespContent)obj;
-
-			if (obj is Asn1Sequence)
-				return new PopoDecKeyRespContent((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public virtual DerInteger[] ToDerIntegerArray()
-		{
-			DerInteger[] result = new DerInteger[content.Count];
-			for (int i = 0; i != result.Length; ++i)
-			{
-				result[i] = DerInteger.GetInstance(content[i]);
-			}
-			return result;
+			return m_content.MapElements(DerInteger.GetInstance);
 		}
 
 		/**
@@ -43,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return content;
+			return m_content;
 		}
 	}
 }

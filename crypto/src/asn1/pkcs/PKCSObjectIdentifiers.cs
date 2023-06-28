@@ -129,9 +129,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier Pkcs9AtFriendlyName					= new DerObjectIdentifier(Pkcs9 + ".20");
         public static readonly DerObjectIdentifier Pkcs9AtLocalKeyID					= new DerObjectIdentifier(Pkcs9 + ".21");
 
-		[Obsolete("Use X509Certificate instead")]
-        public static readonly DerObjectIdentifier X509CertType = new DerObjectIdentifier(Pkcs9 + ".22.1");
-
 		public const string CertTypes = Pkcs9 + ".22";
 		public static readonly DerObjectIdentifier X509Certificate = new DerObjectIdentifier(CertTypes + ".1");
 		public static readonly DerObjectIdentifier SdsiCertificate = new DerObjectIdentifier(CertTypes + ".2");
@@ -141,11 +138,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public static readonly DerObjectIdentifier IdAlg = IdSmime.Branch("3");
 
-        public static readonly DerObjectIdentifier IdAlgEsdh        = IdAlg.Branch("5");
-        public static readonly DerObjectIdentifier IdAlgCms3DesWrap = IdAlg.Branch("6");
-        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap  = IdAlg.Branch("7");
-        public static readonly DerObjectIdentifier IdAlgPwriKek     = IdAlg.Branch("9");
-        public static readonly DerObjectIdentifier IdAlgSsdh        = IdAlg.Branch("10");
+        public static readonly DerObjectIdentifier IdAlgEsdh            = IdAlg.Branch("5");
+        public static readonly DerObjectIdentifier IdAlgCms3DesWrap     = IdAlg.Branch("6");
+        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap      = IdAlg.Branch("7");
+        public static readonly DerObjectIdentifier IdAlgZlibCompress    = IdAlg.Branch("8");
+        public static readonly DerObjectIdentifier IdAlgPwriKek         = IdAlg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlgSsdh            = IdAlg.Branch("10");
+
+        /** RFC 6211 -  id-aa-cmsAlgorithmProtect OBJECT IDENTIFIER ::= {
+iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1)
+pkcs9(9) 52 }  */
+        public static readonly DerObjectIdentifier id_aa_cmsAlgorithmProtect = new DerObjectIdentifier(Pkcs9 + ".52");
 
         /*
          * <pre>
@@ -169,6 +172,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          * </pre>
          */
         public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = IdAlg.Branch("18");
+
+        
+        /**
+     * id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
+     *     member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
+     *    smime(16) alg(3) 17 }
+     */
+        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = IdAlg.Branch("17");
 
         //
         // SMIME capability sub oids.
@@ -260,15 +271,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier IdAAImplCompressAlgs = IdAAOid.Branch("43");
         /** PKCS#9: 1.2.840.113549.1.9.16.2.40   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
         public static readonly DerObjectIdentifier IdAACommunityIdentifiers = IdAAOid.Branch("40");
-
-		[Obsolete("Use 'IdAAEtsSigPolicyID' instead")]
-		public static readonly DerObjectIdentifier IdAASigPolicyID = IdAAEtsSigPolicyID;
-		[Obsolete("Use 'IdAAEtsCommitmentType' instead")]
-		public static readonly DerObjectIdentifier IdAACommitmentType = IdAAEtsCommitmentType;
-		[Obsolete("Use 'IdAAEtsSignerLocation' instead")]
-		public static readonly DerObjectIdentifier IdAASignerLocation = IdAAEtsSignerLocation;
-		[Obsolete("Use 'IdAAEtsOtherSigCert' instead")]
-		public static readonly DerObjectIdentifier IdAAOtherSigCert = IdAAEtsOtherSigCert;
 
 		//
 		// id-spq OBJECT IDENTIFIER ::= {iso(1) member-body(2) usa(840)

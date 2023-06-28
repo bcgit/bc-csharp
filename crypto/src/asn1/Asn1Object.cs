@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Org.BouncyCastle.Asn1
@@ -8,16 +9,31 @@ namespace Org.BouncyCastle.Asn1
     {
         public override void EncodeTo(Stream output)
         {
-            Asn1OutputStream asn1Out = Asn1OutputStream.Create(output);
-            GetEncoding(asn1Out.Encoding).Encode(asn1Out);
-            asn1Out.FlushInternal();
+            using (var asn1Out = Asn1OutputStream.Create(output, Ber, leaveOpen: true))
+            {
+                GetEncoding(asn1Out.Encoding).Encode(asn1Out);
+            }
         }
 
         public override void EncodeTo(Stream output, string encoding)
         {
-            Asn1OutputStream asn1Out = Asn1OutputStream.Create(output, encoding);
-            GetEncoding(asn1Out.Encoding).Encode(asn1Out);
-            asn1Out.FlushInternal();
+            using (var asn1Out = Asn1OutputStream.Create(output, encoding, leaveOpen: true))
+            {
+                GetEncoding(asn1Out.Encoding).Encode(asn1Out);
+            }
+        }
+
+        internal virtual byte[] InternalGetEncoded(string encoding)
+        {
+            var encodingType = Asn1OutputStream.GetEncodingType(encoding);
+            var asn1Encoding = GetEncoding(encodingType);
+            byte[] result = new byte[asn1Encoding.GetLength()];
+            using (var asn1Out = Asn1OutputStream.Create(new MemoryStream(result, true), encoding))
+            {
+                asn1Encoding.Encode(asn1Out);
+                Debug.Assert(result.Length == asn1Out.Position);
+            }
+            return result;
         }
 
         public bool Equals(Asn1Object other)
@@ -31,46 +47,47 @@ namespace Org.BouncyCastle.Asn1
         /// <exception cref="IOException">
         /// If there is a problem parsing the data, or parsing an object did not exhaust the available data.
         /// </exception>
-        public static Asn1Object FromByteArray(
-			byte[] data)
-		{
-			return FromByteArray(new ArraySegment<byte>(data, 0, data.Length));
-		}
+        public static Asn1Object FromByteArray(byte[] data)
+        {
+            return FromByteArray(new ArraySegment<byte>(data));
+        }
 
-        /// <summary>Create a base ASN.1 object from a byte array segment.</summary>
-        /// <param name="data">The byte array segment to parse.</param>
+        /// <summary>Create a base ASN.1 object from a byte array.</summary>
+        /// <param name="data">The byte array to parse.</param>
         /// <returns>The base ASN.1 object represented by the byte array.</returns>
         /// <exception cref="IOException">
         /// If there is a problem parsing the data, or parsing an object did not exhaust the available data.
         /// </exception>
-        public static Asn1Object FromByteArray(
-	        ArraySegment<byte> data)
+        public static Asn1Object FromByteArray(ArraySegment<byte> data)
         {
-	        try
-	        {
-		        MemoryStream input = new MemoryStream(data.Array ?? new byte[0], data.Offset, data.Count, false);
-		        Asn1InputStream asn1 = new Asn1InputStream(input, data.Count);
-		        Asn1Object result = asn1.ReadObject();
-		        if (input.Position != input.Length)
-			        throw new IOException("extra data found after object");
-		        return result;
-	        }
-	        catch (InvalidCastException)
-	        {
-		        throw new IOException("cannot recognise object in byte array");
-	        }
+            try
+            {
+                using (var asn1In = new Asn1InputStream(new MemoryStream(data.Array ?? Array.Empty<byte>(), data.Offset, data.Count, false), data.Count))
+                {
+                    Asn1Object result = asn1In.ReadObject();
+                    if (data.Count != asn1In.Position)
+                        throw new IOException("extra data found after object");
+                    return result;
+                }
+            }
+            catch (InvalidCastException)
+            {
+                throw new IOException("cannot recognise object in byte array");
+            }
         }
 
-		/// <summary>Read a base ASN.1 object from a stream.</summary>
-		/// <param name="inStr">The stream to parse.</param>
-		/// <returns>The base ASN.1 object represented by the byte array.</returns>
-		/// <exception cref="IOException">If there is a problem parsing the data.</exception>
-		public static Asn1Object FromStream(
-			Stream inStr)
+        /// <summary>Read a base ASN.1 object from a stream.</summary>
+        /// <param name="inStr">The stream to parse.</param>
+        /// <returns>The base ASN.1 object represented by the byte array.</returns>
+        /// <exception cref="IOException">If there is a problem parsing the data.</exception>
+        public static Asn1Object FromStream(Stream inStr)
 		{
 			try
 			{
-				return new Asn1InputStream(inStr).ReadObject();
+                using (var asn1In = new Asn1InputStream(inStr, int.MaxValue, leaveOpen: true))
+                {
+                    return asn1In.ReadObject();
+                }
 			}
 			catch (InvalidCastException)
 			{
@@ -86,6 +103,10 @@ namespace Org.BouncyCastle.Asn1
         internal abstract IAsn1Encoding GetEncoding(int encoding);
 
         internal abstract IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo);
+
+        internal abstract DerEncoding GetEncodingDer();
+
+        internal abstract DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo);
 
         protected abstract bool Asn1Equals(Asn1Object asn1Object);
 		protected abstract int Asn1GetHashCode();

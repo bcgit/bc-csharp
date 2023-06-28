@@ -11,16 +11,6 @@ namespace Org.BouncyCastle.Asn1
 		: DerTaggedObject
 	{
         /**
-		 * create an implicitly tagged object that contains a zero
-		 * length sequence.
-		 */
-        [Obsolete("Will be removed")]
-        public BerTaggedObject(int tagNo)
-            : base(false, tagNo, BerSequence.Empty)
-        {
-        }
-
-        /**
 		 * @param tagNo the tag number for this object.
 		 * @param obj the tagged object.
 		 */
@@ -92,7 +82,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override Asn1TaggedObject ReplaceTag(int tagClass, int tagNo)
         {
-            return new BerTaggedObject(explicitness, tagClass, tagNo, obj);
+            return new BerTaggedObject(m_explicitness, tagClass, tagNo, m_object);
         }
     }
 }

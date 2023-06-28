@@ -19,23 +19,6 @@ namespace Org.BouncyCastle.Cms
 		internal readonly byte[]	salt;
 		internal readonly int		iterationCount;
 
-		[Obsolete("Use version taking 'char[]' instead")]
-		public CmsPbeKey(
-			string	password,
-			byte[]	salt,
-			int		iterationCount)
-			: this(password.ToCharArray(), salt, iterationCount)
-		{
-		}
-
-		[Obsolete("Use version taking 'char[]' instead")]
-		public CmsPbeKey(
-			string				password,
-			AlgorithmIdentifier keyDerivationAlgorithm)
-			: this(password.ToCharArray(), keyDerivationAlgorithm)
-		{
-		}
-		
 		public CmsPbeKey(
 			char[]	password,
 			byte[]	salt,
@@ -62,26 +45,36 @@ namespace Org.BouncyCastle.Cms
 			this.iterationCount = kdfParams.IterationCount.IntValue;
 		}
 
-		~CmsPbeKey()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public CmsPbeKey(ReadOnlySpan<char> password, ReadOnlySpan<byte> salt, int iterationCount)
+        {
+			this.password = password.ToArray();
+			this.salt = salt.ToArray();
+            this.iterationCount = iterationCount;
+        }
+
+        public CmsPbeKey(ReadOnlySpan<char> password, AlgorithmIdentifier keyDerivationAlgorithm)
+        {
+            if (!keyDerivationAlgorithm.Algorithm.Equals(PkcsObjectIdentifiers.IdPbkdf2))
+                throw new ArgumentException("Unsupported key derivation algorithm: "
+                    + keyDerivationAlgorithm.Algorithm);
+
+            Pbkdf2Params kdfParams = Pbkdf2Params.GetInstance(keyDerivationAlgorithm.Parameters.ToAsn1Object());
+
+			this.password = password.ToArray();
+            this.salt = kdfParams.GetSalt();
+            this.iterationCount = kdfParams.IterationCount.IntValue;
+        }
+#endif
+
+        ~CmsPbeKey()
 		{
 			Array.Clear(this.password, 0, this.password.Length);
-		}
-
-		[Obsolete("Will be removed")]
-		public string Password
-		{
-			get { return new string(password); }
 		}
 
 		public byte[] Salt
 		{
 			get { return Arrays.Clone(salt); }
-		}
-
-		[Obsolete("Use 'Salt' property instead")]
-		public byte[] GetSalt()
-		{
-			return Salt;
 		}
 
 		public int IterationCount

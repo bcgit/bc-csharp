@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			"3f45ef194732c2dbb2c4a2c769795fa3"
 		};
 
-		readonly static String million_a_digest = "4a7f5723f954eba1216c9d8f6320431f";
+		readonly static string million_a_digest = "4a7f5723f954eba1216c9d8f6320431f";
 
 		public RipeMD128DigestTest()
 			: base(new RipeMD128Digest(), messages, digests)
@@ -55,12 +55,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 		protected override IDigest CloneDigest(IDigest digest)
 		{
 			return new RipeMD128Digest((RipeMD128Digest)digest);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new RipeMD128DigestTest());
 		}
 
 		[Test]

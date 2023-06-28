@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -31,32 +34,34 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerBmpString GetInstance(object obj)
         {
-            if (obj == null || obj is DerBmpString)
+            if (obj == null)
+                return null;
+
+            if (obj is DerBmpString derBmpString)
+                return derBmpString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerBmpString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerBmpString converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerBmpString)
-                    return (DerBmpString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerBmpString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerBmpString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct BMP string from byte[]: " + e.Message);
                 }
             }
-            else if (obj is ArraySegment<byte>)
+            else if (obj is ArraySegment<byte> arraySegment)
             {
                 try
                 {
-                    return (DerBmpString)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                    return (DerBmpString)Meta.Instance.FromByteArray(arraySegment);
                 }
                 catch (IOException e)
                 {
@@ -91,6 +96,16 @@ namespace Org.BouncyCastle.Asn1
                 throw new ArgumentException("malformed BMPString encoding encountered", "contents");
 
             int charLen = byteLen / 2;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            m_str = string.Create(charLen, contents, (chars, bytes) =>
+            {
+                for (int i = 0; i < chars.Length; ++i)
+                {
+                    chars[i] = (char)((bytes[2 * i] << 8) | (bytes[2 * i + 1] & 0xff));
+                }
+            });
+#else
             char[] cs = new char[charLen];
 
             for (int i = 0; i != charLen; i++)
@@ -99,8 +114,10 @@ namespace Org.BouncyCastle.Asn1
             }
 
             m_str = new string(cs);
+#endif
         }
 
+#if !(NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
         internal DerBmpString(char[] str)
         {
             if (str == null)
@@ -108,6 +125,7 @@ namespace Org.BouncyCastle.Asn1
 
             m_str = new string(str);
         }
+#endif
 
         /**
          * basic constructor
@@ -147,6 +165,16 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, GetContents());
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.BmpString, GetContents());
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, GetContents());
+        }
+
         private byte[] GetContents()
         {
             char[] c = m_str.ToCharArray();
@@ -166,10 +194,17 @@ namespace Org.BouncyCastle.Asn1
             return new DerBmpString(contents);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static DerBmpString CreatePrimitive<TState>(int length, TState state, SpanAction<char, TState> action)
+        {
+            return new DerBmpString(string.Create(length, state, action));
+        }
+#else
         internal static DerBmpString CreatePrimitive(char[] str)
         {
             // TODO[asn1] Asn1InputStream has a validator/converter that should be unified in this class somehow
             return new DerBmpString(str);
         }
+#endif
     }
 }

@@ -42,20 +42,14 @@ namespace Org.BouncyCastle.Cms
 		private int                 _bufferSize;
 		private bool                _berEncodeRecipientSet;
 
-		/**
-		* base constructor
-		*/
 		public CmsAuthenticatedDataStreamGenerator()
 		{
 		}
 
-		/**
-		* constructor allowing specific source of randomness
-		* @param rand instance of SecureRandom to use
-		*/
-		public CmsAuthenticatedDataStreamGenerator(
-			SecureRandom rand)
-			: base(rand)
+        /// <summary>Constructor allowing specific source of randomness</summary>
+        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsAuthenticatedDataStreamGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 
@@ -99,13 +93,13 @@ namespace Org.BouncyCastle.Cms
 			AlgorithmIdentifier macAlgId = GetAlgorithmIdentifier(
 				macOid, encKey, asn1Params, out cipherParameters);
 
-			Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+			Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
 			foreach (RecipientInfoGenerator rig in recipientInfoGenerators)
 			{
 				try
 				{
-					recipientInfos.Add(rig.Generate(encKey, rand));
+					recipientInfos.Add(rig.Generate(encKey, m_random));
 				}
 				catch (InvalidKeyException e)
 				{
@@ -146,31 +140,30 @@ namespace Org.BouncyCastle.Cms
 				authGen.AddObject(new DerInteger(AuthenticatedData.CalculateVersion(null)));
 
 				Stream authRaw = authGen.GetRawOutputStream();
-				Asn1Generator recipGen = _berEncodeRecipientSet
-					?	(Asn1Generator) new BerSetGenerator(authRaw)
-					:	new DerSetGenerator(authRaw);
-
-				foreach (Asn1Encodable ae in recipientInfos)
+				using (var recipGen = _berEncodeRecipientSet
+					? (Asn1Generator)new BerSetGenerator(authRaw)
+					: new DerSetGenerator(authRaw))
 				{
-					recipGen.AddObject(ae);
-				}
-
-				recipGen.Close();
+                    foreach (Asn1Encodable ae in recipientInfos)
+                    {
+                        recipGen.AddObject(ae);
+                    }
+                }
 
 				authGen.AddObject(macAlgId);
 
 				BerSequenceGenerator eiGen = new BerSequenceGenerator(authRaw);
 				eiGen.AddObject(CmsObjectIdentifiers.Data);
 
-				Stream octetOutputStream = CmsUtilities.CreateBerOctetOutputStream(
-					eiGen.GetRawOutputStream(), 0, true, _bufferSize);
+                BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true);
+                Stream octetOutputStream = octGen.GetOctetOutputStream(_bufferSize);
 
                 IMac mac = MacUtilities.GetMac(macAlgId.Algorithm);
 				// TODO Confirm no ParametersWithRandom needed
 	            mac.Init(cipherParameters);
 				Stream mOut = new TeeOutputStream(octetOutputStream, new MacSink(mac));
 
-				return new CmsAuthenticatedDataOutputStream(mOut, mac, cGen, authGen, eiGen);
+				return new CmsAuthenticatedDataOutputStream(mOut, mac, cGen, authGen, eiGen, octGen);
 			}
 			catch (SecurityUtilityException e)
 			{
@@ -195,7 +188,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-			keyGen.Init(new KeyGenerationParameters(rand, keyGen.DefaultStrength));
+			keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
 			return Open(outStr, encryptionOid, keyGen);
 		}
@@ -210,7 +203,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-			keyGen.Init(new KeyGenerationParameters(rand, keySize));
+			keyGen.Init(new KeyGenerationParameters(m_random, keySize));
 
 			return Open(outStr, encryptionOid, keyGen);
 		}
@@ -220,78 +213,65 @@ namespace Org.BouncyCastle.Cms
 		{
 			private readonly Stream					macStream;
 			private readonly IMac					mac;
-			private readonly BerSequenceGenerator	cGen;
+            private readonly BerSequenceGenerator	cGen;
 			private readonly BerSequenceGenerator	authGen;
 			private readonly BerSequenceGenerator	eiGen;
+            private readonly BerOctetStringGenerator octGen;
 
-			public CmsAuthenticatedDataOutputStream(
+            public CmsAuthenticatedDataOutputStream(
 				Stream					macStream,
 				IMac					mac,
-				BerSequenceGenerator	cGen,
+                BerSequenceGenerator	cGen,
 				BerSequenceGenerator	authGen,
-				BerSequenceGenerator	eiGen)
-			{
+				BerSequenceGenerator	eiGen,
+                BerOctetStringGenerator octGen)
+            {
 				this.macStream = macStream;
 				this.mac = mac;
 				this.cGen = cGen;
 				this.authGen = authGen;
 				this.eiGen = eiGen;
-			}
+                this.octGen = octGen;
+            }
 
-			public override void WriteByte(
-				byte b)
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                macStream.Write(buffer, offset, count);
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+            {
+                macStream.Write(buffer);
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
-				macStream.WriteByte(b);
+				macStream.WriteByte(value);
 			}
 
-			public override void Write(
-				byte[]	bytes,
-				int		off,
-				int		len)
-			{
-				macStream.Write(bytes, off, len);
-			}
-
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-                    Platform.Dispose(macStream);
+                    macStream.Dispose();
 
-                    // TODO Parent context(s) should really be be closed explicitly
+					// TODO Parent context(s) should really be be closed explicitly
 
-				    eiGen.Close();
+					octGen.Dispose();
+				    eiGen.Dispose();
 
 				    // [TODO] auth attributes go here 
 				    byte[] macOctets = MacUtilities.DoFinal(mac);
 				    authGen.AddObject(new DerOctetString(macOctets));
 				    // [TODO] unauth attributes go here
 
-				    authGen.Close();
-				    cGen.Close();
+				    authGen.Dispose();
+				    cGen.Dispose();
                 }
                 base.Dispose(disposing);
             }
-#else
-            public override void Close()
-			{
-                Platform.Dispose(macStream);
-
-                // TODO Parent context(s) should really be be closed explicitly
-
-				eiGen.Close();
-
-				// [TODO] auth attributes go here 
-				byte[] macOctets = MacUtilities.DoFinal(mac);
-				authGen.AddObject(new DerOctetString(macOctets));
-				// [TODO] unauth attributes go here
-
-				authGen.Close();
-				cGen.Close();
-                base.Close();
-			}
-#endif
 		}
 	}
 }

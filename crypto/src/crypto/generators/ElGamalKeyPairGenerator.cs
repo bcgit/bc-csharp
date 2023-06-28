@@ -11,30 +11,28 @@ namespace Org.BouncyCastle.Crypto.Generators
      * This Generates keys consistent for use with ElGamal as described in
      * page 164 of "Handbook of Applied Cryptography".</p>
      */
+    // TODO[api] sealed
     public class ElGamalKeyPairGenerator
 		: IAsymmetricCipherKeyPairGenerator
     {
-        private ElGamalKeyGenerationParameters param;
+        private ElGamalKeyGenerationParameters m_parameters;
 
-        public void Init(
-			KeyGenerationParameters parameters)
+        public void Init(KeyGenerationParameters parameters)
         {
-            this.param = (ElGamalKeyGenerationParameters) parameters;
+            m_parameters = (ElGamalKeyGenerationParameters)parameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-			DHKeyGeneratorHelper helper = DHKeyGeneratorHelper.Instance;
-			ElGamalParameters egp = param.Parameters;
+			ElGamalParameters egp = m_parameters.Parameters;
 			DHParameters dhp = new DHParameters(egp.P, egp.G, null, 0, egp.L);
 
-			BigInteger x = helper.CalculatePrivate(dhp, param.Random);
-			BigInteger y = helper.CalculatePublic(dhp, x);
+			BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
+			BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
 
 			return new AsymmetricCipherKeyPair(
                 new ElGamalPublicKeyParameters(y, egp),
                 new ElGamalPrivateKeyParameters(x, egp));
         }
     }
-
 }

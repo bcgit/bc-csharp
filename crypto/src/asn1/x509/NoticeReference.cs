@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Math;
 
@@ -26,9 +26,9 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly DisplayText organization;
         private readonly Asn1Sequence noticeNumbers;
 
-        private static Asn1EncodableVector ConvertVector(IList numbers)
+        private static Asn1EncodableVector ConvertVector(IList<object> numbers)
         {
-            Asn1EncodableVector av = new Asn1EncodableVector();
+            Asn1EncodableVector av = new Asn1EncodableVector(numbers.Count);
 
             foreach (object o in numbers)
             {
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * @param organization a <code>String</code> value
          * @param numbers a <code>Vector</code> value
          */
-        public NoticeReference(string organization, IList numbers)
+        public NoticeReference(string organization, IList<object> numbers)
             : this(organization, ConvertVector(numbers))
         {
         }
@@ -120,14 +120,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public virtual DerInteger[] GetNoticeNumbers()
         {
-            DerInteger[] tmp = new DerInteger[noticeNumbers.Count];
-
-            for (int i = 0; i != noticeNumbers.Count; ++i)
-            {
-                tmp[i] = DerInteger.GetInstance(noticeNumbers[i]);
-            }
-
-            return tmp;
+            return noticeNumbers.MapElements(DerInteger.GetInstance);
         }
 
         /**

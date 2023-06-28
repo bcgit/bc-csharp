@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -15,8 +15,8 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
         private string _nonce;
         private string _personalisation;
         private int _ss;
-        private String[] _ev;
-        private IList _ai = new ArrayList();
+        private string[] _ev;
+        private IList<string> _ai = new List<string>();
 
         public DrbgTestVector(IDigest digest, IEntropySource eSource, bool predictionResistance, string nonce,
             int securityStrength, string[] expected)

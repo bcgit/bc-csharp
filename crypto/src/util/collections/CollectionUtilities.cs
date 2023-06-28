@@ -1,45 +1,97 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Org.BouncyCastle.Utilities.Collections
 {
     public abstract class CollectionUtilities
     {
-        public static void AddRange(IList to, IEnumerable range)
+        public static void CollectMatches<T>(ICollection<T> matches, ISelector<T> selector,
+            IEnumerable<IStore<T>> stores)
         {
-            foreach (object o in range)
+            if (matches == null)
+                throw new ArgumentNullException(nameof(matches));
+            if (stores == null)
+                return;
+
+            foreach (var store in stores)
             {
-                to.Add(o);
+                if (store == null)
+                    continue;
+
+                foreach (T match in store.EnumerateMatches(selector))
+                {
+                    matches.Add(match);
+                }
             }
         }
 
-        public static bool CheckElementsAreOfType(IEnumerable e, Type t)
+        public static IStore<T> CreateStore<T>(IEnumerable<T> contents)
         {
-            foreach (object o in e)
+            return new StoreImpl<T>(contents);
+        }
+
+        public static T GetFirstOrNull<T>(IEnumerable<T> e)
+            where T : class
+        {
+            if (e != null)
             {
-                if (!t.IsInstanceOfType(o))
-                    return false;
+                foreach (var t in e)
+                {
+                    return t;
+                }
             }
+            return null;
+        }
+
+        public static T GetValueOrKey<T>(IDictionary<T, T> d, T k)
+        {
+            return d.TryGetValue(k, out var v) ? v : k;
+        }
+
+        public static V GetValueOrNull<K, V>(IDictionary<K, V> d, K k)
+            where V : class
+        {
+            return d.TryGetValue(k, out var v) ? v : null;
+        }
+
+        public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
+        {
+            return new EnumerableProxy<T>(e);
+        }
+
+        public static ICollection<T> ReadOnly<T>(ICollection<T> c)
+        {
+            return new ReadOnlyCollectionProxy<T>(c);
+        }
+
+        public static IDictionary<K, V> ReadOnly<K, V>(IDictionary<K, V> d)
+        {
+            return new ReadOnlyDictionaryProxy<K, V>(d);
+        }
+
+        public static IList<T> ReadOnly<T>(IList<T> l)
+        {
+            return new ReadOnlyListProxy<T>(l);
+        }
+
+#if NETCOREAPP1_0_OR_GREATER || NET40_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        public static ISet<T> ReadOnly<T>(ISet<T> s)
+        {
+            return new ReadOnlySetProxy<T>(s);
+        }
+#endif
+
+        public static bool Remove<K, V>(IDictionary<K, V> d, K k, out V v)
+        {
+            if (!d.TryGetValue(k, out v))
+                return false;
+
+            d.Remove(k);
             return true;
         }
 
-        public static IDictionary ReadOnly(IDictionary d)
-        {
-            return new UnmodifiableDictionaryProxy(d);
-        }
-
-        public static IList ReadOnly(IList l)
-        {
-            return new UnmodifiableListProxy(l);
-        }
-
-        public static ISet ReadOnly(ISet s)
-        {
-            return new UnmodifiableSetProxy(s);
-        }
-
-        public static object RequireNext(IEnumerator e)
+        public static T RequireNext<T>(IEnumerator<T> e)
         {
             if (!e.MoveNext())
                 throw new InvalidOperationException();
@@ -47,18 +99,18 @@ namespace Org.BouncyCastle.Utilities.Collections
             return e.Current;
         }
 
-        public static string ToString(IEnumerable c)
+        public static string ToString<T>(IEnumerable<T> c)
         {
-            IEnumerator e = c.GetEnumerator();
+            IEnumerator<T> e = c.GetEnumerator();
             if (!e.MoveNext())
                 return "[]";
 
             StringBuilder sb = new StringBuilder("[");
-            sb.Append(e.Current.ToString());
+            sb.Append(e.Current);
             while (e.MoveNext())
             {
                 sb.Append(", ");
-                sb.Append(e.Current.ToString());
+                sb.Append(e.Current);
             }
             sb.Append(']');
             return sb.ToString();

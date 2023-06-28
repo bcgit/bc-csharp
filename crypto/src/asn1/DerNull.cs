@@ -26,6 +26,16 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveEncoding(tagClass, tagNo, ZeroBytes);
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Null, ZeroBytes);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, ZeroBytes);
+        }
+
         protected override bool Asn1Equals(Asn1Object asn1Object)
 		{
 			return asn1Object is DerNull;

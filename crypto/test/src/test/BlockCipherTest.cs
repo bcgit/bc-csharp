@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -9,8 +10,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -24,8 +23,8 @@ namespace Org.BouncyCastle.Tests
     public class BlockCipherTest
         : SimpleTest
     {
-        private static readonly ISet validModes = CollectionUtilities.ReadOnly(
-            new HashSet(new string[]{ "CBC", "CCM", "CFB", "CTR", "CTS", "EAX", "ECB", "GCM", "OCB", "OFB" }));
+        private static readonly ISet<string> ValidModes =
+            new HashSet<string>(){ "CBC", "CCM", "CFB", "CTR", "CTS", "EAX", "ECB", "GCM", "OCB", "OFB" };
 
         private static readonly string[] cipherTests1 =
         {
@@ -80,11 +79,11 @@ namespace Org.BouncyCastle.Tests
             "DES/CBC/PKCS5Padding",
             "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122afdc70484fb9c0232",
             "DES/CBC/ISO10126Padding",
-            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122a980639850a2cc3e8",
+            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122aee404f971826fd3b",
             "DES/CBC/ISO7816-4Padding",
             "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122a1f80b9b0f1be49ac",
             "DES/CBC/X9.23Padding",
-            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122a980639850a2cc3e8",
+            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122aee404f971826fd3b",
             "DESede/CBC/PKCS7Padding",
             "4d3d7931875cf25593dc402298add8b914761e4936c9585ae22b2c1441169231a41e40695f1cff84",
             "SKIPJACK/CBC/PKCS7Padding",
@@ -104,9 +103,9 @@ namespace Org.BouncyCastle.Tests
             "IDEA/CBC/PKCS7Padding",
             "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d9e584751325ef7c32",
             "IDEA/CBC/ISO10126Padding",
-            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d978b3fd73135f033b",
+            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d937be6ee9fe5e35f6",
             "IDEA/CBC/X9.23Padding",
-            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d978b3fd73135f033b",
+            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d937be6ee9fe5e35f6",
             "AES/CBC/PKCS7Padding",
             "cf87f4d8bb9d1abb36cdd9f44ead7d046db2f802d99e1ef0a5940f306079e08389a44c4a8cc1a47cbaee1128da55bbb7",
             "AES/CBC/ISO7816-4Padding",
@@ -396,25 +395,33 @@ namespace Org.BouncyCastle.Tests
         private class FixedSecureRandom
             : SecureRandom
         {
-            byte[] seed = {
+            private static readonly byte[] seed = {
                     (byte)0xaa, (byte)0xfd, (byte)0x12, (byte)0xf6, (byte)0x59,
                     (byte)0xca, (byte)0xe6, (byte)0x34, (byte)0x89, (byte)0xb4,
                     (byte)0x79, (byte)0xe5, (byte)0x07, (byte)0x6d, (byte)0xde,
                     (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
             };
 
-            public override void NextBytes(
-                byte[] bytes)
+            internal FixedSecureRandom()
+                : base(null)
             {
-                int offset = 0;
+            }
 
-                while ((offset + seed.Length) < bytes.Length)
+            public override void NextBytes(byte[] buf)
+            {
+                NextBytes(buf, 0, buf.Length);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                int pos = 0;
+                while ((pos + seed.Length) < len)
                 {
-                    Array.Copy(seed, 0, bytes, offset, seed.Length);
-                    offset += seed.Length;
+                    Array.Copy(seed, 0, buf, off + pos, seed.Length);
+                    pos += seed.Length;
                 }
 
-                Array.Copy(seed, 0, bytes, offset, bytes.Length- offset);
+                Array.Copy(seed, 0, buf, off + pos, len - pos);
             }
         }
 
@@ -436,7 +443,7 @@ namespace Org.BouncyCastle.Tests
             int pos = mode.IndexOfAny(new char[]{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
             string baseMode = pos < 0 ? mode : mode.Substring(0, pos);
 
-            if (!validModes.Contains(baseMode))
+            if (!ValidModes.Contains(baseMode))
                 throw new Exception("Unhandled mode: " + mode);
 
             if (baseMode == "CCM")
@@ -458,15 +465,15 @@ namespace Org.BouncyCastle.Tests
         {
             KeyParameter key = null;
             CipherKeyGenerator keyGen;
-            SecureRandom rand;
             IBufferedCipher inCipher = null, outCipher = null;
             byte[] iv = null;
             CipherStream cIn, cOut;
             MemoryStream bIn, bOut;
 
-            rand = new FixedSecureRandom();
+            SecureRandom rand = new FixedSecureRandom();
 
-            string[] parts = algorithm.ToUpper(CultureInfo.InvariantCulture).Split('/');
+            string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
+            string[] parts = upper.Split('/');
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
 
@@ -498,7 +505,8 @@ namespace Org.BouncyCastle.Tests
                 inCipher = CipherUtilities.GetCipher(algorithm);
                 outCipher = CipherUtilities.GetCipher(algorithm);
 
-                if (!inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture).StartsWith(baseAlgorithm))
+                upper = inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture);
+                if (!upper.StartsWith(baseAlgorithm))
                 {
                     Fail("wrong cipher returned!");
                 }
@@ -1073,12 +1081,6 @@ namespace Org.BouncyCastle.Tests
             }
 
             doTestExceptions();
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new BlockCipherTest());
         }
 
         [Test]

@@ -1,8 +1,9 @@
 using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -761,6 +762,27 @@ namespace Org.BouncyCastle.Math.Tests
                 BigInteger e = d.Remainder(a);
 
                 Assert.AreEqual(c, e);
+            }
+        }
+
+        [Test]
+        public void TestSerialization()
+        {
+            using (var buf = new MemoryStream())
+            {
+                BigInteger x = new BigInteger(128, random);
+                object y;
+
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(buf, x);
+
+                buf.Position = 0;
+                y = formatter.Deserialize(buf);
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
+
+                Assert.AreEqual(buf.Length, buf.Position);
+                Assert.AreEqual(x, y);
             }
         }
 

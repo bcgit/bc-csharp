@@ -62,31 +62,22 @@ namespace Org.BouncyCastle.Crypto.Encodings
             hash.DoFinal(defHash, 0);
         }
 
-        public IAsymmetricBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public string AlgorithmName => engine.AlgorithmName + "/OAEPPadding";
 
-        public string AlgorithmName
-        {
-            get { return engine.AlgorithmName + "/OAEPPadding"; }
-        }
+        public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
-        public void Init(
-            bool				forEncryption,
-            ICipherParameters	param)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (param is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                ParametersWithRandom rParam = (ParametersWithRandom)param;
-                this.random = rParam.Random;
+                this.random = withRandom.Random;
             }
             else
             {
-                this.random = new SecureRandom();
+                this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom() : null;
             }
 
-            engine.Init(forEncryption, param);
+            engine.Init(forEncryption, parameters);
 
             this.forEncryption = forEncryption;
         }
@@ -294,24 +285,17 @@ namespace Org.BouncyCastle.Crypto.Encodings
             return output;
         }
 
-        private byte[] MaskGeneratorFunction(
-            byte[] Z,
-            int zOff,
-            int zLen,
-            int length)
+        private byte[] MaskGeneratorFunction(byte[] Z, int zOff, int zLen, int length)
         {
-            if (mgf1Hash is IXof)
+            if (mgf1Hash is IXof xof)
             {
                 byte[] mask = new byte[length];
-                mgf1Hash.BlockUpdate(Z, zOff, zLen);
-                ((IXof)mgf1Hash).DoFinal(mask, 0, mask.Length);
-
+                xof.BlockUpdate(Z, zOff, zLen);
+                xof.OutputFinal(mask, 0, length);
                 return mask;
             }
-            else
-            {
-                return MaskGeneratorFunction1(Z, zOff, zLen, length);
-            }
+
+            return MaskGeneratorFunction1(Z, zOff, zLen, length);
         }
 
         /**

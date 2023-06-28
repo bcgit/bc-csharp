@@ -32,35 +32,36 @@ namespace Org.BouncyCastle.Asn1
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerUniversalString GetInstance(
-            object obj)
+        public static DerUniversalString GetInstance(object obj)
         {
-            if (obj == null || obj is DerUniversalString)
+            if (obj == null)
+                return null;
+
+            if (obj is DerUniversalString derUniversalString)
+                return derUniversalString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (DerUniversalString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is DerUniversalString converted)
+                    return converted;
             }
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerUniversalString)
-                    return (DerUniversalString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (DerUniversalString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (DerUniversalString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct universal string from byte[]: " + e.Message);
                 }
             }
-            else if (obj is ArraySegment<byte>)
+            else if (obj is ArraySegment<byte> arraySegment)
             {
                 try
                 {
-                    return (DerUniversalString)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                    return (DerUniversalString)Meta.Instance.FromByteArray(arraySegment);
                 }
                 catch (IOException e)
                 {
@@ -127,6 +128,16 @@ namespace Org.BouncyCastle.Asn1
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             return new PrimitiveEncoding(tagClass, tagNo, m_contents);
+        }
+
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.UniversalString, m_contents);
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
         protected override bool Asn1Equals(Asn1Object asn1Object)

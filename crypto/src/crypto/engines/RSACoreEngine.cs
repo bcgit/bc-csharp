@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -32,15 +33,15 @@ namespace Org.BouncyCastle.Crypto.Engines
 			bool				forEncryption,
 			ICipherParameters	parameters)
 		{
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
-			if (!(parameters is RsaKeyParameters))
+			if (!(parameters is RsaKeyParameters rsaKeyParameters))
 				throw new InvalidKeyException("Not an RSA key");
 
-			this.key = (RsaKeyParameters) parameters;
+			this.key = rsaKeyParameters;
 			this.forEncryption = forEncryption;
 			this.bitSize = key.Modulus.BitLength;
 		}
@@ -103,28 +104,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return input;
 		}
 
-        public virtual byte[] ConvertOutput(
-			BigInteger result)
+        public virtual byte[] ConvertOutput(BigInteger result)
 		{
             CheckInitialised();
 
-            byte[] output = result.ToByteArrayUnsigned();
-
-			if (forEncryption)
-			{
-				int outSize = GetOutputBlockSize();
-
-				// TODO To avoid this, create version of BigInteger.ToByteArray that
-				// writes to an existing array
-				if (output.Length < outSize) // have ended up with less bytes than normal, lengthen
-				{
-					byte[] tmp = new byte[outSize];
-					output.CopyTo(tmp, tmp.Length - output.Length);
-					output = tmp;
-				}
-			}
-
-			return output;
+			return forEncryption
+				? BigIntegers.AsUnsignedByteArray(GetOutputBlockSize(), result)
+				: BigIntegers.AsUnsignedByteArray(result);
 		}
 
         public virtual BigInteger ProcessBlock(
@@ -132,39 +118,30 @@ namespace Org.BouncyCastle.Crypto.Engines
 		{
             CheckInitialised();
 
-            if (key is RsaPrivateCrtKeyParameters)
+            if (key is RsaPrivateCrtKeyParameters crt)
 			{
 				//
 				// we have the extra factors, use the Chinese Remainder Theorem - the author
 				// wishes to express his thanks to Dirk Bonekaemper at rtsffm.com for
 				// advice regarding the expression of this.
 				//
-				RsaPrivateCrtKeyParameters crtKey = (RsaPrivateCrtKeyParameters)key;
-
-				BigInteger p = crtKey.P;
-				BigInteger q = crtKey.Q;
-				BigInteger dP = crtKey.DP;
-				BigInteger dQ = crtKey.DQ;
-				BigInteger qInv = crtKey.QInv;
-
-				BigInteger mP, mQ, h, m;
+				BigInteger p = crt.P;
+				BigInteger q = crt.Q;
+				BigInteger dP = crt.DP;
+				BigInteger dQ = crt.DQ;
+				BigInteger qInv = crt.QInv;
 
 				// mP = ((input Mod p) ^ dP)) Mod p
-				mP = (input.Remainder(p)).ModPow(dP, p);
+				BigInteger mP = (input.Remainder(p)).ModPow(dP, p);
 
-				// mQ = ((input Mod q) ^ dQ)) Mod q
-				mQ = (input.Remainder(q)).ModPow(dQ, q);
+                // mQ = ((input Mod q) ^ dQ)) Mod q
+                BigInteger mQ = (input.Remainder(q)).ModPow(dQ, q);
 
 				// h = qInv * (mP - mQ) Mod p
-				h = mP.Subtract(mQ);
-				h = h.Multiply(qInv);
-				h = h.Mod(p);               // Mod (in Java) returns the positive residual
+				BigInteger h = mP.Subtract(mQ).Multiply(qInv).Mod(p);
 
-				// m = h * q + mQ
-				m = h.Multiply(q);
-				m = m.Add(mQ);
-
-				return m;
+                // m = h * q + mQ
+                return h.Multiply(q).Add(mQ);
 			}
 
 			return input.ModPow(key.Exponent, key.Modulus);

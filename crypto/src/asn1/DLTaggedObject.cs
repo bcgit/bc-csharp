@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override Asn1TaggedObject ReplaceTag(int tagClass, int tagNo)
         {
-            return new DLTaggedObject(explicitness, tagClass, tagNo, obj);
+            return new DLTaggedObject(m_explicitness, tagClass, tagNo, m_object);
         }
     }
 }

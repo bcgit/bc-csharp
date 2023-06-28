@@ -46,9 +46,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             byte[] data = GetData();
             if (data.Length == 1)
-            {
                 return string.Empty;
-            }
 
             byte[] description = new byte[data.Length - 1];
             Array.Copy(data, 1, description, 0, description.Length);

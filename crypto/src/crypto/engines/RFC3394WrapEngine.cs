@@ -16,47 +16,46 @@ namespace Org.BouncyCastle.Crypto.Engines
 		: IWrapper
 	{
 		private readonly IBlockCipher engine;
+        private readonly bool wrapCipherMode;
 
-		private KeyParameter	param;
+        private KeyParameter	param;
 		private bool			forWrapping;
 
-		private byte[] iv =
-		{
-			0xa6, 0xa6, 0xa6, 0xa6,
-			0xa6, 0xa6, 0xa6, 0xa6
-		};
+		private byte[] iv = { 0xa6, 0xa6, 0xa6, 0xa6, 0xa6, 0xa6, 0xa6, 0xa6 };
 
-		public Rfc3394WrapEngine(
-			IBlockCipher engine)
+		public Rfc3394WrapEngine(IBlockCipher engine)
+			: this(engine, false)
 		{
-			this.engine = engine;
 		}
 
-        public virtual void Init(
-			bool				forWrapping,
-			ICipherParameters	parameters)
+        public Rfc3394WrapEngine(IBlockCipher engine, bool useReverseDirection)
+        {
+            this.engine = engine;
+            this.wrapCipherMode = !useReverseDirection;
+        }
+
+        public virtual void Init(bool forWrapping, ICipherParameters parameters)
 		{
 			this.forWrapping = forWrapping;
 
-			if (parameters is ParametersWithRandom)
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
+				parameters = withRandom.Parameters;
 			}
 
-			if (parameters is KeyParameter)
+			if (parameters is KeyParameter keyParameter)
 			{
-				this.param = (KeyParameter) parameters;
+				this.param = keyParameter;
 			}
-			else if (parameters is ParametersWithIV)
+			else if (parameters is ParametersWithIV withIV)
 			{
-				ParametersWithIV pIV = (ParametersWithIV) parameters;
-				byte[] iv = pIV.GetIV();
+				byte[] iv = withIV.GetIV();
 
 				if (iv.Length != 8)
 					throw new ArgumentException("IV length not equal to 8", "parameters");
 
 				this.iv = iv;
-				this.param = (KeyParameter) pIV.Parameters;
+				this.param = (KeyParameter)withIV.Parameters;
 			}
 			else
 			{
@@ -69,107 +68,113 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return engine.AlgorithmName; }
 		}
 
-        public virtual byte[] Wrap(
-			byte[]	input,
-			int		inOff,
-			int		inLen)
+        public virtual byte[] Wrap(byte[] input, int inOff, int inLen)
 		{
 			if (!forWrapping)
-			{
 				throw new InvalidOperationException("not set for wrapping");
-			}
+            if (inLen < 8)
+                throw new DataLengthException("wrap data must be at least 8 bytes");
 
-			int n = inLen / 8;
+            int n = inLen / 8;
 
 			if ((n * 8) != inLen)
-			{
 				throw new DataLengthException("wrap data must be a multiple of 8 bytes");
-			}
 
-			byte[] block = new byte[inLen + iv.Length];
-			byte[] buf = new byte[8 + iv.Length];
+            engine.Init(wrapCipherMode, param);
 
+            byte[] block = new byte[inLen + iv.Length];
 			Array.Copy(iv, 0, block, 0, iv.Length);
 			Array.Copy(input, inOff, block, iv.Length, inLen);
 
-			engine.Init(true, param);
-
-			for (int j = 0; j != 6; j++)
+			if (n == 1)
 			{
-				for (int i = 1; i <= n; i++)
+                engine.ProcessBlock(block, 0, block, 0);
+            }
+            else
+			{
+                byte[] buf = new byte[8 + iv.Length];
+
+                for (int j = 0; j != 6; j++)
 				{
-					Array.Copy(block, 0, buf, 0, iv.Length);
-					Array.Copy(block, 8 * i, buf, iv.Length, 8);
-					engine.ProcessBlock(buf, 0, buf, 0);
-
-					int t = n * j + i;
-					for (int k = 1; t != 0; k++)
+					for (int i = 1; i <= n; i++)
 					{
-						byte v = (byte)t;
+						Array.Copy(block, 0, buf, 0, iv.Length);
+						Array.Copy(block, 8 * i, buf, iv.Length, 8);
+						engine.ProcessBlock(buf, 0, buf, 0);
 
-						buf[iv.Length - k] ^= v;
-						t = (int) ((uint)t >> 8);
+						int t = n * j + i;
+						for (int k = 1; t != 0; k++)
+						{
+							byte v = (byte)t;
+
+							buf[iv.Length - k] ^= v;
+							t = (int) ((uint)t >> 8);
+						}
+
+						Array.Copy(buf, 0, block, 0, 8);
+						Array.Copy(buf, 8, block, 8 * i, 8);
 					}
-
-					Array.Copy(buf, 0, block, 0, 8);
-					Array.Copy(buf, 8, block, 8 * i, 8);
 				}
-			}
+            }
 
-			return block;
+            return block;
 		}
 
-        public virtual byte[] Unwrap(
-			byte[]  input,
-			int     inOff,
-			int     inLen)
+        public virtual byte[] Unwrap(byte[] input, int inOff, int inLen)
 		{
 			if (forWrapping)
-			{
 				throw new InvalidOperationException("not set for unwrapping");
-			}
+            if (inLen < 16)
+                throw new InvalidCipherTextException("unwrap data too short");
 
 			int n = inLen / 8;
 
 			if ((n * 8) != inLen)
-			{
 				throw new InvalidCipherTextException("unwrap data must be a multiple of 8 bytes");
-			}
 
-			byte[]  block = new byte[inLen - iv.Length];
-			byte[]  a = new byte[iv.Length];
-			byte[]  buf = new byte[8 + iv.Length];
+            engine.Init(!wrapCipherMode, param);
 
-			Array.Copy(input, inOff, a, 0, iv.Length);
-            Array.Copy(input, inOff + iv.Length, block, 0, inLen - iv.Length);
-
-			engine.Init(false, param);
+            byte[] block = new byte[inLen - iv.Length];
+			byte[] a = new byte[iv.Length];
+			byte[] buf = new byte[8 + iv.Length];
 
 			n = n - 1;
 
-			for (int j = 5; j >= 0; j--)
+			if (n == 1)
 			{
-				for (int i = n; i >= 1; i--)
+                engine.ProcessBlock(input, inOff, buf, 0);
+                Array.Copy(buf, 0, a, 0, iv.Length);
+                Array.Copy(buf, iv.Length, block, 0, 8);
+            }
+            else
+			{
+                Array.Copy(input, inOff, a, 0, iv.Length);
+                Array.Copy(input, inOff + iv.Length, block, 0, inLen - iv.Length);
+
+				for (int j = 5; j >= 0; j--)
 				{
-					Array.Copy(a, 0, buf, 0, iv.Length);
-					Array.Copy(block, 8 * (i - 1), buf, iv.Length, 8);
-
-					int t = n * j + i;
-					for (int k = 1; t != 0; k++)
+					for (int i = n; i >= 1; i--)
 					{
-						byte v = (byte)t;
+						Array.Copy(a, 0, buf, 0, iv.Length);
+						Array.Copy(block, 8 * (i - 1), buf, iv.Length, 8);
 
-						buf[iv.Length - k] ^= v;
-						t = (int) ((uint)t >> 8);
+						int t = n * j + i;
+						for (int k = 1; t != 0; k++)
+						{
+							byte v = (byte)t;
+
+							buf[iv.Length - k] ^= v;
+							t = (int) ((uint)t >> 8);
+						}
+
+						engine.ProcessBlock(buf, 0, buf, 0);
+						Array.Copy(buf, 0, a, 0, 8);
+						Array.Copy(buf, 8, block, 8 * (i - 1), 8);
 					}
-
-					engine.ProcessBlock(buf, 0, buf, 0);
-					Array.Copy(buf, 0, a, 0, 8);
-					Array.Copy(buf, 8, block, 8 * (i - 1), 8);
 				}
-			}
+            }
 
-			if (!Arrays.ConstantTimeAreEqual(a, iv))
+            if (!Arrays.FixedTimeEquals(a, iv))
 				throw new InvalidCipherTextException("checksum failed");
 
 			return block;

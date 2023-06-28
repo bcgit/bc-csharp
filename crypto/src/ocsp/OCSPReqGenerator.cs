@@ -1,11 +1,12 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
@@ -16,7 +17,7 @@ namespace Org.BouncyCastle.Ocsp
 {
 	public class OcspReqGenerator
 	{
-		private IList			list = Platform.CreateArrayList();
+		private List<RequestObject> list = new List<RequestObject>();
 		private GeneralName		requestorName = null;
 		private X509Extensions	requestExtensions = null;
 
@@ -93,13 +94,10 @@ namespace Org.BouncyCastle.Ocsp
 			this.requestExtensions = requestExtensions;
 		}
 
-		private OcspReq GenerateRequest(
-			DerObjectIdentifier		signingAlgorithm,
-			AsymmetricKeyParameter	privateKey,
-			X509Certificate[]		chain,
-			SecureRandom			random)
+		private OcspReq GenerateRequest(DerObjectIdentifier signingAlgorithm, AsymmetricKeyParameter privateKey,
+			X509Certificate[] chain, SecureRandom random)
 		{
-			Asn1EncodableVector requests = new Asn1EncodableVector();
+			Asn1EncodableVector requests = new Asn1EncodableVector(list.Count);
 
 			foreach (RequestObject reqObj in list)
 			{
@@ -114,42 +112,29 @@ namespace Org.BouncyCastle.Ocsp
 			}
 
 			TbsRequest tbsReq = new TbsRequest(requestorName, new DerSequence(requests), requestExtensions);
-
-			ISigner sig = null;
 			Signature signature = null;
 
 			if (signingAlgorithm != null)
 			{
 				if (requestorName == null)
-				{
 					throw new OcspException("requestorName must be specified if request is signed.");
-				}
 
-				try
-				{
-					sig = SignerUtilities.GetSigner(signingAlgorithm.Id);
-					if (random != null)
-					{
-						sig.Init(true, new ParametersWithRandom(privateKey, random));
-					}
-					else
-					{
-						sig.Init(true, privateKey);
-					}
+                ISigner signer;
+                try
+                {
+					signer = SignerUtilities.InitSigner(signingAlgorithm, true, privateKey, random);
 				}
 				catch (Exception e)
 				{
 					throw new OcspException("exception creating signature: " + e, e);
 				}
 
-				DerBitString bitSig = null;
-
+				DerBitString bitSig;
 				try
 				{
-					byte[] encoded = tbsReq.GetEncoded();
-					sig.BlockUpdate(encoded, 0, encoded.Length);
+					tbsReq.EncodeTo(new SignerSink(signer), Asn1Encodable.Der);
 
-					bitSig = new DerBitString(sig.GenerateSignature());
+					bitSig = new DerBitString(signer.GenerateSignature());
 				}
 				catch (Exception e)
 				{
@@ -158,16 +143,15 @@ namespace Org.BouncyCastle.Ocsp
 
 				AlgorithmIdentifier sigAlgId = new AlgorithmIdentifier(signingAlgorithm, DerNull.Instance);
 
-				if (chain != null && chain.Length > 0)
+				Asn1Sequence certs = null;
+				if (!Arrays.IsNullOrEmpty(chain))
 				{
-					Asn1EncodableVector v = new Asn1EncodableVector();
+					Asn1EncodableVector v = new Asn1EncodableVector(chain.Length);
 					try
 					{
 						for (int i = 0; i != chain.Length; i++)
 						{
-							v.Add(
-								X509CertificateStructure.GetInstance(
-									Asn1Object.FromByteArray(chain[i].GetEncoded())));
+							v.Add(chain[i].CertificateStructure);
 						}
 					}
 					catch (IOException e)
@@ -179,15 +163,13 @@ namespace Org.BouncyCastle.Ocsp
 						throw new OcspException("error encoding certs", e);
 					}
 
-					signature = new Signature(sigAlgId, bitSig, new DerSequence(v));
+					certs = new DerSequence(v);
 				}
-				else
-				{
-					signature = new Signature(sigAlgId, bitSig);
-				}
-			}
 
-			return new OcspReq(new OcspRequest(tbsReq, signature));
+                signature = new Signature(sigAlgId, bitSig, certs);
+            }
+
+            return new OcspReq(new OcspRequest(tbsReq, signature));
 		}
 
 		/**
@@ -235,7 +217,7 @@ namespace Org.BouncyCastle.Ocsp
 		 *
 		 * @return an IEnumerable containing recognised names.
 		 */
-		public IEnumerable SignatureAlgNames
+		public IEnumerable<string> SignatureAlgNames
 		{
 			get { return OcspUtilities.AlgNames; }
 		}

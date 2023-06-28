@@ -13,9 +13,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class OtherName
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier typeID;
-        private readonly Asn1Encodable value;
-
         /**
          * OtherName factory method.
          * @param obj the object used to construct an instance of <code>
@@ -29,12 +26,20 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static OtherName GetInstance(object obj)
         {
-            if (obj is OtherName)
-                return (OtherName)obj;
             if (obj == null)
                 return null;
+            if (obj is OtherName otherName)
+                return otherName;
             return new OtherName(Asn1Sequence.GetInstance(obj));
         }
+
+        public static OtherName GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly DerObjectIdentifier typeID;
+        private readonly Asn1Encodable value;
 
         /**
          * Base constructor.
@@ -50,18 +55,12 @@ namespace Org.BouncyCastle.Asn1.X509
         private OtherName(Asn1Sequence seq)
         {
             this.typeID = DerObjectIdentifier.GetInstance(seq[0]);
-            this.value = DerTaggedObject.GetInstance(seq[1]).GetObject(); // explicitly tagged
+            this.value = Asn1Utilities.GetExplicitContextBaseObject(Asn1TaggedObject.GetInstance(seq[1]), tagNo: 0);
         }
 
-        public virtual DerObjectIdentifier TypeID
-        {
-            get { return typeID; }
-        }
+        public virtual DerObjectIdentifier TypeID => typeID;
 
-        public Asn1Encodable Value
-        {
-            get { return value; }
-        }
+        public Asn1Encodable Value => value;
 
         public override Asn1Object ToAsn1Object()
         {

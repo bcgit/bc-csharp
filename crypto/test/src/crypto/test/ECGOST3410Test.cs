@@ -325,15 +325,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             ecGOST3410_CParam();
         }
 
-        public static void Main(
-            string[] args)
-        {
-            ECGost3410Test test = new ECGost3410Test();
-            ITestResult result = test.Perform();
-
-            Console.WriteLine(result);
-        }
-
         [Test]
         public void TestFunction()
         {

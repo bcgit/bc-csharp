@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * EC-NR as described in IEEE 1363-2000
      */
     public class ECNRSigner
-        : IDsaExt
+        : IDsa
     {
         private bool			forSigning;
         private ECKeyParameters	key;
@@ -24,24 +24,20 @@ namespace Org.BouncyCastle.Crypto.Signers
             get { return "ECNR"; }
         }
 
-        public virtual void Init(
-            bool				forSigning,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             this.forSigning = forSigning;
 
             if (forSigning)
             {
-                if (parameters is ParametersWithRandom)
+                if (parameters is ParametersWithRandom rParam)
                 {
-                    ParametersWithRandom rParam = (ParametersWithRandom) parameters;
-
                     this.random = rParam.Random;
                     parameters = rParam.Parameters;
                 }
                 else
                 {
-                    this.random = new SecureRandom();
+                    this.random = CryptoServicesRegistrar.GetSecureRandom();
                 }
 
                 if (!(parameters is ECPrivateKeyParameters))

@@ -1,6 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
@@ -55,14 +56,13 @@ namespace Org.BouncyCastle.X509
         }
 
         private readonly X509CertificateStructure c;
-        //private Hashtable pkcs12Attributes = Platform.CreateHashtable();
-        //private ArrayList pkcs12Ordering = Platform.CreateArrayList();
+        //private Dictionary<> pkcs12Attributes = new Dictionary<>();
+        //private List<> pkcs12Ordering = new List<>();
         private readonly string sigAlgName;
         private readonly byte[] sigAlgParams;
         private readonly BasicConstraints basicConstraints;
         private readonly bool[] keyUsage;
 
-        private readonly object cacheLock = new object();
         private AsymmetricKeyParameter publicKeyValue;
         private CachedEncoding cachedEncoding;
 
@@ -96,12 +96,10 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                Asn1OctetString str = this.GetExtensionValue(new DerObjectIdentifier("2.5.29.19"));
-
+                Asn1OctetString str = GetExtensionValue(X509Extensions.BasicConstraints);
                 if (str != null)
                 {
-                    basicConstraints = BasicConstraints.GetInstance(
-                        X509ExtensionUtilities.FromExtensionValue(str));
+                    basicConstraints = BasicConstraints.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
                 }
             }
             catch (Exception e)
@@ -111,12 +109,10 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                Asn1OctetString str = this.GetExtensionValue(new DerObjectIdentifier("2.5.29.15"));
-
+                Asn1OctetString str = GetExtensionValue(X509Extensions.KeyUsage);
                 if (str != null)
                 {
-                    DerBitString bits = DerBitString.GetInstance(
-                        X509ExtensionUtilities.FromExtensionValue(str));
+                    DerBitString bits = DerBitString.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
 
                     byte[] bytes = bits.GetBytes();
                     int length = (bytes.Length * 8) - bits.PadBits;
@@ -208,9 +204,9 @@ namespace Org.BouncyCastle.X509
             DateTime time)
         {
             if (time.CompareTo(NotAfter) > 0)
-                throw new CertificateExpiredException("certificate expired on " + c.EndDate.GetTime());
+                throw new CertificateExpiredException("certificate expired on " + c.EndDate);
             if (time.CompareTo(NotBefore) < 0)
-                throw new CertificateNotYetValidException("certificate not valid until " + c.StartDate.GetTime());
+                throw new CertificateNotYetValidException("certificate not valid until " + c.StartDate);
         }
 
         /// <summary>
@@ -342,27 +338,23 @@ namespace Org.BouncyCastle.X509
             return Arrays.Clone(keyUsage);
         }
 
-        // TODO Replace with something that returns a list of DerObjectIdentifier
-        public virtual IList GetExtendedKeyUsage()
+        public virtual IList<DerObjectIdentifier> GetExtendedKeyUsage()
         {
-            Asn1OctetString str = this.GetExtensionValue(new DerObjectIdentifier("2.5.29.37"));
+            Asn1OctetString str = GetExtensionValue(X509Extensions.ExtendedKeyUsage);
 
             if (str == null)
                 return null;
 
             try
             {
-                Asn1Sequence seq = Asn1Sequence.GetInstance(
-                    X509ExtensionUtilities.FromExtensionValue(str));
+                Asn1Sequence seq = Asn1Sequence.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
 
-                IList list = Platform.CreateArrayList();
-
+                var result = new List<DerObjectIdentifier>();
                 foreach (DerObjectIdentifier oid in seq)
                 {
-                    list.Add(oid.Id);
+                    result.Add(oid);
                 }
-
-                return list;
+                return result;
             }
             catch (Exception e)
             {
@@ -372,47 +364,90 @@ namespace Org.BouncyCastle.X509
 
         public virtual int GetBasicConstraints()
         {
-            if (basicConstraints != null && basicConstraints.IsCA())
-            {
-                if (basicConstraints.PathLenConstraint == null)
-                {
-                    return int.MaxValue;
-                }
+            if (basicConstraints == null || !basicConstraints.IsCA())
+                return -1;
 
-                return basicConstraints.PathLenConstraint.IntValue;
-            }
+            var pathLenConstraint = basicConstraints.PathLenConstraintInteger;
+            if (pathLenConstraint == null)
+                return int.MaxValue;
 
-            return -1;
+            return pathLenConstraint.IntPositiveValueExact;
         }
 
-        public virtual ICollection GetSubjectAlternativeNames()
+        public virtual GeneralNames GetIssuerAlternativeNameExtension()
         {
-            return GetAlternativeNames("2.5.29.17");
+            return GetAlternativeNameExtension(X509Extensions.IssuerAlternativeName);
         }
 
-        public virtual ICollection GetIssuerAlternativeNames()
+        public virtual GeneralNames GetSubjectAlternativeNameExtension()
         {
-            return GetAlternativeNames("2.5.29.18");
+            return GetAlternativeNameExtension(X509Extensions.SubjectAlternativeName);
         }
 
-        protected virtual ICollection GetAlternativeNames(
-            string oid)
+        public virtual IList<IList<object>> GetIssuerAlternativeNames()
         {
-            Asn1OctetString altNames = GetExtensionValue(new DerObjectIdentifier(oid));
+            return GetAlternativeNames(X509Extensions.IssuerAlternativeName);
+        }
 
+        public virtual IList<IList<object>> GetSubjectAlternativeNames()
+        {
+            return GetAlternativeNames(X509Extensions.SubjectAlternativeName);
+        }
+
+        protected virtual GeneralNames GetAlternativeNameExtension(DerObjectIdentifier oid)
+        {
+            Asn1OctetString altNames = GetExtensionValue(oid);
             if (altNames == null)
                 return null;
 
             Asn1Object asn1Object = X509ExtensionUtilities.FromExtensionValue(altNames);
 
-            GeneralNames gns = GeneralNames.GetInstance(asn1Object);
+            return GeneralNames.GetInstance(asn1Object);
+        }
 
-            IList result = Platform.CreateArrayList();
-            foreach (GeneralName gn in gns.GetNames())
+        protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
+        {
+            var generalNames = GetAlternativeNameExtension(oid);
+            if (generalNames == null)
+                return null;
+
+            var gns = generalNames.GetNames();
+
+            var result = new List<IList<object>>(gns.Length);
+            foreach (GeneralName gn in gns)
             {
-                IList entry = Platform.CreateArrayList();
+                var entry = new List<object>(2);
                 entry.Add(gn.TagNo);
-                entry.Add(gn.Name.ToString());
+
+                switch (gn.TagNo)
+                {
+                case GeneralName.EdiPartyName:
+                case GeneralName.X400Address:
+                case GeneralName.OtherName:
+                    entry.Add(gn.GetEncoded());
+                    break;
+                case GeneralName.DirectoryName:
+                    // TODO Styles
+                    //entry.Add(X509Name.GetInstance(Rfc4519Style.Instance, gn.Name).ToString());
+                    entry.Add(X509Name.GetInstance(gn.Name).ToString());
+                    break;
+                case GeneralName.DnsName:
+                case GeneralName.Rfc822Name:
+                case GeneralName.UniformResourceIdentifier:
+                    entry.Add(((IAsn1String)gn.Name).GetString());
+                    break;
+                case GeneralName.RegisteredID:
+                    entry.Add(DerObjectIdentifier.GetInstance(gn.Name).Id);
+                    break;
+                case GeneralName.IPAddress:
+                    byte[] addrBytes = Asn1OctetString.GetInstance(gn.Name).GetOctets();
+                    IPAddress ipAddress = new IPAddress(addrBytes);
+                    entry.Add(ipAddress.ToString());
+                    break;
+                default:
+                    throw new IOException("Bad tag number: " + gn.TagNo);
+                }
+
                 result.Add(entry);
             }
             return result;
@@ -432,23 +467,7 @@ namespace Org.BouncyCastle.X509
         public virtual AsymmetricKeyParameter GetPublicKey()
         {
             // Cache the public key to support repeated-use optimizations
-            lock (cacheLock)
-            {
-                if (null != publicKeyValue)
-                    return publicKeyValue;
-            }
-
-            AsymmetricKeyParameter temp = PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-
-            lock (cacheLock)
-            {
-                if (null == publicKeyValue)
-                {
-                    publicKeyValue = temp;
-                }
-
-                return publicKeyValue;
-            }
+            return Objects.EnsureSingletonInitialized(ref publicKeyValue, c, CreatePublicKey);
         }
 
         /// <summary>
@@ -525,40 +544,39 @@ namespace Org.BouncyCastle.X509
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();
-            string nl = Platform.NewLine;
 
-            buf.Append("  [0]         Version: ").Append(this.Version).Append(nl);
-            buf.Append("         SerialNumber: ").Append(this.SerialNumber).Append(nl);
-            buf.Append("             IssuerDN: ").Append(this.IssuerDN).Append(nl);
-            buf.Append("           Start Date: ").Append(this.NotBefore).Append(nl);
-            buf.Append("           Final Date: ").Append(this.NotAfter).Append(nl);
-            buf.Append("            SubjectDN: ").Append(this.SubjectDN).Append(nl);
-            buf.Append("           Public Key: ").Append(this.GetPublicKey()).Append(nl);
-            buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).Append(nl);
+            buf.Append("  [0]         Version: ").Append(this.Version).AppendLine();
+            buf.Append("         SerialNumber: ").Append(this.SerialNumber).AppendLine();
+            buf.Append("             IssuerDN: ").Append(this.IssuerDN).AppendLine();
+            buf.Append("           Start Date: ").Append(this.NotBefore).AppendLine();
+            buf.Append("           Final Date: ").Append(this.NotAfter).AppendLine();
+            buf.Append("            SubjectDN: ").Append(this.SubjectDN).AppendLine();
+            buf.Append("           Public Key: ").Append(this.GetPublicKey()).AppendLine();
+            buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).AppendLine();
 
             byte[] sig = this.GetSignature();
-            buf.Append("            Signature: ").Append(Hex.ToHexString(sig, 0, 20)).Append(nl);
+            buf.Append("            Signature: ").AppendLine(Hex.ToHexString(sig, 0, 20));
 
             for (int i = 20; i < sig.Length; i += 20)
             {
                 int len = System.Math.Min(20, sig.Length - i);
-                buf.Append("                       ").Append(Hex.ToHexString(sig, i, len)).Append(nl);
+                buf.Append("                       ").AppendLine(Hex.ToHexString(sig, i, len));
             }
 
             X509Extensions extensions = c.TbsCertificate.Extensions;
 
             if (extensions != null)
             {
-                IEnumerator e = extensions.ExtensionOids.GetEnumerator();
+                var e = extensions.ExtensionOids.GetEnumerator();
 
                 if (e.MoveNext())
                 {
-                    buf.Append("       Extensions: \n");
+                    buf.AppendLine("       Extensions:");
                 }
 
                 do
                 {
-                    DerObjectIdentifier oid = (DerObjectIdentifier)e.Current;
+                    DerObjectIdentifier oid = e.Current;
                     X509Extension ext = extensions.GetExtension(oid);
 
                     if (ext.Value != null)
@@ -592,23 +610,59 @@ namespace Org.BouncyCastle.X509
                             {
                                 buf.Append(oid.Id);
                                 buf.Append(" value = ").Append(Asn1Dump.DumpAsString(obj));
-                                //buf.Append(" value = ").Append("*****").Append(nl);
+                                //buf.Append(" value = ").Append("*****").AppendLine();
                             }
                         }
                         catch (Exception)
                         {
                             buf.Append(oid.Id);
-                            //buf.Append(" value = ").Append(new string(Hex.encode(ext.getValue().getOctets()))).Append(nl);
+                            //buf.Append(" value = ").Append(new string(Hex.encode(ext.getValue().getOctets()))).AppendLine();
                             buf.Append(" value = ").Append("*****");
                         }
                     }
 
-                    buf.Append(nl);
+                    buf.AppendLine();
                 }
                 while (e.MoveNext());
             }
 
             return buf.ToString();
+        }
+
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
+        {
+            return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
+        }
+
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+        }
+
+        public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
+        {
+            var tbsCertificate = c.TbsCertificate;
+            var extensions = tbsCertificate.Extensions;
+
+            AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
+            AltSignatureValue altSigValue = AltSignatureValue.FromExtensions(extensions);
+
+            var verifier = verifierProvider.CreateVerifierFactory(altSigAlg.Algorithm);
+
+            Asn1Sequence tbsSeq = Asn1Sequence.GetInstance(tbsCertificate.ToAsn1Object());
+            Asn1EncodableVector v = new Asn1EncodableVector();
+
+            for (int i = 0; i < tbsSeq.Count - 1; i++)
+            {
+                if (i != 2) // signature field - must be ver 3 so version always present
+                {
+                    v.Add(tbsSeq[i]);
+                }
+            }
+
+            v.Add(X509Utilities.TrimExtensions(3, extensions));
+
+            return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
         }
 
         /// <summary>
@@ -617,8 +671,7 @@ namespace Org.BouncyCastle.X509
         /// <param name="key">An appropriate public key parameter object, RsaPublicKeyParameters, DsaPublicKeyParameters or ECDsaPublicKeyParameters</param>
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If key submitted is not of the above nominated types.</exception>
-        public virtual void Verify(
-            AsymmetricKeyParameter key)
+        public virtual void Verify(AsymmetricKeyParameter key)
         {
             CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
         }
@@ -627,44 +680,48 @@ namespace Org.BouncyCastle.X509
         /// Verify the certificate's signature using a verifier created using the passed in verifier provider.
         /// </summary>
         /// <param name="verifierProvider">An appropriate provider for verifying the certificate's signature.</param>
-        /// <returns>True if the signature is valid.</returns>
-        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate algorithm is invalid.</exception>
-        public virtual void Verify(
-            IVerifierFactoryProvider verifierProvider)
+        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate signature algorithm
+        /// is invalid.</exception>
+        public virtual void Verify(IVerifierFactoryProvider verifierProvider)
         {
             CheckSignature(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
         }
 
-        protected virtual void CheckSignature(
-            IVerifierFactory verifier)
+        /// <summary>Verify the certificate's alternative signature using a verifier created using the passed in
+        /// verifier provider.</summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the certificate's alternative
+        /// signature.</param>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate alternative signature
+        /// algorithm is invalid.</exception>
+        public virtual void VerifyAltSignature(IVerifierFactoryProvider verifierProvider)
         {
-            if (!IsAlgIDEqual(c.SignatureAlgorithm, c.TbsCertificate.Signature))
+            if (!IsAlternativeSignatureValid(verifierProvider))
+                throw new InvalidKeyException("Public key presented not for certificate alternative signature");
+        }
+
+        protected virtual void CheckSignature(IVerifierFactory verifier)
+        {
+            if (!CheckSignatureValid(verifier))
+                throw new InvalidKeyException("Public key presented not for certificate signature");
+        }
+
+        protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
+        {
+            var tbsCertificate = c.TbsCertificate;
+
+            if (!IsAlgIDEqual(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
-            Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
-
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
-
-            byte[] b = this.GetTbsCertificate();
-
-            streamCalculator.Stream.Write(b, 0, b.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
-            {
-                throw new InvalidKeyException("Public key presented not for certificate signature");
-            }
+            return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);
         }
 
         private CachedEncoding GetCachedEncoding()
         {
-            lock (cacheLock)
-            {
-                if (null != cachedEncoding)
-                    return cachedEncoding;
-            }
+            return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+        }
 
+        private static CachedEncoding CreateCachedEncoding(X509CertificateStructure c)
+        {
             byte[] encoding = null;
             CertificateEncodingException exception = null;
             try
@@ -676,17 +733,12 @@ namespace Org.BouncyCastle.X509
                 exception = new CertificateEncodingException("Failed to DER-encode certificate", e);
             }
 
-            CachedEncoding temp = new CachedEncoding(encoding, exception);
+            return new CachedEncoding(encoding, exception);
+        }
 
-            lock (cacheLock)
-            {
-                if (null == cachedEncoding)
-                {
-                    cachedEncoding = temp;
-                }
-
-                return cachedEncoding;
-            }
+        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
+        {
+            return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
         }
 
         private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
@@ -698,7 +750,7 @@ namespace Org.BouncyCastle.X509
             Asn1Encodable p2 = id2.Parameters;
 
             if ((p1 == null) == (p2 == null))
-                return Platform.Equals(p1, p2);
+                return Objects.Equals(p1, p2);
 
             // Exactly one of p1, p2 is null at this point
             return p1 == null

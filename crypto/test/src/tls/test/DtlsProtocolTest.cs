@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tls.Crypto;
+using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -69,18 +72,50 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 try
                 {
-                    MockDtlsServer server = new MockDtlsServer();
-                    DtlsTransport dtlsServer = m_serverProtocol.Accept(server, m_serverTransport);
-                    byte[] buf = new byte[dtlsServer.GetReceiveLimit()];
-                    while (!m_isShutdown)
+                    TlsCrypto serverCrypto = new BcTlsCrypto();
+
+                    DtlsRequest request = null;
+
+                    // Use DtlsVerifier to require a HelloVerifyRequest cookie exchange before accepting
                     {
-                        int length = dtlsServer.Receive(buf, 0, buf.Length, 1000);
-                        if (length >= 0)
+                        DtlsVerifier verifier = new DtlsVerifier(serverCrypto);
+
+                        // NOTE: Test value only - would typically be the client IP address
+                        byte[] clientID = Encoding.UTF8.GetBytes("MockDtlsClient");
+
+                        int receiveLimit = m_serverTransport.GetReceiveLimit();
+                        int dummyOffset = serverCrypto.SecureRandom.Next(16) + 1;
+                        byte[] buf = new byte[dummyOffset + m_serverTransport.GetReceiveLimit()];
+
+                        do
                         {
-                            dtlsServer.Send(buf, 0, length);
+                            if (m_isShutdown)
+                                return;
+
+                            int length = m_serverTransport.Receive(buf, dummyOffset, receiveLimit, 1000);
+                            if (length > 0)
+                            {
+                                request = verifier.VerifyRequest(clientID, buf, dummyOffset, length, m_serverTransport);
+                            }
                         }
+                        while (request == null);
                     }
-                    dtlsServer.Close();
+
+                    // NOTE: A real server would handle each DtlsRequest in a new task/thread and continue accepting
+                    {
+                        MockDtlsServer server = new MockDtlsServer(serverCrypto);
+                        DtlsTransport dtlsTransport = m_serverProtocol.Accept(server, m_serverTransport, request);
+                        byte[] buf = new byte[dtlsTransport.GetReceiveLimit()];
+                        while (!m_isShutdown)
+                        {
+                            int length = dtlsTransport.Receive(buf, 0, buf.Length, 1000);
+                            if (length >= 0)
+                            {
+                                dtlsTransport.Send(buf, 0, length);
+                            }
+                        }
+                        dtlsTransport.Close();
+                    }
                 }
                 catch (Exception e)
                 {

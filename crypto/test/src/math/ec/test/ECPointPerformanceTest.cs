@@ -1,17 +1,13 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 
@@ -21,7 +17,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
     * Compares the performance of the the window NAF point multiplication against
     * conventional point multiplication.
     */
-    [TestFixture, Explicit]
+    [TestFixture]
     public class ECPointPerformanceTest
     {
         internal const int MILLIS_PER_ROUND = 200;
@@ -33,7 +29,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
             "JACOBIAN-MODIFIED", "LAMBDA-AFFINE", "LAMBDA-PROJECTIVE", "SKEWED" };
 
-        private void RandMult(string curveName)
+        private static void RandMult(string curveName)
         {
             X9ECParameters spec = ECNamedCurveTable.GetByName(curveName);
             if (spec != null)
@@ -48,13 +44,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
-        private void RandMult(string label, X9ECParameters spec)
+        private static void RandMult(string label, X9ECParameters spec)
         {
             ECCurve C = spec.Curve;
-            ECPoint G = (ECPoint)spec.G;
+            ECPoint G = spec.G;
             BigInteger n = spec.N;
 
-            SecureRandom random = new SecureRandom();
+            var random = new SecureRandom();
             random.SetSeed(DateTimeUtilities.CurrentUnixMs());
 
             Console.WriteLine(label);
@@ -98,9 +94,11 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     Console.WriteLine(sb.ToString());
                 }
             }
+
+            Console.Out.Flush();
         }
 
-        private double RandMult(SecureRandom random, ECPoint g, BigInteger n)
+        private static double RandMult(SecureRandom random, ECPoint g, BigInteger n)
         {
             BigInteger[] ks = new BigInteger[128];
             for (int i = 0; i < ks.Length; ++i)
@@ -109,7 +107,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
 
             int ki = 0;
-            ECPoint p = g;
+            ECPoint p;
 
             {
                 long startTime = DateTimeUtilities.CurrentUnixMs();
@@ -131,7 +129,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 while (DateTimeUtilities.CurrentUnixMs() < goalTime);
             }
 
-            double minRate = Double.MaxValue, maxRate = Double.MinValue, totalRate = 0.0;
+            double minRate = double.MaxValue, maxRate = double.MinValue, totalRate = 0.0;
 
             for (int i = 1; i <= NUM_ROUNDS; i++)
             {
@@ -172,16 +170,16 @@ namespace Org.BouncyCastle.Math.EC.Tests
             return (totalRate - minRate - maxRate) / (NUM_ROUNDS - 2);
         }
 
-        [Test, Ignore]
+        [Test, Explicit]
         public void TestMultiply()
         {
-            ArrayList nameList = new ArrayList();
-            CollectionUtilities.AddRange(nameList, ECNamedCurveTable.Names);
-            CollectionUtilities.AddRange(nameList, CustomNamedCurves.Names);
+            var names = new List<string>();
+            names.AddRange(ECNamedCurveTable.Names);
+            names.AddRange(CustomNamedCurves.Names);
 
-            string[] names = (string[])nameList.ToArray(typeof(string));
-            Array.Sort(names);
-            ISet oids = new HashSet();
+            names.Sort();
+
+            var oids = new HashSet<DerObjectIdentifier>();
             foreach (string name in names)
             {
                 DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
@@ -199,11 +197,6 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
                 RandMult(name);
             }
-        }
-
-        public static void Main(string[] args)
-        {
-            new ECPointPerformanceTest().TestMultiply();
         }
     }
 }

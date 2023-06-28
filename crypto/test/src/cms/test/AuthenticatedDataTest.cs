@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Text;
 
 using NUnit.Framework;
@@ -124,11 +123,6 @@ namespace Org.BouncyCastle.Cms.Tests
 //		super(name);
 //		}
 //		
-//		public static void main(string args[])
-//		{
-//		junit.textui.TestRunner.run(AuthenticatedDataTest.class);
-//		}
-//		
 //		public static Test suite()
 //		throws Exception
 //		{
@@ -172,7 +166,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -204,7 +198,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -235,7 +229,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ad.MacAlgOid, macAlg);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -271,7 +265,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -302,7 +296,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 

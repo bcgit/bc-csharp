@@ -1,50 +1,52 @@
-
 using System;
-using System.Text;
 
 namespace Org.BouncyCastle.Crypto
 {
     public interface ISigner
     {
-        /**
-         * Return the name of the algorithm the signer implements.
-         *
-         * @return the name of the algorithm the signer implements.
-         */
+        /// <summary>The algorithm name.</summary>
         string AlgorithmName { get; }
 
-		/**
-         * Initialise the signer for signing or verification.
-         *
-         * @param forSigning true if for signing, false otherwise
-         * @param param necessary parameters.
-         */
-         void Init(bool forSigning, ICipherParameters parameters);
+        /// <summary>Initialise the signer for signing or verification.</summary>
+        /// <param name="forSigning">true if for signing, false otherwise.</param>
+        /// <param name="parameters">necessary parameters.</param>
+        void Init(bool forSigning, ICipherParameters parameters);
 
-        /**
-         * update the internal digest with the byte b
-         */
+        /// <summary>Update the signer with a single byte.</summary>
+        /// <param name="input">the input byte to be entered.</param>
         void Update(byte input);
 
-        /**
-         * update the internal digest with the byte array in
-         */
-        void BlockUpdate(byte[] input, int inOff, int length);
+        /// <summary>Update the signer with a block of bytes.</summary>
+        /// <param name="input">the byte array containing the data.</param>
+        /// <param name="inOff">the offset into the byte array where the data starts.</param>
+        /// <param name="inLen">the length of the data.</param>
+        void BlockUpdate(byte[] input, int inOff, int inLen);
 
-        /**
-         * Generate a signature for the message we've been loaded with using
-         * the key we were initialised with.
-         */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Update the signer with a span of bytes.</summary>
+        /// <param name="input">the span containing the data.</param>
+        void BlockUpdate(ReadOnlySpan<byte> input);
+#endif
+
+        int GetMaxSignatureSize();
+
+        /// <summary>Generate a signature for the message we've been loaded with using the key we were initialised with.
+        /// </summary>
+        /// <returns>A byte array containing the signature for the message.</returns>
         byte[] GenerateSignature();
-        /**
-         * return true if the internal state represents the signature described
-         * in the passed in array.
-         */
+
+        /// <summary>Return true if the internal state represents the signature described in the passed in array.
+        /// </summary>
+        /// <param name="signature">an array containing the candidate signature to verify.</param>
+        /// <returns>true if the internal state represents the signature described in the passed in array.</returns>
         bool VerifySignature(byte[] signature);
 
-        /**
-         * reset the internal state
-         */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api]
+        //bool VerifySignature(ReadOnlySpan<byte> signature);
+#endif
+
+        /// <summary>Reset the signer back to its initial state.</summary>
         void Reset();
     }
 }

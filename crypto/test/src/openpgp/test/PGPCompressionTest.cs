@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection.Emit;
 using System.Text;
 
 using NUnit.Framework;
@@ -74,21 +75,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			if (streamClose)
 			{
-				os.Close();
+				os.Dispose();
 			}
 			else
 			{
-				cPacket.Close();
-			}
+#pragma warning disable CS0618 // Type or member is obsolete
+                cPacket.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
 
-			ValidateData(data, bOut.ToArray());
+            ValidateData(data, bOut.ToArray());
 
 			try
 			{
-				os.Close();
-				cPacket.Close();
-			}
-			catch (Exception)
+				os.Dispose();
+#pragma warning disable CS0618 // Type or member is obsolete
+                cPacket.Close();
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            catch (Exception)
 			{
 				Fail("Redundant Close() should be ignored");
 			}
@@ -117,11 +122,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		public override string Name
 		{
 			get { return "PgpCompressionTest"; }
-		}
-
-		public static void Main(string[] args)
-		{
-			RunTest(new PgpCompressionTest());
 		}
 	}
 }

@@ -4,33 +4,8 @@ using System.Text;
 namespace Org.BouncyCastle.Utilities
 {
     /// <summary> General string utilities.</summary>
-    public abstract class Strings
+    public static class Strings
     {
-
-        public static string ToUpperCase(string original)
-        {
-            bool changed = false;
-            char[] chars = original.ToCharArray();
-
-            for (int i = 0; i != chars.Length; i++)
-            {
-                char ch = chars[i];
-                if ('a' <= ch && 'z' >= ch)
-                {
-                    changed = true;
-                    chars[i] = (char)(ch - 'a' + 'A');
-                }
-            }
-
-            if (changed)
-            {
-                return new String(chars);
-            }
-
-            return original;
-        }
-
-
         internal static bool IsOneOf(string s, params string[] candidates)
         {
             foreach (string candidate in candidates)
@@ -41,19 +16,27 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
-        public static string FromByteArray(
-            byte[] bs)
+        public static string FromByteArray(byte[] bs)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return string.Create(bs.Length, bs, (chars, bytes) =>
+            {
+                for (int i = 0; i < chars.Length; ++i)
+                {
+                    chars[i] = Convert.ToChar(bytes[i]);
+                }
+            });
+#else
             char[] cs = new char[bs.Length];
             for (int i = 0; i < cs.Length; ++i)
             {
                 cs[i] = Convert.ToChar(bs[i]);
             }
             return new string(cs);
+#endif
         }
 
-        public static byte[] ToByteArray(
-            char[] cs)
+        public static byte[] ToByteArray(char[] cs)
         {
             byte[] bs = new byte[cs.Length];
             for (int i = 0; i < bs.Length; ++i)
@@ -63,8 +46,7 @@ namespace Org.BouncyCastle.Utilities
             return bs;
         }
 
-        public static byte[] ToByteArray(
-            string s)
+        public static byte[] ToByteArray(string s)
         {
             byte[] bs = new byte[s.Length];
             for (int i = 0; i < bs.Length; ++i)
@@ -74,55 +56,61 @@ namespace Org.BouncyCastle.Utilities
             return bs;
         }
 
-        public static string FromAsciiByteArray(
-            byte[] bytes)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] ToByteArray(ReadOnlySpan<char> cs)
         {
-#if SILVERLIGHT || PORTABLE
-            // TODO Check for non-ASCII bytes in input?
-            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-#else
-            return Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+            byte[] bs = new byte[cs.Length];
+            for (int i = 0; i < bs.Length; ++i)
+            {
+                bs[i] = Convert.ToByte(cs[i]);
+            }
+            return bs;
+        }
 #endif
+
+        public static string FromAsciiByteArray(byte[] bytes)
+        {
+            return Encoding.ASCII.GetString(bytes);
         }
 
-        public static byte[] ToAsciiByteArray(
-            char[] cs)
+        public static byte[] ToAsciiByteArray(char[] cs)
         {
-#if SILVERLIGHT || PORTABLE
-            // TODO Check for non-ASCII characters in input?
-            return Encoding.UTF8.GetBytes(cs);
-#else
             return Encoding.ASCII.GetBytes(cs);
-#endif
         }
 
-        public static byte[] ToAsciiByteArray(
-            string s)
+        public static byte[] ToAsciiByteArray(string s)
         {
-#if SILVERLIGHT || PORTABLE
-            // TODO Check for non-ASCII characters in input?
-            return Encoding.UTF8.GetBytes(s);
-#else
             return Encoding.ASCII.GetBytes(s);
-#endif
         }
 
-        public static string FromUtf8ByteArray(
-            byte[] bytes)
+        public static string FromUtf8ByteArray(byte[] bytes)
         {
-            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+            return Encoding.UTF8.GetString(bytes);
         }
 
-        public static byte[] ToUtf8ByteArray(
-            char[] cs)
+        public static string FromUtf8ByteArray(byte[] bytes, int index, int count)
+        {
+            return Encoding.UTF8.GetString(bytes, index, count);
+        }
+
+        public static byte[] ToUtf8ByteArray(char[] cs)
         {
             return Encoding.UTF8.GetBytes(cs);
         }
 
-        public static byte[] ToUtf8ByteArray(
-            string s)
+        public static byte[] ToUtf8ByteArray(string s)
         {
             return Encoding.UTF8.GetBytes(s);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] ToUtf8ByteArray(ReadOnlySpan<char> cs)
+        {
+            int count = Encoding.UTF8.GetByteCount(cs);
+            byte[] bytes = new byte[count];
+            Encoding.UTF8.GetBytes(cs, bytes);
+            return bytes;
+        }
+#endif
     }
 }

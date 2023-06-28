@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -22,14 +21,14 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal MockPskTlsClient(TlsSession session, TlsPskIdentity pskIdentity)
-            : base(new BcTlsCrypto(new SecureRandom()), pskIdentity)
+            : base(new BcTlsCrypto(), pskIdentity)
         {
             this.m_session = session;
         }
 
-        protected override IList GetProtocolNames()
+        protected override IList<ProtocolName> GetProtocolNames()
         {
-            IList protocolNames = new ArrayList();
+            var protocolNames = new List<ProtocolName>();
             protocolNames.Add(ProtocolName.Http_1_1);
             protocolNames.Add(ProtocolName.Http_2_Tls);
             return protocolNames;
@@ -63,9 +62,12 @@ namespace Org.BouncyCastle.Tls.Tests
                 + ", " + AlertDescription.GetText(alertDescription));
         }
 
-        public override IDictionary GetClientExtensions()
+        public override IDictionary<int, byte[]> GetClientExtensions()
         {
-            IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            var clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(
                 base.GetClientExtensions());
 
             {
@@ -130,6 +132,14 @@ namespace Org.BouncyCastle.Tls.Tests
                 byte[] tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
                 Console.WriteLine("Client 'tls-unique': " + ToHexString(tlsUnique));
             }
+        }
+
+        public override void ProcessServerExtensions(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessServerExtensions(serverExtensions);
         }
 
         protected virtual string ToHexString(byte[] data)

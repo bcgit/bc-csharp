@@ -1,20 +1,13 @@
 using System;
-using System.Collections;
-using System.Globalization;
-using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Security.Tests
@@ -142,7 +135,8 @@ namespace Org.BouncyCastle.Security.Tests
             {
                 ISigner signer = SignerUtilities.GetSigner(algorithm);
 
-                string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
+                string upper = algorithm.ToUpperInvariant();
+
                 int withPos = upper.LastIndexOf("WITH");
 
                 string cipherName = withPos < 0
@@ -168,7 +162,7 @@ namespace Org.BouncyCastle.Security.Tests
                     signParams = dsaPriv;
                     verifyParams = dsaPub;
                 }
-                else if (cipherName == "ECGOST3410")
+                else if (cipherName.StartsWith("ECGOST"))
                 {
                     signParams = ecGostPair.Private;
                     verifyParams = ecGostPair.Public;

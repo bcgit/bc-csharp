@@ -87,13 +87,17 @@ namespace Org.BouncyCastle.Pkcs
         {
             try
             {
-                ICipherBuilder decryptorBuilder = inputDecryptorProvider.CreateDecryptorBuilder(encryptedPrivateKeyInfo.EncryptionAlgorithm);
+                ICipherBuilder decryptorBuilder = inputDecryptorProvider.CreateDecryptorBuilder(
+                    encryptedPrivateKeyInfo.EncryptionAlgorithm);
 
-                ICipher encIn = decryptorBuilder.BuildCipher(new MemoryInputStream(encryptedPrivateKeyInfo.GetEncryptedData()));
+                ICipher encIn = decryptorBuilder.BuildCipher(
+                    new MemoryStream(encryptedPrivateKeyInfo.GetEncryptedData(), false));
 
-                Stream strm = encIn.Stream;
-                byte[] data = Streams.ReadAll(encIn.Stream);
-                Platform.Dispose(strm);
+                byte[] data;
+                using (var strm = encIn.Stream)
+                {
+                    data = Streams.ReadAll(encIn.Stream);
+                }
 
                 return PrivateKeyInfo.GetInstance(data);
             }

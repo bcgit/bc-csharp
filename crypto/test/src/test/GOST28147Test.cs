@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Tests
 		private void doOidTest()
 		{
 			string[] oids = {
-					CryptoProObjectIdentifiers.GostR28147Cbc.Id,
+				CryptoProObjectIdentifiers.GostR28147Gcfb.Id,
 			};
 
 			string[] names = {
@@ -226,12 +226,6 @@ namespace Org.BouncyCastle.Tests
 
 				doOidTest();
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Gost28147Test());
 		}
 
 		[Test]

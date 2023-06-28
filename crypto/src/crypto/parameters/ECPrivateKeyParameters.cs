@@ -18,15 +18,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
-        [Obsolete("Use version with explicit 'algorithm' parameter")]
-        public ECPrivateKeyParameters(
-            BigInteger			d,
-            DerObjectIdentifier publicKeyParamSet)
-            : base("ECGOST3410", true, publicKeyParamSet)
-        {
-            this.d = Parameters.ValidatePrivateScalar(d);
-        }
-
         public ECPrivateKeyParameters(
             string				algorithm,
             BigInteger			d,

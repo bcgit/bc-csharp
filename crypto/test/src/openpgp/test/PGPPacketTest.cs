@@ -25,16 +25,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 MemoryStream bOut = new MemoryStream();
 
-                Stream outputStream = generator.Open(
-					new UncloseableStream(bOut),
-					PgpLiteralData.Binary,
-					PgpLiteralData.Console,
-					i,
-					DateTime.UtcNow);
-
-				outputStream.Write(buf, 0, i);
-
-                generator.Close();
+                using (var outputStream = generator.Open(
+                    new UncloseableStream(bOut),
+                    PgpLiteralData.Binary,
+                    PgpLiteralData.Console,
+                    i,
+                    DateTime.UtcNow))
+                {
+                    outputStream.Write(buf, 0, i);
+                }
 
                 PgpObjectFactory fact = new PgpObjectFactory(bOut.ToArray());
 
@@ -61,11 +60,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		public override string Name
         {
 			get { return "PgpPacketTest"; }
-        }
-
-		public static void Main(string[] args)
-        {
-			RunTest(new PgpPacketTest());
         }
 
 		[Test]

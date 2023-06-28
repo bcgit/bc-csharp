@@ -1,20 +1,33 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class CertifiedKeyPair
 		: Asn1Encodable
 	{
-		private readonly CertOrEncCert certOrEncCert;
-		private readonly EncryptedValue privateKey;
-		private readonly PkiPublicationInfo publicationInfo;
+        public static CertifiedKeyPair GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CertifiedKeyPair certifiedKeyPair)
+                return certifiedKeyPair;
+            return new CertifiedKeyPair(Asn1Sequence.GetInstance(obj));
+        }
 
-		private CertifiedKeyPair(Asn1Sequence seq)
+        public static CertifiedKeyPair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly CertOrEncCert m_certOrEncCert;
+		private readonly EncryptedKey m_privateKey;
+		private readonly PkiPublicationInfo m_publicationInfo;
+
+        private CertifiedKeyPair(Asn1Sequence seq)
 		{
-			certOrEncCert = CertOrEncCert.GetInstance(seq[0]);
+			m_certOrEncCert = CertOrEncCert.GetInstance(seq[0]);
 
 			if (seq.Count >= 2)
 			{
@@ -23,66 +36,48 @@ namespace Org.BouncyCastle.Asn1.Cmp
 					Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(seq[1]);
 					if (tagged.TagNo == 0)
 					{
-						privateKey = EncryptedValue.GetInstance(tagged.GetObject());
+						m_privateKey = EncryptedKey.GetInstance(tagged.GetObject());
 					}
 					else
 					{
-						publicationInfo = PkiPublicationInfo.GetInstance(tagged.GetObject());
+						m_publicationInfo = PkiPublicationInfo.GetInstance(tagged.GetObject());
 					}
 				}
 				else
 				{
-					privateKey = EncryptedValue.GetInstance(Asn1TaggedObject.GetInstance(seq[1]));
-					publicationInfo = PkiPublicationInfo.GetInstance(Asn1TaggedObject.GetInstance(seq[2]));
+                    m_privateKey = EncryptedKey.GetInstance(Asn1TaggedObject.GetInstance(seq[1]).GetObject());
+                    m_publicationInfo = PkiPublicationInfo.GetInstance(Asn1TaggedObject.GetInstance(seq[2]).GetObject());
 				}
 			}
 		}
 
-		public static CertifiedKeyPair GetInstance(object obj)
-		{
-			if (obj is CertifiedKeyPair)
-				return (CertifiedKeyPair)obj;
-
-			if (obj is Asn1Sequence)
-				return new CertifiedKeyPair((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public CertifiedKeyPair(
-			CertOrEncCert certOrEncCert)
-			: this(certOrEncCert, null, null)
+		public CertifiedKeyPair(CertOrEncCert certOrEncCert)
+			: this(certOrEncCert, (EncryptedKey)null, null)
 		{
 		}
 
-		public CertifiedKeyPair(
-			CertOrEncCert		certOrEncCert,
-			EncryptedValue		privateKey,
-			PkiPublicationInfo	publicationInfo
-		)
-		{
+        public CertifiedKeyPair(CertOrEncCert certOrEncCert, EncryptedValue privateKey,
+            PkiPublicationInfo publicationInfo)
+            : this(certOrEncCert, privateKey == null ? null : new EncryptedKey(privateKey), publicationInfo)
+        {
+        }
+
+        public CertifiedKeyPair(CertOrEncCert certOrEncCert, EncryptedKey privateKey,
+			PkiPublicationInfo publicationInfo)
+        {
 			if (certOrEncCert == null)
-				throw new ArgumentNullException("certOrEncCert");
+				throw new ArgumentNullException(nameof(certOrEncCert));
 
-			this.certOrEncCert = certOrEncCert;
-			this.privateKey = privateKey;
-			this.publicationInfo = publicationInfo;
-		}
+            m_certOrEncCert = certOrEncCert;
+            m_privateKey = privateKey;
+            m_publicationInfo = publicationInfo;
+        }
 
-		public virtual CertOrEncCert CertOrEncCert
-		{
-			get { return certOrEncCert; }
-		}
+		public virtual CertOrEncCert CertOrEncCert => m_certOrEncCert;
 
-		public virtual EncryptedValue PrivateKey
-		{
-			get { return privateKey; }
-		}
+		public virtual EncryptedKey PrivateKey => m_privateKey;
 
-		public virtual PkiPublicationInfo PublicationInfo
-		{
-			get { return publicationInfo; }
-		}
+		public virtual PkiPublicationInfo PublicationInfo => m_publicationInfo;
 
 		/**
 		 * <pre>
@@ -97,9 +92,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(certOrEncCert);
-            v.AddOptionalTagged(true, 0, privateKey);
-            v.AddOptionalTagged(true, 1, publicationInfo);
+			Asn1EncodableVector v = new Asn1EncodableVector(m_certOrEncCert);
+            v.AddOptionalTagged(true, 0, m_privateKey);
+            v.AddOptionalTagged(true, 1, m_publicationInfo);
 			return new DerSequence(v);
 		}
 	}

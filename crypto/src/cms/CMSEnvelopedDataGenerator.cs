@@ -1,22 +1,14 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Date;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -41,10 +33,9 @@ namespace Org.BouncyCastle.Cms
         }
 
 		/// <summary>Constructor allowing specific source of randomness</summary>
-		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
-		public CmsEnvelopedDataGenerator(
-			SecureRandom rand)
-			: base(rand)
+		/// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+		public CmsEnvelopedDataGenerator(SecureRandom random)
+			: base(random)
 		{
 		}
 
@@ -73,14 +64,13 @@ namespace Org.BouncyCastle.Cms
 					encryptionOid, encKey, asn1Params, out cipherParameters);
 
 				IBufferedCipher cipher = CipherUtilities.GetCipher(encryptionOid);
-				cipher.Init(true, new ParametersWithRandom(cipherParameters, rand));
+				cipher.Init(true, new ParametersWithRandom(cipherParameters, m_random));
 
 				MemoryStream bOut = new MemoryStream();
-				CipherStream cOut = new CipherStream(bOut, null, cipher);
-
-				content.Write(cOut);
-
-                Platform.Dispose(cOut);
+                using (var cOut = new CipherStream(bOut, null, cipher))
+                {
+                    content.Write(cOut);
+                }
 
                 encContent = new BerOctetString(bOut.ToArray());
 			}
@@ -98,13 +88,13 @@ namespace Org.BouncyCastle.Cms
 			}
 
 
-			Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+			Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
             foreach (RecipientInfoGenerator rig in recipientInfoGenerators)
             {
                 try
                 {
-                    recipientInfos.Add(rig.Generate(encKey, rand));
+                    recipientInfos.Add(rig.Generate(encKey, m_random));
                 }
                 catch (InvalidKeyException e)
                 {
@@ -124,7 +114,8 @@ namespace Org.BouncyCastle.Cms
 			Asn1Set unprotectedAttrSet = null;
             if (unprotectedAttributeGenerator != null)
             {
-                Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(Platform.CreateHashtable());
+                Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(
+                    new Dictionary<CmsAttributeTableParameter, object>());
 
                 unprotectedAttrSet = new BerSet(attrTable.ToAsn1EncodableVector());
             }
@@ -145,7 +136,7 @@ namespace Org.BouncyCastle.Cms
             {
 				CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
                
-				keyGen.Init(new KeyGenerationParameters(rand, keyGen.DefaultStrength));
+				keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
 				return Generate(content, encryptionOid, keyGen);
             }
@@ -167,9 +158,12 @@ namespace Org.BouncyCastle.Cms
                 encKey = (KeyParameter) cipherBuilder.Key;
 
                 MemoryStream collector = new MemoryStream();
-                Stream bOut = cipherBuilder.BuildCipher(collector).Stream;            
-                content.Write(bOut);  
-                Platform.Dispose(bOut);                            
+                var cipher = cipherBuilder.BuildCipher(collector);
+                using (var bOut = cipher.Stream)
+                {
+                    content.Write(bOut);
+                }
+
                 encContent = new BerOctetString(collector.ToArray());
             }
             catch (SecurityUtilityException e)
@@ -186,13 +180,13 @@ namespace Org.BouncyCastle.Cms
             }
 
 
-            Asn1EncodableVector recipientInfos = new Asn1EncodableVector();
+            Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);
 
             foreach (RecipientInfoGenerator rig in recipientInfoGenerators)
             {
                 try
                 {
-                    recipientInfos.Add(rig.Generate(encKey, rand));
+                    recipientInfos.Add(rig.Generate(encKey, m_random));
                 }
                 catch (InvalidKeyException e)
                 {
@@ -212,7 +206,8 @@ namespace Org.BouncyCastle.Cms
             Asn1Set unprotectedAttrSet = null;
             if (unprotectedAttributeGenerator != null)
             {
-                Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(Platform.CreateHashtable());
+                Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(
+                    new Dictionary<CmsAttributeTableParameter, object>());
 
                 unprotectedAttrSet = new BerSet(attrTable.ToAsn1EncodableVector());
             }
@@ -234,7 +229,7 @@ namespace Org.BouncyCastle.Cms
             {
 				CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
 
-				keyGen.Init(new KeyGenerationParameters(rand, keySize));
+				keyGen.Init(new KeyGenerationParameters(m_random, keySize));
 
 				return Generate(content, encryptionOid, keyGen);
             }

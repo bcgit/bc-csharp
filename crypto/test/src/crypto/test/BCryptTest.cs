@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void CheckIllegal(String msg, byte[] pass, byte[] salt, int cost)
+        private void CheckIllegal(string msg, byte[] pass, byte[] salt, int cost)
         {
             try
             {
@@ -146,11 +146,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Fail("Hash for " + Hex.ToHexString(password), Hex.ToHexString(expected), Hex.ToHexString(hash));
             }
         }
-
-        public static void Main(string[] args)
-		{
-            RunTest(new BCryptTest());
-		}
 
         [Test]
 		public void TestFunction()

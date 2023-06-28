@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             CheckIllegal("Len parameter must be > 1", new byte[0], new byte[0], 2, 1, 1, 0);
         }
 
-        private void CheckOK(String msg, byte[] pass, byte[] salt, int N, int r, int p, int len)
+        private void CheckOK(string msg, byte[] pass, byte[] salt, int N, int r, int p, int len)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void CheckIllegal(String msg, byte[] pass, byte[] salt, int N, int r, int p, int len)
+        private void CheckIllegal(string msg, byte[] pass, byte[] salt, int N, int r, int p, int len)
         {
             try
             {
@@ -132,12 +132,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 		private static int ExtractInteger(string arg)
 		{
 			return int.Parse(arg.Trim());
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SCryptTest());
 		}
 	}
 }

@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             cshake.BlockUpdate(bytes, 0, bytes.Length);
         }
 
-        private void wrapUp(int outputSize)
+        private void WrapUp(int outputSize)
         {
             byte[] encOut = XofUtilities.RightEncode(outputSize * 8);
 
@@ -89,40 +89,31 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int DoFinal(byte[] outBuf, int outOff)
         {
+            return OutputFinal(outBuf, outOff, GetDigestSize());
+        }
+
+        public virtual int OutputFinal(byte[] outBuf, int outOff, int outLen)
+        {
             if (firstOutput)
             {
-                wrapUp(GetDigestSize());
+                WrapUp(GetDigestSize());
             }
 
-            int rv = cshake.DoFinal(outBuf, outOff, GetDigestSize());
+            int rv = cshake.OutputFinal(outBuf, outOff, outLen);
 
             Reset();
 
             return rv;
         }
 
-        public virtual int DoFinal(byte[] outBuf, int outOff, int outLen)
+        public virtual int Output(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
             {
-                wrapUp(GetDigestSize());
+                WrapUp(0);
             }
 
-            int rv = cshake.DoFinal(outBuf, outOff, outLen);
-
-            Reset();
-
-            return rv;
-        }
-
-        public virtual int DoOutput(byte[] outBuf, int outOff, int outLen)
-        {
-            if (firstOutput)
-            {
-                wrapUp(0);
-            }
-
-            return cshake.DoOutput(outBuf, outOff, outLen);
+            return cshake.Output(outBuf, outOff, outLen);
         }
 
         public virtual void Reset()
@@ -130,5 +121,41 @@ namespace Org.BouncyCastle.Crypto.Digests
             cshake.Reset();
             firstOutput = true;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            XofUtilities.EncodeTo(cshake, input);
+        }
+
+        public virtual int DoFinal(Span<byte> output)
+        {
+            return OutputFinal(output[..GetDigestSize()]);
+        }
+
+        public virtual int OutputFinal(Span<byte> output)
+        {
+            if (firstOutput)
+            {
+                WrapUp(GetDigestSize());
+            }
+
+            int rv = cshake.OutputFinal(output);
+
+            Reset();
+
+            return rv;
+        }
+
+        public virtual int Output(Span<byte> output)
+        {
+            if (firstOutput)
+            {
+                WrapUp(0);
+            }
+
+            return cshake.Output(output);
+        }
+#endif
     }
 }

@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections;
-using System.Text;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -74,21 +74,21 @@ namespace Org.BouncyCastle.X509.Tests
             RsaKeyParameters rsaPublic = new RsaKeyParameters(false, rsaPubMod, rsaPubExp);
 			RsaPrivateCrtKeyParameters rsaPrivate = new RsaPrivateCrtKeyParameters(rsaPrivMod, rsaPubExp, rsaPrivExp, rsaPrivP, rsaPrivQ, rsaPrivDP, rsaPrivDQ, rsaPrivQinv);
 
-			IDictionary attrs = new Hashtable();
+			var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
             attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(X509Name.C);
             ord.Add(X509Name.O);
             ord.Add(X509Name.L);
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-			IList values = new ArrayList();
+			var values = new List<string>();
 			values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -104,12 +104,11 @@ namespace Org.BouncyCastle.X509.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(rsaPublic);
-            certGen.SetSignatureAlgorithm("MD5WithRSAEncryption");
 
-			X509Certificate cert = certGen.Generate(rsaPrivate);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("MD5WithRSAEncryption", rsaPrivate, null));
 
-//			Assert.IsTrue((cert.IsValidNow && cert.Verify(rsaPublic)),"Certificate failed to be valid (RSA)");
-			cert.CheckValidity();
+            //Assert.IsTrue((cert.IsValidNow && cert.Verify(rsaPublic)),"Certificate failed to be valid (RSA)");
+            cert.CheckValidity();
 			cert.Verify(rsaPublic);
 
 			//Console.WriteLine(ASN1Dump.DumpAsString(cert.ToAsn1Object()));
@@ -151,21 +150,21 @@ namespace Org.BouncyCastle.X509.Tests
             DsaPrivateKeyParameters dsaPriv = new DsaPrivateKeyParameters(DsaPrivateX, para);
             DsaPublicKeyParameters dsaPub = new DsaPublicKeyParameters(DSAPublicY, para);
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
             attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(X509Name.C);
             ord.Add(X509Name.O);
             ord.Add(X509Name.L);
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-            IList values = new ArrayList();
+            var values = new List<string>();
 			values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -181,12 +180,11 @@ namespace Org.BouncyCastle.X509.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(dsaPub);
-            certGen.SetSignatureAlgorithm("SHA1WITHDSA");
 
-            X509Certificate cert = certGen.Generate(dsaPriv);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("SHA1WITHDSA", dsaPriv, null));
 
-//			Assert.IsTrue((cert.IsValidNow && cert.Verify(dsaPub)), "Certificate failed to be valid (DSA Test)");
-			cert.CheckValidity();
+            //Assert.IsTrue((cert.IsValidNow && cert.Verify(dsaPub)), "Certificate failed to be valid (DSA Test)");
+            cert.CheckValidity();
 			cert.Verify(dsaPub);
 
             //ISet dummySet = cert.GetNonCriticalExtensionOids();
@@ -232,21 +230,21 @@ namespace Org.BouncyCastle.X509.Tests
                 curve.ValidatePoint(ECPubQX, ECPubQY), ecDomain);
             ECPrivateKeyParameters ecPriv = new ECPrivateKeyParameters("ECDSA", ECPrivD, ecDomain);
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
 			attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
             attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(X509Name.C);
             ord.Add(X509Name.O);
             ord.Add(X509Name.L);
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-			IList values = new ArrayList();
+			var values = new List<string>();
 			values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -258,21 +256,20 @@ namespace Org.BouncyCastle.X509.Tests
             certGen.SetSerialNumber(BigInteger.One);
 
             certGen.SetIssuerDN(new X509Name(ord, attrs));
-            certGen.SetNotBefore(DateTime.Today.Subtract(new TimeSpan(1, 0, 0, 0)));
-            certGen.SetNotAfter(DateTime.Today.AddDays(1));
+            certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
+            certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(ecPub);
-            certGen.SetSignatureAlgorithm("SHA1WITHECDSA");
 
             certGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
 
-            X509Certificate cert = certGen.Generate(ecPriv);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("SHA1WITHECDSA", ecPriv, null));
 
-//            Assert.IsTrue((cert.IsValidNow && cert.Verify(ecPub)), "Certificate failed to be valid (ECDSA)");
-			cert.CheckValidity();
+            //Assert.IsTrue((cert.IsValidNow && cert.Verify(ecPub)), "Certificate failed to be valid (ECDSA)");
+            cert.CheckValidity();
 			cert.Verify(ecPub);
 
-            ISet extOidSet = cert.GetCriticalExtensionOids();
+            var extOidSet = cert.GetCriticalExtensionOids();
 
             if (extOidSet.Count != 1)
             {
@@ -720,11 +717,6 @@ namespace Org.BouncyCastle.X509.Tests
 				Assert.Fail("Reading busted Certificate.");
 			}
 		}
-
-        public static void Main(string[] args)
-        {
-            RunTest(new TestCertificateGen());
-        }
 
         public override void PerformTest()
         {

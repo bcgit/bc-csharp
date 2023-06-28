@@ -11,29 +11,24 @@ namespace Org.BouncyCastle.Tls
     internal abstract class AbstractTlsContext
         : TlsContext
     {
-        private static long counter = Times.NanoTime();
+        private static long counter = DateTime.UtcNow.Ticks;
 
-#if NETCF_1_0
-        private static object counterLock = new object();
-        private static long NextCounterValue()
-        {
-            lock (counterLock)
-            {
-                return ++counter;
-            }
-        }
-#else
         private static long NextCounterValue()
         {
             return Interlocked.Increment(ref counter);
         }
-#endif
 
         private static TlsNonceGenerator CreateNonceGenerator(TlsCrypto crypto, int connectionEnd)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> additionalSeedMaterial = stackalloc byte[16];
+            Pack.UInt64_To_BE((ulong)NextCounterValue(), additionalSeedMaterial);
+            Pack.UInt64_To_BE((ulong)DateTime.UtcNow.Ticks, additionalSeedMaterial[8..]);
+#else
             byte[] additionalSeedMaterial = new byte[16];
             Pack.UInt64_To_BE((ulong)NextCounterValue(), additionalSeedMaterial, 0);
-            Pack.UInt64_To_BE((ulong)Times.NanoTime(), additionalSeedMaterial, 8);
+            Pack.UInt64_To_BE((ulong)DateTime.UtcNow.Ticks, additionalSeedMaterial, 8);
+#endif
             additionalSeedMaterial[0] &= 0x7F;
             additionalSeedMaterial[0] |= (byte)(connectionEnd << 7);
 
@@ -180,6 +175,9 @@ namespace Org.BouncyCastle.Tls
                 throw new InvalidOperationException("Export of channel bindings unavailable before handshake completion");
 
             SecurityParameters securityParameters = SecurityParameters;
+
+            if (ChannelBinding.tls_exporter == channelBinding)
+                return ExportKeyingMaterial("EXPORTER-Channel-Binding", TlsUtilities.EmptyBytes, 32);
 
             if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                 return null;

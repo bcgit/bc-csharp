@@ -1,72 +1,63 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class PkiFreeText
 		: Asn1Encodable
 	{
-		internal Asn1Sequence strings;
-
-		public static PkiFreeText GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
+		public static PkiFreeText GetInstance(object obj)
 		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+			if (obj == null)
+				return null;
+			if (obj is PkiFreeText pkiFreeText)
+				return pkiFreeText;
+            return new PkiFreeText(Asn1Sequence.GetInstance(obj));
 		}
 
-		public static PkiFreeText GetInstance(
-			object obj)
-		{
-			if (obj is PkiFreeText)
-			{
-				return (PkiFreeText)obj;
-			}
-			else if (obj is Asn1Sequence)
-			{
-				return new PkiFreeText((Asn1Sequence)obj);
-			}
+        public static PkiFreeText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
 
-            throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        private readonly Asn1Sequence m_strings;
 
-		public PkiFreeText(
-			Asn1Sequence seq)
+        internal PkiFreeText(Asn1Sequence seq)
 		{
-			foreach (object o in seq)
+			foreach (var element in seq)
 			{
-				if (!(o is DerUtf8String))
-				{
+				if (!(element is DerUtf8String))
 					throw new ArgumentException("attempt to insert non UTF8 STRING into PkiFreeText");
-				}
 			}
 
-			this.strings = seq;
+			m_strings = seq;
 		}
 
-		public PkiFreeText(
-			DerUtf8String p)
+		public PkiFreeText(DerUtf8String p)
 		{
-			strings = new DerSequence(p);
+			m_strings = new DerSequence(p);
 		}
 
-		/**
-		 * Return the number of string elements present.
-		 *
-		 * @return number of elements present.
-		 */
-		[Obsolete("Use 'Count' property instead")]
-		public int Size
+		public PkiFreeText(string p)
+			: this(new DerUtf8String(p))
 		{
-			get { return strings.Count; }
 		}
 
-		public int Count
+		public PkiFreeText(DerUtf8String[] strs)
 		{
-			get { return strings.Count; }
+			m_strings = new DerSequence(strs);
 		}
+
+		public PkiFreeText(string[] strs)
+		{
+			Asn1EncodableVector v = new Asn1EncodableVector(strs.Length);
+			for (int i = 0; i < strs.Length; i++)
+			{
+				v.Add(new DerUtf8String(strs[i]));
+			}
+			m_strings = new DerSequence(v);
+		}
+
+		public virtual int Count => m_strings.Count;
 
 		/**
 		 * Return the UTF8STRING at index.
@@ -76,14 +67,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public DerUtf8String this[int index]
 		{
-			get { return (DerUtf8String) strings[index]; }
-		}
-
-		[Obsolete("Use 'object[index]' syntax instead")]
-		public DerUtf8String GetStringAt(
-			int index)
-		{
-			return this[index];
+			get { return (DerUtf8String)m_strings[index]; }
 		}
 
 		/**
@@ -93,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			return strings;
+			return m_strings;
 		}
 	}
 }

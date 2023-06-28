@@ -11,24 +11,23 @@ namespace Org.BouncyCastle.Crypto.Generators
      * This generates keys consistent for use in the MTI/A0 key agreement protocol
      * as described in "Handbook of Applied Cryptography", Pages 516-519.
      */
+    // TODO[api] sealed
     public class DHKeyPairGenerator
 		: IAsymmetricCipherKeyPairGenerator
     {
-		private DHKeyGenerationParameters param;
+		private DHKeyGenerationParameters m_parameters;
 
-		public virtual void Init(
-			KeyGenerationParameters parameters)
+		public virtual void Init(KeyGenerationParameters parameters)
         {
-            this.param = (DHKeyGenerationParameters)parameters;
+            m_parameters = (DHKeyGenerationParameters)parameters;
         }
 
 		public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
-			DHKeyGeneratorHelper helper = DHKeyGeneratorHelper.Instance;
-			DHParameters dhp = param.Parameters;
+			DHParameters dhp = m_parameters.Parameters;
 
-			BigInteger x = helper.CalculatePrivate(dhp, param.Random);
-			BigInteger y = helper.CalculatePublic(dhp, x);
+			BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
+			BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
 
 			return new AsymmetricCipherKeyPair(
                 new DHPublicKeyParameters(y, dhp),

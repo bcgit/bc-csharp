@@ -15,5 +15,15 @@ namespace Org.BouncyCastle.Bcpg
 		Sha384 = 9,			// SHA-384
 		Sha512 = 10,		// SHA-512
 		Sha224 = 11,		// SHA-224
+		Sha3_256 = 12,		// SHA3-256
+		Sha3_512 = 14,		// SHA3-512
+
+		MD4 = 301,
+		Sha3_224 = 312,		// SHA3-224
+		Sha3_256_Old = 313,	//SHA3-256
+		Sha3_384 = 314,		// SHA3-384
+		Sha3_512_Old = 315, // SHA3-512
+
+		SM3 = 326,			// SM3
 	}
 }

@@ -13,11 +13,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
-        public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
-        {
-            throw new NotSupportedException();
-        }
-
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != SignatureScheme.ed25519)

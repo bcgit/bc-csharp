@@ -36,33 +36,34 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1OctetString GetInstance(object obj)
         {
-            if (obj == null || obj is Asn1OctetString)
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1OctetString asn1OctetString)
+                return asn1OctetString;
+
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                return (Asn1OctetString)obj;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1OctetString converted)
+                    return converted;
             }
-            //else if (obj is Asn1OctetStringParser)
-            else if (obj is IAsn1Convertible)
-            {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1OctetString)
-                    return (Asn1OctetString)asn1Object;
-            }
-            else if (obj is byte[])
+            else if (obj is byte[] bytes)
             {
                 try
                 {
-                    return (Asn1OctetString)Meta.Instance.FromByteArray((byte[])obj);
+                    return (Asn1OctetString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct OCTET STRING from byte[]: " + e.Message);
                 }
             }
-            else if (obj is ArraySegment<byte>)
+            else if (obj is ArraySegment<byte> arraySegment)
             {
                 try
                 {
-                    return (Asn1OctetString)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                    return (Asn1OctetString)Meta.Instance.FromByteArray(arraySegment);
                 }
                 catch (IOException e)
                 {
@@ -98,6 +99,13 @@ namespace Org.BouncyCastle.Asn1
 			this.contents = contents;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal Asn1OctetString(ReadOnlySpan<byte> contents)
+        {
+            this.contents = contents.ToArray();
+        }
+#endif
+
         public Stream GetOctetStream()
 		{
 			return new MemoryStream(contents, false);
@@ -113,7 +121,19 @@ namespace Org.BouncyCastle.Asn1
             return contents;
         }
 
-		protected override int Asn1GetHashCode()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlyMemory<byte> GetOctetsMemory()
+        {
+            return contents.AsMemory();
+        }
+
+        internal ReadOnlySpan<byte> GetOctetsSpan()
+        {
+            return contents.AsSpan();
+        }
+#endif
+
+        protected override int Asn1GetHashCode()
 		{
 			return Arrays.GetHashCode(GetOctets());
         }

@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpPublicKeyRing
         : PgpKeyRing
     {
-        private readonly IList keys;
+        private readonly IList<PgpPublicKey> keys;
 
         public PgpPublicKeyRing(
             byte[] encoding)
@@ -25,8 +25,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
-        internal PgpPublicKeyRing(
-            IList pubKeys)
+        internal PgpPublicKeyRing(IList<PgpPublicKey> pubKeys)
         {
             this.keys = pubKeys;
         }
@@ -34,7 +33,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public PgpPublicKeyRing(
             Stream inputStream)
         {
-            this.keys = Platform.CreateArrayList();
+            this.keys = new List<PgpPublicKey>();
 
             BcpgInputStream bcpgInput = BcpgInputStream.Wrap(inputStream);
 
@@ -49,10 +48,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             TrustPacket trustPk = ReadOptionalTrustPacket(bcpgInput);
 
             // direct signatures and revocations
-            IList keySigs = ReadSignaturesAndTrust(bcpgInput);
+            var keySigs = ReadSignaturesAndTrust(bcpgInput);
 
-            IList ids, idTrusts, idSigs;
-            ReadUserIDs(bcpgInput, out ids, out idTrusts, out idSigs);
+            ReadUserIDs(bcpgInput, out var ids, out var idTrusts, out var idSigs);
 
             keys.Add(new PgpPublicKey(pubPk, trustPk, keySigs, ids, idTrusts, idSigs));
 
@@ -67,19 +65,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Return the first public key in the ring.</summary>
         public virtual PgpPublicKey GetPublicKey()
         {
-            return (PgpPublicKey) keys[0];
+            return keys[0];
         }
 
         /// <summary>Return the public key referred to by the passed in key ID if it is present.</summary>
-        public virtual PgpPublicKey GetPublicKey(
-            long keyId)
+        public virtual PgpPublicKey GetPublicKey(long keyId)
         {
             foreach (PgpPublicKey k in keys)
             {
                 if (keyId == k.KeyId)
-                {
                     return k;
-                }
             }
 
             return null;
@@ -87,9 +82,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>Allows enumeration of all the public keys.</summary>
         /// <returns>An <c>IEnumerable</c> of <c>PgpPublicKey</c> objects.</returns>
-        public virtual IEnumerable GetPublicKeys()
+        public virtual IEnumerable<PgpPublicKey> GetPublicKeys()
         {
-            return new EnumerableProxy(keys);
+            return CollectionUtilities.Proxy(keys);
         }
 
         public virtual byte[] GetEncoded()
@@ -124,13 +119,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpPublicKeyRing	pubRing,
             PgpPublicKey		pubKey)
         {
-            IList keys = Platform.CreateArrayList(pubRing.keys);
+            var keys = new List<PgpPublicKey>(pubRing.keys);
             bool found = false;
             bool masterFound = false;
 
             for (int i = 0; i != keys.Count; i++)
             {
-                PgpPublicKey key = (PgpPublicKey) keys[i];
+                PgpPublicKey key = keys[i];
 
                 if (key.KeyId == pubKey.KeyId)
                 {
@@ -165,34 +160,35 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="pubRing">The public key ring to be modified.</param>
         /// <param name="pubKey">The public key to be removed.</param>
         /// <returns>A new <c>PgpPublicKeyRing</c>, or null if pubKey is not found.</returns>
-        public static PgpPublicKeyRing RemovePublicKey(
-            PgpPublicKeyRing	pubRing,
-            PgpPublicKey		pubKey)
+        public static PgpPublicKeyRing RemovePublicKey(PgpPublicKeyRing pubRing, PgpPublicKey pubKey)
         {
-            IList keys = Platform.CreateArrayList(pubRing.keys);
+            int count = pubRing.keys.Count;
+            long keyID = pubKey.KeyId;
+
+            var result = new List<PgpPublicKey>(count);
             bool found = false;
 
-            for (int i = 0; i < keys.Count; i++)
+            foreach (var key in pubRing.keys)
             {
-                PgpPublicKey key = (PgpPublicKey) keys[i];
-
-                if (key.KeyId == pubKey.KeyId)
+                if (key.KeyId == keyID)
                 {
                     found = true;
-                    keys.RemoveAt(i);
+                    continue;
                 }
+
+                result.Add(key);
             }
 
-            return found ? new PgpPublicKeyRing(keys) : null;
+            return found ? new PgpPublicKeyRing(result) : null;
         }
 
         internal static PublicKeyPacket ReadPublicKeyPacket(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();
-            if (!(packet is PublicKeyPacket))
+            if (!(packet is PublicKeyPacket publicKeyPacket))
                 throw new IOException("unexpected packet in stream: " + packet);
 
-            return (PublicKeyPacket)packet;
+            return publicKeyPacket;
         }
 
         internal static PgpPublicKey ReadSubkey(BcpgInputStream bcpgInput)
@@ -201,9 +197,78 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             TrustPacket kTrust = ReadOptionalTrustPacket(bcpgInput);
 
             // PGP 8 actually leaves out the signature.
-            IList sigList = ReadSignaturesAndTrust(bcpgInput);
+            var sigList = ReadSignaturesAndTrust(bcpgInput);
 
             return new PgpPublicKey(pk, kTrust, sigList);
+        }
+
+        /**
+         * Join two copies of the same certificate.
+         * The certificates must have the same primary key, but may carry different subkeys, user-ids and signatures.
+         * The resulting certificate will carry the sum of both certificates subkeys, user-ids and signatures.
+         * <br/>
+         * This method will ignore trust packets on the second copy of the certificate and instead
+         * copy the local certificate's trust packets to the joined certificate.
+         *
+         * @param first  local copy of the certificate
+         * @param second remote copy of the certificate (e.g. from a key server)
+         * @return joined key ring
+         * @throws PGPException
+         */
+        public static PgpPublicKeyRing Join(PgpPublicKeyRing first, PgpPublicKeyRing second)
+        {
+            return Join(first, second, false, false);
+        }
+
+        /**
+         * Join two copies of the same certificate.
+         * The certificates must have the same primary key, but may carry different subkeys, user-ids and signatures.
+         * The resulting certificate will carry the sum of both certificates subkeys, user-ids and signatures.
+         * <br/>
+         * For each subkey holds: If joinTrustPackets is set to true and the second key is carrying a trust packet,
+         * the trust packet will be copied to the joined key.
+         * Otherwise, the joined key will carry the trust packet of the local copy.
+         *
+         * @param first                      local copy of the certificate
+         * @param second                     remote copy of the certificate (e.g. from a key server)
+         * @param joinTrustPackets           if true, trust packets from the second certificate copy will be carried over into the joined certificate
+         * @param allowSubkeySigsOnNonSubkey if true, the resulting joined certificate may carry subkey signatures on its primary key
+         * @return joined certificate
+         * @throws PGPException
+         */
+        public static PgpPublicKeyRing Join(PgpPublicKeyRing first, PgpPublicKeyRing second, bool joinTrustPackets,
+            bool allowSubkeySigsOnNonSubkey)
+        {
+            if (!Arrays.AreEqual(first.GetPublicKey().GetFingerprint(), second.GetPublicKey().GetFingerprint()))
+                throw new ArgumentException("Cannot merge certificates with differing primary keys.");
+
+            var secondKeys = new HashSet<long>();
+            foreach (var key in second.GetPublicKeys())
+            {
+                secondKeys.Add(key.KeyId);
+            }
+
+            var merged = new List<PgpPublicKey>();
+            foreach (var key in first.GetPublicKeys())
+            {
+                var copy = second.GetPublicKey(key.KeyId);
+                if (copy != null)
+                {
+                    merged.Add(PgpPublicKey.Join(key, copy, joinTrustPackets, allowSubkeySigsOnNonSubkey));
+                    secondKeys.Remove(key.KeyId);
+                }
+                else
+                {
+                    merged.Add(key);
+                }
+            }
+
+            foreach (var additionalKeyId in secondKeys)
+            {
+                merged.Add(second.GetPublicKey(additionalKeyId));
+            }
+
+            return new PgpPublicKeyRing(merged);
         }
     }
 }

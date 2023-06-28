@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Sig;
@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Bcpg
 {
 	/// <remarks>Generic signature packet.</remarks>
     public class SignaturePacket
-        : ContainedPacket //, PublicKeyAlgorithmTag
+        : ContainedPacket
     {
 		private int						version;
         private int						signatureType;
@@ -25,8 +25,7 @@ namespace Org.BouncyCastle.Bcpg
         private SignatureSubpacket[]	unhashedData;
 		private byte[]					signatureEncoding;
 
-		internal SignaturePacket(
-            BcpgInputStream bcpgIn)
+		internal SignaturePacket(BcpgInputStream bcpgIn)
         {
             version = bcpgIn.ReadByte();
 
@@ -68,29 +67,26 @@ namespace Org.BouncyCastle.Bcpg
                 SignatureSubpacketsParser sIn = new SignatureSubpacketsParser(
                     new MemoryStream(hashed, false));
 
-				IList v = Platform.CreateArrayList();
+                var v = new List<SignatureSubpacket>();
+
 				SignatureSubpacket sub;
 				while ((sub = sIn.ReadPacket()) != null)
                 {
                     v.Add(sub);
                 }
 
-				hashedData = new SignatureSubpacket[v.Count];
+                hashedData = v.ToArray();
 
-				for (int i = 0; i != hashedData.Length; i++)
+				foreach (var p in hashedData)
                 {
-                    SignatureSubpacket p = (SignatureSubpacket)v[i];
-                    if (p is IssuerKeyId)
+                    if (p is IssuerKeyId issuerKeyId)
                     {
-                        keyId = ((IssuerKeyId)p).KeyId;
+                        keyId = issuerKeyId.KeyId;
                     }
-                    else if (p is SignatureCreationTime)
+                    else if (p is SignatureCreationTime sigCreationTime)
                     {
-                        creationTime = DateTimeUtilities.DateTimeToUnixMs(
-							((SignatureCreationTime)p).GetTime());
+                        creationTime = DateTimeUtilities.DateTimeToUnixMs(sigCreationTime.GetTime());
                     }
-
-					hashedData[i] = p;
                 }
 
 				int unhashedLength = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
@@ -107,17 +103,14 @@ namespace Org.BouncyCastle.Bcpg
                     v.Add(sub);
                 }
 
-				unhashedData = new SignatureSubpacket[v.Count];
+                unhashedData = v.ToArray();
 
-				for (int i = 0; i != unhashedData.Length; i++)
+				foreach (var p in unhashedData)
                 {
-                    SignatureSubpacket p = (SignatureSubpacket)v[i];
-                    if (p is IssuerKeyId)
+                    if (p is IssuerKeyId issuerKeyId)
                     {
-                        keyId = ((IssuerKeyId)p).KeyId;
+                        keyId = issuerKeyId.KeyId;
                     }
-
-					unhashedData[i] = p;
                 }
             }
             else
@@ -132,45 +125,36 @@ namespace Org.BouncyCastle.Bcpg
 
 			switch (keyAlgorithm)
             {
-                case PublicKeyAlgorithmTag.RsaGeneral:
-                case PublicKeyAlgorithmTag.RsaSign:
-                    MPInteger v = new MPInteger(bcpgIn);
-					signature = new MPInteger[]{ v };
-                    break;
-				case PublicKeyAlgorithmTag.Dsa:
-                    MPInteger r = new MPInteger(bcpgIn);
-                    MPInteger s = new MPInteger(bcpgIn);
-					signature = new MPInteger[]{ r, s };
-                    break;
-                case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
-                case PublicKeyAlgorithmTag.ElGamalGeneral:
-                    MPInteger p = new MPInteger(bcpgIn);
-                    MPInteger g = new MPInteger(bcpgIn);
-                    MPInteger y = new MPInteger(bcpgIn);
-					signature = new MPInteger[]{ p, g, y };
-                    break;
-                case PublicKeyAlgorithmTag.ECDsa:
-                    MPInteger ecR = new MPInteger(bcpgIn);
-                    MPInteger ecS = new MPInteger(bcpgIn);
-                    signature = new MPInteger[]{ ecR, ecS };
-                    break;
-                default:
-					if (keyAlgorithm >= PublicKeyAlgorithmTag.Experimental_1 && keyAlgorithm <= PublicKeyAlgorithmTag.Experimental_11)
-					{
-						signature = null;
-						MemoryStream bOut = new MemoryStream();
-						int ch;
-						while ((ch = bcpgIn.ReadByte()) >= 0)
-						{
-							bOut.WriteByte((byte) ch);
-						}
-						signatureEncoding = bOut.ToArray();
-					}
-					else
-					{
-						throw new IOException("unknown signature key algorithm: " + keyAlgorithm);
-					}
-					break;
+            case PublicKeyAlgorithmTag.RsaGeneral:
+            case PublicKeyAlgorithmTag.RsaSign:
+                MPInteger v = new MPInteger(bcpgIn);
+				signature = new MPInteger[1]{ v };
+                break;
+			case PublicKeyAlgorithmTag.Dsa:
+                MPInteger r = new MPInteger(bcpgIn);
+                MPInteger s = new MPInteger(bcpgIn);
+				signature = new MPInteger[2]{ r, s };
+                break;
+            case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
+            case PublicKeyAlgorithmTag.ElGamalGeneral:
+                MPInteger p = new MPInteger(bcpgIn);
+                MPInteger g = new MPInteger(bcpgIn);
+                MPInteger y = new MPInteger(bcpgIn);
+				signature = new MPInteger[3]{ p, g, y };
+                break;
+            case PublicKeyAlgorithmTag.ECDsa:
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
+                MPInteger ecR = new MPInteger(bcpgIn);
+                MPInteger ecS = new MPInteger(bcpgIn);
+                signature = new MPInteger[2]{ ecR, ecS };
+                break;
+            default:
+				if (keyAlgorithm < PublicKeyAlgorithmTag.Experimental_1 || keyAlgorithm > PublicKeyAlgorithmTag.Experimental_11)
+                    throw new IOException("unknown signature key algorithm: " + keyAlgorithm);
+
+                signature = null;
+                signatureEncoding = Streams.ReadAll(bcpgIn);
+				break;
             }
         }
 
@@ -244,27 +228,27 @@ namespace Org.BouncyCastle.Bcpg
 
 			if (hashedData != null)
 			{
-				setCreationTime();
+				SetCreationTime();
 			}
 		}
 
-		public int Version
-        {
-			get { return version; }
-        }
+		public int Version => version;
 
-		public int SignatureType
-        {
-			get { return signatureType; }
-		}
+		public int SignatureType => signatureType;
 
-		/**
+        /**
         * return the keyId
         * @return the keyId that created the signature.
         */
-        public long KeyId
+        public long KeyId => keyId;
+
+        /**
+         * Return the signatures fingerprint.
+         * @return fingerprint (digest prefix) of the signature
+         */
+        public byte[] GetFingerprint()
         {
-            get { return keyId; }
+            return Arrays.Clone(fingerprint);
         }
 
 		/**
@@ -275,76 +259,64 @@ namespace Org.BouncyCastle.Bcpg
         */
         public byte[] GetSignatureTrailer()
         {
-            byte[] trailer = null;
-
 			if (version == 3)
             {
-                trailer = new byte[5];
+                long time = creationTime / 1000L;
 
-				long time = creationTime / 1000L;
-
+                byte[] trailer = new byte[5];
 				trailer[0] = (byte)signatureType;
                 trailer[1] = (byte)(time >> 24);
                 trailer[2] = (byte)(time >> 16);
-                trailer[3] = (byte)(time >> 8);
-                trailer[4] = (byte)(time);
+                trailer[3] = (byte)(time >>  8);
+                trailer[4] = (byte)(time      );
+                return trailer;
             }
-            else
+
+            MemoryStream sOut = new MemoryStream();
+
+			sOut.WriteByte((byte)Version);
+            sOut.WriteByte((byte)SignatureType);
+            sOut.WriteByte((byte)KeyAlgorithm);
+            sOut.WriteByte((byte)HashAlgorithm);
+
+            // Mark position an reserve two bytes for length
+            long lengthPosition = sOut.Position;
+            sOut.WriteByte(0x00);
+            sOut.WriteByte(0x00);
+
+            SignatureSubpacket[] hashed = GetHashedSubPackets();
+			for (int i = 0; i != hashed.Length; i++)
             {
-                MemoryStream sOut = new MemoryStream();
-
-				sOut.WriteByte((byte)this.Version);
-                sOut.WriteByte((byte)this.SignatureType);
-                sOut.WriteByte((byte)this.KeyAlgorithm);
-                sOut.WriteByte((byte)this.HashAlgorithm);
-
-				MemoryStream hOut = new MemoryStream();
-                SignatureSubpacket[] hashed = this.GetHashedSubPackets();
-
-				for (int i = 0; i != hashed.Length; i++)
-                {
-                    hashed[i].Encode(hOut);
-                }
-
-				byte[] data = hOut.ToArray();
-
-				sOut.WriteByte((byte)(data.Length >> 8));
-                sOut.WriteByte((byte)data.Length);
-                sOut.Write(data, 0, data.Length);
-
-				byte[] hData = sOut.ToArray();
-
-				sOut.WriteByte((byte)this.Version);
-                sOut.WriteByte((byte)0xff);
-                sOut.WriteByte((byte)(hData.Length>> 24));
-                sOut.WriteByte((byte)(hData.Length >> 16));
-                sOut.WriteByte((byte)(hData.Length >> 8));
-                sOut.WriteByte((byte)(hData.Length));
-
-				trailer = sOut.ToArray();
+                hashed[i].Encode(sOut);
             }
 
-			return trailer;
+            ushort dataLength = Convert.ToUInt16(sOut.Position - lengthPosition - 2);
+            uint hDataLength = Convert.ToUInt32(sOut.Position);
+
+			sOut.WriteByte((byte)Version);
+            sOut.WriteByte(0xff);
+            sOut.WriteByte((byte)(hDataLength >> 24));
+            sOut.WriteByte((byte)(hDataLength >> 16));
+            sOut.WriteByte((byte)(hDataLength >>  8));
+            sOut.WriteByte((byte)(hDataLength      ));
+
+            // Reset position and fill in length
+            sOut.Position = lengthPosition;
+            sOut.WriteByte((byte)(dataLength >> 8));
+            sOut.WriteByte((byte)(dataLength     ));
+
+            return sOut.ToArray();
         }
 
-		public PublicKeyAlgorithmTag KeyAlgorithm
-        {
-			get { return keyAlgorithm; }
-        }
+		public PublicKeyAlgorithmTag KeyAlgorithm => keyAlgorithm;
 
-		public HashAlgorithmTag HashAlgorithm
-		{
-			get { return hashAlgorithm; }
-        }
+        public HashAlgorithmTag HashAlgorithm => hashAlgorithm;
 
-		/**
+        /**
 		* return the signature as a set of integers - note this is normalised to be the
         * ASN.1 encoding of what appears in the signature packet.
         */
-        public MPInteger[] GetSignature()
-        {
-            return signature;
-        }
+        public MPInteger[] GetSignature() => signature;
 
 		/**
 		 * Return the byte encoding of the signature section.
@@ -353,94 +325,74 @@ namespace Org.BouncyCastle.Bcpg
 		public byte[] GetSignatureBytes()
 		{
 			if (signatureEncoding != null)
-			{
-				return (byte[]) signatureEncoding.Clone();
-			}
+				return (byte[])signatureEncoding.Clone();
 
 			MemoryStream bOut = new MemoryStream();
-			BcpgOutputStream bcOut = new BcpgOutputStream(bOut);
 
-			foreach (MPInteger sigObj in signature)
-			{
-				try
-				{
-					bcOut.WriteObject(sigObj);
-				}
-				catch (IOException e)
-				{
-					throw new Exception("internal error: " + e);
-				}
-			}
+            using (var pOut = new BcpgOutputStream(bOut))
+            {
+                foreach (MPInteger sigObj in signature)
+                {
+                    try
+                    {
+                        pOut.WriteObject(sigObj);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new Exception("internal error: " + e);
+                    }
+                }
+            }
 
-			return bOut.ToArray();
+            return bOut.ToArray();
 		}
 
-		public SignatureSubpacket[] GetHashedSubPackets()
-        {
-            return hashedData;
-        }
+		public SignatureSubpacket[] GetHashedSubPackets() => hashedData;
 
-		public SignatureSubpacket[] GetUnhashedSubPackets()
-        {
-            return unhashedData;
-        }
+		public SignatureSubpacket[] GetUnhashedSubPackets() => unhashedData;
 
 		/// <summary>Return the creation time in milliseconds since 1 Jan., 1970 UTC.</summary>
-        public long CreationTime
-        {
-            get { return creationTime; }
-        }
+        public long CreationTime => creationTime;
 
-		public override void Encode(
-            BcpgOutputStream bcpgOut)
+		public override void Encode(BcpgOutputStream bcpgOut)
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
-
-			pOut.WriteByte((byte) version);
-
-			if (version == 3 || version == 2)
+            using (var pOut = new BcpgOutputStream(bOut))
             {
-				pOut.Write(
-					5, // the length of the next block
-					(byte) signatureType);
+                pOut.WriteByte((byte)version);
 
-				pOut.WriteInt((int)(creationTime / 1000L));
+                if (version == 3 || version == 2)
+                {
+                    byte nextBlockLength = 5;
+                    pOut.Write(nextBlockLength, (byte)signatureType);
+                    pOut.WriteInt((int)(creationTime / 1000L));
+                    pOut.WriteLong(keyId);
+                    pOut.Write((byte)keyAlgorithm, (byte)hashAlgorithm);
+                }
+                else if (version == 4)
+                {
+                    pOut.Write((byte)signatureType, (byte)keyAlgorithm, (byte)hashAlgorithm);
+                    EncodeLengthAndData(pOut, GetEncodedSubpackets(hashedData));
+                    EncodeLengthAndData(pOut, GetEncodedSubpackets(unhashedData));
+                }
+                else
+                {
+                    throw new IOException("unknown version: " + version);
+                }
 
-				pOut.WriteLong(keyId);
+                pOut.Write(fingerprint);
 
-				pOut.Write(
-					(byte) keyAlgorithm,
-					(byte) hashAlgorithm);
+                if (signature != null)
+                {
+                    pOut.WriteObjects(signature);
+                }
+                else
+                {
+                    pOut.Write(signatureEncoding);
+                }
             }
-            else if (version == 4)
-            {
-                pOut.Write(
-					(byte) signatureType,
-					(byte) keyAlgorithm,
-					(byte) hashAlgorithm);
 
-				EncodeLengthAndData(pOut, GetEncodedSubpackets(hashedData));
-
-				EncodeLengthAndData(pOut, GetEncodedSubpackets(unhashedData));
-            }
-            else
-            {
-                throw new IOException("unknown version: " + version);
-            }
-
-			pOut.Write(fingerprint);
-
-			if (signature != null)
-			{
-				pOut.WriteObjects(signature);
-			}
-			else
-			{
-				pOut.Write(signatureEncoding);
-			}
-
-			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray(), true);
+			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray());
         }
 
 		private static void EncodeLengthAndData(
@@ -464,18 +416,18 @@ namespace Org.BouncyCastle.Bcpg
 			return sOut.ToArray();
 		}
 
-		private void setCreationTime()
+		private void SetCreationTime()
 		{
 			foreach (SignatureSubpacket p in hashedData)
 			{
-				if (p is SignatureCreationTime)
+				if (p is SignatureCreationTime signatureCreationTime)
 				{
-                    creationTime = DateTimeUtilities.DateTimeToUnixMs(
-						((SignatureCreationTime)p).GetTime());
+                    creationTime = DateTimeUtilities.DateTimeToUnixMs(signatureCreationTime.GetTime());
 					break;
 				}
 			}
 		}
+
         public static SignaturePacket FromByteArray(byte[] data)
         {
             BcpgInputStream input = BcpgInputStream.Wrap(new MemoryStream(data));

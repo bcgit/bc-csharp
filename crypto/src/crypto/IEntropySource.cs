@@ -19,6 +19,10 @@ namespace Org.BouncyCastle.Crypto
 		/// <returns>The entropy bytes.</returns>
 		byte[] GetEntropy();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int GetEntropy(Span<byte> output);
+#endif
+
 		/// <summary>
 		/// Return the number of bits of entropy this source can produce.
 		/// </summary>

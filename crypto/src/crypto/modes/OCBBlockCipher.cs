@@ -1,24 +1,25 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    /**
-     * An implementation of <a href="http://tools.ietf.org/html/rfc7253">RFC 7253 on The OCB
-     * Authenticated-Encryption Algorithm</a>, licensed per:
-     * 
-     * <blockquote><p><a href="http://www.cs.ucdavis.edu/~rogaway/ocb/license1.pdf">License for
-     * Open-Source Software Implementations of OCB</a> (Jan 9, 2013) - 'License 1'<br/>
-     * Under this license, you are authorized to make, use, and distribute open-source software
-     * implementations of OCB. This license terminates for you if you sue someone over their open-source
-     * software implementation of OCB claiming that you have a patent covering their implementation.
-     * </p><p>
-     * This is a non-binding summary of a legal document (the link above). The parameters of the license
-     * are specified in the license document and that document is controlling.</p></blockquote>
-     */
+    /// <summary>An implementation of <a href="https://tools.ietf.org/html/rfc7253">RFC 7253 on The OCB
+    /// Authenticated-Encryption Algorithm</a>.</summary>
+    /// <remarks>
+    /// For those still concerned about the original patents around this, please see:
+    /// <para>https://mailarchive.ietf.org/arch/msg/cfrg/qLTveWOdTJcLn4HP3ev-vrj05Vg/</para>
+    /// Text reproduced below:
+    /// <para>
+    /// Phillip Rogaway&lt;rogaway@cs.ucdavis.edu&gt; Sat, 27 February 2021 02:46 UTC
+    ///
+    /// I can confirm that I have abandoned all OCB patents and placed into the public domain all OCB-related IP of
+    /// mine. While I have been telling people this for quite some time, I don't think I ever made a proper announcement
+    /// to the CFRG or on the OCB webpage. Consider that done.
+    /// </para>
+    /// </remarks>
     public class OcbBlockCipher
         : IAeadBlockCipher
     {
@@ -38,7 +39,7 @@ namespace Org.BouncyCastle.Crypto.Modes
          * KEY-DEPENDENT
          */
         // NOTE: elements are lazily calculated
-        private IList L;
+        private IList<byte[]> L;
         private byte[] L_Asterisk, L_Dollar;
 
         /*
@@ -80,15 +81,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mainCipher = mainCipher;
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return mainCipher;
-        }
+        public virtual string AlgorithmName => mainCipher.AlgorithmName + "/OCB";
 
-        public virtual string AlgorithmName
-        {
-            get { return mainCipher.AlgorithmName + "/OCB"; }
-        }
+        public virtual IBlockCipher UnderlyingCipher => mainCipher;
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -98,12 +93,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             KeyParameter keyParameter;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> N;
+#else
             byte[] N;
-            if (parameters is AeadParameters)
+#endif
+            if (parameters is AeadParameters aeadParameters)
             {
-                AeadParameters aeadParameters = (AeadParameters) parameters;
-
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                N = aeadParameters.Nonce;
+#else
                 N = aeadParameters.GetNonce();
+#endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
                 int macSizeBits = aeadParameters.MacSize;
@@ -113,11 +114,13 @@ namespace Org.BouncyCastle.Crypto.Modes
                 macSize = macSizeBits / 8;
                 keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV parametersWithIV)
             {
-                ParametersWithIV parametersWithIV = (ParametersWithIV) parameters;
-
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                N = parametersWithIV.IV;
+#else
                 N = parametersWithIV.GetIV();
+#endif
                 initialAssociatedText = null;
                 macSize = 16;
                 keyParameter = (KeyParameter) parametersWithIV.Parameters;
@@ -130,15 +133,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.hashBlock = new byte[16];
             this.mainBlock = new byte[forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize)];
 
-            if (N == null)
-            {
-                N = new byte[0];
-            }
-
             if (N.Length > 15)
-            {
                 throw new ArgumentException("IV must be no more than 15 bytes");
-            }
 
             /*
              * KEY-DEPENDENT INITIALISATION
@@ -161,7 +157,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             this.L_Dollar = OCB_double(L_Asterisk);
 
-            this.L = Platform.CreateArrayList();
+            this.L = new List<byte[]>();
             this.L.Add(OCB_double(L_Dollar));
 
             /*
@@ -230,6 +226,42 @@ namespace Org.BouncyCastle.Crypto.Modes
             return bottom;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int ProcessNonce(ReadOnlySpan<byte> N)
+        {
+            // TODO[api] Redesign to avoid this exceptional case
+            // Avoid problems if ProcessNonce() was overridden before this method even existed.
+            if (GetType() != typeof(OcbBlockCipher))
+                return ProcessNonce(N.ToArray());
+
+            Span<byte> nonce = stackalloc byte[16];
+            N.CopyTo(nonce[^N.Length..]);
+            nonce[0] = (byte)(macSize << 4);
+            nonce[15 - N.Length] |= 1;
+
+            int bottom = nonce[15] & 0x3F;
+            nonce[15] &= 0xC0;
+
+            /*
+             * When used with incrementing nonces, the cipher is only applied once every 64 inits.
+             */
+            if (KtopInput == null || !nonce.SequenceEqual(KtopInput))
+            {
+                KtopInput = nonce.ToArray();
+
+                Span<byte> Ktop = stackalloc byte[16];
+                hashCipher.ProcessBlock(KtopInput, Ktop);
+                Ktop.CopyTo(Stretch);
+                for (int i = 0; i < 8; ++i)
+                {
+                    Stretch[16 + i] = (byte)(Ktop[i] ^ Ktop[i + 1]);
+                }
+            }
+
+            return bottom;
+        }
+#endif
+
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
@@ -287,6 +319,20 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            for (int i = 0; i < input.Length; ++i)
+            {
+                hashBlock[hashBlockPos] = input[i];
+                if (++hashBlockPos == hashBlock.Length)
+                {
+                    ProcessHashBlock();
+                }
+            }
+        }
+#endif
+
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
             mainBlock[mainBlockPos] = input;
@@ -298,8 +344,24 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
+            mainBlock[mainBlockPos] = input;
+            if (++mainBlockPos == mainBlock.Length)
+            {
+                ProcessMainBlock(output);
+                return BLOCK_SIZE;
+            }
+            return 0;
+        }
+#endif
+
         public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(input.AsSpan(inOff, len), Spans.FromNullable(output, outOff));
+#else
             int resultLen = 0;
 
             for (int i = 0; i < len; ++i)
@@ -313,10 +375,34 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             return resultLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = input.Length;
+            int resultLen = 0;
+
+            for (int i = 0; i < len; ++i)
+            {
+                mainBlock[mainBlockPos] = input[i];
+                if (++mainBlockPos == mainBlock.Length)
+                {
+                    ProcessMainBlock(output[resultLen..]);
+                    resultLen += BLOCK_SIZE;
+                }
+            }
+
+            return resultLen;
+        }
+#endif
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             /*
              * For decryption, get the tag from the end of the message
              */
@@ -357,7 +443,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Xor(mainBlock, Pad);
 
-                Check.OutputLength(output, outOff, mainBlockPos, "Output buffer too short");
+                Check.OutputLength(output, outOff, mainBlockPos, "output buffer too short");
                 Array.Copy(mainBlock, 0, output, outOff, mainBlockPos);
 
                 if (!forEncryption)
@@ -385,7 +471,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (forEncryption)
             {
-                Check.OutputLength(output, outOff, resultLen + macSize, "Output buffer too short");
+                Check.OutputLength(output, outOff, resultLen + macSize, "output buffer too short");
 
                 // Append tag to the message
                 Array.Copy(macBlock, 0, output, outOff + resultLen, macSize);
@@ -394,7 +480,97 @@ namespace Org.BouncyCastle.Crypto.Modes
             else
             {
                 // Compare the tag from the message with the calculated one
-                if (!Arrays.ConstantTimeAreEqual(macBlock, tag))
+                if (!Arrays.FixedTimeEquals(macBlock, tag))
+                    throw new InvalidCipherTextException("mac check in OCB failed");
+            }
+
+            Reset(false);
+
+            return resultLen;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            /*
+             * For decryption, get the tag from the end of the message
+             */
+            byte[] tag = null;
+            if (!forEncryption)
+            {
+                if (mainBlockPos < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                mainBlockPos -= macSize;
+                tag = new byte[macSize];
+                Array.Copy(mainBlock, mainBlockPos, tag, 0, macSize);
+            }
+
+            /*
+             * HASH: Process any final partial block; compute final hash value
+             */
+            if (hashBlockPos > 0)
+            {
+                OCB_extend(hashBlock, hashBlockPos);
+                UpdateHASH(L_Asterisk);
+            }
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Process any final partial block
+             */
+            if (mainBlockPos > 0)
+            {
+                if (forEncryption)
+                {
+                    OCB_extend(mainBlock, mainBlockPos);
+                    Xor(Checksum, mainBlock);
+                }
+
+                Xor(OffsetMAIN, L_Asterisk);
+
+                byte[] Pad = new byte[16];
+                hashCipher.ProcessBlock(OffsetMAIN, 0, Pad, 0);
+
+                Xor(mainBlock, Pad);
+
+                Check.OutputLength(output, mainBlockPos, "output buffer too short");
+                mainBlock.AsSpan(0, mainBlockPos).CopyTo(output);
+
+                if (!forEncryption)
+                {
+                    OCB_extend(mainBlock, mainBlockPos);
+                    Xor(Checksum, mainBlock);
+                }
+            }
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Compute raw tag
+             */
+            Xor(Checksum, OffsetMAIN);
+            Xor(Checksum, L_Dollar);
+            hashCipher.ProcessBlock(Checksum, 0, Checksum, 0);
+            Xor(Checksum, Sum);
+
+            this.macBlock = new byte[macSize];
+            Array.Copy(Checksum, 0, macBlock, 0, macSize);
+
+            /*
+             * Validate or append tag and reset this cipher for the next run
+             */
+            int resultLen = mainBlockPos;
+
+            if (forEncryption)
+            {
+                // Append tag to the message
+                Check.OutputLength(output, resultLen + macSize, "output buffer too short");
+                macBlock.AsSpan(0, macSize).CopyTo(output[resultLen..]);
+                resultLen += macSize;
+            }
+            else
+            {
+                // Compare the tag from the message with the calculated one
+                if (!Arrays.FixedTimeEquals(macBlock, tag))
                     throw new InvalidCipherTextException("mac check in OCB failed");
             }
 
@@ -402,6 +578,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return resultLen;
         }
+#endif
 
         public virtual void Reset()
         {
@@ -420,9 +597,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             while (n >= L.Count)
             {
-                L.Add(OCB_double((byte[]) L[L.Count - 1]));
+                L.Add(OCB_double(L[L.Count - 1]));
             }
-            return (byte[])L[n];
+            return L[n];
         }
 
         protected virtual void ProcessHashBlock()
@@ -464,11 +641,40 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual void ProcessMainBlock(Span<byte> output)
+        {
+            Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Process any whole blocks
+             */
+
+            if (forEncryption)
+            {
+                Xor(Checksum, mainBlock);
+                mainBlockPos = 0;
+            }
+
+            Xor(OffsetMAIN, GetLSub(OCB_ntz(++mainBlockCount)));
+
+            Xor(mainBlock, OffsetMAIN);
+            mainCipher.ProcessBlock(mainBlock, 0, mainBlock, 0);
+            Xor(mainBlock, OffsetMAIN);
+
+            mainBlock.AsSpan(0, BLOCK_SIZE).CopyTo(output);
+
+            if (!forEncryption)
+            {
+                Xor(Checksum, mainBlock);
+                Array.Copy(mainBlock, BLOCK_SIZE, mainBlock, 0, macSize);
+                mainBlockPos = macSize;
+            }
+        }
+#endif
+
         protected virtual void Reset(bool clearMac)
         {
-            hashCipher.Reset();
-            mainCipher.Reset();
-
             Clear(hashBlock);
             Clear(mainBlock);
 
@@ -526,19 +732,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         protected static int OCB_ntz(long x)
         {
-            if (x == 0)
-            {
-                return 64;
-            }
-
-            int n = 0;
-            ulong ux = (ulong)x;
-            while ((ux & 1UL) == 0UL)
-            {
-                ++n;
-                ux >>= 1;
-            }
-            return n;
+            return Longs.NumberOfTrailingZeros(x);
         }
 
         protected static int ShiftLeft(byte[] block, byte[] output)
@@ -556,10 +750,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         protected static void Xor(byte[] block, byte[] val)
         {
-            for (int i = 15; i >= 0; --i)
-            {
-                block[i] ^= val[i];
-            }
+            Bytes.XorTo(16, val, block);
         }
     }
 }

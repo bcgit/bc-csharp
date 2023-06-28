@@ -10,13 +10,15 @@ namespace Org.BouncyCastle.Asn1
 
 		int TagNo { get; }
 
+        // TODO[api]
+        //bool HasContextTag();
+
         bool HasContextTag(int tagNo);
 
         bool HasTag(int tagClass, int tagNo);
 
-        /// <exception cref="IOException"/>
-        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
-        IAsn1Convertible GetObjectParser(int tag, bool isExplicit);
+        // TODO[api]
+        //bool HasTagClass(int tagClass);
 
         /// <exception cref="IOException"/>
         IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo);

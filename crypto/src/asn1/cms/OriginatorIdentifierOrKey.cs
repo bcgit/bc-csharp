@@ -8,42 +8,24 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class OriginatorIdentifierOrKey
         : Asn1Encodable, IAsn1Choice
     {
-        private Asn1Encodable id;
+        private readonly Asn1Encodable id;
 
-        public OriginatorIdentifierOrKey(
-            IssuerAndSerialNumber id)
+        public OriginatorIdentifierOrKey(IssuerAndSerialNumber id)
         {
             this.id = id;
         }
 
-		[Obsolete("Use version taking a 'SubjectKeyIdentifier'")]
-        public OriginatorIdentifierOrKey(
-            Asn1OctetString id)
-			: this(new SubjectKeyIdentifier(id))
-        {
-        }
-
-        public OriginatorIdentifierOrKey(
-            SubjectKeyIdentifier id)
+        public OriginatorIdentifierOrKey(SubjectKeyIdentifier id)
         {
             this.id = new DerTaggedObject(false, 0, id);
         }
 
-        public OriginatorIdentifierOrKey(
-            OriginatorPublicKey id)
+        public OriginatorIdentifierOrKey(OriginatorPublicKey id)
         {
             this.id = new DerTaggedObject(false, 1, id);
         }
 
-		[Obsolete("Use more specific version")]
-        public OriginatorIdentifierOrKey(
-            Asn1Object id)
-        {
-            this.id = id;
-        }
-
-		private OriginatorIdentifierOrKey(
-			Asn1TaggedObject id)
+		private OriginatorIdentifierOrKey(Asn1TaggedObject id)
 		{
 			// TODO Add validation
 			this.id = id;
@@ -127,12 +109,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 				return null;
 			}
-		}
-
-		[Obsolete("Use 'OriginatorPublicKey' property")]
-		public OriginatorPublicKey OriginatorKey
-		{
-			get { return OriginatorPublicKey; }
 		}
 
 		public OriginatorPublicKey OriginatorPublicKey

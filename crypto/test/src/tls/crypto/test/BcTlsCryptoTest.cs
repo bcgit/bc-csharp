@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Tls.Tests;
 using Org.BouncyCastle.Utilities;
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             + "c1 fc eb e1 1a 03 9e c1 76 94 fa c6 e9 85 27 b6 42 f2 ed d5 ce"
             + "61");
 
-        private readonly TlsCrypto m_crypto = new BcTlsCrypto(new SecureRandom());
+        private readonly TlsCrypto m_crypto = new BcTlsCrypto();
 
         protected TlsCredentialedSigner LoadCredentialedSigner(TlsCryptoParameters cryptoParams, string resource,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)
@@ -181,7 +180,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 ImplTestDHDomain(new TlsDHConfig(namedGroup, true));
             }
 
-            IList groups = new TestTlsDHGroupVerifier().Groups;
+            var groups = new TestTlsDHGroupVerifier().Groups;
             foreach (DHGroup dhGroup in groups)
             {
                 BigInteger p = dhGroup.P, g = dhGroup.G;
@@ -408,6 +407,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             for (int i = 0; i < hashes.Length; ++i)
             {
                 int hash = hashes[i];
+                if (!m_crypto.HasHkdfAlgorithm(hash))
+                    continue;
+
                 int hashLen = TlsCryptoUtilities.GetHashOutputSize(hash);
                 TlsSecret zeros = m_crypto.HkdfInit(hash);
 
@@ -582,6 +584,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             return Utilities.Encoders.Hex.Decode(s.Replace(" ", ""));
         }
 
+        private byte[] ImplPrehash(int signatureScheme, byte[] message)
+        {
+            int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
+            TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
+            tlsHash.Update(message, 0, message.Length);
+            return tlsHash.CalculateHash();
+        }
+
+        private byte[] ImplPrehash(SignatureAndHashAlgorithm signatureAndHashAlgorithm, byte[] message)
+        {
+            int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
+            return ImplPrehash(signatureScheme, message);
+        }
+
         private void ImplTestAgreement(TlsAgreement aA, TlsAgreement aB)
         {
             byte[] pA = aA.GenerateEphemeral();
@@ -640,7 +656,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.GetOutputStream();
+                Stream output = tlsStreamSigner.Stream;
                 output.Write(message, 0, message.Length);
                 signature = tlsStreamSigner.GetSignature();
             }
@@ -661,7 +677,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.GetOutputStream();
+                Stream output = tlsStreamVerifier.Stream;
                 output.Write(message, 0, message.Length);
                 verified = tlsStreamVerifier.IsVerified();
             }
@@ -679,28 +695,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         private void ImplTestSignature12(TlsCredentialedSigner credentialedSigner,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
-            short hashAlgorithm = signatureAndHashAlgorithm.Hash;
-
             byte[] message = m_crypto.CreateNonceGenerator(TlsUtilities.EmptyBytes).GenerateNonce(100);
 
             byte[] signature;
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.GetOutputStream();
+                Stream output = tlsStreamSigner.Stream;
                 output.Write(message, 0, message.Length);
                 signature = tlsStreamSigner.GetSignature();
             }
             else
             {
-                // Currently 1.2 relies on these being handled by stream signers 
-                Assert.IsTrue(HashAlgorithm.Intrinsic != hashAlgorithm);
-
-                int cryptoHashAlgorithm = TlsCryptoUtilities.GetHash(hashAlgorithm);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureAndHashAlgorithm, message);
                 signature = credentialedSigner.GenerateRawSignature(hash);
             }
 
@@ -713,20 +720,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.GetOutputStream();
+                Stream output = tlsStreamVerifier.Stream;
                 output.Write(message, 0, message.Length);
                 verified = tlsStreamVerifier.IsVerified();
             }
             else
             {
-                // Currently 1.2 relies on these being handled by stream verifiers 
-                Assert.IsTrue(HashAlgorithm.Intrinsic != hashAlgorithm);
-
-                int cryptoHashAlgorithm = TlsCryptoUtilities.GetHash(hashAlgorithm);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureAndHashAlgorithm, message);
                 verified = tlsVerifier.VerifyRawSignature(digitallySigned, hash);
             }
 
@@ -741,43 +741,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.GetOutputStream();
+                Stream output = tlsStreamSigner.Stream;
                 output.Write(message, 0, message.Length);
                 signature = tlsStreamSigner.GetSignature();
             }
             else
             {
-                int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureScheme, message);
                 signature = credentialedSigner.GenerateRawSignature(hash);
             }
 
-            DigitallySigned digitallySigned = new DigitallySigned(
-                SignatureScheme.GetSignatureAndHashAlgorithm(signatureScheme), signature);
-
             TlsCertificate tlsCertificate = credentialedSigner.Certificate.GetCertificateAt(0);
-            TlsVerifier tlsVerifier = tlsCertificate.CreateVerifier(signatureScheme);
+            Tls13Verifier tls13Verifier = tlsCertificate.CreateVerifier(signatureScheme);
 
-            bool verified;
-            TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
-            if (null != tlsStreamVerifier)
-            {
-                Stream output = tlsStreamVerifier.GetOutputStream();
-                output.Write(message, 0, message.Length);
-                verified = tlsStreamVerifier.IsVerified();
-            }
-            else
-            {
-                int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
-                verified = tlsVerifier.VerifyRawSignature(digitallySigned, hash);
-            }
+            Stream output13 = tls13Verifier.Stream;
+            output13.Write(message, 0, message.Length);
+            bool verified = tls13Verifier.VerifySignature(signature);
 
             Assert.IsTrue(verified);
         }
@@ -802,7 +781,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         private class TestTlsDHGroupVerifier
             : DefaultTlsDHGroupVerifier
         {
-            internal IList Groups
+            internal IList<DHGroup> Groups
             {
                 get { return m_groups; }
             }

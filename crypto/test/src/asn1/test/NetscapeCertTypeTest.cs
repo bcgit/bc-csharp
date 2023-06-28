@@ -28,12 +28,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			BitStringConstantTester.testFlagValueCorrect(7, NetscapeCertType.ObjectSigningCA);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new NetscapeCertTypeTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

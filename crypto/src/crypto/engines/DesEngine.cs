@@ -31,10 +31,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             bool				forEncryption,
             ICipherParameters	parameters)
         {
-            if (!(parameters is KeyParameter))
+            if (!(parameters is KeyParameter keyParameter))
 				throw new ArgumentException("invalid parameter passed to DES init - " + Platform.GetTypeName(parameters));
 
-			workingKey = GenerateWorkingKey(forEncryption, ((KeyParameter)parameters).GetKey());
+			workingKey = GenerateWorkingKey(forEncryption, keyParameter.GetKey());
         }
 
 		public virtual string AlgorithmName
@@ -42,21 +42,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "DES"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
 		public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
         {
             if (workingKey == null)
                 throw new InvalidOperationException("DES engine not initialised");
@@ -64,14 +55,37 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
             Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
-            DesFunc(workingKey, input, inOff, output, outOff);
+            uint hi32 = Pack.BE_To_UInt32(input, inOff);
+            uint lo32 = Pack.BE_To_UInt32(input, inOff + 4);
+
+            DesFunc(workingKey, ref hi32, ref lo32);
+
+            Pack.UInt32_To_BE(hi32, output, outOff);
+            Pack.UInt32_To_BE(lo32, output, outOff + 4);
 
 			return BLOCK_SIZE;
         }
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            if (workingKey == null)
+                throw new InvalidOperationException("DES engine not initialised");
+
+            Check.DataLength(input, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
+
+            uint hi32 = Pack.BE_To_UInt32(input);
+            uint lo32 = Pack.BE_To_UInt32(input[4..]);
+
+            DesFunc(workingKey, ref hi32, ref lo32);
+
+            Pack.UInt32_To_BE(hi32, output);
+            Pack.UInt32_To_BE(lo32, output[4..]);
+
+            return BLOCK_SIZE;
         }
+#endif
 
         /**
         * what follows is mainly taken from "Applied Cryptography", by
@@ -388,19 +402,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             return newKey;
         }
 
-        /**
-        * the DES engine.
-        */
-        internal static void DesFunc(
-            int[]	wKey,
-            byte[]	input,
-            int		inOff,
-            byte[]	outBytes,
-            int		outOff)
+        internal static void DesFunc(int[] wKey, ref uint hi32, ref uint lo32)
         {
-			uint left = Pack.BE_To_UInt32(input, inOff);
-			uint right = Pack.BE_To_UInt32(input, inOff + 4);
-			uint work;
+            uint left = hi32;
+            uint right = lo32;
+            uint work;
 
             work = ((left >> 4) ^ right) & 0x0f0f0f0f;
             right ^= work;
@@ -468,8 +474,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             left ^= work;
             right ^= (work << 4);
 
-			Pack.UInt32_To_BE(right, outBytes, outOff);
-			Pack.UInt32_To_BE(left, outBytes, outOff + 4);
+            hi32 = right;
+            lo32 = left;
         }
     }
 }

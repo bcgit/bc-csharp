@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 		private readonly bool                versionPresent;
 		private readonly DerInteger          version;
 		private readonly ResponderID         responderID;
-		private readonly DerGeneralizedTime  producedAt;
+		private readonly Asn1GeneralizedTime producedAt;
 		private readonly Asn1Sequence        responses;
 		private readonly X509Extensions      responseExtensions;
 
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 		public ResponseData(
 			DerInteger          version,
 			ResponderID         responderID,
-			DerGeneralizedTime  producedAt,
+            Asn1GeneralizedTime producedAt,
 			Asn1Sequence        responses,
 			X509Extensions      responseExtensions)
 		{
@@ -56,23 +56,20 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
 		public ResponseData(
 			ResponderID         responderID,
-			DerGeneralizedTime  producedAt,
+            Asn1GeneralizedTime producedAt,
 			Asn1Sequence        responses,
 			X509Extensions      responseExtensions)
 			: this(V1, responderID, producedAt, responses, responseExtensions)
 		{
 		}
 
-		private ResponseData(
-			Asn1Sequence seq)
+		private ResponseData(Asn1Sequence seq)
 		{
 			int index = 0;
 
 			Asn1Encodable enc = seq[0];
-			if (enc is Asn1TaggedObject)
+			if (enc is Asn1TaggedObject o)
 			{
-				Asn1TaggedObject o = (Asn1TaggedObject)enc;
-
 				if (o.TagNo == 0)
 				{
 					this.versionPresent = true;
@@ -90,7 +87,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			}
 
 			this.responderID = ResponderID.GetInstance(seq[index++]);
-			this.producedAt = (DerGeneralizedTime)seq[index++];
+			this.producedAt = (Asn1GeneralizedTime)seq[index++];
 			this.responses = (Asn1Sequence)seq[index++];
 
 			if (seq.Count > index)
@@ -110,7 +107,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			get { return responderID; }
 		}
 
-		public DerGeneralizedTime ProducedAt
+		public Asn1GeneralizedTime ProducedAt
 		{
 			get { return producedAt; }
 		}
@@ -138,7 +135,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
 
             if (versionPresent || !version.Equals(V1))
             {

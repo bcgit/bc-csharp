@@ -55,13 +55,6 @@ namespace Org.BouncyCastle.Asn1
 
         public override Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
         {
-            // TODO[asn1] Special handling can be removed once ASN1ApplicationSpecificParser types removed.
-            if (Asn1Tags.Application == baseTagClass)
-            {
-                // This cast is ensuring the current user-expected return type.
-                return (DLApplicationSpecific)m_parser.LoadTaggedDL(baseTagClass, baseTagNo, m_constructed);
-            }
-
             return new DLTaggedObjectParser(baseTagClass, baseTagNo, m_constructed, m_parser);
         }
 
@@ -78,4 +71,3 @@ namespace Org.BouncyCastle.Asn1
 		}
     }
 }
-

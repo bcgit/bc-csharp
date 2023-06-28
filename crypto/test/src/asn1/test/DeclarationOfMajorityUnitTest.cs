@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		public override void PerformTest()
 		{
-			DerGeneralizedTime dateOfBirth = new DerGeneralizedTime("20070315173729Z");
+			Asn1GeneralizedTime dateOfBirth = new Asn1GeneralizedTime("20070315173729Z");
 			DeclarationOfMajority decl = new DeclarationOfMajority(dateOfBirth);
 
 			CheckConstruction(decl, DeclarationOfMajority.Choice.DateOfBirth, dateOfBirth, -1);
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				DeclarationOfMajority.GetInstance(new Object());
+				DeclarationOfMajority.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 		private void CheckConstruction(
 			DeclarationOfMajority			decl,
 			DeclarationOfMajority.Choice	type,
-			DerGeneralizedTime				dateOfBirth,
+            Asn1GeneralizedTime				dateOfBirth,
 			int								notYoungerThan)
 		{
 			CheckValues(decl, type, dateOfBirth, notYoungerThan);
@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 		private void CheckValues(
 			DeclarationOfMajority			decl,
 			DeclarationOfMajority.Choice	type,
-			DerGeneralizedTime				dateOfBirth,
+            Asn1GeneralizedTime				dateOfBirth,
 			int								notYoungerThan)
 		{
 			checkMandatoryField("type", (int) type, (int) decl.Type);
@@ -74,12 +74,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			{
 				Fail("notYoungerThan mismatch");
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new DeclarationOfMajorityUnitTest());
 		}
 
 		[Test]

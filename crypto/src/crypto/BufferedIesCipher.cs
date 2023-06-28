@@ -2,8 +2,6 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -36,7 +34,7 @@ namespace Org.BouncyCastle.Crypto
 			this.forEncryption = forEncryption;
 
 			// TODO
-			throw Platform.CreateNotImplementedException("IES");
+			throw new NotImplementedException("IES");
 		}
 
 		public override int GetBlockSize()
@@ -50,7 +48,7 @@ namespace Org.BouncyCastle.Crypto
 			if (engine == null)
 				throw new InvalidOperationException("cipher not initialised");
 
-			int baseLen = inputLen + (int) buffer.Length;
+			int baseLen = inputLen + Convert.ToInt32(buffer.Length);
 			return forEncryption
 				?	baseLen + 20
 				:	baseLen - 20;
@@ -62,14 +60,27 @@ namespace Org.BouncyCastle.Crypto
 			return 0;
 		}
 
-		public override byte[] ProcessByte(
-			byte input)
+		public override byte[] ProcessByte(byte input)
 		{
 			buffer.WriteByte(input);
 			return null;
 		}
 
-		public override byte[] ProcessBytes(
+        public override int ProcessByte(byte input, byte[] output, int outOff)
+        {
+            buffer.WriteByte(input);
+            return 0;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            buffer.WriteByte(input);
+            return 0;
+        }
+#endif
+
+        public override byte[] ProcessBytes(
 			byte[]	input,
 			int		inOff,
 			int		length)
@@ -87,7 +98,15 @@ namespace Org.BouncyCastle.Crypto
 			return null;
 		}
 
-		public override byte[] DoFinal()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			buffer.Write(input);
+			return 0;
+		}
+#endif
+
+        public override byte[] DoFinal()
 		{
 			byte[] buf = buffer.ToArray();
 
@@ -105,7 +124,20 @@ namespace Org.BouncyCastle.Crypto
 			return DoFinal();
 		}
 
-		public override void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+		{
+            byte[] buf = buffer.ToArray();
+
+            Reset();
+
+            byte[] block = engine.ProcessBlock(buf, 0, buf.Length);
+			block.CopyTo(output);
+			return block.Length;
+        }
+#endif
+
+        public override void Reset()
 		{
 			buffer.SetLength(0);
 		}

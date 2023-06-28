@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return Nat576.ToBigInteger64(x);
         }
 
-        public override String FieldName
+        public override string FieldName
         {
             get { return "SecT571Field"; }
         }
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] xx = ((SecT571FieldElement)x).x, yx = ((SecT571FieldElement)y).x;
 
             ulong[] tt = Nat576.CreateExt64();
-            SecT571Field.SquareAddToExt(ax, tt);
+            SecT571Field.SquareExt(ax, tt);
             SecT571Field.MultiplyAddToExt(xx, yx, tt);
 
             ulong[] z = Nat576.Create64();

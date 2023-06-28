@@ -21,5 +21,11 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <param name="s">The s value of a DSA signature.</param>
         /// <returns>An encoding of the DSA signature given by the provided (r, s) pair.</returns>
         byte[] Encode(BigInteger n, BigInteger r, BigInteger s);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int Encode(BigInteger n, BigInteger r, BigInteger s, Span<byte> output);
+#endif
+
+        int GetMaxEncodingSize(BigInteger n);
     }
 }

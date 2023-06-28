@@ -28,7 +28,15 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public DerSequence(params Asn1Encodable[] elements)
+        /**
+		 * create a sequence containing two objects
+		 */
+        public DerSequence(Asn1Encodable element1, Asn1Encodable element2)
+            : base(element1, element2)
+        {
+        }
+
+        public DerSequence(params Asn1Encodable[] elements)
             : base(elements)
 		{
 		}
@@ -58,6 +66,18 @@ namespace Org.BouncyCastle.Asn1
                 Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, elements));
         }
 
+        internal sealed override DerEncoding GetEncodingDer()
+        {
+            return new ConstructedDerEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
+                Asn1OutputStream.GetContentsEncodingsDer(elements));
+        }
+
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
+        {
+            return new ConstructedDerEncoding(tagClass, tagNo,
+                Asn1OutputStream.GetContentsEncodingsDer(elements));
+        }
+
         internal override DerBitString ToAsn1BitString()
         {
             return new DerBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
@@ -77,6 +97,11 @@ namespace Org.BouncyCastle.Asn1
         {
             // NOTE: DLSet is intentional, we don't want sorting
             return new DLSet(false, elements);
+        }
+
+        internal static int GetEncodingLength(int contentsLength)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(Asn1Tags.Sequence, contentsLength);
         }
     }
 }

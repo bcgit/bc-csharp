@@ -27,20 +27,20 @@ namespace Org.BouncyCastle.Pkcs
         /// </summary>
         /// <param name="encryptor">The encryptor to use.</param>
         /// <returns>An encrypted private key info containing the original private key info.</returns>
-        public Pkcs8EncryptedPrivateKeyInfo Build(
-            ICipherBuilder encryptor)
+        public Pkcs8EncryptedPrivateKeyInfo Build(ICipherBuilder encryptor)
         {
             try
             {
-                MemoryStream bOut = new MemoryOutputStream();
+                MemoryStream bOut = new MemoryStream();
                 ICipher cOut = encryptor.BuildCipher(bOut);
-                byte[] keyData = privateKeyInfo.GetEncoded();
 
-                Stream str = cOut.Stream;
-                str.Write(keyData, 0, keyData.Length);
-                Platform.Dispose(str);
+                using (var stream = cOut.Stream)
+                {
+                    privateKeyInfo.EncodeTo(stream);
+                }
 
-                return new Pkcs8EncryptedPrivateKeyInfo(new EncryptedPrivateKeyInfo((AlgorithmIdentifier)encryptor.AlgorithmDetails, bOut.ToArray()));
+                return new Pkcs8EncryptedPrivateKeyInfo(
+                    new EncryptedPrivateKeyInfo((AlgorithmIdentifier)encryptor.AlgorithmDetails, bOut.ToArray()));
             }
             catch (IOException)
             {
