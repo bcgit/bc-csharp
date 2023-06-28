@@ -54,6 +54,17 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct UTC time from byte[]: " + e.Message);
                 }
             }
+            else if (obj is ArraySegment<byte> arraySegment)
+            {
+                try
+                {
+                    return (Asn1UtcTime)Meta.Instance.FromByteArray(arraySegment);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct UTC time from byte[]: " + e.Message);
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }

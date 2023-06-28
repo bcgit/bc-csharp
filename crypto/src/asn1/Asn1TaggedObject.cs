@@ -44,6 +44,17 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct tagged object from byte[]", nameof(obj), e);
                 }
             }
+            else if (obj is ArraySegment<byte> arraySegment)
+            {
+                try
+                {
+                    return CheckedCast(FromByteArray(arraySegment));
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct tagged object from ArraySegment<byte>: " + e.Message);
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
 		}

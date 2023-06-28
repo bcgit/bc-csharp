@@ -27,6 +27,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             {
                 asn1Object = Asn1Object.FromByteArray(bytes);
             }
+            else if (obj is ArraySegment<byte> arraySegment)
+            {
+                asn1Object = Asn1Object.FromByteArray(arraySegment);
+            }
 
             if (asn1Object is Asn1TaggedObject asn1TaggedObject)
                 return new CmpCertificate(asn1TaggedObject);

@@ -59,6 +59,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (input != null) input.Close();// todo platform dispose
                 }
             }
+            else if (src is ArraySegment<byte> arraySegment)
+            {
+                BinaryReader input = null;
+                try // 1.5 / 1.6 compatibility
+                {
+                    input = new BinaryReader(new MemoryStream(arraySegment.Array ?? Array.Empty<byte>(), arraySegment.Offset, arraySegment.Count, false));
+                    return GetInstance(input);
+                }
+                finally
+                {
+                    if (input != null) input.Close();// todo platform dispose
+                }
+            }
             else if (src is MemoryStream memoryStream)
             {
                 return GetInstance(Streams.ReadAll(memoryStream));

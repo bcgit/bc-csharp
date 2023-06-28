@@ -65,6 +65,17 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct integer from byte[]: " + e.Message);
                 }
             }
+            else if (obj is ArraySegment<byte> arraySegment)
+            {
+                try
+                {
+                    return (DerInteger)Meta.Instance.FromByteArray(arraySegment);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct integer from ArraySegment<byte>: " + e.Message);
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }

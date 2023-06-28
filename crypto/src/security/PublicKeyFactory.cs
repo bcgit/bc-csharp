@@ -31,6 +31,14 @@ namespace Org.BouncyCastle.Security
         }
 
         public static AsymmetricKeyParameter CreateKey(
+            ArraySegment<byte> keyInfoData)
+        {
+            return CreateKey(
+                SubjectPublicKeyInfo.GetInstance(
+                    Asn1Object.FromByteArray(keyInfoData)));
+        }
+
+        public static AsymmetricKeyParameter CreateKey(
             Stream inStr)
         {
             return CreateKey(

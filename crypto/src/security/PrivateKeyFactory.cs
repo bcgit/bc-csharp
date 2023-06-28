@@ -32,6 +32,14 @@ namespace Org.BouncyCastle.Security
         }
 
         public static AsymmetricKeyParameter CreateKey(
+            ArraySegment<byte> privateKeyInfoData)
+        {
+            return CreateKey(
+                PrivateKeyInfo.GetInstance(
+                    Asn1Object.FromByteArray(privateKeyInfoData)));
+        }
+
+        public static AsymmetricKeyParameter CreateKey(
             Stream inStr)
         {
             return CreateKey(
@@ -371,6 +379,13 @@ namespace Org.BouncyCastle.Security
         public static AsymmetricKeyParameter DecryptKey(
             char[] passPhrase,
             byte[] encryptedPrivateKeyInfoData)
+        {
+            return DecryptKey(passPhrase, Asn1Object.FromByteArray(encryptedPrivateKeyInfoData));
+        }
+
+        public static AsymmetricKeyParameter DecryptKey(
+            char[] passPhrase,
+            ArraySegment<byte> encryptedPrivateKeyInfoData)
         {
             return DecryptKey(passPhrase, Asn1Object.FromByteArray(encryptedPrivateKeyInfoData));
         }
