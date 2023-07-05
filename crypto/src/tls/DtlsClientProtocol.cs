@@ -468,7 +468,7 @@ namespace Org.BouncyCastle.Tls
             state.clientAgreements = TlsUtilities.AddKeyShareToClientHello(state.clientContext, state.client,
                 state.clientExtensions);
 
-            if (TlsUtilities.IsExtendedMasterSecretOptionalDtls(context.ClientSupportedVersions)
+            if (TlsUtilities.IsExtendedMasterSecretOptional(context.ClientSupportedVersions)
                 && state.client.ShouldUseExtendedMasterSecret())
             {
                 TlsExtensionsUtilities.AddExtendedMasterSecretExtension(state.clientExtensions);

@@ -1156,17 +1156,26 @@ namespace Org.BouncyCastle.Tls
             return new TlsSessionImpl(sessionID, sessionParameters);
         }
 
-        internal static bool IsExtendedMasterSecretOptionalDtls(ProtocolVersion[] activeProtocolVersions)
+        internal static bool IsExtendedMasterSecretOptional(ProtocolVersion protocolVersion)
         {
-            return ProtocolVersion.Contains(activeProtocolVersions, ProtocolVersion.DTLSv12)
-                || ProtocolVersion.Contains(activeProtocolVersions, ProtocolVersion.DTLSv10);
+            ProtocolVersion tlsVersion = protocolVersion.GetEquivalentTlsVersion();
+
+            return ProtocolVersion.TLSv12.Equals(tlsVersion)
+                || ProtocolVersion.TLSv11.Equals(tlsVersion)
+                || ProtocolVersion.TLSv10.Equals(tlsVersion);
         }
 
-        internal static bool IsExtendedMasterSecretOptionalTls(ProtocolVersion[] activeProtocolVersions)
+        internal static bool IsExtendedMasterSecretOptional(ProtocolVersion[] protocolVersions)
         {
-            return ProtocolVersion.Contains(activeProtocolVersions, ProtocolVersion.TLSv12)
-                || ProtocolVersion.Contains(activeProtocolVersions, ProtocolVersion.TLSv11)
-                || ProtocolVersion.Contains(activeProtocolVersions, ProtocolVersion.TLSv10);
+            if (protocolVersions != null)
+            {
+                for (int i = 0; i < protocolVersions.Length; ++i)
+                {
+                    if (IsExtendedMasterSecretOptional(protocolVersions[i]))
+                        return true;
+                }
+            }
+            return false;
         }
 
         public static bool IsNullOrContainsNull(object[] array)

@@ -522,9 +522,6 @@ namespace Org.BouncyCastle.Tls
 
             m_tlsServer.NotifySecureRenegotiation(securityParameters.IsSecureRenegotiation);
 
-            bool offeredExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(
-                m_clientExtensions);
-
             if (m_clientExtensions != null)
             {
                 // NOTE: Validates the padding extension data, if present
@@ -548,11 +545,63 @@ namespace Org.BouncyCastle.Tls
                 m_tlsServer.ProcessClientExtensions(m_clientExtensions);
             }
 
-            bool resumedSession = EstablishSession(m_tlsServer.GetSessionToResume(clientHello.SessionID));
-            securityParameters.m_resumedSession = resumedSession;
+            TlsSession sessionToResume = m_tlsServer.GetSessionToResume(clientHello.SessionID);
+
+            bool resumedSession = EstablishSession(sessionToResume);
+
+            if (resumedSession && !serverVersion.Equals(m_sessionParameters.NegotiatedVersion))
+            {
+                resumedSession = false;
+            }
+
+            // TODO Check the session cipher suite is selectable by the same rules that getSelectedCipherSuite uses
+
+            // TODO Check the resumed session has a peer certificate if we NEED client-auth
+
+            // extended_master_secret
+            {
+                bool negotiateEms = false;
+
+                if (TlsUtilities.IsExtendedMasterSecretOptional(serverVersion) &&
+                    m_tlsServer.ShouldUseExtendedMasterSecret())
+                {
+                    if (TlsExtensionsUtilities.HasExtendedMasterSecretExtension(m_clientExtensions))
+                    {
+                        negotiateEms = true;
+                    }
+                    else if (m_tlsServer.RequiresExtendedMasterSecret())
+                    {
+                        throw new TlsFatalAlert(AlertDescription.handshake_failure,
+                            "Extended Master Secret extension is required");
+                    }
+                    else if (resumedSession)
+                    {
+                        if (m_sessionParameters.IsExtendedMasterSecret)
+                        {
+                            throw new TlsFatalAlert(AlertDescription.handshake_failure,
+                                "Extended Master Secret extension is required for EMS session resumption");
+                        }
+
+                        if (!m_tlsServer.AllowLegacyResumption())
+                        {
+                            throw new TlsFatalAlert(AlertDescription.handshake_failure,
+                                "Extended Master Secret extension is required for legacy session resumption");
+                        }
+                    }
+                }
+
+                if (resumedSession && negotiateEms != m_sessionParameters.IsExtendedMasterSecret)
+                {
+                    resumedSession = false;
+                }
+
+                securityParameters.m_extendedMasterSecret = negotiateEms;
+            }
 
             if (!resumedSession)
             {
+                CancelSession();
+
                 byte[] newSessionID = m_tlsServer.GetNewSessionID();
                 if (null == newSessionID)
                 {
@@ -560,10 +609,9 @@ namespace Org.BouncyCastle.Tls
                 }
 
                 this.m_tlsSession = TlsUtilities.ImportSession(newSessionID, null);
-                this.m_sessionParameters = null;
-                this.m_sessionMasterSecret = null;
             }
 
+            securityParameters.m_resumedSession = resumedSession;
             securityParameters.m_sessionID = m_tlsSession.SessionID;
 
             m_tlsServer.NotifySession(m_tlsSession);
@@ -627,41 +675,13 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            /*
-             * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
-             * master secret [..]. (and see 5.2, 5.3)
-             */
-            if (resumedSession)
+            if (securityParameters.IsExtendedMasterSecret)
             {
-                if (!m_sessionParameters.IsExtendedMasterSecret)
-                {
-                    /*
-                     * TODO[resumption] ProvTlsServer currently only resumes EMS sessions. Revisit this
-                     * in relation to 'tlsServer.allowLegacyResumption()'.
-                     */
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
-                }
-
-                if (!offeredExtendedMasterSecret)
-                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
-
-                securityParameters.m_extendedMasterSecret = true;
-
                 TlsExtensionsUtilities.AddExtendedMasterSecretExtension(m_serverExtensions);
             }
             else
             {
-                securityParameters.m_extendedMasterSecret = offeredExtendedMasterSecret && !serverVersion.IsSsl
-                    && m_tlsServer.ShouldUseExtendedMasterSecret();
-
-                if (securityParameters.IsExtendedMasterSecret)
-                {
-                    TlsExtensionsUtilities.AddExtendedMasterSecretExtension(m_serverExtensions);
-                }
-                else if (m_tlsServer.RequiresExtendedMasterSecret())
-                {
-                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
-                }
+                m_serverExtensions.Remove(ExtensionType.extended_master_secret);
             }
 
             securityParameters.m_applicationProtocol = TlsExtensionsUtilities.GetAlpnExtensionServer(m_serverExtensions);

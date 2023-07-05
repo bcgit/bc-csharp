@@ -1229,37 +1229,41 @@ namespace Org.BouncyCastle.Tls
             // TODO[compat-gnutls] GnuTLS test server fails to send renegotiation_info extension when resuming
             m_tlsClient.NotifySecureRenegotiation(securityParameters.IsSecureRenegotiation);
 
-            /*
-             * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
-             * master secret [..]. (and see 5.2, 5.3)
-             * 
-             * RFC 8446 Appendix D. Because TLS 1.3 always hashes in the transcript up to the server
-             * Finished, implementations which support both TLS 1.3 and earlier versions SHOULD indicate
-             * the use of the Extended Master Secret extension in their APIs whenever TLS 1.3 is used.
-             */
+            // extended_master_secret
             {
-                bool acceptedExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(
-                    m_serverExtensions);
-                bool resumedSession = securityParameters.IsResumedSession;
+                bool negotiatedEms = false;
 
-                if (acceptedExtendedMasterSecret)
+                if (TlsExtensionsUtilities.HasExtendedMasterSecretExtension(m_clientExtensions))
                 {
-                    if (server_version.IsSsl
-                        || (!resumedSession && !m_tlsClient.ShouldUseExtendedMasterSecret()))
+                    negotiatedEms = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(m_serverExtensions);
+
+                    if (TlsUtilities.IsExtendedMasterSecretOptional(server_version))
                     {
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                        if (!negotiatedEms &&
+                            m_tlsClient.RequiresExtendedMasterSecret())
+                        {
+                            throw new TlsFatalAlert(AlertDescription.handshake_failure,
+                                "Extended Master Secret extension is required");
+                        }
+                    }
+                    else
+                    {
+                        if (negotiatedEms)
+                        {
+                            throw new TlsFatalAlert(AlertDescription.illegal_parameter,
+                                "Server sent an unexpected extended_master_secret extension negotiating " + server_version);
+                        }
                     }
                 }
-                else
-                {
-                    if (m_tlsClient.RequiresExtendedMasterSecret()
-                        || (resumedSession && !m_tlsClient.AllowLegacyResumption()))
-                    {
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
-                    }
-                }
 
-                securityParameters.m_extendedMasterSecret = acceptedExtendedMasterSecret;
+                securityParameters.m_extendedMasterSecret = negotiatedEms;
+            }
+
+            if (securityParameters.IsResumedSession &&
+                securityParameters.IsExtendedMasterSecret != m_sessionParameters.IsExtendedMasterSecret)
+            {
+                throw new TlsFatalAlert(AlertDescription.handshake_failure,
+                    "Server resumed session with mismatched extended_master_secret negotiation");
             }
 
             /*
@@ -1670,8 +1674,17 @@ namespace Org.BouncyCastle.Tls
                 securityParameters.m_clientRandom = CreateRandomBlock(useGmtUnixTime, m_tlsClientContext);
             }
 
-            EstablishSession(offeringTlsV12Minus ? m_tlsClient.GetSessionToResume() : null);
-            m_tlsClient.NotifySessionToResume(m_tlsSession);
+            TlsSession sessionToResume = offeringTlsV12Minus ? m_tlsClient.GetSessionToResume() : null;
+
+            bool fallback = m_tlsClient.IsFallback();
+
+            int[] offeredCipherSuites = m_tlsClient.GetCipherSuites();
+
+            this.m_clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(m_tlsClient.GetClientExtensions());
+
+            bool shouldUseEms = m_tlsClient.ShouldUseExtendedMasterSecret();
+
+            EstablishSession(sessionToResume);
 
             /*
              * TODO RFC 5077 3.4. When presenting a ticket, the client MAY generate and include a
@@ -1679,11 +1692,7 @@ namespace Org.BouncyCastle.Tls
              */
             byte[] legacy_session_id = TlsUtilities.GetSessionID(m_tlsSession);
 
-            bool fallback = m_tlsClient.IsFallback();
-
-            int[] offeredCipherSuites = m_tlsClient.GetCipherSuites();
-
-            if (legacy_session_id.Length > 0 && m_sessionParameters != null)
+            if (legacy_session_id.Length > 0)
             {
                 if (!Arrays.Contains(offeredCipherSuites, m_sessionParameters.CipherSuite))
                 {
@@ -1691,8 +1700,42 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            this.m_clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(
-                m_tlsClient.GetClientExtensions());
+            ProtocolVersion sessionVersion = null;
+            if (legacy_session_id.Length > 0)
+            {
+                sessionVersion = m_sessionParameters.NegotiatedVersion;
+
+                if (!ProtocolVersion.Contains(supportedVersions, sessionVersion))
+                {
+                    legacy_session_id = TlsUtilities.EmptyBytes;
+                }
+            }
+
+            if (legacy_session_id.Length > 0 && TlsUtilities.IsExtendedMasterSecretOptional(sessionVersion))
+            {
+                if (shouldUseEms)
+                {
+                    if (!m_sessionParameters.IsExtendedMasterSecret &&
+                        !m_tlsClient.AllowLegacyResumption())
+                    {
+                        legacy_session_id = TlsUtilities.EmptyBytes;
+                    }
+                }
+                else
+                {
+                    if (m_sessionParameters.IsExtendedMasterSecret)
+                    {
+                        legacy_session_id = TlsUtilities.EmptyBytes;
+                    }
+                }
+            }
+
+            if (legacy_session_id.Length < 1)
+            {
+                CancelSession();
+            }
+
+            m_tlsClient.NotifySessionToResume(m_tlsSession);
 
             ProtocolVersion legacy_version = latestVersion;
             if (offeringTlsV13Plus)
@@ -1731,15 +1774,13 @@ namespace Org.BouncyCastle.Tls
             this.m_clientAgreements = TlsUtilities.AddKeyShareToClientHello(m_tlsClientContext, m_tlsClient,
                 m_clientExtensions);
 
-            if (TlsUtilities.IsExtendedMasterSecretOptionalTls(supportedVersions)
-                && (m_tlsClient.ShouldUseExtendedMasterSecret() ||
-                    (null != m_sessionParameters && m_sessionParameters.IsExtendedMasterSecret)))
+            if (shouldUseEms && TlsUtilities.IsExtendedMasterSecretOptional(supportedVersions))
             {
-                TlsExtensionsUtilities.AddExtendedMasterSecretExtension(m_clientExtensions);
+                TlsExtensionsUtilities.AddExtendedMasterSecretExtension(this.m_clientExtensions);
             }
-            else if (!offeringTlsV13Plus && m_tlsClient.RequiresExtendedMasterSecret())
+            else
             {
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                this.m_clientExtensions.Remove(ExtensionType.extended_master_secret);
             }
 
             // NOT renegotiating

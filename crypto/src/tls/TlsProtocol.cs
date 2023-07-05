@@ -1454,16 +1454,20 @@ namespace Org.BouncyCastle.Tls
             if (null == sessionParameters)
                 return false;
 
-            if (!sessionParameters.IsExtendedMasterSecret)
-            {
-                TlsPeer peer = Peer;
-                if (!peer.AllowLegacyResumption() || peer.RequiresExtendedMasterSecret())
-                    return false;
+            ProtocolVersion sessionVersion = sessionParameters.NegotiatedVersion;
+            if (null == sessionVersion || !sessionVersion.IsTls)
+                return false;
 
-                /*
-                 * NOTE: For session resumption without extended_master_secret, renegotiation MUST be disabled
-                 * (see RFC 7627 5.4).
-                 */
+            bool isEms = sessionParameters.IsExtendedMasterSecret;
+            if (sessionVersion.IsSsl)
+            {
+                if (isEms)
+                    return false;
+            }
+            else if (!TlsUtilities.IsExtendedMasterSecretOptional(sessionVersion))
+            {
+                if (!isEms)
+                    return false;
             }
 
             TlsSecret sessionMasterSecret = TlsUtilities.GetSessionMasterSecret(Context.Crypto,
@@ -1478,7 +1482,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
-        protected virtual void InvalidateSession()
+        protected virtual void CancelSession()
         {
             if (m_sessionMasterSecret != null)
             {
@@ -1492,11 +1496,17 @@ namespace Org.BouncyCastle.Tls
                 this.m_sessionParameters = null;
             }
 
+            this.m_tlsSession = null;
+        }
+
+        protected virtual void InvalidateSession()
+        {
             if (m_tlsSession != null)
             {
                 m_tlsSession.Invalidate();
-                this.m_tlsSession = null;
             }
+
+            CancelSession();
         }
 
         /// <exception cref="IOException"/>
