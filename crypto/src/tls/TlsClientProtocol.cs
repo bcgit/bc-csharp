@@ -1112,6 +1112,16 @@ namespace Org.BouncyCastle.Tls
                 m_tlsClient.NotifySessionID(selectedSessionID);
                 securityParameters.m_resumedSession = selectedSessionID.Length > 0 && m_tlsSession != null
                     && Arrays.AreEqual(selectedSessionID, m_tlsSession.SessionID);
+
+                if (securityParameters.IsResumedSession)
+                {
+                    if (serverHello.CipherSuite != m_sessionParameters.CipherSuite ||
+                        !securityParameters.NegotiatedVersion.Equals(m_sessionParameters.NegotiatedVersion))
+                    {
+                        throw new TlsFatalAlert(AlertDescription.illegal_parameter,
+                            "ServerHello parameters do not match resumed session");
+                    }
+                }
             }
 
             /*
@@ -1124,7 +1134,8 @@ namespace Org.BouncyCastle.Tls
                 if (!TlsUtilities.IsValidCipherSuiteSelection(offeredCipherSuites, cipherSuite) ||
                     !TlsUtilities.IsValidVersionForCipherSuite(cipherSuite, securityParameters.NegotiatedVersion))
                 {
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter,
+                        "ServerHello selected invalid cipher suite");
                 }
 
                 TlsUtilities.NegotiatedCipherSuite(securityParameters, cipherSuite);
