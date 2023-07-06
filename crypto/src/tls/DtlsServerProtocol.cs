@@ -129,6 +129,7 @@ namespace Org.BouncyCastle.Tls
                 state.sessionMasterSecret = null;
             }
 
+            securityParameters.m_resumedSession = false;
             securityParameters.m_sessionID = state.tlsSession.SessionID;
 
             state.server.NotifySession(state.tlsSession);
@@ -447,6 +448,8 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
+            bool resumedSession = securityParameters.IsResumedSession;
+
             {
                 int cipherSuite = ValidateSelectedCipherSuite(state.server.GetSelectedCipherSuite(),
                     AlertDescription.internal_error);
@@ -526,7 +529,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     throw new TlsFatalAlert(AlertDescription.handshake_failure);
                 }
-                else if (state.resumedSession && !state.server.AllowLegacyResumption())
+                else if (resumedSession && !state.server.AllowLegacyResumption())
                 {
                     throw new TlsFatalAlert(AlertDescription.internal_error);
                 }
@@ -578,7 +581,7 @@ namespace Org.BouncyCastle.Tls
                 securityParameters.m_encryptThenMac = TlsExtensionsUtilities.HasEncryptThenMacExtension(
                     state.serverExtensions);
 
-                securityParameters.m_maxFragmentLength = EvaluateMaxFragmentLengthExtension(state.resumedSession,
+                securityParameters.m_maxFragmentLength = EvaluateMaxFragmentLengthExtension(resumedSession,
                     state.clientExtensions, state.serverExtensions, AlertDescription.internal_error);
 
                 securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(state.serverExtensions);
@@ -587,7 +590,7 @@ namespace Org.BouncyCastle.Tls
                  * TODO It's surprising that there's no provision to allow a 'fresh' CertificateStatus to be sent in
                  * a session resumption handshake.
                  */
-                if (!state.resumedSession)
+                if (!resumedSession)
                 {
                     // TODO[tls13] See RFC 8446 4.4.2.1
                     if (TlsUtilities.HasExpectedEmptyExtensionData(state.serverExtensions,
@@ -600,11 +603,10 @@ namespace Org.BouncyCastle.Tls
                     {
                         securityParameters.m_statusRequestVersion = 1;
                     }
-                }
 
-                state.expectSessionTicket = !state.resumedSession
-                    && TlsUtilities.HasExpectedEmptyExtensionData(state.serverExtensions, ExtensionType.session_ticket,
-                        AlertDescription.internal_error);
+                    state.expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(state.serverExtensions,
+                        ExtensionType.session_ticket, AlertDescription.internal_error);
+                }
             }
 
             ApplyMaxFragmentLengthExtension(recordLayer, securityParameters.MaxFragmentLength);
@@ -879,7 +881,6 @@ namespace Org.BouncyCastle.Tls
             internal IDictionary<int, byte[]> clientExtensions = null;
             internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool offeredExtendedMasterSecret = false;
-            internal bool resumedSession = false;
             internal bool expectSessionTicket = false;
             internal TlsKeyExchange keyExchange = null;
             internal TlsCredentials serverCredentials = null;

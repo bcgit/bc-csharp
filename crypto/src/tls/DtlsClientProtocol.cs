@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Tls
 
             ApplyMaxFragmentLengthExtension(recordLayer, securityParameters.MaxFragmentLength);
 
-            if (state.resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 securityParameters.m_masterSecret = state.sessionMasterSecret;
                 recordLayer.InitPendingEpoch(TlsUtilities.InitCipher(state.clientContext));
@@ -670,7 +670,7 @@ namespace Org.BouncyCastle.Tls
                 byte[] selectedSessionID = serverHello.SessionID;
                 securityParameters.m_sessionID = selectedSessionID;
                 state.client.NotifySessionID(selectedSessionID);
-                state.resumedSession = selectedSessionID.Length > 0 && state.tlsSession != null
+                securityParameters.m_resumedSession = selectedSessionID.Length > 0 && state.tlsSession != null
                     && Arrays.AreEqual(selectedSessionID, state.tlsSession.SessionID);
             }
 
@@ -726,13 +726,13 @@ namespace Org.BouncyCastle.Tls
 
                 if (acceptedExtendedMasterSecret)
                 {
-                    if (!state.resumedSession && !state.client.ShouldUseExtendedMasterSecret())
+                    if (!securityParameters.IsResumedSession && !state.client.ShouldUseExtendedMasterSecret())
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
                 }
                 else
                 {
                     if (state.client.RequiresExtendedMasterSecret()
-                        || (state.resumedSession && !state.client.AllowLegacyResumption()))
+                        || (securityParameters.IsResumedSession && !state.client.AllowLegacyResumption()))
                     {
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
                     }
@@ -776,7 +776,7 @@ namespace Org.BouncyCastle.Tls
                      * extensions appearing in the client hello, and send a server hello containing no
                      * extensions[.]
                      */
-                    if (state.resumedSession)
+                    if (securityParameters.IsResumedSession)
                     {
                         // TODO[compat-gnutls] GnuTLS test server sends server extensions e.g. ec_point_formats
                         // TODO[compat-openssl] OpenSSL test server sends server extensions e.g. ec_point_formats
@@ -864,7 +864,7 @@ namespace Org.BouncyCastle.Tls
             var sessionClientExtensions = state.clientExtensions;
             var sessionServerExtensions = state.serverExtensions;
 
-            if (state.resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 if (securityParameters.CipherSuite != state.sessionParameters.CipherSuite
                     || !server_version.Equals(state.sessionParameters.NegotiatedVersion))
@@ -893,13 +893,14 @@ namespace Org.BouncyCastle.Tls
                     securityParameters.m_encryptThenMac = serverSentEncryptThenMac;
                 }
 
-                securityParameters.m_maxFragmentLength = EvaluateMaxFragmentLengthExtension(state.resumedSession,
-                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                securityParameters.m_maxFragmentLength = EvaluateMaxFragmentLengthExtension(
+                    securityParameters.IsResumedSession, sessionClientExtensions, sessionServerExtensions,
+                    AlertDescription.illegal_parameter);
 
                 securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(
                     sessionServerExtensions);
 
-                if (!state.resumedSession)
+                if (!securityParameters.IsResumedSession)
                 {
                     // TODO[tls13] See RFC 8446 4.4.2.1
                     if (TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions,
@@ -912,11 +913,10 @@ namespace Org.BouncyCastle.Tls
                     {
                         securityParameters.m_statusRequestVersion = 1;
                     }
-                }
 
-                state.expectSessionTicket = !state.resumedSession
-                    && TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions,
+                    state.expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions,
                         ExtensionType.session_ticket, AlertDescription.illegal_parameter);
+                }
             }
 
             if (sessionClientExtensions != null)
@@ -995,7 +995,6 @@ namespace Org.BouncyCastle.Tls
             internal int[] offeredCipherSuites = null;
             internal IDictionary<int, byte[]> clientExtensions = null;
             internal IDictionary<int, byte[]> serverExtensions = null;
-            internal bool resumedSession = false;
             internal bool expectSessionTicket = false;
             internal IDictionary<int, TlsAgreement> clientAgreements = null;
             internal TlsKeyExchange keyExchange = null;
