@@ -893,9 +893,8 @@ namespace Org.BouncyCastle.Tls
                     securityParameters.m_encryptThenMac = serverSentEncryptThenMac;
                 }
 
-                securityParameters.m_maxFragmentLength = EvaluateMaxFragmentLengthExtension(
-                    securityParameters.IsResumedSession, sessionClientExtensions, sessionServerExtensions,
-                    AlertDescription.illegal_parameter);
+                securityParameters.m_maxFragmentLength = TlsUtilities.ProcessMaxFragmentLengthExtension(
+                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
 
                 securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(
                     sessionServerExtensions);

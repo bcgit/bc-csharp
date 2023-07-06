@@ -1814,20 +1814,11 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         protected virtual short ProcessMaxFragmentLengthExtension(IDictionary<int, byte[]> clientExtensions,
             IDictionary<int, byte[]> serverExtensions, short alertDescription)
         {
-            short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
-            if (maxFragmentLength >= 0)
-            {
-                if (!MaxFragmentLength.IsValid(maxFragmentLength) ||
-                (clientExtensions != null &&
-                    maxFragmentLength != TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions)))
-                {
-                    throw new TlsFatalAlert(alertDescription);
-                }
-            }
-            return maxFragmentLength;
+            return TlsUtilities.ProcessMaxFragmentLengthExtension(clientExtensions, serverExtensions, alertDescription);
         }
 
         /// <exception cref="IOException"/>

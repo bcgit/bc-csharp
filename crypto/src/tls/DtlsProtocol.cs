@@ -39,24 +39,6 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static short EvaluateMaxFragmentLengthExtension(bool resumedSession,
-            IDictionary<int, byte[]> clientExtensions, IDictionary<int, byte[]> serverExtensions,
-            short alertDescription)
-        {
-            short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
-            if (maxFragmentLength >= 0)
-            {
-                if (!MaxFragmentLength.IsValid(maxFragmentLength)
-                    || (!resumedSession && maxFragmentLength != TlsExtensionsUtilities
-                        .GetMaxFragmentLengthExtension(clientExtensions)))
-                {
-                    throw new TlsFatalAlert(alertDescription);
-                }
-            }
-            return maxFragmentLength;
-        }
-
-        /// <exception cref="IOException"/>
         internal static byte[] GenerateCertificate(TlsContext context, Certificate certificate, Stream endPointHash)
         {
             MemoryStream buf = new MemoryStream();

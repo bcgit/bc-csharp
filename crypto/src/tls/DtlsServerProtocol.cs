@@ -581,10 +581,12 @@ namespace Org.BouncyCastle.Tls
                 securityParameters.m_encryptThenMac = TlsExtensionsUtilities.HasEncryptThenMacExtension(
                     state.serverExtensions);
 
-                securityParameters.m_maxFragmentLength = EvaluateMaxFragmentLengthExtension(resumedSession,
-                    state.clientExtensions, state.serverExtensions, AlertDescription.internal_error);
+                securityParameters.m_maxFragmentLength = TlsUtilities.ProcessMaxFragmentLengthExtension(
+                    resumedSession ? null : state.clientExtensions, state.serverExtensions,
+                    AlertDescription.internal_error);
 
-                securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(state.serverExtensions);
+                securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(
+                    state.serverExtensions);
 
                 /*
                  * TODO It's surprising that there's no provision to allow a 'fresh' CertificateStatus to be sent in

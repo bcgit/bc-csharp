@@ -5731,6 +5731,23 @@ namespace Org.BouncyCastle.Tls
             return v;
         }
 
+        /// <exception cref="IOException"/>
+        internal static short ProcessMaxFragmentLengthExtension(IDictionary<int, byte[]> clientExtensions,
+            IDictionary<int, byte[]> serverExtensions, short alertDescription)
+        {
+            short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
+            if (maxFragmentLength >= 0)
+            {
+                if (!MaxFragmentLength.IsValid(maxFragmentLength) ||
+                    (clientExtensions != null &&
+                        maxFragmentLength != TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions)))
+                {
+                    throw new TlsFatalAlert(alertDescription);
+                }
+            }
+            return maxFragmentLength;
+        }
+
         // TODO[api] Not needed once GetHandshakeResendTimeMillis() has been added to TlsPeer
         internal static int GetHandshakeResendTimeMillis(TlsPeer tlsPeer)
         {

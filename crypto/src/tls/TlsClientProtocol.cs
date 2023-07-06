@@ -1306,8 +1306,8 @@ namespace Org.BouncyCastle.Tls
                     securityParameters.m_encryptThenMac = serverSentEncryptThenMAC;
                 }
 
-                securityParameters.m_maxFragmentLength = ProcessMaxFragmentLengthExtension(sessionClientExtensions,
-                    sessionServerExtensions, AlertDescription.illegal_parameter);
+                securityParameters.m_maxFragmentLength = TlsUtilities.ProcessMaxFragmentLengthExtension(
+                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
 
                 securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(
                     sessionServerExtensions);
@@ -1431,8 +1431,8 @@ namespace Org.BouncyCastle.Tls
                 sessionServerExtensions = m_sessionParameters.ReadServerExtensions();
             }
 
-            securityParameters.m_maxFragmentLength = ProcessMaxFragmentLengthExtension(sessionClientExtensions,
-                sessionServerExtensions, AlertDescription.illegal_parameter);
+            securityParameters.m_maxFragmentLength = TlsUtilities.ProcessMaxFragmentLengthExtension(
+                sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
 
             securityParameters.m_encryptThenMac = false;
             securityParameters.m_truncatedHmac = false;
