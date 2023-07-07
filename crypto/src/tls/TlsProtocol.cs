@@ -1470,8 +1470,8 @@ namespace Org.BouncyCastle.Tls
                     return false;
             }
 
-            TlsSecret sessionMasterSecret = TlsUtilities.GetSessionMasterSecret(Context.Crypto,
-                sessionParameters.MasterSecret);
+            TlsCrypto crypto = Context.Crypto;
+            TlsSecret sessionMasterSecret = TlsUtilities.GetSessionMasterSecret(crypto, sessionParameters.MasterSecret);
             if (null == sessionMasterSecret)
                 return false;
 

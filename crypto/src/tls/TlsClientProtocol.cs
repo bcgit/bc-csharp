@@ -1686,10 +1686,6 @@ namespace Org.BouncyCastle.Tls
 
             EstablishSession(sessionToResume);
 
-            /*
-             * TODO RFC 5077 3.4. When presenting a ticket, the client MAY generate and include a
-             * Session ID in the TLS ClientHello.
-             */
             byte[] legacy_session_id = TlsUtilities.GetSessionID(m_tlsSession);
 
             if (legacy_session_id.Length > 0)
