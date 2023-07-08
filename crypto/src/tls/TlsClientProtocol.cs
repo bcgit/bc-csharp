@@ -1150,9 +1150,9 @@ namespace Org.BouncyCastle.Tls
              * Hello is always allowed.
              */
             this.m_serverExtensions = serverHelloExtensions;
-            if (m_serverExtensions != null)
+            if (serverHelloExtensions != null)
             {
-                foreach (int extType in m_serverExtensions.Keys)
+                foreach (int extType in serverHelloExtensions.Keys)
                 {
                     /*
                      * RFC 5746 3.6. Note that sending a "renegotiation_info" extension in response to a
@@ -1189,7 +1189,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            byte[] renegExtData = TlsUtilities.GetExtensionData(m_serverExtensions, ExtensionType.renegotiation_info);
+            byte[] renegExtData = TlsUtilities.GetExtensionData(serverHelloExtensions, ExtensionType.renegotiation_info);
 
             // NOT renegotiating
             {
@@ -1235,7 +1235,7 @@ namespace Org.BouncyCastle.Tls
 
                 if (TlsExtensionsUtilities.HasExtendedMasterSecretExtension(m_clientExtensions))
                 {
-                    negotiatedEms = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(m_serverExtensions);
+                    negotiatedEms = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(serverHelloExtensions);
 
                     if (TlsUtilities.IsExtendedMasterSecretOptional(server_version))
                     {
@@ -1272,11 +1272,11 @@ namespace Org.BouncyCastle.Tls
              * messages are considered.
              */
             securityParameters.m_applicationProtocol = TlsExtensionsUtilities.GetAlpnExtensionServer(
-                m_serverExtensions);
+                serverHelloExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
             var sessionClientExtensions = m_clientExtensions;
-            var sessionServerExtensions = m_serverExtensions;
+            var sessionServerExtensions = serverHelloExtensions;
             if (securityParameters.IsResumedSession)
             {
                 if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite

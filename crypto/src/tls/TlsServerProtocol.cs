@@ -718,7 +718,7 @@ namespace Org.BouncyCastle.Tls
 
             ApplyMaxFragmentLengthExtension(securityParameters.MaxFragmentLength);
 
-            return new ServerHello(serverVersion, securityParameters.ServerRandom, m_tlsSession.SessionID,
+            return new ServerHello(serverVersion, securityParameters.ServerRandom, securityParameters.SessionID,
                 securityParameters.CipherSuite, m_serverExtensions);
         }
 
