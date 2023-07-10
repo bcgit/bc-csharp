@@ -712,7 +712,7 @@ namespace Org.BouncyCastle.Tls
             Certificate.ParseOptions options = new Certificate.ParseOptions()
             {
                 CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(
-                    state.clientExtensions, CertificateType.X509),
+                    state.serverExtensions, CertificateType.X509),
                 MaxChainLength = state.server.GetMaxCertificateChainLength(),
             };
 
