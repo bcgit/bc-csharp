@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     byte[] buf = new byte[dtlsServer.GetReceiveLimit()];
                     while (!m_isShutdown)
                     {
-                        int length = dtlsServer.Receive(buf, 0, buf.Length, 1000);
+                        int length = dtlsServer.Receive(buf, 0, buf.Length, 100);
                         if (length >= 0)
                         {
                             dtlsServer.Send(buf, 0, length);

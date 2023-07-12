@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Tls.Tests
                             if (m_isShutdown)
                                 return;
 
-                            int length = m_serverTransport.Receive(buf, dummyOffset, receiveLimit, 1000);
+                            int length = m_serverTransport.Receive(buf, dummyOffset, receiveLimit, 100);
                             if (length > 0)
                             {
                                 request = verifier.VerifyRequest(clientID, buf, dummyOffset, length, m_serverTransport);
@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Tls.Tests
                         byte[] buf = new byte[dtlsTransport.GetReceiveLimit()];
                         while (!m_isShutdown)
                         {
-                            int length = dtlsTransport.Receive(buf, 0, buf.Length, 1000);
+                            int length = dtlsTransport.Receive(buf, 0, buf.Length, 100);
                             if (length >= 0)
                             {
                                 dtlsTransport.Send(buf, 0, length);
