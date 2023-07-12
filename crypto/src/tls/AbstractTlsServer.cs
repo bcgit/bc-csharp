@@ -62,6 +62,11 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        protected virtual string GetDetailMessageNoCipherSuite()
+        {
+            return "No selectable cipher suite";
+        }
+
         protected virtual int GetMaximumNegotiableCurveBits()
         {
             int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
@@ -429,7 +434,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            throw new TlsFatalAlert(AlertDescription.handshake_failure, "No selectable cipher suite");
+            throw new TlsFatalAlert(AlertDescription.handshake_failure, GetDetailMessageNoCipherSuite());
         }
 
         // IDictionary is (Int32 -> byte[])
