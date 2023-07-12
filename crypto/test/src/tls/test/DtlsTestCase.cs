@@ -36,9 +36,9 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsTestClientImpl clientImpl = new TlsTestClientImpl(config);
             TlsTestServerImpl serverImpl = new TlsTestServerImpl(config);
 
-            Server server = new Server(this, serverProtocol, network.Server, serverImpl);
+            ServerTask serverTask = new ServerTask(this, serverProtocol, network.Server, serverImpl);
 
-            Thread serverThread = new Thread(new ThreadStart(server.Run));
+            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
             serverThread.Start();
 
             Exception caught = null;
@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 LogException(caught);
             }
 
-            server.Shutdown(serverThread);
+            serverTask.Shutdown(serverThread);
 
             // TODO Add checks that the various streams were closed
 
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Tls.Tests
             if (config.expectFatalAlertConnectionEnd == -1)
             {
                 Assert.IsNull(caught, "Unexpected client exception");
-                Assert.IsNull(server.Caught, "Unexpected server exception");
+                Assert.IsNull(serverTask.Caught, "Unexpected server exception");
             }
         }
 
@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        internal class Server
+        internal class ServerTask
         {
             private readonly DtlsTestCase m_outer;
             private readonly DtlsTestServerProtocol m_serverProtocol;
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Tls.Tests
             private volatile bool m_isShutdown = false;
             private Exception m_caught = null;
 
-            internal Server(DtlsTestCase outer, DtlsTestServerProtocol serverProtocol,
+            internal ServerTask(DtlsTestCase outer, DtlsTestServerProtocol serverProtocol,
                 DatagramTransport serverTransport, TlsTestServerImpl serverImpl)
             {
                 this.m_outer = outer;

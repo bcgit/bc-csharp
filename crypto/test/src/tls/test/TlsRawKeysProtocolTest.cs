@@ -228,8 +228,8 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
 
-            Server serverRun = new Server(serverProtocol, server);
-            Thread serverThread = new Thread(new ThreadStart(serverRun.Run));
+            ServerTask serverTask = new ServerTask(serverProtocol, server);
+            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
             serverThread.Start();
 
             clientProtocol.Connect(client);
@@ -254,12 +254,12 @@ namespace Org.BouncyCastle.Tls.Tests
             serverThread.Join();
         }
 
-        internal class Server
+        internal class ServerTask
         {
             private readonly TlsServerProtocol m_serverProtocol;
             private readonly TlsServer m_server;
 
-            internal Server(TlsServerProtocol serverProtocol, TlsServer server)
+            internal ServerTask(TlsServerProtocol serverProtocol, TlsServer server)
             {
                 m_serverProtocol = serverProtocol;
                 m_server = server;

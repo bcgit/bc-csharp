@@ -33,8 +33,8 @@ namespace Org.BouncyCastle.Tls.Tests
                     TcpClient s = ss.AcceptTcpClient();
                     Console.WriteLine("--------------------------------------------------------------------------------");
                     Console.WriteLine("Accepted " + s);
-                    Server serverRun = new Server(s, stdout);
-                    Thread t = new Thread(new ThreadStart(serverRun.Run));
+                    ServerTask serverTask = new ServerTask(s, stdout);
+                    Thread t = new Thread(new ThreadStart(serverTask.Run));
                     t.Start();
                 }
             }
@@ -44,12 +44,12 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        internal class Server
+        internal class ServerTask
         {
             private readonly TcpClient s;
             private readonly Stream stdout;
 
-            internal Server(TcpClient s, Stream stdout)
+            internal ServerTask(TcpClient s, Stream stdout)
             {
                 this.s = s;
                 this.stdout = stdout;

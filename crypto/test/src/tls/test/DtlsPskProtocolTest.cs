@@ -21,9 +21,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
             MockDatagramAssociation network = new MockDatagramAssociation(1500);
 
-            Server server = new Server(serverProtocol, network.Server);
+            ServerTask serverTask = new ServerTask(serverProtocol, network.Server);
 
-            Thread serverThread = new Thread(new ThreadStart(server.Run));
+            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
             serverThread.Start();
 
             DatagramTransport clientTransport = network.Client;
@@ -50,16 +50,16 @@ namespace Org.BouncyCastle.Tls.Tests
 
             dtlsClient.Close();
 
-            server.Shutdown(serverThread);
+            serverTask.Shutdown(serverThread);
         }
 
-        internal class Server
+        internal class ServerTask
         {
             private readonly DtlsServerProtocol m_serverProtocol;
             private readonly DatagramTransport m_serverTransport;
             private volatile bool m_isShutdown = false;
 
-            internal Server(DtlsServerProtocol serverProtocol, DatagramTransport serverTransport)
+            internal ServerTask(DtlsServerProtocol serverProtocol, DatagramTransport serverTransport)
             {
                 this.m_serverProtocol = serverProtocol;
                 this.m_serverTransport = serverTransport;

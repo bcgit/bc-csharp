@@ -49,8 +49,8 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsTestClientImpl clientImpl = new TlsTestClientImpl(config);
             TlsTestServerImpl serverImpl = new TlsTestServerImpl(config);
 
-            Server serverRun = new Server(this, serverProtocol, serverImpl);
-            Thread serverThread = new Thread(new ThreadStart(serverRun.Run));
+            ServerTask serverTask = new ServerTask(this, serverProtocol, serverImpl);
+            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
             serverThread.Start();
 
             Exception caught = null;
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 LogException(caught);
             }
 
-            serverRun.AllowExit();
+            serverTask.AllowExit();
             serverThread.Join();
 
             Assert.IsTrue(clientNet.IsClosed, "Client Stream not closed");
@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Tls.Tests
             if (config.expectFatalAlertConnectionEnd == -1)
             {
                 Assert.IsNull(caught, "Unexpected client exception");
-                Assert.IsNull(serverRun.m_caught, "Unexpected server exception");
+                Assert.IsNull(serverTask.m_caught, "Unexpected server exception");
             }
         }
 
@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        internal class Server
+        internal class ServerTask
         {
             protected readonly TlsTestCase m_outer;
             protected readonly TlsServerProtocol m_serverProtocol;
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Tls.Tests
             internal bool m_canExit = false;
             internal Exception m_caught = null;
 
-            internal Server(TlsTestCase outer, TlsTestServerProtocol serverProtocol, TlsServer server)
+            internal ServerTask(TlsTestCase outer, TlsTestServerProtocol serverProtocol, TlsServer server)
             {
                 this.m_outer = outer;
                 this.m_serverProtocol = serverProtocol;
