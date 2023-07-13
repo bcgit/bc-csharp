@@ -585,6 +585,8 @@ namespace Org.BouncyCastle.Tls
         {
             if (buf == null)
                 throw new ArgumentNullException("buf");
+            if (buf.Length < 1)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
 
             int count = ReadUint8(buf, 0);
             if (buf.Length != (count + 1))
@@ -4711,6 +4713,16 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        internal static bool ContainsNot(short[] buf, int off, int len, short value)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                if (value != buf[off + i])
+                    return true;
+            }
+            return false;
+        }
+
         internal static short[] RetainAll(short[] retainer, short[] elements)
         {
             short[] retained = new short[System.Math.Min(retainer.Length, elements.Length)];
@@ -4841,8 +4853,7 @@ namespace Org.BouncyCastle.Tls
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
             {
-                CertificateType = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions,
-                    CertificateType.X509),
+                CertificateType = securityParameters.ServerCertificateType,
                 MaxChainLength = client.GetMaxCertificateChainLength(),
             };
 
@@ -4872,8 +4883,7 @@ namespace Org.BouncyCastle.Tls
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
             {
-                CertificateType = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions,
-                    CertificateType.X509),
+                CertificateType = securityParameters.ServerCertificateType,
                 MaxChainLength = client.GetMaxCertificateChainLength(),
             };
 
@@ -5746,6 +5756,71 @@ namespace Org.BouncyCastle.Tls
                 }
             }
             return maxFragmentLength;
+        }
+
+        /// <exception cref="IOException"/>
+        internal static short ProcessClientCertificateTypeExtension(IDictionary<int, byte[]> clientExtensions,
+            IDictionary<int, byte[]> serverExtensions, short alertDescription)
+        {
+            short serverValue = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(serverExtensions);
+            if (serverValue < 0)
+                return CertificateType.X509;
+
+            if (!CertificateType.IsValid(serverValue))
+                throw new TlsFatalAlert(alertDescription, "Unknown value for client_certificate_type");
+
+            short[] clientValues = TlsExtensionsUtilities.GetClientCertificateTypeExtensionClient(clientExtensions);
+            if (clientValues == null || !Arrays.Contains(clientValues, serverValue))
+                throw new TlsFatalAlert(alertDescription, "Invalid selection for client_certificate_type");
+
+            return serverValue;
+        }
+
+        /// <exception cref="IOException"/>
+        internal static short ProcessClientCertificateTypeExtension13(IDictionary<int, byte[]> clientExtensions,
+            IDictionary<int, byte[]> serverExtensions, short alertDescription)
+        {
+            short certificateType = ProcessClientCertificateTypeExtension(clientExtensions, serverExtensions,
+                alertDescription);
+
+            return ValidateCertificateType13(certificateType, alertDescription);
+        }
+
+        /// <exception cref="IOException"/>
+        internal static short ProcessServerCertificateTypeExtension(IDictionary<int, byte[]> clientExtensions,
+            IDictionary<int, byte[]> serverExtensions, short alertDescription)
+        {
+            short serverValue = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions);
+            if (serverValue < 0)
+                return CertificateType.X509;
+
+            if (!CertificateType.IsValid(serverValue))
+                throw new TlsFatalAlert(alertDescription, "Unknown value for server_certificate_type");
+
+            short[] clientValues = TlsExtensionsUtilities.GetServerCertificateTypeExtensionClient(clientExtensions);
+            if (clientValues == null || !Arrays.Contains(clientValues, serverValue))
+                throw new TlsFatalAlert(alertDescription, "Invalid selection for server_certificate_type");
+
+            return serverValue;
+        }
+
+        /// <exception cref="IOException"/>
+        internal static short ProcessServerCertificateTypeExtension13(IDictionary<int, byte[]> clientExtensions,
+            IDictionary<int, byte[]> serverExtensions, short alertDescription)
+        {
+            short certificateType = ProcessServerCertificateTypeExtension(clientExtensions, serverExtensions,
+                alertDescription);
+
+            return ValidateCertificateType13(certificateType, alertDescription);
+        }
+
+        /// <exception cref="IOException"/>
+        private static short ValidateCertificateType13(short certificateType, short alertDescription)
+        {
+            if (CertificateType.OpenPGP == certificateType)
+                throw new TlsFatalAlert(alertDescription, "The OpenPGP certificate type MUST NOT be used with TLS 1.3");
+
+            return certificateType;
         }
 
         // TODO[api] Not needed once GetHandshakeResendTimeMillis() has been added to TlsPeer

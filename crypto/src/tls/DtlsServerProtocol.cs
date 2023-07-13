@@ -684,6 +684,11 @@ namespace Org.BouncyCastle.Tls
                         securityParameters.m_statusRequestVersion = 1;
                     }
 
+                    securityParameters.m_clientCertificateType = TlsUtilities.ProcessClientCertificateTypeExtension(
+                        clientHelloExtensions, state.serverExtensions, AlertDescription.internal_error);
+                    securityParameters.m_serverCertificateType = TlsUtilities.ProcessServerCertificateTypeExtension(
+                        clientHelloExtensions, state.serverExtensions, AlertDescription.internal_error);
+
                     state.expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(state.serverExtensions,
                         ExtensionType.session_ticket, AlertDescription.internal_error);
                 }
@@ -781,8 +786,7 @@ namespace Org.BouncyCastle.Tls
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
             {
-                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(
-                    state.serverExtensions, CertificateType.X509),
+                CertificateType = state.serverContext.SecurityParameters.ClientCertificateType,
                 MaxChainLength = state.server.GetMaxCertificateChainLength(),
             };
 

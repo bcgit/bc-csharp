@@ -653,19 +653,13 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.handshake_failure);
             }
 
-            TlsClientContextImpl clientContext = state.clientContext;
-            SecurityParameters securityParameters = clientContext.SecurityParameters;
-
             MemoryStream buf = new MemoryStream(body, false);
 
-            CertificateRequest certificateRequest = CertificateRequest.Parse(clientContext, buf);
+            CertificateRequest certificateRequest = CertificateRequest.Parse(state.clientContext, buf);
 
             TlsProtocol.AssertEmpty(buf);
 
             state.certificateRequest = TlsUtilities.ValidateCertificateRequest(certificateRequest, state.keyExchange);
-
-            securityParameters.m_clientCertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(
-                state.serverExtensions, CertificateType.X509);
         }
 
         /// <exception cref="IOException"/>
@@ -1035,6 +1029,11 @@ namespace Org.BouncyCastle.Tls
                     {
                         securityParameters.m_statusRequestVersion = 1;
                     }
+
+                    securityParameters.m_clientCertificateType = TlsUtilities.ProcessClientCertificateTypeExtension(
+                        sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                    securityParameters.m_serverCertificateType = TlsUtilities.ProcessServerCertificateTypeExtension(
+                        sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
 
                     state.expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions,
                         ExtensionType.session_ticket, AlertDescription.illegal_parameter);

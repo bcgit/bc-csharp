@@ -357,31 +357,30 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            /*
-             * RFC 7250 4.1:
-             *
-             * If the client has no remaining certificate types to send in
-             * the client hello, other than the default X.509 type, it MUST omit the
-             * client_certificate_type extension in the client hello.
-             */
-            short[] clientCertTypes = GetAllowedClientCertificateTypes();
-            if (clientCertTypes != null && (clientCertTypes.Length > 1 || clientCertTypes[0] != CertificateType.X509))
             {
-                TlsExtensionsUtilities.AddClientCertificateTypeExtensionClient(clientExtensions, clientCertTypes);
+                /*
+                 * RFC 7250 4.1. If the client has no remaining certificate types to send in the client hello, other
+                 * than the default X.509 type, it MUST omit the client_certificate_type extension [..].
+                 */
+                short[] clientCertTypes = GetAllowedClientCertificateTypes();
+                if (clientCertTypes != null &&
+                    TlsUtilities.ContainsNot(clientCertTypes, 0, clientCertTypes.Length, CertificateType.X509))
+                {
+                    TlsExtensionsUtilities.AddClientCertificateTypeExtensionClient(clientExtensions, clientCertTypes);
+                }
             }
 
-            /*
-             * RFC 7250 4.1:
-             *
-             * If the client has no remaining certificate types to send in
-             * the client hello, other than the default X.509 certificate type, it
-             * MUST omit the entire server_certificate_type extension from the
-             * client hello.
-             */
-            short[] serverCertTypes = GetAllowedServerCertificateTypes();
-            if (serverCertTypes != null && (serverCertTypes.Length > 1 || serverCertTypes[0] != CertificateType.X509))
             {
-                TlsExtensionsUtilities.AddServerCertificateTypeExtensionClient(clientExtensions, serverCertTypes);
+                /*
+                 * RFC 7250 4.1. If the client has no remaining certificate types to send in the client hello, other than
+                 * the default X.509 certificate type, it MUST omit the entire server_certificate_type extension [..].
+                 */
+                short[] serverCertTypes = GetAllowedServerCertificateTypes();
+                if (serverCertTypes != null &&
+                    TlsUtilities.ContainsNot(serverCertTypes, 0, serverCertTypes.Length, CertificateType.X509))
+                {
+                    TlsExtensionsUtilities.AddServerCertificateTypeExtensionClient(clientExtensions, serverCertTypes);
+                }
             }
 
             if (offeringDtlsV12)

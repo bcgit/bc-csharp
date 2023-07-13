@@ -51,7 +51,8 @@ namespace Org.BouncyCastle.Tls
         internal Certificate m_peerCertificate = null;
         internal ProtocolVersion m_negotiatedVersion = null;
         internal int m_statusRequestVersion = 0;
-        internal short m_clientCertificateType = -1;
+        internal short m_clientCertificateType = CertificateType.X509;
+        internal short m_serverCertificateType = CertificateType.X509;
 
         // TODO[tls-ops] Investigate whether we can handle verify data using TlsSecret
         internal byte[] m_localVerifyData = null;
@@ -262,6 +263,11 @@ namespace Org.BouncyCastle.Tls
         public byte[] PskIdentity
         {
             get { return m_pskIdentity; }
+        }
+
+        public short ServerCertificateType
+        {
+            get { return m_serverCertificateType; }
         }
 
         public byte[] ServerRandom

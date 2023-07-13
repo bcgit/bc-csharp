@@ -1321,6 +1321,11 @@ namespace Org.BouncyCastle.Tls
                         securityParameters.m_statusRequestVersion = 1;
                     }
 
+                    securityParameters.m_clientCertificateType = TlsUtilities.ProcessClientCertificateTypeExtension(
+                        sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                    securityParameters.m_serverCertificateType = TlsUtilities.ProcessServerCertificateTypeExtension(
+                        sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+
                     this.m_expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions,
                         ExtensionType.session_ticket, AlertDescription.illegal_parameter);
                 }
@@ -1368,10 +1373,6 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
             this.m_certificateRequest = certificateRequest;
-
-            m_tlsClientContext.SecurityParameters.m_clientCertificateType =
-                TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
-                    CertificateType.X509);
 
             TlsUtilities.EstablishServerSigAlgs(m_tlsClientContext.SecurityParameters, certificateRequest);
         }
@@ -1423,13 +1424,21 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_encryptThenMac = false;
             securityParameters.m_truncatedHmac = false;
 
-            /*
-             * TODO[tls13] RFC 8446 4.4.2.1. OCSP Status and SCT Extensions.
-             * 
-             * OCSP information is carried in an extension for a CertificateEntry.
-             */
-            securityParameters.m_statusRequestVersion =
-                m_clientExtensions.ContainsKey(ExtensionType.status_request) ? 1 : 0;
+            if (!securityParameters.IsResumedSession)
+            {
+                /*
+                 * TODO[tls13] RFC 8446 4.4.2.1. OCSP Status and SCT Extensions.
+                 * 
+                 * OCSP information is carried in an extension for a CertificateEntry.
+                 */
+                securityParameters.m_statusRequestVersion = m_clientExtensions.ContainsKey(ExtensionType.status_request)
+                    ? 1 : 0;
+
+                securityParameters.m_clientCertificateType = TlsUtilities.ProcessClientCertificateTypeExtension13(
+                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                securityParameters.m_serverCertificateType = TlsUtilities.ProcessServerCertificateTypeExtension13(
+                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+            }
 
             this.m_expectSessionTicket = false;
 
@@ -1515,10 +1524,6 @@ namespace Org.BouncyCastle.Tls
             AssertEmpty(buf);
 
             m_certificateRequest = TlsUtilities.ValidateCertificateRequest(certificateRequest, m_keyExchange);
-
-            m_tlsClientContext.SecurityParameters.m_clientCertificateType =
-                TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
-                    CertificateType.X509);
         }
 
         /// <exception cref="IOException"/>

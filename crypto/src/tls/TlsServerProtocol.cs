@@ -318,6 +318,14 @@ namespace Org.BouncyCastle.Tls
                 securityParameters.m_maxFragmentLength = TlsUtilities.ProcessMaxFragmentLengthExtension(
                     securityParameters.IsResumedSession ? null : clientHelloExtensions, serverEncryptedExtensions,
                     AlertDescription.internal_error);
+
+                if (!securityParameters.IsResumedSession)
+                {
+                    securityParameters.m_clientCertificateType = TlsUtilities.ProcessClientCertificateTypeExtension13(
+                        clientHelloExtensions, serverEncryptedExtensions, AlertDescription.internal_error);
+                    securityParameters.m_serverCertificateType = TlsUtilities.ProcessServerCertificateTypeExtension13(
+                        clientHelloExtensions, serverEncryptedExtensions, AlertDescription.internal_error);
+                }
             }
 
             securityParameters.m_encryptThenMac = false;
@@ -710,6 +718,11 @@ namespace Org.BouncyCastle.Tls
                     {
                         securityParameters.m_statusRequestVersion = 1;
                     }
+
+                    securityParameters.m_clientCertificateType = TlsUtilities.ProcessClientCertificateTypeExtension(
+                        m_clientExtensions, m_serverExtensions, AlertDescription.internal_error);
+                    securityParameters.m_serverCertificateType = TlsUtilities.ProcessServerCertificateTypeExtension(
+                        m_clientExtensions, m_serverExtensions, AlertDescription.internal_error);
 
                     this.m_expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(m_serverExtensions,
                         ExtensionType.session_ticket, AlertDescription.internal_error);
@@ -1311,8 +1324,7 @@ namespace Org.BouncyCastle.Tls
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
             {
-                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
-                    CertificateType.X509),
+                CertificateType = m_tlsServerContext.SecurityParameters.ClientCertificateType,
                 MaxChainLength = m_tlsServer.GetMaxCertificateChainLength(),
             };
 
@@ -1351,8 +1363,7 @@ namespace Org.BouncyCastle.Tls
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
             {
-                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
-                    CertificateType.X509),
+                CertificateType = m_tlsServerContext.SecurityParameters.ClientCertificateType,
                 MaxChainLength = m_tlsServer.GetMaxCertificateChainLength(),
             };
 

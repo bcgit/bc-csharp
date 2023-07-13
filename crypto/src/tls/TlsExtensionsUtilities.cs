@@ -308,6 +308,14 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        public static short GetClientCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.client_certificate_type);
+            return extensionData == null ? (short)-1 : ReadCertificateTypeExtensionServer(extensionData);
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Use version without 'defaultValue' instead")]
         public static short GetClientCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions,
             short defaultValue)
         {
@@ -429,6 +437,14 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        public static short GetServerCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.server_certificate_type);
+            return extensionData == null ? (short)-1 : ReadCertificateTypeExtensionServer(extensionData);
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Use version without 'defaultValue' instead")]
         public static short GetServerCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions,
             short defaultValue)
         {

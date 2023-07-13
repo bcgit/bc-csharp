@@ -522,18 +522,30 @@ namespace Org.BouncyCastle.Tls
             if (serverCertTypes != null)
             {
                 TlsCredentials credentials = GetCredentials();
-
-                if (credentials == null || !Arrays.Contains(serverCertTypes, credentials.Certificate.CertificateType))
+                if (credentials != null)
                 {
-                    // outcome 2: we support the extension but have no common types
-                    throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
-                }
+                    // TODO An X509 certificate should still be usable as RawPublicKey
+                    short serverCertificateType = credentials.Certificate.CertificateType;
 
-                // outcome 3: we support the extension and have a common type
-                TlsExtensionsUtilities.AddServerCertificateTypeExtensionServer(m_serverExtensions,
-                    credentials.Certificate.CertificateType);
+                    if (CertificateType.OpenPGP == serverCertificateType && isTlsV13)
+                    {
+                        throw new TlsFatalAlert(AlertDescription.internal_error,
+                            "The OpenPGP certificate type MUST NOT be used with TLS 1.3");
+                    }
+
+                    if (!Arrays.Contains(serverCertTypes, serverCertificateType))
+                    {
+                        // outcome 2: we support the extension but have no common types
+                        throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                    }
+
+                    // outcome 3: we support the extension and have a common type
+                    TlsExtensionsUtilities.AddServerCertificateTypeExtensionServer(m_serverExtensions,
+                        serverCertificateType);
+                }
             }
 
+            // TODO If we won't be sending a CertificateRequest, this extension can be ignored
             // RFC 7250 4.2 for client_certificate_type
             short[] remoteClientCertTypes = TlsExtensionsUtilities.GetClientCertificateTypeExtensionClient(
                 m_clientExtensions);
@@ -558,13 +570,18 @@ namespace Org.BouncyCastle.Tls
                     short selectedType = -1;
                     for (int i = 0; i < preferredTypes.Length; i++)
                     {
-                        if (Arrays.Contains(nonPreferredTypes, preferredTypes[i]))
+                        short preferredType = preferredTypes[i];
+                        if (CertificateType.OpenPGP == preferredType && isTlsV13)
+                            continue;
+
+                        if (Arrays.Contains(nonPreferredTypes, preferredType))
                         {
-                            selectedType = preferredTypes[i];
+                            selectedType = preferredType;
                             break;
                         }
                     }
 
+                    // TODO Shouldn't be an error unless we REQUIRE client authentication
                     if (selectedType == -1)
                     {
                         // outcome 2: we support the extension but have no common types

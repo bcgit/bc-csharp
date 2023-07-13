@@ -12,5 +12,10 @@ namespace Org.BouncyCastle.Tls
          * RFC 7250
          */
         public const short RawPublicKey = 2;
+
+        public static bool IsValid(short certificateType)
+        {
+            return certificateType >= X509 && certificateType <= RawPublicKey;
+        }
     }
 }
