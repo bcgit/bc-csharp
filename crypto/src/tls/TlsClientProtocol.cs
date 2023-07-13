@@ -1277,14 +1277,9 @@ namespace Org.BouncyCastle.Tls
 
             var sessionClientExtensions = m_clientExtensions;
             var sessionServerExtensions = serverHelloExtensions;
+
             if (securityParameters.IsResumedSession)
             {
-                if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite
-                    || !server_version.Equals(m_sessionParameters.NegotiatedVersion))
-                {
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-                }
-
                 sessionClientExtensions = null;
                 sessionServerExtensions = m_sessionParameters.ReadServerExtensions();
             }
@@ -1312,10 +1307,6 @@ namespace Org.BouncyCastle.Tls
                 securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(
                     sessionServerExtensions);
 
-                /*
-                 * TODO It's surprising that there's no provision to allow a 'fresh' CertificateStatus to be sent in
-                 * a session resumption handshake.
-                 */
                 if (!securityParameters.IsResumedSession)
                 {
                     // TODO[tls13] See RFC 8446 4.4.2.1
@@ -1419,14 +1410,9 @@ namespace Org.BouncyCastle.Tls
 
             var sessionClientExtensions = m_clientExtensions;
             var sessionServerExtensions = m_serverExtensions;
+
             if (securityParameters.IsResumedSession)
             {
-                if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite
-                    || !negotiatedVersion.Equals(m_sessionParameters.NegotiatedVersion))
-                {
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-                }
-
                 sessionClientExtensions = null;
                 sessionServerExtensions = m_sessionParameters.ReadServerExtensions();
             }

@@ -995,12 +995,6 @@ namespace Org.BouncyCastle.Tls
 
             if (securityParameters.IsResumedSession)
             {
-                if (securityParameters.CipherSuite != state.sessionParameters.CipherSuite
-                    || !server_version.Equals(state.sessionParameters.NegotiatedVersion))
-                {
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-                }
-
                 sessionClientExtensions = null;
                 sessionServerExtensions = state.sessionParameters.ReadServerExtensions();
             }
