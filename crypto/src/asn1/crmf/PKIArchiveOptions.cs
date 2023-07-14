@@ -15,11 +15,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static PkiArchiveOptions GetInstance(object obj)
         {
-            if (obj is PkiArchiveOptions)
-                return (PkiArchiveOptions)obj;
+            if (obj is PkiArchiveOptions pkiArchiveOptions)
+                return pkiArchiveOptions;
 
-            if (obj is Asn1TaggedObject)
-                return new PkiArchiveOptions((Asn1TaggedObject)obj);
+            if (obj is Asn1TaggedObject taggedObject)
+                return new PkiArchiveOptions(taggedObject);
 
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }

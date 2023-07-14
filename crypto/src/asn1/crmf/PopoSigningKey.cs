@@ -16,14 +16,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             int index = 0;
 
-            if (seq[index] is Asn1TaggedObject)
+            if (seq[index] is Asn1TaggedObject tagObj)
             {
-                Asn1TaggedObject tagObj
-                    = (Asn1TaggedObject) seq[index++];
+                index++;
+
                 if (tagObj.TagNo != 0)
-                {
-                    throw new ArgumentException( "Unknown PopoSigningKeyInput tag: " + tagObj.TagNo, "seq");
-                }
+                    throw new ArgumentException( "Unknown PopoSigningKeyInput tag: " + tagObj.TagNo, nameof(seq));
+
                 poposkInput = PopoSigningKeyInput.GetInstance(tagObj.GetObject());
             }
             algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[index++]);

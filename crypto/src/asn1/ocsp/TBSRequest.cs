@@ -57,10 +57,8 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             int index = 0;
 
 			Asn1Encodable enc = seq[0];
-			if (enc is Asn1TaggedObject)
+			if (enc is Asn1TaggedObject o)
             {
-                Asn1TaggedObject o = (Asn1TaggedObject) enc;
-
 				if (o.TagNo == 0)
                 {
 					versionSet = true;
@@ -77,9 +75,10 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 version = V1;
             }
 
-			if (seq[index] is Asn1TaggedObject)
+			if (seq[index] is Asn1TaggedObject taggedObject)
             {
-                requestorName = GeneralName.GetInstance((Asn1TaggedObject) seq[index++], true);
+                index++;
+                requestorName = GeneralName.GetInstance(taggedObject, true);
             }
 
 			requestList = (Asn1Sequence) seq[index++];

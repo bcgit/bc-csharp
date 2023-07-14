@@ -37,11 +37,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		public static Evidence GetInstance(object obj)
 		{
-			if (obj is Evidence)
-				return (Evidence)obj;
+			if (obj is Evidence evidence)
+				return evidence;
 
-			if (obj is Asn1TaggedObject)
-				return new Evidence(Asn1TaggedObject.GetInstance(obj));
+			if (obj is Asn1TaggedObject taggedObject)
+				return new Evidence(taggedObject);
 
 			throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}

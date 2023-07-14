@@ -10,34 +10,33 @@ namespace Org.BouncyCastle.Asn1.X509
         internal readonly Asn1Encodable	obj;
         internal readonly Asn1Object	choiceObj;
 
-		public static AttCertIssuer GetInstance(
-			object obj)
-		{
-			if (obj is AttCertIssuer)
-			{
-				return (AttCertIssuer)obj;
-			}
-			else if (obj is V2Form)
-			{
-				return new AttCertIssuer(V2Form.GetInstance(obj));
-			}
-			else if (obj is GeneralNames)
-			{
-				return new AttCertIssuer((GeneralNames)obj);
-			}
-			else if (obj is Asn1TaggedObject)
-			{
-				return new AttCertIssuer(V2Form.GetInstance((Asn1TaggedObject)obj, false));
-			}
-			else if (obj is Asn1Sequence)
-			{
-				return new AttCertIssuer(GeneralNames.GetInstance(obj));
-			}
+        public static AttCertIssuer GetInstance(object obj)
+        {
+            if (obj is AttCertIssuer attrCertIssuer)
+            {
+                return attrCertIssuer;
+            }
+            else if (obj is V2Form v2Form)
+            {
+                return new AttCertIssuer(v2Form);
+            }
+            else if (obj is GeneralNames generalNames)
+            {
+                return new AttCertIssuer(generalNames);
+            }
+            else if (obj is Asn1TaggedObject taggedObject)
+            {
+                return new AttCertIssuer(V2Form.GetInstance(taggedObject, false));
+            }
+            else if (obj is Asn1Sequence)
+            {
+                return new AttCertIssuer(GeneralNames.GetInstance(obj));
+            }
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        }
 
-		public static AttCertIssuer GetInstance(
+        public static AttCertIssuer GetInstance(
 			Asn1TaggedObject	obj,
 			bool				isExplicit)
 		{

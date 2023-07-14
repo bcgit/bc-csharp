@@ -42,33 +42,26 @@ namespace Org.BouncyCastle.Asn1.X509
         internal readonly ObjectDigestInfo	objectDigestInfo;
 		private readonly int version;
 
-		public static Holder GetInstance(
-            object obj)
+        public static Holder GetInstance(object obj)
         {
-            if (obj is Holder)
-            {
-                return (Holder) obj;
-            }
+            if (obj is Holder holder)
+                return holder;
 
-			if (obj is Asn1Sequence)
-            {
-                return new Holder((Asn1Sequence) obj);
-            }
+            if (obj is Asn1Sequence sequence)
+                return new Holder(sequence);
 
-			if (obj is Asn1TaggedObject)
-			{
-				return new Holder((Asn1TaggedObject) obj);
-			}
+            if (obj is Asn1TaggedObject taggedObject)
+                return new Holder(taggedObject);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        }
 
-		/**
+        /**
 		 * Constructor for a holder for an v1 attribute certificate.
 		 * 
 		 * @param tagObj The ASN.1 tagged holder object.
 		 */
-		public Holder(
+        public Holder(
 			Asn1TaggedObject tagObj)
 		{
 			switch (tagObj.TagNo)

@@ -45,17 +45,19 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.info = info;
         }
 
-		public static RecipientInfo GetInstance(
-            object o)
+		public static RecipientInfo GetInstance(object o)
         {
-            if (o == null || o is RecipientInfo)
-                return (RecipientInfo) o;
+			if (o == null)
+				return null;
 
-			if (o is Asn1Sequence)
-                return new RecipientInfo((Asn1Sequence) o);
+            if (o is RecipientInfo recipientInfo)
+                return recipientInfo;
 
-			if (o is Asn1TaggedObject)
-                return new RecipientInfo((Asn1TaggedObject) o);
+			if (o is Asn1Sequence sequence)
+                return new RecipientInfo(sequence);
+
+			if (o is Asn1TaggedObject taggedObject)
+                return new RecipientInfo(taggedObject);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(o));
         }
@@ -64,22 +66,20 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
 			get
 			{
-				if (info is Asn1TaggedObject)
+				if (info is Asn1TaggedObject o)
 				{
-					Asn1TaggedObject o = (Asn1TaggedObject) info;
-
 					switch (o.TagNo)
 					{
-						case 1:
-							return KeyAgreeRecipientInfo.GetInstance(o, false).Version;
-						case 2:
-							return GetKekInfo(o).Version;
-						case 3:
-							return PasswordRecipientInfo.GetInstance(o, false).Version;
-						case 4:
-							return new DerInteger(0);    // no syntax version for OtherRecipientInfo
-						default:
-							throw new InvalidOperationException("unknown tag");
+					case 1:
+						return KeyAgreeRecipientInfo.GetInstance(o, false).Version;
+					case 2:
+						return GetKekInfo(o).Version;
+					case 3:
+						return PasswordRecipientInfo.GetInstance(o, false).Version;
+					case 4:
+						return new DerInteger(0);    // no syntax version for OtherRecipientInfo
+					default:
+						throw new InvalidOperationException("unknown tag");
 					}
 				}
 
@@ -96,22 +96,20 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
 			get
 			{
-				if (info is Asn1TaggedObject)
+				if (info is Asn1TaggedObject o)
 				{
-					Asn1TaggedObject o = (Asn1TaggedObject) info;
-
 					switch (o.TagNo)
 					{
-						case 1:
-							return KeyAgreeRecipientInfo.GetInstance(o, false);
-						case 2:
-							return GetKekInfo(o);
-						case 3:
-							return PasswordRecipientInfo.GetInstance(o, false);
-						case 4:
-							return OtherRecipientInfo.GetInstance(o, false);
-						default:
-							throw new InvalidOperationException("unknown tag");
+					case 1:
+						return KeyAgreeRecipientInfo.GetInstance(o, false);
+					case 2:
+						return GetKekInfo(o);
+					case 3:
+						return PasswordRecipientInfo.GetInstance(o, false);
+					case 4:
+						return OtherRecipientInfo.GetInstance(o, false);
+					default:
+						throw new InvalidOperationException("unknown tag");
 					}
 				}
 

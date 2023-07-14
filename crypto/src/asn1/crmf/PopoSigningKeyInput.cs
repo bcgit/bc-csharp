@@ -16,13 +16,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             Asn1Encodable authInfo = (Asn1Encodable)seq[0];
 
-            if (authInfo is Asn1TaggedObject)
+            if (authInfo is Asn1TaggedObject tagObj)
             {
-                Asn1TaggedObject tagObj = (Asn1TaggedObject)authInfo;
                 if (tagObj.TagNo != 0)
-                {
-                    throw new ArgumentException("Unknown authInfo tag: " + tagObj.TagNo, "seq");
-                }
+                    throw new ArgumentException("Unknown authInfo tag: " + tagObj.TagNo, nameof(seq));
+
                 sender = GeneralName.GetInstance(tagObj.GetObject());
             }
             else

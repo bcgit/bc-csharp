@@ -38,11 +38,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static ProofOfPossession GetInstance(object obj)
         {
-            if (obj is ProofOfPossession)
-                return (ProofOfPossession)obj;
+            if (obj is ProofOfPossession proofOfPossession)
+                return proofOfPossession;
 
-            if (obj is Asn1TaggedObject)
-                return new ProofOfPossession((Asn1TaggedObject)obj);
+            if (obj is Asn1TaggedObject taggedObject)
+                return new ProofOfPossession(taggedObject);
 
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }

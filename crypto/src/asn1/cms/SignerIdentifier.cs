@@ -57,20 +57,18 @@ namespace Org.BouncyCastle.Asn1.Cms
 			get { return (id is Asn1TaggedObject); }
 		}
 
-		public Asn1Encodable ID
+        public Asn1Encodable ID
         {
             get
             {
-                if (id is Asn1TaggedObject)
-                {
-                    return Asn1OctetString.GetInstance((Asn1TaggedObject)id, false);
-                }
+                if (id is Asn1TaggedObject taggedObject)
+                    return Asn1OctetString.GetInstance(taggedObject, false);
 
-				return id;
+                return id;
             }
         }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * SignerIdentifier ::= CHOICE {

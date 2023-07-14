@@ -214,10 +214,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			foreach (object obj in origInfo.Certificates)
 			{
-				if (obj is Asn1TaggedObject)
+				if (obj is Asn1TaggedObject tag)
 				{
-					Asn1TaggedObject tag = (Asn1TaggedObject)obj;
-
 					if (tag.TagNo == 2)
 					{
 						ver = 1;
@@ -232,10 +230,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			foreach (object obj in origInfo.Crls)
 			{
-				if (obj is Asn1TaggedObject)
+				if (obj is Asn1TaggedObject tag)
 				{
-					Asn1TaggedObject tag = (Asn1TaggedObject)obj;
-
 					if (tag.TagNo == 1)
 					{
 						ver = 3;

@@ -62,20 +62,23 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static OriginatorIdentifierOrKey GetInstance(
             object o)
         {
-            if (o == null || o is OriginatorIdentifierOrKey)
-                return (OriginatorIdentifierOrKey)o;
+            if (o == null)
+                return null;
 
-			if (o is IssuerAndSerialNumber)
-				return new OriginatorIdentifierOrKey((IssuerAndSerialNumber)o);
+            if (o is OriginatorIdentifierOrKey originatorIdentifierOrKey)
+                return originatorIdentifierOrKey;
 
-			if (o is SubjectKeyIdentifier)
-				return new OriginatorIdentifierOrKey((SubjectKeyIdentifier)o);
+			if (o is IssuerAndSerialNumber issuerAndSerialNumber)
+				return new OriginatorIdentifierOrKey(issuerAndSerialNumber);
 
-			if (o is OriginatorPublicKey)
-				return new OriginatorIdentifierOrKey((OriginatorPublicKey)o);
+			if (o is SubjectKeyIdentifier subjectKeyIdentifier)
+				return new OriginatorIdentifierOrKey(subjectKeyIdentifier);
 
-			if (o is Asn1TaggedObject)
-				return new OriginatorIdentifierOrKey((Asn1TaggedObject)o);
+			if (o is OriginatorPublicKey originatorPublicKey)
+				return new OriginatorIdentifierOrKey(originatorPublicKey);
+
+			if (o is Asn1TaggedObject taggedObject)
+				return new OriginatorIdentifierOrKey(taggedObject);
 
             throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o));
         }

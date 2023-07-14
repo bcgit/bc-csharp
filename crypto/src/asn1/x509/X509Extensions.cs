@@ -203,28 +203,24 @@ namespace Org.BouncyCastle.Asn1.X509
             return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-		public static X509Extensions GetInstance(
-            object obj)
+        public static X509Extensions GetInstance(object obj)
         {
-            if (obj == null || obj is X509Extensions)
-            {
-                return (X509Extensions) obj;
-            }
+            if (obj == null)
+                return null;
 
-			if (obj is Asn1Sequence)
-            {
-                return new X509Extensions((Asn1Sequence) obj);
-            }
+            if (obj is X509Extensions x509Extensions)
+                return x509Extensions;
 
-			if (obj is Asn1TaggedObject)
-            {
-                return GetInstance(((Asn1TaggedObject) obj).GetObject());
-            }
+            if (obj is Asn1Sequence sequence)
+                return new X509Extensions(sequence);
+
+            if (obj is Asn1TaggedObject taggedObject)
+                return GetInstance(taggedObject.GetObject());
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        }
 
-		/**
+        /**
          * Constructor from Asn1Sequence.
          *
          * the extensions are a list of constructed sequences, either with (Oid, OctetString) or (Oid, Boolean, OctetString)

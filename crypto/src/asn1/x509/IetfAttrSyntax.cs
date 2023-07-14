@@ -25,9 +25,9 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             int i = 0;
 
-            if (seq[0] is Asn1TaggedObject)
+            if (seq[0] is Asn1TaggedObject taggedObject)
             {
-                policyAuthority = GeneralNames.GetInstance(((Asn1TaggedObject)seq[0]), false);
+                policyAuthority = GeneralNames.GetInstance(taggedObject, false);
                 i++;
             }
             else if (seq.Count == 2)

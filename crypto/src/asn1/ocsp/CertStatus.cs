@@ -54,23 +54,21 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             }
         }
 
-		public static CertStatus GetInstance(
-            object obj)
+        public static CertStatus GetInstance(object obj)
         {
-            if (obj == null || obj is CertStatus)
-            {
-                return (CertStatus)obj;
-            }
+            if (obj == null)
+                return null;
 
-			if (obj is Asn1TaggedObject)
-            {
-                return new CertStatus((Asn1TaggedObject)obj);
-            }
+            if (obj is CertStatus certStatus)
+                return certStatus;
+
+            if (obj is Asn1TaggedObject taggedObject)
+                return new CertStatus(taggedObject);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
-		public int TagNo
+        public int TagNo
 		{
 			get { return tagNo; }
 		}

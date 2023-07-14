@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		private readonly GeneralName targetName;
 		private readonly GeneralName targetGroup;
 
-		/**
+        /**
 		* Creates an instance of a Target from the given object.
 		* <p>
 		* <code>obj</code> can be a Target or a {@link Asn1TaggedObject}</p>
@@ -42,29 +42,24 @@ namespace Org.BouncyCastle.Asn1.X509
 		* @throws ArgumentException if the given object cannot be
 		*             interpreted as Target.
 		*/
-		public static Target GetInstance(
-			object obj)
-		{
-			if (obj is Target)
-			{
-				return (Target) obj;
-			}
+        public static Target GetInstance(object obj)
+        {
+            if (obj is Target target)
+                return target;
 
-			if (obj is Asn1TaggedObject)
-			{
-				return new Target((Asn1TaggedObject) obj);
-			}
+            if (obj is Asn1TaggedObject taggedObject)
+                return new Target(taggedObject);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        }
 
-		/**
+        /**
 		 * Constructor from Asn1TaggedObject.
 		 * 
 		 * @param tagObj The tagged object.
 		 * @throws ArgumentException if the encoding is wrong.
 		 */
-		private Target(
+        private Target(
 			Asn1TaggedObject tagObj)
 		{
 			switch ((Choice) tagObj.TagNo)

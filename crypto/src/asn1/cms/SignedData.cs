@@ -81,10 +81,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             {
                 foreach (object obj in certs)
                 {
-                    if (obj is Asn1TaggedObject)
+                    if (obj is Asn1TaggedObject tagged)
                     {
-                        Asn1TaggedObject tagged = (Asn1TaggedObject)obj;
-
                         if (tagged.TagNo == 1)
                         {
                             attrCertV1Found = true;

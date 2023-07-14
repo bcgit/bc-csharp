@@ -53,23 +53,19 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 		private readonly byte[]						publicKeyCert;
 		private readonly byte[]						attributeCert;
 
-		public static RequestedCertificate GetInstance(
-			object obj)
+		public static RequestedCertificate GetInstance(object obj)
 		{
-			if (obj == null || obj is RequestedCertificate)
-			{
-				return (RequestedCertificate) obj;
-			}
+			if (obj == null)
+				return null;
+
+			if (obj is RequestedCertificate requestedCertificate)
+				return requestedCertificate;
 
 			if (obj is Asn1Sequence)
-			{
 				return new RequestedCertificate(X509CertificateStructure.GetInstance(obj));
-			}
 
-			if (obj is Asn1TaggedObject)
-			{
-				return new RequestedCertificate((Asn1TaggedObject) obj);
-			}
+            if (obj is Asn1TaggedObject taggedObject)
+                return new RequestedCertificate(taggedObject);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
