@@ -56,32 +56,25 @@ namespace Org.BouncyCastle.Asn1.X509
 			this.targets = targets;
 		}
 
-		/**
+        /**
 		 * Returns the targets in this target information extension.
 		 * <p>
 		 * The ArrayList is cloned before it is returned.</p>
 		 * 
 		 * @return Returns the targets.
 		 */
-		public virtual Targets[] GetTargetsObjects()
-		{
-			Targets[] result = new Targets[targets.Count];
+        public virtual Targets[] GetTargetsObjects()
+        {
+            return targets.MapElements(Targets.GetInstance);
+        }
 
-			for (int i = 0; i < targets.Count; ++i)
-			{
-				result[i] = Targets.GetInstance(targets[i]);
-			}
-
-			return result;
-		}
-
-		/**
+        /**
 		 * Constructs a target information from a single targets element. 
 		 * According to RFC 3281 only one targets element must be produced.
 		 * 
 		 * @param targets A Targets instance.
 		 */
-		public TargetInformation(
+        public TargetInformation(
 			Targets targets)
 		{
 			this.targets = new DerSequence(targets);

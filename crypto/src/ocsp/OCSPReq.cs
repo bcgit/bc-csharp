@@ -109,20 +109,12 @@ namespace Org.BouncyCastle.Ocsp
 			get { return GeneralName.GetInstance(req.TbsRequest.RequestorName); }
 		}
 
-		public Req[] GetRequestList()
-		{
-			Asn1Sequence seq = req.TbsRequest.RequestList;
-			Req[] requests = new Req[seq.Count];
+        public Req[] GetRequestList()
+        {
+            return req.TbsRequest.RequestList.MapElements(element => new Req(Request.GetInstance(element)));
+        }
 
-			for (int i = 0; i != requests.Length; i++)
-			{
-				requests[i] = new Req(Request.GetInstance(seq[i]));
-			}
-
-			return requests;
-		}
-
-		public X509Extensions RequestExtensions
+        public X509Extensions RequestExtensions
 		{
 			get { return X509Extensions.GetInstance(req.TbsRequest.RequestExtensions); }
 		}

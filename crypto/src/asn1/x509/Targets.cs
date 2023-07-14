@@ -85,26 +85,19 @@ namespace Org.BouncyCastle.Asn1.X509
 			this.targets = new DerSequence(targets);
 		}
 
-		/**
+        /**
 		 * Returns the targets in an <code>ArrayList</code>.
 		 * <p>
 		 * The ArrayList is cloned before it is returned.</p>
 		 * 
 		 * @return Returns the targets.
 		 */
-		public virtual Target[] GetTargets()
-		{
-			Target[] result = new Target[targets.Count];
+        public virtual Target[] GetTargets()
+        {
+            return targets.MapElements(Target.GetInstance);
+        }
 
-			for (int i = 0; i < targets.Count; ++i)
-			{
-				result[i] = Target.GetInstance(targets[i]);
-			}
-
-			return result;
-		}
-
-		/**
+        /**
 		 * Produce an object suitable for an Asn1OutputStream.
 		 * 
 		 * Returns:
@@ -115,7 +108,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * 
 		 * @return an Asn1Object
 		 */
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
 		{
 			return targets;
 		}

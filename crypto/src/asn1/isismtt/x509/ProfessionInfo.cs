@@ -326,45 +326,26 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 			get { return namingAuthority; }
 		}
 
-		/**
+        /**
 		* @return Returns the professionItems.
 		*/
-		public virtual DirectoryString[] GetProfessionItems()
-		{
-			DirectoryString[] result = new DirectoryString[professionItems.Count];
+        public virtual DirectoryString[] GetProfessionItems()
+        {
+            return professionItems.MapElements(DirectoryString.GetInstance);
+        }
 
-			for (int i = 0; i < professionItems.Count; ++i)
-			{
-				result[i] = DirectoryString.GetInstance(professionItems[i]);
-			}
-
-			return result;
-		}
-
-		/**
+        /**
 		* @return Returns the professionOids.
 		*/
-		public virtual DerObjectIdentifier[] GetProfessionOids()
-		{
-			if (professionOids == null)
-			{
-				return new DerObjectIdentifier[0];
-			}
+        public virtual DerObjectIdentifier[] GetProfessionOids()
+        {
+            return professionOids?.MapElements(DerObjectIdentifier.GetInstance) ?? new DerObjectIdentifier[0];
+        }
 
-			DerObjectIdentifier[] result = new DerObjectIdentifier[professionOids.Count];
-
-			for (int i = 0; i < professionOids.Count; ++i)
-			{
-				result[i] = DerObjectIdentifier.GetInstance(professionOids[i]);
-			}
-
-			return result;
-		}
-
-		/**
+        /**
 		* @return Returns the registrationNumber.
 		*/
-		public virtual string RegistrationNumber
+        public virtual string RegistrationNumber
 		{
 			get { return registrationNumber; }
 		}

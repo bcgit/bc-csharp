@@ -49,12 +49,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private CertificatePolicies(Asn1Sequence seq)
         {
-            this.policyInformation = new PolicyInformation[seq.Count];
-
-            for (int i = 0; i < seq.Count; ++i)
-            {
-                policyInformation[i] = PolicyInformation.GetInstance(seq[i]);
-            }
+            this.policyInformation = seq.MapElements(PolicyInformation.GetInstance);
         }
 
         public virtual PolicyInformation[] GetPolicyInformation()

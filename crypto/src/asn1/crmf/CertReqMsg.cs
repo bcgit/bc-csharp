@@ -81,15 +81,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual AttributeTypeAndValue[] GetRegInfo()
         {
-            if (regInfo == null)
-                return null;
-
-            AttributeTypeAndValue[] results = new AttributeTypeAndValue[regInfo.Count];
-            for (int i = 0; i != results.Length; ++i)
-            {
-                results[i] = AttributeTypeAndValue.GetInstance(regInfo[i]);
-            }
-            return results;
+            return regInfo?.MapElements(AttributeTypeAndValue.GetInstance);
         }
 
         /**

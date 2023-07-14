@@ -65,25 +65,12 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         public EssCertIDv2[] GetCerts()
         {
-            EssCertIDv2[] certIds = new EssCertIDv2[certs.Count];
-            for (int i = 0; i != certs.Count; i++)
-            {
-                certIds[i] = EssCertIDv2.GetInstance(certs[i]);
-            }
-            return certIds;
+            return certs.MapElements(EssCertIDv2.GetInstance);
         }
 
         public PolicyInformation[] GetPolicies()
         {
-            if (policies == null)
-                return null;
-
-            PolicyInformation[] policyInformations = new PolicyInformation[policies.Count];
-            for (int i = 0; i != policies.Count; i++)
-            {
-                policyInformations[i] = PolicyInformation.GetInstance(policies[i]);
-            }
-            return policyInformations;
+            return policies?.MapElements(PolicyInformation.GetInstance);
         }
 
         /**

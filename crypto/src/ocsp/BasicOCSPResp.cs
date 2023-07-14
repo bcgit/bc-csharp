@@ -65,23 +65,12 @@ namespace Org.BouncyCastle.Ocsp
 			get { return data.ProducedAt.ToDateTime(); }
 		}
 
-		public SingleResp[] Responses
-		{
-			get
-			{
-				Asn1Sequence s = data.Responses;
-				SingleResp[] rs = new SingleResp[s.Count];
+        public SingleResp[] Responses
+        {
+            get { return data.Responses.MapElements(element => new SingleResp(SingleResponse.GetInstance(element))); }
+        }
 
-				for (int i = 0; i != rs.Length; i++)
-				{
-					rs[i] = new SingleResp(SingleResponse.GetInstance(s[i]));
-				}
-
-				return rs;
-			}
-		}
-
-		public X509Extensions ResponseExtensions
+        public X509Extensions ResponseExtensions
 		{
 			get { return data.ResponseExtensions; }
 		}

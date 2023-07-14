@@ -32,12 +32,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual CertReqMsg[] ToCertReqMsgArray()
         {
-            CertReqMsg[] result = new CertReqMsg[content.Count];
-            for (int i = 0; i != result.Length; ++i)
-            {
-                result[i] = CertReqMsg.GetInstance(content[i]);
-            }
-            return result;
+            return content.MapElements(CertReqMsg.GetInstance);
         }
 
         /**

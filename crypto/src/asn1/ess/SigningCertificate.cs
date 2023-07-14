@@ -53,36 +53,17 @@ namespace Org.BouncyCastle.Asn1.Ess
 			certs = new DerSequence(essCertID);
 		}
 
-		public EssCertID[] GetCerts()
-		{
-			EssCertID[] cs = new EssCertID[certs.Count];
+        public EssCertID[] GetCerts()
+        {
+            return certs.MapElements(EssCertID.GetInstance);
+        }
 
-			for (int i = 0; i != certs.Count; i++)
-			{
-				cs[i] = EssCertID.GetInstance(certs[i]);
-			}
+        public PolicyInformation[] GetPolicies()
+        {
+            return policies?.MapElements(PolicyInformation.GetInstance);
+        }
 
-			return cs;
-		}
-
-		public PolicyInformation[] GetPolicies()
-		{
-			if (policies == null)
-			{
-				return null;
-			}
-
-			PolicyInformation[] ps = new PolicyInformation[policies.Count];
-
-			for (int i = 0; i != policies.Count; i++)
-			{
-				ps[i] = PolicyInformation.GetInstance(policies[i]);
-			}
-
-			return ps;
-		}
-
-		/**
+        /**
 		 * The definition of SigningCertificate is
 		 * <pre>
 		 * SigningCertificate ::=  SEQUENCE {
@@ -94,7 +75,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 		 *  member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
 		 *  smime(16) id-aa(2) 12 }
 		 */
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(certs);
             v.AddOptional(policies);

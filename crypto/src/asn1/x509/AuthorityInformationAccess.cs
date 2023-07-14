@@ -43,18 +43,12 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private readonly AccessDescription[] descriptions;
 
-        private AuthorityInformationAccess(
-            Asn1Sequence seq)
+        private AuthorityInformationAccess(Asn1Sequence seq)
         {
             if (seq.Count < 1)
                 throw new ArgumentException("sequence may not be empty");
 
-            this.descriptions = new AccessDescription[seq.Count];
-
-            for (int i = 0; i < seq.Count; ++i)
-            {
-                descriptions[i] = AccessDescription.GetInstance(seq[i]);
-            }
+            this.descriptions = seq.MapElements(AccessDescription.GetInstance);
         }
 
         public AuthorityInformationAccess(

@@ -214,20 +214,12 @@ namespace Org.BouncyCastle.X509
 			return cert.ACInfo.Extensions;
 		}
 
-		public virtual X509Attribute[] GetAttributes()
-		{
-			Asn1Sequence seq = cert.ACInfo.Attributes;
-			X509Attribute[] attrs = new X509Attribute[seq.Count];
+        public virtual X509Attribute[] GetAttributes()
+        {
+            return cert.ACInfo.Attributes.MapElements(element => new X509Attribute(element));
+        }
 
-			for (int i = 0; i != seq.Count; i++)
-			{
-				attrs[i] = new X509Attribute((Asn1Encodable)seq[i]);
-			}
-
-			return attrs;
-		}
-
-		public virtual X509Attribute[] GetAttributes(
+        public virtual X509Attribute[] GetAttributes(
 			string oid)
 		{
 			Asn1Sequence seq = cert.ACInfo.Attributes;

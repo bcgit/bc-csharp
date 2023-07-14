@@ -261,14 +261,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         */
         public virtual Admissions[] GetContentsOfAdmissions()
         {
-            Admissions[] result = new Admissions[contentsOfAdmissions.Count];
-
-            for (int i = 0; i < contentsOfAdmissions.Count; ++i)
-            {
-                result[i] = Admissions.GetInstance(contentsOfAdmissions[i]);
-            }
-
-            return result;
+            return contentsOfAdmissions.MapElements(Admissions.GetInstance);
         }
     }
 }

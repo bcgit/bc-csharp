@@ -61,18 +61,13 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
                 }
             }
 
-			if (obj != null)
+            if (obj != null)
             {
-                Asn1Sequence generalNameSeq = Asn1Sequence.GetInstance(obj);
-                nameRegistrationAuthorities = new GeneralName[generalNameSeq.Count];
-                for (int i= 0; i < generalNameSeq.Count; i++)
-                {
-                    nameRegistrationAuthorities[i] = GeneralName.GetInstance(generalNameSeq[i]);
-                }
+                this.nameRegistrationAuthorities = Asn1Sequence.GetInstance(obj).MapElements(GeneralName.GetInstance);
             }
         }
 
-		public SemanticsInformation(
+        public SemanticsInformation(
             DerObjectIdentifier semanticsIdentifier,
             GeneralName[] generalNames)
         {
