@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
             if (seq.Count > 1)
             {
-                content = ((Asn1TaggedObject) seq[1]).GetObject();
+                content = ((Asn1TaggedObject) seq[1]).GetExplicitBaseObject();
             }
         }
 

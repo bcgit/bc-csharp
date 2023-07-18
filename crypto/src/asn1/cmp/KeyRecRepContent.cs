@@ -30,18 +30,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 			for (int pos = 1; pos < seq.Count; ++pos)
 			{
-				Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
+				Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos], Asn1Tags.ContextSpecific);
 
 				switch (tObj.TagNo)
 				{
 				case 0:
-					m_newSigCert = CmpCertificate.GetInstance(tObj.GetObject());
+					m_newSigCert = CmpCertificate.GetInstance(tObj.GetExplicitBaseObject());
 					break;
 				case 1:
-					m_caCerts = Asn1Sequence.GetInstance(tObj.GetObject());
+					m_caCerts = Asn1Sequence.GetInstance(tObj.GetExplicitBaseObject());
 					break;
 				case 2:
-					m_keyPairHist = Asn1Sequence.GetInstance(tObj.GetObject());
+					m_keyPairHist = Asn1Sequence.GetInstance(tObj.GetExplicitBaseObject());
 					break;
 				default:
 					throw new ArgumentException("unknown tag number: " + tObj.TagNo, "seq");

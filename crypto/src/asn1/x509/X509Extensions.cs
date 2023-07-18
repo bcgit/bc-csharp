@@ -215,7 +215,11 @@ namespace Org.BouncyCastle.Asn1.X509
                 return new X509Extensions(sequence);
 
             if (obj is Asn1TaggedObject taggedObject)
-                return GetInstance(taggedObject.GetObject());
+            {
+                Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific);
+
+                return GetInstance(taggedObject.GetBaseObject().ToAsn1Object());
+            }
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }

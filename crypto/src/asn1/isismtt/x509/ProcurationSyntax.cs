@@ -85,11 +85,9 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 			if (seq.Count < 1 || seq.Count > 3)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			var e = seq.GetEnumerator();
-
-			while (e.MoveNext())
+			foreach (var element in seq)
 			{
-				Asn1TaggedObject o = Asn1TaggedObject.GetInstance(e.Current);
+				Asn1TaggedObject o = Asn1TaggedObject.GetInstance(element, Asn1Tags.ContextSpecific);
 				switch (o.TagNo)
 				{
 				case 1:
@@ -99,7 +97,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 					typeOfSubstitution = DirectoryString.GetInstance(o, true);
 					break;
 				case 3:
-					Asn1Object signingFor = o.GetObject();
+					Asn1Encodable signingFor = o.GetExplicitBaseObject();
 					if (signingFor is Asn1TaggedObject)
 					{
 						thirdPerson = GeneralName.GetInstance(signingFor);

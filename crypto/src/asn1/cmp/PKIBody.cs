@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private PkiBody(Asn1TaggedObject taggedObject)
         {
             m_tagNo = taggedObject.TagNo;
-            m_body = GetBodyForType(m_tagNo, taggedObject.GetObject());
+            m_body = GetBodyForType(m_tagNo, taggedObject.GetExplicitBaseObject());
         }
 
         /**

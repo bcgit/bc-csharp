@@ -18,10 +18,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             if (authInfo is Asn1TaggedObject tagObj)
             {
-                if (tagObj.TagNo != 0)
-                    throw new ArgumentException("Unknown authInfo tag: " + tagObj.TagNo, nameof(seq));
-
-                sender = GeneralName.GetInstance(tagObj.GetObject());
+                sender = GeneralName.GetInstance(Asn1Utilities.GetExplicitContextBaseObject(tagObj, 0));
             }
             else
             {
@@ -33,13 +30,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static PopoSigningKeyInput GetInstance(object obj)
         {
-            if (obj is PopoSigningKeyInput)
-                return (PopoSigningKeyInput)obj;
+            if (obj == null)
+                return null;
+            if (obj is PopoSigningKeyInput popoSigningKeyInput)
+                return popoSigningKeyInput;
+            return new PopoSigningKeyInput(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj is Asn1Sequence)
-                return new PopoSigningKeyInput((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+        public static PopoSigningKeyInput GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         /** Creates a new PopoSigningKeyInput with sender name as authInfo. */

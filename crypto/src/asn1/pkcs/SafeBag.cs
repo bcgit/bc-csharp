@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		private SafeBag(Asn1Sequence seq)
         {
             this.bagID = (DerObjectIdentifier)seq[0];
-            this.bagValue = ((Asn1TaggedObject)seq[1]).GetObject();
+            this.bagValue = ((Asn1TaggedObject)seq[1]).GetExplicitBaseObject().ToAsn1Object();
             if (seq.Count == 3)
             {
                 this.bagAttributes = (Asn1Set)seq[2];

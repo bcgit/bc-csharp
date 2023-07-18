@@ -33,7 +33,12 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			return new ResponderID(X509Name.GetInstance(obj));
 		}
 
-		public ResponderID(
+        public static ResponderID GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
+        }
+
+        public ResponderID(
             Asn1OctetString id)
         {
 			if (id == null)
@@ -51,19 +56,10 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			this.id = id;
         }
 
-		public static ResponderID GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
-		{
-			return GetInstance(obj.GetObject()); // must be explicitly tagged
-		}
-
 		public virtual byte[] GetKeyHash()
 		{
-			if (id is Asn1OctetString)
-			{
-				return ((Asn1OctetString)id).GetOctets();
-			}
+			if (id is Asn1OctetString octetString)
+				return octetString.GetOctets();
 
 			return null;
 		}

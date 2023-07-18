@@ -37,11 +37,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (seq.Count > 1)
             {
-                Asn1TaggedObject tagged = (Asn1TaggedObject) seq[1];
+                Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific);
                 if (!tagged.IsExplicit() || tagged.TagNo != 0)
                     throw new ArgumentException("Bad tag for 'content'", "seq");
 
-                content = tagged.GetObject();
+                content = tagged.GetExplicitBaseObject();
             }
         }
 

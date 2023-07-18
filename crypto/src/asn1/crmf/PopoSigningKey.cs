@@ -20,10 +20,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             {
                 index++;
 
-                if (tagObj.TagNo != 0)
-                    throw new ArgumentException( "Unknown PopoSigningKeyInput tag: " + tagObj.TagNo, nameof(seq));
-
-                poposkInput = PopoSigningKeyInput.GetInstance(tagObj.GetObject());
+                poposkInput = PopoSigningKeyInput.GetInstance(
+                    Asn1Utilities.GetContextBaseUniversal(tagObj, 0, false, Asn1Tags.Sequence));
             }
             algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[index++]);
             signature = DerBitString.GetInstance(seq[index]);
@@ -31,13 +29,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static PopoSigningKey GetInstance(object obj)
         {
-            if (obj is PopoSigningKey)
-                return (PopoSigningKey)obj;
-
-            if (obj is Asn1Sequence)
-                return new PopoSigningKey((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is PopoSigningKey popoSigningKey)
+                return popoSigningKey;
+            return new PopoSigningKey(Asn1Sequence.GetInstance(obj));
         }
 
         public static PopoSigningKey GetInstance(Asn1TaggedObject obj, bool isExplicit)

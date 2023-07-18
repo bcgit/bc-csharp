@@ -36,29 +36,27 @@ namespace Org.BouncyCastle.Asn1.Esf
 				"obj");
 		}
 
-		private CrlOcspRef(
-			Asn1Sequence seq)
+		private CrlOcspRef(Asn1Sequence seq)
 		{
 			if (seq == null)
 				throw new ArgumentNullException("seq");
 
-			foreach (Asn1TaggedObject taggedObj in seq)
+			foreach (var element in seq)
 			{
-				Asn1Object asn1Obj = taggedObj.GetObject();
-
-				switch (taggedObj.TagNo)
+				var o = Asn1TaggedObject.GetInstance(element, Asn1Tags.ContextSpecific);
+				switch (o.TagNo)
 				{
-					case 0:
-						this.crlids = CrlListID.GetInstance(asn1Obj);
-						break;
-					case 1:
-						this.ocspids = OcspListID.GetInstance(asn1Obj);
-						break;
-					case 2:
-						this.otherRev = OtherRevRefs.GetInstance(asn1Obj);
-						break;
-					default:
-						throw new ArgumentException("Illegal tag in CrlOcspRef", "seq");
+				case 0:
+					this.crlids = CrlListID.GetInstance(o.GetExplicitBaseObject());
+					break;
+				case 1:
+					this.ocspids = OcspListID.GetInstance(o.GetExplicitBaseObject());
+					break;
+				case 2:
+					this.otherRev = OtherRevRefs.GetInstance(o.GetExplicitBaseObject());
+					break;
+				default:
+					throw new ArgumentException("Illegal tag in CrlOcspRef", "seq");
 				}
 			}
 		}

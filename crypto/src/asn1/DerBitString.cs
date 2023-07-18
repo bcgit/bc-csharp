@@ -74,18 +74,10 @@ namespace Org.BouncyCastle.Asn1
 		 * @exception ArgumentException if the tagged object cannot
 		 *               be converted.
 		 */
-		public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
-		{
-			Asn1Object o = obj.GetObject();
-
-			if (isExplicit || o is DerBitString)
-			{
-				return GetInstance(o);
-			}
-
-            // Not copied because assumed to be a tagged implicit primitive from the parser
-			return CreatePrimitive(((Asn1OctetString)o).GetOctets());
-		}
+        public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return (DerBitString)Meta.Instance.GetContextInstance(obj, isExplicit);
+        }
 
         internal readonly byte[] contents;
 

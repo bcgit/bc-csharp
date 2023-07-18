@@ -41,29 +41,29 @@ namespace Org.BouncyCastle.Asn1.Esf
 			if (seq.Count > 3)
 				throw new ArgumentException("Bad sequence size: " + seq.Count, nameof(seq));
 
-			foreach (Asn1TaggedObject taggedObj in seq)
+			foreach (var element in seq)
 			{
-				Asn1Object asn1Obj = taggedObj.GetObject();
-				switch (taggedObj.TagNo)
+				var o = Asn1TaggedObject.GetInstance(element, Asn1Tags.ContextSpecific);
+				switch (o.TagNo)
 				{
 				case 0:
-					Asn1Sequence crlValsSeq = (Asn1Sequence)asn1Obj;
+					Asn1Sequence crlValsSeq = (Asn1Sequence)o.GetExplicitBaseObject();
 
 					// Validate
-					crlValsSeq.MapElements(element => CertificateList.GetInstance(element.ToAsn1Object()));
+					crlValsSeq.MapElements(CertificateList.GetInstance);
 
 					m_crlVals = crlValsSeq;
 					break;
 				case 1:
-					Asn1Sequence ocspValsSeq = (Asn1Sequence)asn1Obj;
+					Asn1Sequence ocspValsSeq = (Asn1Sequence)o.GetExplicitBaseObject();
 
 					// Validate
-					ocspValsSeq.MapElements(element => BasicOcspResponse.GetInstance(element.ToAsn1Object()));
+					ocspValsSeq.MapElements(BasicOcspResponse.GetInstance);
 
 					m_ocspVals = ocspValsSeq;
 					break;
 				case 2:
-					m_otherRevVals = OtherRevVals.GetInstance(asn1Obj);
+					m_otherRevVals = OtherRevVals.GetInstance(o.GetExplicitBaseObject());
 					break;
 				default:
 					throw new ArgumentException("Illegal tag in RevocationValues", nameof(seq));

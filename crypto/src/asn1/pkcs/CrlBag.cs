@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Wrong number of elements in sequence", nameof(seq));
 
             m_crlID = DerObjectIdentifier.GetInstance(seq[0]);
-            m_crlValue = Asn1TaggedObject.GetInstance(seq[1]).GetObject();
+            m_crlValue = Asn1TaggedObject.GetInstance(seq[1]).GetExplicitBaseObject();
         }
 
         public CrlBag(DerObjectIdentifier crlID, Asn1Encodable crlValue)

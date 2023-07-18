@@ -40,17 +40,9 @@ namespace Org.BouncyCastle.Asn1.Cms
          * @exception ArgumentException if the object held by the
          *          tagged object cannot be converted.
          */
-        public static OriginatorIdentifierOrKey GetInstance(
-            Asn1TaggedObject	o,
-            bool				explicitly)
+        public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly)
         {
-            if (!explicitly)
-            {
-                throw new ArgumentException(
-                        "Can't implicitly tag OriginatorIdentifierOrKey");
-            }
-
-			return GetInstance(o.GetObject());
+            return Asn1Utilities.GetInstanceFromChoice(o, explicitly, GetInstance);
         }
 
         /**
@@ -78,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 				return new OriginatorIdentifierOrKey(originatorPublicKey);
 
 			if (o is Asn1TaggedObject taggedObject)
-				return new OriginatorIdentifierOrKey(taggedObject);
+				return new OriginatorIdentifierOrKey(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
 
             throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o));
         }

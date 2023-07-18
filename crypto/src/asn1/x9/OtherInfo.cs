@@ -32,13 +32,13 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 Asn1TaggedObject o = (Asn1TaggedObject)e.Current;
 
-				if (o.TagNo == 0)
+				if (o.HasContextTag(0))
                 {
-                    partyAInfo = (Asn1OctetString)o.GetObject();
+                    partyAInfo = (Asn1OctetString)o.GetExplicitBaseObject();
                 }
-                else if ((int) o.TagNo == 2)
+                else if (o.HasContextTag(2))
                 {
-                    suppPubInfo = (Asn1OctetString)o.GetObject();
+                    suppPubInfo = (Asn1OctetString)o.GetExplicitBaseObject();
                 }
             }
         }

@@ -36,11 +36,9 @@ namespace Org.BouncyCastle.Asn1.X509
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
-        public static AttCertIssuer GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
+        public static AttCertIssuer GetInstance(Asn1TaggedObject obj, bool isExplicit)
 		{
-			return GetInstance(obj.GetObject()); // must be explictly tagged
+            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
 		}
 
 		/// <summary>

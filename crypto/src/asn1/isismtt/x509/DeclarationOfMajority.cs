@@ -73,8 +73,8 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 			if (obj is DeclarationOfMajority declarationOfMajority)
 				return declarationOfMajority;
 
-			if (obj is Asn1TaggedObject asn1TaggedObject)
-				return new DeclarationOfMajority(asn1TaggedObject);
+			if (obj is Asn1TaggedObject taggedObject)
+				return new DeclarationOfMajority(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
 		}

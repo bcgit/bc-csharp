@@ -68,6 +68,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
+        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+        }
+
         public int TagNo
 		{
 			get { return tagNo; }

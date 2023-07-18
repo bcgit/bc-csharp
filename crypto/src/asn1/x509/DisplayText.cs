@@ -140,23 +140,23 @@ namespace Org.BouncyCastle.Asn1.X509
 			this.contents = contents;
 		}
 
-		public static DisplayText GetInstance(
-			object obj)
+		public static DisplayText GetInstance(object obj)
 		{
-			if (obj is IAsn1String)
-			{
-				return new DisplayText((IAsn1String) obj);
-			}
+			if (obj is IAsn1String asn1String)
+				return new DisplayText(asn1String);
 
-			if (obj is DisplayText)
-			{
-				return (DisplayText) obj;
-			}
+			if (obj is DisplayText displayText)
+				return displayText;
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
 
-		public override Asn1Object ToAsn1Object()
+		public static DisplayText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+		{
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+        }
+
+        public override Asn1Object ToAsn1Object()
 		{
 			return (Asn1Object) contents;
 		}

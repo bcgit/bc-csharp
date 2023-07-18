@@ -223,13 +223,12 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        /**
-         * return whatever was following the tag.
-         * <p>
-         * Note: tagged objects are generally context dependent if you're
-         * trying to extract a tagged object you should be going via the
-         * appropriate GetInstance method.</p>
-         */
+        /// <summary>Return whatever was following the tag.</summary>
+        /// <remarks>
+        /// Tagged objects are generally context dependent. If you're trying to extract a tagged object you should be
+        /// going via the appropriate GetInstance method.
+        /// </remarks>
+        [Obsolete("Will be removed")]
         public Asn1Object GetObject()
         {
             Asn1Utilities.CheckTagClass(this, Asn1Tags.ContextSpecific);
@@ -237,23 +236,23 @@ namespace Org.BouncyCastle.Asn1
             return m_object.ToAsn1Object();
         }
 
-        /**
-         * Needed for open types, until we have better type-guided parsing support. Use sparingly for other
-         * purposes, and prefer {@link #getExplicitBaseTagged()}, {@link #getImplicitBaseTagged(int, int)} or
-         * {@link #getBaseUniversal(boolean, int)} where possible. Before using, check for matching tag
-         * {@link #getTagClass() class} and {@link #getTagNo() number}.
-         */
+        /// <summary>Needed for open types, until we have better type-guided parsing support.</summary>
+        /// <remarks>
+        /// Use sparingly for other purposes, and prefer <see cref="GetExplicitBaseTagged"/>,
+        /// <see cref="GetImplicitBaseTagged(int, int)"/> or <see cref="GetBaseUniversal(bool, int)"/> where possible.
+        /// Before using, check for matching tag <see cref="TagClass">class</see> and <see cref="TagNo">number</see>.
+        /// </remarks>
         public Asn1Encodable GetBaseObject()
         {
             return m_object;
         }
 
-        /**
-         * Needed for open types, until we have better type-guided parsing support. Use
-         * sparingly for other purposes, and prefer {@link #getExplicitBaseTagged()} or
-         * {@link #getBaseUniversal(boolean, int)} where possible. Before using, check
-         * for matching tag {@link #getTagClass() class} and {@link #getTagNo() number}.
-         */
+        /// <summary>Needed for open types, until we have better type-guided parsing support.</summary>
+        /// <remarks>
+        /// Use sparingly for other purposes, and prefer <see cref="GetExplicitBaseTagged"/> or
+        /// <see cref="GetBaseUniversal(bool, int)"/> where possible. Before using, check for matching tag
+        /// <see cref="TagClass">class</see> and <see cref="TagNo">number</see>.
+        /// </remarks>
         public Asn1Encodable GetExplicitBaseObject()
         {
             if (!IsExplicit())

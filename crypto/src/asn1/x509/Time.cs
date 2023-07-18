@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public static Time GetInstance(Asn1TaggedObject	taggedObject, bool declaredExplicit)
         {
-            return GetInstance(taggedObject.GetObject());
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly Asn1Object m_timeObject;

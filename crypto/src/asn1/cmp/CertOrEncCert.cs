@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 				return null;
             if (obj is CertOrEncCert certOrEncCert)
                 return certOrEncCert;
-            return new CertOrEncCert(Asn1TaggedObject.GetInstance(obj));
+            return new CertOrEncCert(Asn1TaggedObject.GetInstance(obj, Asn1Tags.ContextSpecific));
         }
 
         public static CertOrEncCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
@@ -28,11 +28,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		{
 			if (taggedObject.TagNo == 0)
 			{
-				m_certificate = CmpCertificate.GetInstance(taggedObject.GetObject());
+				m_certificate = CmpCertificate.GetInstance(taggedObject.GetExplicitBaseObject());
 			}
 			else if (taggedObject.TagNo == 1)
 			{
-                m_encryptedCert = EncryptedKey.GetInstance(taggedObject.GetObject());
+                m_encryptedCert = EncryptedKey.GetInstance(taggedObject.GetExplicitBaseObject());
 			}
 			else
 			{

@@ -41,14 +41,14 @@ namespace Org.BouncyCastle.Asn1.Cms
 				return evidence;
 
 			if (obj is Asn1TaggedObject taggedObject)
-				return new Evidence(taggedObject);
+				return new Evidence(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
 
 			throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
 
         public static Evidence GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
-            return GetInstance(obj.GetObject()); // must be explicitly tagged
+            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
         }
 
 		public virtual TimeStampTokenEvidence TstEvidence

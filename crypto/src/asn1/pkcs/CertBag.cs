@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 				throw new ArgumentException("Wrong number of elements in sequence", nameof(seq));
 
             this.m_certID = DerObjectIdentifier.GetInstance(seq[0]);
-            this.m_certValue = Asn1TaggedObject.GetInstance(seq[1]).GetObject();
+            this.m_certValue = Asn1TaggedObject.GetInstance(seq[1]).GetExplicitBaseObject().ToAsn1Object();
         }
 
 		public CertBag(DerObjectIdentifier certID, Asn1Object certValue)

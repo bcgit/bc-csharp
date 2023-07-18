@@ -29,15 +29,10 @@ namespace Org.BouncyCastle.Asn1.X500
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
 
-		public static DirectoryString GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
-		{
-			if (!isExplicit)
-				throw new ArgumentException("choice item must be explicitly tagged");
-
-			return GetInstance(obj.GetObject());
-		}
+        public static DirectoryString GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
+        }
 
 		private DirectoryString(
 			DerStringBase str)

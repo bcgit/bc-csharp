@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 return pkiArchiveOptions;
 
             if (obj is Asn1TaggedObject taggedObject)
-                return new PkiArchiveOptions(taggedObject);
+                return new PkiArchiveOptions(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
 
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }
@@ -28,17 +28,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             switch (tagged.TagNo)
             {
-                case encryptedPrivKey:
-                    value = EncryptedKey.GetInstance(tagged.GetObject());
-                    break;
-                case keyGenParameters:
-                    value = Asn1OctetString.GetInstance(tagged, false);
-                    break;
-                case archiveRemGenPrivKey:
-                    value = DerBoolean.GetInstance(tagged, false);
-                    break;
-                default:
-                    throw new ArgumentException("unknown tag number: " + tagged.TagNo, "tagged");
+            case encryptedPrivKey:
+                value = EncryptedKey.GetInstance(tagged.GetExplicitBaseObject());
+                break;
+            case keyGenParameters:
+                value = Asn1OctetString.GetInstance(tagged, false);
+                break;
+            case archiveRemGenPrivKey:
+                value = DerBoolean.GetInstance(tagged, false);
+                break;
+            default:
+                throw new ArgumentException("unknown tag number: " + tagged.TagNo, "tagged");
             }
         }
 

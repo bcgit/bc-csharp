@@ -25,8 +25,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public SignerLocation(Asn1Sequence seq)
 		{
-			foreach (Asn1TaggedObject obj in seq)
+			foreach (var element in seq)
 			{
+				var obj = Asn1TaggedObject.GetInstance(element, Asn1Tags.ContextSpecific);
+
 				switch (obj.TagNo)
 				{
 				case 0:

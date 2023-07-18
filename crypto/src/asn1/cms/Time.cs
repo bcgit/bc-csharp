@@ -22,9 +22,9 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static Time GetInstance(Asn1TaggedObject	taggedObject, bool declaredExplicit)
+        public static Time GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(taggedObject.GetObject());
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly Asn1Object m_timeObject;

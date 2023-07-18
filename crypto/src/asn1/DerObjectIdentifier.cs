@@ -65,13 +65,13 @@ namespace Org.BouncyCastle.Asn1
         public static DerObjectIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             /*
-             * TODO[asn1] This block here is for backward compatibility, but should eventually be removed.
+             * TODO[api] This block is for backward compatibility, but should be removed.
              * 
              * - see https://github.com/bcgit/bc-java/issues/1015
              */
-            if (!declaredExplicit && !taggedObject.IsParsed())
+            if (!declaredExplicit && !taggedObject.IsParsed() && Asn1Tags.ContextSpecific == taggedObject.TagClass)
             {
-                Asn1Object baseObject = taggedObject.GetObject();
+                Asn1Object baseObject = taggedObject.GetBaseObject().ToAsn1Object();
                 if (!(baseObject is DerObjectIdentifier))
                     return FromContents(Asn1OctetString.GetInstance(baseObject).GetOctets());
             }

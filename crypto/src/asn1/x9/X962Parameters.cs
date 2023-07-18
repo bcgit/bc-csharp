@@ -9,24 +9,22 @@ namespace Org.BouncyCastle.Asn1.X9
     {
         private readonly Asn1Object _params;
 
-		public static X962Parameters GetInstance(
-			object obj)
+		public static X962Parameters GetInstance(object obj)
 		{
-			if (obj == null || obj is X962Parameters) 
-			{
-				return (X962Parameters)obj;
-			}
+            if (obj == null)
+                return null;
 
-			if (obj is Asn1Object) 
-			{
-				return new X962Parameters((Asn1Object)obj);
-			}
+			if (obj is X962Parameters x962Parameters)
+				return x962Parameters;
 
-			if (obj is byte[])
+			if (obj is Asn1Object asn1Object)
+				return new X962Parameters(asn1Object);
+
+			if (obj is byte[] bytes)
 			{
 				try
 				{
-					return new X962Parameters(Asn1Object.FromByteArray((byte[])obj));
+					return new X962Parameters(Asn1Object.FromByteArray(bytes));
 				}
 				catch (Exception e)
 				{
@@ -34,8 +32,13 @@ namespace Org.BouncyCastle.Asn1.X9
 				}
 			}
 
-			throw new ArgumentException("unknown object in getInstance()");
+			throw new ArgumentException("unknown object in GetInstance()");
 		}
+
+        public static X962Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+        }
 
 		public X962Parameters(
             X9ECParameters ecParameters)

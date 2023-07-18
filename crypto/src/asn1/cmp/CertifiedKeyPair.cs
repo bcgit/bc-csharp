@@ -33,20 +33,22 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			{
 				if (seq.Count == 2)
 				{
-					Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(seq[1]);
+					Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific);
 					if (tagged.TagNo == 0)
 					{
-						m_privateKey = EncryptedKey.GetInstance(tagged.GetObject());
+						m_privateKey = EncryptedKey.GetInstance(tagged.GetExplicitBaseObject());
 					}
 					else
 					{
-						m_publicationInfo = PkiPublicationInfo.GetInstance(tagged.GetObject());
+						m_publicationInfo = PkiPublicationInfo.GetInstance(tagged.GetExplicitBaseObject());
 					}
 				}
 				else
 				{
-                    m_privateKey = EncryptedKey.GetInstance(Asn1TaggedObject.GetInstance(seq[1]).GetObject());
-                    m_publicationInfo = PkiPublicationInfo.GetInstance(Asn1TaggedObject.GetInstance(seq[2]).GetObject());
+                    m_privateKey = EncryptedKey.GetInstance(
+						Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific).GetExplicitBaseObject());
+                    m_publicationInfo = PkiPublicationInfo.GetInstance(
+						Asn1TaggedObject.GetInstance(seq[2], Asn1Tags.ContextSpecific).GetExplicitBaseObject());
 				}
 			}
 		}
