@@ -8,20 +8,25 @@ namespace Org.BouncyCastle.Asn1.Tsp
 	public class TimeStampReq
 		: Asn1Encodable
 	{
-		private readonly DerInteger				version;
-		private readonly MessageImprint			messageImprint;
-		private readonly DerObjectIdentifier	tsaPolicy;
-		private readonly DerInteger				nonce;
-		private readonly DerBoolean				certReq;
-		private readonly X509Extensions			extensions;
+		private readonly DerInteger m_version;
+		private readonly MessageImprint m_messageImprint;
+		private readonly DerObjectIdentifier m_tsaPolicy;
+		private readonly DerInteger m_nonce;
+		private readonly DerBoolean m_certReq;
+		private readonly X509Extensions m_extensions;
 
         public static TimeStampReq GetInstance(object obj)
         {
-            if (obj is TimeStampReq)
-                return (TimeStampReq)obj;
             if (obj == null)
                 return null;
+            if (obj is TimeStampReq timeStampReq)
+                return timeStampReq;
             return new TimeStampReq(Asn1Sequence.GetInstance(obj));
+        }
+
+		public static TimeStampReq GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+		{
+            return new TimeStampReq(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private TimeStampReq(Asn1Sequence seq)
@@ -30,85 +35,63 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			int seqStart = 0;
 
 			// version
-			version = DerInteger.GetInstance(seq[seqStart++]);
+			m_version = DerInteger.GetInstance(seq[seqStart++]);
 
 			// messageImprint
-			messageImprint = MessageImprint.GetInstance(seq[seqStart++]);
+			m_messageImprint = MessageImprint.GetInstance(seq[seqStart++]);
 
 			for (int opt = seqStart; opt < nbObjects; opt++)
 			{
 				// tsaPolicy
 				if (seq[opt] is DerObjectIdentifier oid)
 				{
-					tsaPolicy = oid;
+					m_tsaPolicy = oid;
 				}
 				// nonce
 				else if (seq[opt] is DerInteger derInteger)
 				{
-					nonce = derInteger;
+					m_nonce = derInteger;
 				}
 				// certReq
 				else if (seq[opt] is DerBoolean derBoolean)
 				{
-					certReq = derBoolean;
+					m_certReq = derBoolean;
 				}
 				// extensions
 				else if (seq[opt] is Asn1TaggedObject tagged)
 				{
 					if (tagged.TagNo == 0)
 					{
-						extensions = X509Extensions.GetInstance(tagged, false);
+						m_extensions = X509Extensions.GetInstance(tagged, false);
 					}
 				}
 			}
 		}
 
-		public TimeStampReq(
-			MessageImprint		messageImprint,
-			DerObjectIdentifier	tsaPolicy,
-			DerInteger			nonce,
-			DerBoolean			certReq,
-			X509Extensions		extensions)
-		{
-			// default
-			this.version = new DerInteger(1);
+        public TimeStampReq(MessageImprint messageImprint, DerObjectIdentifier tsaPolicy, DerInteger nonce,
+            DerBoolean certReq, X509Extensions extensions)
+        {
+            // default
+            m_version = new DerInteger(1);
 
-			this.messageImprint = messageImprint;
-			this.tsaPolicy = tsaPolicy;
-			this.nonce = nonce;
-			this.certReq = certReq;
-			this.extensions = extensions;
-		}
+            m_messageImprint = messageImprint;
+            m_tsaPolicy = tsaPolicy;
+            m_nonce = nonce;
+            m_certReq = certReq;
+            m_extensions = extensions;
+        }
 
-		public DerInteger Version
-		{
-			get { return version; }
-		}
+		public DerInteger Version => m_version;
 
-		public MessageImprint MessageImprint
-		{
-			get { return messageImprint; }
-		}
+		public MessageImprint MessageImprint => m_messageImprint;
 
-		public DerObjectIdentifier ReqPolicy
-		{
-			get { return tsaPolicy; }
-		}
+		public DerObjectIdentifier ReqPolicy => m_tsaPolicy;
 
-		public DerInteger Nonce
-		{
-			get { return nonce; }
-		}
+		public DerInteger Nonce => m_nonce;
 
-		public DerBoolean CertReq
-		{
-			get { return certReq; }
-		}
+		public DerBoolean CertReq => m_certReq;
 
-		public X509Extensions Extensions
-		{
-			get { return extensions; }
-		}
+		public X509Extensions Extensions => m_extensions;
 
 		/**
 		 * <pre>
@@ -126,15 +109,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		 */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(version, messageImprint);
-            v.AddOptional(tsaPolicy, nonce);
+            Asn1EncodableVector v = new Asn1EncodableVector(6);
+			v.Add(m_version, m_messageImprint);
+            v.AddOptional(m_tsaPolicy, m_nonce);
 
-            if (certReq != null && certReq.IsTrue)
+            if (m_certReq != null && m_certReq.IsTrue)
             {
-                v.Add(certReq);
+                v.Add(m_certReq);
             }
 
-            v.AddOptionalTagged(false, 0, extensions);
+            v.AddOptionalTagged(false, 0, m_extensions);
             return new DerSequence(v);
         }
 	}

@@ -8,6 +8,35 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class OriginatorIdentifierOrKey
         : Asn1Encodable, IAsn1Choice
     {
+        public static OriginatorIdentifierOrKey GetInstance(
+            object o)
+        {
+            if (o == null)
+                return null;
+
+            if (o is OriginatorIdentifierOrKey originatorIdentifierOrKey)
+                return originatorIdentifierOrKey;
+
+            if (o is IssuerAndSerialNumber issuerAndSerialNumber)
+                return new OriginatorIdentifierOrKey(issuerAndSerialNumber);
+
+            if (o is SubjectKeyIdentifier subjectKeyIdentifier)
+                return new OriginatorIdentifierOrKey(subjectKeyIdentifier);
+
+            if (o is OriginatorPublicKey originatorPublicKey)
+                return new OriginatorIdentifierOrKey(originatorPublicKey);
+
+            if (o is Asn1TaggedObject taggedObject)
+                return new OriginatorIdentifierOrKey(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
+
+            throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o));
+        }
+
+        public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(o, explicitly, GetInstance);
+        }
+
         private readonly Asn1Encodable id;
 
         public OriginatorIdentifierOrKey(IssuerAndSerialNumber id)
@@ -30,50 +59,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 			// TODO Add validation
 			this.id = id;
 		}
-
-		/**
-         * return an OriginatorIdentifierOrKey object from a tagged object.
-         *
-         * @param o the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(o, explicitly, GetInstance);
-        }
-
-        /**
-         * return an OriginatorIdentifierOrKey object from the given object.
-         *
-         * @param o the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static OriginatorIdentifierOrKey GetInstance(
-            object o)
-        {
-            if (o == null)
-                return null;
-
-            if (o is OriginatorIdentifierOrKey originatorIdentifierOrKey)
-                return originatorIdentifierOrKey;
-
-			if (o is IssuerAndSerialNumber issuerAndSerialNumber)
-				return new OriginatorIdentifierOrKey(issuerAndSerialNumber);
-
-			if (o is SubjectKeyIdentifier subjectKeyIdentifier)
-				return new OriginatorIdentifierOrKey(subjectKeyIdentifier);
-
-			if (o is OriginatorPublicKey originatorPublicKey)
-				return new OriginatorIdentifierOrKey(originatorPublicKey);
-
-			if (o is Asn1TaggedObject taggedObject)
-				return new OriginatorIdentifierOrKey(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
-
-            throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o));
-        }
 
 		public Asn1Encodable ID
 		{

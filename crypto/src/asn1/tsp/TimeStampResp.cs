@@ -9,46 +9,42 @@ namespace Org.BouncyCastle.Asn1.Tsp
 	public class TimeStampResp
 		: Asn1Encodable
 	{
-		private readonly PkiStatusInfo	pkiStatusInfo;
-		private readonly ContentInfo	timeStampToken;
-
         public static TimeStampResp GetInstance(object obj)
         {
-            if (obj is TimeStampResp)
-                return (TimeStampResp)obj;
             if (obj == null)
                 return null;
+            if (obj is TimeStampResp timeStampResp)
+                return timeStampResp;
             return new TimeStampResp(Asn1Sequence.GetInstance(obj));
         }
 
-        private TimeStampResp(
-			Asn1Sequence seq)
+		public static TimeStampResp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
 		{
-			this.pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
+            return new TimeStampResp(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly PkiStatusInfo m_pkiStatusInfo;
+        private readonly ContentInfo m_timeStampToken;
+
+        private TimeStampResp(Asn1Sequence seq)
+		{
+			m_pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
 
 			if (seq.Count > 1)
 			{
-				this.timeStampToken = ContentInfo.GetInstance(seq[1]);
+				m_timeStampToken = ContentInfo.GetInstance(seq[1]);
 			}
 		}
 
-		public TimeStampResp(
-			PkiStatusInfo	pkiStatusInfo,
-			ContentInfo		timeStampToken)
+		public TimeStampResp(PkiStatusInfo pkiStatusInfo, ContentInfo timeStampToken)
 		{
-			this.pkiStatusInfo = pkiStatusInfo;
-			this.timeStampToken = timeStampToken;
+			m_pkiStatusInfo = pkiStatusInfo;
+			m_timeStampToken = timeStampToken;
 		}
 
-		public PkiStatusInfo Status
-		{
-			get { return pkiStatusInfo; }
-		}
+		public PkiStatusInfo Status => m_pkiStatusInfo;
 
-		public ContentInfo TimeStampToken
-		{
-			get { return timeStampToken; }
-		}
+		public ContentInfo TimeStampToken => m_timeStampToken;
 
 		/**
 		 * <pre>
@@ -59,8 +55,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		 */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(pkiStatusInfo);
-            v.AddOptional(timeStampToken);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+			v.Add(m_pkiStatusInfo);
+            v.AddOptional(m_timeStampToken);
             return new DerSequence(v);
         }
 	}

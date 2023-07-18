@@ -31,11 +31,6 @@ namespace Org.BouncyCastle.Asn1
         private static readonly char[] table
 			= { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-        /**
-		 * return a Bit string from the passed in object
-		 *
-		 * @exception ArgumentException if the object cannot be converted.
-		 */
 		public static DerBitString GetInstance(object obj)
 		{
             if (obj == null)
@@ -65,15 +60,6 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
 		}
 
-		/**
-		 * return a Bit string from a tagged object.
-		 *
-		 * @param obj the tagged object holding the object we want
-		 * @param explicitly true if the object is meant to be explicitly
-		 *              tagged false otherwise.
-		 * @exception ArgumentException if the tagged object cannot
-		 *               be converted.
-		 */
         public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
             return (DerBitString)Meta.Instance.GetContextInstance(obj, isExplicit);
