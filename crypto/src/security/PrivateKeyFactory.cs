@@ -148,10 +148,11 @@ namespace Org.BouncyCastle.Security
                         gostParams.DigestParamSet,
                         gostParams.EncryptionParamSet);
 
-                    Asn1OctetString privEnc = keyInfo.PrivateKeyData;
-                    if (privEnc.GetOctets().Length == 32 || privEnc.GetOctets().Length == 64)
+                    int privateKeyLength = keyInfo.PrivateKeyLength;
+
+                    if (privateKeyLength == 32 || privateKeyLength == 64)
                     {
-                        d = new BigInteger(1, privEnc.GetOctets(), bigEndian: false);
+                        d = new BigInteger(1, keyInfo.PrivateKey.GetOctets(), bigEndian: false);
                     }
                     else
                     {
@@ -241,10 +242,18 @@ namespace Org.BouncyCastle.Security
             else if (algOid.Equals(EdECObjectIdentifiers.id_X25519)
                 || algOid.Equals(CryptlibObjectIdentifiers.curvey25519))
             {
+                // Java 11 bug: exact length of X25519/X448 secret used in Java 11
+                if (X25519PrivateKeyParameters.KeySize == keyInfo.PrivateKeyLength)
+                    return new X25519PrivateKeyParameters(keyInfo.PrivateKey.GetOctets());
+
                 return new X25519PrivateKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(EdECObjectIdentifiers.id_X448))
             {
+                // Java 11 bug: exact length of X25519/X448 secret used in Java 11
+                if (X448PrivateKeyParameters.KeySize == keyInfo.PrivateKeyLength)
+                    return new X448PrivateKeyParameters(keyInfo.PrivateKey.GetOctets());
+
                 return new X448PrivateKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519)
@@ -277,10 +286,11 @@ namespace Org.BouncyCastle.Security
                             gostParams.DigestParamSet,
                             gostParams.EncryptionParamSet);
 
-                    Asn1OctetString privEnc = keyInfo.PrivateKeyData;
-                    if (privEnc.GetOctets().Length == 32 || privEnc.GetOctets().Length == 64)
+                    int privateKeyLength = keyInfo.PrivateKeyLength;
+
+                    if (privateKeyLength == 32 || privateKeyLength == 64)
                     {
-                        d = new BigInteger(1, privEnc.GetOctets(), bigEndian: false);
+                        d = new BigInteger(1, keyInfo.PrivateKey.GetOctets(), bigEndian: false);
                     }
                     else
                     {

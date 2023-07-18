@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             if (algOid.Equals(PkcsObjectIdentifiers.IdAlgHssLmsHashsig))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
-                DerBitString pubKey = keyInfo.PublicKeyData;
+                DerBitString pubKey = keyInfo.PublicKey;
 
                 if (Pack.BE_To_UInt32(keyEnc, 0) == 1)
                 {
@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] t1 = null;
 
-                DerBitString publicKeyData = keyInfo.PublicKeyData;
+                DerBitString publicKeyData = keyInfo.PublicKey;
                 if (publicKeyData != null)
                 {
                     var pubParams = PqcPublicKeyFactory.DilithiumConverter.GetPublicKeyParameters(spParams,
@@ -192,29 +192,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 Asn1Sequence keyEnc = Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey());
                 FalconParameters spParams = PqcUtilities.FalconParamsLookup(algOid);
-                    
-                DerBitString publicKeyData = keyInfo.PublicKeyData;
+
                 int version = DerInteger.GetInstance(keyEnc[0]).IntValueExact;
                 if (version != 1)
                     throw new IOException("unknown private key version: " + version);
 
-                if (keyInfo.PublicKeyData != null)
-                {
-                    //ASN1Sequence pubKey = ASN1Sequence.getInstance(keyInfo.getPublicKeyData().getOctets());
-                    return new FalconPrivateKeyParameters(spParams,
-                        Asn1OctetString.GetInstance(keyEnc[1]).GetOctets(),
-                        Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
-                        Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
-                        publicKeyData.GetOctets()); // encT1
-                }
-                else
-                {
-                    return new FalconPrivateKeyParameters(spParams,
-                        Asn1OctetString.GetInstance(keyEnc[1]).GetOctets(),
-                        Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
-                        Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
-                        null);
-                }
+                return new FalconPrivateKeyParameters(spParams,
+                    Asn1OctetString.GetInstance(keyEnc[1]).GetOctets(),
+                    Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
+                    Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
+                    keyInfo.PublicKey?.GetOctets()); // encT1
             }
 
             throw new Exception("algorithm identifier in private key not recognised");

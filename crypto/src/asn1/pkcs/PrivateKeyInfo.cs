@@ -170,10 +170,15 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             get { return privateKeyAlgorithm; }
         }
 
+        public virtual Asn1OctetString PrivateKey => privateKey;
+
+        [Obsolete("Use 'PrivateKey' instead")]
         public virtual Asn1OctetString PrivateKeyData
         {
             get { return privateKey; }
-        } 
+        }
+
+        public virtual int PrivateKeyLength => privateKey.GetOctetsLength();
 
         public virtual Asn1Object ParsePrivateKey()
         {
@@ -186,7 +191,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return publicKey == null ? null : Asn1Object.FromByteArray(publicKey.GetOctets());
         }
 
+        public virtual DerBitString PublicKey => publicKey;
+
         /// <summary>Return the public key as a raw bit string.</summary>
+        [Obsolete("Use 'PublicKey' instead")]
         public virtual DerBitString PublicKeyData
         {
             get { return publicKey; }

@@ -110,15 +110,17 @@ namespace Org.BouncyCastle.Asn1
             return contents;
         }
 
+        public virtual int GetOctetsLength() => GetOctets().Length;
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal ReadOnlyMemory<byte> GetOctetsMemory()
         {
-            return contents.AsMemory();
+            return GetOctets().AsMemory();
         }
 
         internal ReadOnlySpan<byte> GetOctetsSpan()
         {
-            return contents.AsSpan();
+            return GetOctets().AsSpan();
         }
 #endif
 
