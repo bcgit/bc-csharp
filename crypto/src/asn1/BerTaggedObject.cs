@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 return baseObject.GetEncodingImplicit(encoding, TagClass, TagNo);
 
-            return new ConstructedILEncoding(TagClass, TagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
+            return new TaggedILEncoding(TagClass, TagNo, baseObject.GetEncoding(encoding));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 return baseObject.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            return new ConstructedILEncoding(tagClass, tagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
+            return new TaggedILEncoding(tagClass, tagNo, baseObject.GetEncoding(encoding));
         }
 
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)

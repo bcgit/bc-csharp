@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 return baseObject.GetEncodingImplicit(encoding, TagClass, TagNo);
 
-            return new ConstructedDLEncoding(TagClass, TagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
+            return new TaggedDLEncoding(TagClass, TagNo, baseObject.GetEncoding(encoding));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 return baseObject.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            return new ConstructedDLEncoding(tagClass, tagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
+            return new TaggedDLEncoding(tagClass, tagNo, baseObject.GetEncoding(encoding));
         }
 
         internal sealed override DerEncoding GetEncodingDer()
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 return baseObject.GetEncodingDerImplicit(TagClass, TagNo);
 
-            return new ConstructedDerEncoding(TagClass, TagNo, new DerEncoding[]{ baseObject.GetEncodingDer() });
+            return new TaggedDerEncoding(TagClass, TagNo, baseObject.GetEncodingDer());
         }
 
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 return baseObject.GetEncodingDerImplicit(tagClass, tagNo);
 
-            return new ConstructedDerEncoding(tagClass, tagNo, new DerEncoding[]{ baseObject.GetEncodingDer() });
+            return new TaggedDerEncoding(tagClass, tagNo, baseObject.GetEncodingDer());
         }
 
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)

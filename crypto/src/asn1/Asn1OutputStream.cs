@@ -220,6 +220,11 @@ namespace Org.BouncyCastle.Asn1
             return GetLengthOfIdentifier(tagNo) + GetLengthOfDL(contentsLength) + contentsLength;
         }
 
+        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding contentsEncoding)
+        {
+            return GetLengthOfIdentifier(tagNo) + 3 + contentsEncoding.GetLength();
+        }
+
         internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding[] contentsEncodings)
         {
             return GetLengthOfIdentifier(tagNo) + 3 + GetLengthOfContents(contentsEncodings);
