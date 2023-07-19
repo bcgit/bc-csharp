@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Cms
 			}
 
 			Asn1OctetString ukm = null;
-			if (m_keyAgreementOid.Id.Equals(CmsEnvelopedGenerator.ECMqvSha1Kdf))
+            if (CmsUtilities.IsMqv(m_keyAgreementOid))
 			{
 				try
 				{

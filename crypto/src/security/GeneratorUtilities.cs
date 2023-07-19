@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -217,7 +218,11 @@ namespace Org.BouncyCastle.Security
                 "ECIES");
             AddKpgAlgorithm("ECDHC");
             AddKpgAlgorithm("ECMQV",
-                X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme);
+                X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme,
+                SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme,
+                SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme,
+                SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme,
+                SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme);
             AddKpgAlgorithm("ECDSA");
             AddKpgAlgorithm("ECGOST3410",
                 "ECGOST-3410",

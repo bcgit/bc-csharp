@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -104,8 +105,12 @@ namespace Org.BouncyCastle.Cms
 		public static readonly string Camellia256Wrap	= NttObjectIdentifiers.IdCamellia256Wrap.Id;
 		public static readonly string SeedWrap			= KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap.Id;
 
-		public static readonly string ECDHSha1Kdf		= X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
-		public static readonly string ECMqvSha1Kdf		= X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
+        public static readonly string ECDHSha1Kdf       = X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
+        public static readonly string ECMqvSha1Kdf      = X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
+        public static readonly string ECMqvSha224Kdf    = SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Id;
+        public static readonly string ECMqvSha256Kdf    = SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme.Id;
+        public static readonly string ECMqvSha384Kdf    = SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme.Id;
+        public static readonly string ECMqvSha512Kdf    = SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme.Id;
 
 		internal readonly IList<RecipientInfoGenerator> recipientInfoGenerators = new List<RecipientInfoGenerator>();
 		internal readonly SecureRandom m_random;

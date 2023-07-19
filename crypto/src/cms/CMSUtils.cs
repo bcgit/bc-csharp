@@ -5,7 +5,9 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
@@ -213,5 +215,12 @@ namespace Org.BouncyCastle.Cms
                     throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
             }
         }
+
+		internal static bool IsMqv(DerObjectIdentifier oid) =>
+			X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Equals(oid) ||
+			SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Equals(oid) ||
+			SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme.Equals(oid) ||
+			SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme.Equals(oid) ||
+			SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme.Equals(oid);
     }
 }
