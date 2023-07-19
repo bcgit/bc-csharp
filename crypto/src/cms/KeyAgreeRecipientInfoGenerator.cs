@@ -146,12 +146,10 @@ namespace Org.BouncyCastle.Cms
 				new DerSequence(recipientEncryptedKeys)));
 		}
 
-		private static OriginatorPublicKey CreateOriginatorPublicKey(AsymmetricKeyParameter publicKey)
-		{
-			SubjectPublicKeyInfo spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
-			return new OriginatorPublicKey(
-                new AlgorithmIdentifier(spki.AlgorithmID.Algorithm, DerNull.Instance),
-				spki.PublicKeyData.GetBytes());
-		}
-	}
+		private static OriginatorPublicKey CreateOriginatorPublicKey(AsymmetricKeyParameter publicKey) =>
+			CreateOriginatorPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+
+        private static OriginatorPublicKey CreateOriginatorPublicKey(SubjectPublicKeyInfo originatorKeyInfo) =>
+			new OriginatorPublicKey(originatorKeyInfo.AlgorithmID, originatorKeyInfo.PublicKeyData);
+    }
 }

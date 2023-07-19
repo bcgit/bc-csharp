@@ -321,7 +321,7 @@ namespace Org.BouncyCastle.OpenSsl
                         DerBitString pubKey = pKey.GetPublicKey();
                         if (pubKey != null)
                         {
-                            SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey.GetBytes());
+                            SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey);
 
                             // TODO Are the keys returned here ECDSA, as Java version forces?
                             pubSpec = PublicKeyFactory.CreateKey(pubInfo);

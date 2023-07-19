@@ -11,66 +11,59 @@ namespace Org.BouncyCastle.Asn1.X509
     public class SubjectPublicKeyInfo
         : Asn1Encodable
     {
-        private readonly AlgorithmIdentifier	algID;
-        private readonly DerBitString			keyData;
-
-		public static SubjectPublicKeyInfo GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static SubjectPublicKeyInfo GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+            if (obj == null)
+                return null;
+            if (obj is SubjectPublicKeyInfo subjectPublicKeyInfo)
+                return subjectPublicKeyInfo;
+            return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
-		public static SubjectPublicKeyInfo GetInstance(
-            object obj)
+        public static SubjectPublicKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
-            if (obj is SubjectPublicKeyInfo)
-                return (SubjectPublicKeyInfo) obj;
-
-			if (obj != null)
-				return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj));
-
-			return null;
+            return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public SubjectPublicKeyInfo(
-            AlgorithmIdentifier	algID,
-            Asn1Encodable		publicKey)
+        private readonly AlgorithmIdentifier m_algID;
+        private readonly DerBitString m_keyData;
+
+        public SubjectPublicKeyInfo(AlgorithmIdentifier algID, DerBitString publicKey)
         {
-            this.keyData = new DerBitString(publicKey);
-            this.algID = algID;
+            m_algID = algID;
+            m_keyData = publicKey;
         }
 
-		public SubjectPublicKeyInfo(
-            AlgorithmIdentifier	algID,
-            byte[]				publicKey)
+        public SubjectPublicKeyInfo(AlgorithmIdentifier algID, Asn1Encodable publicKey)
         {
-            this.keyData = new DerBitString(publicKey);
-            this.algID = algID;
+            m_algID = algID;
+            m_keyData = new DerBitString(publicKey);
+        }
+
+        public SubjectPublicKeyInfo(AlgorithmIdentifier algID, byte[] publicKey)
+        {
+            m_algID = algID;
+            m_keyData = new DerBitString(publicKey);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, ReadOnlySpan<byte> publicKey)
         {
-            this.keyData = new DerBitString(publicKey);
-            this.algID = algID;
+            m_algID = algID;
+            m_keyData = new DerBitString(publicKey);
         }
 #endif
 
-        private SubjectPublicKeyInfo(
-            Asn1Sequence seq)
+        private SubjectPublicKeyInfo(Asn1Sequence seq)
         {
-			if (seq.Count != 2)
+            if (seq.Count != 2)
 				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
 
-            this.algID = AlgorithmIdentifier.GetInstance(seq[0]);
-			this.keyData = DerBitString.GetInstance(seq[1]);
+            m_algID = AlgorithmIdentifier.GetInstance(seq[0]);
+			m_keyData = DerBitString.GetInstance(seq[1]);
 		}
 
-		public AlgorithmIdentifier AlgorithmID
-        {
-			get { return algID; }
-        }
+        public AlgorithmIdentifier AlgorithmID => m_algID;
 
         /**
          * for when the public key is an encoded object - if the bitstring
@@ -79,18 +72,12 @@ namespace Org.BouncyCastle.Asn1.X509
          * @exception IOException - if the bit string doesn't represent a Der
          * encoded object.
          */
-        public Asn1Object ParsePublicKey()
-        {
-            return Asn1Object.FromByteArray(keyData.GetOctets());
-        }
+        public Asn1Object ParsePublicKey() => Asn1Object.FromByteArray(m_keyData.GetOctets());
 
-		/**
+        /**
          * for when the public key is raw bits...
          */
-        public DerBitString PublicKeyData
-        {
-			get { return keyData; }
-        }
+        public DerBitString PublicKeyData => m_keyData;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -100,9 +87,6 @@ namespace Org.BouncyCastle.Asn1.X509
          *                          publicKey BIT STRING }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(algID, keyData);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_algID, m_keyData);
     }
 }

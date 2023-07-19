@@ -8,8 +8,7 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class OriginatorIdentifierOrKey
         : Asn1Encodable, IAsn1Choice
     {
-        public static OriginatorIdentifierOrKey GetInstance(
-            object o)
+        public static OriginatorIdentifierOrKey GetInstance(object o)
         {
             if (o == null)
                 return null;
@@ -20,14 +19,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (o is IssuerAndSerialNumber issuerAndSerialNumber)
                 return new OriginatorIdentifierOrKey(issuerAndSerialNumber);
 
-            if (o is SubjectKeyIdentifier subjectKeyIdentifier)
-                return new OriginatorIdentifierOrKey(subjectKeyIdentifier);
-
-            if (o is OriginatorPublicKey originatorPublicKey)
-                return new OriginatorIdentifierOrKey(originatorPublicKey);
+            if (o is Asn1Sequence sequence)
+                return new OriginatorIdentifierOrKey(IssuerAndSerialNumber.GetInstance(sequence));
 
             if (o is Asn1TaggedObject taggedObject)
-                return new OriginatorIdentifierOrKey(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
+            {
+                if (taggedObject.HasContextTag(0))
+                    return new OriginatorIdentifierOrKey(SubjectKeyIdentifier.GetInstance(taggedObject, false));
+
+                if (taggedObject.HasContextTag(1))
+                    return new OriginatorIdentifierOrKey(OriginatorPublicKey.GetInstance(taggedObject, false));
+            }
 
             throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o));
         }
@@ -37,55 +39,33 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Asn1Utilities.GetInstanceFromChoice(o, explicitly, GetInstance);
         }
 
-        private readonly Asn1Encodable id;
+        private readonly Asn1Encodable m_id;
 
         public OriginatorIdentifierOrKey(IssuerAndSerialNumber id)
         {
-            this.id = id;
+            m_id = id;
         }
 
         public OriginatorIdentifierOrKey(SubjectKeyIdentifier id)
         {
-            this.id = new DerTaggedObject(false, 0, id);
+            m_id = new DerTaggedObject(false, 0, id);
         }
 
         public OriginatorIdentifierOrKey(OriginatorPublicKey id)
         {
-            this.id = new DerTaggedObject(false, 1, id);
+            m_id = new DerTaggedObject(false, 1, id);
         }
 
-		private OriginatorIdentifierOrKey(Asn1TaggedObject id)
-		{
-			// TODO Add validation
-			this.id = id;
-		}
+        public Asn1Encodable ID => m_id;
 
-		public Asn1Encodable ID
-		{
-			get { return id; }
-		}
-
-		public IssuerAndSerialNumber IssuerAndSerialNumber
-		{
-			get
-			{
-				if (id is IssuerAndSerialNumber)
-				{
-					return (IssuerAndSerialNumber)id;
-				}
-
-				return null;
-			}
-		}
+        public IssuerAndSerialNumber IssuerAndSerialNumber => m_id as IssuerAndSerialNumber;
 
 		public SubjectKeyIdentifier SubjectKeyIdentifier
 		{
 			get
 			{
-				if (id is Asn1TaggedObject && ((Asn1TaggedObject)id).TagNo == 0)
-				{
-					return SubjectKeyIdentifier.GetInstance((Asn1TaggedObject)id, false);
-				}
+                if (m_id is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(0))
+                    return SubjectKeyIdentifier.GetInstance(taggedObject, false);
 
 				return null;
 			}
@@ -95,10 +75,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 		{
 			get
 			{
-				if (id is Asn1TaggedObject && ((Asn1TaggedObject)id).TagNo == 1)
-				{
-					return OriginatorPublicKey.GetInstance((Asn1TaggedObject)id, false);
-				}
+                if (m_id is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(1))
+					return OriginatorPublicKey.GetInstance(taggedObject, false);
 
 				return null;
 			}
@@ -116,9 +94,6 @@ namespace Org.BouncyCastle.Asn1.Cms
          * SubjectKeyIdentifier ::= OCTET STRING
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return id.ToAsn1Object();
-        }
+        public override Asn1Object ToAsn1Object() => m_id.ToAsn1Object();
     }
 }

@@ -104,14 +104,12 @@ namespace Org.BouncyCastle.Cms
             return GetPublicKeyFromOriginatorID(origID);
         }
 
-        private AsymmetricKeyParameter GetPublicKeyFromOriginatorPublicKey(
-            AsymmetricKeyParameter	receiverPrivateKey,
-            OriginatorPublicKey		originatorPublicKey)
+        private AsymmetricKeyParameter GetPublicKeyFromOriginatorPublicKey(AsymmetricKeyParameter receiverPrivateKey,
+            OriginatorPublicKey originatorPublicKey)
         {
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(receiverPrivateKey);
-            SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(
-                privInfo.PrivateKeyAlgorithm,
-                originatorPublicKey.PublicKey.GetBytes());
+            SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(privInfo.PrivateKeyAlgorithm,
+                originatorPublicKey.PublicKey);
             return PublicKeyFactory.CreateKey(pubInfo);
         }
 
