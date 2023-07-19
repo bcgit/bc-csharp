@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Ocsp
 			{
 				SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
 
-				byte[] keyHash = DigestUtilities.CalculateDigest("SHA1", info.PublicKeyData.GetBytes());
+				byte[] keyHash = DigestUtilities.CalculateDigest("SHA1", info.PublicKey.GetBytes());
 
 				this.id = new ResponderID(new DerOctetString(keyHash));
 			}

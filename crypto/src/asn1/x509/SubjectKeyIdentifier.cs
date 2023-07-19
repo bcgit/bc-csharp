@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Asn1.X509
             IDigest digest = new Sha1Digest();
             byte[] resBuf = new byte[digest.GetDigestSize()];
 
-			byte[] bytes = spki.PublicKeyData.GetBytes();
+			byte[] bytes = spki.PublicKey.GetBytes();
             digest.BlockUpdate(bytes, 0, bytes.Length);
             digest.DoFinal(resBuf, 0);
             return resBuf;

@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Security
         public static AsymmetricKeyParameter CreateKey(
             SubjectPublicKeyInfo keyInfo)
         {
-            AlgorithmIdentifier algID = keyInfo.AlgorithmID;
+            AlgorithmIdentifier algID = keyInfo.Algorithm;
             DerObjectIdentifier algOid = algID.Algorithm;
 
             // TODO See RSAUtil.isRsaOid in Java build
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Security
                     x9 = new X9ECParameters((Asn1Sequence)para.Parameters);
                 }
 
-                Asn1OctetString key = new DerOctetString(keyInfo.PublicKeyData.GetBytes());
+                Asn1OctetString key = new DerOctetString(keyInfo.PublicKey.GetBytes());
                 X9ECPoint derQ = new X9ECPoint(x9.Curve, key);
                 ECPoint q = derQ.Point;
 
@@ -287,7 +287,7 @@ namespace Org.BouncyCastle.Security
              * TODO[RFC 8422]
              * - Require keyInfo.Algorithm.Parameters == null?
              */
-            return keyInfo.PublicKeyData.GetOctetsSpan();
+            return keyInfo.PublicKey.GetOctetsSpan();
         }
 #else
         private static byte[] GetRawKey(SubjectPublicKeyInfo keyInfo)
@@ -296,7 +296,7 @@ namespace Org.BouncyCastle.Security
              * TODO[RFC 8422]
              * - Require keyInfo.Algorithm.Parameters == null?
              */
-            return keyInfo.PublicKeyData.GetOctets();
+            return keyInfo.PublicKey.GetOctets();
         }
 #endif
 

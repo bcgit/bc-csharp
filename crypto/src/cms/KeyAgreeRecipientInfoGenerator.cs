@@ -150,6 +150,6 @@ namespace Org.BouncyCastle.Cms
 			CreateOriginatorPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
 
         private static OriginatorPublicKey CreateOriginatorPublicKey(SubjectPublicKeyInfo originatorKeyInfo) =>
-			new OriginatorPublicKey(originatorKeyInfo.AlgorithmID, originatorKeyInfo.PublicKeyData);
+			new OriginatorPublicKey(originatorKeyInfo.Algorithm, originatorKeyInfo.PublicKey);
     }
 }

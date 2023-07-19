@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Ocsp
 				AsymmetricKeyParameter issuerKey = issuerCert.GetPublicKey();
 				SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(issuerKey);
 				byte[] issuerKeyHash = DigestUtilities.CalculateDigest(
-					hashAlgorithm, info.PublicKeyData.GetBytes());
+					hashAlgorithm, info.PublicKey.GetBytes());
 
 				return new CertID(hashAlg, new DerOctetString(issuerNameHash),
 					new DerOctetString(issuerKeyHash), serialNumber);

@@ -25,32 +25,32 @@ namespace Org.BouncyCastle.Asn1.X509
             return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-        private readonly AlgorithmIdentifier m_algID;
-        private readonly DerBitString m_keyData;
+        private readonly AlgorithmIdentifier m_algorithm;
+        private readonly DerBitString m_publicKey;
 
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, DerBitString publicKey)
         {
-            m_algID = algID;
-            m_keyData = publicKey;
+            m_algorithm = algID;
+            m_publicKey = publicKey;
         }
 
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, Asn1Encodable publicKey)
         {
-            m_algID = algID;
-            m_keyData = new DerBitString(publicKey);
+            m_algorithm = algID;
+            m_publicKey = new DerBitString(publicKey);
         }
 
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, byte[] publicKey)
         {
-            m_algID = algID;
-            m_keyData = new DerBitString(publicKey);
+            m_algorithm = algID;
+            m_publicKey = new DerBitString(publicKey);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, ReadOnlySpan<byte> publicKey)
         {
-            m_algID = algID;
-            m_keyData = new DerBitString(publicKey);
+            m_algorithm = algID;
+            m_publicKey = new DerBitString(publicKey);
         }
 #endif
 
@@ -59,11 +59,14 @@ namespace Org.BouncyCastle.Asn1.X509
             if (seq.Count != 2)
 				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
 
-            m_algID = AlgorithmIdentifier.GetInstance(seq[0]);
-			m_keyData = DerBitString.GetInstance(seq[1]);
+            m_algorithm = AlgorithmIdentifier.GetInstance(seq[0]);
+			m_publicKey = DerBitString.GetInstance(seq[1]);
 		}
 
-        public AlgorithmIdentifier AlgorithmID => m_algID;
+        public AlgorithmIdentifier Algorithm => m_algorithm;
+
+        [Obsolete("Use 'Algorithm' instead")]
+        public AlgorithmIdentifier AlgorithmID => m_algorithm;
 
         /**
          * for when the public key is an encoded object - if the bitstring
@@ -72,14 +75,16 @@ namespace Org.BouncyCastle.Asn1.X509
          * @exception IOException - if the bit string doesn't represent a Der
          * encoded object.
          */
-        public Asn1Object ParsePublicKey() => Asn1Object.FromByteArray(m_keyData.GetOctets());
+        public Asn1Object ParsePublicKey() => Asn1Object.FromByteArray(m_publicKey.GetOctets());
+
+        /// <summary>Return the public key as a raw bit string.</summary>
+        public DerBitString PublicKey => m_publicKey;
+
+        /// <summary>Return the public key as a raw bit string.</summary>
+        [Obsolete("Use 'PublicKey' instead")]
+        public DerBitString PublicKeyData => m_publicKey;
 
         /**
-         * for when the public key is raw bits...
-         */
-        public DerBitString PublicKeyData => m_keyData;
-
-		/**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * SubjectPublicKeyInfo ::= Sequence {
@@ -87,6 +92,6 @@ namespace Org.BouncyCastle.Asn1.X509
          *                          publicKey BIT STRING }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object() => new DerSequence(m_algID, m_keyData);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_algorithm, m_publicKey);
     }
 }

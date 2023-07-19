@@ -414,19 +414,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected virtual bool SupportsRsa_Pkcs1()
         {
-            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.AlgorithmID;
+            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPkcs1(pubKeyAlgID);
         }
 
         protected virtual bool SupportsRsa_Pss_Pss(short signatureAlgorithm)
         {
-            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.AlgorithmID;
+            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPss_Pss(signatureAlgorithm, pubKeyAlgID);
         }
 
         protected virtual bool SupportsRsa_Pss_Rsae()
         {
-            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.AlgorithmID;
+            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPss_Rsae(pubKeyAlgID);
         }
 

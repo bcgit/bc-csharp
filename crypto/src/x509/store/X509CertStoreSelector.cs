@@ -280,7 +280,7 @@ namespace Org.BouncyCastle.X509.Store
 				return false;
 
 			if (subjectPublicKeyAlgID != null
-				&& !subjectPublicKeyAlgID.Equals(GetSubjectPublicKey(c).AlgorithmID))
+				&& !subjectPublicKeyAlgID.Equals(GetSubjectPublicKey(c).Algorithm))
 				return false;
 
 			return true;

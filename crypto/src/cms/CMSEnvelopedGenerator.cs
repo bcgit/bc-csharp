@@ -139,12 +139,12 @@ namespace Org.BouncyCastle.Cms
 		 * @param cert recipient's public key certificate
 		 * @exception ArgumentException if there is a problem with the certificate
 		 */
-		public void AddKeyTransRecipient(
-			X509Certificate cert)
+		public void AddKeyTransRecipient(X509Certificate cert)
 		{
 			TbsCertificateStructure recipientTbsCert = CmsUtilities.GetTbsCertificateStructure(cert);
 			SubjectPublicKeyInfo info = recipientTbsCert.SubjectPublicKeyInfo;
-			this.AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper(info.AlgorithmID.Algorithm, info.AlgorithmID.Parameters, cert)));
+			AddRecipientInfoGenerator(
+				new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper(info.Algorithm, cert)));
 		}
 
 		/**
@@ -154,12 +154,11 @@ namespace Org.BouncyCastle.Cms
 		* @param subKeyId the identifier for the recipient's public key
 		* @exception ArgumentException if there is a problem with the key
 		*/
-		public void AddKeyTransRecipient(
-			AsymmetricKeyParameter	pubKey,
-			byte[]					subKeyId)
+		public void AddKeyTransRecipient(AsymmetricKeyParameter pubKey, byte[] subKeyId)
 		{
 			SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
-			this.AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(info.AlgorithmID.Algorithm, info.AlgorithmID.Parameters, pubKey)));
+			AddRecipientInfoGenerator(
+				new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(info.Algorithm, pubKey)));
 		}
 
 		/**

@@ -178,8 +178,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <exception cref="IOException"> on an error decoding the key</exception>
         public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            var algID = keyInfo.AlgorithmID;
-            var oid = algID.Algorithm;
+            var oid = keyInfo.Algorithm.Algorithm;
 
             SubjectPublicKeyInfoConverter converter = CollectionUtilities.GetValueOrNull(Converters, oid)
                 ?? throw new IOException("algorithm identifier in public key not recognised: " + oid);
@@ -222,7 +221,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
             }
@@ -235,7 +234,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = CmcePublicKey.GetInstance(keyInfo.ParsePublicKey()).T;
 
-                CmceParameters spParams = PqcUtilities.McElieceParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                CmceParameters spParams = PqcUtilities.McElieceParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new CmcePublicKeyParameters(spParams, keyEnc);
             }
@@ -248,7 +247,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                FrodoParameters fParams = PqcUtilities.FrodoParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                FrodoParameters fParams = PqcUtilities.FrodoParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new FrodoPublicKeyParameters(fParams, keyEnc);
             }
@@ -262,7 +261,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] keyEnc = Asn1OctetString.GetInstance(
                     Asn1Sequence.GetInstance(keyInfo.ParsePublicKey())[0]).GetOctets();
 
-                SaberParameters saberParams = PqcUtilities.SaberParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                SaberParameters saberParams = PqcUtilities.SaberParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new SaberPublicKeyParameters(saberParams, keyEnc);
             }
@@ -275,7 +274,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                PicnicParameters picnicParams = PqcUtilities.PicnicParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                PicnicParameters picnicParams = PqcUtilities.PicnicParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new PicnicPublicKeyParameters(picnicParams, keyEnc);
             }
@@ -289,7 +288,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new SikePublicKeyParameters(sikeParams, keyEnc);
             }
@@ -301,9 +300,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo,
                 object defaultParams)
             {
-                var dilithiumParameters = PqcUtilities.DilithiumParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                var dilithiumParameters = PqcUtilities.DilithiumParamsLookup(keyInfo.Algorithm.Algorithm);
 
-                return GetPublicKeyParameters(dilithiumParameters, keyInfo.PublicKeyData);
+                return GetPublicKeyParameters(dilithiumParameters, keyInfo.PublicKey);
             }
 
             internal static DilithiumPublicKeyParameters GetPublicKeyParameters(DilithiumParameters dilithiumParameters,
@@ -339,7 +338,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo,
                 object defaultParams)
             {
-                KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 try
                 {
@@ -353,7 +352,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 catch (Exception)
                 {
                     // we're a raw encoding
-                    return new KyberPublicKeyParameters(kyberParameters, keyInfo.PublicKeyData.GetOctets());
+                    return new KyberPublicKeyParameters(kyberParameters, keyInfo.PublicKey.GetOctets());
                 }
             }
         }
@@ -363,7 +362,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                FalconParameters falconParams = PqcUtilities.FalconParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                FalconParameters falconParams = PqcUtilities.FalconParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 try
                 {
@@ -389,7 +388,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 catch (Exception)
                 {
                     // raw encoding
-                    byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();
+                    byte[] keyEnc = keyInfo.PublicKey.GetOctets();
 
                     if (keyEnc[0] != (byte)(0x00 + falconParams.LogN))
                     {
@@ -406,7 +405,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new BikePublicKeyParameters(bikeParams, keyEnc);
             }
@@ -418,7 +417,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.AlgorithmID.Algorithm);
+                HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.Algorithm.Algorithm);
 
                 return new HqcPublicKeyParameters(hqcParams, keyEnc);
             }

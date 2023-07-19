@@ -210,20 +210,17 @@ namespace Org.BouncyCastle.Pkix
 			return cert.SubjectDN.Equivalent(cert.IssuerDN, true);
 		}
 
-		internal static AlgorithmIdentifier GetAlgorithmIdentifier(
-			AsymmetricKeyParameter key)
-		{
-			try
-			{
-				SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(key);
-
-				return info.AlgorithmID;
-			}
-			catch (Exception e)
-			{
-				throw new PkixCertPathValidatorException("Subject public key cannot be decoded.", e);
-			}
-		}
+        internal static AlgorithmIdentifier GetAlgorithmIdentifier(AsymmetricKeyParameter key)
+        {
+            try
+            {
+                return SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(key).Algorithm;
+            }
+            catch (Exception e)
+            {
+                throw new PkixCertPathValidatorException("Subject public key cannot be decoded.", e);
+            }
+        }
 
 		internal static bool IsAnyPolicy(ISet<string> policySet)
 		{
