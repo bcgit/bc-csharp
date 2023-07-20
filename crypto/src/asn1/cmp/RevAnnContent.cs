@@ -3,7 +3,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class RevAnnContent
+    public class RevAnnContent
 		: Asn1Encodable
 	{
         public static RevAnnContent GetInstance(object obj)
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new RevAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiStatusEncodable m_status;
@@ -80,7 +80,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_status, m_certID, m_willBeRevokedAt, m_badSinceDate);
+			Asn1EncodableVector v = new Asn1EncodableVector(5);
+			v.Add(m_status, m_certID, m_willBeRevokedAt, m_badSinceDate);
 			v.AddOptional(m_crlDetails);
 			return new DerSequence(v);
 		}

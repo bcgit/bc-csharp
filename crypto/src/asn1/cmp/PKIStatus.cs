@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return GetInstance(DerInteger.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private readonly DerInteger status;
+        private readonly DerInteger m_status;
 
 		private PkiStatusEncodable(PkiStatus status)
 			: this(new DerInteger((int)status))
@@ -50,17 +50,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private PkiStatusEncodable(DerInteger status)
 		{
-			this.status = status;
+			m_status = status;
 		}
 
-		public virtual BigInteger Value
-		{
-			get { return status.Value; }
-		}
+		public virtual BigInteger Value => m_status.Value;
 
-		public override Asn1Object ToAsn1Object()
-		{
-			return status;
-		}
+		public override Asn1Object ToAsn1Object() => m_status;
 	}
 }

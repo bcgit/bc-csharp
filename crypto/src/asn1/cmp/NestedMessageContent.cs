@@ -23,7 +23,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static new NestedMessageContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new NestedMessageContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public NestedMessageContent(PkiMessage msg)

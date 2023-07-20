@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
@@ -27,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiHeader GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PkiHeader(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly DerInteger pvno;
@@ -52,8 +51,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             for (int pos = 3; pos < seq.Count; ++pos)
             {
                 Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
-                if (Asn1Tags.ContextSpecific != tObj.TagClass)
-                    continue;
+                if (!tObj.HasContextTag())
+                    throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(tObj));
 
                 switch (tObj.TagNo)
                 {
@@ -85,7 +84,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
                     generalInfo = Asn1Sequence.GetInstance(tObj, true);
                     break;
                 default:
-                    throw new ArgumentException("unknown tag number: " + tObj.TagNo, nameof(seq));
+                    throw new ArgumentException("unknown tag number: " + tObj.TagNo);
                 }
             }
         }

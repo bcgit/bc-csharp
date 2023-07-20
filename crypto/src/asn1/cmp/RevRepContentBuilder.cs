@@ -5,7 +5,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class RevRepContentBuilder
+    public class RevRepContentBuilder
 	{
 		private readonly Asn1EncodableVector m_status = new Asn1EncodableVector();
 		private readonly Asn1EncodableVector m_revCerts = new Asn1EncodableVector();

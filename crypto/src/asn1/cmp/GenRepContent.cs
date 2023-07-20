@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static GenRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new GenRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;
@@ -34,10 +34,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_content = new DerSequence(itvs);
 		}
 
-		public virtual InfoTypeAndValue[] ToInfoTypeAndValueArray()
-		{
-            return m_content.MapElements(InfoTypeAndValue.GetInstance);
-		}
+		public virtual InfoTypeAndValue[] ToInfoTypeAndValueArray() =>
+			m_content.MapElements(InfoTypeAndValue.GetInstance);
 
 		/**
 		 * <pre>
@@ -45,9 +43,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_content;
-		}
+		public override Asn1Object ToAsn1Object() => m_content;
 	}
 }

@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new OobCertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_hashAlg;
@@ -48,15 +48,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			{
 				Asn1TaggedObject tObj = (Asn1TaggedObject)seq[i];
 
-				if (tObj.TagNo == 0)
+				if (tObj.HasContextTag(0))
 				{
 					m_hashAlg = AlgorithmIdentifier.GetInstance(tObj, true);
 				}
-				else
+				else if (tObj.HasContextTag(1))
 				{
 					m_certId = CertId.GetInstance(tObj, true);
 				}
-			}
+				else
+				{
+                    throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(tObj));
+                }
+            }
 		}
 
 		public virtual CertId CertID => m_certId;

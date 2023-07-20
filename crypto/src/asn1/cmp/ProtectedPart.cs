@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static ProtectedPart GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new ProtectedPart(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiHeader m_header;
@@ -45,9 +45,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(m_header, m_body);
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_header, m_body);
 	}
 }

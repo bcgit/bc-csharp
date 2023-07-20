@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static KeyRecRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new KeyRecRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiStatusInfo m_status;
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 					m_keyPairHist = Asn1Sequence.GetInstance(tObj.GetExplicitBaseObject());
 					break;
 				default:
-					throw new ArgumentException("unknown tag number: " + tObj.TagNo, "seq");
+					throw new ArgumentException("unknown tag number: " + tObj.TagNo);
 				}
 			}
 		}
@@ -53,15 +53,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual CmpCertificate NewSigCert => m_newSigCert;
 
-		public virtual CmpCertificate[] GetCACerts()
-		{
-			return m_caCerts?.MapElements(CmpCertificate.GetInstance);
-		}
+		public virtual CmpCertificate[] GetCACerts() => m_caCerts?.MapElements(CmpCertificate.GetInstance);
 
-		public virtual CertifiedKeyPair[] GetKeyPairHist()
-		{
-			return m_keyPairHist?.MapElements(CertifiedKeyPair.GetInstance);
-		}
+		public virtual CertifiedKeyPair[] GetKeyPairHist() => m_keyPairHist?.MapElements(CertifiedKeyPair.GetInstance);
 
 		/**
 		 * <pre>
@@ -78,7 +72,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_status);
+			Asn1EncodableVector v = new Asn1EncodableVector(4);
+			v.Add(m_status);
             v.AddOptionalTagged(true, 0, m_newSigCert);
             v.AddOptionalTagged(true, 1, m_caCerts);
             v.AddOptionalTagged(true, 2, m_keyPairHist);

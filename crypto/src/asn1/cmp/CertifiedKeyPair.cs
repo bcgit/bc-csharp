@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static CertifiedKeyPair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new CertifiedKeyPair(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CertOrEncCert m_certOrEncCert;
@@ -94,7 +94,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_certOrEncCert);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_certOrEncCert);
             v.AddOptionalTagged(true, 0, m_privateKey);
             v.AddOptionalTagged(true, 1, m_publicationInfo);
 			return new DerSequence(v);

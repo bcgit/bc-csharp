@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static CertReqTemplateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new CertReqTemplateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CertTemplate m_certTemplate;
@@ -62,7 +62,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(m_certTemplate);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_certTemplate);
             v.AddOptional(m_keySpec);
             return new DerSequence(v);
         }

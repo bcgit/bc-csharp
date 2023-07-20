@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static RootCaKeyUpdateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new RootCaKeyUpdateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CmpCertificate m_newWithNew;
@@ -40,10 +40,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public RootCaKeyUpdateContent(CmpCertificate newWithNew, CmpCertificate newWithOld, CmpCertificate oldWithNew)
         {
-            if (newWithNew == null)
-                throw new ArgumentNullException(nameof(newWithNew));
-
-            m_newWithNew = newWithNew;
+            m_newWithNew = newWithNew ?? throw new ArgumentNullException(nameof(newWithNew));
             m_newWithOld = newWithOld;
             m_oldWithNew = oldWithNew;
         }
@@ -84,7 +81,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(m_newWithNew);
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(m_newWithNew);
             v.AddOptionalTagged(true, 0, m_newWithOld);
             v.AddOptionalTagged(true, 1, m_oldWithNew);
             return new DerSequence(v);

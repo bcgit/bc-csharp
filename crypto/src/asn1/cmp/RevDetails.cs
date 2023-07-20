@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static RevDetails GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new RevDetails(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly CertTemplate m_certDetails;
@@ -75,7 +75,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_certDetails);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_certDetails);
 			v.AddOptional(m_crlEntryDetails);
 			return new DerSequence(v);
 		}

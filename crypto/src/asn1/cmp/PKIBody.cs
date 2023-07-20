@@ -202,9 +202,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerTaggedObject(true, m_tagNo, m_body);
-        }
+        public override Asn1Object ToAsn1Object() => new DerTaggedObject(true, m_tagNo, m_body);
     }
 }

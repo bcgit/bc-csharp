@@ -26,17 +26,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private CertOrEncCert(Asn1TaggedObject taggedObject)
 		{
-			if (taggedObject.TagNo == 0)
+			if (taggedObject.HasContextTag(0))
 			{
 				m_certificate = CmpCertificate.GetInstance(taggedObject.GetExplicitBaseObject());
 			}
-			else if (taggedObject.TagNo == 1)
+			else if (taggedObject.HasContextTag(1))
 			{
                 m_encryptedCert = EncryptedKey.GetInstance(taggedObject.GetExplicitBaseObject());
 			}
 			else
 			{
-				throw new ArgumentException("unknown tag: " + taggedObject.TagNo, nameof(taggedObject));
+				throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(taggedObject),
+					nameof(taggedObject));
             }
         }
 
@@ -59,6 +60,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		public virtual CmpCertificate Certificate => m_certificate;
 
 		public virtual EncryptedKey EncryptedCert => m_encryptedCert;
+
+		public virtual bool HasEncryptedCertificate => m_encryptedCert != null;
 
         /**
 		 * <pre>

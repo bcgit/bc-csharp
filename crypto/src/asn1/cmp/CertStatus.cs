@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new CertStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1OctetString m_certHash;
@@ -43,8 +43,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 					}
 					if (p is Asn1TaggedObject dto)
 					{
-						if (dto.TagNo != 0)
-							throw new ArgumentException("unknown tag " + dto.TagNo);
+						if (!dto.HasContextTag(0))
+							throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(dto));
 
 						m_hashAlg = AlgorithmIdentifier.GetInstance(dto, true);
 					}
@@ -56,14 +56,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		{
 			m_certHash = new DerOctetString(certHash);
 			m_certReqID = new DerInteger(certReqID);
-		}
+            m_statusInfo = null;
+            m_hashAlg = null;
+        }
 
-		public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo)
+        public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo)
 		{
             m_certHash = new DerOctetString(certHash);
             m_certReqID = new DerInteger(certReqID);
             m_statusInfo = statusInfo;
-		}
+            m_hashAlg = null;
+        }
 
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo, AlgorithmIdentifier hashAlg)
         {
@@ -97,7 +100,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_certHash, m_certReqID);
+			Asn1EncodableVector v = new Asn1EncodableVector(4);
+			v.Add(m_certHash, m_certReqID);
 			v.AddOptional(m_statusInfo);
 			v.AddOptionalTagged(true, 0, m_hashAlg);
 			return new DerSequence(v);

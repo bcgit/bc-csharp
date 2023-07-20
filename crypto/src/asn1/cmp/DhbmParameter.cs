@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static DhbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new DhbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_owf;
@@ -51,9 +51,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual AlgorithmIdentifier Mac => m_mac;
 
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(m_owf, m_mac);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_owf, m_mac);
     }
 }

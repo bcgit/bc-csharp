@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiMessages GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PkiMessages(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private Asn1Sequence m_content;
@@ -38,10 +38,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = new DerSequence(msgs);
         }
 
-        public virtual PkiMessage[] ToPkiMessageArray()
-        {
-            return m_content.MapElements(PkiMessage.GetInstance);
-        }
+        public virtual PkiMessage[] ToPkiMessageArray() => m_content.MapElements(PkiMessage.GetInstance);
 
         /**
          * <pre>
@@ -49,9 +46,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return m_content;
-        }
+        public override Asn1Object ToAsn1Object() => m_content;
     }
 }

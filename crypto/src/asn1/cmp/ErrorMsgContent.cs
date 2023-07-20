@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static ErrorMsgContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new ErrorMsgContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly PkiStatusInfo m_pkiStatusInfo;
@@ -57,15 +57,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		{
 		}
 
-		public ErrorMsgContent(
-			PkiStatusInfo	pkiStatusInfo,
-			DerInteger		errorCode,
-			PkiFreeText		errorDetails)
+		public ErrorMsgContent(PkiStatusInfo pkiStatusInfo, DerInteger errorCode, PkiFreeText errorDetails)
 		{
-			if (pkiStatusInfo == null)
-				throw new ArgumentNullException(nameof(pkiStatusInfo));
-
-			m_pkiStatusInfo = pkiStatusInfo;
+			m_pkiStatusInfo = pkiStatusInfo ?? throw new ArgumentNullException(nameof(pkiStatusInfo));
 			m_errorCode = errorCode;
 			m_errorDetails = errorDetails;
 		}
@@ -90,7 +84,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_pkiStatusInfo);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_pkiStatusInfo);
 			v.AddOptional(m_errorCode, m_errorDetails);
 			return new DerSequence(v);
 		}

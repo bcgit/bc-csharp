@@ -176,7 +176,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public virtual PkiHeader Build()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(pvno, sender, recipient);
+			Asn1EncodableVector v = new Asn1EncodableVector(12);
+			v.Add(pvno, sender, recipient);
             v.AddOptionalTagged(true, 0, messageTime);
             v.AddOptionalTagged(true, 1, protectionAlg);
 			v.AddOptionalTagged(true, 2, senderKID);

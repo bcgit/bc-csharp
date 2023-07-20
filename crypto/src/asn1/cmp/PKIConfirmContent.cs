@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Null.GetInstance(taggedObject, declaredExplicit));
+            return new PkiConfirmContent(Asn1Null.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Null m_val;
@@ -40,9 +40,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_val;
-		}
+		public override Asn1Object ToAsn1Object() => m_val;
 	}
 }

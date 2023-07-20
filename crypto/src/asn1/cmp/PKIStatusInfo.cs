@@ -20,63 +20,68 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiStatusInfo GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new PkiStatusInfo(Asn1Sequence.GetInstance(obj, isExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		private readonly DerInteger status;
-		private readonly PkiFreeText statusString;
-		private readonly DerBitString failInfo;
+        private readonly DerInteger m_status;
+		private readonly PkiFreeText m_statusString;
+		private readonly DerBitString m_failInfo;
 
         [Obsolete("Use 'GetInstance' instead")]
         public PkiStatusInfo(Asn1Sequence seq)
 		{
-			this.status = DerInteger.GetInstance(seq[0]);
+			m_status = DerInteger.GetInstance(seq[0]);
 
-			this.statusString = null;
-			this.failInfo = null;
+			m_statusString = null;
+			m_failInfo = null;
 
 			if (seq.Count > 2)
 			{
-				this.statusString = PkiFreeText.GetInstance(seq[1]);
-				this.failInfo = DerBitString.GetInstance(seq[2]);
+				m_statusString = PkiFreeText.GetInstance(seq[1]);
+				m_failInfo = DerBitString.GetInstance(seq[2]);
 			}
 			else if (seq.Count > 1)
 			{
 				object obj = seq[1];
 				if (obj is DerBitString)
 				{
-					this.failInfo = DerBitString.GetInstance(obj);
+					m_failInfo = DerBitString.GetInstance(obj);
 				}
 				else
 				{
-					this.statusString = PkiFreeText.GetInstance(obj);
+					m_statusString = PkiFreeText.GetInstance(obj);
 				}
 			}
 		}
 
 		public PkiStatusInfo(int status)
 		{
-			this.status = new DerInteger(status);
+			m_status = new DerInteger(status);
+			m_statusString = null;
+			m_failInfo = null;
 		}
 
 		public PkiStatusInfo(int status, PkiFreeText statusString)
 		{
-			this.status = new DerInteger(status);
-			this.statusString = statusString;
-		}
+			m_status = new DerInteger(status);
+			m_statusString = statusString;
+            m_failInfo = null;
+        }
 
         public PkiStatusInfo(int status, PkiFreeText statusString, PkiFailureInfo failInfo)
         {
-            this.status = new DerInteger(status);
-			this.statusString = statusString;
-			this.failInfo = failInfo;
+            m_status = new DerInteger(status);
+			m_statusString = statusString;
+			m_failInfo = failInfo;
 		}
 
-		public BigInteger Status => status.Value;
+		public BigInteger Status => m_status.Value;
 
-		public PkiFreeText StatusString => statusString;
+		public PkiFreeText StatusString => m_statusString;
 
-		public DerBitString FailInfo => failInfo;
+		public DerBitString FailInfo => m_failInfo;
 
 		/**
 		 * <pre>
@@ -111,8 +116,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(status);
-            v.AddOptional(statusString, failInfo);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_status);
+            v.AddOptional(m_statusString, m_failInfo);
 			return new DerSequence(v);
 		}
 	}

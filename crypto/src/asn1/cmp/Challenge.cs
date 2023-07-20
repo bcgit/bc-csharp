@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new Challenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_owf;
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
         public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(2);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
 			v.AddOptional(m_owf);
 			v.Add(m_witness, m_challenge);
 			return new DerSequence(v);
@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             public static Rand GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
             {
-                return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+                return new Rand(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
             }
 
             private readonly DerInteger m_intVal;
@@ -159,10 +159,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 			public virtual GeneralName Sender => m_sender;
 
-			public override Asn1Object ToAsn1Object()
-			{
-                return new DerSequence(m_intVal, m_sender);
-            }
+			public override Asn1Object ToAsn1Object() => new DerSequence(m_intVal, m_sender);
         }
 	}
 }

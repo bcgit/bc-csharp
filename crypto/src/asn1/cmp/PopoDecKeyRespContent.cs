@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PopoDecKeyRespContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PopoDecKeyRespContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;
@@ -24,10 +24,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_content = seq;
 		}
 
-		public virtual DerInteger[] ToIntegerArray()
-		{
-			return m_content.MapElements(DerInteger.GetInstance);
-		}
+		public virtual DerInteger[] ToIntegerArray() => m_content.MapElements(DerInteger.GetInstance);
 
 		/**
 		 * <pre>
@@ -35,9 +32,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_content;
-		}
+		public override Asn1Object ToAsn1Object() => m_content;
 	}
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Asn1.X509;
+﻿using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
@@ -35,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1OctetString m_salt;
@@ -93,9 +91,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(m_salt, m_owf, m_iterationCount, m_mac);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_salt, m_owf, m_iterationCount, m_mac);
     }
 }

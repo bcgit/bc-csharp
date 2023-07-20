@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PkiFreeText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PkiFreeText(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_strings;
@@ -65,19 +65,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * @param index index of the string of interest
 		 * @return the string at index.
 		 */
-		public DerUtf8String this[int index]
-		{
-			get { return (DerUtf8String)m_strings[index]; }
-		}
+		public DerUtf8String this[int index] => (DerUtf8String)m_strings[index];
 
 		/**
 		 * <pre>
 		 * PkiFreeText ::= SEQUENCE SIZE (1..MAX) OF UTF8String
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_strings;
-		}
+		public override Asn1Object ToAsn1Object() => m_strings;
 	}
 }

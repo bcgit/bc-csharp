@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static RevReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new RevReqContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;
@@ -34,10 +34,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_content = new DerSequence(revDetailsArray);
 		}
 
-		public virtual RevDetails[] ToRevDetailsArray()
-		{
-			return m_content.MapElements(RevDetails.GetInstance);
-		}
+		public virtual RevDetails[] ToRevDetailsArray() => m_content.MapElements(RevDetails.GetInstance);
 
 		/**
 		 * <pre>
@@ -45,9 +42,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_content;
-		}
+		public override Asn1Object ToAsn1Object() => m_content;
 	}
 }

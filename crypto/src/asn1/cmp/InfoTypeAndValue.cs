@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static InfoTypeAndValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new InfoTypeAndValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly DerObjectIdentifier m_infoType;

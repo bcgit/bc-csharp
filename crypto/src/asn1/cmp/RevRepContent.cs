@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new RevRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_status;
@@ -57,20 +57,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			}
 		}
 
-		public virtual PkiStatusInfo[] GetStatus()
-		{
-			return m_status.MapElements(PkiStatusInfo.GetInstance);
-		}
+		public virtual PkiStatusInfo[] GetStatus() => m_status.MapElements(PkiStatusInfo.GetInstance);
 
-		public virtual CertId[] GetRevCerts()
-		{
-			return m_revCerts?.MapElements(CertId.GetInstance);
-		}
+		public virtual CertId[] GetRevCerts() => m_revCerts?.MapElements(CertId.GetInstance);
 
-		public virtual CertificateList[] GetCrls()
-		{
-			return m_crls?.MapElements(CertificateList.GetInstance);
-		}
+		public virtual CertificateList[] GetCrls() => m_crls?.MapElements(CertificateList.GetInstance);
 
 		/**
 		 * <pre>
@@ -88,7 +79,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_status);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_status);
             v.AddOptionalTagged(true, 0, m_revCerts);
             v.AddOptionalTagged(true, 1, m_crls);
 			return new DerSequence(v);

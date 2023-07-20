@@ -36,18 +36,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private CrlSource(Asn1TaggedObject taggedObject)
         {
-            switch (taggedObject.TagNo)
+            if (taggedObject.HasContextTag(0))
             {
-            case 0:
                 m_dpn = DistributionPointName.GetInstance(taggedObject, true);
                 m_issuer = null;
-                break;
-            case 1:
+            }
+            else if (taggedObject.HasContextTag(1))
+            {
                 m_dpn = null;
                 m_issuer = GeneralNames.GetInstance(taggedObject, true);
-                break;
-            default:
-                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(taggedObject));
+            }
+            else
+            {
+                throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(taggedObject),
+                    nameof(taggedObject));
             }
         }
 

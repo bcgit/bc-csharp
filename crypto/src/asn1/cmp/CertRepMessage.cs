@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static CertRepMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new CertRepMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_caPubs;
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			if (response == null)
 				throw new ArgumentNullException(nameof(response));
 
-			if (caPubs != null)
+			if (caPubs != null && caPubs.Length > 0)
 			{
 				m_caPubs = new DerSequence(caPubs);
 			}
@@ -47,15 +47,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_response = new DerSequence(response);
 		}
 
-		public virtual CmpCertificate[] GetCAPubs()
-		{
-			return m_caPubs == null ? null : m_caPubs.MapElements(CmpCertificate.GetInstance);
-		}
+		public virtual CmpCertificate[] GetCAPubs() => m_caPubs?.MapElements(CmpCertificate.GetInstance);
 
-		public virtual CertResponse[] GetResponse()
-		{
-            return m_response.MapElements(CertResponse.GetInstance);
-		}
+		public virtual CertResponse[] GetResponse() => m_response.MapElements(CertResponse.GetInstance);
 
 		/**
 		 * <pre>

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static CrlAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new CrlAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Sequence m_content;
@@ -31,10 +31,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = new DerSequence(crl);
         }
 
-        public virtual CertificateList[] ToCertificateListArray()
-		{
-			return m_content.MapElements(CertificateList.GetInstance);
-		}
+        public virtual CertificateList[] ToCertificateListArray() => m_content.MapElements(CertificateList.GetInstance);
 
 		/**
 		 * <pre>
@@ -42,9 +39,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 * </pre>
 		 * @return a basic ASN.1 object representation.
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_content;
-		}
+		public override Asn1Object ToAsn1Object() => m_content;
 	}
 }

@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public static PollRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PollRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly DerInteger[] m_certReqID;
