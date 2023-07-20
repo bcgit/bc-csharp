@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             ProtectedPkiMessage msg = new ProtectedPkiMessage(new GeneralPkiMessage(certRequestMsg.ToAsn1Message().GetDerEncoded()));
             CertReqMessages reqMsgs = CertReqMessages.GetInstance(msg.Body.Content);
             CertReqMsg reqMsg = reqMsgs.ToCertReqMsgArray()[0];
-            IsEquals(ProofOfPossession.TYPE_KEY_ENCIPHERMENT, reqMsg.Popo.Type);
+            IsEquals(ProofOfPossession.TYPE_KEY_ENCIPHERMENT, reqMsg.Pop.Type);
         }
 
         [Test]

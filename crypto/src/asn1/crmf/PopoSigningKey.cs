@@ -1,32 +1,10 @@
-﻿using System;
-
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class PopoSigningKey
         : Asn1Encodable
     {
-        private readonly PopoSigningKeyInput poposkInput;
-        private readonly AlgorithmIdentifier algorithmIdentifier;
-        private readonly DerBitString signature;
-
-        private PopoSigningKey(Asn1Sequence seq)
-        {
-            int index = 0;
-
-            if (seq[index] is Asn1TaggedObject tagObj)
-            {
-                index++;
-
-                poposkInput = PopoSigningKeyInput.GetInstance(
-                    Asn1Utilities.GetContextBaseUniversal(tagObj, 0, false, Asn1Tags.Sequence));
-            }
-            algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[index++]);
-            signature = DerBitString.GetInstance(seq[index]);
-        }
-
         public static PopoSigningKey GetInstance(object obj)
         {
             if (obj == null)
@@ -38,7 +16,26 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static PopoSigningKey GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+            return new PopoSigningKey(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
+
+        private readonly PopoSigningKeyInput m_poposkInput;
+        private readonly AlgorithmIdentifier m_algorithmIdentifier;
+        private readonly DerBitString m_signature;
+
+        private PopoSigningKey(Asn1Sequence seq)
+        {
+            int index = 0;
+
+            if (seq[index] is Asn1TaggedObject tagObj)
+            {
+                index++;
+
+                m_poposkInput = PopoSigningKeyInput.GetInstance(
+                    Asn1Utilities.GetContextBaseUniversal(tagObj, 0, false, Asn1Tags.Sequence));
+            }
+            m_algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[index++]);
+            m_signature = DerBitString.GetInstance(seq[index]);
         }
 
         /**
@@ -49,30 +46,18 @@ namespace Org.BouncyCastle.Asn1.Crmf
          * @param signature a signature over the DER-encoded value of poposkIn,
          *     or the DER-encoded value of certReq if poposkIn is null.
          */
-        public PopoSigningKey(
-            PopoSigningKeyInput poposkIn,
-            AlgorithmIdentifier aid,
-            DerBitString signature)
+        public PopoSigningKey(PopoSigningKeyInput poposkIn, AlgorithmIdentifier aid, DerBitString signature)
         {
-            this.poposkInput = poposkIn;
-            this.algorithmIdentifier = aid;
-            this.signature = signature;
+            m_poposkInput = poposkIn;
+            m_algorithmIdentifier = aid;
+            m_signature = signature;
         }
 
-        public virtual PopoSigningKeyInput PoposkInput
-        {
-            get { return poposkInput; }
-        }
+        public virtual PopoSigningKeyInput PoposkInput => m_poposkInput;
 
-        public virtual AlgorithmIdentifier AlgorithmIdentifier
-        {
-            get { return algorithmIdentifier; }
-        }
+        public virtual AlgorithmIdentifier AlgorithmIdentifier => m_algorithmIdentifier;
 
-        public virtual DerBitString Signature
-        {
-            get { return signature; }
-        }
+        public virtual DerBitString Signature => m_signature;
 
         /**
          * <pre>
@@ -96,9 +81,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.AddOptionalTagged(false, 0, poposkInput);
-            v.Add(algorithmIdentifier);
-            v.Add(signature);
+            v.AddOptionalTagged(false, 0, m_poposkInput);
+            v.Add(m_algorithmIdentifier);
+            v.Add(m_signature);
             return new DerSequence(v);
         }
     }

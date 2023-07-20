@@ -1,33 +1,10 @@
-﻿using System;
-
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class PopoSigningKeyInput
         : Asn1Encodable
     {
-        private readonly GeneralName            sender;
-        private readonly PKMacValue             publicKeyMac;
-        private readonly SubjectPublicKeyInfo   publicKey;
-
-        private PopoSigningKeyInput(Asn1Sequence seq)
-        {
-            Asn1Encodable authInfo = (Asn1Encodable)seq[0];
-
-            if (authInfo is Asn1TaggedObject tagObj)
-            {
-                sender = GeneralName.GetInstance(Asn1Utilities.GetExplicitContextBaseObject(tagObj, 0));
-            }
-            else
-            {
-                publicKeyMac = PKMacValue.GetInstance(authInfo);
-            }
-
-            publicKey = SubjectPublicKeyInfo.GetInstance(seq[1]);
-        }
-
         public static PopoSigningKeyInput GetInstance(object obj)
         {
             if (obj == null)
@@ -39,43 +16,50 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static PopoSigningKeyInput GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new PopoSigningKeyInput(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly GeneralName m_sender;
+        private readonly PKMacValue m_publicKeyMac;
+        private readonly SubjectPublicKeyInfo m_publicKey;
+
+        private PopoSigningKeyInput(Asn1Sequence seq)
+        {
+            Asn1Encodable authInfo = (Asn1Encodable)seq[0];
+
+            if (authInfo is Asn1TaggedObject tagObj)
+            {
+                m_sender = GeneralName.GetInstance(Asn1Utilities.GetExplicitContextBaseObject(tagObj, 0));
+            }
+            else
+            {
+                m_publicKeyMac = PKMacValue.GetInstance(authInfo);
+            }
+
+            m_publicKey = SubjectPublicKeyInfo.GetInstance(seq[1]);
         }
 
         /** Creates a new PopoSigningKeyInput with sender name as authInfo. */
-        public PopoSigningKeyInput(
-            GeneralName sender,
-            SubjectPublicKeyInfo spki)
+        public PopoSigningKeyInput(GeneralName sender, SubjectPublicKeyInfo spki)
         {
-            this.sender = sender;
-            this.publicKey = spki;
+            m_sender = sender;
+            m_publicKey = spki;
         }
 
         /** Creates a new PopoSigningKeyInput using password-based MAC. */
-        public PopoSigningKeyInput(
-            PKMacValue pkmac,
-            SubjectPublicKeyInfo spki)
+        public PopoSigningKeyInput(PKMacValue pkmac, SubjectPublicKeyInfo spki)
         {
-            this.publicKeyMac = pkmac;
-            this.publicKey = spki;
+            m_publicKeyMac = pkmac;
+            m_publicKey = spki;
         }
 
         /** Returns the sender field, or null if authInfo is publicKeyMac */
-        public virtual GeneralName Sender
-        {
-            get { return sender; }
-        }
+        public virtual GeneralName Sender => m_sender;
 
         /** Returns the publicKeyMac field, or null if authInfo is sender */
-        public virtual PKMacValue PublicKeyMac
-        {
-            get { return publicKeyMac; }
-        }
+        public virtual PKMacValue PublicKeyMac => m_publicKeyMac;
 
-        public virtual SubjectPublicKeyInfo PublicKey
-        {
-            get { return publicKey; }
-        }
+        public virtual SubjectPublicKeyInfo PublicKey => m_publicKey;
 
         /**
          * <pre>
@@ -97,16 +81,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
 
-            if (sender != null)
+            if (m_sender != null)
             {
-                v.Add(new DerTaggedObject(false, 0, sender));
+                v.Add(new DerTaggedObject(false, 0, m_sender));
             }
             else
             {
-                v.Add(publicKeyMac);
+                v.Add(m_publicKeyMac);
             }
 
-            v.Add(publicKey);
+            v.Add(m_publicKey);
 
             return new DerSequence(v);
         }

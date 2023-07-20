@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>true if proof-of-possession is present, false otherwise.</returns>
         public bool HasProofOfPossession
         {
-            get { return certReqMsg.Popo != null; }
+            get { return certReqMsg.Pop != null; }
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>one of: popRaVerified, popSigningKey, popKeyEncipherment, popKeyAgreement</returns>
         public int ProofOfPossession
         {
-            get { return certReqMsg.Popo.Type; }
+            get { return certReqMsg.Pop.Type; }
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Org.BouncyCastle.Crmf
         {
             get
             {
-                ProofOfPossession pop = certReqMsg.Popo;
+                ProofOfPossession pop = certReqMsg.Pop;
 
                 if (pop.Type == popSigningKey)
                 {
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Crmf
         /// <exception cref="InvalidOperationException">if POP not appropriate.</exception>
         public bool IsValidSigningKeyPop(IVerifierFactoryProvider verifierProvider)
         {
-            ProofOfPossession pop = certReqMsg.Popo;
+            ProofOfPossession pop = certReqMsg.Pop;
             if (pop.Type == popSigningKey)
             {
                 PopoSigningKey popoSign = PopoSigningKey.GetInstance(pop.Object);
