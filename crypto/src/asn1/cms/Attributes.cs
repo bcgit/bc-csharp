@@ -1,5 +1,3 @@
-using System;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class Attributes
@@ -16,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public static Attributes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Set.GetInstance(taggedObject, declaredExplicit));
+            return new Attributes(Asn1Set.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly Asn1Set m_attributes;

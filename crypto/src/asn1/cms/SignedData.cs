@@ -8,6 +8,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class SignedData
         : Asn1Encodable
     {
+        public static SignedData GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SignedData signedData)
+                return signedData;
+            return new SignedData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static SignedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new SignedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private static readonly DerInteger Version1 = new DerInteger(1);
         private static readonly DerInteger Version3 = new DerInteger(3);
         private static readonly DerInteger Version4 = new DerInteger(4);
@@ -21,15 +35,6 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1Set		signerInfos;
         private readonly bool			certsBer;
         private readonly bool		    crlsBer;
-
-        public static SignedData GetInstance(object obj)
-        {
-            if (obj is SignedData signedData)
-                return signedData;
-            if (obj == null)
-                return null;
-            return new SignedData(Asn1Sequence.GetInstance(obj));
-        }
 
         public SignedData(
             Asn1Set     digestAlgorithms,

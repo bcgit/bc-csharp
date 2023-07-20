@@ -7,6 +7,28 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class RecipientInfo
         : Asn1Encodable, IAsn1Choice
     {
+        public static RecipientInfo GetInstance(object o)
+        {
+            if (o == null)
+                return null;
+
+            if (o is RecipientInfo recipientInfo)
+                return recipientInfo;
+
+            if (o is Asn1Sequence sequence)
+                return new RecipientInfo(sequence);
+
+            if (o is Asn1TaggedObject taggedObject)
+                return new RecipientInfo(taggedObject);
+
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(o), nameof(o));
+        }
+
+        public static RecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+        }
+
         internal Asn1Encodable info;
 
 		public RecipientInfo(
@@ -43,23 +65,6 @@ namespace Org.BouncyCastle.Asn1.Cms
             Asn1Object   info)
         {
             this.info = info;
-        }
-
-		public static RecipientInfo GetInstance(object o)
-        {
-			if (o == null)
-				return null;
-
-            if (o is RecipientInfo recipientInfo)
-                return recipientInfo;
-
-			if (o is Asn1Sequence sequence)
-                return new RecipientInfo(sequence);
-
-			if (o is Asn1TaggedObject taggedObject)
-                return new RecipientInfo(taggedObject);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(o));
         }
 
 		public DerInteger Version

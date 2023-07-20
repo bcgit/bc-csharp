@@ -1,13 +1,24 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class EncryptedContentInfo
         : Asn1Encodable
     {
+        public static EncryptedContentInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is EncryptedContentInfo encryptedContentInfo)
+                return encryptedContentInfo;
+            return new EncryptedContentInfo(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static EncryptedContentInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new EncryptedContentInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private DerObjectIdentifier	contentType;
         private AlgorithmIdentifier	contentEncryptionAlgorithm;
         private Asn1OctetString		encryptedContent;
@@ -33,24 +44,6 @@ namespace Org.BouncyCastle.Asn1.Cms
                 encryptedContent = Asn1OctetString.GetInstance(
 					(Asn1TaggedObject) seq[2], false);
             }
-        }
-
-		/**
-         * return an EncryptedContentInfo object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static EncryptedContentInfo GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is EncryptedContentInfo)
-                return (EncryptedContentInfo)obj;
-
-			if (obj is Asn1Sequence)
-                return new EncryptedContentInfo((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid EncryptedContentInfo: " + Platform.GetTypeName(obj));
         }
 
         public DerObjectIdentifier ContentType

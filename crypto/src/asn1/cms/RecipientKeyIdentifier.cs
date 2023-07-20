@@ -7,6 +7,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class RecipientKeyIdentifier
         : Asn1Encodable
     {
+        public static RecipientKeyIdentifier GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is RecipientKeyIdentifier recipientKeyIdentifier)
+                return recipientKeyIdentifier;
+            return new RecipientKeyIdentifier(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static RecipientKeyIdentifier GetInstance(Asn1TaggedObject ato, bool explicitly)
+        {
+            return new RecipientKeyIdentifier(Asn1Sequence.GetInstance(ato, explicitly));
+        }
+
         private Asn1OctetString      subjectKeyIdentifier;
         private Asn1GeneralizedTime  date;
         private OtherKeyAttribute    other;
@@ -64,41 +78,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
-		/**
-         * return a RecipientKeyIdentifier object from a tagged object.
-         *
-         * @param _ato the tagged object holding the object we want.
-         * @param _explicit true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static RecipientKeyIdentifier GetInstance(
-			Asn1TaggedObject	ato,
-			bool				explicitly)
-		{
-            return GetInstance(Asn1Sequence.GetInstance(ato, explicitly));
-        }
-
-		/**
-         * return a RecipientKeyIdentifier object from the given object.
-         *
-         * @param _obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static RecipientKeyIdentifier GetInstance(
-			object obj)
-		{
-            if (obj == null || obj is RecipientKeyIdentifier)
-                return (RecipientKeyIdentifier) obj;
-
-			if (obj is Asn1Sequence)
-				return new RecipientKeyIdentifier((Asn1Sequence) obj);
-
-            throw new ArgumentException("Invalid RecipientKeyIdentifier: " + Platform.GetTypeName(obj));
-        }
-
-		public Asn1OctetString SubjectKeyIdentifier
+        public Asn1OctetString SubjectKeyIdentifier
 		{
 			get { return subjectKeyIdentifier; }
 		}

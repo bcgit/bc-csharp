@@ -1,12 +1,24 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class KekIdentifier
         : Asn1Encodable
     {
+        public static KekIdentifier GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is KekIdentifier kekIdentifier)
+                return kekIdentifier;
+            return new KekIdentifier(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static KekIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return new KekIdentifier(Asn1Sequence.GetInstance(obj, explicitly));
+        }
+
         private Asn1OctetString		keyIdentifier;
         private Asn1GeneralizedTime date;
         private OtherKeyAttribute	other;
@@ -48,41 +60,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
-		/**
-         * return a KekIdentifier object from a tagged object.
-         *
-         * @param obj the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static KekIdentifier GetInstance(
-            Asn1TaggedObject obj,
-            bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-        /**
-         * return a KekIdentifier object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static KekIdentifier GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is KekIdentifier)
-                return (KekIdentifier)obj;
-
-			if (obj is Asn1Sequence)
-                return new KekIdentifier((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid KekIdentifier: " + Platform.GetTypeName(obj));
-        }
-
-		public Asn1OctetString KeyIdentifier
+        public Asn1OctetString KeyIdentifier
 		{
 			get { return keyIdentifier; }
 		}

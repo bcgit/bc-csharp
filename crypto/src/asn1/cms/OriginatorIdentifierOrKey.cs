@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                     return new OriginatorIdentifierOrKey(OriginatorPublicKey.GetInstance(taggedObject, false));
             }
 
-            throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o));
+            throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o), nameof(o));
         }
 
         public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly)

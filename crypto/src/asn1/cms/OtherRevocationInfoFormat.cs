@@ -3,6 +3,20 @@
     public class OtherRevocationInfoFormat
         : Asn1Encodable
     {
+        public static OtherRevocationInfoFormat GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OtherRevocationInfoFormat otherRevocationInfoFormat)
+                return otherRevocationInfoFormat;
+            return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static OtherRevocationInfoFormat GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
+
         private readonly DerObjectIdentifier otherRevInfoFormat;
         private readonly Asn1Encodable otherRevInfo;
 
@@ -18,35 +32,6 @@
         {
             otherRevInfoFormat = DerObjectIdentifier.GetInstance(seq[0]);
             otherRevInfo = seq[1];
-        }
-
-        /**
-         * return a OtherRevocationInfoFormat object from a tagged object.
-         *
-         * @param obj the tagged object holding the object we want.
-         * @param explicit true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception IllegalArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static OtherRevocationInfoFormat GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
-
-        /**
-         * return a OtherRevocationInfoFormat object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception IllegalArgumentException if the object cannot be converted.
-         */
-        public static OtherRevocationInfoFormat GetInstance(object obj)
-        {
-            if (obj is OtherRevocationInfoFormat otherRevocationInfoFormat)
-                return otherRevocationInfoFormat;
-            if (obj != null)
-                return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj));
-            return null;
         }
 
         public virtual DerObjectIdentifier InfoFormat

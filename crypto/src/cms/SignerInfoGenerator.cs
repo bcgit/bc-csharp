@@ -130,8 +130,7 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInfoGenerator Build(ISignatureFactory contentSigner, X509Certificate certificate)
         {
-            SignerIdentifier sigId = new SignerIdentifier(new IssuerAndSerialNumber(certificate.IssuerDN,
-                new DerInteger(certificate.SerialNumber)));
+            SignerIdentifier sigId = new SignerIdentifier(new IssuerAndSerialNumber(certificate.CertificateStructure));
 
             SignerInfoGenerator sigInfoGen = CreateGenerator(contentSigner, sigId);
 

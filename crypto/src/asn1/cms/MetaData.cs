@@ -5,7 +5,21 @@ namespace Org.BouncyCastle.Asn1.Cms
 	public class MetaData
 		: Asn1Encodable
 	{
-		private DerBoolean hashProtected;
+        public static MetaData GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+			if (obj is MetaData metaData)
+				return metaData;
+            return new MetaData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static MetaData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new MetaData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private DerBoolean hashProtected;
 		private DerUtf8String fileName;
 		private DerIA5String  mediaType;
 		private Attributes otherMetaData;
@@ -42,17 +56,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 			{
 				this.otherMetaData = Attributes.GetInstance(seq[index++]);
 			}
-		}
-
-		public static MetaData GetInstance(object obj)
-		{
-			if (obj is MetaData)
-				return (MetaData)obj;
-
-			if (obj != null)
-				return new MetaData(Asn1Sequence.GetInstance(obj));
-
-			return null;
 		}
 
 		/**

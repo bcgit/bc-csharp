@@ -5,7 +5,21 @@ namespace Org.BouncyCastle.Asn1.Cms
 	public class TimeStampedData
 		: Asn1Encodable
 	{
-		private DerInteger version;
+        public static TimeStampedData GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+			if (obj is TimeStampedData timeStampedData)
+				return timeStampedData;
+            return new TimeStampedData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static TimeStampedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new TimeStampedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private DerInteger version;
 		private DerIA5String dataUri;
 		private MetaData metaData;
 		private Asn1OctetString content;
@@ -41,17 +55,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 				++index;
 			}
 			this.temporalEvidence = Evidence.GetInstance(seq[index]);
-		}
-
-		public static TimeStampedData GetInstance(object obj)
-		{
-			if (obj is TimeStampedData)
-				return (TimeStampedData)obj;
-
-			if (obj != null)
-				return new TimeStampedData(Asn1Sequence.GetInstance(obj));
-
-			return null;
 		}
 
 		public virtual DerIA5String DataUri

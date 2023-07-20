@@ -1,27 +1,27 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class EncryptedData
+    public class EncryptedData
 		: Asn1Encodable
 	{
-		private readonly DerInteger				version;
+        public static EncryptedData GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is EncryptedData encryptedData)
+                return encryptedData;
+            return new EncryptedData(Asn1Sequence.GetInstance(obj));
+        }
+
+		public static EncryptedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+		{
+            return new EncryptedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly DerInteger				version;
 		private readonly EncryptedContentInfo	encryptedContentInfo;
 		private readonly Asn1Set				unprotectedAttrs;
-
-		public static EncryptedData GetInstance(
-			object obj)
-		{
-			if (obj is EncryptedData)
-				return (EncryptedData) obj;
-
-			if (obj is Asn1Sequence)
-				return new EncryptedData((Asn1Sequence) obj);
-
-            throw new ArgumentException("Invalid EncryptedData: " + Platform.GetTypeName(obj));
-		}
 
 		public EncryptedData(
 			EncryptedContentInfo encInfo)

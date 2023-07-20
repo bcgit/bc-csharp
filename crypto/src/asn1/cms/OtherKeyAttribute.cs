@@ -1,32 +1,24 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OtherKeyAttribute
         : Asn1Encodable
     {
+        public static OtherKeyAttribute GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OtherKeyAttribute otherKeyAttribute)
+                return otherKeyAttribute;
+            return new OtherKeyAttribute(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static OtherKeyAttribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new OtherKeyAttribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private DerObjectIdentifier	keyAttrId;
         private Asn1Encodable		keyAttr;
-
-		/**
-         * return an OtherKeyAttribute object from the given object.
-         *
-         * @param o the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static OtherKeyAttribute GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is OtherKeyAttribute)
-                return (OtherKeyAttribute) obj;
-
-			if (obj is Asn1Sequence)
-                return new OtherKeyAttribute((Asn1Sequence) obj);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-        }
 
 		public OtherKeyAttribute(
             Asn1Sequence seq)

@@ -1,31 +1,26 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class ContentInfo
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	contentType;
-        private readonly Asn1Encodable			content;
-
-        public static ContentInfo GetInstance(
-            object obj)
+        public static ContentInfo GetInstance(object obj)
         {
-            if (obj == null || obj is ContentInfo)
-                return (ContentInfo) obj;
-
-            if (obj is Asn1Sequence)
-                return new ContentInfo((Asn1Sequence) obj);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj));
+            if (obj == null)
+                return null;
+            if (obj is ContentInfo contentInfo)
+                return contentInfo;
+            return new ContentInfo(Asn1Sequence.GetInstance(obj));
         }
 
         public static ContentInfo GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+            return new ContentInfo(Asn1Sequence.GetInstance(obj, isExplicit));
         }
+
+        private readonly DerObjectIdentifier	contentType;
+        private readonly Asn1Encodable			content;
 
         private ContentInfo(
             Asn1Sequence seq)

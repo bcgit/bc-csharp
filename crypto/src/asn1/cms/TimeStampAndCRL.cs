@@ -1,11 +1,23 @@
-using System;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class TimeStampAndCrl
+    public class TimeStampAndCrl
 		: Asn1Encodable
 	{
-		private ContentInfo timeStamp;
+        public static TimeStampAndCrl GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+            if (obj is TimeStampAndCrl timeStampAndCrl)
+                return timeStampAndCrl;
+            return new TimeStampAndCrl(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static TimeStampAndCrl GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new TimeStampAndCrl(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private ContentInfo timeStamp;
 		private X509.CertificateList crl;
 
 		public TimeStampAndCrl(ContentInfo timeStamp)
@@ -20,17 +32,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 			{
 				this.crl = X509.CertificateList.GetInstance(seq[1]);
 			}
-		}
-
-		public static TimeStampAndCrl GetInstance(object obj)
-		{
-			if (obj is TimeStampAndCrl)
-				return (TimeStampAndCrl)obj;
-
-			if (obj != null)
-				return new TimeStampAndCrl(Asn1Sequence.GetInstance(obj));
-
-			return null;
 		}
 
 		public virtual ContentInfo TimeStampToken

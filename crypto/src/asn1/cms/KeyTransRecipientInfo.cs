@@ -8,6 +8,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class KeyTransRecipientInfo
         : Asn1Encodable
     {
+        public static KeyTransRecipientInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is KeyTransRecipientInfo keyTransRecipientInfo)
+                return keyTransRecipientInfo;
+            return new KeyTransRecipientInfo(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static KeyTransRecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new KeyTransRecipientInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private DerInteger          version;
         private RecipientIdentifier rid;
         private AlgorithmIdentifier keyEncryptionAlgorithm;
@@ -39,25 +53,6 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.rid = RecipientIdentifier.GetInstance(seq[1]);
             this.keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[2]);
             this.encryptedKey = (Asn1OctetString) seq[3];
-        }
-
-		/**
-         * return a KeyTransRecipientInfo object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static KeyTransRecipientInfo GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is KeyTransRecipientInfo)
-                return (KeyTransRecipientInfo) obj;
-
-			if(obj is Asn1Sequence)
-                return new KeyTransRecipientInfo((Asn1Sequence) obj);
-
-			throw new ArgumentException(
-                "Illegal object in KeyTransRecipientInfo: " + Platform.GetTypeName(obj));
         }
 
 		public DerInteger Version

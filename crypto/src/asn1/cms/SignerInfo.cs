@@ -1,13 +1,24 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class SignerInfo
         : Asn1Encodable
     {
+        public static SignerInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SignerInfo signerInfo)
+                return signerInfo;
+            return new SignerInfo(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static SignerInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new SignerInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private DerInteger              version;
         private SignerIdentifier        sid;
         private AlgorithmIdentifier     digAlgorithm;
@@ -15,17 +26,6 @@ namespace Org.BouncyCastle.Asn1.Cms
         private AlgorithmIdentifier     digEncryptionAlgorithm;
         private Asn1OctetString         encryptedDigest;
         private Asn1Set                 unauthenticatedAttributes;
-
-        public static SignerInfo GetInstance(object obj)
-        {
-            if (obj == null || obj is SignerInfo)
-                return (SignerInfo) obj;
-
-            if (obj is Asn1Sequence)
-                return new SignerInfo((Asn1Sequence) obj);
-
-            throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-        }
 
         public SignerInfo(
             SignerIdentifier        sid,

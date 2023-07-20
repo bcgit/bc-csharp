@@ -1,13 +1,25 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class AuthEnvelopedData
+    public class AuthEnvelopedData
 		: Asn1Encodable
 	{
-		private DerInteger				version;
+        public static AuthEnvelopedData GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is AuthEnvelopedData authEnvelopedData)
+                return authEnvelopedData;
+            return new AuthEnvelopedData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static AuthEnvelopedData GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return new AuthEnvelopedData(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
+
+        private DerInteger				version;
 		private OriginatorInfo			originatorInfo;
 		private Asn1Set					recipientInfos;
 		private EncryptedContentInfo	authEncryptedContentInfo;
@@ -100,41 +112,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			}
 		}
 
-		/**
-		 * return an AuthEnvelopedData object from a tagged object.
-		 *
-		 * @param obj      the tagged object holding the object we want.
-		 * @param isExplicit true if the object is meant to be explicitly
-		 *                 tagged false otherwise.
-		 * @throws ArgumentException if the object held by the
-		 *                                  tagged object cannot be converted.
-		 */
-		public static AuthEnvelopedData GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-		}
-
-		/**
-		 * return an AuthEnvelopedData object from the given object.
-		 *
-		 * @param obj the object we want converted.
-		 * @throws ArgumentException if the object cannot be converted.
-		 */
-		public static AuthEnvelopedData GetInstance(
-			object	obj)
-		{
-			if (obj == null || obj is AuthEnvelopedData)
-				return (AuthEnvelopedData)obj;
-
-			if (obj is Asn1Sequence)
-				return new AuthEnvelopedData((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid AuthEnvelopedData: " + Platform.GetTypeName(obj));
-		}
-
-		public DerInteger Version
+        public DerInteger Version
 		{
 			get { return version; }
 		}

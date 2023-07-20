@@ -23,6 +23,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class CmsAlgorithmProtection
         : Asn1Encodable
     {
+        public static CmsAlgorithmProtection GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CmsAlgorithmProtection cmsAlgorithmProtection)
+                return cmsAlgorithmProtection;
+            return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static CmsAlgorithmProtection GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         public static readonly int Signature = 1;
         public static readonly int Mac = 2;
 
@@ -76,15 +90,6 @@ namespace Org.BouncyCastle.Asn1.Cms
             {
                 throw new ArgumentException("Unknown tag found: " + tagged.TagNo);
             }
-        }
-
-        public static CmsAlgorithmProtection GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-            if (obj is CmsAlgorithmProtection cmsAlgorithmProtection)
-                return cmsAlgorithmProtection;
-            return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(obj));
         }
 
         public AlgorithmIdentifier DigestAlgorithm => digestAlgorithm;

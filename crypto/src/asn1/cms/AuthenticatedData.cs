@@ -1,14 +1,27 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class AuthenticatedData
+    public class AuthenticatedData
 		: Asn1Encodable
 	{
-		private DerInteger version;
+        public static AuthenticatedData GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is AuthenticatedData authenticatedData)
+                return authenticatedData;
+            return new AuthenticatedData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static AuthenticatedData GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return new AuthenticatedData(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
+
+        private DerInteger version;
 		private OriginatorInfo originatorInfo;
 		private Asn1Set recipientInfos;
 		private AlgorithmIdentifier macAlgorithm;
@@ -88,45 +101,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			}
 		}
 
-		/**
-		 * return an AuthenticatedData object from a tagged object.
-		 *
-		 * @param obj      the tagged object holding the object we want.
-		 * @param isExplicit true if the object is meant to be explicitly
-		 *                 tagged false otherwise.
-		 * @throws ArgumentException if the object held by the
-		 *                                  tagged object cannot be converted.
-		 */
-		public static AuthenticatedData GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-		}
-
-		/**
-		 * return an AuthenticatedData object from the given object.
-		 *
-		 * @param obj the object we want converted.
-		 * @throws ArgumentException if the object cannot be converted.
-		 */
-		public static AuthenticatedData GetInstance(
-			object	obj)
-		{
-			if (obj == null || obj is AuthenticatedData)
-			{
-				return (AuthenticatedData)obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new AuthenticatedData((Asn1Sequence)obj);
-			}
-
-            throw new ArgumentException("Invalid AuthenticatedData: " + Platform.GetTypeName(obj));
-		}
-
-		public DerInteger Version
+        public DerInteger Version
 		{
 			get { return version; }
 		}

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public static OriginatorPublicKey GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+            return new OriginatorPublicKey(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
         private readonly AlgorithmIdentifier m_algorithm;

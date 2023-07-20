@@ -9,9 +9,6 @@ namespace Org.BouncyCastle.Asn1.Cms
     {
         private const int DefaultIcvLen = 12;
 
-        private readonly byte[] m_nonce;
-        private readonly int m_icvLen;
-
         public static CcmParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -23,8 +20,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public static CcmParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            return new CcmParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
+
+        private readonly byte[] m_nonce;
+        private readonly int m_icvLen;
 
         private CcmParameters(Asn1Sequence seq)
         {

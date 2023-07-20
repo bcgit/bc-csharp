@@ -1,10 +1,22 @@
-using System;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class EnvelopedData
         : Asn1Encodable
     {
+        public static EnvelopedData GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is EnvelopedData envelopedData)
+                return envelopedData;
+            return new EnvelopedData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static EnvelopedData GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return new EnvelopedData(Asn1Sequence.GetInstance(obj, explicitly));
+        }
+
         private DerInteger				version;
         private OriginatorInfo			originatorInfo;
         private Asn1Set					recipientInfos;
@@ -58,38 +70,6 @@ namespace Org.BouncyCastle.Asn1.Cms
             {
                 unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject)seq[index], false);
             }
-        }
-
-        /**
-         * return an EnvelopedData object from a tagged object.
-         *
-         * @param obj the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static EnvelopedData GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-        /**
-         * return an EnvelopedData object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static EnvelopedData GetInstance(
-            object obj)
-        {
-            if (obj is EnvelopedData)
-                return (EnvelopedData)obj;
-            if (obj == null)
-                return null;
-            return new EnvelopedData(Asn1Sequence.GetInstance(obj));
         }
 
         public DerInteger Version

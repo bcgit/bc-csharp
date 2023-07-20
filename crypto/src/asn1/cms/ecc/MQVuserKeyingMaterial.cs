@@ -7,7 +7,21 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
 	public class MQVuserKeyingMaterial
 		: Asn1Encodable
 	{
-		private OriginatorPublicKey	ephemeralPublicKey;
+        public static MQVuserKeyingMaterial GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+			if (obj is MQVuserKeyingMaterial mqvUserKeyingMaterial)
+				return mqvUserKeyingMaterial;
+            return new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static MQVuserKeyingMaterial GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
+
+        private OriginatorPublicKey	ephemeralPublicKey;
 		private Asn1OctetString		addedukm;
 
 		public MQVuserKeyingMaterial(
@@ -34,45 +48,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
 			}
 		}
 
-		/**
-		 * return an AuthEnvelopedData object from a tagged object.
-		 *
-		 * @param obj      the tagged object holding the object we want.
-		 * @param isExplicit true if the object is meant to be explicitly
-		 *                 tagged false otherwise.
-		 * @throws ArgumentException if the object held by the
-		 *                                  tagged object cannot be converted.
-		 */
-		public static MQVuserKeyingMaterial GetInstance(
-			Asn1TaggedObject	obj,
-			bool				isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-		}
-
-		/**
-		 * return an AuthEnvelopedData object from the given object.
-		 *
-		 * @param obj the object we want converted.
-		 * @throws ArgumentException if the object cannot be converted.
-		 */
-		public static MQVuserKeyingMaterial GetInstance(
-			object	obj)
-		{
-			if (obj == null || obj is MQVuserKeyingMaterial)
-			{
-				return (MQVuserKeyingMaterial)obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new MQVuserKeyingMaterial((Asn1Sequence)obj);
-			}
-
-            throw new ArgumentException("Invalid MQVuserKeyingMaterial: " + Platform.GetTypeName(obj));
-		}
-		
-		public OriginatorPublicKey EphemeralPublicKey
+        public OriginatorPublicKey EphemeralPublicKey
 		{
 			get { return ephemeralPublicKey; }
 		}

@@ -1,13 +1,24 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class PasswordRecipientInfo
         : Asn1Encodable
     {
+        public static PasswordRecipientInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PasswordRecipientInfo passwordRecipientInfo)
+                return passwordRecipientInfo;
+            return new PasswordRecipientInfo(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PasswordRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return new PasswordRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
+        }
+
         private readonly DerInteger				version;
         private readonly AlgorithmIdentifier	keyDerivationAlgorithm;
         private readonly AlgorithmIdentifier	keyEncryptionAlgorithm;
@@ -50,41 +61,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
-		/**
-         * return a PasswordRecipientInfo object from a tagged object.
-         *
-         * @param obj the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static PasswordRecipientInfo GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-		/**
-         * return a PasswordRecipientInfo object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static PasswordRecipientInfo GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is PasswordRecipientInfo)
-                return (PasswordRecipientInfo) obj;
-
-			if (obj is Asn1Sequence)
-                return new PasswordRecipientInfo((Asn1Sequence) obj);
-
-            throw new ArgumentException("Invalid PasswordRecipientInfo: " + Platform.GetTypeName(obj));
-        }
-
-		public DerInteger Version
+        public DerInteger Version
 		{
 			get { return version; }
 		}

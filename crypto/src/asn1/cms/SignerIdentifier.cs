@@ -7,6 +7,31 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class SignerIdentifier
         : Asn1Encodable, IAsn1Choice
     {
+        public static SignerIdentifier GetInstance(object o)
+        {
+            if (o == null)
+                return null;
+
+            if (o is SignerIdentifier signerIdentifier)
+                return signerIdentifier;
+
+            if (o is IssuerAndSerialNumber issuerAndSerialNumber)
+                return new SignerIdentifier(issuerAndSerialNumber);
+
+            if (o is Asn1OctetString octetString)
+                return new SignerIdentifier(octetString);
+
+            if (o is Asn1Object asn1Object)
+                return new SignerIdentifier(asn1Object);
+
+            throw new ArgumentException("Illegal object in SignerIdentifier: " + Platform.GetTypeName(o), nameof(o));
+        }
+
+        public static SignerIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+        }
+
         private Asn1Encodable id;
 
 		public SignerIdentifier(
@@ -25,31 +50,6 @@ namespace Org.BouncyCastle.Asn1.Cms
             Asn1Object id)
         {
             this.id = id;
-        }
-
-		/**
-         * return a SignerIdentifier object from the given object.
-         *
-         * @param o the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static SignerIdentifier GetInstance(
-            object o)
-        {
-            if (o == null || o is SignerIdentifier)
-                return (SignerIdentifier) o;
-
-			if (o is IssuerAndSerialNumber)
-                return new SignerIdentifier((IssuerAndSerialNumber) o);
-
-			if (o is Asn1OctetString)
-                return new SignerIdentifier((Asn1OctetString) o);
-
-			if (o is Asn1Object)
-                return new SignerIdentifier((Asn1Object) o);
-
-			throw new ArgumentException(
-                "Illegal object in SignerIdentifier: " + Platform.GetTypeName(o));
         }
 
 		public bool IsTagged

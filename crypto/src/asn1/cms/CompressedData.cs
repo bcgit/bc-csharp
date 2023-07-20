@@ -1,7 +1,4 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
@@ -18,6 +15,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class CompressedData
         : Asn1Encodable
     {
+        public static CompressedData GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CompressedData compressedData)
+                return compressedData;
+            return new CompressedData(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static CompressedData GetInstance(Asn1TaggedObject ato, bool explicitly)
+        {
+            return new CompressedData(Asn1Sequence.GetInstance(ato, explicitly));
+        }
+
         private DerInteger			version;
         private AlgorithmIdentifier	compressionAlgorithm;
         private ContentInfo			encapContentInfo;
@@ -39,41 +50,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.encapContentInfo = ContentInfo.GetInstance(seq[2]);
         }
 
-		/**
-         * return a CompressedData object from a tagged object.
-         *
-         * @param ato the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static CompressedData GetInstance(
-            Asn1TaggedObject ato,
-            bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(ato, explicitly));
-        }
-
-        /**
-         * return a CompressedData object from the given object.
-         *
-         * @param _obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static CompressedData GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is CompressedData)
-                return (CompressedData)obj;
-
-			if (obj is Asn1Sequence)
-                return new CompressedData((Asn1Sequence) obj);
-
-            throw new ArgumentException("Invalid CompressedData: " + Platform.GetTypeName(obj));
-        }
-
-		public DerInteger Version
+        public DerInteger Version
 		{
 			get { return version; }
 		}

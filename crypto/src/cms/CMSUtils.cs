@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Cms
 		internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509Certificate cert)
 		{
 			TbsCertificateStructure tbsCert = GetTbsCertificateStructure(cert);
-			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber.Value);
+			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber);
 		}
 
         internal static Asn1.Cms.AttributeTable ParseAttributeTable(Asn1SetParser parser)

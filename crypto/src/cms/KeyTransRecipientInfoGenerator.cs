@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Cms
         private Asn1OctetString m_subjectKeyIdentifier;
 
         public KeyTransRecipientInfoGenerator(X509Certificate recipCert, IKeyWrapper keyWrapper)
-            : this(new IssuerAndSerialNumber(recipCert.IssuerDN, new DerInteger(recipCert.SerialNumber)), keyWrapper)
+            : this(new IssuerAndSerialNumber(recipCert.CertificateStructure), keyWrapper)
         {
         }
 

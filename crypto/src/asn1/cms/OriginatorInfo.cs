@@ -7,6 +7,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class OriginatorInfo
         : Asn1Encodable
     {
+        public static OriginatorInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OriginatorInfo originatorInfo)
+                return originatorInfo;
+            return new OriginatorInfo(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static OriginatorInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return new OriginatorInfo(Asn1Sequence.GetInstance(obj, explicitly));
+        }
+
         private Asn1Set certs;
         private Asn1Set crls;
 
@@ -48,41 +62,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
-		/**
-         * return an OriginatorInfo object from a tagged object.
-         *
-         * @param obj the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the object held by the
-         *          tagged object cannot be converted.
-         */
-        public static OriginatorInfo GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-		/**
-         * return an OriginatorInfo object from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static OriginatorInfo GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is OriginatorInfo)
-                return (OriginatorInfo)obj;
-
-			if (obj is Asn1Sequence)
-                return new OriginatorInfo((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid OriginatorInfo: " + Platform.GetTypeName(obj));
-        }
-
-		public Asn1Set Certificates
+        public Asn1Set Certificates
 		{
 			get { return certs; }
 		}

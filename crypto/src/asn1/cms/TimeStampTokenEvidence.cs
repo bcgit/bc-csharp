@@ -1,11 +1,23 @@
-using System;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class TimeStampTokenEvidence
+    public class TimeStampTokenEvidence
 		: Asn1Encodable
 	{
-		private TimeStampAndCrl[] timeStampAndCrls;
+        public static TimeStampTokenEvidence GetInstance(object obj)
+        {
+			if (obj == null)
+				return null;
+			if (obj is TimeStampTokenEvidence timeStampTokenEvidence)
+				return timeStampTokenEvidence;
+            return new TimeStampTokenEvidence(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static TimeStampTokenEvidence GetInstance(Asn1TaggedObject tagged, bool isExplicit)
+        {
+            return new TimeStampTokenEvidence(Asn1Sequence.GetInstance(tagged, isExplicit));
+        }
+
+        private TimeStampAndCrl[] timeStampAndCrls;
 
 		public TimeStampTokenEvidence(TimeStampAndCrl[] timeStampAndCrls)
 		{
@@ -29,23 +41,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			}
 		}
 
-		public static TimeStampTokenEvidence GetInstance(Asn1TaggedObject tagged, bool isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(tagged, isExplicit));
-		}
-
-		public static TimeStampTokenEvidence GetInstance(object obj)
-		{
-			if (obj is TimeStampTokenEvidence)
-				return (TimeStampTokenEvidence)obj;
-
-			if (obj != null)
-				return new TimeStampTokenEvidence(Asn1Sequence.GetInstance(obj));
-
-			return null;
-		}
-
-		public virtual TimeStampAndCrl[] ToTimeStampAndCrlArray()
+        public virtual TimeStampAndCrl[] ToTimeStampAndCrlArray()
 		{
 			return (TimeStampAndCrl[])timeStampAndCrls.Clone();
 		}

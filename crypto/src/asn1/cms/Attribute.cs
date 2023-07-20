@@ -1,32 +1,24 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class Attribute
         : Asn1Encodable
     {
+        public static Attribute GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is Attribute attribute)
+                return attribute;
+            return new Attribute(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static Attribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new Attribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private DerObjectIdentifier	attrType;
         private Asn1Set				attrValues;
-
-		/**
-        * return an Attribute object from the given object.
-        *
-        * @param o the object we want converted.
-        * @exception ArgumentException if the object cannot be converted.
-        */
-        public static Attribute GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is Attribute)
-				return (Attribute) obj;
-
-			if (obj is Asn1Sequence)
-                return new Attribute((Asn1Sequence) obj);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-        }
 
 		public Attribute(
             Asn1Sequence seq)

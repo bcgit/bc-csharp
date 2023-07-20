@@ -7,12 +7,6 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class RecipientIdentifier
         : Asn1Encodable, IAsn1Choice
     {
-        /**
-         * return a RecipientIdentifier object from the given object.
-         *
-         * @param o the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
         public static RecipientIdentifier GetInstance(object o)
         {
             if (o == null)
@@ -26,7 +20,12 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (o is Asn1Object asn1Object)
                 return new RecipientIdentifier(asn1Object);
 
-            throw new ArgumentException("Illegal object in RecipientIdentifier: " + Platform.GetTypeName(o));
+            throw new ArgumentException("Illegal object in RecipientIdentifier: " + Platform.GetTypeName(o), nameof(o));
+        }
+
+        public static RecipientIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
         private readonly Asn1Encodable m_id;

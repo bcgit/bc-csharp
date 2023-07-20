@@ -1,21 +1,24 @@
-﻿using System;
-
-namespace Org.BouncyCastle.Asn1.Cms
+﻿namespace Org.BouncyCastle.Asn1.Cms
 {
     public class ScvpReqRes
         : Asn1Encodable
     {
+        public static ScvpReqRes GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is ScvpReqRes scvpReqRes)
+                return scvpReqRes;
+            return new ScvpReqRes(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static ScvpReqRes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new ScvpReqRes(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private readonly ContentInfo request;
         private readonly ContentInfo response;
-
-        public static ScvpReqRes GetInstance(object  obj)
-        {
-            if (obj is ScvpReqRes)
-                return (ScvpReqRes)obj;
-            if (obj != null)
-                return new ScvpReqRes(Asn1Sequence.GetInstance(obj));
-            return null;
-        }
 
         private ScvpReqRes(Asn1Sequence seq)
         {
