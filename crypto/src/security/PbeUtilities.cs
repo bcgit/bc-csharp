@@ -131,6 +131,12 @@ namespace Org.BouncyCastle.Security
             Algorithms["PBEWITHHMACSHA256"] = "PBEwithHmacSHA-256";
             Algorithms["PBEWITHHMACSHA-256"] = "PBEwithHmacSHA-256";
             Algorithms[NistObjectIdentifiers.IdSha256.Id] = "PBEwithHmacSHA-256";
+            Algorithms["PBEWITHHMACSHA384"] = "PBEwithHmacSHA-384";
+            Algorithms["PBEWITHHMACSHA-384"] = "PBEwithHmacSHA-384";
+            Algorithms[NistObjectIdentifiers.IdSha384.Id] = "PBEwithHmacSHA-384";
+            Algorithms["PBEWITHHMACSHA512"] = "PBEwithHmacSHA-512";
+            Algorithms["PBEWITHHMACSHA-512"] = "PBEwithHmacSHA-512";
+            Algorithms[NistObjectIdentifiers.IdSha512.Id] = "PBEwithHmacSHA-512";
             Algorithms["PBEWITHHMACRIPEMD128"] = "PBEwithHmacRipeMD128";
             Algorithms[TeleTrusTObjectIdentifiers.RipeMD128.Id] = "PBEwithHmacRipeMD128";
             Algorithms["PBEWITHHMACRIPEMD160"] = "PBEwithHmacRipeMD160";
@@ -169,6 +175,8 @@ namespace Org.BouncyCastle.Security
             AlgorithmType["PBEwithHmacSHA-1"] = Pkcs12;
             AlgorithmType["PBEwithHmacSHA-224"] = Pkcs12;
             AlgorithmType["PBEwithHmacSHA-256"] = Pkcs12;
+            AlgorithmType["PBEwithHmacSHA-384"] = Pkcs12;
+            AlgorithmType["PBEwithHmacSHA-512"] = Pkcs12;
             AlgorithmType["PBEwithHmacRipeMD128"] = Pkcs12;
             AlgorithmType["PBEwithHmacRipeMD160"] = Pkcs12;
             AlgorithmType["PBEwithHmacRipeMD256"] = Pkcs12;
@@ -193,6 +201,8 @@ namespace Org.BouncyCastle.Security
             Oids["PBEwithHmacSHA-1"] = OiwObjectIdentifiers.IdSha1;
             Oids["PBEwithHmacSHA-224"] = NistObjectIdentifiers.IdSha224;
             Oids["PBEwithHmacSHA-256"] = NistObjectIdentifiers.IdSha256;
+            Oids["PBEwithHmacSHA-384"] = NistObjectIdentifiers.IdSha384;
+            Oids["PBEwithHmacSHA-512"] = NistObjectIdentifiers.IdSha512;
             Oids["PBEwithHmacRipeMD128"] = TeleTrusTObjectIdentifiers.RipeMD128;
             Oids["PBEwithHmacRipeMD160"] = TeleTrusTObjectIdentifiers.RipeMD160;
             Oids["PBEwithHmacRipeMD256"] = TeleTrusTObjectIdentifiers.RipeMD256;
@@ -401,7 +411,15 @@ namespace Org.BouncyCastle.Security
             bool			wrongPkcs12Zero,
             Asn1Encodable   pbeParameters)
         {
+            if (algorithm == null)
+            {
+                throw new ArgumentNullException(nameof(algorithm));
+            }
             string mechanism = CollectionUtilities.GetValueOrNull(Algorithms, algorithm);
+            if (mechanism == null)
+            {
+                throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
+            }
 
             byte[] keyBytes = null;
             byte[] salt = null;
