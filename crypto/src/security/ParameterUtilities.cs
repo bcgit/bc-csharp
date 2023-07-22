@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("AES",
                 "AESWRAP");
             AddAlgorithm("AES128",
-                "2.16.840.1.101.3.4.2",
+                SecurityUtilities.WrongAes128,
                 NistObjectIdentifiers.IdAes128Cbc,
                 NistObjectIdentifiers.IdAes128Ccm,
                 NistObjectIdentifiers.IdAes128Cfb,
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Security
                 NistObjectIdentifiers.IdAes128Ofb,
                 NistObjectIdentifiers.IdAes128Wrap);
             AddAlgorithm("AES192",
-                "2.16.840.1.101.3.4.22",
+                SecurityUtilities.WrongAes192,
                 NistObjectIdentifiers.IdAes192Cbc,
                 NistObjectIdentifiers.IdAes192Ccm,
                 NistObjectIdentifiers.IdAes192Cfb,
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Security
                 NistObjectIdentifiers.IdAes192Ofb,
                 NistObjectIdentifiers.IdAes192Wrap);
             AddAlgorithm("AES256",
-                "2.16.840.1.101.3.4.42",
+                SecurityUtilities.WrongAes256,
                 NistObjectIdentifiers.IdAes256Cbc,
                 NistObjectIdentifiers.IdAes256Ccm,
                 NistObjectIdentifiers.IdAes256Cfb,
