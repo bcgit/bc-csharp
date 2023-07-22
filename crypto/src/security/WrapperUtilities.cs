@@ -23,8 +23,10 @@ namespace Org.BouncyCastle.Security
         {
             AESRFC3211WRAP,
             AESWRAP,
+            AESWRAPPAD,
             ARIARFC3211WRAP,
             ARIAWRAP,
+            ARIAWRAPPAD,
             CAMELLIARFC3211WRAP,
             CAMELLIAWRAP,
             DESRFC3211WRAP,
@@ -47,10 +49,21 @@ namespace Org.BouncyCastle.Security
             Algorithms[NistObjectIdentifiers.IdAes192Wrap.Id] = "AESWRAP";
             Algorithms[NistObjectIdentifiers.IdAes256Wrap.Id] = "AESWRAP";
 
+            Algorithms["AESKWP"] = "AESWRAPPAD";
+            Algorithms[NistObjectIdentifiers.IdAes128WrapPad.Id] = "AESWRAPPAD";
+            Algorithms[NistObjectIdentifiers.IdAes192WrapPad.Id] = "AESWRAPPAD";
+            Algorithms[NistObjectIdentifiers.IdAes256WrapPad.Id] = "AESWRAPPAD";
+            Algorithms["AESRFC5649WRAP"] = "AESWRAPPAD";
+
             Algorithms["ARIAKW"] = "ARIAWRAP";
             Algorithms[NsriObjectIdentifiers.id_aria128_kw.Id] = "ARIAWRAP";
             Algorithms[NsriObjectIdentifiers.id_aria192_kw.Id] = "ARIAWRAP";
             Algorithms[NsriObjectIdentifiers.id_aria256_kw.Id] = "ARIAWRAP";
+
+            Algorithms["ARIAKWP"] = "ARIAWRAPPAD";
+            Algorithms[NsriObjectIdentifiers.id_aria128_kwp.Id] = "ARIAWRAPPAD";
+            Algorithms[NsriObjectIdentifiers.id_aria192_kwp.Id] = "ARIAWRAPPAD";
+            Algorithms[NsriObjectIdentifiers.id_aria256_kwp.Id] = "ARIAWRAPPAD";
 
             Algorithms[NttObjectIdentifiers.IdCamellia128Wrap.Id] = "CAMELLIAWRAP";
             Algorithms[NttObjectIdentifiers.IdCamellia192Wrap.Id] = "CAMELLIAWRAP";
@@ -85,10 +98,14 @@ namespace Org.BouncyCastle.Security
                     return new Rfc3211WrapEngine(AesUtilities.CreateEngine());
                 case WrapAlgorithm.AESWRAP:
                     return new AesWrapEngine();
+                case WrapAlgorithm.AESWRAPPAD:
+                    return new AesWrapPadEngine();
                 case WrapAlgorithm.ARIARFC3211WRAP:
                     return new Rfc3211WrapEngine(new AriaEngine());
                 case WrapAlgorithm.ARIAWRAP:
                     return new AriaWrapEngine();
+                case WrapAlgorithm.ARIAWRAPPAD:
+                    return new AriaWrapPadEngine();
                 case WrapAlgorithm.CAMELLIARFC3211WRAP:
                     return new Rfc3211WrapEngine(new CamelliaEngine());
                 case WrapAlgorithm.CAMELLIAWRAP:

@@ -36,7 +36,8 @@ namespace Org.BouncyCastle.Security
                 NistObjectIdentifiers.IdAes128Ecb,
                 NistObjectIdentifiers.IdAes128Gcm,
                 NistObjectIdentifiers.IdAes128Ofb,
-                NistObjectIdentifiers.IdAes128Wrap);
+                NistObjectIdentifiers.IdAes128Wrap,
+                NistObjectIdentifiers.IdAes128WrapPad);
             AddAlgorithm("AES192",
                 SecurityUtilities.WrongAes192,
                 NistObjectIdentifiers.IdAes192Cbc,
@@ -45,7 +46,8 @@ namespace Org.BouncyCastle.Security
                 NistObjectIdentifiers.IdAes192Ecb,
                 NistObjectIdentifiers.IdAes192Gcm,
                 NistObjectIdentifiers.IdAes192Ofb,
-                NistObjectIdentifiers.IdAes192Wrap);
+                NistObjectIdentifiers.IdAes192Wrap,
+                NistObjectIdentifiers.IdAes192WrapPad);
             AddAlgorithm("AES256",
                 SecurityUtilities.WrongAes256,
                 NistObjectIdentifiers.IdAes256Cbc,
@@ -54,7 +56,8 @@ namespace Org.BouncyCastle.Security
                 NistObjectIdentifiers.IdAes256Ecb,
                 NistObjectIdentifiers.IdAes256Gcm,
                 NistObjectIdentifiers.IdAes256Ofb,
-                NistObjectIdentifiers.IdAes256Wrap);
+                NistObjectIdentifiers.IdAes256Wrap,
+                NistObjectIdentifiers.IdAes256WrapPad);
             AddAlgorithm("ARIA");
             AddAlgorithm("ARIA128",
                 NsriObjectIdentifiers.id_aria128_cbc,
@@ -63,6 +66,8 @@ namespace Org.BouncyCastle.Security
                 NsriObjectIdentifiers.id_aria128_ctr,
                 NsriObjectIdentifiers.id_aria128_ecb,
                 NsriObjectIdentifiers.id_aria128_gcm,
+                NsriObjectIdentifiers.id_aria128_kw,
+                NsriObjectIdentifiers.id_aria128_kwp,
                 NsriObjectIdentifiers.id_aria128_ocb2,
                 NsriObjectIdentifiers.id_aria128_ofb);
             AddAlgorithm("ARIA192",
@@ -72,6 +77,8 @@ namespace Org.BouncyCastle.Security
                 NsriObjectIdentifiers.id_aria192_ctr,
                 NsriObjectIdentifiers.id_aria192_ecb,
                 NsriObjectIdentifiers.id_aria192_gcm,
+                NsriObjectIdentifiers.id_aria192_kw,
+                NsriObjectIdentifiers.id_aria192_kwp,
                 NsriObjectIdentifiers.id_aria192_ocb2,
                 NsriObjectIdentifiers.id_aria192_ofb);
             AddAlgorithm("ARIA256",
@@ -81,6 +88,8 @@ namespace Org.BouncyCastle.Security
                 NsriObjectIdentifiers.id_aria256_ctr,
                 NsriObjectIdentifiers.id_aria256_ecb,
                 NsriObjectIdentifiers.id_aria256_gcm,
+                NsriObjectIdentifiers.id_aria256_kw,
+                NsriObjectIdentifiers.id_aria256_kwp,
                 NsriObjectIdentifiers.id_aria256_ocb2,
                 NsriObjectIdentifiers.id_aria256_ofb);
             AddAlgorithm("BLOWFISH",

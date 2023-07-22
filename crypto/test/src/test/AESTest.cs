@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 using NUnit.Framework;
 
@@ -10,6 +9,7 @@ using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Tests
 {
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Tests
 		{
 			for (int i = 0; i != cipherTests.Length; i += 4)
 			{
-				doCipherTest(int.Parse(cipherTests[i]),
+				DoCipherTest(int.Parse(cipherTests[i]),
 					Hex.Decode(cipherTests[i + 1]),
 					Hex.Decode(cipherTests[i + 2]),
 					Hex.Decode(cipherTests[i + 3]));
@@ -97,7 +97,27 @@ namespace Org.BouncyCastle.Tests
 			wrapTest(1, "AESWrap", kek1, in1, out1);
 		}
 
-		[Test]
+        [Test]
+        public void TestWrapRfc3211()
+        {
+            byte[] kek2 = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+            byte[] in2 = Hex.Decode("00112233445566778899aabbccddeeff");
+            byte[] out2 = Hex.Decode("7c8798dfc802553b3f00bb4315e3a087322725c92398b9c112c74d0925c63b61");
+
+            wrapTest(2, "AESRFC3211WRAP", kek2, kek2, FixedSecureRandom.From(Hex.Decode("9688df2af1b7b1ac9688df2a")), in2, out2);
+        }
+
+        [Test]
+        public void TestWrapRfc5649()
+        {
+            byte[] kek3 = Hex.Decode("5840df6e29b02af1ab493b705bf16ea1ae8338f4dcc176a8");
+            byte[] in3 = Hex.Decode("c37b7e6492584340bed12207808941155068f738");
+            byte[] out3 = Hex.Decode("138bdeaa9b8fa7fc61f97742e72248ee5ae6ae5360d1ae6a5f54f373fa543b6a");
+
+            wrapTest(3, "AESWrapPad", kek3, in3, out3);
+        }
+
+        [Test]
 		public void TestWrapOids()
 		{
 			string[] wrapOids =
@@ -110,11 +130,20 @@ namespace Org.BouncyCastle.Tests
 			wrapOidTest(wrapOids, "AESWrap");
 		}
 
-		private void doCipherTest(
-			int		strength,
-			byte[]	keyBytes,
-			byte[]	input,
-			byte[]	output)
+        [Test]
+        public void TestWrapPadOids()
+        {
+            string[] wrapPadOids =
+            {
+                NistObjectIdentifiers.IdAes128WrapPad.Id,
+                NistObjectIdentifiers.IdAes192WrapPad.Id,
+                NistObjectIdentifiers.IdAes256WrapPad.Id
+            };
+
+            wrapOidTest(wrapPadOids, "AESWrapPad");
+        }
+
+        private void DoCipherTest(int strength, byte[] keyBytes, byte[] input, byte[] output)
 		{
 			KeyParameter key = ParameterUtilities.CreateKeyParameter("AES", keyBytes);
 
@@ -343,15 +372,60 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
+		[Test]
+		public void TestOcb()
+		{
+			byte[] K = Hex.Decode("000102030405060708090A0B0C0D0E0F");
+			byte[] P = Hex.Decode("000102030405060708090A0B0C0D0E0F");
+			byte[] N = Hex.Decode("000102030405060708090A0B");
+			string T = "4CBB3E4BD6B456AF";
+			byte[] C = Hex.Decode("BEA5E8798DBE7110031C144DA0B2612213CC8B747807121A" + T);
+
+            KeyParameter key = ParameterUtilities.CreateKeyParameter("AES", K);
+            IBufferedCipher inCipher = CipherUtilities.GetCipher("AES/OCB/NoPadding");
+            IBufferedCipher outCipher = CipherUtilities.GetCipher("AES/OCB/NoPadding");
+
+			inCipher.Init(true, new ParametersWithIV(key, N));
+
+            byte[] enc = inCipher.DoFinal(P);
+			if (!AreEqual(enc, C))
+			{
+				Fail("ciphertext doesn't match in OCB");
+			}
+
+			outCipher.Init(false, new ParametersWithIV(key, N));
+
+			byte[] dec = outCipher.DoFinal(C);
+			if (!AreEqual(dec, P))
+			{
+				Fail("plaintext doesn't match in OCB");
+			}
+
+			try
+			{
+                inCipher = CipherUtilities.GetCipher("AES/OCB/PKCS5Padding");
+
+				Fail("bad padding missed in OCB");
+			}
+			catch (SecurityUtilityException)
+			{
+				// expected
+			}
+		}
+
 		public override void PerformTest()
 		{
 			TestCiphers();
 			TestWrap();
-			TestOids();
+            TestWrapRfc3211();
+            TestWrapRfc5649();
+            TestOids();
 			TestWrapOids();
-			TestEax();
+            TestWrapPadOids();
+            TestEax();
 			TestCcm();
 			TestGcm();
-		}
-	}
+            TestOcb();
+        }
+    }
 }
