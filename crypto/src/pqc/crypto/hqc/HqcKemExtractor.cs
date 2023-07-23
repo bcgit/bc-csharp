@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return session_key;
         }
 
-        public int EncapsulationLength => key.Parameters.NBytes + key.Parameters.N1n2Bytes + 64;
+        public int EncapsulationLength => key.Parameters.NBytes + key.Parameters.N1n2Bytes + 64 + 16; // SHA-512 + salt
  
     }
 }
