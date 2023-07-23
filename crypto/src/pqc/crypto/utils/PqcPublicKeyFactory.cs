@@ -403,11 +403,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+                try
+                {
+                    byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.Algorithm.Algorithm);
+                    BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.Algorithm.Algorithm);
 
-                return new BikePublicKeyParameters(bikeParams, keyEnc);
+                    return new BikePublicKeyParameters(bikeParams, keyEnc);
+                }
+                catch (Exception e)
+                {
+                    byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();
+
+                    BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.Algorithm.Algorithm);
+
+                    return new BikePublicKeyParameters(bikeParams, keyEnc);
+                }
             }
         }
 
@@ -415,11 +426,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+                try
+                {
+                    byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.Algorithm.Algorithm);
+                    HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.Algorithm.Algorithm);
 
-                return new HqcPublicKeyParameters(hqcParams, keyEnc);
+                    return new HqcPublicKeyParameters(hqcParams, keyEnc);
+                }
+                catch (Exception e)
+                {
+                    // raw encoding
+                    byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();
+
+                    HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.Algorithm.Algorithm);
+
+                    return new HqcPublicKeyParameters(hqcParams, keyEnc);
+                }
             }
         }
     }

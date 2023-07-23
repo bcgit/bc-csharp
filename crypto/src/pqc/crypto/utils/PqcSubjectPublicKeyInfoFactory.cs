@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.BikeOidLookup(bikePublicKeyParameters.Parameters));
 
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
             if (publicKey is HqcPublicKeyParameters hqcPublicKeyParameters)
             {
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.HqcOidLookup(hqcPublicKeyParameters.Parameters));
 
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
