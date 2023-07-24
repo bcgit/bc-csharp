@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
@@ -79,10 +80,13 @@ namespace Org.BouncyCastle.Cms
 		public static readonly string DesCbc			= OiwObjectIdentifiers.DesCbc.Id;
 		public static readonly string DesEde3Cbc		= PkcsObjectIdentifiers.DesEde3Cbc.Id;
 		public static readonly string RC2Cbc			= PkcsObjectIdentifiers.RC2Cbc.Id;
-		// TODO[api] Change these to static readonly (and ideally find actual OIDs)
+        // TODO[api] Change to static readonly
 		public const string IdeaCbc						= "1.3.6.1.4.1.188.7.1.1.2";
-		public const string Cast5Cbc					= "1.2.840.113533.7.66.10";
-		public static readonly string Aes128Cbc			= NistObjectIdentifiers.IdAes128Cbc.Id;
+        //public static readonly string IdeaCbc           = MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC.Id;
+        // TODO[api] Change to static readonly
+        public const string Cast5Cbc					= "1.2.840.113533.7.66.10";
+		//public static readonly string CastCbc           = MiscObjectIdentifiers.cast5CBC.Id;
+        public static readonly string Aes128Cbc			= NistObjectIdentifiers.IdAes128Cbc.Id;
 		public static readonly string Aes192Cbc			= NistObjectIdentifiers.IdAes192Cbc.Id;
 		public static readonly string Aes256Cbc			= NistObjectIdentifiers.IdAes256Cbc.Id;
 		public static readonly string Aes128Ccm			= NistObjectIdentifiers.IdAes128Ccm.Id;
@@ -105,6 +109,10 @@ namespace Org.BouncyCastle.Cms
 		public static readonly string Camellia256Wrap	= NttObjectIdentifiers.IdCamellia256Wrap.Id;
 		public static readonly string SeedWrap			= KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap.Id;
 
+        public static readonly string Gost28147Wrap     = CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Id;
+		public static readonly string Gost28147CryptoProWrap = CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Id;
+
+        public static readonly string ECCDHSha1Kdf      = X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id;
         public static readonly string ECDHSha1Kdf       = X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
         public static readonly string ECMqvSha1Kdf      = X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
         public static readonly string ECMqvSha224Kdf    = SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Id;

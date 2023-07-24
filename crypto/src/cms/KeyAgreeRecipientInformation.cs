@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Cms.Ecc;
+using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -23,8 +24,8 @@ namespace Org.BouncyCastle.Cms
     public class KeyAgreeRecipientInformation
         : RecipientInformation
     {
-        private KeyAgreeRecipientInfo info;
-        private Asn1OctetString       encryptedKey;
+        private readonly KeyAgreeRecipientInfo m_info;
+        private readonly Asn1OctetString m_encryptedKey;
 
         internal static void ReadRecipientInfo(IList<RecipientInformation> infos, KeyAgreeRecipientInfo info,
             CmsSecureReadable secureReadable)
@@ -64,30 +65,24 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        internal KeyAgreeRecipientInformation(
-            KeyAgreeRecipientInfo	info,
-            RecipientID				rid,
-            Asn1OctetString			encryptedKey,
-            CmsSecureReadable		secureReadable)
+        internal KeyAgreeRecipientInformation(KeyAgreeRecipientInfo info, RecipientID rid, Asn1OctetString encryptedKey,
+            CmsSecureReadable secureReadable)
             : base(info.KeyEncryptionAlgorithm, secureReadable)
         {
-            this.info = info;
+            m_info = info;
             this.rid = rid;
-            this.encryptedKey = encryptedKey;
+            m_encryptedKey = encryptedKey;
         }
 
-        private AsymmetricKeyParameter GetSenderPublicKey(
-            AsymmetricKeyParameter		receiverPrivateKey,
-            OriginatorIdentifierOrKey	originator)
+        private AsymmetricKeyParameter GetSenderPublicKey(AsymmetricKeyParameter receiverPrivateKey,
+            OriginatorIdentifierOrKey originator)
         {
             OriginatorPublicKey opk = originator.OriginatorPublicKey;
             if (opk != null)
-            {
                 return GetPublicKeyFromOriginatorPublicKey(receiverPrivateKey, opk);
-            }
-            
+
             OriginatorID origID = new OriginatorID();
-            
+
             Asn1.Cms.IssuerAndSerialNumber iAndSN = originator.IssuerAndSerialNumber;
             if (iAndSN != null)
             {
@@ -131,7 +126,7 @@ namespace Org.BouncyCastle.Cms
 
             if (agreeAlgID.Id.Equals(CmsEnvelopedGenerator.ECMqvSha1Kdf))
             {
-                byte[] ukmEncoding = info.UserKeyingMaterial.GetOctets();
+                byte[] ukmEncoding = m_info.UserKeyingMaterial.GetOctets();
                 MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(
                     Asn1Object.FromByteArray(ukmEncoding));
 
@@ -157,7 +152,7 @@ namespace Org.BouncyCastle.Cms
 
         private KeyParameter UnwrapSessionKey(DerObjectIdentifier wrapAlgOid, KeyParameter agreedKey)
         {
-            byte[] encKeyOctets = encryptedKey.GetOctets();
+            byte[] encKeyOctets = m_encryptedKey.GetOctets();
 
             IWrapper keyCipher = WrapperUtilities.GetWrapper(wrapAlgOid);
             keyCipher.Init(false, agreedKey);
@@ -165,17 +160,21 @@ namespace Org.BouncyCastle.Cms
             return ParameterUtilities.CreateKeyParameter(GetContentAlgorithmName(), sKeyBytes);
         }
 
-        internal KeyParameter GetSessionKey(
-            AsymmetricKeyParameter receiverPrivateKey)
+        internal KeyParameter GetSessionKey(AsymmetricKeyParameter receiverPrivateKey)
         {
             try
             {
                 var wrapAlgOid = DerObjectIdentifier.GetInstance(Asn1Sequence.GetInstance(keyEncAlg.Parameters)[0]);
 
-                AsymmetricKeyParameter senderPublicKey = GetSenderPublicKey(
-                    receiverPrivateKey, info.Originator);
+                AsymmetricKeyParameter senderPublicKey = GetSenderPublicKey(receiverPrivateKey, m_info.Originator);
 
                 KeyParameter agreedWrapKey = CalculateAgreedWrapKey(wrapAlgOid, senderPublicKey, receiverPrivateKey);
+
+                if (CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Equals(wrapAlgOid) ||
+                    CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Equals(wrapAlgOid))
+                {
+                    // TODO[cms] GOST key wrapping
+                }
 
                 return UnwrapSessionKey(wrapAlgOid, agreedWrapKey);
             }
