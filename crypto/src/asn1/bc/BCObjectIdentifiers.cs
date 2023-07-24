@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.BC
 {
+    // TODO[api] Make static
 	public abstract class BCObjectIdentifiers
 	{
         /**
@@ -157,6 +158,27 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256s_r3 = sphincsPlus.Branch("17");
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3 = sphincsPlus.Branch("18");
 
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_128s_r3_simple = sphincsPlus.Branch("19");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_128f_r3_simple = sphincsPlus.Branch("20");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_128s_r3_simple = sphincsPlus.Branch("21");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_128f_r3_simple = sphincsPlus.Branch("22");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_128s_r3_simple = sphincsPlus.Branch("23");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_128f_r3_simple = sphincsPlus.Branch("24");
+
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_192s_r3_simple = sphincsPlus.Branch("25");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_192f_r3_simple = sphincsPlus.Branch("26");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_192s_r3_simple = sphincsPlus.Branch("27");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_192f_r3_simple = sphincsPlus.Branch("28");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_192s_r3_simple = sphincsPlus.Branch("29");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_192f_r3_simple = sphincsPlus.Branch("30");
+
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_256s_r3_simple = sphincsPlus.Branch("31");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_256f_r3_simple = sphincsPlus.Branch("32");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_256s_r3_simple = sphincsPlus.Branch("33");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_256f_r3_simple = sphincsPlus.Branch("34");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_256s_r3_simple = sphincsPlus.Branch("35");
+        public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3_simple = sphincsPlus.Branch("36");
+
         [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.Branch("1");
         [Obsolete("Will be removed - name is erroneous")]
@@ -180,7 +202,12 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier picnicl1full = picnic.Branch("10");
         public static readonly DerObjectIdentifier picnicl3full = picnic.Branch("11");
         public static readonly DerObjectIdentifier picnicl5full = picnic.Branch("12");
-        
+
+        public static readonly DerObjectIdentifier picnic_signature = picnic.Branch("2");
+        public static readonly DerObjectIdentifier picnic_with_sha512 = picnic_signature.Branch("1");
+        public static readonly DerObjectIdentifier picnic_with_shake256 = picnic_signature.Branch("2");
+        public static readonly DerObjectIdentifier picnic_with_sha3_512 = picnic_signature.Branch("3");
+
         /*
          * Falcon
          */
@@ -202,6 +229,17 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier dilithium3_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.6.5"); // dilithium.branch("5");
         public static readonly DerObjectIdentifier dilithium5_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.8.7"); // dilithium.branch("6");
 
+        /*
+         * Rainbow
+         */
+        public static readonly DerObjectIdentifier rainbow = bc_sig.Branch("9");
+
+        public static readonly DerObjectIdentifier rainbow_III_classic = rainbow.Branch("1");
+        public static readonly DerObjectIdentifier rainbow_III_circumzenithal = rainbow.Branch("2");
+        public static readonly DerObjectIdentifier rainbow_III_compressed = rainbow.Branch("3");
+        public static readonly DerObjectIdentifier rainbow_V_classic = rainbow.Branch("4");
+        public static readonly DerObjectIdentifier rainbow_V_circumzenithal = rainbow.Branch("5");
+        public static readonly DerObjectIdentifier rainbow_V_compressed = rainbow.Branch("6");
 
         /**
          * key_exchange(3) algorithms
@@ -221,6 +259,7 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier bc_ext = bc.Branch("4");
 
         public static readonly DerObjectIdentifier linkedCertificate = bc_ext.Branch("1");
+        public static readonly DerObjectIdentifier external_value = bc_ext.Branch("2");
 
         /**
          * KEM(4) algorithms
@@ -259,6 +298,7 @@ namespace Org.BouncyCastle.Asn1.BC
          * SABER
          */
         public static readonly DerObjectIdentifier pqc_kem_saber = bc_kem.Branch("3");
+
         public static readonly DerObjectIdentifier lightsaberkem128r3 = pqc_kem_saber.Branch("1");
         public static readonly DerObjectIdentifier saberkem128r3 = pqc_kem_saber.Branch("2");
         public static readonly DerObjectIdentifier firesaberkem128r3 = pqc_kem_saber.Branch("3");
@@ -282,6 +322,7 @@ namespace Org.BouncyCastle.Asn1.BC
          * SIKE
          */
         public static readonly DerObjectIdentifier pqc_kem_sike = bc_kem.Branch("4");
+
         public static readonly DerObjectIdentifier sikep434 = pqc_kem_sike.Branch("1");
         public static readonly DerObjectIdentifier sikep503 = pqc_kem_sike.Branch("2");
         public static readonly DerObjectIdentifier sikep610 = pqc_kem_sike.Branch("3");
@@ -290,7 +331,17 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier sikep503_compressed = pqc_kem_sike.Branch("6");
         public static readonly DerObjectIdentifier sikep610_compressed = pqc_kem_sike.Branch("7");
         public static readonly DerObjectIdentifier sikep751_compressed = pqc_kem_sike.Branch("8");
-        
+
+        /**
+         * NTRU
+         */
+        public static readonly DerObjectIdentifier pqc_kem_ntru = bc_kem.Branch("5");
+
+        public static readonly DerObjectIdentifier ntruhps2048509 = pqc_kem_ntru.Branch("1");
+        public static readonly DerObjectIdentifier ntruhps2048677 = pqc_kem_ntru.Branch("2");
+        public static readonly DerObjectIdentifier ntruhps4096821 = pqc_kem_ntru.Branch("3");
+        public static readonly DerObjectIdentifier ntruhrss701 = pqc_kem_ntru.Branch("4");
+
         /**
          * Kyber
          */
@@ -302,6 +353,27 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier kyber512_aes = pqc_kem_kyber.Branch("4");
         public static readonly DerObjectIdentifier kyber768_aes = pqc_kem_kyber.Branch("5");
         public static readonly DerObjectIdentifier kyber1024_aes = pqc_kem_kyber.Branch("6");
+
+        /**
+         * NTRUPrime
+         */
+        public static readonly DerObjectIdentifier pqc_kem_ntruprime = bc_kem.Branch("7");
+
+        public static readonly DerObjectIdentifier pqc_kem_ntrulprime = pqc_kem_ntruprime.Branch("1");
+        public static readonly DerObjectIdentifier ntrulpr653 = pqc_kem_ntrulprime.Branch("1");
+        public static readonly DerObjectIdentifier ntrulpr761 = pqc_kem_ntrulprime.Branch("2");
+        public static readonly DerObjectIdentifier ntrulpr857 = pqc_kem_ntrulprime.Branch("3");
+        public static readonly DerObjectIdentifier ntrulpr953 = pqc_kem_ntrulprime.Branch("4");
+        public static readonly DerObjectIdentifier ntrulpr1013 = pqc_kem_ntrulprime.Branch("5");
+        public static readonly DerObjectIdentifier ntrulpr1277 = pqc_kem_ntrulprime.Branch("6");
+
+        public static readonly DerObjectIdentifier pqc_kem_sntruprime = pqc_kem_ntruprime.Branch("2");
+        public static readonly DerObjectIdentifier sntrup653 = pqc_kem_sntruprime.Branch("1");
+        public static readonly DerObjectIdentifier sntrup761 = pqc_kem_sntruprime.Branch("2");
+        public static readonly DerObjectIdentifier sntrup857 = pqc_kem_sntruprime.Branch("3");
+        public static readonly DerObjectIdentifier sntrup953 = pqc_kem_sntruprime.Branch("4");
+        public static readonly DerObjectIdentifier sntrup1013 = pqc_kem_sntruprime.Branch("5");
+        public static readonly DerObjectIdentifier sntrup1277 = pqc_kem_sntruprime.Branch("6");
 
         /**
          * BIKE

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1.Bsi
 {
+	// TODO[api] Make static
     /// <remarks>See https://www.bsi.bund.de/cae/servlet/contentblob/471398/publicationFile/30615/BSI-TR-03111_pdf.pdf</remarks>
     public abstract class BsiObjectIdentifiers
     {
@@ -9,10 +10,10 @@ namespace Org.BouncyCastle.Asn1.Bsi
 
         /* 0.4.0.127.0.7.1.1 */
         public static readonly DerObjectIdentifier id_ecc = bsi_de.Branch("1.1");
-    
+
         /* 0.4.0.127.0.7.1.1.4.1 */
         public static readonly DerObjectIdentifier ecdsa_plain_signatures = id_ecc.Branch("4.1");
-    
+
         /* 0.4.0.127.0.7.1.1.4.1.1 */
         public static readonly DerObjectIdentifier ecdsa_plain_SHA1 = ecdsa_plain_signatures.Branch("1");
 
@@ -30,6 +31,18 @@ namespace Org.BouncyCastle.Asn1.Bsi
 
         /* 0.4.0.127.0.7.1.1.4.1.6 */
         public static readonly DerObjectIdentifier ecdsa_plain_RIPEMD160 = ecdsa_plain_signatures.Branch("6");
+
+        /* 0.4.0.127.0.7.1.1.4.1.8 */
+        public static readonly DerObjectIdentifier ecdsa_plain_SHA3_224 = ecdsa_plain_signatures.Branch("8");
+
+        /* 0.4.0.127.0.7.1.1.4.1.9 */
+        public static readonly DerObjectIdentifier ecdsa_plain_SHA3_256 = ecdsa_plain_signatures.Branch("9");
+
+        /* 0.4.0.127.0.7.1.1.4.1.10 */
+        public static readonly DerObjectIdentifier ecdsa_plain_SHA3_384 = ecdsa_plain_signatures.Branch("10");
+
+        /* 0.4.0.127.0.7.1.1.4.1.11 */
+        public static readonly DerObjectIdentifier ecdsa_plain_SHA3_512 = ecdsa_plain_signatures.Branch("11");
 
 	    /** 0.4.0.127.0.7.1 */
 	    public static readonly DerObjectIdentifier algorithm = bsi_de.Branch("1");
