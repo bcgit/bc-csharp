@@ -338,7 +338,7 @@ namespace Org.BouncyCastle.Pkix
 					new DerInteger(1),
 					new DerSet(),
 					encInfo,
-					new DerSet(v),
+                    DerSet.FromVector(v),
 					null,
 					new DerSet());
 

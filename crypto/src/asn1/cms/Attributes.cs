@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Attributes(Asn1EncodableVector v)
         {
-            m_attributes = new BerSet(v);
+            m_attributes = BerSet.FromVector(v);
         }
 
         public virtual Attribute[] GetAttributes() => m_attributes.MapElements(Attribute.GetInstance);

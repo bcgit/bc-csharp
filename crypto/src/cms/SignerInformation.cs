@@ -744,7 +744,7 @@ namespace Org.BouncyCastle.Cms
 
 			if (unsignedAttributes != null)
 			{
-				unsignedAttr = new DerSet(unsignedAttributes.ToAsn1EncodableVector());
+				unsignedAttr = DerSet.FromVector(unsignedAttributes.ToAsn1EncodableVector());
 			}
 
 			return new SignerInformation(
@@ -794,7 +794,7 @@ namespace Org.BouncyCastle.Cms
 				sigs.Add(sigInf.ToSignerInfo());
 			}
 
-			v.Add(new Asn1.Cms.Attribute(CmsAttributes.CounterSignature, new DerSet(sigs)));
+			v.Add(new Asn1.Cms.Attribute(CmsAttributes.CounterSignature, DerSet.FromVector(sigs)));
 
 			return new SignerInformation(
 				new SignerInfo(
@@ -803,7 +803,7 @@ namespace Org.BouncyCastle.Cms
 					sInfo.AuthenticatedAttributes,
 					sInfo.DigestEncryptionAlgorithm,
 					sInfo.EncryptedDigest,
-					new DerSet(v)),
+                    DerSet.FromVector(v)),
 				signerInformation.contentType,
 				signerInformation.content,
 				null);

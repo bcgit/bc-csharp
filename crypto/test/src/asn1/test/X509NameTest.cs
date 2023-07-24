@@ -389,7 +389,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerObjectIdentifier("1.1"),
                 new DerObjectIdentifier("1.1"));
 
-            if (name1.Equals(new DerSequence(new DerSet(new DerSet(v)))))
+            if (name1.Equals(new DerSequence(new DerSet(DerSet.FromVector(v)))))
             {
                 Fail("inequality test with sequence and bad set");
             }
@@ -400,7 +400,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 //			}
             try
             {
-                X509Name.GetInstance(new DerSequence(new DerSet(new DerSet(v))));
+                X509Name.GetInstance(new DerSequence(new DerSet(DerSet.FromVector(v))));
                 Fail("GetInstance should reject bad sequence");
             }
             catch (ArgumentException)

@@ -590,7 +590,7 @@ namespace Org.BouncyCastle.Cms
         {
             return attr == null
                 ? null
-                : new DerSet(attr.ToAsn1EncodableVector());
+                : DerSet.FromVector(attr.ToAsn1EncodableVector());
         }
 
         public void AddAttributeCertificate(X509V2AttributeCertificate attrCert)

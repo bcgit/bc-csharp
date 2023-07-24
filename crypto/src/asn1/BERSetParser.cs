@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal static BerSet Parse(Asn1StreamParser sp)
         {
-            return new BerSet(sp.ReadVector());
+            return BerSet.FromVector(sp.ReadVector());
         }
     }
 }

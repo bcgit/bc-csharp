@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Cms
                         Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(
                             new Dictionary<CmsAttributeTableParameter, object>());
 
-                        Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
+                        Asn1Set unprotectedAttrs = BerSet.FromVector(attrTable.ToAsn1EncodableVector());
 
                         _envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
                     }

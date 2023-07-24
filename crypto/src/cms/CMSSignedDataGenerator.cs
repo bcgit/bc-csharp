@@ -536,11 +536,11 @@ namespace Org.BouncyCastle.Cms
             ContentInfo encInfo = new ContentInfo(contentTypeOid, octs);
 
             SignedData sd = new SignedData(
-                new DerSet(digestAlgs),
+                DerSet.FromVector(digestAlgs),
                 encInfo,
                 certificates,
                 certrevlist,
-                new DerSet(signerInfos));
+                DerSet.FromVector(signerInfos));
 
             ContentInfo contentInfo = new ContentInfo(CmsObjectIdentifiers.SignedData, sd);
 

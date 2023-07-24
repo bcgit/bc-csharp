@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.X509
 			string              oid,
 			Asn1EncodableVector value)
 		{
-			this.attr = new AttributeX509(new DerObjectIdentifier(oid), new DerSet(value));
+			this.attr = new AttributeX509(new DerObjectIdentifier(oid), DerSet.FromVector(value));
 		}
 
 		public string Oid

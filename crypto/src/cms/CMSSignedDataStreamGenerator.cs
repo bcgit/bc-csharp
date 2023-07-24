@@ -563,7 +563,7 @@ namespace Org.BouncyCastle.Cms
 				digestAlgs.Add(new AlgorithmIdentifier(new DerObjectIdentifier(digestOid), DerNull.Instance));
             }
 
-            new DerSet(digestAlgs).EncodeTo(sigGen.GetRawOutputStream());
+            DerSet.FromVector(digestAlgs).EncodeTo(sigGen.GetRawOutputStream());
 
 			BerSequenceGenerator eiGen = new BerSequenceGenerator(sigGen.GetRawOutputStream());
             eiGen.AddObject(contentTypeOid);
@@ -903,7 +903,7 @@ namespace Org.BouncyCastle.Cms
                     }
                 }
 
-                WriteToGenerator(_sigGen, new DerSet(signerInfos));
+                WriteToGenerator(_sigGen, DerSet.FromVector(signerInfos));
 
 				_sigGen.Dispose();
                 _sGen.Dispose();

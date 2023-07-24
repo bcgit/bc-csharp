@@ -117,12 +117,12 @@ namespace Org.BouncyCastle.Cms
                 Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(
                     new Dictionary<CmsAttributeTableParameter, object>());
 
-                unprotectedAttrSet = new BerSet(attrTable.ToAsn1EncodableVector());
+                unprotectedAttrSet = BerSet.FromVector(attrTable.ToAsn1EncodableVector());
             }
 
 			ContentInfo contentInfo = new ContentInfo(
                 CmsObjectIdentifiers.EnvelopedData,
-                new EnvelopedData(null, new DerSet(recipientInfos), eci, unprotectedAttrSet));
+                new EnvelopedData(null, DerSet.FromVector(recipientInfos), eci, unprotectedAttrSet));
 
             return new CmsEnvelopedData(contentInfo);
         }
@@ -209,12 +209,12 @@ namespace Org.BouncyCastle.Cms
                 Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(
                     new Dictionary<CmsAttributeTableParameter, object>());
 
-                unprotectedAttrSet = new BerSet(attrTable.ToAsn1EncodableVector());
+                unprotectedAttrSet = BerSet.FromVector(attrTable.ToAsn1EncodableVector());
             }
 
             ContentInfo contentInfo = new ContentInfo(
                 CmsObjectIdentifiers.EnvelopedData,
-                new EnvelopedData(null, new DerSet(recipientInfos), eci, unprotectedAttrSet));
+                new EnvelopedData(null, DerSet.FromVector(recipientInfos), eci, unprotectedAttrSet));
 
             return new CmsEnvelopedData(contentInfo);
         }

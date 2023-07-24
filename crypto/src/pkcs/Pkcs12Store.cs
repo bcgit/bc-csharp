@@ -738,7 +738,7 @@ namespace Org.BouncyCastle.Pkcs
                             new DerSet(subjectKeyID)));
                 }
 
-                keyBags.Add(new SafeBag(bagOid, bagData.ToAsn1Object(), new DerSet(kName)));
+                keyBags.Add(new SafeBag(bagOid, bagData.ToAsn1Object(), DerSet.FromVector(kName)));
             }
 
             byte[] keyBagsEncoding = new DerSequence(keyBags).GetDerEncoded();
@@ -803,7 +803,7 @@ namespace Org.BouncyCastle.Pkcs
                             new DerSet(subjectKeyID)));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), new DerSet(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
 
                 doneCerts.Add(certEntry.Certificate);
             }
@@ -873,7 +873,7 @@ namespace Org.BouncyCastle.Pkcs
                         fName.Add(
                             new DerSequence(
                                 MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage,
-                                new DerSet(v)));
+                                DerSet.FromVector(v)));
                     }
                     else
                     {
@@ -884,7 +884,7 @@ namespace Org.BouncyCastle.Pkcs
                     }
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), new DerSet(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
 
                 doneCerts.Add(cert.Certificate);
             }
@@ -920,7 +920,7 @@ namespace Org.BouncyCastle.Pkcs
                     fName.Add(new DerSequence(oid, new DerSet(cert[oid])));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), new DerSet(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
             }
 
             byte[] certBagsEncoding = new DerSequence(certBags).GetDerEncoded();

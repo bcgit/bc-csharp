@@ -704,7 +704,7 @@ namespace Org.BouncyCastle.Asn1.X509
                     }
                     else
                     {
-                        vec.Add(new DerSet(sVec));
+                        vec.Add(DerSet.FromVector(sVec));
                         sVec = new Asn1EncodableVector();
                     }
 
@@ -716,7 +716,7 @@ namespace Org.BouncyCastle.Asn1.X509
                     lstOid = oid;
                 }
 
-                vec.Add(new DerSet(sVec));
+                vec.Add(DerSet.FromVector(sVec));
 
                 seq = new DerSequence(vec);
             }

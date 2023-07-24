@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Cms
 
 			var contentInfo = new ContentInfo(
 				CmsObjectIdentifiers.AuthenticatedData,
-				new AuthenticatedData(null, new DerSet(recipientInfos), macAlgId, null, eci, null, macResult, null));
+				new AuthenticatedData(null, DerSet.FromVector(recipientInfos), macAlgId, null, eci, null, macResult, null));
 
 			return new CmsAuthenticatedData(contentInfo);
 		}

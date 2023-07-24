@@ -202,7 +202,7 @@ namespace Org.BouncyCastle.Cms
                 v.Add(seq.ToAsn1Object());
             }
 
-            return new Asn1.Cms.AttributeTable(new DerSet(v));
+            return new Asn1.Cms.AttributeTable(DerSet.FromVector(v));
         }
 
         internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
