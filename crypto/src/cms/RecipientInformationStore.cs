@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Cms
 {
 	public class RecipientInformationStore
+		: IEnumerable<RecipientInformation>
 	{
 		private readonly IList<RecipientInformation> m_all;
 		private readonly IDictionary<RecipientID, IList<RecipientInformation>> m_table =
@@ -81,5 +82,15 @@ namespace Org.BouncyCastle.Cms
 
 			return new List<RecipientInformation>(list);
 		}
-	}
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public virtual IEnumerator<RecipientInformation> GetEnumerator()
+        {
+            return GetRecipients().GetEnumerator();
+        }
+    }
 }

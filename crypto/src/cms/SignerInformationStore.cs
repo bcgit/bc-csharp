@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Org.BouncyCastle.Cms
 {
     public class SignerInformationStore
+        : IEnumerable<SignerInformation>
     {
         private readonly IList<SignerInformation> m_all;
         private readonly IDictionary<SignerID, IList<SignerInformation>> m_table =
@@ -86,6 +87,16 @@ namespace Org.BouncyCastle.Cms
                 return new List<SignerInformation>(list);
 
             return new List<SignerInformation>(0);
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public virtual IEnumerator<SignerInformation> GetEnumerator()
+        {
+            return GetSigners().GetEnumerator();
         }
     }
 }
