@@ -457,10 +457,9 @@ namespace Org.BouncyCastle.Cms
             //
             foreach (SignerInformation signer in _signers)
             {
-				digestAlgs.Add(Helper.FixAlgID(signer.DigestAlgorithmID));
-
-				// TODO Verify the content type and calculated digest match the precalculated SignerInfo
-				signerInfos.Add(signer.ToSignerInfo());
+                CmsUtilities.AddDigestAlgs(digestAlgs, signer, CmsSignedData.DigestAlgIDFinder);
+                // TODO Verify the content type and calculated digest match the precalculated SignerInfo
+                signerInfos.Add(signer.ToSignerInfo());
             }
 
 			//

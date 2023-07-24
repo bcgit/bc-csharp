@@ -71,15 +71,9 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		internal static byte[] StreamToByteArray(Stream inStream)
-        {
-			return Streams.ReadAll(inStream);
-        }
+		internal static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
 
-		internal static byte[] StreamToByteArray(Stream inStream, int limit)
-        {
-			return Streams.ReadAllLimited(inStream, limit);
-        }
+		internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
 
 		internal static List<Asn1TaggedObject> GetAttributeCertificatesFromStore(
 			IStore<X509V2AttributeCertificate> attrCertStore)
@@ -155,34 +149,63 @@ namespace Org.BouncyCastle.Cms
 			return result;
         }
 
+		// TODO Clean up this method (which is not present in bc-java)
+        internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
+            DefaultDigestAlgorithmIdentifierFinder dgstAlgFinder)
+        {
+            var helper = CmsSignedHelper.Instance;
+            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, dgstAlgFinder));
+            SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
+            foreach (var counterSigner in counterSignaturesStore)
+            {
+                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, dgstAlgFinder));
+            }
+        }
+
+        internal static void AddDigestAlgs(ISet<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
+			DefaultDigestAlgorithmIdentifierFinder dgstAlgFinder)
+        {
+			var helper = CmsSignedHelper.Instance;
+            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, dgstAlgFinder));
+            SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
+			foreach (var counterSigner in counterSignaturesStore)
+			{
+                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, dgstAlgFinder));
+            }
+        }
+
+        internal static Asn1Set ConvertToDLSet(ISet<AlgorithmIdentifier> digestAlgs)
+        {
+			Asn1EncodableVector v = new Asn1EncodableVector(digestAlgs.Count);
+			foreach (var digestAlg in digestAlgs)
+			{
+				v.Add(digestAlg);
+			}
+			return DLSet.FromVector(v);
+        }
+
         internal static Asn1Set CreateBerSetFromList(IEnumerable<Asn1Encodable> elements)
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector();
-
 			foreach (Asn1Encodable element in elements)
 			{
 				v.Add(element);
 			}
-
 			return BerSet.FromVector(v);
 		}
 
 		internal static Asn1Set CreateDerSetFromList(IEnumerable<Asn1Encodable> elements)
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector();
-
 			foreach (Asn1Encodable element in elements)
 			{
 				v.Add(element);
 			}
-
             return DerSet.FromVector(v);
 		}
 
-		internal static TbsCertificateStructure GetTbsCertificateStructure(X509Certificate cert)
-		{
-			return cert.CertificateStructure.TbsCertificate;
-		}
+		internal static TbsCertificateStructure GetTbsCertificateStructure(X509Certificate cert) =>
+			cert.CertificateStructure.TbsCertificate;
 
 		internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509Certificate cert)
 		{

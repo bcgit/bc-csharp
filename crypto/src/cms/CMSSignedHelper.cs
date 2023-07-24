@@ -5,7 +5,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
-using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -200,20 +199,20 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		internal ISigner GetSignatureInstance(
-			string algorithm)
+		internal ISigner GetSignatureInstance(string algorithm)
 		{
 			return SignerUtilities.GetSigner(algorithm);
 		}
 
-		internal AlgorithmIdentifier FixAlgID(
-			AlgorithmIdentifier algId)
-		{
-			if (algId.Parameters == null)
-                return new AlgorithmIdentifier(algId.Algorithm, DerNull.Instance);
+        internal AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
+            DefaultDigestAlgorithmIdentifierFinder digestAlgIDFinder)
+        {
+            var parameters = algID.Parameters;
+            if (parameters == null || DerNull.Instance.Equals(parameters))
+                return digestAlgIDFinder.Find(algID.Algorithm);
 
-			return algId;
-		}
+            return algID;
+        }
 
         internal string GetEncOid(
             AsymmetricKeyParameter key,

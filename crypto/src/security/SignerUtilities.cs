@@ -726,7 +726,7 @@ namespace Org.BouncyCastle.Security
             return CollectionUtilities.GetValueOrNull(AlgorithmMap, oid.Id);
         }
 
-        // TODO Rename 'privateKey' to 'key'
+        // TODO[api] Rename 'privateKey' to 'key'
         public static ISigner InitSigner(DerObjectIdentifier algorithmOid, bool forSigning,
             AsymmetricKeyParameter privateKey, SecureRandom random)
         {
@@ -736,7 +736,7 @@ namespace Org.BouncyCastle.Security
             return InitSigner(algorithmOid.Id, forSigning, privateKey, random);
         }
 
-        // TODO Rename 'privateKey' to 'key'
+        // TODO[api] Rename 'privateKey' to 'key'
         public static ISigner InitSigner(string algorithm, bool forSigning, AsymmetricKeyParameter privateKey,
             SecureRandom random)
         {

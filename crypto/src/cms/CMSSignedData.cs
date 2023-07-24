@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
@@ -35,6 +36,8 @@ namespace Org.BouncyCastle.Cms
 	public class CmsSignedData
 	{
 		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
+        internal static readonly DefaultDigestAlgorithmIdentifierFinder DigestAlgIDFinder =
+			new DefaultDigestAlgorithmIdentifierFinder();
 
 		private readonly CmsProcessable	signedContent;
 		private SignedData				signedData;
@@ -209,11 +212,30 @@ namespace Org.BouncyCastle.Cms
 			return Helper.GetOtherRevInfos(signedData.CRLs, otherRevInfoFormat);
 		}
 
-		/// <summary>
-		/// Return the <c>DerObjectIdentifier</c> associated with the encapsulated
-		/// content info structure carried in the signed data.
-		/// </summary>
-		public DerObjectIdentifier SignedContentType
+        /**
+         * Return the digest algorithm identifiers for the SignedData object
+         *
+         * @return the set of digest algorithm identifiers
+         */
+        public ISet<AlgorithmIdentifier> GetDigestAlgorithmIDs()
+        {
+			var digestAlgorithms = signedData.DigestAlgorithms;
+
+            HashSet<AlgorithmIdentifier> result = new HashSet<AlgorithmIdentifier>();
+
+			foreach (var entry in digestAlgorithms)
+			{
+                result.Add(AlgorithmIdentifier.GetInstance(entry));
+			}
+
+			return CollectionUtilities.ReadOnly(result);
+        }
+
+        /// <summary>
+        /// Return the <c>DerObjectIdentifier</c> associated with the encapsulated
+        /// content info structure carried in the signed data.
+        /// </summary>
+        public DerObjectIdentifier SignedContentType
 		{
 			get { return signedData.EncapContentInfo.ContentType; }
 		}
@@ -249,59 +271,147 @@ namespace Org.BouncyCastle.Cms
             return contentInfo.GetEncoded(encoding);
         }
 
-		/**
-		* Replace the signerinformation store associated with this
-		* CmsSignedData object with the new one passed in. You would
-		* probably only want to do this if you wanted to change the unsigned
-		* attributes associated with a signer, or perhaps delete one.
-		*
-		* @param signedData the signed data object to be used as a base.
-		* @param signerInformationStore the new signer information store to use.
-		* @return a new signed data object.
-		*/
-		public static CmsSignedData ReplaceSigners(
-			CmsSignedData           signedData,
-			SignerInformationStore  signerInformationStore)
+        /**
+         * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
+         * in it. Uses the current DigestAlgorithmIdentifierFinder for creating the digest sets.
+         *
+         * @param signedData      the signed data object to be used as a base.
+         * @param digestAlgorithm the digest algorithm to be added to the signed data.
+         * @return a new signed data object.
+         */
+        public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm) =>
+            AddDigestAlgorithm(signedData, digestAlgorithm, DigestAlgIDFinder);
+
+        /**
+         * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
+         * in it. Uses the passed in DigestAlgorithmIdentifierFinder for creating the digest sets.
+         *
+         * @param signedData      the signed data object to be used as a base.
+         * @param digestAlgorithm the digest algorithm to be added to the signed data.
+         * @param digestAlgIDFinder      the digest algorithmID map to generate the digest set with.
+         * @return a new signed data object.
+         */
+        public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm,
+			DefaultDigestAlgorithmIdentifierFinder digestAlgIDFinder)
 		{
+			ISet<AlgorithmIdentifier> digestAlgorithms = signedData.GetDigestAlgorithmIDs();
+			AlgorithmIdentifier digestAlg = Helper.FixDigestAlgID(digestAlgorithm, digestAlgIDFinder);
+
+			//
+			// if the algorithm is already present there is no need to add it.
+			//
+			if (digestAlgorithms.Contains(digestAlg))
+				return signedData;
+
 			//
 			// copy
 			//
 			CmsSignedData cms = new CmsSignedData(signedData);
 
-			//
-			// replace the store
-			//
-			cms.signerInfoStore = signerInformationStore;
+            //
+            // build up the new set
+            //
+            HashSet<AlgorithmIdentifier> digestAlgs = new HashSet<AlgorithmIdentifier>();
+
+            foreach (var entry in digestAlgs)
+			{
+				digestAlgs.Add(Helper.FixDigestAlgID(entry, digestAlgIDFinder));
+			}
+			digestAlgs.Add(digestAlg);
+
+			Asn1Set digests = CmsUtilities.ConvertToDLSet(digestAlgs);
+			Asn1Sequence sD = (Asn1Sequence)signedData.signedData.ToAsn1Object();
+
+            //
+            // signers are the last item in the sequence.
+            //
+            Asn1EncodableVector vec = new Asn1EncodableVector(sD.Count);
+            vec.Add(sD[0]); // version
+			vec.Add(digests);
+
+			for (int i = 2; i != sD.Count; i++)
+			{
+				vec.Add(sD[i]);
+			}
+
+			cms.signedData = SignedData.GetInstance(new BerSequence(vec));
 
 			//
-			// replace the signers in the SignedData object
+			// replace the contentInfo with the new one
 			//
-			var storeSigners = signerInformationStore.GetSigners();
-            Asn1EncodableVector digestAlgs = new Asn1EncodableVector(storeSigners.Count);
-            Asn1EncodableVector vec = new Asn1EncodableVector(storeSigners.Count);
-            foreach (SignerInformation signer in storeSigners)
+			cms.contentInfo = new ContentInfo(cms.contentInfo.ContentType, cms.signedData);
+
+			return cms;
+		}
+
+        /**
+		 * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in
+		 * using the current DigestAlgorithmIdentifierFinder for creating the digest sets. You would probably only want
+		 * to do this if you wanted to change the unsigned attributes associated with a signer, or perhaps delete one.
+		 *
+		 * @param signedData             the signed data object to be used as a base.
+		 * @param signerInformationStore the new signer information store to use.
+		 * @return a new signed data object.
+		 */
+        public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
+			SignerInformationStore signerInformationStore) =>
+				ReplaceSigners(signedData, signerInformationStore, DigestAlgIDFinder);
+
+        /**
+         * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in
+         * using the passed in DigestAlgorithmIdentifierFinder for creating the digest sets. You would probably only
+         * want to do this if you wanted to change the unsigned attributes associated with a signer, or perhaps delete
+         * one.
+         *
+         * @param signedData             the signed data object to be used as a base.
+         * @param signerInformationStore the new signer information store to use.
+         * @param dgstAlgIDFinder      the digest algorithmID map to generate the digest set with.
+         * @return a new signed data object.
+         */
+        public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
+			SignerInformationStore signerInformationStore, DefaultDigestAlgorithmIdentifierFinder digestAlgIDFinder)
+		{
+            //
+            // copy
+            //
+            CmsSignedData cms = new CmsSignedData(signedData);
+
+            //
+            // replace the store
+            //
+            cms.signerInfoStore = signerInformationStore;
+
+            //
+            // replace the signers in the SignedData object
+            //
+            HashSet<AlgorithmIdentifier> digestAlgs = new HashSet<AlgorithmIdentifier>();
+
+			var signers = signerInformationStore.GetSigners();
+			Asn1EncodableVector vec = new Asn1EncodableVector(signers.Count);
+
+			foreach (var signer in signers)
 			{
-				digestAlgs.Add(Helper.FixAlgID(signer.DigestAlgorithmID));
+				CmsUtilities.AddDigestAlgs(digestAlgs, signer, digestAlgIDFinder);
 				vec.Add(signer.ToSignerInfo());
 			}
 
-			Asn1Set digests = new DerSet(digestAlgs);
-			Asn1Set signers = new DerSet(vec);
+			Asn1Set digestSet = CmsUtilities.ConvertToDLSet(digestAlgs);
+			Asn1Set signerSet = DLSet.FromVector(vec);
 			Asn1Sequence sD = (Asn1Sequence)signedData.signedData.ToAsn1Object();
 
-			//
-			// signers are the last item in the sequence.
-			//
-			vec = new Asn1EncodableVector(sD.Count);
-			vec.Add(sD[0]); // version
-			vec.Add(digests);
+            //
+            // signers are the last item in the sequence.
+            //
+            vec = new Asn1EncodableVector(sD.Count);
+            vec.Add(sD[0]); // version
+			vec.Add(digestSet);
 
 			for (int i = 2; i != sD.Count - 1; i++)
 			{
 				vec.Add(sD[i]);
 			}
 
-			vec.Add(signers);
+			vec.Add(signerSet);
 
 			cms.signedData = SignedData.GetInstance(new BerSequence(vec));
 

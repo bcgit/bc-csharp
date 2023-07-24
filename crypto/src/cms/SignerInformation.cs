@@ -393,7 +393,7 @@ namespace Org.BouncyCastle.Cms
                 sig = Helper.GetSignatureInstance(signatureName);
 
                 //sig = Helper.GetSignatureInstance(this.EncryptionAlgOid);
-                //sig = SignerUtilities.GetSigner(sigAlgOid);
+                //sig = Helper.GetSignatureInstance(sigAlgOid);
 			}
 
 			try
@@ -599,7 +599,7 @@ namespace Org.BouncyCastle.Cms
 				}
 				else if (algorithm.Equals("DSA"))
 				{
-					ISigner sig = SignerUtilities.GetSigner("NONEwithDSA");
+					ISigner sig = Helper.GetSignatureInstance("NONEwithDSA");
 
 					sig.Init(false, key);
 
