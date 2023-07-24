@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Cms
@@ -64,16 +63,10 @@ namespace Org.BouncyCastle.Cms
         }
 
         /// <summary>The number of signers in the collection.</summary>
-        public int Count
-        {
-            get { return m_all.Count; }
-        }
+        public int Count => m_all.Count;
 
         /// <returns>An ICollection of all signers in the collection</returns>
-        public IList<SignerInformation> GetSigners()
-        {
-            return new List<SignerInformation>(m_all);
-        }
+        public IList<SignerInformation> GetSigners() => new List<SignerInformation>(m_all);
 
         /**
         * Return possible empty collection with signers matching the passed in SignerID
@@ -89,14 +82,8 @@ namespace Org.BouncyCastle.Cms
             return new List<SignerInformation>(0);
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public virtual IEnumerator<SignerInformation> GetEnumerator()
-        {
-            return GetSigners().GetEnumerator();
-        }
+        public IEnumerator<SignerInformation> GetEnumerator() => GetSigners().GetEnumerator();
     }
 }

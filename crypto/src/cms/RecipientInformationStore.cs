@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-	public class RecipientInformationStore
+    public class RecipientInformationStore
 		: IEnumerable<RecipientInformation>
 	{
 		private readonly IList<RecipientInformation> m_all;
@@ -29,10 +26,7 @@ namespace Org.BouncyCastle.Cms
             m_all = new List<RecipientInformation>(recipientInfos);
 		}
 
-		public RecipientInformation this[RecipientID selector]
-		{
-			get { return GetFirstRecipient(selector); }
-		}
+		public RecipientInformation this[RecipientID selector] => GetFirstRecipient(selector);
 
 		/**
 		* Return the first RecipientInformation object that matches the
@@ -54,20 +48,14 @@ namespace Org.BouncyCastle.Cms
 		*
 		* @return number of recipients identified.
 		*/
-		public int Count
-		{
-			get { return m_all.Count; }
-		}
+		public int Count => m_all.Count;
 
 		/**
 		* Return all recipients in the collection
 		*
 		* @return a collection of recipients.
 		*/
-		public IList<RecipientInformation> GetRecipients()
-		{
-			return new List<RecipientInformation>(m_all);
-		}
+		public IList<RecipientInformation> GetRecipients() => new List<RecipientInformation>(m_all);
 
 		/**
 		* Return possible empty collection with recipients matching the passed in RecipientID
@@ -83,14 +71,8 @@ namespace Org.BouncyCastle.Cms
 			return new List<RecipientInformation>(list);
 		}
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public virtual IEnumerator<RecipientInformation> GetEnumerator()
-        {
-            return GetRecipients().GetEnumerator();
-        }
+        public IEnumerator<RecipientInformation> GetEnumerator() => GetRecipients().GetEnumerator();
     }
 }
