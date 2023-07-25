@@ -28,6 +28,9 @@ namespace Org.BouncyCastle.Cms
     // TODO[api] Create API for this
     public class DefaultSignatureAlgorithmIdentifierFinder
     {
+        public static readonly DefaultSignatureAlgorithmIdentifierFinder Instance =
+            new DefaultSignatureAlgorithmIdentifierFinder();
+
         private static readonly Dictionary<string, DerObjectIdentifier> m_algorithms =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<DerObjectIdentifier> m_noParams = new HashSet<DerObjectIdentifier>();
@@ -509,8 +512,7 @@ namespace Org.BouncyCastle.Cms
         // TODO[api] Make virtual
         public AlgorithmIdentifier Find(string sigAlgName)
         {
-            string algorithmName = sigAlgName.ToUpperInvariant();
-            if (!m_algorithms.TryGetValue(algorithmName, out var sigAlgOid))
+            if (!m_algorithms.TryGetValue(sigAlgName, out var sigAlgOid))
                 throw new ArgumentException("Unknown signature type requested: " + sigAlgName, nameof(sigAlgName));
 
             AlgorithmIdentifier sigAlgID;
@@ -518,7 +520,7 @@ namespace Org.BouncyCastle.Cms
             {
                 sigAlgID = new AlgorithmIdentifier(sigAlgOid);
             }
-            else if (m_parameters.TryGetValue(algorithmName, out var parameters))
+            else if (m_parameters.TryGetValue(sigAlgName, out var parameters))
             {
                 sigAlgID = new AlgorithmIdentifier(sigAlgOid, parameters);
             }
@@ -533,6 +535,9 @@ namespace Org.BouncyCastle.Cms
     // TODO[api] Create API for this
     public class DefaultDigestAlgorithmIdentifierFinder
     {
+        public static readonly DefaultDigestAlgorithmIdentifierFinder Instance =
+            new DefaultDigestAlgorithmIdentifierFinder();
+
         private static readonly Dictionary<DerObjectIdentifier, DerObjectIdentifier> m_digestOids =
             new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
         private static readonly Dictionary<string, DerObjectIdentifier> m_digestNameToOids =
@@ -768,19 +773,8 @@ namespace Org.BouncyCastle.Cms
             m_shake256Oids.Add(BCObjectIdentifiers.falcon_1024);
         }
 
-        private static void AddDigestAlgID(DerObjectIdentifier oid, bool withNullParams)
-        {
-            AlgorithmIdentifier algID;
-            if (withNullParams)
-            {
-                algID = new AlgorithmIdentifier(oid, DerNull.Instance);
-            }
-            else
-            {
-                algID = new AlgorithmIdentifier(oid);
-            }
-            m_digestOidToAlgIDs.Add(oid, algID);
-        }
+        private static void AddDigestAlgID(DerObjectIdentifier oid, bool withNullParams) =>
+            m_digestOidToAlgIDs.Add(oid, new AlgorithmIdentifier(oid, withNullParams ? DerNull.Instance : null));
 
         // TODO[api] Make virtual
         public AlgorithmIdentifier Find(AlgorithmIdentifier sigAlgId)

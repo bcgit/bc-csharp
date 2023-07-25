@@ -167,7 +167,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             IsEquals(sender, msg.Header.Sender);
             IsEquals(recipient, msg.Header.Recipient);
 
-            content = new CertificateConfirmationContent(CertConfirmContent.GetInstance(msg.Body.Content), new DefaultDigestAlgorithmIdentifierFinder());
+            content = new CertificateConfirmationContent(CertConfirmContent.GetInstance(msg.Body.Content));
             CertificateStatus[] statusList = content.GetStatusMessages();
             IsEquals(1, statusList.Length);
             IsTrue(statusList[0].IsVerified(cert));

@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Cms
                 this.outer = outer;
                 this.sigCalc = sigCalc;
                 this.signerIdentifier = signerIdentifier;
-                this.digestOID = new DefaultDigestAlgorithmIdentifierFinder().Find(
+                this.digestOID = DefaultDigestAlgorithmIdentifierFinder.Instance.Find(
 					(AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
                 this.encOID = ((AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
                 this.sAttr = sAttr;
@@ -457,7 +457,7 @@ namespace Org.BouncyCastle.Cms
             //
             foreach (SignerInformation signer in _signers)
             {
-                CmsUtilities.AddDigestAlgs(digestAlgs, signer, CmsSignedData.DigestAlgIDFinder);
+                CmsUtilities.AddDigestAlgs(digestAlgs, signer, DefaultDigestAlgorithmIdentifierFinder.Instance);
                 // TODO Verify the content type and calculated digest match the precalculated SignerInfo
                 signerInfos.Add(signer.ToSignerInfo());
             }

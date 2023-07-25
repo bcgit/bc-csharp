@@ -36,8 +36,6 @@ namespace Org.BouncyCastle.Cms
 	public class CmsSignedData
 	{
 		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
-        internal static readonly DefaultDigestAlgorithmIdentifierFinder DigestAlgIDFinder =
-			new DefaultDigestAlgorithmIdentifierFinder();
 
 		private readonly CmsProcessable	signedContent;
 		private SignedData				signedData;
@@ -280,7 +278,7 @@ namespace Org.BouncyCastle.Cms
          * @return a new signed data object.
          */
         public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm) =>
-            AddDigestAlgorithm(signedData, digestAlgorithm, DigestAlgIDFinder);
+            AddDigestAlgorithm(signedData, digestAlgorithm, DefaultDigestAlgorithmIdentifierFinder.Instance);
 
         /**
          * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
@@ -355,7 +353,7 @@ namespace Org.BouncyCastle.Cms
 		 */
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
 			SignerInformationStore signerInformationStore) =>
-				ReplaceSigners(signedData, signerInformationStore, DigestAlgIDFinder);
+				ReplaceSigners(signedData, signerInformationStore, DefaultDigestAlgorithmIdentifierFinder.Instance);
 
         /**
          * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in

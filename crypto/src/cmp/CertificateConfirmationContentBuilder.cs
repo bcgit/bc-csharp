@@ -12,21 +12,18 @@ namespace Org.BouncyCastle.Cmp
 {
     public sealed class CertificateConfirmationContentBuilder
     {
-        private static readonly DefaultSignatureAlgorithmIdentifierFinder SigAlgFinder =
-            new DefaultSignatureAlgorithmIdentifierFinder();
-
         private readonly DefaultDigestAlgorithmIdentifierFinder m_digestAlgFinder;
-        private readonly IList<X509Certificate> m_acceptedCerts = new List<X509Certificate>();
-        private readonly IList<BigInteger> m_acceptedReqIDs = new List<BigInteger>();
+        private readonly List<X509Certificate> m_acceptedCerts = new List<X509Certificate>();
+        private readonly List<BigInteger> m_acceptedReqIDs = new List<BigInteger>();
 
         public CertificateConfirmationContentBuilder()
-            : this(new DefaultDigestAlgorithmIdentifierFinder())
+            : this(DefaultDigestAlgorithmIdentifierFinder.Instance)
         {
         }
 
         public CertificateConfirmationContentBuilder(DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
         {
-            this.m_digestAlgFinder = digestAlgFinder;
+            m_digestAlgFinder = digestAlgFinder;
         }
 
         public CertificateConfirmationContentBuilder AddAcceptedCertificate(X509Certificate certHolder,
@@ -45,15 +42,13 @@ namespace Org.BouncyCastle.Cmp
                 X509Certificate cert = m_acceptedCerts[i];
                 BigInteger reqID = m_acceptedReqIDs[i];
 
-                AlgorithmIdentifier algorithmIdentifier = SigAlgFinder.Find(cert.SigAlgName);
-                if (null == algorithmIdentifier)
-                    throw new CmpException("cannot find algorithm identifier for signature name");
+                var sigAlgID = DefaultSignatureAlgorithmIdentifierFinder.Instance.Find(cert.SigAlgName)
+                    ?? throw new CmpException("cannot find algorithm identifier for signature name");
 
-                AlgorithmIdentifier digAlg = m_digestAlgFinder.Find(algorithmIdentifier);
-                if (null == digAlg)
-                    throw new CmpException("cannot find algorithm for digest from signature");
+                AlgorithmIdentifier digAlgID = m_digestAlgFinder.Find(sigAlgID)
+                    ?? throw new CmpException("cannot find algorithm for digest from signature");
 
-                byte[] digest = DigestUtilities.CalculateDigest(digAlg.Algorithm, cert.GetEncoded());
+                byte[] digest = DigestUtilities.CalculateDigest(digAlgID.Algorithm, cert.GetEncoded());
 
                 v.Add(new CertStatus(digest, reqID));
             }

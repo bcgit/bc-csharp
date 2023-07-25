@@ -7,36 +7,38 @@ namespace Org.BouncyCastle.Cmp
 {
     public class CertificateConfirmationContent
     {
-        private readonly DefaultDigestAlgorithmIdentifierFinder m_digestAlgFinder;
+        public static CertificateConfirmationContent FromPkiBody(PkiBody pkiBody) =>
+            FromPkiBody(pkiBody, DefaultDigestAlgorithmIdentifierFinder.Instance);
+
+        public static CertificateConfirmationContent FromPkiBody(PkiBody pkiBody,
+            DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
+        {
+            if (!IsCertificateConfirmationContent(pkiBody.Type))
+                throw new ArgumentException("content of PkiBody wrong type: " + pkiBody.Type);
+
+            return new CertificateConfirmationContent(CertConfirmContent.GetInstance(pkiBody.Content), digestAlgFinder);
+        }
+
+        public static bool IsCertificateConfirmationContent(int bodyType) => PkiBody.TYPE_CERT_CONFIRM == bodyType;
+
         private readonly CertConfirmContent m_content;
+        private readonly DefaultDigestAlgorithmIdentifierFinder m_digestAlgIDFinder;
 
         public CertificateConfirmationContent(CertConfirmContent content)
+            : this(content, DefaultDigestAlgorithmIdentifierFinder.Instance)
         {
-            this.m_content = content;
         }
 
         public CertificateConfirmationContent(CertConfirmContent content,
             DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
         {
-            this.m_content = content;
-            this.m_digestAlgFinder = digestAlgFinder;
+            m_content = content;
+            m_digestAlgIDFinder = digestAlgFinder;
         }
 
-        public CertConfirmContent ToAsn1Structure()
-        {
-            return m_content;
-        }
+        public CertConfirmContent ToAsn1Structure() => m_content;
 
-        public CertificateStatus[] GetStatusMessages()
-        {
-            CertStatus[] statusArray = m_content.ToCertStatusArray();
-            CertificateStatus[] ret = new CertificateStatus[statusArray.Length];
-            for (int i = 0; i != ret.Length; i++)
-            {
-                ret[i] = new CertificateStatus(m_digestAlgFinder, statusArray[i]);
-            }
-
-            return ret;
-        }
+        public CertificateStatus[] GetStatusMessages() => Array.ConvertAll(m_content.ToCertStatusArray(),
+            element => new CertificateStatus(m_digestAlgIDFinder, element));
     }
 }
