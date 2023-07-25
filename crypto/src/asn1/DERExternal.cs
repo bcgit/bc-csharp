@@ -153,26 +153,17 @@ namespace Org.BouncyCastle.Asn1
             return new DerSequence(v);
         }
 
-        internal override IAsn1Encoding GetEncoding(int encoding)
-        {
-            return BuildSequence().GetEncodingImplicit(Asn1OutputStream.EncodingDer, Asn1Tags.Universal,
-                Asn1Tags.External);
-        }
+        internal sealed override IAsn1Encoding GetEncoding(int encoding) =>
+            GetEncodingImplicit(encoding, Asn1Tags.Universal, Asn1Tags.External);
 
-        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
-        {
-            return BuildSequence().GetEncodingImplicit(Asn1OutputStream.EncodingDer, tagClass, tagNo);
-        }
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo) =>
+            BuildSequence().GetEncodingImplicit(Asn1OutputStream.EncodingDer, tagClass, tagNo);
 
-        internal sealed override DerEncoding GetEncodingDer()
-        {
-            return BuildSequence().GetEncodingDerImplicit(Asn1Tags.Universal, Asn1Tags.External);
-        }
+        internal sealed override DerEncoding GetEncodingDer() =>
+            GetEncodingDerImplicit(Asn1Tags.Universal, Asn1Tags.External);
 
-        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
-        {
-            return BuildSequence().GetEncodingDerImplicit(tagClass, tagNo);
-        }
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
+            BuildSequence().GetEncodingDerImplicit(tagClass, tagNo);
 
         protected override int Asn1GetHashCode()
 		{

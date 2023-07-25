@@ -2,12 +2,12 @@
 
 namespace Org.BouncyCastle.Asn1
 {
-    internal class DLSequence
+    public class DLSequence
         : DerSequence
     {
-        internal static new readonly DLSequence Empty = new DLSequence();
+        public static new readonly DLSequence Empty = new DLSequence();
 
-        internal static new DLSequence FromVector(Asn1EncodableVector elementVector)
+        public static new DLSequence FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSequence(elementVector);
         }
@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1
         /**
 		 * create an empty sequence
 		 */
-        internal DLSequence()
+        public DLSequence()
             : base()
         {
         }
@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1
         /**
 		 * create a sequence containing one object
 		 */
-        internal DLSequence(Asn1Encodable element)
+        public DLSequence(Asn1Encodable element)
             : base(element)
         {
         }
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal DLSequence(params Asn1Encodable[] elements)
+        public DLSequence(params Asn1Encodable[] elements)
             : base(elements)
         {
         }
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1
         /**
 		 * create a sequence containing a vector of objects.
 		 */
-        internal DLSequence(Asn1EncodableVector elementVector)
+        public DLSequence(Asn1EncodableVector elementVector)
             : base(elementVector)
         {
         }
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1
                 return base.GetEncoding(encoding);
 
             return new ConstructedDLEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
-                Asn1OutputStream.GetContentsEncodings(encoding, elements));
+                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDL, elements));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
                 return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
             return new ConstructedDLEncoding(tagClass, tagNo,
-                Asn1OutputStream.GetContentsEncodings(encoding, elements));
+                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDL, elements));
         }
 
         internal override DerBitString ToAsn1BitString()

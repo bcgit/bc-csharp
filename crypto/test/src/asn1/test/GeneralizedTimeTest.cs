@@ -145,14 +145,14 @@ namespace Org.BouncyCastle.Asn1.Tests
                 // check BER encoding is still "as given"
                 Asn1GeneralizedTime ber = new Asn1GeneralizedTime("202208091215Z");
 
-                //IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), ber.GetEncoded(Asn1Encodable.DL)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), ber.GetEncoded(Asn1Encodable.DL)));
                 IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), ber.GetEncoded(Asn1Encodable.Ber)));
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), ber.GetEncoded(Asn1Encodable.Der)));
 
                 // check always uses DER encoding
                 DerGeneralizedTime der = new DerGeneralizedTime("202208091215Z");
 
-                //IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.DL)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.DL)));
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Ber)));
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Der)));
             }

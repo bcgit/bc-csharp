@@ -5,8 +5,9 @@ namespace Org.BouncyCastle.Asn1
 	public abstract class Asn1Encodable
 		: IAsn1Convertible
     {
-		public const string Der = "DER";
-		public const string Ber = "BER";
+        public const string Ber = "BER";
+        public const string Der = "DER";
+        public const string DL = "DL";
 
         public virtual void EncodeTo(Stream output)
         {

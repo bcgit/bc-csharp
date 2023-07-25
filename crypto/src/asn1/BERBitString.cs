@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Org.BouncyCastle.Asn1
 {
     public class BerBitString
-        : DerBitString
+        : DLBitString
     {
         public static BerBitString FromSequence(Asn1Sequence seq)
         {

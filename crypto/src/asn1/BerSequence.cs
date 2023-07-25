@@ -3,7 +3,7 @@ using System;
 namespace Org.BouncyCastle.Asn1
 {
 	public class BerSequence
-		: DerSequence
+		: DLSequence
 	{
 		public static new readonly BerSequence Empty = new BerSequence();
 

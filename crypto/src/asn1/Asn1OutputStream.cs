@@ -14,11 +14,12 @@ namespace Org.BouncyCastle.Asn1
         : FilterStream
     {
         internal const int EncodingBer = 1;
-        internal const int EncodingDer = 2;
+        internal const int EncodingDL = 2;
+        internal const int EncodingDer = 3;
 
         public static Asn1OutputStream Create(Stream output)
         {
-            return Create(output, Asn1Encodable.Ber);
+            return new Asn1OutputStream(output, false);
         }
 
         public static Asn1OutputStream Create(Stream output, string encoding)
@@ -30,7 +31,8 @@ namespace Org.BouncyCastle.Asn1
         {
             if (Asn1Encodable.Der.Equals(encoding))
                 return new DerOutputStream(output, leaveOpen);
-
+            if (Asn1Encodable.DL.Equals(encoding))
+                return new DLOutputStream(output, leaveOpen);
             return new Asn1OutputStream(output, leaveOpen);
         }
 
@@ -38,7 +40,8 @@ namespace Org.BouncyCastle.Asn1
         {
             if (Asn1Encodable.Der.Equals(encoding))
                 return EncodingDer;
-
+            if (Asn1Encodable.DL.Equals(encoding))
+                return EncodingDL;
             return EncodingBer;
         }
 

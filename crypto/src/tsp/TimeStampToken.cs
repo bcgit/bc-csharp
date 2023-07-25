@@ -234,7 +234,7 @@ namespace Org.BouncyCastle.Tsp
 		 */
 		public byte[] GetEncoded()
 		{
-            return tsToken.GetEncoded(Asn1Encodable.Der);
+            return tsToken.GetEncoded(Asn1Encodable.DL);
         }
 
         /**

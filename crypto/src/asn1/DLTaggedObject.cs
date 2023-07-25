@@ -2,25 +2,25 @@
 
 namespace Org.BouncyCastle.Asn1
 {
-    internal class DLTaggedObject
+    public class DLTaggedObject
         : DerTaggedObject
     {
-        internal DLTaggedObject(int tagNo, Asn1Encodable obj)
+        public DLTaggedObject(int tagNo, Asn1Encodable obj)
             : base(tagNo, obj)
         {
         }
 
-        internal DLTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
+        public DLTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
             : base(tagClass, tagNo, obj)
         {
         }
 
-        internal DLTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
+        public DLTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
             : base(isExplicit, tagNo, obj)
         {
         }
 
-        internal DLTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
+        public DLTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
             : base(isExplicit, tagClass, tagNo, obj)
         {
         }
@@ -35,6 +35,8 @@ namespace Org.BouncyCastle.Asn1
             if (Asn1OutputStream.EncodingDer == encoding)
                 return base.GetEncoding(encoding);
 
+            encoding = Asn1OutputStream.EncodingDL;
+
             Asn1Object baseObject = GetBaseObject().ToAsn1Object();
 
             if (!IsExplicit())
@@ -47,6 +49,8 @@ namespace Org.BouncyCastle.Asn1
         {
             if (Asn1OutputStream.EncodingDer == encoding)
                 return base.GetEncodingImplicit(encoding, tagClass, tagNo);
+
+            encoding = Asn1OutputStream.EncodingDL;
 
             Asn1Object baseObject = GetBaseObject().ToAsn1Object();
 

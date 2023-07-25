@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Asn1
 	 * rules (as with sequences).
 	 */
 	public class BerTaggedObject
-		: DerTaggedObject
+		: DLTaggedObject
 	{
         /**
 		 * @param tagNo the tag number for this object.
