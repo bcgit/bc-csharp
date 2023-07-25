@@ -57,6 +57,11 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProXchA = GOST_id.Branch("36.0");
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProXchB = GOST_id.Branch("36.1");
 
+        [Obsolete("Erroneous; will be removed")]
+        public static readonly DerObjectIdentifier GostElSgDH3410Default = GOST_id.Branch("36.0");
+        [Obsolete("Erroneous; will be removed")]
+        public static readonly DerObjectIdentifier GostElSgDH3410x1 = GOST_id.Branch("36.1");
+
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProESDH = GOST_id.Branch("96");
 
         public static readonly DerObjectIdentifier GostR3410x2001DH = GOST_id.Branch("98");
