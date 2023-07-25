@@ -30,12 +30,6 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override string Asn1Encoding
-        {
-            // TODO[asn1] Use DL encoding when supported
-            get { return Ber; }
-        }
-
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingDer == encoding)

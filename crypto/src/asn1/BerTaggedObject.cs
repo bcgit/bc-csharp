@@ -44,11 +44,6 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override string Asn1Encoding
-        {
-            get { return Ber; }
-        }
-
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingBer != encoding)

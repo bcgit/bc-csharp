@@ -368,8 +368,6 @@ namespace Org.BouncyCastle.Asn1
             return Asn1Utilities.GetTagText(m_tagClass, m_tagNo) + m_object;
 		}
 
-        internal abstract string Asn1Encoding { get; }
-
         internal abstract Asn1Sequence RebuildConstructed(Asn1Object asn1Object);
 
         internal abstract Asn1TaggedObject ReplaceTag(int tagClass, int tagNo);
