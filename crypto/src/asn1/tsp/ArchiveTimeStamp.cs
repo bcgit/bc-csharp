@@ -8,17 +8,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
     /**
      * Implementation of the Archive Timestamp type defined in RFC4998.
      * @see <a href="https://tools.ietf.org/html/rfc4998">RFC 4998</a>
-     * <p>
+     * <p/>
      * ASN.1 Archive Timestamp
-     * <p>
+     * <p/>
      * ArchiveTimeStamp ::= SEQUENCE {
      * digestAlgorithm [Ø] AlgorithmIdentifier OPTIONAL,
      * attributes      [1] Attributes OPTIONAL,
      * reducedHashtree [2] SEQUENCE OF PartialHashtree OPTIONAL,
      * timeStamp       ContentInfo}
-     * <p>
+     * <p/>
      * PartialHashtree ::= SEQUENCE OF OCTET STRING
-     * <p>
+     * <p/>
      * Attributes ::= SET SIZE (1..MAX) OF Attribute
      */
     public class ArchiveTimeStamp

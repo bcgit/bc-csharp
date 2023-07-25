@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// <summary>An implementation of the AES Key Wrap with Padding specification as described in RFC 5649.</summary>
     /// <remarks>
     /// For further details see: Housley, R. and M. Dworkin, "Advanced Encryption Standard (AES) Key Wrap with Padding Algorithm",
-    /// RFC 5649, DOI 10.17487/RFC5649, September 2009, <https://www.rfc-editor.org/info/rfc5649>, and
+    /// RFC 5649, DOI 10.17487/RFC5649, September 2009, &lt;https://www.rfc-editor.org/info/rfc5649&gt;, and
     /// http://csrc.nist.gov/encryption/kms/key-wrap.pdf.
     /// </remarks>
     public class Rfc5649WrapEngine

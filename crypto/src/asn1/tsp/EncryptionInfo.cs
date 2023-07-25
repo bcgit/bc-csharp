@@ -4,25 +4,25 @@ namespace Org.BouncyCastle.Asn1.Tsp
 {
     /**
      * Implementation of the EncryptionInfo element defined in RFC 4998:
-     * <p>
+     * <p/>
      * 1988 ASN.1 EncryptionInfo
-     * <p>
+     * <p/>
      * EncryptionInfo       ::=     SEQUENCE {
      * encryptionInfoType     OBJECT IDENTIFIER,
      * encryptionInfoValue    ANY DEFINED BY encryptionInfoType
      * }
-     * <p>
+     * <p/>
      * 1997-ASN.1 EncryptionInfo
-     * <p>
+     * <p/>
      * EncryptionInfo       ::=     SEQUENCE {
      * encryptionInfoType   ENCINFO-TYPE.&amp;id
      * ({SupportedEncryptionAlgorithms}),
      * encryptionInfoValue  ENCINFO-TYPE.&amp;Type
      * ({SupportedEncryptionAlgorithms}{&#064;encryptionInfoType})
      * }
-     * <p>
+     * <p/>
      * ENCINFO-TYPE ::= TYPE-IDENTIFIER
-     * <p>
+     * <p/>
      * SupportedEncryptionAlgorithms ENCINFO-TYPE ::= {...}
      */
     public class EncryptionInfo

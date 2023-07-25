@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
     /**
      * <a href="https://tools.ietf.org/html/rfc4998">RFC 4998</a>:
      * Evidence Record Syntax (ERS)
-     * <p>
+     * <p/>
      * <pre>
      * EvidenceRecord ::= SEQUENCE {
      *   version                   INTEGER { v1(1) } ,

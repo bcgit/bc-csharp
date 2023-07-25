@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 {
     /**
      * Implementation of the CryptoInfos element defined in RFC 4998:
-     * <p>
+     * <p/>
      * CryptoInfos ::= SEQUENCE SIZE (1..MAX) OF Attribute
      */
     public class CryptoInfos

@@ -7,9 +7,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
 {
     /**
      * Implementation of PartialHashtree, as defined in RFC 4998.
-     * <p>
+     * <p/>
      * The ASN.1 notation for a PartialHashTree is:
-     * <p>
+     * <p/>
      * PartialHashtree ::= SEQUENCE OF OCTET STRING
      */
     public class PartialHashtree
@@ -51,12 +51,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_values = values;
         }
 
-        public PartialHashtree(byte[] value)
-        {
-            m_values = new DerSequence(new DerOctetString(Arrays.Clone(value)));
-        }
-
-        public PartialHashtree(byte[][] values)
+        public PartialHashtree(params byte[][] values)
         {
             Asn1EncodableVector v = new Asn1EncodableVector(values.Length);
 

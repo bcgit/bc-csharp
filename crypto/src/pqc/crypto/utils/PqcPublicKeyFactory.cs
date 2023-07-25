@@ -411,9 +411,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                     return new BikePublicKeyParameters(bikeParams, keyEnc);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();
+                    byte[] keyEnc = keyInfo.PublicKey.GetOctets();
 
                     BikeParameters bikeParams = PqcUtilities.BikeParamsLookup(keyInfo.Algorithm.Algorithm);
 
@@ -434,10 +434,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                     return new HqcPublicKeyParameters(hqcParams, keyEnc);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // raw encoding
-                    byte[] keyEnc = keyInfo.PublicKeyData.GetOctets();
+                    byte[] keyEnc = keyInfo.PublicKey.GetOctets();
 
                     HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(keyInfo.Algorithm.Algorithm);
 

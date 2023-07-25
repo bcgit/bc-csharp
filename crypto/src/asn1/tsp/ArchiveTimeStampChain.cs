@@ -4,10 +4,10 @@ namespace Org.BouncyCastle.Asn1.Tsp
 {
     /**
      * Implementation of ArchiveTimeStampChain type, as defined in RFC4998 and RFC6283.
-     * <p>
+     * <p/>
      * An ArchiveTimeStampChain corresponds to a SEQUENCE OF ArchiveTimeStamps, and has the following
      * ASN.1 Syntax:
-     * <p>
+     * <p/>
      * ArchiveTimeStampChain ::= SEQUENCE OF ArchiveTimeStamp
      */
     public class ArchiveTimeStampChain
