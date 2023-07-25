@@ -212,12 +212,14 @@ namespace Org.BouncyCastle.Asn1
             {
             case Asn1Tags.BitString:
                 return BerBitStringParser.Parse(sp);
+#pragma warning disable CS0618 // Type or member is obsolete
             case Asn1Tags.OctetString:
                 return BerOctetStringParser.Parse(sp);
             case Asn1Tags.Sequence:
                 return BerSequenceParser.Parse(sp);
             case Asn1Tags.Set:
                 return BerSetParser.Parse(sp);
+#pragma warning restore CS0618 // Type or member is obsolete
             case Asn1Tags.External:
                 // TODO[asn1] BerExternalParser
                 return DerExternalParser.Parse(sp);

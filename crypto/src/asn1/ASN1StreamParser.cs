@@ -124,9 +124,11 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.External:
                 // TODO[asn1] DLExternalParser
                 return new DerExternalParser(this);
+#pragma warning disable CS0618 // Type or member is obsolete
             case Asn1Tags.OctetString:
                 // TODO[asn1] DLConstructedOctetStringParser
                 return new BerOctetStringParser(this);
+#pragma warning restore CS0618 // Type or member is obsolete
             case Asn1Tags.Set:
                 // TODO[asn1] DLSetParser
                 return new DerSetParser(this);
@@ -147,12 +149,14 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.External:
                 // TODO[asn1] BERExternalParser
                 return new DerExternalParser(this);
+#pragma warning disable CS0618 // Type or member is obsolete
             case Asn1Tags.OctetString:
                 return new BerOctetStringParser(this);
             case Asn1Tags.Sequence:
                 return new BerSequenceParser(this);
             case Asn1Tags.Set:
                 return new BerSetParser(this);
+#pragma warning restore CS0618 // Type or member is obsolete
             default:
                 throw new Asn1Exception("unknown BER object encountered: 0x" + univTagNo.ToString("X"));
             }
