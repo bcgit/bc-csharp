@@ -14,10 +14,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-	internal class KekRecipientInfoGenerator : RecipientInfoGenerator
+    internal class KekRecipientInfoGenerator
+		: RecipientInfoGenerator
 	{
-		private static readonly CmsEnvelopedHelper Helper = CmsEnvelopedHelper.Instance;
-
 		private KeyParameter	keyEncryptionKey;
 		// TODO Can get this from keyEncryptionKey?		
 		private string			keyEncryptionKeyOID;

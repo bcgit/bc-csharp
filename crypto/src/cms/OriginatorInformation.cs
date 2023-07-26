@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public virtual IStore<X509Certificate> GetCertificates()
 		{
-			return CmsSignedHelper.Instance.GetCertificates(originatorInfo.Certificates);
+			return CmsSignedHelper.GetCertificates(originatorInfo.Certificates);
 		}
 
 		/**
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public virtual IStore<X509Crl> GetCrls()
 		{
-			return CmsSignedHelper.Instance.GetCrls(originatorInfo.Crls);
+			return CmsSignedHelper.GetCrls(originatorInfo.Crls);
 		}
 
 		/**

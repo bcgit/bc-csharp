@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Cms
 
 			return (KeyParameter) gen.GenerateDerivedParameters(
 				algorithmOid,
-				CmsEnvelopedHelper.Instance.GetKeySize(algorithmOid));
+				CmsEnvelopedHelper.GetKeySize(algorithmOid));
 		}
 	}
 }

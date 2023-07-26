@@ -36,8 +36,6 @@ namespace Org.BouncyCastle.Cms
 	*/
 	public class CmsSignedData
 	{
-		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
-
 		private readonly CmsProcessable	signedContent;
 		private SignedData				signedData;
 		private ContentInfo				contentInfo;
@@ -179,7 +177,7 @@ namespace Org.BouncyCastle.Cms
 		 */
 		public IStore<X509V2AttributeCertificate> GetAttributeCertificates()
 		{
-			return Helper.GetAttributeCertificates(signedData.Certificates);
+			return CmsSignedHelper.GetAttributeCertificates(signedData.Certificates);
 		}
 
 		/**
@@ -191,7 +189,7 @@ namespace Org.BouncyCastle.Cms
 		 */
 		public IStore<X509Certificate> GetCertificates()
 		{
-			return Helper.GetCertificates(signedData.Certificates);
+			return CmsSignedHelper.GetCertificates(signedData.Certificates);
 		}
 
 		/**
@@ -203,12 +201,12 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public IStore<X509Crl> GetCrls()
 		{
-			return Helper.GetCrls(signedData.CRLs);
+			return CmsSignedHelper.GetCrls(signedData.CRLs);
 		}
 
         public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat)
 		{
-			return Helper.GetOtherRevInfos(signedData.CRLs, otherRevInfoFormat);
+			return CmsSignedHelper.GetOtherRevInfos(signedData.CRLs, otherRevInfoFormat);
 		}
 
         /**
@@ -294,7 +292,7 @@ namespace Org.BouncyCastle.Cms
 			IDigestAlgorithmFinder digestAlgorithmFinder)
 		{
 			ISet<AlgorithmIdentifier> digestAlgorithms = signedData.GetDigestAlgorithmIDs();
-			AlgorithmIdentifier digestAlg = Helper.FixDigestAlgID(digestAlgorithm, digestAlgorithmFinder);
+			AlgorithmIdentifier digestAlg = CmsSignedHelper.FixDigestAlgID(digestAlgorithm, digestAlgorithmFinder);
 
 			//
 			// if the algorithm is already present there is no need to add it.
@@ -314,7 +312,7 @@ namespace Org.BouncyCastle.Cms
 
             foreach (var entry in digestAlgs)
 			{
-				digestAlgs.Add(Helper.FixDigestAlgID(entry, digestAlgorithmFinder));
+				digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(entry, digestAlgorithmFinder));
 			}
 			digestAlgs.Add(digestAlg);
 

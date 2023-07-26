@@ -3,7 +3,6 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -38,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
         public ICipher BuildCipher(Stream stream)
         {
-            object cipher = EnvelopedDataHelper.CreateContentCipher(true, encKey, algorithmIdentifier);
+            object cipher = CipherFactory.CreateContentCipher(true, encKey, algorithmIdentifier);
 
             //
             // BufferedBlockCipher

@@ -187,8 +187,9 @@ namespace Org.BouncyCastle.Tsp
             //    throw new TspException("Can't find a SHA-1 implementation.", e);
             //}
 
-            string digestName = CmsSignedHelper.Instance.GetDigestAlgName(digestOID);
-            string signatureName = digestName + "with" + CmsSignedHelper.Instance.GetEncryptionAlgName(CmsSignedHelper.Instance.GetEncOid(key, digestOID));
+            string digestName = CmsSignedHelper.GetDigestAlgName(digestOID);
+            string signatureName = digestName + "with"
+                + CmsSignedHelper.GetEncryptionAlgName(CmsSignedHelper.GetEncOid(key, digestOID));
 
             Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
             return new SignerInfoGeneratorBuilder()

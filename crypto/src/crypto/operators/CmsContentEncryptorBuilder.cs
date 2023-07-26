@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 
@@ -34,7 +32,6 @@ namespace Org.BouncyCastle.Operators
         private readonly DerObjectIdentifier encryptionOID;
         private readonly int keySize;
 
-        private readonly EnvelopedDataHelper helper = new EnvelopedDataHelper();
         //private SecureRandom random;
 
         public CmsContentEncryptorBuilder(DerObjectIdentifier encryptionOID)

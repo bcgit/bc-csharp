@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Cms
 				Asn1Sequence        kekAlgParams = (Asn1Sequence)kekAlg.Parameters;
 				byte[]              encryptedKey = info.EncryptedKey.GetOctets();
 				string              kekAlgName = DerObjectIdentifier.GetInstance(kekAlgParams[0]).Id;
-				string				cName = CmsEnvelopedHelper.Instance.GetRfc3211WrapperName(kekAlgName);
+				string				cName = CmsEnvelopedHelper.GetRfc3211WrapperName(kekAlgName);
 				IWrapper			keyWrapper = WrapperUtilities.GetWrapper(cName);
 
                 var iv = Asn1OctetString.GetInstance(kekAlgParams[1]);

@@ -154,24 +154,22 @@ namespace Org.BouncyCastle.Cms
         internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
-            var helper = CmsSignedHelper.Instance;
-            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
+            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
             SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
             foreach (var counterSigner in counterSignaturesStore)
             {
-                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
+                digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
             }
         }
 
         internal static void AddDigestAlgs(ISet<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
-			var helper = CmsSignedHelper.Instance;
-            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
+            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
             SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
 			foreach (var counterSigner in counterSignaturesStore)
 			{
-                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
+                digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
             }
         }
 

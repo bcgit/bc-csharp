@@ -15,13 +15,11 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-	/**
+    /**
 	* an expanded SignerInfo block from a CMS Signed message
 	*/
-	public class SignerInformation
+    public class SignerInformation
 	{
-		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
-
 		private SignerID			sid;
 
 		private CmsProcessable		content;
@@ -300,8 +298,8 @@ namespace Org.BouncyCastle.Cms
 					*/
 					SignerInfo si = SignerInfo.GetInstance(asn1Obj.ToAsn1Object());
 
-                    string digestName = CmsSignedHelper.Instance.GetDigestAlgName(si.DigestAlgorithm.Algorithm.Id);
-                    IDigest digest = CmsSignedHelper.Instance.GetDigestInstance(digestName);
+                    string digestName = CmsSignedHelper.GetDigestAlgName(si.DigestAlgorithm.Algorithm.Id);
+                    IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
                     byte[] hash = DigestUtilities.DoFinal(digest, GetSignature());
 
 					counterSignatures.Add(new SignerInformation(si, null, null, hash));
@@ -327,14 +325,14 @@ namespace Org.BouncyCastle.Cms
 		{
 			DerObjectIdentifier sigAlgOid = this.encryptionAlgorithm.Algorithm;
 			Asn1Encodable sigParams = this.encryptionAlgorithm.Parameters;
-			string digestName = Helper.GetDigestAlgName(this.EncryptionAlgOid);
+			string digestName = CmsSignedHelper.GetDigestAlgName(this.EncryptionAlgOid);
 
 			if (digestName.Equals(sigAlgOid.Id))
 			{
-				digestName = Helper.GetDigestAlgName(this.DigestAlgOid);
+				digestName = CmsSignedHelper.GetDigestAlgName(this.DigestAlgOid);
 			}
 			
-			IDigest digest = Helper.GetDigestInstance(digestName);
+			IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
 			ISigner sig;
 
 			if (sigAlgOid.Equals(Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss))
@@ -388,15 +386,15 @@ namespace Org.BouncyCastle.Cms
 				//				if (sigParams != null)
 				//					throw new CmsException("unrecognised signature parameters provided");
 
-				string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(this.EncryptionAlgOid);
+				string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(this.EncryptionAlgOid);
 
-                sig = Helper.GetSignatureInstance(signatureName);
+                sig = CmsSignedHelper.GetSignatureInstance(signatureName);
 
-                //sig = Helper.GetSignatureInstance(this.EncryptionAlgOid);
-                //sig = Helper.GetSignatureInstance(sigAlgOid);
-			}
+                //sig = CmsSignedHelper.GetSignatureInstance(this.EncryptionAlgOid);
+                //sig = CmsSignedHelper.GetSignatureInstance(sigAlgOid);
+            }
 
-			try
+            try
 			{
 				if (calculatedDigest != null)
 				{
@@ -569,7 +567,7 @@ namespace Org.BouncyCastle.Cms
 			AsymmetricKeyParameter	key,
 			byte[]					signature)
 		{
-			string algorithm = Helper.GetEncryptionAlgName(this.EncryptionAlgOid);
+			string algorithm = CmsSignedHelper.GetEncryptionAlgName(this.EncryptionAlgOid);
 
 			try
 			{
@@ -599,7 +597,7 @@ namespace Org.BouncyCastle.Cms
 				}
 				else if (algorithm.Equals("DSA"))
 				{
-					ISigner sig = Helper.GetSignatureInstance("NONEwithDSA");
+					ISigner sig = CmsSignedHelper.GetSignatureInstance("NONEwithDSA");
 
 					sig.Init(false, key);
 

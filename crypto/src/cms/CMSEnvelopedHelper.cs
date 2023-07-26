@@ -16,11 +16,8 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-	// TODO[api] Make static
-	internal class CmsEnvelopedHelper
+    internal class CmsEnvelopedHelper
 	{
-		internal static readonly CmsEnvelopedHelper Instance = new CmsEnvelopedHelper();
-
 		private static readonly Dictionary<string, int> KeySizes = new Dictionary<string, int>();
 		private static readonly Dictionary<string, string> Rfc3211WrapperNames = new Dictionary<string, string>();
 
@@ -58,7 +55,7 @@ namespace Org.BouncyCastle.Cms
 			return new RecipientInformationStore(infos);
 		}
 
-        internal int GetKeySize(string oid)
+        internal static int GetKeySize(string oid)
         {
             if (oid == null)
                 throw new ArgumentNullException(nameof(oid));
@@ -69,7 +66,7 @@ namespace Org.BouncyCastle.Cms
             return keySize;
         }
 
-        internal string GetRfc3211WrapperName(string oid)
+        internal static string GetRfc3211WrapperName(string oid)
         {
             if (oid == null)
                 throw new ArgumentNullException(nameof(oid));

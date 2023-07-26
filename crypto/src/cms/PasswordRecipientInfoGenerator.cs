@@ -11,10 +11,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-	internal class PasswordRecipientInfoGenerator : RecipientInfoGenerator
+	internal class PasswordRecipientInfoGenerator
+		: RecipientInfoGenerator
 	{
-		private static readonly CmsEnvelopedHelper Helper = CmsEnvelopedHelper.Instance;
-
 		private AlgorithmIdentifier	keyDerivationAlgorithm;
 		private KeyParameter		keyEncryptionKey;
 		// TODO Can get this from keyEncryptionKey?		
@@ -43,7 +42,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			byte[] keyBytes = contentEncryptionKey.GetKey();
 
-			string rfc3211WrapperName = Helper.GetRfc3211WrapperName(keyEncryptionKeyOID);
+			string rfc3211WrapperName = CmsEnvelopedHelper.GetRfc3211WrapperName(keyEncryptionKeyOID);
 			IWrapper keyWrapper = WrapperUtilities.GetWrapper(rfc3211WrapperName);
 
 			// Note: In Java build, the IV is automatically generated in JCE layer

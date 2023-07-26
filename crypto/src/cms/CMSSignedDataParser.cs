@@ -55,8 +55,6 @@ namespace Org.BouncyCastle.Cms
 	public class CmsSignedDataParser
 		: CmsContentInfoParser
 	{
-		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
-
 		private SignedDataParser        _signedData;
 		private DerObjectIdentifier		_signedContentType;
 		private CmsTypedStream          _signedContent;
@@ -117,11 +115,11 @@ namespace Org.BouncyCastle.Cms
 					try
 					{
                         string digestOid = id.Algorithm.Id;
-						string digestName = Helper.GetDigestAlgName(digestOid);
+						string digestName = CmsSignedHelper.GetDigestAlgName(digestOid);
 
 						if (!this.m_digests.ContainsKey(digestName))
 						{
-							this.m_digests[digestName] = Helper.GetDigestInstance(digestName);
+							this.m_digests[digestName] = CmsSignedHelper.GetDigestInstance(digestName);
 							this._digestOids.Add(digestOid);
 						}
 					}
@@ -208,7 +206,7 @@ namespace Org.BouncyCastle.Cms
 					while ((o = s.ReadObject()) != null)
 					{
 						SignerInfo info = SignerInfo.GetInstance(o.ToAsn1Object());
-						string digestName = Helper.GetDigestAlgName(info.DigestAlgorithm.Algorithm.Id);
+						string digestName = CmsSignedHelper.GetDigestAlgName(info.DigestAlgorithm.Algorithm.Id);
 
 						byte[] hash = hashes[digestName];
 
@@ -239,7 +237,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			PopulateCertCrlSets();
 
-			return Helper.GetAttributeCertificates(_certSet);
+			return CmsSignedHelper.GetAttributeCertificates(_certSet);
 		}
 
 		/**
@@ -255,7 +253,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			PopulateCertCrlSets();
 
-			return Helper.GetCertificates(_certSet);
+			return CmsSignedHelper.GetCertificates(_certSet);
 		}
 
 		/**
@@ -271,14 +269,14 @@ namespace Org.BouncyCastle.Cms
 		{
 			PopulateCertCrlSets();
 
-			return Helper.GetCrls(_crlSet);
+			return CmsSignedHelper.GetCrls(_crlSet);
 		}
 
         public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat)
         {
             PopulateCertCrlSets();
 
-            return Helper.GetOtherRevInfos(_crlSet, otherRevInfoFormat);
+            return CmsSignedHelper.GetOtherRevInfos(_crlSet, otherRevInfoFormat);
         }
 
         private void PopulateCertCrlSets()

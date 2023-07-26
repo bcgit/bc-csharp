@@ -14,11 +14,9 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-	internal class KeyAgreeRecipientInfoGenerator
+    internal class KeyAgreeRecipientInfoGenerator
 		: RecipientInfoGenerator
 	{
-		private static readonly CmsEnvelopedHelper Helper = CmsEnvelopedHelper.Instance;
-
         private readonly List<KeyAgreeRecipientIdentifier> m_recipientIDs = new List<KeyAgreeRecipientIdentifier>();
         private readonly List<AsymmetricKeyParameter> m_recipientKeys = new List<AsymmetricKeyParameter>();
 

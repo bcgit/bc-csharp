@@ -21,10 +21,8 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    internal class CmsSignedHelper
+    internal static class CmsSignedHelper
     {
-        internal static readonly CmsSignedHelper Instance = new CmsSignedHelper();
-
         private static readonly string EncryptionECDsaWithSha1 = X9ObjectIdentifiers.ECDsaWithSha1.Id;
         private static readonly string EncryptionECDsaWithSha224 = X9ObjectIdentifiers.ECDsaWithSha224.Id;
         private static readonly string EncryptionECDsaWithSha256 = X9ObjectIdentifiers.ECDsaWithSha256.Id;
@@ -149,12 +147,12 @@ namespace Org.BouncyCastle.Cms
         * Return the digest algorithm using one of the standard JCA string
         * representations rather than the algorithm identifier (if possible).
         */
-		internal string GetDigestAlgName(string digestAlgOid)
+		internal static string GetDigestAlgName(string digestAlgOid)
         {
             return CollectionUtilities.GetValueOrKey(m_digestAlgs, digestAlgOid);
         }
 
-        internal AlgorithmIdentifier GetEncAlgorithmIdentifier(DerObjectIdentifier encOid,
+        internal static AlgorithmIdentifier GetEncAlgorithmIdentifier(DerObjectIdentifier encOid,
 			Asn1Encodable sigX509Parameters)
 		{
 			if (m_noParams.Contains(encOid.Id))
@@ -165,7 +163,7 @@ namespace Org.BouncyCastle.Cms
 			return new AlgorithmIdentifier(encOid, sigX509Parameters);
 		}
 
-		internal string[] GetDigestAliases(string algName)
+		internal static string[] GetDigestAliases(string algName)
 		{
 			return m_digestAliases.TryGetValue(algName, out var aliases) ? (string[])aliases.Clone() : new string[0];
 		}
@@ -175,13 +173,12 @@ namespace Org.BouncyCastle.Cms
         * JCA string representations rather than the algorithm identifier (if
         * possible).
         */
-        internal string GetEncryptionAlgName(string encryptionAlgOid)
+        internal static string GetEncryptionAlgName(string encryptionAlgOid)
         {
             return CollectionUtilities.GetValueOrKey(m_encryptionAlgs, encryptionAlgOid);
         }
 
-        internal IDigest GetDigestInstance(
-			string algorithm)
+        internal static IDigest GetDigestInstance(string algorithm)
 		{
 			try
 			{
@@ -200,12 +197,12 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		internal ISigner GetSignatureInstance(string algorithm)
+		internal static ISigner GetSignatureInstance(string algorithm)
 		{
 			return SignerUtilities.GetSigner(algorithm);
 		}
 
-        internal AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
+        internal static AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
 			IDigestAlgorithmFinder digestAlgorithmFinder)
         {
             var parameters = algID.Parameters;
@@ -215,9 +212,7 @@ namespace Org.BouncyCastle.Cms
             return algID;
         }
 
-        internal string GetEncOid(
-            AsymmetricKeyParameter key,
-            string digestOID)
+        internal static string GetEncOid(AsymmetricKeyParameter key, string digestOID)
         {
             string encOID = null;
 
@@ -298,7 +293,7 @@ namespace Org.BouncyCastle.Cms
             return encOID;
         }
 
-		internal IStore<X509V2AttributeCertificate> GetAttributeCertificates(Asn1Set attrCertSet)
+		internal static IStore<X509V2AttributeCertificate> GetAttributeCertificates(Asn1Set attrCertSet)
 		{
 			var contents = new List<X509V2AttributeCertificate>();
 			if (attrCertSet != null)
@@ -319,7 +314,7 @@ namespace Org.BouncyCastle.Cms
 			return CollectionUtilities.CreateStore(contents);
 		}
 
-		internal IStore<X509Certificate> GetCertificates(Asn1Set certSet)
+		internal static IStore<X509Certificate> GetCertificates(Asn1Set certSet)
 		{
 			var contents = new List<X509Certificate>();
 			if (certSet != null)
@@ -342,7 +337,7 @@ namespace Org.BouncyCastle.Cms
 			return CollectionUtilities.CreateStore(contents);
 		}
 
-		internal IStore<X509Crl> GetCrls(Asn1Set crlSet)
+		internal static IStore<X509Crl> GetCrls(Asn1Set crlSet)
 		{
 			var contents = new List<X509Crl>();
 			if (crlSet != null)
@@ -365,7 +360,7 @@ namespace Org.BouncyCastle.Cms
 			return CollectionUtilities.CreateStore(contents);
 		}
 
-        internal IStore<Asn1Encodable> GetOtherRevInfos(Asn1Set crlSet, DerObjectIdentifier otherRevInfoFormat)
+        internal static IStore<Asn1Encodable> GetOtherRevInfos(Asn1Set crlSet, DerObjectIdentifier otherRevInfoFormat)
         {
             var contents = new List<Asn1Encodable>();
             if (crlSet != null && otherRevInfoFormat != null)
