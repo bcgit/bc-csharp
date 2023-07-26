@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
@@ -271,29 +272,29 @@ namespace Org.BouncyCastle.Cms
 
         /**
          * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
-         * in it. Uses the current DigestAlgorithmIdentifierFinder for creating the digest sets.
+         * in it. Uses the DefaultDigestAlgorithmFinder for creating the digest sets.
          *
          * @param signedData      the signed data object to be used as a base.
          * @param digestAlgorithm the digest algorithm to be added to the signed data.
          * @return a new signed data object.
          */
         public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm) =>
-            AddDigestAlgorithm(signedData, digestAlgorithm, DefaultDigestAlgorithmIdentifierFinder.Instance);
+            AddDigestAlgorithm(signedData, digestAlgorithm, DefaultDigestAlgorithmFinder.Instance);
 
         /**
          * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
-         * in it. Uses the passed in DigestAlgorithmIdentifierFinder for creating the digest sets.
+         * in it. Uses the passed in IDigestAlgorithmFinder for creating the digest sets.
          *
          * @param signedData      the signed data object to be used as a base.
          * @param digestAlgorithm the digest algorithm to be added to the signed data.
-         * @param digestAlgIDFinder      the digest algorithmID map to generate the digest set with.
+         * @param digestAlgorithmFinder the digest algorithm finder to generate the digest set with.
          * @return a new signed data object.
          */
         public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm,
-			DefaultDigestAlgorithmIdentifierFinder digestAlgIDFinder)
+			IDigestAlgorithmFinder digestAlgorithmFinder)
 		{
 			ISet<AlgorithmIdentifier> digestAlgorithms = signedData.GetDigestAlgorithmIDs();
-			AlgorithmIdentifier digestAlg = Helper.FixDigestAlgID(digestAlgorithm, digestAlgIDFinder);
+			AlgorithmIdentifier digestAlg = Helper.FixDigestAlgID(digestAlgorithm, digestAlgorithmFinder);
 
 			//
 			// if the algorithm is already present there is no need to add it.
@@ -313,7 +314,7 @@ namespace Org.BouncyCastle.Cms
 
             foreach (var entry in digestAlgs)
 			{
-				digestAlgs.Add(Helper.FixDigestAlgID(entry, digestAlgIDFinder));
+				digestAlgs.Add(Helper.FixDigestAlgID(entry, digestAlgorithmFinder));
 			}
 			digestAlgs.Add(digestAlg);
 
@@ -344,7 +345,7 @@ namespace Org.BouncyCastle.Cms
 
         /**
 		 * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in
-		 * using the current DigestAlgorithmIdentifierFinder for creating the digest sets. You would probably only want
+		 * using the DefaultDigestAlgorithmFinder for creating the digest sets. You would probably only want
 		 * to do this if you wanted to change the unsigned attributes associated with a signer, or perhaps delete one.
 		 *
 		 * @param signedData             the signed data object to be used as a base.
@@ -353,21 +354,21 @@ namespace Org.BouncyCastle.Cms
 		 */
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
 			SignerInformationStore signerInformationStore) =>
-				ReplaceSigners(signedData, signerInformationStore, DefaultDigestAlgorithmIdentifierFinder.Instance);
+				ReplaceSigners(signedData, signerInformationStore, DefaultDigestAlgorithmFinder.Instance);
 
         /**
          * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in
-         * using the passed in DigestAlgorithmIdentifierFinder for creating the digest sets. You would probably only
+         * using the passed in IDigestAlgorithmFinder for creating the digest sets. You would probably only
          * want to do this if you wanted to change the unsigned attributes associated with a signer, or perhaps delete
          * one.
          *
          * @param signedData             the signed data object to be used as a base.
          * @param signerInformationStore the new signer information store to use.
-         * @param dgstAlgIDFinder      the digest algorithmID map to generate the digest set with.
+         * @param digestAlgorithmFinder the digest algorithm finder to generate the digest set with.
          * @return a new signed data object.
          */
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
-			SignerInformationStore signerInformationStore, DefaultDigestAlgorithmIdentifierFinder digestAlgIDFinder)
+			SignerInformationStore signerInformationStore, IDigestAlgorithmFinder digestAlgorithmFinder)
 		{
             //
             // copy
@@ -389,7 +390,7 @@ namespace Org.BouncyCastle.Cms
 
 			foreach (var signer in signers)
 			{
-				CmsUtilities.AddDigestAlgs(digestAlgs, signer, digestAlgIDFinder);
+				CmsUtilities.AddDigestAlgs(digestAlgs, signer, digestAlgorithmFinder);
 				vec.Add(signer.ToSignerInfo());
 			}
 

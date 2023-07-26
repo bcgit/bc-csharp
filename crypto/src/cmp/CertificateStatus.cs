@@ -1,7 +1,9 @@
-﻿using Org.BouncyCastle.Asn1.Cmp;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
@@ -10,30 +12,39 @@ namespace Org.BouncyCastle.Cmp
 {
     public class CertificateStatus
     {
-        private readonly DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
-        private readonly CertStatus certStatus;
+        private readonly IDigestAlgorithmFinder m_digestAlgorithmFinder;
+        private readonly CertStatus m_certStatus;
 
-        public CertificateStatus(DefaultDigestAlgorithmIdentifierFinder digestAlgFinder, CertStatus certStatus)
+        [Obsolete("Use constructor taking 'IDigestAlgorithmFinder' instead")]
+        public CertificateStatus(Org.BouncyCastle.Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder,
+            CertStatus certStatus)
+            : this((IDigestAlgorithmFinder)digestAlgFinder, certStatus)
         {
-            this.digestAlgFinder = digestAlgFinder;
-            this.certStatus = certStatus;
         }
 
-        public virtual PkiStatusInfo StatusInfo => certStatus.StatusInfo;
+        public CertificateStatus(IDigestAlgorithmFinder digestAlgorithmFinder, CertStatus certStatus)
+        {
+            m_digestAlgorithmFinder = digestAlgorithmFinder;
+            m_certStatus = certStatus;
+        }
 
-        public virtual BigInteger CertRequestID => certStatus.CertReqID.Value;
+        public virtual PkiStatusInfo StatusInfo => m_certStatus.StatusInfo;
+
+        public virtual BigInteger CertRequestID => m_certStatus.CertReqID.Value;
 
         public virtual bool IsVerified(X509Certificate cert)
         {
-            var sigAlgID = DefaultSignatureAlgorithmIdentifierFinder.Instance.Find(cert.SigAlgName)
+            var signatureName = cert.SigAlgName;
+
+            var signatureAlgorithm = DefaultSignatureAlgorithmFinder.Instance.Find(signatureName)
                 ?? throw new CmpException("cannot find algorithm identifier for signature name");
 
-            var digAlgID = digestAlgFinder.Find(sigAlgID)
-                ?? throw new CmpException("cannot find algorithm for digest from signature " + cert.SigAlgName);
+            var digestAlgorithm = m_digestAlgorithmFinder.Find(signatureAlgorithm)
+                ?? throw new CmpException("cannot find algorithm for digest from signature " + signatureName);
 
-            byte[] digest = DigestUtilities.CalculateDigest(digAlgID.Algorithm, cert.GetEncoded());
+            byte[] digest = DigestUtilities.CalculateDigest(digestAlgorithm.Algorithm, cert.GetEncoded());
 
-            return Arrays.FixedTimeEquals(certStatus.CertHash.GetOctets(), digest);
+            return Arrays.FixedTimeEquals(m_certStatus.CertHash.GetOctets(), digest);
         }
     }
 }

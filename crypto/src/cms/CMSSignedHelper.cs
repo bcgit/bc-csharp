@@ -14,6 +14,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -205,11 +206,11 @@ namespace Org.BouncyCastle.Cms
 		}
 
         internal AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
-            DefaultDigestAlgorithmIdentifierFinder digestAlgIDFinder)
+			IDigestAlgorithmFinder digestAlgorithmFinder)
         {
             var parameters = algID.Parameters;
             if (parameters == null || DerNull.Instance.Equals(parameters))
-                return digestAlgIDFinder.Find(algID.Algorithm);
+                return digestAlgorithmFinder.Find(algID.Algorithm);
 
             return algID;
         }

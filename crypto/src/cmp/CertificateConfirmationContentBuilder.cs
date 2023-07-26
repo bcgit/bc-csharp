@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 
@@ -12,18 +12,24 @@ namespace Org.BouncyCastle.Cmp
 {
     public sealed class CertificateConfirmationContentBuilder
     {
-        private readonly DefaultDigestAlgorithmIdentifierFinder m_digestAlgFinder;
+        private readonly IDigestAlgorithmFinder m_digestAlgorithmFinder;
         private readonly List<X509Certificate> m_acceptedCerts = new List<X509Certificate>();
         private readonly List<BigInteger> m_acceptedReqIDs = new List<BigInteger>();
 
         public CertificateConfirmationContentBuilder()
-            : this(DefaultDigestAlgorithmIdentifierFinder.Instance)
+            : this(DefaultDigestAlgorithmFinder.Instance)
         {
         }
 
-        public CertificateConfirmationContentBuilder(DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
+        [Obsolete("Use constructor taking 'IDigestAlgorithmFinder' instead")]
+        public CertificateConfirmationContentBuilder(Org.BouncyCastle.Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
+            : this((IDigestAlgorithmFinder)digestAlgFinder)
         {
-            m_digestAlgFinder = digestAlgFinder;
+        }
+
+        public CertificateConfirmationContentBuilder(IDigestAlgorithmFinder digestAlgorithmFinder)
+        {
+            m_digestAlgorithmFinder = digestAlgorithmFinder;
         }
 
         public CertificateConfirmationContentBuilder AddAcceptedCertificate(X509Certificate certHolder,
@@ -42,10 +48,10 @@ namespace Org.BouncyCastle.Cmp
                 X509Certificate cert = m_acceptedCerts[i];
                 BigInteger reqID = m_acceptedReqIDs[i];
 
-                var sigAlgID = DefaultSignatureAlgorithmIdentifierFinder.Instance.Find(cert.SigAlgName)
+                var sigAlgID = DefaultSignatureAlgorithmFinder.Instance.Find(cert.SigAlgName)
                     ?? throw new CmpException("cannot find algorithm identifier for signature name");
 
-                AlgorithmIdentifier digAlgID = m_digestAlgFinder.Find(sigAlgID)
+                var digAlgID = m_digestAlgorithmFinder.Find(sigAlgID)
                     ?? throw new CmpException("cannot find algorithm for digest from signature");
 
                 byte[] digest = DigestUtilities.CalculateDigest(digAlgID.Algorithm, cert.GetEncoded());
@@ -53,8 +59,9 @@ namespace Org.BouncyCastle.Cmp
                 v.Add(new CertStatus(digest, reqID));
             }
 
-            return new CertificateConfirmationContent(CertConfirmContent.GetInstance(new DerSequence(v)),
-                m_digestAlgFinder);
+            var content = CertConfirmContent.GetInstance(new DerSequence(v));
+
+            return new CertificateConfirmationContent(content, m_digestAlgorithmFinder);
         }
     }
 }

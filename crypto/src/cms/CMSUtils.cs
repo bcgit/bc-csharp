@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
@@ -151,26 +152,26 @@ namespace Org.BouncyCastle.Cms
 
 		// TODO Clean up this method (which is not present in bc-java)
         internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
-            DefaultDigestAlgorithmIdentifierFinder dgstAlgFinder)
+            IDigestAlgorithmFinder digestAlgorithmFinder)
         {
             var helper = CmsSignedHelper.Instance;
-            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, dgstAlgFinder));
+            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
             SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
             foreach (var counterSigner in counterSignaturesStore)
             {
-                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, dgstAlgFinder));
+                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
             }
         }
 
         internal static void AddDigestAlgs(ISet<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
-			DefaultDigestAlgorithmIdentifierFinder dgstAlgFinder)
+            IDigestAlgorithmFinder digestAlgorithmFinder)
         {
 			var helper = CmsSignedHelper.Instance;
-            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, dgstAlgFinder));
+            digestAlgs.Add(helper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
             SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
 			foreach (var counterSigner in counterSignaturesStore)
 			{
-                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, dgstAlgFinder));
+                digestAlgs.Add(helper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
             }
         }
 
