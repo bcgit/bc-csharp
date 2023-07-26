@@ -312,6 +312,9 @@ namespace Org.BouncyCastle.X509
             return Arrays.Clone(sigAlgParams);
         }
 
+        /// <summary>The signature algorithm.</summary>
+        public virtual AlgorithmIdentifier SignatureAlgorithm => c.SignatureAlgorithm;
+
         /// <summary>
         /// Get the issuers UID.
         /// </summary>
@@ -629,6 +632,7 @@ namespace Org.BouncyCastle.X509
             return buf.ToString();
         }
 
+        // TODO[api] Rename 'key' to 'publicKey'
         public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
         {
             return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));

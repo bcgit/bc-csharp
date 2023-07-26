@@ -12,9 +12,9 @@ namespace Org.BouncyCastle.Cmp
     public sealed class ProtectedPkiMessageBuilder
     {
         private readonly PkiHeaderBuilder m_hdrBuilder;
-        private PkiBody body;
-        private readonly List<InfoTypeAndValue> generalInfos = new List<InfoTypeAndValue>();
-        private readonly List<X509Certificate> extraCerts = new List<X509Certificate>();
+        private readonly List<InfoTypeAndValue> m_generalInfos = new List<InfoTypeAndValue>();
+        private readonly List<X509Certificate> m_extraCerts = new List<X509Certificate>();
+        private PkiBody m_body;
 
         public ProtectedPkiMessageBuilder(GeneralName sender, GeneralName recipient)
             : this(PkiHeader.CMP_2000, sender, recipient)
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Cmp
 
         public ProtectedPkiMessageBuilder AddGeneralInfo(InfoTypeAndValue genInfo)
         {
-            generalInfos.Add(genInfo);
+            m_generalInfos.Add(genInfo);
             return this;
         }
 
@@ -82,19 +82,49 @@ namespace Org.BouncyCastle.Cmp
 
         public ProtectedPkiMessageBuilder SetBody(PkiBody body)
         {
-            this.body = body;
+            m_body = body;
+            return this;
+        }
+
+        // TODO[crmf] Add CertificateReqMessages
+        //public ProtectedPkiMessageBuilder SetBody(int bodyType, CertificateReqMessages certificateReqMessages)
+        //{
+        //    if (!CertificateReqMessages.IsCertificateRequestMessages(bodyType))
+        //        throw new ArgumentException("body type " + bodyType + " does not match CMP type CertReqMessages");
+
+        //    m_body = new PkiBody(bodyType, certificateReqMessages.ToAsn1Structure());
+        //    return this;
+        //}
+
+        // TODO[crmf] Add CertificateRepMessage
+        //public ProtectedPkiMessageBuilder SetBody(int bodyType, CertificateRepMessage certificateRepMessage)
+        //{
+        //    if (!CertificateRepMessage.IsCertificateRepMessage(bodyType))
+        //        throw new ArgumentException("body type " + bodyType + " does not match CMP type CertRepMessage");
+
+        //    m_body = new PkiBody(bodyType, certificateRepMessage.ToAsn1Structure());
+        //    return this;
+        //}
+
+        public ProtectedPkiMessageBuilder SetBody(int bodyType,
+            CertificateConfirmationContent certificateConfirmationContent)
+        {
+            if (!CertificateConfirmationContent.IsCertificateConfirmationContent(bodyType))
+                throw new ArgumentException("body type " + bodyType + " does not match CMP type CertConfirmContent");
+
+            m_body = new PkiBody(bodyType, certificateConfirmationContent.ToAsn1Structure());
             return this;
         }
 
         public ProtectedPkiMessageBuilder AddCmpCertificate(X509Certificate certificate)
         {
-            extraCerts.Add(certificate);
+            m_extraCerts.Add(certificate);
             return this;
         }
 
         public ProtectedPkiMessage Build(ISignatureFactory signatureFactory)
         {
-            if (null == body)
+            if (null == m_body)
                 throw new InvalidOperationException("body must be set before building");
 
             if (!(signatureFactory.AlgorithmDetails is AlgorithmIdentifier algorithmDetails))
@@ -102,13 +132,14 @@ namespace Org.BouncyCastle.Cmp
 
             FinalizeHeader(algorithmDetails);
             PkiHeader header = m_hdrBuilder.Build();
-            DerBitString protection = X509Utilities.GenerateSignature(signatureFactory, new DerSequence(header, body));
+            DerBitString protection = X509Utilities.GenerateSignature(signatureFactory,
+                new DerSequence(header, m_body));
             return FinalizeMessage(header, protection);
         }
 
         public ProtectedPkiMessage Build(IMacFactory macFactory)
         {
-            if (null == body)
+            if (null == m_body)
                 throw new InvalidOperationException("body must be set before building");
 
             if (!(macFactory.AlgorithmDetails is AlgorithmIdentifier algorithmDetails))
@@ -116,31 +147,31 @@ namespace Org.BouncyCastle.Cmp
 
             FinalizeHeader(algorithmDetails);
             PkiHeader header = m_hdrBuilder.Build();
-            DerBitString protection = X509Utilities.GenerateMac(macFactory, new DerSequence(header, body));
+            DerBitString protection = X509Utilities.GenerateMac(macFactory, new DerSequence(header, m_body));
             return FinalizeMessage(header, protection);
         }
 
         private void FinalizeHeader(AlgorithmIdentifier algorithmIdentifier)
         {
             m_hdrBuilder.SetProtectionAlg(algorithmIdentifier);
-            if (generalInfos.Count > 0)
+            if (m_generalInfos.Count > 0)
             {
-                m_hdrBuilder.SetGeneralInfo(generalInfos.ToArray());
+                m_hdrBuilder.SetGeneralInfo(m_generalInfos.ToArray());
             }
         }
 
         private ProtectedPkiMessage FinalizeMessage(PkiHeader header, DerBitString protection)
         {
-            if (extraCerts.Count < 1)
-                return new ProtectedPkiMessage(new PkiMessage(header, body, protection));
+            if (m_extraCerts.Count < 1)
+                return new ProtectedPkiMessage(new PkiMessage(header, m_body, protection));
 
-            CmpCertificate[] cmpCertificates = new CmpCertificate[extraCerts.Count];
+            CmpCertificate[] cmpCertificates = new CmpCertificate[m_extraCerts.Count];
             for (int i = 0; i < cmpCertificates.Length; i++)
             {
-                cmpCertificates[i] = new CmpCertificate(extraCerts[i].CertificateStructure);
+                cmpCertificates[i] = new CmpCertificate(m_extraCerts[i].CertificateStructure);
             }
 
-            return new ProtectedPkiMessage(new PkiMessage(header, body, protection, cmpCertificates));
+            return new ProtectedPkiMessage(new PkiMessage(header, m_body, protection, cmpCertificates));
         }
     }
 }

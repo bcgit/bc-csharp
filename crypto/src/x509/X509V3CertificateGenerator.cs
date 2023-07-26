@@ -156,13 +156,22 @@ namespace Org.BouncyCastle.X509
 			tbsGen.SetIssuerUniqueID(BooleanToBitString(uniqueID));
 		}
 
-		/// <summary>
-		/// Add a given extension field for the standard extensions tag (tag 3).
-		/// </summary>
-		/// <param name="oid">string containing a dotted decimal Object Identifier.</param>
-		/// <param name="critical">Is it critical.</param>
-		/// <param name="extensionValue">The value.</param>
-		public void AddExtension(
+        /// <summary>
+        /// Set the SubjectPublicKeyInfo for the public key that this certificate identifies.
+        /// </summary>
+        /// <param name="subjectPublicKeyInfo"/>
+        public void SetSubjectPublicKeyInfo(SubjectPublicKeyInfo subjectPublicKeyInfo)
+        {
+            tbsGen.SetSubjectPublicKeyInfo(subjectPublicKeyInfo);
+        }
+
+        /// <summary>
+        /// Add a given extension field for the standard extensions tag (tag 3).
+        /// </summary>
+        /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">The value.</param>
+        public void AddExtension(
 			string			oid,
 			bool			critical,
 			Asn1Encodable	extensionValue)

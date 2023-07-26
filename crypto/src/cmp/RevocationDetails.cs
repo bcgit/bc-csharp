@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Cmp
 
         public BigInteger SerialNumber => m_revDetails.CertDetails.SerialNumber.Value;
 
+        // TODO[api] Rename to 'ToAsn1Structure'
         public RevDetails ToASN1Structure() => m_revDetails;
     }
 }

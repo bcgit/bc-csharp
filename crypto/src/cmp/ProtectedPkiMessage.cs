@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Cmp
             if (!pkiMessage.HasProtection)
                 throw new ArgumentException("GeneralPkiMessage not protected");
 
-            this.m_pkiMessage = pkiMessage.ToAsn1Structure();
+            m_pkiMessage = pkiMessage.ToAsn1Structure();
         }
 
         // TODO[cmp] Make internal? (Has test that uses it)
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Cmp
             if (null == pkiMessage.Header.ProtectionAlg)
                 throw new ArgumentException("PkiMessage not protected");
 
-            this.m_pkiMessage = pkiMessage;
+            m_pkiMessage = pkiMessage;
         }
 
         /// <summary>Message header</summary>
@@ -66,6 +66,13 @@ namespace Org.BouncyCastle.Cmp
             get { return CmpObjectIdentifiers.passwordBasedMac.Equals(Header.ProtectionAlg.Algorithm); }
         }
 
+        /**
+         * Return the message's protection algorithm.
+         *
+         * @return the algorithm ID for the message's protection algorithm.
+         */
+        public virtual AlgorithmIdentifier ProtectionAlgorithm => m_pkiMessage.Header.ProtectionAlg;
+
         /// <summary>
         /// Return the extra certificates associated with this message.
         /// </summary>
@@ -76,12 +83,8 @@ namespace Org.BouncyCastle.Cmp
             if (null == certs)
                 return new X509Certificate[0];
 
-            X509Certificate[] result = new X509Certificate[certs.Length];
-            for (int t = 0; t < certs.Length; t++)
-            {
-                result[t] = new X509Certificate(certs[t].X509v3PKCert);
-            }
-            return result;
+            return Array.ConvertAll<CmpCertificate, X509Certificate>(certs,
+                cmpCertificate => new X509Certificate(cmpCertificate.X509v3PKCert));
         }
 
         /// <summary>
@@ -107,10 +110,12 @@ namespace Org.BouncyCastle.Cmp
         /// <exception cref="InvalidOperationException">if algorithm not MAC based, or an exception is thrown verifying the MAC.</exception>
         public virtual bool Verify(PKMacBuilder pkMacBuilder, char[] password)
         {
-            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(m_pkiMessage.Header.ProtectionAlg.Algorithm))
+            var protectionAlgorithm = m_pkiMessage.Header.ProtectionAlg;
+
+            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(protectionAlgorithm.Algorithm))
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
-            PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
+            PbmParameter parameter = PbmParameter.GetInstance(protectionAlgorithm.Parameters);
             pkMacBuilder.SetParameters(parameter);
 
             var macFactory = pkMacBuilder.Build(password);
