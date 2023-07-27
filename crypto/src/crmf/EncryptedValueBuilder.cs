@@ -146,14 +146,6 @@ namespace Org.BouncyCastle.Crmf
             return new EncryptedValue(intendedAlg, symmAlg, encSymmKey, keyAlg, valueHint, encValue);
         }
 
-        private byte[] PadData(byte[] data)
-        {
-            if (padder != null)
-            {
-                return padder.GetPaddedData(data);
-            }
-
-            return data;
-        }
+        private byte[] PadData(byte[] data) => padder?.GetPaddedData(data) ?? data;
     }
 }

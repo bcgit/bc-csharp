@@ -102,6 +102,9 @@ namespace Org.BouncyCastle.Cmp
         /// <exception cref="InvalidOperationException">if algorithm not MAC based, or an exception is thrown verifying the MAC.</exception>
         public virtual bool Verify(PKMacBuilder pkMacBuilder, char[] password)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Verify(pkMacBuilder, password.AsSpan());
+#else
             var protectionAlgorithm = m_pkiMessage.Header.ProtectionAlg;
 
             if (!CmpObjectIdentifiers.passwordBasedMac.Equals(protectionAlgorithm.Algorithm))
@@ -113,6 +116,7 @@ namespace Org.BouncyCastle.Cmp
             var macFactory = pkMacBuilder.Build(password);
 
             return X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

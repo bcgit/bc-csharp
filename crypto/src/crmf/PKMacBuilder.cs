@@ -52,8 +52,10 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Default, IterationCount = 1000, OIW=IdSha1, Mac=HmacSHA1
         /// </summary>
-        public PKMacBuilder() :
-            this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000, new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance), new DefaultPKMacPrimitivesProvider())
+        public PKMacBuilder()
+            :   this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000,
+                    new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance),
+                    new DefaultPKMacPrimitivesProvider())
         {
         }
 
@@ -61,8 +63,9 @@ namespace Org.BouncyCastle.Crmf
         /// Defaults with IPKMacPrimitivesProvider
         /// </summary>
         /// <param name="provider"></param>
-        public PKMacBuilder(IPKMacPrimitivesProvider provider) :
-            this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000, new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance), provider)
+        public PKMacBuilder(IPKMacPrimitivesProvider provider)
+            :   this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000,
+                    new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance), provider)
         {
         }
 
@@ -72,8 +75,9 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="provider">The Mac provider</param>
         /// <param name="digestAlgorithmIdentifier">Digest Algorithm Id</param>
         /// <param name="macAlgorithmIdentifier">Mac Algorithm Id</param>
-        public PKMacBuilder(IPKMacPrimitivesProvider provider, AlgorithmIdentifier digestAlgorithmIdentifier, AlgorithmIdentifier macAlgorithmIdentifier) :
-            this(digestAlgorithmIdentifier, 1000, macAlgorithmIdentifier, provider)
+        public PKMacBuilder(IPKMacPrimitivesProvider provider, AlgorithmIdentifier digestAlgorithmIdentifier,
+            AlgorithmIdentifier macAlgorithmIdentifier)
+            : this(digestAlgorithmIdentifier, 1000, macAlgorithmIdentifier, provider)
         {
         }
 
@@ -88,7 +92,8 @@ namespace Org.BouncyCastle.Crmf
             this.maxIterations = maxIterations;
         }
 
-        private PKMacBuilder(AlgorithmIdentifier digestAlgorithmIdentifier, int iterationCount, AlgorithmIdentifier macAlgorithmIdentifier, IPKMacPrimitivesProvider provider)
+        private PKMacBuilder(AlgorithmIdentifier digestAlgorithmIdentifier, int iterationCount,
+            AlgorithmIdentifier macAlgorithmIdentifier, IPKMacPrimitivesProvider provider)
         {
             this.iterationCount = iterationCount;
             this.mac = macAlgorithmIdentifier;
@@ -131,6 +136,18 @@ namespace Org.BouncyCastle.Crmf
         }
 
         /// <summary>
+        /// The Secure random
+        /// </summary>
+        /// <param name="random">The random.</param>
+        /// <returns>this</returns>
+        public PKMacBuilder SetSecureRandom(SecureRandom random)
+        {
+            this.random = random;
+
+            return this;
+        }
+
+        /// <summary>
         /// Set PbmParameters
         /// </summary>
         /// <param name="parameters">The parameters.</param>
@@ -144,17 +161,31 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        /// <summary>
-        /// The Secure random
-        /// </summary>
-        /// <param name="random">The random.</param>
-        /// <returns>this</returns>
-        public PKMacBuilder SetSecureRandom(SecureRandom random)
+        public IMacFactory Get(AlgorithmIdentifier algorithm, char[] password)
         {
-            this.random = random;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Get(algorithm, password.AsSpan());
+#else
+            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(algorithm.Algorithm))
+                throw new ArgumentException("protection algorithm not mac based", nameof(algorithm));
 
-            return this;
+            SetParameters(PbmParameter.GetInstance(algorithm.Parameters));
+
+            return Build(password);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public IMacFactory Get(AlgorithmIdentifier algorithm, ReadOnlySpan<char> password)
+        {
+            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(algorithm.Algorithm))
+                throw new ArgumentException("protection algorithm not mac based", nameof(algorithm));
+
+            SetParameters(PbmParameter.GetInstance(algorithm.Parameters));
+
+            return Build(password);
+        }
+#endif
 
         /// <summary>
         /// Build an IMacFactory.

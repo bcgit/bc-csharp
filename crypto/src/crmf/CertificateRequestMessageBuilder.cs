@@ -11,31 +11,38 @@ namespace Org.BouncyCastle.Crmf
 {
     public class CertificateRequestMessageBuilder
     {
-        private readonly BigInteger _certReqId;
-        private X509ExtensionsGenerator _extGenerator;
-        private CertTemplateBuilder _templateBuilder;
-        private IList<IControl> m_controls = new List<IControl>();
-        private ISignatureFactory _popSigner;
-        private PKMacBuilder _pkMacBuilder;
-        private char[] _password;
-        private GeneralName _sender;
-        private int _popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
-        private PopoPrivKey _popoPrivKey;
-        private Asn1Null _popRaVerified;
-        private PKMacValue _agreeMac;
+        private readonly List<IControl> m_controls = new List<IControl>();
+        private readonly X509ExtensionsGenerator m_extGenerator = new X509ExtensionsGenerator();
+        private readonly CertTemplateBuilder m_templateBuilder = new CertTemplateBuilder();
+
+        private readonly BigInteger m_certReqID;
+
+        private ISignatureFactory m_popSigner = null;
+        private PKMacBuilder m_pkMacBuilder = null;
+        private char[] m_password = null;
+        private GeneralName m_sender = null;
+        private int m_popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
+        private PopoPrivKey m_popoPrivKey = null;
+        private Asn1Null m_popRaVerified = null;
+        private PKMacValue m_agreeMac = null;
+        private AttributeTypeAndValue[] m_regInfo = null;
 
         public CertificateRequestMessageBuilder(BigInteger certReqId)
         {
-            this._certReqId = certReqId;
-            this._extGenerator = new X509ExtensionsGenerator();
-            this._templateBuilder = new CertTemplateBuilder();
+            m_certReqID = certReqId;
+        }
+
+        public CertificateRequestMessageBuilder SetRegInfo(AttributeTypeAndValue[] regInfo)
+        {
+            m_regInfo = regInfo;
+            return this;
         }
 
         public CertificateRequestMessageBuilder SetPublicKey(SubjectPublicKeyInfo publicKeyInfo)
         {
             if (publicKeyInfo != null)
             {
-                _templateBuilder.SetPublicKey(publicKeyInfo);
+                m_templateBuilder.SetPublicKey(publicKeyInfo);
             }
 
             return this;
@@ -45,7 +52,7 @@ namespace Org.BouncyCastle.Crmf
         {
             if (issuer != null)
             {
-                _templateBuilder.SetIssuer(issuer);
+                m_templateBuilder.SetIssuer(issuer);
             }
 
             return this;
@@ -55,7 +62,7 @@ namespace Org.BouncyCastle.Crmf
         {
             if (subject != null)
             {
-                _templateBuilder.SetSubject(subject);
+                m_templateBuilder.SetSubject(subject);
             }
 
             return this;
@@ -65,7 +72,17 @@ namespace Org.BouncyCastle.Crmf
         {
             if (serialNumber != null)
             {
-                _templateBuilder.SetSerialNumber(new DerInteger(serialNumber));
+                m_templateBuilder.SetSerialNumber(new DerInteger(serialNumber));
+            }
+
+            return this;
+        }
+
+        public CertificateRequestMessageBuilder SetSerialNumber(DerInteger serialNumber)
+        {
+            if (serialNumber != null)
+            {
+                m_templateBuilder.SetSerialNumber(serialNumber);
             }
 
             return this;
@@ -73,21 +90,21 @@ namespace Org.BouncyCastle.Crmf
 
         public CertificateRequestMessageBuilder SetValidity(DateTime? notBefore, DateTime? notAfter)
         {
-            _templateBuilder.SetValidity(new OptionalValidity(CreateTime(notBefore), CreateTime(notAfter)));
+            m_templateBuilder.SetValidity(new OptionalValidity(CreateTime(notBefore), CreateTime(notAfter)));
             return this;
         }
 
         public CertificateRequestMessageBuilder AddExtension(DerObjectIdentifier oid, bool critical,
             Asn1Encodable value)
         {
-            _extGenerator.AddExtension(oid, critical, value);
+            m_extGenerator.AddExtension(oid, critical, value);
             return this;
         }
 
         public CertificateRequestMessageBuilder AddExtension(DerObjectIdentifier oid, bool critical,
             byte[] value)
         {
-            _extGenerator.AddExtension(oid, critical, value);
+            m_extGenerator.AddExtension(oid, critical, value);
             return this;
         }
 
@@ -97,69 +114,53 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        public CertificateRequestMessageBuilder SetProofOfPossessionSignKeySigner(ISignatureFactory popoSignatureFactory)
+        public CertificateRequestMessageBuilder SetProofOfPossessionSignKeySigner(
+            ISignatureFactory popoSignatureFactory)
         {
-            if (_popoPrivKey != null || _popRaVerified != null || _agreeMac != null)
-            {
+            if (m_popoPrivKey != null || m_popRaVerified != null || m_agreeMac != null)
                 throw new InvalidOperationException("only one proof of possession is allowed.");
-            }
 
-            this._popSigner = popoSignatureFactory;
-
+            m_popSigner = popoSignatureFactory;
             return this;
         }
 
         public CertificateRequestMessageBuilder SetProofOfPossessionSubsequentMessage(SubsequentMessage msg)
         {
-            if (_popoPrivKey != null || _popRaVerified != null || _agreeMac != null)
-            {
+            if (m_popoPrivKey != null || m_popRaVerified != null || m_agreeMac != null)
                 throw new InvalidOperationException("only one proof of possession is allowed.");
-            }
 
-            this._popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
-            this._popoPrivKey = new PopoPrivKey(msg);
-
+            m_popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
+            m_popoPrivKey = new PopoPrivKey(msg);
             return this;
         }
 
-
         public CertificateRequestMessageBuilder SetProofOfPossessionSubsequentMessage(int type, SubsequentMessage msg)
         {
-            if (_popoPrivKey != null || _popRaVerified != null || _agreeMac != null)
-            {
+            if (m_popoPrivKey != null || m_popRaVerified != null || m_agreeMac != null)
                 throw new InvalidOperationException("only one proof of possession is allowed.");
-            }
-
             if (type != ProofOfPossession.TYPE_KEY_ENCIPHERMENT && type != ProofOfPossession.TYPE_KEY_AGREEMENT)
-            {
-                throw new ArgumentException("type must be ProofOfPossession.TYPE_KEY_ENCIPHERMENT || ProofOfPossession.TYPE_KEY_AGREEMENT");
-            }
+                throw new ArgumentException("type must be ProofOfPossession.TYPE_KEY_ENCIPHERMENT or ProofOfPossession.TYPE_KEY_AGREEMENT");
 
-            this._popoType = type;
-            this._popoPrivKey = new PopoPrivKey(msg);
+            m_popoType = type;
+            m_popoPrivKey = new PopoPrivKey(msg);
             return this;
         }
 
         public CertificateRequestMessageBuilder SetProofOfPossessionAgreeMac(PKMacValue macValue)
         {
-            if (_popSigner != null || _popRaVerified != null || _popoPrivKey != null)
-            {
+            if (m_popSigner != null || m_popRaVerified != null || m_popoPrivKey != null)
                 throw new InvalidOperationException("only one proof of possession allowed");
-            }
 
-            this._agreeMac = macValue;
+            m_agreeMac = macValue;
             return this;
         }
 
         public CertificateRequestMessageBuilder SetProofOfPossessionRaVerified()
         {
-            if (_popSigner != null || _popoPrivKey != null)
-            {
+            if (m_popSigner != null || m_popoPrivKey != null)
                 throw new InvalidOperationException("only one proof of possession allowed");
-            }
 
-            this._popRaVerified = DerNull.Instance;
-
+            m_popRaVerified = DerNull.Instance;
             return this;
         }
 
@@ -171,11 +172,20 @@ namespace Org.BouncyCastle.Crmf
 
         public CertificateRequestMessageBuilder SetAuthInfoPKMacBuilder(PKMacBuilder pkmacFactory, char[] password)
         {
-            this._pkMacBuilder = pkmacFactory;
-            this._password = password;
-
+            m_pkMacBuilder = pkmacFactory;
+            m_password = password;
             return this;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public CertificateRequestMessageBuilder SetAuthInfoPKMacBuilder(PKMacBuilder pkmacFactory,
+            ReadOnlySpan<char> password)
+        {
+            m_pkMacBuilder = pkmacFactory;
+            m_password = password.ToArray();
+            return this;
+        }
+#endif
 
         public CertificateRequestMessageBuilder SetAuthInfoSender(X509Name sender)
         {
@@ -184,20 +194,21 @@ namespace Org.BouncyCastle.Crmf
 
         public CertificateRequestMessageBuilder SetAuthInfoSender(GeneralName sender)
         {
-            this._sender = sender;
+            m_sender = sender;
             return this;
         }
 
         public CertificateRequestMessage Build()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(new DerInteger(this._certReqId));
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(new DerInteger(m_certReqID));
 
-            if (!this._extGenerator.IsEmpty)
+            if (!m_extGenerator.IsEmpty)
             {
-                this._templateBuilder.SetExtensions(_extGenerator.Generate());
+                m_templateBuilder.SetExtensions(m_extGenerator.Generate());
             }
 
-            v.Add(_templateBuilder.Build());
+            v.Add(m_templateBuilder.Build());
 
             if (m_controls.Count > 0)
             {
@@ -213,52 +224,54 @@ namespace Org.BouncyCastle.Crmf
 
             CertRequest request = CertRequest.GetInstance(new DerSequence(v));
 
-            v = new Asn1EncodableVector(request);
-
-            if (_popSigner != null)
+            ProofOfPossession proofOfPossession;
+            if (m_popSigner != null)
             {
                 CertTemplate template = request.CertTemplate;
 
+                ProofOfPossessionSigningKeyBuilder builder;
                 if (template.Subject == null || template.PublicKey == null)
                 {
                     SubjectPublicKeyInfo pubKeyInfo = request.CertTemplate.PublicKey;
 
-                    ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(pubKeyInfo);
+                    builder = new ProofOfPossessionSigningKeyBuilder(pubKeyInfo);
 
-                    if (_sender != null)
+                    if (m_sender != null)
                     {
-                        builder.SetSender(_sender);
+                        builder.SetSender(m_sender);
                     }
                     else
                     {
-                        //PKMACValueGenerator pkmacGenerator = new PKMACValueGenerator(_pkmacBuilder);
-
-                        builder.SetPublicKeyMac(_pkMacBuilder, _password);
+                        builder.SetPublicKeyMac(m_pkMacBuilder, m_password);
                     }
-
-                    v.Add(new ProofOfPossession(builder.Build(_popSigner)));
                 }
                 else
                 {
-                    ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(request);
-
-                    v.Add(new ProofOfPossession(builder.Build(_popSigner)));
+                    builder = new ProofOfPossessionSigningKeyBuilder(request);
                 }
+
+                proofOfPossession = new ProofOfPossession(builder.Build(m_popSigner));
             }
-            else if (_popoPrivKey != null)
+            else if (m_popoPrivKey != null)
             {
-                v.Add(new ProofOfPossession(_popoType, _popoPrivKey));
+                proofOfPossession = new ProofOfPossession(m_popoType, m_popoPrivKey);
             }
-            else if (_agreeMac != null)
+            else if (m_agreeMac != null)
             {
-                v.Add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT, new PopoPrivKey(_agreeMac)));
+                proofOfPossession = new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT, new PopoPrivKey(m_agreeMac));
             }
-            else if (_popRaVerified != null)
+            else if (m_popRaVerified != null)
             {
-                v.Add(new ProofOfPossession());
+                proofOfPossession = new ProofOfPossession();
+            }
+            else
+            {
+                proofOfPossession = new ProofOfPossession();
             }
 
-            return new CertificateRequestMessage(CertReqMsg.GetInstance(new DerSequence(v)));
+            CertReqMsg certReqMsg = new CertReqMsg(request, proofOfPossession, m_regInfo);
+
+            return new CertificateRequestMessage(certReqMsg);
         }
 
         private static Time CreateTime(DateTime? dateTime)

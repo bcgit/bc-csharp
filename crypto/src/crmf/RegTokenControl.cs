@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Asn1;
+﻿using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 
 namespace Org.BouncyCastle.Crmf
@@ -8,9 +6,7 @@ namespace Org.BouncyCastle.Crmf
     public class RegTokenControl
         : IControl
     {
-        private static readonly DerObjectIdentifier type = CrmfObjectIdentifiers.id_regCtrl_regToken;
-
-        private readonly DerUtf8String token;
+        private readonly DerUtf8String m_token;
 
         /// <summary>
         /// Basic constructor - build from a UTF-8 string representing the token.
@@ -18,7 +14,7 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="token">UTF-8 string representing the token.</param>
         public RegTokenControl(DerUtf8String token)
         {
-            this.token = token;
+            m_token = token;
         }
 
         /// <summary>
@@ -27,25 +23,19 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="token">string representing the token.</param>
         public RegTokenControl(string token)
         {
-            this.token = new DerUtf8String(token);
+            m_token = new DerUtf8String(token);
         }
 
         /// <summary>
         /// Return the type of this control.
         /// </summary>
         /// <returns>CRMFObjectIdentifiers.id_regCtrl_regToken</returns>
-        public DerObjectIdentifier Type
-        {
-            get { return type; }
-        }
+        public DerObjectIdentifier Type => CrmfObjectIdentifiers.id_regCtrl_regToken;
 
         /// <summary>
         /// Return the token associated with this control (a UTF8String).
         /// </summary>
         /// <returns>a UTF8String.</returns>
-        public Asn1Encodable Value
-        {
-            get { return token; }
-        }
+        public Asn1Encodable Value => m_token;
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Net.Security;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
@@ -11,77 +9,71 @@ namespace Org.BouncyCastle.Crmf
 {
     public class ProofOfPossessionSigningKeyBuilder
     {
-        private CertRequest _certRequest;
-        private SubjectPublicKeyInfo _pubKeyInfo;
-        private GeneralName _name;
-        private PKMacValue _publicKeyMAC;
+        private readonly CertRequest m_certRequest;
+        private readonly SubjectPublicKeyInfo m_pubKeyInfo;
+
+        private GeneralName m_name = null;
+        private PKMacValue m_publicKeyMac = null;
 
         public ProofOfPossessionSigningKeyBuilder(CertRequest certRequest)
         {
-            this._certRequest = certRequest;
+            m_certRequest = certRequest;
+            m_pubKeyInfo = null;
         }
 
         public ProofOfPossessionSigningKeyBuilder(SubjectPublicKeyInfo pubKeyInfo)
         {
-            this._pubKeyInfo = pubKeyInfo;
+            m_certRequest = null;
+            m_pubKeyInfo = pubKeyInfo;
         }
 
         public ProofOfPossessionSigningKeyBuilder SetSender(GeneralName name)
         {
-            this._name = name;
+            m_name = name;
             return this;
         }
 
         public ProofOfPossessionSigningKeyBuilder SetPublicKeyMac(PKMacBuilder generator, char[] password)
         {
-            IMacFactory fact = generator.Build(password);
-
-            return ImplSetPublicKeyMac(fact);
+            m_publicKeyMac = PKMacValueGenerator.Generate(generator, password, m_pubKeyInfo);
+            return this;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public ProofOfPossessionSigningKeyBuilder SetPublicKeyMac(PKMacBuilder generator, ReadOnlySpan<char> password)
         {
-            IMacFactory fact = generator.Build(password);
-
-            return ImplSetPublicKeyMac(fact);
+            m_publicKeyMac = PKMacValueGenerator.Generate(generator, password, m_pubKeyInfo);
+            return this;
         }
 #endif
 
         public PopoSigningKey Build(ISignatureFactory signer)
         {
-            if (_name != null && _publicKeyMAC != null)
+            if (m_name != null && m_publicKeyMac != null)
                 throw new InvalidOperationException("name and publicKeyMAC cannot both be set.");
 
             PopoSigningKeyInput popo;
             Asn1Encodable asn1Encodable;
 
-            if (_certRequest != null)
+            if (m_certRequest != null)
             {
                 popo = null;
-                asn1Encodable = _certRequest;
+                asn1Encodable = m_certRequest;
             }
-            else if (_name != null)
+            else if (m_name != null)
             {
-                popo = new PopoSigningKeyInput(_name, _pubKeyInfo);
+                popo = new PopoSigningKeyInput(m_name, m_pubKeyInfo);
                 asn1Encodable = popo;
             }
             else
             {
-                popo = new PopoSigningKeyInput(_publicKeyMAC, _pubKeyInfo);
+                popo = new PopoSigningKeyInput(m_publicKeyMac, m_pubKeyInfo);
                 asn1Encodable = popo;
             }
 
             var signature = X509.X509Utilities.GenerateSignature(signer, asn1Encodable);
 
             return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, signature);
-        }
-
-        private ProofOfPossessionSigningKeyBuilder ImplSetPublicKeyMac(IMacFactory macFactory)
-        {
-            var macValue = X509.X509Utilities.GenerateMac(macFactory, _pubKeyInfo);
-            this._publicKeyMAC = new PKMacValue((AlgorithmIdentifier)macFactory.AlgorithmDetails, macValue);
-            return this;
         }
     }
 }

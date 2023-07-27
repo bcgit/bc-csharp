@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
 
@@ -86,25 +87,23 @@ namespace Org.BouncyCastle.Cmp
             return this;
         }
 
-        // TODO[crmf] Add CertificateReqMessages
-        //public ProtectedPkiMessageBuilder SetBody(int bodyType, CertificateReqMessages certificateReqMessages)
-        //{
-        //    if (!CertificateReqMessages.IsCertificateRequestMessages(bodyType))
-        //        throw new ArgumentException("body type " + bodyType + " does not match CMP type CertReqMessages");
+        public ProtectedPkiMessageBuilder SetBody(int bodyType, CertificateReqMessages certificateReqMessages)
+        {
+            if (!CertificateReqMessages.IsCertificateRequestMessages(bodyType))
+                throw new ArgumentException("body type " + bodyType + " does not match CMP type CertReqMessages");
 
-        //    m_body = new PkiBody(bodyType, certificateReqMessages.ToAsn1Structure());
-        //    return this;
-        //}
+            m_body = new PkiBody(bodyType, certificateReqMessages.ToAsn1Structure());
+            return this;
+        }
 
-        // TODO[crmf] Add CertificateRepMessage
-        //public ProtectedPkiMessageBuilder SetBody(int bodyType, CertificateRepMessage certificateRepMessage)
-        //{
-        //    if (!CertificateRepMessage.IsCertificateRepMessage(bodyType))
-        //        throw new ArgumentException("body type " + bodyType + " does not match CMP type CertRepMessage");
+        public ProtectedPkiMessageBuilder SetBody(int bodyType, CertificateRepMessage certificateRepMessage)
+        {
+            if (!CertificateRepMessage.IsCertificateRepMessage(bodyType))
+                throw new ArgumentException("body type " + bodyType + " does not match CMP type CertRepMessage");
 
-        //    m_body = new PkiBody(bodyType, certificateRepMessage.ToAsn1Structure());
-        //    return this;
-        //}
+            m_body = new PkiBody(bodyType, certificateRepMessage.ToAsn1Structure());
+            return this;
+        }
 
         public ProtectedPkiMessageBuilder SetBody(int bodyType,
             CertificateConfirmationContent certificateConfirmationContent)

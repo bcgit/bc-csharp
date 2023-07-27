@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Cmp
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
             if (!IsCertificateConfirmationContent(pkiBody.Type))
-                throw new ArgumentException("content of PkiBody wrong type: " + pkiBody.Type);
+                throw new ArgumentException("content of PKIBody wrong type: " + pkiBody.Type);
 
             var content = CertConfirmContent.GetInstance(pkiBody.Content);
 

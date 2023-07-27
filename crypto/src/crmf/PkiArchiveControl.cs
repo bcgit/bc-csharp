@@ -14,9 +14,7 @@ namespace Org.BouncyCastle.Crmf
         public static readonly int keyGenParameters = PkiArchiveOptions.keyGenParameters;
         public static readonly int archiveRemGenPrivKey = PkiArchiveOptions.archiveRemGenPrivKey;
 
-        private static readonly DerObjectIdentifier type = CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions;
-
-        private readonly PkiArchiveOptions pkiArchiveOptions;
+        private readonly PkiArchiveOptions m_pkiArchiveOptions;
 
         /// <summary>
         /// Basic constructor - build from an PKIArchiveOptions structure.
@@ -24,48 +22,42 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="pkiArchiveOptions">the ASN.1 structure that will underlie this control.</param>
         public PkiArchiveControl(PkiArchiveOptions pkiArchiveOptions)
         {
-            this.pkiArchiveOptions = pkiArchiveOptions;
+            m_pkiArchiveOptions = pkiArchiveOptions;
         }
 
         /// <summary>
         /// Return the type of this control.
         /// </summary>
         /// <returns>CRMFObjectIdentifiers.id_regCtrl_pkiArchiveOptions</returns>
-        public DerObjectIdentifier Type
-        {
-
-            get { return type; }
-        }
+        public DerObjectIdentifier Type => CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions;
 
         /// <summary>
         /// Return the underlying ASN.1 object.
         /// </summary>
         /// <returns>a PKIArchiveOptions structure.</returns>    
-        public Asn1Encodable Value
-        {
-            get { return pkiArchiveOptions; }
-        }
+        public Asn1Encodable Value => m_pkiArchiveOptions;
 
         /// <summary>
         /// Return the archive control type, one of: encryptedPrivKey,keyGenParameters,or archiveRemGenPrivKey.
         /// </summary>
         /// <returns>the archive control type.</returns>
-        public int ArchiveType
-        {
-            get { return pkiArchiveOptions.Type; }
-        }
+        public int ArchiveType => m_pkiArchiveOptions.Type;
 
         /// <summary>
         /// Return whether this control contains enveloped data.
         /// </summary>
         /// <returns>true if the control contains enveloped data, false otherwise.</returns>
-        public bool EnvelopedData
+        [Obsolete("Use 'IsEnvelopedData' instead")]
+        public bool EnvelopedData => IsEnvelopedData();
+
+        /// <summary>
+        /// Return whether this control contains enveloped data.
+        /// </summary>
+        /// <returns>true if the control contains enveloped data, false otherwise.</returns>
+        public bool IsEnvelopedData()
         {
-            get
-            {
-                EncryptedKey encKey = EncryptedKey.GetInstance(pkiArchiveOptions.Value);
-                return !encKey.IsEncryptedValue;
-            }
+            EncryptedKey encKey = EncryptedKey.GetInstance(m_pkiArchiveOptions.Value);
+            return !encKey.IsEncryptedValue;
         }
 
         /// <summary>
@@ -76,8 +68,8 @@ namespace Org.BouncyCastle.Crmf
         {
             try
             {
-                EncryptedKey encKey = EncryptedKey.GetInstance(pkiArchiveOptions.Value);
-                EnvelopedData data = Org.BouncyCastle.Asn1.Cms.EnvelopedData.GetInstance(encKey.Value);
+                EncryptedKey encKey = EncryptedKey.GetInstance(m_pkiArchiveOptions.Value);
+                EnvelopedData data = Asn1.Cms.EnvelopedData.GetInstance(encKey.Value);
 
                 return new CmsEnvelopedData(new ContentInfo(CmsObjectIdentifiers.EnvelopedData, data));
             }
