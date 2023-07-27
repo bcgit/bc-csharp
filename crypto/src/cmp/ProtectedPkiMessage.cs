@@ -5,7 +5,6 @@ using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
@@ -83,8 +82,7 @@ namespace Org.BouncyCastle.Cmp
             if (null == certs)
                 return new X509Certificate[0];
 
-            return Array.ConvertAll<CmpCertificate, X509Certificate>(certs,
-                cmpCertificate => new X509Certificate(cmpCertificate.X509v3PKCert));
+            return Array.ConvertAll(certs, cmpCertificate => new X509Certificate(cmpCertificate.X509v3PKCert));
         }
 
         /// <summary>
@@ -92,14 +90,8 @@ namespace Org.BouncyCastle.Cmp
         /// </summary>
         /// <param name="verifierFactory">a factory of signature verifiers.</param>
         /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>      
-        public virtual bool Verify(IVerifierFactory verifierFactory)
-        {
-            IStreamCalculator<IVerifier> streamCalculator = verifierFactory.CreateCalculator();
-
-            IVerifier result = Process(streamCalculator);
-
-            return result.IsVerified(m_pkiMessage.Protection.GetBytes());
-        }
+        public virtual bool Verify(IVerifierFactory verifierFactory) =>
+            X509Utilities.VerifySignature(verifierFactory, CreateProtected(), m_pkiMessage.Protection);
 
         /// <summary>
         /// Verify a message with password based MAC protection.
@@ -120,32 +112,26 @@ namespace Org.BouncyCastle.Cmp
 
             var macFactory = pkMacBuilder.Build(password);
 
-            IBlockResult result = Process(macFactory.CreateCalculator());
-
-            return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
+            return X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual bool Verify(PKMacBuilder pkMacBuilder, ReadOnlySpan<char> password)
         {
-            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(m_pkiMessage.Header.ProtectionAlg.Algorithm))
+            var protectionAlgorithm = m_pkiMessage.Header.ProtectionAlg;
+
+            if (!CmpObjectIdentifiers.passwordBasedMac.Equals(protectionAlgorithm.Algorithm))
                 throw new InvalidOperationException("protection algorithm is not mac based");
 
-            PbmParameter parameter = PbmParameter.GetInstance(m_pkiMessage.Header.ProtectionAlg.Parameters);
+            PbmParameter parameter = PbmParameter.GetInstance(protectionAlgorithm.Parameters);
             pkMacBuilder.SetParameters(parameter);
 
             var macFactory = pkMacBuilder.Build(password);
 
-            IBlockResult result = Process(macFactory.CreateCalculator());
-
-            return Arrays.FixedTimeEquals(result.Collect(), m_pkiMessage.Protection.GetBytes());
+            return X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
         }
 #endif
 
-        private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)
-        {
-            var asn1Encodable = new DerSequence(m_pkiMessage.Header, m_pkiMessage.Body);
-            return X509Utilities.CalculateResult(streamCalculator, asn1Encodable);
-        }
+        private DerSequence CreateProtected() => new DerSequence(m_pkiMessage.Header, m_pkiMessage.Body);
     }
 }

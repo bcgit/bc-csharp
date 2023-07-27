@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
@@ -202,6 +203,13 @@ namespace Org.BouncyCastle.X509
         internal static DerBitString GenerateSignature(ISignatureFactory signatureFactory, Asn1Encodable asn1Encodable)
         {
             return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
+        }
+
+        internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString protection)
+        {
+            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable);
+
+            return Arrays.FixedTimeEquals(result.Collect(), protection.GetBytes());
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,
