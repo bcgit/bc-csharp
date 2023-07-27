@@ -8,88 +8,34 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crmf
 {
-    internal class PKMacStreamCalculator
-        : IStreamCalculator<DefaultPKMacResult>
-    {
-        private readonly MacSink _stream;
-
-        public PKMacStreamCalculator(IMac mac)
-        {
-            _stream = new MacSink(mac);
-        }
-
-        public Stream Stream
-        {
-            get { return _stream; }
-        }
-
-        public DefaultPKMacResult GetResult()
-        {
-            return new DefaultPKMacResult(_stream.Mac);
-        }
-    }
-
-    internal class PKMacFactory
+    internal sealed class PKMacFactory
         : IMacFactory
     {
-        protected readonly PbmParameter parameters;
-        private readonly byte[] key;
+        private readonly KeyParameter m_key;
+        private readonly PbmParameter m_parameters;
 
         public PKMacFactory(byte[] key, PbmParameter parameters)
         {
-            this.key = Arrays.Clone(key);
-            this.parameters = parameters;
+            m_key = new KeyParameter(key);
+            m_parameters = parameters;
         }
 
-        public virtual object AlgorithmDetails
+        public object AlgorithmDetails =>
+            new AlgorithmIdentifier(CmpObjectIdentifiers.passwordBasedMac, m_parameters);
+
+        public IStreamCalculator<IBlockResult> CreateCalculator()
         {
-            get { return new AlgorithmIdentifier(CmpObjectIdentifiers.passwordBasedMac, parameters); }
+            IMac mac = MacUtilities.GetMac(m_parameters.Mac.Algorithm);
+            mac.Init(m_key);
+            return new DefaultMacCalculator(mac);
         }
-
-        public virtual IStreamCalculator<IBlockResult> CreateCalculator()
-        {
-            IMac mac = MacUtilities.GetMac(parameters.Mac.Algorithm);
-            mac.Init(new KeyParameter(key));
-            return new PKMacStreamCalculator(mac);
-        }
-    }
-
-    internal sealed class DefaultPKMacResult
-        : IBlockResult
-    {
-        private readonly IMac mac;
-
-        public DefaultPKMacResult(IMac mac)
-        {
-            this.mac = mac;
-        }
-
-        public byte[] Collect()
-        {
-            byte[] res = new byte[mac.GetMacSize()];
-            mac.DoFinal(res, 0);
-            return res;
-        }
-
-        public int Collect(byte[] buf, int off)
-        {
-            return mac.DoFinal(buf, off);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int Collect(Span<byte> output)
-        {
-            return mac.DoFinal(output);
-        }
-#endif
-
-        public int GetMaxResultLength() => mac.GetMacSize();
     }
 
     public class PKMacBuilder

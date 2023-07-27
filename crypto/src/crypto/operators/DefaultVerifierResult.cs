@@ -4,26 +4,21 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
+    // TODO[api] sealed
     public class DefaultVerifierResult
         : IVerifier
     {
-        private readonly ISigner mSigner;
+        private readonly ISigner m_signer;
 
         public DefaultVerifierResult(ISigner signer)
         {
-            this.mSigner = signer;
+            m_signer = signer;
         }
 
-        public bool IsVerified(byte[] signature)
-        {
-            return mSigner.VerifySignature(signature);
-        }
+        public bool IsVerified(byte[] signature) => m_signer.VerifySignature(signature);
 
-        public bool IsVerified(byte[] sig, int sigOff, int sigLen)
-        {
-            byte[] signature = Arrays.CopyOfRange(sig, sigOff, sigOff + sigLen);
-
-            return IsVerified(signature);
-        }
+        // TODO[api] Use ISigner.VerifySignature(ReadOnlySpan<byte>) when available
+        public bool IsVerified(byte[] sig, int sigOff, int sigLen) =>
+            IsVerified(Arrays.CopyOfRange(sig, sigOff, sigOff + sigLen));
     }
 }

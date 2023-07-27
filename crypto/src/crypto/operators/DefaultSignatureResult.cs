@@ -5,17 +5,14 @@ namespace Org.BouncyCastle.Crypto.Operators
     public sealed class DefaultSignatureResult
         : IBlockResult
     {
-        private readonly ISigner mSigner;
+        private readonly ISigner m_signer;
 
         public DefaultSignatureResult(ISigner signer)
         {
-            this.mSigner = signer;
+            m_signer = signer;
         }
 
-        public byte[] Collect()
-        {
-            return mSigner.GenerateSignature();
-        }
+        public byte[] Collect() => m_signer.GenerateSignature();
 
         public int Collect(byte[] buf, int off)
         {
@@ -33,6 +30,6 @@ namespace Org.BouncyCastle.Crypto.Operators
         }
 #endif
 
-        public int GetMaxResultLength() => mSigner.GetMaxSignatureSize();
+        public int GetMaxResultLength() => m_signer.GetMaxSignatureSize();
     }
 }

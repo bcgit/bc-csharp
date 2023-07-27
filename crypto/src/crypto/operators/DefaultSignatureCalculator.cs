@@ -1,28 +1,22 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using Org.BouncyCastle.Crypto.IO;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
+    // TODO[api] sealed
     public class DefaultSignatureCalculator
         : IStreamCalculator<IBlockResult>
     {
-        private readonly SignerSink mSignerSink;
+        private readonly SignerSink m_signerSink;
 
         public DefaultSignatureCalculator(ISigner signer)
         {
-            this.mSignerSink = new SignerSink(signer);
+            m_signerSink = new SignerSink(signer);
         }
 
-        public Stream Stream
-        {
-            get { return mSignerSink; }
-        }
+        public Stream Stream => m_signerSink;
 
-        public IBlockResult GetResult()
-        {
-            return new DefaultSignatureResult(mSignerSink.Signer);
-        }
+        public IBlockResult GetResult() => new DefaultSignatureResult(m_signerSink.Signer);
     }
 }
