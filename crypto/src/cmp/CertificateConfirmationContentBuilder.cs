@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Operators.Utilities;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
@@ -62,17 +61,11 @@ namespace Org.BouncyCastle.Cmp
             Asn1EncodableVector v = new Asn1EncodableVector(m_acceptedCerts.Count);
             for (int i = 0; i != m_acceptedCerts.Count; i++)
             {
-                CmpCertificate cmpCertificate = m_acceptedCerts[i];
-                AlgorithmIdentifier signatureAlgorithm = m_acceptedSignatureAlgorithms[i];
-                DerInteger reqID = m_acceptedReqIDs[i];
+                var certHash = CmpUtilities.CalculateCertHash(m_acceptedCerts[i], m_acceptedSignatureAlgorithms[i],
+                    m_digestAlgorithmFinder);
+                var reqID = m_acceptedReqIDs[i];
 
-                var digestAlgorithm = m_digestAlgorithmFinder.Find(signatureAlgorithm)
-                    ?? throw new CmpException("cannot find algorithm for digest from signature");
-
-                byte[] digest = DigestUtilities.CalculateDigest(digestAlgorithm.Algorithm,
-                    cmpCertificate.GetEncoded(Asn1Encodable.Der));
-
-                v.Add(new CertStatus(digest, reqID));
+                v.Add(new CertStatus(certHash, reqID));
             }
 
             var content = CertConfirmContent.GetInstance(new DerSequence(v));

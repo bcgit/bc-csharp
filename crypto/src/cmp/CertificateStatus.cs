@@ -1,11 +1,9 @@
 ﻿using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Operators.Utilities;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
@@ -38,13 +36,9 @@ namespace Org.BouncyCastle.Cmp
 
         public virtual bool IsVerified(CmpCertificate cmpCertificate, AlgorithmIdentifier signatureAlgorithm)
         {
-            AlgorithmIdentifier digestAlgorithm = m_digestAlgorithmFinder.Find(signatureAlgorithm)
-                ?? throw new CmpException("cannot find algorithm for digest from signature");
+            var certHash = CmpUtilities.CalculateCertHash(cmpCertificate, signatureAlgorithm, m_digestAlgorithmFinder);
 
-            byte[] digest = DigestUtilities.CalculateDigest(digestAlgorithm.Algorithm,
-                cmpCertificate.GetEncoded(Asn1Encodable.Der));
-
-            return Arrays.FixedTimeEquals(m_certStatus.CertHash.GetOctets(), digest);
+            return Arrays.FixedTimeEquals(m_certStatus.CertHash.GetOctets(), certHash);
         }
     }
 }

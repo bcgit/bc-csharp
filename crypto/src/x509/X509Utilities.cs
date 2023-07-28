@@ -10,6 +10,8 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -127,6 +129,14 @@ namespace Org.BouncyCastle.X509
 			m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
 		}
 
+		internal static byte[] CalculateDigest(DerObjectIdentifier oid, Asn1Encodable asn1Encodable)
+		{
+            var digest = DigestUtilities.GetDigest(oid);
+            var digestCalculator = new DefaultDigestCalculator(digest);
+            var digestResult = CalculateResult(digestCalculator, asn1Encodable);
+			return digestResult.Collect();
+        }
+
         internal static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
             Asn1Encodable asn1Encodable)
         {
@@ -193,6 +203,11 @@ namespace Org.BouncyCastle.X509
         {
             var result = CalculateResult(streamCalculator, asn1Encodable);
             return CollectDerBitString(result);
+        }
+
+        internal static DerBitString GenerateDigest(IDigestFactory digestFactory, Asn1Encodable asn1Encodable)
+        {
+            return GenerateBitString(digestFactory.CreateCalculator(), asn1Encodable);
         }
 
         internal static DerBitString GenerateMac(IMacFactory macFactory, Asn1Encodable asn1Encodable)
