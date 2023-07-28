@@ -129,12 +129,20 @@ namespace Org.BouncyCastle.X509
 			m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
 		}
 
-		internal static byte[] CalculateDigest(DerObjectIdentifier oid, Asn1Encodable asn1Encodable)
+		internal static byte[] CalculateDigest(AlgorithmIdentifier digestAlgorithm, Asn1Encodable asn1Encodable)
 		{
-            var digest = DigestUtilities.GetDigest(oid);
+            var digest = DigestUtilities.GetDigest(digestAlgorithm.Algorithm);
             var digestCalculator = new DefaultDigestCalculator(digest);
             var digestResult = CalculateResult(digestCalculator, asn1Encodable);
 			return digestResult.Collect();
+        }
+
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory,
+            Asn1Encodable asn1Encodable)
+        {
+            var digestCalculator = digestFactory.CreateCalculator();
+            var digestResult = CalculateResult(digestCalculator, asn1Encodable);
+            return digestResult.Collect();
         }
 
         internal static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
@@ -220,11 +228,11 @@ namespace Org.BouncyCastle.X509
             return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
         }
 
-        internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString protection)
+        internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString expected)
         {
             var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable);
 
-            return Arrays.FixedTimeEquals(result.Collect(), protection.GetBytes());
+            return Arrays.FixedTimeEquals(result.Collect(), expected.GetOctets());
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,

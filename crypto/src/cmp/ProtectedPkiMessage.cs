@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Cmp
         public ProtectedPkiMessage(GeneralPkiMessage pkiMessage)
         {
             if (!pkiMessage.HasProtection)
-                throw new ArgumentException("GeneralPkiMessage not protected");
+                throw new ArgumentException("GeneralPkiMessage not protected", nameof(pkiMessage));
 
             m_pkiMessage = pkiMessage.ToAsn1Structure();
         }
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Cmp
         public ProtectedPkiMessage(PkiMessage pkiMessage)
         {
             if (null == pkiMessage.Header.ProtectionAlg)
-                throw new ArgumentException("PkiMessage not protected");
+                throw new ArgumentException("PkiMessage not protected", nameof(pkiMessage));
 
             m_pkiMessage = pkiMessage;
         }
@@ -60,10 +60,8 @@ namespace Org.BouncyCastle.Cmp
         /// to verify the message if this method returns true.
         /// </summary>
         /// <returns>true if protection MAC PBE based, false otherwise.</returns>
-        public virtual bool HasPasswordBasedMacProtected
-        {
-            get { return CmpObjectIdentifiers.passwordBasedMac.Equals(Header.ProtectionAlg.Algorithm); }
-        }
+        public virtual bool HasPasswordBasedMacProtected =>
+            CmpObjectIdentifiers.passwordBasedMac.Equals(ProtectionAlgorithm.Algorithm);
 
         /**
          * Return the message's protection algorithm.
@@ -105,7 +103,7 @@ namespace Org.BouncyCastle.Cmp
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Verify(pkMacBuilder, password.AsSpan());
 #else
-            var protectionAlgorithm = m_pkiMessage.Header.ProtectionAlg;
+            var protectionAlgorithm = ProtectionAlgorithm;
 
             if (!CmpObjectIdentifiers.passwordBasedMac.Equals(protectionAlgorithm.Algorithm))
                 throw new InvalidOperationException("protection algorithm is not mac based");
@@ -122,7 +120,7 @@ namespace Org.BouncyCastle.Cmp
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual bool Verify(PKMacBuilder pkMacBuilder, ReadOnlySpan<char> password)
         {
-            var protectionAlgorithm = m_pkiMessage.Header.ProtectionAlg;
+            var protectionAlgorithm = ProtectionAlgorithm;
 
             if (!CmpObjectIdentifiers.passwordBasedMac.Equals(protectionAlgorithm.Algorithm))
                 throw new InvalidOperationException("protection algorithm is not mac based");

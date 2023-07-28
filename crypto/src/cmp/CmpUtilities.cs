@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Cmp
             var digestAlgorithm = digestAlgorithmFinder.Find(signatureAlgorithm)
                 ?? throw new CmpException("cannot find digest algorithm from signature algorithm");
 
-            return X509.X509Utilities.CalculateDigest(digestAlgorithm.Algorithm, asn1Encodable);
+            return X509.X509Utilities.CalculateDigest(digestAlgorithm, asn1Encodable);
         }
     }
 }

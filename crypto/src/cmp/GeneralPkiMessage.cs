@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Cmp
         /// <param name="pkiMessage">PKI message.</param>
         public GeneralPkiMessage(PkiMessage pkiMessage)
         {
-            this.m_pkiMessage = pkiMessage;
+            m_pkiMessage = pkiMessage;
         }
 
         /// <summary>

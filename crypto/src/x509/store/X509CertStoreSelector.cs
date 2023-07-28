@@ -276,11 +276,13 @@ namespace Org.BouncyCastle.X509.Store
 			if (!MatchExtension(subjectKeyIdentifier, c, X509Extensions.SubjectKeyIdentifier))
 				return false;
 
-			if (subjectPublicKey != null && !subjectPublicKey.Equals(GetSubjectPublicKey(c)))
+			SubjectPublicKeyInfo subjectPublicKeyInfo = c.CertificateStructure.SubjectPublicKeyInfo;
+
+            if (subjectPublicKey != null && !subjectPublicKey.Equals(subjectPublicKeyInfo))
 				return false;
 
 			if (subjectPublicKeyAlgID != null
-				&& !subjectPublicKeyAlgID.Equals(GetSubjectPublicKey(c).Algorithm))
+				&& !subjectPublicKeyAlgID.Equals(subjectPublicKeyInfo.Algorithm))
 				return false;
 
 			return true;
@@ -304,11 +306,6 @@ namespace Org.BouncyCastle.X509.Store
 		private static ISet<T> CopySet<T>(ISet<T> s)
 		{
 			return s == null ? null : new HashSet<T>(s);
-		}
-
-		private static SubjectPublicKeyInfo GetSubjectPublicKey(X509Certificate c)
-		{
-			return c.CertificateStructure.SubjectPublicKeyInfo;
 		}
 
 		private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier	oid)

@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
@@ -29,6 +30,9 @@ namespace Org.BouncyCastle.Cmp
 
         public virtual PkiStatusInfo StatusInfo => m_certStatus.StatusInfo;
 
+        public virtual DerInteger CertReqID => m_certStatus.CertReqID;
+
+        [Obsolete("Use 'CertReqID' instead")]
         public virtual BigInteger CertRequestID => m_certStatus.CertReqID.Value;
 
         public virtual bool IsVerified(X509Certificate cert) =>

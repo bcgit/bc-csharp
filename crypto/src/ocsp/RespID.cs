@@ -9,35 +9,33 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	/**
+    /**
 	 * Carrier for a ResponderID.
 	 */
-	public class RespID
-	{
-		internal readonly ResponderID id;
+    public class RespID
+        : IEquatable<RespID>
+    {
+        private readonly ResponderID m_id;
 
-		public RespID(
-			ResponderID id)
+		public RespID(ResponderID id)
 		{
-			this.id = id;
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
 		}
 
-		public RespID(
-			X509Name name)
+		public RespID(X509Name name)
 		{
-	        this.id = new ResponderID(name);
+	        m_id = new ResponderID(name);
 		}
 
-		public RespID(
-			AsymmetricKeyParameter publicKey)
+		public RespID(AsymmetricKeyParameter publicKey)
 		{
 			try
 			{
 				SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
+                byte[] key = info.PublicKey.GetBytes();
+                byte[] keyHash = DigestUtilities.CalculateDigest("SHA1", key);
 
-				byte[] keyHash = DigestUtilities.CalculateDigest("SHA1", info.PublicKey.GetBytes());
-
-				this.id = new ResponderID(new DerOctetString(keyHash));
+				m_id = new ResponderID(new DerOctetString(keyHash));
 			}
 			catch (Exception e)
 			{
@@ -45,28 +43,12 @@ namespace Org.BouncyCastle.Ocsp
 			}
 		}
 
-		public ResponderID ToAsn1Object()
-		{
-			return id;
-		}
+		public ResponderID ToAsn1Object() => m_id;
 
-		public override bool Equals(
-			object obj)
-		{
-			if (obj == this)
-				return true;
+        public bool Equals(RespID other) => this == other || m_id.Equals(other?.m_id);
 
-			RespID other = obj as RespID;
+        public override bool Equals(object obj) => Equals(obj as RespID);
 
-			if (other == null)
-				return false;
-
-			return id.Equals(other.id);
-		}
-
-		public override int GetHashCode()
-		{
-			return id.GetHashCode();
-		}
+		public override int GetHashCode() => m_id.GetHashCode();
 	}
 }
