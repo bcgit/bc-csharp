@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Cmp
         private readonly CertStatus m_certStatus;
 
         [Obsolete("Use constructor taking 'IDigestAlgorithmFinder' instead")]
-        public CertificateStatus(Org.BouncyCastle.Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder,
+        public CertificateStatus(Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder,
             CertStatus certStatus)
             : this((IDigestAlgorithmFinder)digestAlgFinder, certStatus)
         {

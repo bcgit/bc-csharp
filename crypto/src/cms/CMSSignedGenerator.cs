@@ -27,27 +27,27 @@ namespace Org.BouncyCastle.Cms
 {
     [Obsolete("Use 'Org.BouncyCastle.Operators.Utilities.DefaultSignatureAlgorithmFinder' instead")]
     public class DefaultSignatureAlgorithmIdentifierFinder
-        : Org.BouncyCastle.Operators.Utilities.ISignatureAlgorithmFinder
+        : Operators.Utilities.ISignatureAlgorithmFinder
     {
         // TODO[api] Make virtual
         public AlgorithmIdentifier Find(string sigAlgName) =>
-            Org.BouncyCastle.Operators.Utilities.DefaultSignatureAlgorithmFinder.Instance.Find(sigAlgName);
+            Operators.Utilities.DefaultSignatureAlgorithmFinder.Instance.Find(sigAlgName);
     }
 
     [Obsolete("Use 'Org.BouncyCastle.Operators.Utilities.DefaultDigestAlgorithmFinder' instead")]
     public class DefaultDigestAlgorithmIdentifierFinder
-        : Org.BouncyCastle.Operators.Utilities.IDigestAlgorithmFinder
+        : Operators.Utilities.IDigestAlgorithmFinder
     {
         // TODO[api] Make virtual
         public AlgorithmIdentifier Find(AlgorithmIdentifier sigAlgId) =>
-            Org.BouncyCastle.Operators.Utilities.DefaultDigestAlgorithmFinder.Instance.Find(sigAlgId);
+            Operators.Utilities.DefaultDigestAlgorithmFinder.Instance.Find(sigAlgId);
 
         public virtual AlgorithmIdentifier Find(DerObjectIdentifier digAlgOid) =>
-            Org.BouncyCastle.Operators.Utilities.DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
+            Operators.Utilities.DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
 
         // TODO[api] Make virtual
         public AlgorithmIdentifier Find(string digAlgName) =>
-            Org.BouncyCastle.Operators.Utilities.DefaultDigestAlgorithmFinder.Instance.Find(digAlgName);
+            Operators.Utilities.DefaultDigestAlgorithmFinder.Instance.Find(digAlgName);
     }
 
     public abstract class CmsSignedGenerator

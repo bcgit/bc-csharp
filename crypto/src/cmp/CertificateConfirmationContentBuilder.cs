@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Cmp
         }
 
         [Obsolete("Use constructor taking 'IDigestAlgorithmFinder' instead")]
-        public CertificateConfirmationContentBuilder(Org.BouncyCastle.Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
+        public CertificateConfirmationContentBuilder(Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
             : this((IDigestAlgorithmFinder)digestAlgFinder)
         {
         }
