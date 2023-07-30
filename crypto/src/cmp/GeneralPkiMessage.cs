@@ -7,10 +7,7 @@ namespace Org.BouncyCastle.Cmp
     {
         private readonly PkiMessage m_pkiMessage;
 
-        private static PkiMessage ParseBytes(byte[] encoding)
-        {
-            return PkiMessage.GetInstance(Asn1Object.FromByteArray(encoding));
-        }
+        private static PkiMessage ParseBytes(byte[] encoding) => PkiMessage.GetInstance(encoding);
 
         /// <summary>
         /// Wrap a PKIMessage ASN.1 structure.

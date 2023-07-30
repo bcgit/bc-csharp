@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crmf
         private readonly KeyParameter m_key;
         private readonly PbmParameter m_parameters;
 
-        public PKMacFactory(byte[] key, PbmParameter parameters)
+        internal PKMacFactory(byte[] key, PbmParameter parameters)
         {
             m_key = new KeyParameter(key);
             m_parameters = parameters;
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crmf
         private PbmParameter parameters;
         private int iterationCount;
         private int saltLength = 20;
-        private int maxIterations;
+        private readonly int maxIterations;
 
         /// <summary>
         /// Default, IterationCount = 1000, OIW=IdSha1, Mac=HmacSHA1

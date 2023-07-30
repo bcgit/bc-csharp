@@ -137,6 +137,22 @@ namespace Org.BouncyCastle.X509
 			return digestResult.Collect();
         }
 
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf, int off, int len)
+        {
+            var digestCalculator = digestFactory.CreateCalculator();
+            var digestResult = CalculateResult(digestCalculator, buf, off, len);
+            return digestResult.Collect();
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory, ReadOnlySpan<byte> buf)
+        {
+            var digestCalculator = digestFactory.CreateCalculator();
+            var digestResult = CalculateResult(digestCalculator, buf);
+            return digestResult.Collect();
+        }
+#endif
+
         internal static byte[] CalculateDigest(IDigestFactory digestFactory,
             Asn1Encodable asn1Encodable)
         {
@@ -144,6 +160,28 @@ namespace Org.BouncyCastle.X509
             var digestResult = CalculateResult(digestCalculator, asn1Encodable);
             return digestResult.Collect();
         }
+
+        internal static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator, byte[] buf,
+            int off, int len)
+        {
+            using (var stream = streamCalculator.Stream)
+            {
+                stream.Write(buf, off, len);
+            }
+            return streamCalculator.GetResult();
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
+            ReadOnlySpan<byte> buf)
+        {
+            using (var stream = streamCalculator.Stream)
+            {
+                stream.Write(buf);
+            }
+            return streamCalculator.GetResult();
+        }
+#endif
 
         internal static TResult CalculateResult<TResult>(IStreamCalculator<TResult> streamCalculator,
             Asn1Encodable asn1Encodable)

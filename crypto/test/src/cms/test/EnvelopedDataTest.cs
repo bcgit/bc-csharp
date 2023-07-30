@@ -910,7 +910,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			byte[] expectedData, X509Certificate reciCert, AsymmetricKeyParameter reciPrivKey)
 		{
 			RecipientID rid = new RecipientID();
-			rid.Issuer = PrincipalUtilities.GetIssuerX509Principal(reciCert);
+			rid.Issuer = reciCert.IssuerDN;
 			rid.SerialNumber = reciCert.SerialNumber;
 
 			RecipientInformation recipient = recipients[rid];

@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Tests
 			X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 
 			certGen.SetSerialNumber(BigInteger.One);
-			certGen.SetIssuerDN(PrincipalUtilities.GetSubjectX509Principal(caCert));
+			certGen.SetIssuerDN(caCert.SubjectDN);
 			certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			certGen.SetSubjectDN(new X509Name("CN=Test Intermediate Certificate"));
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Tests
 			X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 
 			certGen.SetSerialNumber(BigInteger.One);
-			certGen.SetIssuerDN(PrincipalUtilities.GetSubjectX509Principal(caCert));
+			certGen.SetIssuerDN(caCert.SubjectDN);
 			certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			certGen.SetSubjectDN(new X509Name("CN=Test End Certificate"));
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Tests
 			X509V2CrlGenerator	crlGen = new X509V2CrlGenerator();
 			DateTime			now = DateTime.UtcNow;
 
-			crlGen.SetIssuerDN(PrincipalUtilities.GetSubjectX509Principal(caCert));
+			crlGen.SetIssuerDN(caCert.SubjectDN);
 
 			crlGen.SetThisUpdate(now);
 			crlGen.SetNextUpdate(now.AddSeconds(100));

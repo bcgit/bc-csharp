@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Tests
 			// Searching for rootCert by subjectDN
 
 			X509CertStoreSelector targetConstraints = new X509CertStoreSelector();
-			targetConstraints.Subject = PrincipalUtilities.GetSubjectX509Principal(rootCert);
+			targetConstraints.Subject = rootCert.SubjectDN;
 			var certs = new List<X509Certificate>(certStore.EnumerateMatches(targetConstraints));
 			if (certs.Count != 1 || !certs.Contains(rootCert))
 			{
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Tests
 
 			// Searching for rootCert by subjectDN encoded as byte
 			targetConstraints = new X509CertStoreSelector();
-			targetConstraints.Subject = PrincipalUtilities.GetSubjectX509Principal(rootCert);
+			targetConstraints.Subject = rootCert.SubjectDN;
 			certs = new List<X509Certificate>(certStore.EnumerateMatches(targetConstraints));
 			if (certs.Count != 1 || !certs.Contains(rootCert))
 			{
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Tests
 
 			// Searching for interCert by issuerDN
 			targetConstraints = new X509CertStoreSelector();
-			targetConstraints.Issuer = PrincipalUtilities.GetSubjectX509Principal(rootCert);
+			targetConstraints.Issuer = rootCert.SubjectDN;
 			certs = new List<X509Certificate>(certStore.EnumerateMatches(targetConstraints));
 			if (certs.Count != 2)
 			{

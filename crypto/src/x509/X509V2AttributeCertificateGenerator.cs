@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.X509
 		public void SetHolder(
 			AttributeCertificateHolder holder)
 		{
-			acInfoGen.SetHolder(holder.holder);
+			acInfoGen.SetHolder(holder.m_holder);
 		}
 
 		/// <summary>Set the issuer.</summary>

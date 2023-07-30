@@ -2,7 +2,9 @@ using System;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
@@ -12,10 +14,13 @@ namespace Org.BouncyCastle.Ocsp
     public class CertificateID
 		: IEquatable<CertificateID>
 	{
-        // OiwObjectIdentifiers.IdSha1.Id
+		[Obsolete("Use 'OiwObjectIdentifiers.IdSha1.Id' instead")]
 		public const string HashSha1 = "1.3.14.3.2.26";
 
-		private readonly CertID m_id;
+		public static readonly AlgorithmIdentifier DigestSha1 = new AlgorithmIdentifier(
+            OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+
+        private readonly CertID m_id;
 
 		public CertificateID(CertID id)
 		{
@@ -27,15 +32,26 @@ namespace Org.BouncyCastle.Ocsp
 		 * certificate it signed.
 		 * @exception OcspException if any problems occur creating the id fields.
 		 */
+		[Obsolete("Will be removed")]
 		public CertificateID(string hashAlgorithm, X509Certificate issuerCert, BigInteger serialNumber)
 		{
-			AlgorithmIdentifier hashAlg = new AlgorithmIdentifier(
+			AlgorithmIdentifier digestAlgorithm = new AlgorithmIdentifier(
 				new DerObjectIdentifier(hashAlgorithm), DerNull.Instance);
 
-			m_id = CreateCertID(hashAlg, issuerCert, new DerInteger(serialNumber));
+			m_id = CreateCertID(digestAlgorithm, issuerCert, new DerInteger(serialNumber));
 		}
 
-		public string HashAlgOid => m_id.HashAlgorithm.Algorithm.Id;
+        public CertificateID(AlgorithmIdentifier digestAlgorithm, X509Certificate issuerCert, BigInteger serialNumber)
+        {
+            m_id = CreateCertID(digestAlgorithm, issuerCert, new DerInteger(serialNumber));
+        }
+
+        public CertificateID(IDigestFactory digestFactory, X509Certificate issuerCert, BigInteger serialNumber)
+        {
+            m_id = CreateCertID(digestFactory, issuerCert, new DerInteger(serialNumber));
+        }
+
+        public string HashAlgOid => m_id.HashAlgorithm.Algorithm.Id;
 
 		public byte[] GetIssuerNameHash() => m_id.IssuerNameHash.GetOctets();
 
@@ -51,6 +67,14 @@ namespace Org.BouncyCastle.Ocsp
 		{
 			return CreateCertID(m_id.HashAlgorithm, issuerCert, m_id.SerialNumber).Equals(m_id);
 		}
+
+        public bool MatchesIssuer(IDigestFactory digestFactory, X509Certificate issuerCert)
+        {
+            if (!m_id.HashAlgorithm.Equals(digestFactory.AlgorithmDetails))
+                throw new ArgumentException("digest factory does not match required digest algorithm");
+
+            return CreateCertID(digestFactory, issuerCert, m_id.SerialNumber).Equals(m_id);
+        }
 
         public CertID ToAsn1Object() => m_id;
 
@@ -82,7 +106,7 @@ namespace Org.BouncyCastle.Ocsp
 		{
 			try
 			{
-				X509Name issuerName = PrincipalUtilities.GetSubjectX509Principal(issuerCert);
+				X509Name issuerName = issuerCert.SubjectDN;
 				byte[] issuerNameHash = X509Utilities.CalculateDigest(digestAlgorithm, issuerName);
 
 				byte[] issuerKey = issuerCert.SubjectPublicKeyInfo.PublicKey.GetBytes();
@@ -96,5 +120,25 @@ namespace Org.BouncyCastle.Ocsp
 				throw new OcspException("problem creating ID: " + e, e);
 			}
 		}
-	}
+
+        private static CertID CreateCertID(IDigestFactory digestFactory, X509Certificate issuerCert,
+            DerInteger serialNumber)
+        {
+            try
+            {
+                X509Name issuerName = issuerCert.SubjectDN;
+                byte[] issuerNameHash = X509Utilities.CalculateDigest(digestFactory, issuerName);
+
+                byte[] issuerKey = issuerCert.SubjectPublicKeyInfo.PublicKey.GetBytes();
+                byte[] issuerKeyHash = X509Utilities.CalculateDigest(digestFactory, issuerKey, 0, issuerKey.Length);
+
+                return new CertID((AlgorithmIdentifier)digestFactory.AlgorithmDetails,
+					new DerOctetString(issuerNameHash), new DerOctetString(issuerKeyHash), serialNumber);
+            }
+            catch (Exception e)
+            {
+                throw new OcspException("problem creating ID: " + e, e);
+            }
+        }
+    }
 }

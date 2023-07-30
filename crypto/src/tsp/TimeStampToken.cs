@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Cmp;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
@@ -153,30 +154,29 @@ namespace Org.BouncyCastle.Tsp
 		 * A successful call to validate means all the above are true.
 		 * </p>
 		 */
-		public void Validate(
-			X509Certificate cert)
+		public void Validate(X509Certificate cert)
 		{
 			try
 			{
-				byte[] hash = DigestUtilities.CalculateDigest(
-					certID.GetHashAlgorithmName(), cert.GetEncoded());
+				byte[] hash = DigestUtilities.CalculateDigest(certID.GetHashAlgorithmName(), cert.GetEncoded());
 
 				if (!Arrays.FixedTimeEquals(certID.GetCertHash(), hash))
 					throw new TspValidationException("certificate hash does not match certID hash.");
 
-				if (certID.IssuerSerial != null)
+				var issuerSerial = certID.IssuerSerial;
+				if (issuerSerial != null)
 				{
-					if (!certID.IssuerSerial.Serial.HasValue(cert.SerialNumber))
+					if (!issuerSerial.Serial.HasValue(cert.SerialNumber))
 						throw new TspValidationException("certificate serial number does not match certID for signature.");
 
 					GeneralName[] names = certID.IssuerSerial.Issuer.GetNames();
-					X509Name principal = PrincipalUtilities.GetIssuerX509Principal(cert);
+					X509Name principal = cert.IssuerDN;
 					bool found = false;
 
 					for (int i = 0; i != names.Length; i++)
 					{
-						if (names[i].TagNo == 4
-							&& X509Name.GetInstance(names[i].Name).Equivalent(principal))
+						if (names[i].TagNo == GeneralName.DirectoryName &&
+							X509Name.GetInstance(names[i].Name).Equivalent(principal))
 						{
 							found = true;
 							break;
@@ -184,9 +184,7 @@ namespace Org.BouncyCastle.Tsp
 					}
 
 					if (!found)
-					{
 						throw new TspValidationException("certificate name does not match certID for signature. ");
-					}
 				}
 
 				TspUtil.ValidateCertificate(cert);

@@ -25,13 +25,11 @@ namespace Org.BouncyCastle.X509.Extension
 		{
 		}
 
-		private static Asn1Sequence FromCertificate(
-			X509Certificate certificate)
+		private static Asn1Sequence FromCertificate(X509Certificate certificate)
 		{
 			try
 			{
-				GeneralName genName = new GeneralName(
-					PrincipalUtilities.GetIssuerX509Principal(certificate));
+				GeneralName genName = new GeneralName(certificate.IssuerDN);
 
 				if (certificate.Version == 3)
 				{

@@ -136,11 +136,20 @@ namespace Org.BouncyCastle.X509
             tbsGen.SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
         }
 
-		/// <summary>
-		/// Set the subject unique ID - note: it is very rare that it is correct to do this.
-		/// </summary>
-		/// <param name="uniqueID"/>
-		public void SetSubjectUniqueID(
+        /// <summary>
+        /// Set the SubjectPublicKeyInfo for the public key that this certificate identifies.
+        /// </summary>
+        /// <param name="subjectPublicKeyInfo"/>
+        public void SetSubjectPublicKeyInfo(SubjectPublicKeyInfo subjectPublicKeyInfo)
+        {
+            tbsGen.SetSubjectPublicKeyInfo(subjectPublicKeyInfo);
+        }
+
+        /// <summary>
+        /// Set the subject unique ID - note: it is very rare that it is correct to do this.
+        /// </summary>
+        /// <param name="uniqueID"/>
+        public void SetSubjectUniqueID(
 			bool[] uniqueID)
 		{
 			tbsGen.SetSubjectUniqueID(BooleanToBitString(uniqueID));
@@ -155,15 +164,6 @@ namespace Org.BouncyCastle.X509
 		{
 			tbsGen.SetIssuerUniqueID(BooleanToBitString(uniqueID));
 		}
-
-        /// <summary>
-        /// Set the SubjectPublicKeyInfo for the public key that this certificate identifies.
-        /// </summary>
-        /// <param name="subjectPublicKeyInfo"/>
-        public void SetSubjectPublicKeyInfo(SubjectPublicKeyInfo subjectPublicKeyInfo)
-        {
-            tbsGen.SetSubjectPublicKeyInfo(subjectPublicKeyInfo);
-        }
 
         /// <summary>
         /// Add a given extension field for the standard extensions tag (tag 3).

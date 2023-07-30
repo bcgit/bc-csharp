@@ -497,7 +497,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 				var recSel = new RecipientID
 				{
-                    Issuer = PrincipalUtilities.GetIssuerX509Principal(ReciECCert),
+                    Issuer = ReciECCert.IssuerDN,
 					SerialNumber = ReciECCert.SerialNumber
 	            };
 

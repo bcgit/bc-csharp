@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Tests
 				new DerSequence(roleSyntax));
 
 			gen.AddAttribute(attributes);
-			gen.SetHolder(new AttributeCertificateHolder(PrincipalUtilities.GetSubjectX509Principal(iCert)));
+			gen.SetHolder(new AttributeCertificateHolder(iCert.SubjectDN));
 			gen.SetIssuer(new AttributeCertificateIssuer(new X509Name("cn=test")));
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
