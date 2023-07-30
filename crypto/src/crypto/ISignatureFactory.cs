@@ -3,6 +3,7 @@ namespace Org.BouncyCastle.Crypto
     /// <summary>
     /// Base interface for operators that serve as stream-based signature calculators.
     /// </summary>
+    // TODO[api] Add 'out A' type parameter for AlgorithmDetails return type
     public interface ISignatureFactory
 	{
         /// <summary>The algorithm details object for this calculator.</summary>

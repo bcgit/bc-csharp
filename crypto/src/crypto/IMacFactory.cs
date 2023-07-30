@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Crypto
 {
+    // TODO[api] Add 'out A' type parameter for AlgorithmDetails return type
     public interface IMacFactory
     {
         /// <summary>The algorithm details object for this calculator.</summary>

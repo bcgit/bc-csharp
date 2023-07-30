@@ -4,7 +4,8 @@ namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
     /// Base interface for operator factories that create stream-based digest calculators.
-    /// </summary>   
+    /// </summary>
+    // TODO[api] Add 'out A' type parameter for AlgorithmDetails return type
     public interface IDigestFactory
 	{
 		/// <summary>The algorithm details object for calculators made by this factory.</summary>
