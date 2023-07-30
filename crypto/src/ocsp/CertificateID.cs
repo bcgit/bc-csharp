@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Ocsp
 				X509Name issuerName = PrincipalUtilities.GetSubjectX509Principal(issuerCert);
 				byte[] issuerNameHash = X509Utilities.CalculateDigest(digestAlgorithm, issuerName);
 
-				byte[] issuerKey = issuerCert.CertificateStructure.SubjectPublicKeyInfo.PublicKey.GetBytes();
+				byte[] issuerKey = issuerCert.SubjectPublicKeyInfo.PublicKey.GetBytes();
 				byte[] issuerKeyHash = DigestUtilities.CalculateDigest(digestAlgorithm.Algorithm, issuerKey);
 
                 return new CertID(digestAlgorithm, new DerOctetString(issuerNameHash),

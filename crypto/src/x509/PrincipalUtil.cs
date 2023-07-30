@@ -1,9 +1,4 @@
-using System;
-using System.IO;
-
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Security.Certificates;
 
 namespace Org.BouncyCastle.X509
 {
@@ -20,13 +15,13 @@ namespace Org.BouncyCastle.X509
 		/// <summary>Return the issuer of the given cert as an X509Principal.</summary>
 		public static X509Name GetIssuerX509Principal(X509Certificate cert)
 		{
-            return cert.CertificateStructure.TbsCertificate.Issuer;
+            return cert.TbsCertificate.Issuer;
 		}
 
 		/// <summary>Return the subject of the given cert as an X509Principal.</summary>
 		public static X509Name GetSubjectX509Principal(X509Certificate cert)
 		{
-            return cert.CertificateStructure.TbsCertificate.Subject;
+            return cert.TbsCertificate.Subject;
 		}
 
 		/// <summary>Return the issuer of the given CRL as an X509Principal.</summary>

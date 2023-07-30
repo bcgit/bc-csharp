@@ -265,6 +265,8 @@ namespace Org.BouncyCastle.X509
             get { return c.EndDate.ToDateTime(); }
         }
 
+        public virtual TbsCertificateStructure TbsCertificate => c.TbsCertificate;
+
         /// <summary>
         /// Return the Der encoded TbsCertificate data.
         /// This is the certificate component less the signature.
@@ -462,6 +464,11 @@ namespace Org.BouncyCastle.X509
                 ? c.TbsCertificate.Extensions
                 : null;
         }
+
+        /// <summary>
+        /// Return the plain SubjectPublicKeyInfo that holds the encoded public key.
+        /// </summary>
+        public virtual SubjectPublicKeyInfo SubjectPublicKeyInfo => c.SubjectPublicKeyInfo;
 
         /// <summary>
         /// Get the public key of the subject of the certificate.

@@ -154,10 +154,9 @@ namespace Org.BouncyCastle.Cms
 		 */
 		public void AddKeyTransRecipient(X509Certificate cert)
 		{
-			TbsCertificateStructure recipientTbsCert = CmsUtilities.GetTbsCertificateStructure(cert);
-			SubjectPublicKeyInfo info = recipientTbsCert.SubjectPublicKeyInfo;
-			AddRecipientInfoGenerator(
-				new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper(info.Algorithm, cert)));
+			var algorithm = cert.SubjectPublicKeyInfo.Algorithm;
+			var keyWrapper = new Asn1KeyWrapper(algorithm, cert);
+            AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
 		}
 
 		/**

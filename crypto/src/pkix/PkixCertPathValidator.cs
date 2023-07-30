@@ -426,15 +426,18 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void CheckCertificate(X509Certificate cert)
         {
-            // TODO What check is this method trying to achieve?
+            Exception cause = null;
             try
             {
-                TbsCertificateStructure.GetInstance(cert.CertificateStructure.TbsCertificate);
+                if (cert.TbsCertificate != null)
+                    return;
             }
-            catch (CertificateEncodingException e)
+            catch (Exception e)
             {
-                throw new Exception("unable to process TBSCertificate", e);
+                cause = e;
             }
+
+            throw new Exception("unable to process TBSCertificate", cause);
         }
     }
 }

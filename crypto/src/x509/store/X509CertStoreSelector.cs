@@ -276,7 +276,7 @@ namespace Org.BouncyCastle.X509.Store
 			if (!MatchExtension(subjectKeyIdentifier, c, X509Extensions.SubjectKeyIdentifier))
 				return false;
 
-			SubjectPublicKeyInfo subjectPublicKeyInfo = c.CertificateStructure.SubjectPublicKeyInfo;
+			SubjectPublicKeyInfo subjectPublicKeyInfo = c.SubjectPublicKeyInfo;
 
             if (subjectPublicKey != null && !subjectPublicKey.Equals(subjectPublicKeyInfo))
 				return false;

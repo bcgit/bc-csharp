@@ -341,37 +341,22 @@ namespace Org.BouncyCastle.X509
 				if (holder.EntityName != null)
 				{
 					if (MatchesDN(PrincipalUtilities.GetSubjectX509Principal(x509Cert), holder.EntityName))
-					{
 						return true;
-					}
 				}
 
 				if (holder.ObjectDigestInfo != null)
 				{
-					IDigest md = null;
-					try
-					{
-						md = DigestUtilities.GetDigest(DigestAlgorithm);
-					}
-					catch (Exception)
-					{
-						return false;
-					}
+					IDigest md = DigestUtilities.GetDigest(DigestAlgorithm);
 
 					switch (DigestedObjectType)
 					{
 					case ObjectDigestInfo.PublicKey:
 					{
 						// TODO: DSA Dss-parms
-
-						//byte[] b = x509Cert.GetPublicKey().getEncoded();
-						// TODO Is this the right way to encode?
-						byte[] b = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
-							x509Cert.GetPublicKey()).GetEncoded();
+						byte[] b = x509Cert.SubjectPublicKeyInfo.GetEncoded();
 						md.BlockUpdate(b, 0, b.Length);
 						break;
 					}
-
 					case ObjectDigestInfo.PublicKeyCert:
 					{
 						byte[] b = x509Cert.GetEncoded();
@@ -389,9 +374,8 @@ namespace Org.BouncyCastle.X509
 					}
 				}
 			}
-			catch (CertificateEncodingException)
+			catch (Exception)
 			{
-				return false;
 			}
 
 			return false;

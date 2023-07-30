@@ -203,12 +203,9 @@ namespace Org.BouncyCastle.Cms
             return DerSet.FromVector(v);
 		}
 
-		internal static TbsCertificateStructure GetTbsCertificateStructure(X509Certificate cert) =>
-			cert.CertificateStructure.TbsCertificate;
-
 		internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509Certificate cert)
 		{
-			TbsCertificateStructure tbsCert = GetTbsCertificateStructure(cert);
+			TbsCertificateStructure tbsCert = cert.TbsCertificate;
 			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber);
 		}
 
