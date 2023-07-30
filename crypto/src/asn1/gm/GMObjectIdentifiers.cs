@@ -2,7 +2,8 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.GM
 {
-	public abstract class GMObjectIdentifiers
+    // TODO[api] Make static
+    public abstract class GMObjectIdentifiers
 	{
         public static readonly DerObjectIdentifier sm_scheme = new DerObjectIdentifier("1.2.156.10197.1");
 

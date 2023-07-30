@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    // TODO[api] Make static
     public abstract class CrmfObjectIdentifiers
     {
         public static readonly DerObjectIdentifier id_pkix = new DerObjectIdentifier("1.3.6.1.5.5.7");

@@ -5,7 +5,8 @@ using Org.BouncyCastle.Asn1.X9;
 
 namespace Org.BouncyCastle.Asn1.Sec
 {
-	public abstract class SecObjectIdentifiers
+    // TODO[api] Make static
+    public abstract class SecObjectIdentifiers
 	{
 		/**
 		 *  EllipticCurve OBJECT IDENTIFIER ::= {

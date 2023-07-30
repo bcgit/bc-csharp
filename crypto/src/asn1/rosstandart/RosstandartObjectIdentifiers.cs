@@ -2,7 +2,8 @@
 
 namespace Org.BouncyCastle.Asn1.Rosstandart
 {
-	public abstract class RosstandartObjectIdentifiers
+    // TODO[api] Make static
+    public abstract class RosstandartObjectIdentifiers
     {
         public static readonly DerObjectIdentifier rosstandart = new DerObjectIdentifier("1.2.643.7");
 

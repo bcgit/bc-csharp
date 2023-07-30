@@ -5,6 +5,7 @@ namespace Org.BouncyCastle.Asn1.EdEC
     /**
      * Edwards Elliptic Curve Object Identifiers (RFC 8410)
      */
+    // TODO[api] Make static
     public abstract class EdECObjectIdentifiers
     {
         public static readonly DerObjectIdentifier id_edwards_curve_algs = new DerObjectIdentifier("1.3.101");

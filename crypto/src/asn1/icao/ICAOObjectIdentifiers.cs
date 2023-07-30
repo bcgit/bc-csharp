@@ -2,7 +2,8 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Icao
 {
-	public abstract class IcaoObjectIdentifiers
+    // TODO[api] Make static
+    public abstract class IcaoObjectIdentifiers
 	{
 		//
 		// base id

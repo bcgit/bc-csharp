@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1.Nsri
 {
+    // TODO[api] Make static
     public sealed class NsriObjectIdentifiers
     {
         public static readonly DerObjectIdentifier nsri = new DerObjectIdentifier("1.2.410.200046");

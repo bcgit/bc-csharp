@@ -1,6 +1,7 @@
 namespace Org.BouncyCastle.Asn1.TeleTrust
 {
-	public sealed class TeleTrusTObjectIdentifiers
+    // TODO[api] Make static
+    public sealed class TeleTrusTObjectIdentifiers
 	{
 		private TeleTrusTObjectIdentifiers()
 		{

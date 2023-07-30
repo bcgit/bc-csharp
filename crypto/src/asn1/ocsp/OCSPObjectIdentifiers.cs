@@ -2,6 +2,7 @@ using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
+    // TODO[api] Make static
     public abstract class OcspObjectIdentifiers
     {
         internal const string PkixOcspId = "1.3.6.1.5.5.7.48.1";

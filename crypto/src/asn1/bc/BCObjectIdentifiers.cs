@@ -3,7 +3,7 @@ using System;
 namespace Org.BouncyCastle.Asn1.BC
 {
     // TODO[api] Make static
-	public abstract class BCObjectIdentifiers
+    public abstract class BCObjectIdentifiers
 	{
         /**
          * iso.org.dod.internet.private.enterprise.legion-of-the-bouncy-castle

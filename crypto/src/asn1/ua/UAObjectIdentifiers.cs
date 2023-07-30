@@ -9,6 +9,7 @@
      * <p/>
      * DSTU4145 in polynomial basis has 2 oids, one for little-endian representation and one for big-endian
      */
+    // TODO[api] Make static
     public abstract class UAObjectIdentifiers
     {
         /** Base OID: 1.2.804.2.1.1.1 */
