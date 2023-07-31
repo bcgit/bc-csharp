@@ -251,9 +251,8 @@ namespace Org.BouncyCastle.X509
 					// TODO Default handler?
 					}
 
-					// TODO Shouldn't this be the other way around?
-					if (!Arrays.AreEqual(GetObjectDigest(), DigestUtilities.DoFinal(md)))
-						return false;
+					if (Arrays.AreEqual(GetObjectDigest(), DigestUtilities.DoFinal(md)))
+						return true;
 				}
 			}
 			catch (Exception)
