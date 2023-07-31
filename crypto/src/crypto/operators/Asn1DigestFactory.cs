@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         : IDigestFactory
     {
         public static Asn1DigestFactory Get(DerObjectIdentifier oid) =>
-            new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);          
+            new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);
 
         public static Asn1DigestFactory Get(string mechanism) => Get(DigestUtilities.GetObjectIdentifier(mechanism));
 

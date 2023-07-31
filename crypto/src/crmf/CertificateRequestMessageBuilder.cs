@@ -187,10 +187,8 @@ namespace Org.BouncyCastle.Crmf
         }
 #endif
 
-        public CertificateRequestMessageBuilder SetAuthInfoSender(X509Name sender)
-        {
-            return SetAuthInfoSender(new GeneralName(sender));
-        }
+        public CertificateRequestMessageBuilder SetAuthInfoSender(X509Name sender) =>
+            SetAuthInfoSender(new GeneralName(sender));
 
         public CertificateRequestMessageBuilder SetAuthInfoSender(GeneralName sender)
         {

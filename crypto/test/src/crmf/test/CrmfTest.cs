@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Crmf.Tests
                 CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions);
             IsEquals("Archive type", PkiArchiveControl.encryptedPrivKey, archiveControl.ArchiveType);
 
-            IsTrue(archiveControl.EnvelopedData);
+            IsTrue(archiveControl.IsEnvelopedData());
             RecipientInformationStore recips = archiveControl.GetEnvelopedData().GetRecipientInfos();
 
             var collection = recips.GetRecipients();
