@@ -9,8 +9,6 @@ namespace Org.BouncyCastle.Crypto.Agreement
     /// <summary>Standard Diffie-Hellman groups from various IETF specifications.</summary>
     public class DHStandardGroups
     {
-        private static readonly BigInteger Two = BigInteger.ValueOf(2);
-
         private static BigInteger FromHex(string hex)
         {
             return new BigInteger(1, Hex.DecodeStrict(hex));
@@ -30,7 +28,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
         {
             // NOTE: A group using a safe prime (i.e. q = (p-1)/2), and generator g = 2
             BigInteger p = FromHex(hexP);
-            return new DHParameters(p, Two, p.ShiftRight(1), l);
+            return new DHParameters(p, BigInteger.Two, p.ShiftRight(1), l);
         }
 
         /*

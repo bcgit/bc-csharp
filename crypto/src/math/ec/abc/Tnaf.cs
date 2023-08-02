@@ -500,12 +500,12 @@ namespace Org.BouncyCastle.Math.EC.Abc
             {
                 if (mu == 1)
                 {
-                    return BigInteger.ValueOf(6);
+                    return BigInteger.Six;
                 }
                 else
                 {
                     // mu == -1
-                    return BigInteger.ValueOf(10);
+                    return BigInteger.Ten;
                 }
             }
             else

@@ -139,6 +139,8 @@ namespace Org.BouncyCastle.Math
         public static readonly BigInteger Two;
         public static readonly BigInteger Three;
         public static readonly BigInteger Four;
+        public static readonly BigInteger Five;
+        public static readonly BigInteger Six;
         public static readonly BigInteger Ten;
 
 #if !NETCOREAPP3_0_OR_GREATER
@@ -181,27 +183,34 @@ namespace Org.BouncyCastle.Math
         static BigInteger()
         {
             Zero = new BigInteger(0, ZeroMagnitude, false);
-            Zero.nBits = 0; Zero.nBitLength = 0;
+            Zero.nBits = 0;
+            Zero.nBitLength = 0;
 
             SMALL_CONSTANTS[0] = Zero;
             for (uint i = 1; i < SMALL_CONSTANTS.Length; ++i)
             {
-                SMALL_CONSTANTS[i] = CreateUValueOf(i);
+                var sc = CreateUValueOf(i);
+                sc.nBits = Integers.PopCount(i);
+                sc.nBitLength = BitLen(i);
+
+                SMALL_CONSTANTS[i] = sc;
             }
 
             One = SMALL_CONSTANTS[1];
             Two = SMALL_CONSTANTS[2];
             Three = SMALL_CONSTANTS[3];
             Four = SMALL_CONSTANTS[4];
+            Five = SMALL_CONSTANTS[5];
+            Six = SMALL_CONSTANTS[6];
             Ten = SMALL_CONSTANTS[10];
 
-            radix2 = ValueOf(2);
+            radix2 = Two;
             radix2E = radix2.Pow(chunk2);
 
             radix8 = ValueOf(8);
             radix8E = radix8.Pow(chunk8);
 
-            radix10 = ValueOf(10);
+            radix10 = Ten;
             radix10E = radix10.Pow(chunk10);
 
             radix16 = ValueOf(16);
@@ -3607,47 +3616,55 @@ namespace Org.BouncyCastle.Math
             sb.Append(s);
         }
 
+        private static BigInteger CreateUValueOf(uint value)
+        {
+            if (value == 0)
+                return Zero;
+
+            return new BigInteger(1, new uint[]{ value }, false);
+        }
+
         private static BigInteger CreateUValueOf(ulong value)
         {
             uint msw = (uint)(value >> 32);
             uint lsw = (uint)value;
 
-            if (msw != 0)
-                return new BigInteger(1, new uint[]{ msw, lsw }, false);
+            if (msw == 0)
+                return CreateUValueOf(lsw);
 
-            if (lsw != 0)
-            {
-                BigInteger n = new BigInteger(1, new uint[]{ lsw }, false);
-                // Check for a power of two
-                if ((lsw & -lsw) == lsw)
-                {
-                    n.nBits = 1;
-                }
-                return n;
-            }
-
-            return Zero;
+            return new BigInteger(1, new uint[]{ msw, lsw }, false);
         }
 
-        private static BigInteger CreateValueOf(long value)
+        public static BigInteger ValueOf(int value)
         {
-            if (value < 0)
+            if (value >= 0)
             {
-                if (value == long.MinValue)
-                    return CreateValueOf(~value).Not();
+                if (value < SMALL_CONSTANTS.Length)
+                    return SMALL_CONSTANTS[value];
 
-                return CreateValueOf(-value).Negate();
+                return CreateUValueOf((uint)value);
             }
 
-            return CreateUValueOf((ulong)value);
+            if (value == int.MinValue)
+                return CreateUValueOf((uint)~value).Not();
+
+            return ValueOf(-value).Negate();
         }
 
         public static BigInteger ValueOf(long value)
         {
-            if (value >= 0 && value < SMALL_CONSTANTS.Length)
-                return SMALL_CONSTANTS[value];
+            if (value >= 0L)
+            {
+                if (value < SMALL_CONSTANTS.Length)
+                    return SMALL_CONSTANTS[value];
 
-            return CreateValueOf(value);
+                return CreateUValueOf((ulong)value);
+            }
+
+            if (value == long.MinValue)
+                return CreateUValueOf((ulong)~value).Not();
+
+            return ValueOf(-value).Negate();
         }
 
         public int GetLowestSetBit()
