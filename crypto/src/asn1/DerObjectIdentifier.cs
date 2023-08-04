@@ -168,8 +168,11 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, GetContents());
         }
 
-        private void DoOutput(MemoryStream bOut)
+        private byte[] GetContents() => Objects.EnsureSingletonInitialized(ref contents, identifier, CreateContents);
+
+        private static byte[] CreateContents(string identifier)
         {
+            MemoryStream bOut = new MemoryStream();
             OidTokenizer tok = new OidTokenizer(identifier);
 
             string token = tok.NextToken();
@@ -197,21 +200,8 @@ namespace Org.BouncyCastle.Asn1
                     Asn1RelativeOid.WriteField(bOut, new BigInteger(token));
                 }
             }
-        }
 
-        private byte[] GetContents()
-        {
-            lock (this)
-            {
-                if (contents == null)
-                {
-                    MemoryStream bOut = new MemoryStream();
-                    DoOutput(bOut);
-                    contents = bOut.ToArray();
-                }
-
-                return contents;
-            }
+            return bOut.ToArray();
         }
 
         internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)

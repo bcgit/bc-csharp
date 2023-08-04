@@ -76,22 +76,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal ReadOnlyMemory<byte> DataMemory => data;
 #endif
 
-        public Ed25519PublicKeyParameters GeneratePublicKey()
-        {
-            lock (data)
-            {
-                if (null == cachedPublicKey)
-                {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data));
-#else
-                    cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data, 0));
-#endif
-                }
-
-                return cachedPublicKey;
-            }
-        }
+        public Ed25519PublicKeyParameters GeneratePublicKey() =>
+            Objects.EnsureSingletonInitialized(ref cachedPublicKey, data, CreatePublicKey);
 
         public void Sign(Ed25519.Algorithm algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen,
             byte[] sig, int sigOff)
@@ -139,6 +125,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
             }
         }
+
+        private static Ed25519PublicKeyParameters CreatePublicKey(byte[] data) =>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data));
+#else
+            new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data, 0));
+#endif
 
         private static byte[] Validate(byte[] buf)
         {

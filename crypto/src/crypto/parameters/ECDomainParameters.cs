@@ -81,20 +81,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return h; }
         }
 
-        public BigInteger HInv
-        {
-            get
-            {
-                lock (this)
-                {
-                    if (hInv == null)
-                    {
-                        hInv = BigIntegers.ModOddInverseVar(n, h);
-                    }
-                    return hInv;
-                }
-            }
-        }
+        public BigInteger HInv =>
+            Objects.EnsureSingletonInitialized(ref hInv, this, self => BigIntegers.ModOddInverseVar(self.n, self.h));
 
         public byte[] GetSeed()
         {

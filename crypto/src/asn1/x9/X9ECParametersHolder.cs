@@ -1,4 +1,5 @@
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
@@ -7,42 +8,12 @@ namespace Org.BouncyCastle.Asn1.X9
         private ECCurve m_curve;
         private X9ECParameters m_parameters;
 
-        public ECCurve Curve
-        {
-            get
-            {
-                lock (this)
-                {
-                    if (m_curve == null)
-                    {
-                        m_curve = CreateCurve();
-                    }
+        public ECCurve Curve => Objects.EnsureSingletonInitialized(ref m_curve, this, self => self.CreateCurve());
 
-                    return m_curve;
-                }
-            }
-        }
+        public X9ECParameters Parameters =>
+            Objects.EnsureSingletonInitialized(ref m_parameters, this, self => self.CreateParameters());
 
-        public X9ECParameters Parameters
-		{
-			get
-			{
-                lock (this)
-                {
-                    if (m_parameters == null)
-                    {
-                        m_parameters = CreateParameters();
-                    }
-
-                    return m_parameters;
-                }
-            }
-        }
-
-        protected virtual ECCurve CreateCurve()
-        {
-            return CreateParameters().Curve;
-        }
+        protected virtual ECCurve CreateCurve() => Parameters.Curve;
 
         protected abstract X9ECParameters CreateParameters();
 	}
