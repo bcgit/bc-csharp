@@ -58,108 +58,110 @@ namespace Org.BouncyCastle.Asn1.Cmp
         // and
         //   id-it   OBJECT IDENTIFIER ::= {id-pkix 4}
 
-        /** RFC 4120: it-id: PKIX.4 = 1.3.6.1.5.5.7.4 */
-
+        /** RFC 4120: id-it: PKIX.4 = 1.3.6.1.5.5.7.4 */
+        public static readonly DerObjectIdentifier id_it = new DerObjectIdentifier("1.3.6.1.5.5.7.4");
 
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.1
          */
-        public static readonly DerObjectIdentifier it_caProtEncCert = new DerObjectIdentifier("1.3.6.1.5.5.7.4.1");
+        public static readonly DerObjectIdentifier it_caProtEncCert = id_it.Branch("1");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.2
          */
-        public static readonly DerObjectIdentifier it_signKeyPairTypes = new DerObjectIdentifier("1.3.6.1.5.5.7.4.2");
+        public static readonly DerObjectIdentifier it_signKeyPairTypes = id_it.Branch("2");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.3
          */
-        public static readonly DerObjectIdentifier it_encKeyPairTypes = new DerObjectIdentifier("1.3.6.1.5.5.7.4.3");
+        public static readonly DerObjectIdentifier it_encKeyPairTypes = id_it.Branch("3");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.4
          */
-        public static readonly DerObjectIdentifier it_preferredSymAlg = new DerObjectIdentifier("1.3.6.1.5.5.7.4.4");
+        public static readonly DerObjectIdentifier it_preferredSymAlg = id_it.Branch("4");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.5
          */
-        public static readonly DerObjectIdentifier it_caKeyUpdateInfo = new DerObjectIdentifier("1.3.6.1.5.5.7.4.5");
+        public static readonly DerObjectIdentifier it_caKeyUpdateInfo = id_it.Branch("5");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.6
          */
-        public static readonly DerObjectIdentifier it_currentCRL = new DerObjectIdentifier("1.3.6.1.5.5.7.4.6");
+        public static readonly DerObjectIdentifier it_currentCRL = id_it.Branch("6");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.7
          */
-        public static readonly DerObjectIdentifier it_unsupportedOIDs = new DerObjectIdentifier("1.3.6.1.5.5.7.4.7");
+        public static readonly DerObjectIdentifier it_unsupportedOIDs = id_it.Branch("7");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.10
          */
-        public static readonly DerObjectIdentifier it_keyPairParamReq = new DerObjectIdentifier("1.3.6.1.5.5.7.4.10");
+        public static readonly DerObjectIdentifier it_keyPairParamReq = id_it.Branch("10");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.11
          */
-        public static readonly DerObjectIdentifier it_keyPairParamRep = new DerObjectIdentifier("1.3.6.1.5.5.7.4.11");
+        public static readonly DerObjectIdentifier it_keyPairParamRep = id_it.Branch("11");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.12
          */
-        public static readonly DerObjectIdentifier it_revPassphrase = new DerObjectIdentifier("1.3.6.1.5.5.7.4.12");
+        public static readonly DerObjectIdentifier it_revPassphrase = id_it.Branch("12");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.13
          */
-        public static readonly DerObjectIdentifier it_implicitConfirm = new DerObjectIdentifier("1.3.6.1.5.5.7.4.13");
+        public static readonly DerObjectIdentifier it_implicitConfirm = id_it.Branch("13");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.14
          */
-        public static readonly DerObjectIdentifier it_confirmWaitTime = new DerObjectIdentifier("1.3.6.1.5.5.7.4.14");
+        public static readonly DerObjectIdentifier it_confirmWaitTime = id_it.Branch("14");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.15
          */
-        public static readonly DerObjectIdentifier it_origPKIMessage = new DerObjectIdentifier("1.3.6.1.5.5.7.4.15");
+        public static readonly DerObjectIdentifier it_origPKIMessage = id_it.Branch("15");
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.16
          */
-        public static readonly DerObjectIdentifier it_suppLangTags = new DerObjectIdentifier("1.3.6.1.5.5.7.4.16");
+        public static readonly DerObjectIdentifier it_suppLangTags = id_it.Branch("16");
 
         /**
          * Update 16, RFC 4210
          * {id-it 17}
          */
-        public static readonly DerObjectIdentifier id_it_caCerts = new DerObjectIdentifier("1.3.6.1.5.5.7.4.17");
+        public static readonly DerObjectIdentifier id_it_caCerts = id_it.Branch("17");
 
 
         /**
          * Update 16, RFC 4210
          * GenRep:    {id-it 18}, RootCaKeyUpdateContent
          */
-        public static readonly DerObjectIdentifier id_it_rootCaKeyUpdate = new DerObjectIdentifier("1.3.6.1.5.5.7.4.18");
+        public static readonly DerObjectIdentifier id_it_rootCaKeyUpdate = id_it.Branch("18");
 
 
         /**
          * Update 16, RFC 4210
          * {id-it 19}
          */
-        public static readonly DerObjectIdentifier id_it_certReqTemplate = new DerObjectIdentifier("1.3.6.1.5.5.7.4.19");
+        public static readonly DerObjectIdentifier id_it_certReqTemplate = id_it.Branch("19");
 
 
         /**
          * Update 16, RFC 4210
          * GenMsg:    {id-it 20}, RootCaCertValue
          */
-        public static readonly DerObjectIdentifier id_it_rootCaCert = new DerObjectIdentifier("1.3.6.1.5.5.7.4.20");
+        public static readonly DerObjectIdentifier id_it_rootCaCert = id_it.Branch("20");
 
         /**
          * Update-16 to RFC 4210
          * id-it-certProfile  OBJECT IDENTIFIER ::= {id-it 21}
          */
-        public static readonly DerObjectIdentifier id_it_certProfile = new DerObjectIdentifier("1.3.6.1.5.5.7.4.21");
+        public static readonly DerObjectIdentifier id_it_certProfile = id_it.Branch("21");
 
-        public static readonly DerObjectIdentifier id_it_crlStatusList = new DerObjectIdentifier("1.3.6.1.5.5.7.4.22");
+        public static readonly DerObjectIdentifier id_it_crlStatusList = id_it.Branch("22");
 
-        public static readonly DerObjectIdentifier id_it_crls = new DerObjectIdentifier("1.3.6.1.5.5.7.4.23");
+        public static readonly DerObjectIdentifier id_it_crls = id_it.Branch("23");
 
-        // Not yet formally defined.
-
-        //public static readonly DerObjectIdentifier id_it_crlStatusList = null;
-        //public static readonly DerObjectIdentifier id_it_crls = null;
-
+        // TODO Update once OID allocated.
+#if false
+        /**
+         * id-it-KemCiphertextInfo OBJECT IDENTIFIER ::= { id-it TBD1 }
+         */
+        public static readonly DerObjectIdentifier id_it_KemCiphertextInfo = id_it.Branch("TBD1");
+#endif
 
         // RFC 4211
 
@@ -254,5 +256,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * mechanisms(5) pkix(7) pkip(5) regCtrl(1) 12 }
          */
         public static readonly DerObjectIdentifier id_regCtrl_rsaKeyLen = id_pkip.Branch("1.12");
-	}
+
+        // TODO Update once OID allocated.
+#if false
+        /**
+         * id-KemBasedMac OBJECT IDENTIFIER ::= {1 2 840 113533 7 66 TBD4}
+         */
+        public static readonly DerObjectIdentifier id_KemBasedMac = new DerObjectIdentifier("1.2.840.113533.7.66.TBD4");
+#endif
+    }
 }

@@ -76,22 +76,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal ReadOnlyMemory<byte> DataMemory => data;
 #endif
 
-        public Ed448PublicKeyParameters GeneratePublicKey()
-        {
-            lock (data)
-            {
-                if (null == cachedPublicKey)
-                {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    cachedPublicKey = new Ed448PublicKeyParameters(Ed448.GeneratePublicKey(data));
-#else
-                    cachedPublicKey = new Ed448PublicKeyParameters(Ed448.GeneratePublicKey(data, 0));
-#endif
-                }
-
-                return cachedPublicKey;
-            }
-        }
+        public Ed448PublicKeyParameters GeneratePublicKey() =>
+            Objects.EnsureSingletonInitialized(ref cachedPublicKey, data, CreatePublicKey);
 
         public void Sign(Ed448.Algorithm algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen,
             byte[] sig, int sigOff)
@@ -131,6 +117,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
             }
         }
+
+        private static Ed448PublicKeyParameters CreatePublicKey(byte[] data) =>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            new Ed448PublicKeyParameters(Ed448.GeneratePublicKey(data));
+#else
+            new Ed448PublicKeyParameters(Ed448.GeneratePublicKey(data, 0));
+#endif
 
         private static byte[] Validate(byte[] buf)
         {

@@ -9,21 +9,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 {
     internal class DHParametersHelper
     {
-        private static readonly BigInteger Six = BigInteger.ValueOf(6);
-
         private static readonly int[][] primeLists = BigInteger.primeLists;
         private static readonly int[] primeProducts = BigInteger.primeProducts;
-        private static readonly BigInteger[] BigPrimeProducts = ConstructBigPrimeProducts(primeProducts);
-
-        private static BigInteger[] ConstructBigPrimeProducts(int[] primeProducts)
-        {
-            BigInteger[] bpp = new BigInteger[primeProducts.Length];
-            for (int i = 0; i < bpp.Length; ++i)
-            {
-                bpp[i] = BigInteger.ValueOf(primeProducts[i]);
-            }
-            return bpp;
-        }
+        private static readonly BigInteger[] BigPrimeProducts = Array.ConvertAll(primeProducts, BigInteger.ValueOf);
 
         /*
          * Finds a pair of prime BigInteger's {p, q: p = 2q + 1}
@@ -83,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                             int qRem = test % prime;
                             if (qRem == 0 || qRem == (prime >> 1))
                             {
-                                q = q.Add(Six);
+                                q = q.Add(BigInteger.Six);
                                 goto retry;
                             }
                         }
@@ -146,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             {
                 BigInteger h = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
 
-                g = h.ModPow(BigInteger.Two, p);
+                g = h.Square().Mod(p);
             }
             while (g.Equals(BigInteger.One));
 

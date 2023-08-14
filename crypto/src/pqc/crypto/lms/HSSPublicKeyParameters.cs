@@ -96,7 +96,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
 
             LmsSignedPubKey[] signedPubKeys = signature.GetSignedPubKeys();
-            LmsPublicKeyParameters key = signedPubKeys[signedPubKeys.Length - 1].GetPublicKey();
+            LmsPublicKeyParameters key = LmsPublicKey;
+            if (signedPubKeys.Length != 0)
+            {
+                key = signedPubKeys[signedPubKeys.Length - 1].GetPublicKey();
+            }
 
             return key.GenerateOtsContext(signature.Signature).WithSignedPublicKeys(signedPubKeys);
         }
