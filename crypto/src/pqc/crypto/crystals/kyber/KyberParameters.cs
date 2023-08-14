@@ -8,9 +8,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         public static KyberParameters kyber512 = new KyberParameters("kyber512", 2, 128, false);
         public static KyberParameters kyber768 = new KyberParameters("kyber768", 3, 192, false);
         public static KyberParameters kyber1024 = new KyberParameters("kyber1024", 4, 256, false);
-        public static KyberParameters kyber512_aes = new KyberParameters("kyber512-aes", 2, 128, true);
-        public static KyberParameters kyber768_aes = new KyberParameters("kyber768-aes", 3, 192, true);
-        public static KyberParameters kyber1024_aes = new KyberParameters("kyber1024-aes", 4, 256, true);
 
         private string m_name;
         private int m_sessionKeySize;

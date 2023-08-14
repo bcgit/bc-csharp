@@ -180,17 +180,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
             kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
             kyberOids[KyberParameters.kyber1024] = BCObjectIdentifiers.kyber1024;
-            kyberOids[KyberParameters.kyber512_aes] = BCObjectIdentifiers.kyber512_aes;
-            kyberOids[KyberParameters.kyber768_aes] = BCObjectIdentifiers.kyber768_aes;
-            kyberOids[KyberParameters.kyber1024_aes] = BCObjectIdentifiers.kyber1024_aes;   
             
             kyberParams[BCObjectIdentifiers.kyber512] = KyberParameters.kyber512;
             kyberParams[BCObjectIdentifiers.kyber768] = KyberParameters.kyber768;
             kyberParams[BCObjectIdentifiers.kyber1024] = KyberParameters.kyber1024;
-            kyberParams[BCObjectIdentifiers.kyber512_aes] = KyberParameters.kyber512_aes;
-            kyberParams[BCObjectIdentifiers.kyber768_aes] = KyberParameters.kyber768_aes;
-            kyberParams[BCObjectIdentifiers.kyber1024_aes] = KyberParameters.kyber1024_aes;
-            
             
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
