@@ -21,9 +21,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "PQCsignKAT_Dilithium2.rsp", DilithiumParameters.Dilithium2 },
             { "PQCsignKAT_Dilithium3.rsp", DilithiumParameters.Dilithium3 },
             { "PQCsignKAT_Dilithium5.rsp", DilithiumParameters.Dilithium5 },
-            { "PQCsignKAT_Dilithium2-AES.rsp", DilithiumParameters.Dilithium2Aes },
-            { "PQCsignKAT_Dilithium3-AES.rsp", DilithiumParameters.Dilithium3Aes },
-            { "PQCsignKAT_Dilithium5-AES.rsp", DilithiumParameters.Dilithium5Aes },
         };
 
         private static readonly string[] TestVectorFiles =
@@ -33,23 +30,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "PQCsignKAT_Dilithium5.rsp",
         };
 
-        private static readonly string[] TestVectorFilesAes =
-        {
-            "PQCsignKAT_Dilithium2-AES.rsp",
-            "PQCsignKAT_Dilithium3-AES.rsp",
-            "PQCsignKAT_Dilithium5-AES.rsp",
-        };
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
-
-        [TestCaseSource(nameof(TestVectorFilesAes))]
-        [Parallelizable(ParallelScope.All)]
-        public void TVAes(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
@@ -76,31 +60,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
             AsymmetricKeyParameter privDec = PqcPrivateKeyFactory.CreateKey(
                 PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
-
-            Assert.AreEqual(((DilithiumPublicKeyParameters)pub).GetEncoded(), ((DilithiumPublicKeyParameters)pubDec).GetEncoded());
-            Assert.AreEqual(((DilithiumPrivateKeyParameters)priv).GetEncoded(), ((DilithiumPrivateKeyParameters)privDec).GetEncoded());
-        }
-
-        [Test]
-        public void TestKeyEncodingDilithium2Aes()
-        {
-            byte[] altEncKey = Base64.Decode("CKJBWPvTOpeLU/2y0fhlWLc9HKYgH2pAARm2IzwF927Nnnugbw4T7cmjtSfbD/e4CamjVdehDBPqYBWfbZumLD+EuPQUqWaCYDS9JcezFmFXACFHRQPwWDqwqvfuy7zeN4HVb/ygiNJI/mWNoqRn3Ffz59J2iPLr9xe8TUNgQ6VK3tVwIqkxAXv1GVX5MCJI0U2v7d00RnfEDnYL2AVZjSGe0fboKN74OrMTLlx2qN9a8uw21mcgvULBIItsppN7w+gSjOnqSg22wA2RojBNZRuQm4AVeZR6mPw0cYVSyBD3DSjPCWhwseJOACfxdaKgPUQOYlYvQLTTQ1O8fYsrmdF/8aisZ9oo7HVz5xC46AEIL2mp5eVGZJxFpvYyUet0JMFmDgv1PUtoja/EfORNM2T1+pHkv6InfyIDXS3+SMuH0S4qUCmhNtKV47L5uVUl0dfgzDdvsooEZ8iCT1z3nAWiaDNKbMEdYvY7/Qm2HtJIMzLyyXfD9kkwAGr/rzU4IyqK0cS97cVeeT86Zt0e4OtLXJnjhNpD4v+qukjnRVeov/tGzDUtohcAghTTArx3/E3ZEOrDzgagyHKu/3IefhVqndYMle8+NuYIjbN0J/CFOgIpL81ZgVgdCDrj0MWGhPwlUeQcDRnMqxrEtCeXO+X7v2A2USd7Nss0aQOdfN1VzBNV18IWQEeD37pQPyEsyWkLYr6WNyIEZ7gqOpHc4eyWCccI6n3f0Q2kN7YqcX3Gxgbxa8i9P81HxFHfEwabcsXZXmCUowqfGVfx+np2wyYP0uOQrER29vq99RyV1NgXkjtKW1scaVWUFHsaT4nluJjHQ46V77R7HvNZUcvLmKtqtqGAJoe74Aiy5Ft2PnNBNSFs9XQOpuNnZsoTLm29ZGI5FnXf59U7Qm4j9gYB1ra2KzWkzcbjyaPk2aPCPTZHcsp8cyp5V6n9jux5PoW1iJmxo40Rso3fS04bhgZxRbQzcEIPG2iwdpa5qiFD17AC8o6LSWjhxoNgRwHqC7vCdWJyLsCdvN6kkKjdG0DFJpylr/fiBgBj8pm/XdTSboIdrcKvmITcRHXlC02XzdzIehFGeDrDDn0/mCzMHqGnYIhbY1wMywP8BMzesv/igbTEhk/tKVa3//CaVCESO0Ma4HVVSxuuNvlgGSf7Af0n5fcqA/zSJe9iKEj0PPEr1VMbatzbTqBH7jQqQEgOEsG/E2vCtOJU343f1pPntdWwnj6k05s+IroRReGM9ZEDCw+r/QMGOQEbMljirwtM/2wkA/yzZcp1UqzLTQnY38jcJWpD+z0ld9wPFRf0EzJF6HE5ShljNS76qBvlcIJdem8mIO4wtDBY6cNMRc4TFcETz4qC0ws7bzXN47z7Cq6VtutOph+R0deGMvS1T6Ryn7MzmMefduDHvsUWPiBeD4siCPqxgy5Q2Bw5lxlAS7JQ8tuxkSISRs6wJCv8morF4CM2Z4IpQ6VWnFm4d+PyYIxPmHZ9d4HIOPUh7mzMJ2OG6ouOdK9a7W5cBCt23KMJMyiU1YqEGxRr4vyzlqCHfuqGTtke7kHUivMMtTHJnz1pd1r7pGn8AL8XcQNkoSt6u4GrNXMiA4Sj3ZFvIZeO7YjZ6RKv8CpRPYkE7qt0To5ZK3+Jt1cVGRG/9/tcBLCrBWwWQGCc0GaKhktI50hjDXZly+i2UW00p+LYEx7qWPZljYOoD+ued6Rog+HZ0Eit6/NZCAtK2quf/aDn0XaxoEfpuA==");
-            byte[] altSubPubEnc = Base64.Decode("MIIFODANBgsrBgEEAQKCCwsEBAOCBSUABIIFIAiiQVj70zqXi1P9stH4ZVi3PRymIB9qQAEZtiM8BfduzZ57oG8OE+3Jo7Un2w/3uAmpo1XXoQwT6mAVn22bpiw/hLj0FKlmgmA0vSXHsxZhVwAhR0UD8Fg6sKr37su83jeB1W/8oIjSSP5ljaKkZ9xX8+fSdojy6/cXvE1DYEOlSt7VcCKpMQF79RlV+TAiSNFNr+3dNEZ3xA52C9gFWY0hntH26Cje+DqzEy5cdqjfWvLsNtZnIL1CwSCLbKaTe8PoEozp6koNtsANkaIwTWUbkJuAFXmUepj8NHGFUsgQ9w0ozwlocLHiTgAn8XWioD1EDmJWL0C000NTvH2LK5nRf/GorGfaKOx1c+cQuOgBCC9pqeXlRmScRab2MlHrdCTBZg4L9T1LaI2vxHzkTTNk9fqR5L+iJ38iA10t/kjLh9EuKlApoTbSleOy+blVJdHX4Mw3b7KKBGfIgk9c95wFomgzSmzBHWL2O/0Jth7SSDMy8sl3w/ZJMABq/681OCMqitHEve3FXnk/OmbdHuDrS1yZ44TaQ+L/qrpI50VXqL/7Rsw1LaIXAIIU0wK8d/xN2RDqw84GoMhyrv9yHn4Vap3WDJXvPjbmCI2zdCfwhToCKS/NWYFYHQg649DFhoT8JVHkHA0ZzKsaxLQnlzvl+79gNlEnezbLNGkDnXzdVcwTVdfCFkBHg9+6UD8hLMlpC2K+ljciBGe4KjqR3OHslgnHCOp939ENpDe2KnF9xsYG8WvIvT/NR8RR3xMGm3LF2V5glKMKnxlX8fp6dsMmD9LjkKxEdvb6vfUcldTYF5I7SltbHGlVlBR7Gk+J5biYx0OOle+0ex7zWVHLy5irarahgCaHu+AIsuRbdj5zQTUhbPV0DqbjZ2bKEy5tvWRiORZ13+fVO0JuI/YGAda2tis1pM3G48mj5Nmjwj02R3LKfHMqeVep/Y7seT6FtYiZsaONEbKN30tOG4YGcUW0M3BCDxtosHaWuaohQ9ewAvKOi0lo4caDYEcB6gu7wnVici7AnbzepJCo3RtAxSacpa/34gYAY/KZv13U0m6CHa3Cr5iE3ER15QtNl83cyHoRRng6ww59P5gszB6hp2CIW2NcDMsD/ATM3rL/4oG0xIZP7SlWt//wmlQhEjtDGuB1VUsbrjb5YBkn+wH9J+X3KgP80iXvYihI9DzxK9VTG2rc206gR+40KkBIDhLBvxNrwrTiVN+N39aT57XVsJ4+pNObPiK6EUXhjPWRAwsPq/0DBjkBGzJY4q8LTP9sJAP8s2XKdVKsy00J2N/I3CVqQ/s9JXfcDxUX9BMyRehxOUoZYzUu+qgb5XCCXXpvJiDuMLQwWOnDTEXOExXBE8+KgtMLO281zeO8+wqulbbrTqYfkdHXhjL0tU+kcp+zM5jHn3bgx77FFj4gXg+LIgj6sYMuUNgcOZcZQEuyUPLbsZEiEkbOsCQr/JqKxeAjNmeCKUOlVpxZuHfj8mCMT5h2fXeByDj1Ie5szCdjhuqLjnSvWu1uXAQrdtyjCTMolNWKhBsUa+L8s5agh37qhk7ZHu5B1IrzDLUxyZ89aXda+6Rp/AC/F3EDZKEreruBqzVzIgOEo92RbyGXju2I2ekSr/AqUT2JBO6rdE6OWSt/ibdXFRkRv/f7XASwqwVsFkBgnNBmioZLSOdIYw12ZcvotlFtNKfi2BMe6lj2ZY2DqA/rnnekaIPh2dBIrevzWQgLStqrn/2g59F2saBH6bg=");
-           
-            AsymmetricKeyParameter altPubDec = PqcPublicKeyFactory.CreateKey(SubjectPublicKeyInfo.GetInstance(altSubPubEnc));
-            Assert.AreEqual(altEncKey, ((DilithiumPublicKeyParameters)altPubDec).GetEncoded());
-
-            Security.SecureRandom random = new Security.SecureRandom();
-            DilithiumKeyGenerationParameters kparam = new DilithiumKeyGenerationParameters(random, DilithiumParameters.Dilithium2Aes);
-            DilithiumKeyPairGenerator kpg = new DilithiumKeyPairGenerator();
-            kpg.Init(kparam);
-            AsymmetricCipherKeyPair ackp = kpg.GenerateKeyPair();
-
-            AsymmetricKeyParameter pub = ackp.Public;
-            AsymmetricKeyParameter priv = ackp.Private;
-
-            AsymmetricKeyParameter pubDec = PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
-            AsymmetricKeyParameter privDec = PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
 
             Assert.AreEqual(((DilithiumPublicKeyParameters)pub).GetEncoded(), ((DilithiumPublicKeyParameters)pubDec).GetEncoded());
             Assert.AreEqual(((DilithiumPrivateKeyParameters)priv).GetEncoded(), ((DilithiumPrivateKeyParameters)privDec).GetEncoded());

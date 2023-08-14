@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
 
             byte[] KeyMu = Arrays.CopyOf(key, SeedBytes + RndBytes + CrhBytes);
-            Array.Copy(mu, 0, KeyMu, SeedBytes, RndBytes);
+            Array.Copy(rnd, 0, KeyMu, SeedBytes, RndBytes);
             Array.Copy(mu, 0, KeyMu, SeedBytes + RndBytes, CrhBytes);
             ShakeDigest256.BlockUpdate(KeyMu, 0, SeedBytes + RndBytes + CrhBytes);
             ShakeDigest256.OutputFinal(rhoPrime, 0, CrhBytes);
