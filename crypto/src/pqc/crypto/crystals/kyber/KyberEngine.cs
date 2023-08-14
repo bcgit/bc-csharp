@@ -122,7 +122,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
             m_random.NextBytes(randBytes, 0, SymBytes);
 
-            Symmetric.Hash_h(randBytes, randBytes, 0);
             Array.Copy(randBytes, 0, buf, 0, SymBytes);
 
             Symmetric.Hash_h(buf, pk, SymBytes);
@@ -131,9 +130,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             
             m_indCpa.Encrypt(cipherText, Arrays.CopyOfRange(buf, 0, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, 2 * SymBytes));
 
-            Symmetric.Hash_h(kr, cipherText, SymBytes);
-
-            Symmetric.Kdf(sharedSecret, kr);
+            Array.Copy(kr, 0, sharedSecret, 0, sharedSecret.Length);
         }
 
         internal void KemDecrypt(byte[] sharedSecret, byte[] cipherText, byte[] secretKey)
@@ -155,7 +152,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
             CMov(kr, Arrays.CopyOfRange(secretKey, SecretKeyBytes - SymBytes, SecretKeyBytes), SymBytes, fail);
 
-            Symmetric.Kdf(sharedSecret, kr);
+            Array.Copy(kr, 0, sharedSecret, 0, sharedSecret.Length);
         }
 
         private void CMov(byte[] r, byte[] x, int len, bool b)
