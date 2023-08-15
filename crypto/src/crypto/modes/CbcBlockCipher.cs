@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
@@ -56,19 +57,21 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (parameters is ParametersWithIV ivParam)
             {
-                byte[] iv = ivParam.GetIV();
-
-                if (iv.Length != blockSize)
+                if (ivParam.IVLength != blockSize)
                     throw new ArgumentException("initialisation vector must be the same length as block size");
 
-                Array.Copy(iv, 0, IV, 0, iv.Length);
+                ivParam.CopyIVTo(IV, 0, blockSize);
 
-				parameters = ivParam.Parameters;
+                parameters = ivParam.Parameters;
+            }
+            else
+            {
+                Arrays.Fill(IV, 0x00);
             }
 
 			Reset();
 
-            // if null it's an IV changed only.
+            // if null it's an IV changed only (key is to be reused).
             if (parameters != null)
             {
                 cipher.Init(encrypting, parameters);

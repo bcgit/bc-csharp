@@ -72,6 +72,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_iv = new byte[ivLength];
         }
 
+        public void CopyIVTo(byte[] buf, int off, int len)
+        {
+            if (m_iv.Length != len)
+                throw new ArgumentOutOfRangeException(nameof(len));
+
+            Array.Copy(m_iv, 0, buf, off, len);
+        }
+
         public byte[] GetIV()
         {
             return (byte[])m_iv.Clone();
