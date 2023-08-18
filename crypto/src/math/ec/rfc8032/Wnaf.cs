@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 {
                     int word16 = (int)(word >> j);
 
-                    int skip = Integers.NumberOfTrailingZeros((sign ^ word16) | 0x00010000);
+                    int skip = Integers.NumberOfTrailingZeros((sign ^ word16) | (1 << 16));
                     if (skip > 0)
                     {
                         j += skip;

@@ -49,19 +49,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
             for (int i = 1; i <= 100; ++i)
             {
                 // Each party generates an ephemeral private key, ...
-                Random.NextBytes(kA);
-                Random.NextBytes(kB);
+                X448.GeneratePrivateKey(Random, kA);
+                X448.GeneratePrivateKey(Random, kB);
 
                 // ... publishes their public key, ...
-                X448.ScalarMultBase(kA, 0, qA, 0);
-                X448.ScalarMultBase(kB, 0, qB, 0);
+                X448.GeneratePublicKey(kA, 0, qA, 0);
+                X448.GeneratePublicKey(kB, 0, qB, 0);
 
                 // ... computes the shared secret, ...
-                X448.ScalarMult(kA, 0, qB, 0, sA, 0);
-                X448.ScalarMult(kB, 0, qA, 0, sB, 0);
+                bool rA = X448.CalculateAgreement(kA, 0, qB, 0, sA, 0);
+                bool rB = X448.CalculateAgreement(kB, 0, qA, 0, sB, 0);
 
                 // ... which is the same for both parties.
-                Assert.IsTrue(Arrays.AreEqual(sA, sB), "ECDH #" + i);
+                Assert.IsTrue(rA == rB && Arrays.AreEqual(sA, sB), "ECDH #" + i);
             }
         }
 

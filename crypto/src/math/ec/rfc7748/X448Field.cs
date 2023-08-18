@@ -24,9 +24,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         private const uint M28 = 0x0FFFFFFFU;
 
-        private static readonly uint[] P32 = new uint[]{ 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-            0xFFFFFFFFU, 0xFFFFFFFFU };
+        private static readonly uint[] P32 = { 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU };
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

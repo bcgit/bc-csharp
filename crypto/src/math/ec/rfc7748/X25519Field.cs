@@ -24,10 +24,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private const int M25 = 0x01FFFFFF;
         private const int M26 = 0x03FFFFFF;
 
-        private static readonly uint[] P32 = new uint[]{ 0xFFFFFFEDU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
-        private static readonly int[] RootNegOne = { 0x020EA0B0, 0x0386C9D2, 0x00478C4E, 0x0035697F, 0x005E8630,
-            0x01FBD7A7, 0x0340264F, 0x01F0B2B4, 0x00027E0E, 0x00570649 };
+        private static readonly uint[] P32 = { 0xFFFFFFEDU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
+        private static readonly int[] RootNegOne = { -0x01F15F50, -0x0079362D, 0x00478C4F, 0x0035697F, 0x005E8630,
+            0x01FBD7A7, -0x00BFD9B1, -0x000F4D4B, 0x00027E0F, 0x00570649 };
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -833,7 +833,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void Normalize(int[] z)
         {
-            int x = (z[9] >> 23) & 1;
+            int x = (z[9] >> (24 - 1)) & 1;
             Reduce(z, x);
             Reduce(z, -x);
             Debug.Assert(z[9] >> 24 == 0);
@@ -842,7 +842,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Normalize(Span<int> z)
         {
-            int x = (z[9] >> 23) & 1;
+            int x = (z[9] >> (24 - 1)) & 1;
             Reduce(z, x);
             Reduce(z, -x);
             Debug.Assert(z[9] >> 24 == 0);

@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static readonly int SignatureSize = PointBytes + ScalarBytes;
 
         // "SigEd448"
-        private static readonly byte[] Dom4Prefix = new byte[]{ 0x53, 0x69, 0x67, 0x45, 0x64, 0x34, 0x34, 0x38 };
+        private static readonly byte[] Dom4Prefix = { 0x53, 0x69, 0x67, 0x45, 0x64, 0x34, 0x34, 0x38 };
 
         private static readonly uint[] P = { 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
             0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
