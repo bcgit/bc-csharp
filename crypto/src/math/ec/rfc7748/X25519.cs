@@ -269,6 +269,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ScalarMultBase(k.AsSpan(kOff), r.AsSpan(rOff));
 #else
+            // Equivalent (but much slower)
+            //byte[] u = new byte[PointSize];
+            //u[0] = 9;
+
+            //ScalarMult(k, kOff, u, 0, r, rOff);
+
             int[] y = F.Create();
             int[] z = F.Create();
 
@@ -287,6 +293,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void ScalarMultBase(ReadOnlySpan<byte> k, Span<byte> r)
         {
+            // Equivalent (but much slower)
+            //Span<byte> u = stackalloc byte[PointSize];
+            //u[0] = 9;
+
+            //ScalarMult(k, u, r);
+
             int[] y = F.Create();
             int[] z = F.Create();
 
