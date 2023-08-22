@@ -16,9 +16,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private const int ScalarBytes = Size * 4;
 
-        private const long M08L = 0x000000FFL;
         private const long M28L = 0x0FFFFFFFL;
-        private const long M32L = 0xFFFFFFFFL;
 
         private const int TargetLength = 254;
 
@@ -72,7 +70,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void Multiply128Var(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y128, Span<uint> z)
         {
-            Span<uint> tt = stackalloc uint[16];
+            Span<uint> tt = stackalloc uint[12];
             Nat256.Mul128(x, y128, tt);
 
             if ((int)y128[3] < 0)
@@ -81,9 +79,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Nat256.SubFrom(x, tt[4..], 0);
             }
 
-            Span<byte> r = MemoryMarshal.AsBytes(tt);
-            Reduce(r, r);
-            tt[..Size].CopyTo(z);
+            if (BitConverter.IsLittleEndian)
+            {
+                Span<byte> r = MemoryMarshal.AsBytes(tt);
+                Reduce384(r, r);
+                tt[..Size].CopyTo(z);
+            }
+            else
+            {
+                Span<byte> r = stackalloc byte[48];
+                Codec.Encode32(tt, r);
+
+                Reduce384(r, r);
+                Decode(r, z);
+            }
         }
 #else
         internal static void Multiply128Var(uint[] x, uint[] y128, uint[] z)
@@ -97,40 +106,242 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Nat256.SubFrom(x, 0, tt, 4, 0);
             }
 
-            byte[] bytes = new byte[64];
+            byte[] bytes = new byte[48];
             Codec.Encode32(tt, 0, 12, bytes, 0);
 
-            byte[] r = Reduce(bytes);
+            byte[] r = Reduce384(bytes);
             Decode(r, z);
         }
 #endif
 
-        internal static byte[] Reduce(byte[] n)
+        internal static byte[] Reduce384(byte[] n)
         {
             byte[] r = new byte[ScalarBytes];
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Reduce(n, r);
+            Reduce384(n, r);
 #else
-            long x00 =  Codec.Decode32(n,  0)       & M32L;         // x00:32/--
-            long x01 = (Codec.Decode24(n,  4) << 4) & M32L;         // x01:28/--
-            long x02 =  Codec.Decode32(n,  7)       & M32L;         // x02:32/--
-            long x03 = (Codec.Decode24(n, 11) << 4) & M32L;         // x03:28/--
-            long x04 =  Codec.Decode32(n, 14)       & M32L;         // x04:32/--
-            long x05 = (Codec.Decode24(n, 18) << 4) & M32L;         // x05:28/--
-            long x06 =  Codec.Decode32(n, 21)       & M32L;         // x06:32/--
-            long x07 = (Codec.Decode24(n, 25) << 4) & M32L;         // x07:28/--
-            long x08 =  Codec.Decode32(n, 28)       & M32L;         // x08:32/--
-            long x09 = (Codec.Decode24(n, 32) << 4) & M32L;         // x09:28/--
-            long x10 =  Codec.Decode32(n, 35)       & M32L;         // x10:32/--
-            long x11 = (Codec.Decode24(n, 39) << 4) & M32L;         // x11:28/--
-            long x12 =  Codec.Decode32(n, 42)       & M32L;         // x12:32/--
-            long x13 = (Codec.Decode24(n, 46) << 4) & M32L;         // x13:28/--
-            long x14 =  Codec.Decode32(n, 49)       & M32L;         // x14:32/--
-            long x15 = (Codec.Decode24(n, 53) << 4) & M32L;         // x15:28/--
-            long x16 =  Codec.Decode32(n, 56)       & M32L;         // x16:32/--
-            long x17 = (Codec.Decode24(n, 60) << 4) & M32L;         // x17:28/--
-            long x18 =                 n[63]        & M08L;         // x18:08/--
+            long x00 =  Codec.Decode32(n,  0);          // x00:32/--
+            long x01 = (Codec.Decode24(n,  4) << 4);    // x01:28/--
+            long x02 =  Codec.Decode32(n,  7);          // x02:32/--
+            long x03 = (Codec.Decode24(n, 11) << 4);    // x03:28/--
+            long x04 =  Codec.Decode32(n, 14);          // x04:32/--
+            long x05 = (Codec.Decode24(n, 18) << 4);    // x05:28/--
+            long x06 =  Codec.Decode32(n, 21);          // x06:32/--
+            long x07 = (Codec.Decode24(n, 25) << 4);    // x07:28/--
+            long x08 =  Codec.Decode32(n, 28);          // x08:32/--
+            long x09 = (Codec.Decode24(n, 32) << 4);    // x09:28/--
+            long x10 =  Codec.Decode32(n, 35);          // x10:32/--
+            long x11 = (Codec.Decode24(n, 39) << 4);    // x11:28/--
+            long x12 =  Codec.Decode32(n, 42);          // x12:32/--
+            long x13 = (Codec.Decode16(n, 46) << 4);    // x13:20/--
+            long t;
+
+            // TODO Fix bounds calculations which were copied from Reduce512
+
+            x13 += (x12 >> 28); x12 &= M28L;            // x13:28/22, x12:28/--
+            x04 -= x13 * L0;                            // x04:54/49
+            x05 -= x13 * L1;                            // x05:54/53
+            x06 -= x13 * L2;                            // x06:56/--
+            x07 -= x13 * L3;                            // x07:56/52
+            x08 -= x13 * L4;                            // x08:56/52
+
+            x12 += (x11 >> 28); x11 &= M28L;            // x12:28/24, x11:28/--
+            x03 -= x12 * L0;                            // x03:54/49
+            x04 -= x12 * L1;                            // x04:54/51
+            x05 -= x12 * L2;                            // x05:56/--
+            x06 -= x12 * L3;                            // x06:56/52
+            x07 -= x12 * L4;                            // x07:56/53
+
+            x11 += (x10 >> 28); x10 &= M28L;            // x11:29/--, x10:28/--
+            x02 -= x11 * L0;                            // x02:55/32
+            x03 -= x11 * L1;                            // x03:55/--
+            x04 -= x11 * L2;                            // x04:56/55
+            x05 -= x11 * L3;                            // x05:56/52
+            x06 -= x11 * L4;                            // x06:56/53
+
+            x10 += (x09 >> 28); x09 &= M28L;            // x10:29/--, x09:28/--
+            x01 -= x10 * L0;                            // x01:55/28
+            x02 -= x10 * L1;                            // x02:55/54
+            x03 -= x10 * L2;                            // x03:56/55
+            x04 -= x10 * L3;                            // x04:57/--
+            x05 -= x10 * L4;                            // x05:56/53
+
+            x08 += (x07 >> 28); x07 &= M28L;            // x08:56/53, x07:28/--
+            x09 += (x08 >> 28); x08 &= M28L;            // x09:29/25, x08:28/--
+
+            t    = (x08 >> 27) & 1L;
+            x09 += t;                                   // x09:29/26
+
+            x00 -= x09 * L0;                            // x00:55/53
+            x01 -= x09 * L1;                            // x01:55/54
+            x02 -= x09 * L2;                            // x02:57/--
+            x03 -= x09 * L3;                            // x03:57/--
+            x04 -= x09 * L4;                            // x04:57/42
+
+            x01 += (x00 >> 28); x00 &= M28L;
+            x02 += (x01 >> 28); x01 &= M28L;
+            x03 += (x02 >> 28); x02 &= M28L;
+            x04 += (x03 >> 28); x03 &= M28L;
+            x05 += (x04 >> 28); x04 &= M28L;
+            x06 += (x05 >> 28); x05 &= M28L;
+            x07 += (x06 >> 28); x06 &= M28L;
+            x08 += (x07 >> 28); x07 &= M28L;
+            x09  = (x08 >> 28); x08 &= M28L;
+
+            x09 -= t;
+
+            Debug.Assert(x09 == 0L || x09 == -1L);
+
+            x00 += x09 & L0;
+            x01 += x09 & L1;
+            x02 += x09 & L2;
+            x03 += x09 & L3;
+            x04 += x09 & L4;
+
+            x01 += (x00 >> 28); x00 &= M28L;
+            x02 += (x01 >> 28); x01 &= M28L;
+            x03 += (x02 >> 28); x02 &= M28L;
+            x04 += (x03 >> 28); x03 &= M28L;
+            x05 += (x04 >> 28); x04 &= M28L;
+            x06 += (x05 >> 28); x05 &= M28L;
+            x07 += (x06 >> 28); x06 &= M28L;
+            x08 += (x07 >> 28); x07 &= M28L;
+
+            Codec.Encode56((ulong)(x00 | (x01 << 28)), r, 0);
+            Codec.Encode56((ulong)(x02 | (x03 << 28)), r, 7);
+            Codec.Encode56((ulong)(x04 | (x05 << 28)), r, 14);
+            Codec.Encode56((ulong)(x06 | (x07 << 28)), r, 21);
+            Codec.Encode32((uint)x08, r, 28);
+#endif
+
+            return r;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Reduce384(ReadOnlySpan<byte> n, Span<byte> r)
+        {
+            long x00 =  Codec.Decode32(n[ 0..]);        // x00:32/--
+            long x01 = (Codec.Decode24(n[ 4..]) << 4);  // x01:28/--
+            long x02 =  Codec.Decode32(n[ 7..]);        // x02:32/--
+            long x03 = (Codec.Decode24(n[11..]) << 4);  // x03:28/--
+            long x04 =  Codec.Decode32(n[14..]);        // x04:32/--
+            long x05 = (Codec.Decode24(n[18..]) << 4);  // x05:28/--
+            long x06 =  Codec.Decode32(n[21..]);        // x06:32/--
+            long x07 = (Codec.Decode24(n[25..]) << 4);  // x07:28/--
+            long x08 =  Codec.Decode32(n[28..]);        // x08:32/--
+            long x09 = (Codec.Decode24(n[32..]) << 4);  // x09:28/--
+            long x10 =  Codec.Decode32(n[35..]);        // x10:32/--
+            long x11 = (Codec.Decode24(n[39..]) << 4);  // x11:28/--
+            long x12 =  Codec.Decode32(n[42..]);        // x12:32/--
+            long x13 = (Codec.Decode16(n[46..]) << 4);  // x13:20/--
+            long t;
+
+            // TODO Fix bounds calculations which were copied from Reduce512
+
+            x13 += (x12 >> 28); x12 &= M28L;            // x13:28/22, x12:28/--
+            x04 -= x13 * L0;                            // x04:54/49
+            x05 -= x13 * L1;                            // x05:54/53
+            x06 -= x13 * L2;                            // x06:56/--
+            x07 -= x13 * L3;                            // x07:56/52
+            x08 -= x13 * L4;                            // x08:56/52
+
+            x12 += (x11 >> 28); x11 &= M28L;            // x12:28/24, x11:28/--
+            x03 -= x12 * L0;                            // x03:54/49
+            x04 -= x12 * L1;                            // x04:54/51
+            x05 -= x12 * L2;                            // x05:56/--
+            x06 -= x12 * L3;                            // x06:56/52
+            x07 -= x12 * L4;                            // x07:56/53
+
+            x11 += (x10 >> 28); x10 &= M28L;            // x11:29/--, x10:28/--
+            x02 -= x11 * L0;                            // x02:55/32
+            x03 -= x11 * L1;                            // x03:55/--
+            x04 -= x11 * L2;                            // x04:56/55
+            x05 -= x11 * L3;                            // x05:56/52
+            x06 -= x11 * L4;                            // x06:56/53
+
+            x10 += (x09 >> 28); x09 &= M28L;            // x10:29/--, x09:28/--
+            x01 -= x10 * L0;                            // x01:55/28
+            x02 -= x10 * L1;                            // x02:55/54
+            x03 -= x10 * L2;                            // x03:56/55
+            x04 -= x10 * L3;                            // x04:57/--
+            x05 -= x10 * L4;                            // x05:56/53
+
+            x08 += (x07 >> 28); x07 &= M28L;            // x08:56/53, x07:28/--
+            x09 += (x08 >> 28); x08 &= M28L;            // x09:29/25, x08:28/--
+
+            t    = (x08 >> 27) & 1L;
+            x09 += t;                                   // x09:29/26
+
+            x00 -= x09 * L0;                            // x00:55/53
+            x01 -= x09 * L1;                            // x01:55/54
+            x02 -= x09 * L2;                            // x02:57/--
+            x03 -= x09 * L3;                            // x03:57/--
+            x04 -= x09 * L4;                            // x04:57/42
+
+            x01 += (x00 >> 28); x00 &= M28L;
+            x02 += (x01 >> 28); x01 &= M28L;
+            x03 += (x02 >> 28); x02 &= M28L;
+            x04 += (x03 >> 28); x03 &= M28L;
+            x05 += (x04 >> 28); x04 &= M28L;
+            x06 += (x05 >> 28); x05 &= M28L;
+            x07 += (x06 >> 28); x06 &= M28L;
+            x08 += (x07 >> 28); x07 &= M28L;
+            x09  = (x08 >> 28); x08 &= M28L;
+
+            x09 -= t;
+
+            Debug.Assert(x09 == 0L || x09 == -1L);
+
+            x00 += x09 & L0;
+            x01 += x09 & L1;
+            x02 += x09 & L2;
+            x03 += x09 & L3;
+            x04 += x09 & L4;
+
+            x01 += (x00 >> 28); x00 &= M28L;
+            x02 += (x01 >> 28); x01 &= M28L;
+            x03 += (x02 >> 28); x02 &= M28L;
+            x04 += (x03 >> 28); x03 &= M28L;
+            x05 += (x04 >> 28); x04 &= M28L;
+            x06 += (x05 >> 28); x05 &= M28L;
+            x07 += (x06 >> 28); x06 &= M28L;
+            x08 += (x07 >> 28); x07 &= M28L;
+
+            Codec.Encode56((ulong)(x00 | (x01 << 28)), r);
+            Codec.Encode56((ulong)(x02 | (x03 << 28)), r[7..]);
+            Codec.Encode56((ulong)(x04 | (x05 << 28)), r[14..]);
+            Codec.Encode56((ulong)(x06 | (x07 << 28)), r[21..]);
+            Codec.Encode32((uint)x08, r[28..]);
+        }
+#endif
+
+        internal static byte[] Reduce512(byte[] n)
+        {
+            byte[] r = new byte[ScalarBytes];
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Reduce512(n, r);
+#else
+            long x00 =  Codec.Decode32(n,  0);          // x00:32/--
+            long x01 = (Codec.Decode24(n,  4) << 4);    // x01:28/--
+            long x02 =  Codec.Decode32(n,  7);          // x02:32/--
+            long x03 = (Codec.Decode24(n, 11) << 4);    // x03:28/--
+            long x04 =  Codec.Decode32(n, 14);          // x04:32/--
+            long x05 = (Codec.Decode24(n, 18) << 4);    // x05:28/--
+            long x06 =  Codec.Decode32(n, 21);          // x06:32/--
+            long x07 = (Codec.Decode24(n, 25) << 4);    // x07:28/--
+            long x08 =  Codec.Decode32(n, 28);          // x08:32/--
+            long x09 = (Codec.Decode24(n, 32) << 4);    // x09:28/--
+            long x10 =  Codec.Decode32(n, 35);          // x10:32/--
+            long x11 = (Codec.Decode24(n, 39) << 4);    // x11:28/--
+            long x12 =  Codec.Decode32(n, 42);          // x12:32/--
+            long x13 = (Codec.Decode24(n, 46) << 4);    // x13:28/--
+            long x14 =  Codec.Decode32(n, 49);          // x14:32/--
+            long x15 = (Codec.Decode24(n, 53) << 4);    // x15:28/--
+            long x16 =  Codec.Decode32(n, 56);          // x16:32/--
+            long x17 = (Codec.Decode24(n, 60) << 4);    // x17:28/--
+            long x18 =                 n[63];           // x18:08/--
             long t;
 
             //x18 += (x17 >> 28); x17 &= M28L;
@@ -248,27 +459,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static void Reduce(ReadOnlySpan<byte> n, Span<byte> r)
+        internal static void Reduce512(ReadOnlySpan<byte> n, Span<byte> r)
         {
-            long x00 =  Codec.Decode32(n[ 0..])       & M32L;       // x00:32/--
-            long x01 = (Codec.Decode24(n[ 4..]) << 4) & M32L;       // x01:28/--
-            long x02 =  Codec.Decode32(n[ 7..])       & M32L;       // x02:32/--
-            long x03 = (Codec.Decode24(n[11..]) << 4) & M32L;       // x03:28/--
-            long x04 =  Codec.Decode32(n[14..])       & M32L;       // x04:32/--
-            long x05 = (Codec.Decode24(n[18..]) << 4) & M32L;       // x05:28/--
-            long x06 =  Codec.Decode32(n[21..])       & M32L;       // x06:32/--
-            long x07 = (Codec.Decode24(n[25..]) << 4) & M32L;       // x07:28/--
-            long x08 =  Codec.Decode32(n[28..])       & M32L;       // x08:32/--
-            long x09 = (Codec.Decode24(n[32..]) << 4) & M32L;       // x09:28/--
-            long x10 =  Codec.Decode32(n[35..])       & M32L;       // x10:32/--
-            long x11 = (Codec.Decode24(n[39..]) << 4) & M32L;       // x11:28/--
-            long x12 =  Codec.Decode32(n[42..])       & M32L;       // x12:32/--
-            long x13 = (Codec.Decode24(n[46..]) << 4) & M32L;       // x13:28/--
-            long x14 =  Codec.Decode32(n[49..])       & M32L;       // x14:32/--
-            long x15 = (Codec.Decode24(n[53..]) << 4) & M32L;       // x15:28/--
-            long x16 =  Codec.Decode32(n[56..])       & M32L;       // x16:32/--
-            long x17 = (Codec.Decode24(n[60..]) << 4) & M32L;       // x17:28/--
-            long x18 =                 n[63]          & M08L;       // x18:08/--
+            long x00 =  Codec.Decode32(n[ 0..]);        // x00:32/--
+            long x01 = (Codec.Decode24(n[ 4..]) << 4);  // x01:28/--
+            long x02 =  Codec.Decode32(n[ 7..]);        // x02:32/--
+            long x03 = (Codec.Decode24(n[11..]) << 4);  // x03:28/--
+            long x04 =  Codec.Decode32(n[14..]);        // x04:32/--
+            long x05 = (Codec.Decode24(n[18..]) << 4);  // x05:28/--
+            long x06 =  Codec.Decode32(n[21..]);        // x06:32/--
+            long x07 = (Codec.Decode24(n[25..]) << 4);  // x07:28/--
+            long x08 =  Codec.Decode32(n[28..]);        // x08:32/--
+            long x09 = (Codec.Decode24(n[32..]) << 4);  // x09:28/--
+            long x10 =  Codec.Decode32(n[35..]);        // x10:32/--
+            long x11 = (Codec.Decode24(n[39..]) << 4);  // x11:28/--
+            long x12 =  Codec.Decode32(n[42..]);        // x12:32/--
+            long x13 = (Codec.Decode24(n[46..]) << 4);  // x13:28/--
+            long x14 =  Codec.Decode32(n[49..]);        // x14:32/--
+            long x15 = (Codec.Decode24(n[53..]) << 4);  // x15:28/--
+            long x16 =  Codec.Decode32(n[56..]);        // x16:32/--
+            long x17 = (Codec.Decode24(n[60..]) << 4);  // x17:28/--
+            long x18 =                 n[63];           // x18:08/--
             long t;
 
             //x18 += (x17 >> 28); x17 &= M28L;

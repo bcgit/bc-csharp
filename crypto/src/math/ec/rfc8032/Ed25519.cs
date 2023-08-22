@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             byte[] result = new byte[ScalarBytes * 2];
             Codec.Encode32(t, 0, t.Length, result, 0);
-            return Scalar25519.Reduce(result);
+            return Scalar25519.Reduce512(result);
         }
 
         private static bool CheckContextVar(byte[] ctx, byte phflag)
@@ -592,7 +592,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] r = Scalar25519.Reduce(h);
+            byte[] r = Scalar25519.Reduce512(h);
             byte[] R = new byte[PointBytes];
             ScalarMultBaseEncoded(r, R, 0);
 
@@ -605,7 +605,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] k = Scalar25519.Reduce(h);
+            byte[] k = Scalar25519.Reduce512(h);
             byte[] S = CalculateS(r, k, s);
 
             Array.Copy(R, 0, sig, sigOff, PointBytes);
@@ -697,7 +697,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.DoFinal(h);
 
             Span<byte> k = stackalloc byte[ScalarBytes];
-            Scalar25519.Reduce(h, k);
+            Scalar25519.Reduce512(h, k);
 
             Span<uint> nA = stackalloc uint[ScalarUints];
             Scalar25519.Decode(k, nA);
@@ -739,7 +739,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] k = Scalar25519.Reduce(h);
+            byte[] k = Scalar25519.Reduce512(h);
 
             uint[] nA = new uint[ScalarUints];
             Scalar25519.Decode(k, nA);
@@ -799,7 +799,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.DoFinal(h);
 
             Span<byte> k = stackalloc byte[ScalarBytes];
-            Scalar25519.Reduce(h, k);
+            Scalar25519.Reduce512(h, k);
 
             Span<uint> nA = stackalloc uint[ScalarUints];
             Scalar25519.Decode(k, nA);
@@ -840,7 +840,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
-            byte[] k = Scalar25519.Reduce(h);
+            byte[] k = Scalar25519.Reduce512(h);
 
             uint[] nA = new uint[ScalarUints];
             Scalar25519.Decode(k, nA);
