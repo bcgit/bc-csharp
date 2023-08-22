@@ -1496,7 +1496,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
             Scalar25519.Decode(k, n);
-            Scalar25519.ToSignedDigits(256, n, n);
+            Scalar25519.ToSignedDigits(256, n);
 
             Init(out PointPrecompZ q);
             Init(out PointTemp t);
@@ -1541,7 +1541,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
             Scalar25519.Decode(k, n);
-            Scalar25519.ToSignedDigits(PrecompRange, n, n);
+            Scalar25519.ToSignedDigits(PrecompRange, n);
             GroupCombBits(n);
 
             Init(out PointPrecomp p);

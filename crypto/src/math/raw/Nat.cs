@@ -400,6 +400,36 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static uint CAddTo(int len, int mask, uint[] x, uint[] z)
+        {
+            uint MASK = (uint)-(mask & 1);
+
+            ulong c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)z[i] + (x[i] & MASK);
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint CAddTo(int len, int mask, ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            uint MASK = (uint)-(mask & 1);
+
+            ulong c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)z[i] + (x[i] & MASK);
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
+        }
+#endif
+
         public static void CMov(int len, int mask, uint[] x, int xOff, uint[] z, int zOff)
         {
             uint MASK = (uint)-(mask & 1);

@@ -14,6 +14,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
     {
         internal const int Size = 8;
 
+        private const int ScalarBytes = Size * 4;
+
         private const long M08L = 0x000000FFL;
         private const long M28L = 0x0FFFFFFFL;
         private const long M32L = 0xFFFFFFFFL;
@@ -105,7 +107,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         internal static byte[] Reduce(byte[] n)
         {
-            byte[] r = new byte[64];
+            byte[] r = new byte[ScalarBytes];
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Reduce(n, r);
@@ -488,15 +490,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static void ToSignedDigits(int bits, ReadOnlySpan<uint> x, Span<uint> z)
+        internal static void ToSignedDigits(int bits, Span<uint> z)
 #else
-        internal static void ToSignedDigits(int bits, uint[] x, uint[] z)
+        internal static void ToSignedDigits(int bits, uint[] z)
 #endif
         {
             Debug.Assert(bits == 256);
             Debug.Assert(z.Length >= Size);
 
-            uint c1 = Nat.CAdd(Size, ~(int)x[0] & 1, x, L, z);  Debug.Assert(c1 == 0U);
+            uint c1 = Nat.CAddTo(Size, ~(int)z[0] & 1, L, z);   Debug.Assert(c1 == 0U);
             uint c2 = Nat.ShiftDownBit(Size, z, 1U);            Debug.Assert(c2 == (1U << 31));
         }
     }
