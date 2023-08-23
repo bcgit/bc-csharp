@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public byte[] GetEncoded()
         {
-            return Arrays.ConcatenateAll(Parameters.GetEncoded(), m_pk.seed, m_pk.root);
+            return Arrays.ConcatenateAll(m_pk.seed, m_pk.root);
         }
 
         public byte[] GetRoot()

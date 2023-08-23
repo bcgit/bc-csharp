@@ -142,6 +142,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.sphincsPlus_shake_256f_r3] = new SphincsPlusConverter();
             Converters[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3] = new SphincsPlusConverter();
             Converters[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3] = new SphincsPlusConverter();
+
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_128f_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192s_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192f_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_192f_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256s_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256f_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_256f_simple] = new SphincsPlusConverter();
         }
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -219,11 +229,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
-                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+                try
+                {
+                    byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-                SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.Algorithm.Algorithm);
+                    SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.Algorithm.Algorithm);
 
-                return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                    return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                }
+                catch (Exception e)
+                {
+                    byte[] keyEnc = keyInfo.PublicKey.GetOctets();
+
+                    SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.Algorithm.Algorithm);
+
+                    return new SPHINCSPlusPublicKeyParameters(spParams, keyEnc);
+                }
             }
         }
         

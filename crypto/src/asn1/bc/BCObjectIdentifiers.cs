@@ -179,6 +179,19 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256s_r3_simple = sphincsPlus.Branch("35");
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3_simple = sphincsPlus.Branch("36");
 
+        // Interop OIDs.
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_128s_simple = new DerObjectIdentifier("1.3.9999.6.4.16");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_128f_simple = new DerObjectIdentifier("1.3.9999.6.4.13");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_128f_simple = new DerObjectIdentifier("1.3.9999.6.7.4");
+
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_192s_simple = new DerObjectIdentifier("1.3.9999.6.5.12");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_192f_simple = new DerObjectIdentifier("1.3.9999.6.5.10");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_192f_simple = new DerObjectIdentifier("1.3.9999.6.8.3");
+    
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_256s_simple = new DerObjectIdentifier("1.3.9999.6.6.12");
+        public static readonly DerObjectIdentifier sphincsPlus_sha2_256f_simple = new DerObjectIdentifier("1.3.9999.6.6.10");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_256f_simple = new DerObjectIdentifier("1.3.9999.6.9.3");
+
         [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.Branch("1");
         [Obsolete("Will be removed - name is erroneous")]

@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.SphincsPlusOidLookup(sphincsPlusPublicKeyParameters.Parameters));
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
             if (publicKey is CmcePublicKeyParameters cmcePublicKeyParameters)
             {
