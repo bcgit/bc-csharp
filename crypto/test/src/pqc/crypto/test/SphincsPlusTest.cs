@@ -249,7 +249,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SphincsPlusPublicKeyParameters pubParams = (SphincsPlusPublicKeyParameters)kp.Public;
             SphincsPlusPrivateKeyParameters privParams = (SphincsPlusPrivateKeyParameters)kp.Private;
 
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.Parameters.GetEncoded(), Hex.Decode("b505d7cfad1b497499323c8686325e47afbc007ba1e2b4a138f03aa9a6195ac8")), pubParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Hex.Decode("b505d7cfad1b497499323c8686325e47afbc007ba1e2b4a138f03aa9a6195ac8"), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.Parameters.GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e47afbc007ba1e2b4a138f03aa9a6195ac8")), privParams.GetEncoded()));
         }
 
@@ -307,7 +307,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SphincsPlusPublicKeyParameters pubParams = (SphincsPlusPublicKeyParameters)kp.Public;
             SphincsPlusPrivateKeyParameters privParams = (SphincsPlusPrivateKeyParameters)kp.Private;
 
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.Parameters.GetEncoded(), Hex.Decode("b505d7cfad1b497499323c8686325e4714be46e5b92237d09a0ea8a0404033a6")), pubParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Hex.Decode("b505d7cfad1b497499323c8686325e4714be46e5b92237d09a0ea8a0404033a6"), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.Parameters.GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4714be46e5b92237d09a0ea8a0404033a6")), privParams.GetEncoded()));
         }
 

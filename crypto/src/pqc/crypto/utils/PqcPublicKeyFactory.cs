@@ -243,7 +243,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                     SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(keyInfo.Algorithm.Algorithm);
 
-                    return new SPHINCSPlusPublicKeyParameters(spParams, keyEnc);
+                    return new SphincsPlusPublicKeyParameters(spParams, keyEnc);
                 }
             }
         }
