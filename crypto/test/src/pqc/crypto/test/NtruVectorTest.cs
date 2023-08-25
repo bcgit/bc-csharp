@@ -21,6 +21,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "PQCkemKAT_1590.rsp", NtruParameters.NtruHps4096821 },
             { "PQCkemKAT_1450.rsp", NtruParameters.NtruHrss701 },
         };
+        
+        [Test]
+        public void TestParameters()
+        {
+            Assert.AreEqual(256, NtruParameters.NtruHps4096821.DefaultKeySize);
+            Assert.AreEqual(256, NtruParameters.NtruHps2048509.DefaultKeySize);
+            Assert.AreEqual(256, NtruParameters.NtruHps2048677.DefaultKeySize);
+            Assert.AreEqual(256, NtruParameters.NtruHrss701.DefaultKeySize);
+        }
 
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 

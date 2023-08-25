@@ -2,7 +2,7 @@
 {
     internal class NtruHps2048677 : NtruHpsParameterSet
     {
-        internal NtruHps2048677() : base(677, 11, 32, 32, 24)
+        internal NtruHps2048677() : base(677, 11, 32, 32, 32)
         {
         }
     }

@@ -2,7 +2,7 @@
 {
     internal class NtruHrss701 : NtruHrssParameterSet
     {
-        internal NtruHrss701() : base(701, 13, 32, 32, 24)
+        internal NtruHrss701() : base(701, 13, 32, 32, 32)
         {
         }
     }
