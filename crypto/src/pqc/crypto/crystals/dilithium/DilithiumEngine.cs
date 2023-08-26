@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         public int Gamma1 { get; private set; }
         public int Gamma2 { get; private set; }
         public int Omega { get; private set; }
+        public int CTilde { get; private set; }
 
         public int PolyVecHPackedBytes { get; private set; }
 
@@ -63,6 +64,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                     PolyZPackedBytes = 576;
                     PolyW1PackedBytes = 192;
                     PolyEtaPackedBytes = 96;
+                    CTilde = 32;
                     break;
                 case 3:
                     K = 6;
@@ -76,6 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                     PolyZPackedBytes = 640;
                     PolyW1PackedBytes = 128;
                     PolyEtaPackedBytes = 128;
+                    CTilde = 48;
                     break;
                 case 5:
                     K = 8;
@@ -89,6 +92,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                     PolyZPackedBytes = 640;
                     PolyW1PackedBytes = 128;
                     PolyEtaPackedBytes = 96;
+                    CTilde = 64;
                     break;
                 default:
                     throw new ArgumentException("The mode " + mode + "is not supported by Crystals Dilithium!");
@@ -106,7 +110,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             PolyVecHPackedBytes = Omega + K;
             CryptoPublicKeyBytes = SeedBytes + K * PolyT1PackedBytes;
             CryptoSecretKeyBytes = 3 * SeedBytes + L * PolyEtaPackedBytes + K * PolyEtaPackedBytes + K * PolyT0PackedBytes;
-            CryptoBytes = SeedBytes + L * PolyZPackedBytes + PolyVecHPackedBytes;
+            CryptoBytes = CTilde + L * PolyZPackedBytes + PolyVecHPackedBytes;
 
             if (Gamma1 == (1 << 17))
             {
@@ -231,9 +235,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             ShakeDigest256.BlockUpdate(mu, 0, CrhBytes);
             ShakeDigest256.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
-            ShakeDigest256.OutputFinal(sig, 0, SeedBytes);
+            ShakeDigest256.OutputFinal(sig, 0, CTilde);
 
-            cp.Challenge(sig);
+            cp.Challenge(sig); // use only first SeedBytes of sig
 
             cp.PolyNtt();
 
@@ -284,7 +288,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public bool SignVerify(byte[] sig, int siglen, byte[] msg, int msglen, byte[] rho, byte[] encT1)
         {
-            byte[] buf = new byte[K * PolyW1PackedBytes], mu = new byte[CrhBytes], c = new byte[SeedBytes], c2 = new byte[SeedBytes];
+            byte[] buf = new byte[K * PolyW1PackedBytes], mu = new byte[CrhBytes], c, c2 = new byte[CTilde];
             Poly cp = new Poly(this);
             PolyVecMatrix Matrix = new PolyVecMatrix(this);
             PolyVecL z = new PolyVecL(this);
@@ -296,14 +300,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
 
             t1 = Packing.UnpackPublicKey(t1, encT1, this);
-            
-
 
             if (!Packing.UnpackSignature(z, h, sig, this))
             {
                 return false;
             }
-            c = Arrays.CopyOfRange(sig, 0, SeedBytes);
+            c = Arrays.CopyOfRange(sig, 0, CTilde);
 
             if (z.CheckNorm(Gamma1 - Beta))
             {
@@ -343,9 +345,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             Shake256Digest.BlockUpdate(mu, 0, CrhBytes);
             Shake256Digest.BlockUpdate(buf, 0, K * PolyW1PackedBytes);
-            Shake256Digest.OutputFinal(c2, 0, SeedBytes);
+            Shake256Digest.OutputFinal(c2, 0, CTilde);
 
-            for (int i = 0; i < SeedBytes; ++i)
+            for (int i = 0; i < CTilde; ++i)
             {
                 if (c[i] != c2[i])
                 {
