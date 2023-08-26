@@ -21,32 +21,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class SphincsPlusTest
     {
-        private static readonly string[] TestVectorFilesRobustFast =
-        {
-            "sha2-128f-robust.rsp",
-            "sha2-192f-robust.rsp",
-            "sha2-256f-robust.rsp",
-            "shake-128f-robust.rsp",
-            "shake-192f-robust.rsp",
-            "shake-256f-robust.rsp",
-            "haraka-128f-robust.rsp",
-            "haraka-192f-robust.rsp",
-            "haraka-256f-robust.rsp",
-        };
-
-        private static readonly string[] TestVectorFilesRobustSlow =
-        {
-            "sha2-128s-robust.rsp",
-            "sha2-192s-robust.rsp",
-            "sha2-256s-robust.rsp",
-            "shake-128s-robust.rsp",
-            "shake-192s-robust.rsp",
-            "shake-256s-robust.rsp",
-            "haraka-128s-robust.rsp",
-            "haraka-192s-robust.rsp",
-            "haraka-256s-robust.rsp",
-        };
-
         private static readonly string[] TestVectorFilesSimpleFast =
         {
             "sha2-128f-simple.rsp",
@@ -72,20 +46,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "haraka-192s-simple.rsp",
             "haraka-256s-simple.rsp",
         };
-
-        [TestCaseSource(nameof(TestVectorFilesRobustFast))]
-        [Parallelizable(ParallelScope.All)]
-        public void TVRobustFast(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
-
-        [Explicit, TestCaseSource(nameof(TestVectorFilesRobustSlow))]
-        [Parallelizable(ParallelScope.All)]
-        public void TVRobustSlow(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
 
         [TestCaseSource(nameof(TestVectorFilesSimpleFast))]
         [Parallelizable(ParallelScope.All)]
