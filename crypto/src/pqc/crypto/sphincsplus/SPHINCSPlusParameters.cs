@@ -16,19 +16,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
     public sealed class SphincsPlusParameters
     {
         // SHA-2
-
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters sha2_128f = new SphincsPlusParameters(
             0x010101, "sha2-128f-robust", new Sha2EngineProvider(true, 16, 16, 22, 6, 33, 66));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters sha2_128s = new SphincsPlusParameters(
             0x010102, "sha2-128s-robust", new Sha2EngineProvider(true, 16, 16, 7, 12, 14, 63));
 
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters sha2_192f = new SphincsPlusParameters(
             0x010103, "sha2-192f-robust", new Sha2EngineProvider(true, 24, 16, 22, 8, 33, 66));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters sha2_192s = new SphincsPlusParameters(
             0x010104, "sha2-192s-robust", new Sha2EngineProvider(true, 24, 16, 7, 14, 17, 63));
 
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters sha2_256f = new SphincsPlusParameters(
             0x010105, "sha2-256f-robust", new Sha2EngineProvider(true, 32, 16, 17, 9, 35, 68));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters sha2_256s = new SphincsPlusParameters(
             0x010106, "sha2-256s-robust", new Sha2EngineProvider(true, 32, 16, 8, 14, 22, 64));
 
@@ -48,19 +53,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             0x010206, "sha2-256s-simple", new Sha2EngineProvider(false, 32, 16, 8, 14, 22, 64));
 
         // SHAKE-256.
-
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters shake_128f = new SphincsPlusParameters(
             0x020101, "shake-128f-robust", new Shake256EngineProvider(true, 16, 16, 22, 6, 33, 66));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters shake_128s = new SphincsPlusParameters(
             0x020102, "shake-128s-robust", new Shake256EngineProvider(true, 16, 16, 7, 12, 14, 63));
 
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters shake_192f = new SphincsPlusParameters(
             0x020103, "shake-192f-robust", new Shake256EngineProvider(true, 24, 16, 22, 8, 33, 66));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters shake_192s = new SphincsPlusParameters(
             0x020104, "shake-192s-robust", new Shake256EngineProvider(true, 24, 16, 7, 14, 17, 63));
 
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters shake_256f = new SphincsPlusParameters(
             0x020105, "shake-256f-robust", new Shake256EngineProvider(true, 32, 16, 17, 9, 35, 68));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters shake_256s = new SphincsPlusParameters(
             0x020106, "shake-256s-robust", new Shake256EngineProvider(true, 32, 16, 8, 14, 22, 64));
 
@@ -80,19 +90,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             0x020206, "shake-256s-simple", new Shake256EngineProvider(false, 32, 16, 8, 14, 22, 64));
 
         // Haraka.
-
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters haraka_128f = new SphincsPlusParameters(
             0x030101, "haraka-128f-robust", new HarakaSEngineProvider(true, 16, 16, 22, 6, 33, 66));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters haraka_128s = new SphincsPlusParameters(
             0x030102, "haraka-128s-robust", new HarakaSEngineProvider(true, 16, 16, 7, 12, 14, 63));
 
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters haraka_192f = new SphincsPlusParameters(
             0x030103, "haraka-192f-robust", new HarakaSEngineProvider(true, 24, 16, 22, 8, 33, 66));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters haraka_192s = new SphincsPlusParameters(
             0x030104, "haraka-192s-robust", new HarakaSEngineProvider(true, 24, 16, 7, 14, 17, 63));
 
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters haraka_256f = new SphincsPlusParameters(
             0x030105, "haraka-256f-robust", new HarakaSEngineProvider(true, 32, 16, 17, 9, 35, 68));
+        [Obsolete("Parameter set to be removed")]
         public static readonly SphincsPlusParameters haraka_256s = new SphincsPlusParameters(
             0x030106, "haraka-256s-robust", new HarakaSEngineProvider(true, 32, 16, 8, 14, 22, 64));
 

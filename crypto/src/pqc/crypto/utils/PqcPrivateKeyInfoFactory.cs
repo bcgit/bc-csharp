@@ -133,33 +133,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.KyberOidLookup(kyberPrivateKeyParameters.Parameters));
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                KyberPublicKey kyberPub = new KyberPublicKey(kyberPrivateKeyParameters.GetT(),
-                    kyberPrivateKeyParameters.GetRho());
-#pragma warning restore CS0618 // Type or member is obsolete
-                KyberPrivateKey kyberPriv = new KyberPrivateKey(0, kyberPrivateKeyParameters.GetS(),
-                    kyberPrivateKeyParameters.GetHpk(), kyberPrivateKeyParameters.GetNonce(), kyberPub);
-
-                return new PrivateKeyInfo(algorithmIdentifier, kyberPriv, attributes);
+                
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(kyberPrivateKeyParameters.GetEncoded()), attributes);
             }
             if (privateKey is DilithiumPrivateKeyParameters dilithiumPrivateKeyParameters)
             {
-                Asn1EncodableVector v = new Asn1EncodableVector(7);
-                v.Add(new DerInteger(0));
-                v.Add(new DerBitString(dilithiumPrivateKeyParameters.Rho));
-                v.Add(new DerBitString(dilithiumPrivateKeyParameters.K));
-                v.Add(new DerBitString(dilithiumPrivateKeyParameters.Tr));
-                v.Add(new DerBitString(dilithiumPrivateKeyParameters.S1));
-                v.Add(new DerBitString(dilithiumPrivateKeyParameters.S2));
-                v.Add(new DerBitString(dilithiumPrivateKeyParameters.T0));
-
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+               AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.DilithiumOidLookup(dilithiumPrivateKeyParameters.Parameters));
 
                 DilithiumPublicKeyParameters pubParams = dilithiumPrivateKeyParameters.GetPublicKeyParameters();
 
-                return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes, pubParams.GetEncoded());
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(dilithiumPrivateKeyParameters.GetEncoded()), attributes, pubParams.GetEncoded());
             }
             if (privateKey is BikePrivateKeyParameters bikePrivateKeyParameters)
             {

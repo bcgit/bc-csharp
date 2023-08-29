@@ -27,6 +27,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             m_t1 = Arrays.Clone(t1);
         }
 
+        public DilithiumPrivateKeyParameters(DilithiumParameters parameters, byte[] encoding, DilithiumPublicKeyParameters pubKey)
+    : base(true, parameters)
+        {
+            DilithiumEngine eng = parameters.GetEngine(null);
+
+            int index = 0;
+            m_rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes); index += DilithiumEngine.SeedBytes;
+            m_k = Arrays.CopyOfRange(encoding, index, index + DilithiumEngine.SeedBytes); index += DilithiumEngine.SeedBytes;
+            m_tr = Arrays.CopyOfRange(encoding, index, index + DilithiumEngine.TrBytes); index += DilithiumEngine.TrBytes;
+            int delta = eng.L * eng.PolyEtaPackedBytes;
+            m_s1 = Arrays.CopyOfRange(encoding, index, index + delta); index += delta;
+            delta = eng.K * eng.PolyEtaPackedBytes;
+            m_s2 = Arrays.CopyOfRange(encoding, index, index + delta); index += delta;
+            delta = eng.K * DilithiumEngine.PolyT0PackedBytes;
+            m_t0 = Arrays.CopyOfRange(encoding, index, index + delta);
+
+            if (pubKey != null)
+            {
+                m_t1 = Arrays.Clone(pubKey.GetT1());
+            }
+        }
+
         public byte[] GetEncoded() => Arrays.ConcatenateAll(m_rho, m_k, m_tr, m_s1, m_s2, m_t0);
 
         public byte[] K => Arrays.Clone(m_k);

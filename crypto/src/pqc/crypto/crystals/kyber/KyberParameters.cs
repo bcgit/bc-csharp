@@ -1,15 +1,19 @@
 using Org.BouncyCastle.Crypto;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
     public sealed class KyberParameters
         : IKemParameters
     {
-        public static KyberParameters kyber512 = new KyberParameters("kyber512", 2, 128, false);
-        public static KyberParameters kyber768 = new KyberParameters("kyber768", 3, 192, false);
+        public static KyberParameters kyber512 = new KyberParameters("kyber512", 2, 256, false);
+        public static KyberParameters kyber768 = new KyberParameters("kyber768", 3, 256, false);
         public static KyberParameters kyber1024 = new KyberParameters("kyber1024", 4, 256, false);
-        public static KyberParameters kyber512_aes = new KyberParameters("kyber512-aes", 2, 128, true);
-        public static KyberParameters kyber768_aes = new KyberParameters("kyber768-aes", 3, 192, true);
+        [Obsolete("Parameter set to be removed")]
+        public static KyberParameters kyber512_aes = new KyberParameters("kyber512-aes", 2, 256, true);
+        [Obsolete("Parameter set to be removed")]
+        public static KyberParameters kyber768_aes = new KyberParameters("kyber768-aes", 3, 256, true);
+        [Obsolete("Parameter set to be removed")]
         public static KyberParameters kyber1024_aes = new KyberParameters("kyber1024-aes", 4, 256, true);
 
         private string m_name;

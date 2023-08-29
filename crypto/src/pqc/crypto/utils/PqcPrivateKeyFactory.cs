@@ -138,36 +138,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (algOid.On(BCObjectIdentifiers.pqc_kem_kyber))
             {
-                KyberPrivateKey kyberKey = KyberPrivateKey.GetInstance(keyInfo.ParsePrivateKey());
+                Asn1OctetString kyberKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
                 KyberParameters kyberParams = PqcUtilities.KyberParamsLookup(algOid);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                KyberPublicKey pubKey = kyberKey.PublicKey;
-#pragma warning restore CS0618 // Type or member is obsolete
-                if (pubKey != null)
-                {
-                    return new KyberPrivateKeyParameters(kyberParams, kyberKey.GetS(), kyberKey.GetHpk(),
-                        kyberKey.GetNonce(), pubKey.T, pubKey.Rho);
-                }
-                return new KyberPrivateKeyParameters(kyberParams, kyberKey.GetS(), kyberKey.GetHpk(),
-                    kyberKey.GetNonce(), null, null);
+     
+                return new KyberPrivateKeyParameters(kyberParams, kyberKey.GetOctets());
             }
             if (algOid.Equals(BCObjectIdentifiers.dilithium2) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium3) ||
-                algOid.Equals(BCObjectIdentifiers.dilithium5) ||
-                algOid.Equals(BCObjectIdentifiers.dilithium2_aes) ||
-                algOid.Equals(BCObjectIdentifiers.dilithium3_aes) ||
-                algOid.Equals(BCObjectIdentifiers.dilithium5_aes))
+                algOid.Equals(BCObjectIdentifiers.dilithium5))
             {
-                Asn1Sequence keyEnc = Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey());
+                Asn1OctetString keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
 
                 DilithiumParameters spParams = PqcUtilities.DilithiumParamsLookup(algOid);
-
-                int version = DerInteger.GetInstance(keyEnc[0]).IntValueExact;
-                if (version != 0)
-                    throw new IOException("unknown private key version: " + version);
-
-                byte[] t1 = null;
 
                 DerBitString publicKeyData = keyInfo.PublicKey;
                 if (publicKeyData != null)
@@ -175,17 +157,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     var pubParams = PqcPublicKeyFactory.DilithiumConverter.GetPublicKeyParameters(spParams,
                         publicKeyData);
 
-                    t1 = pubParams.GetT1();
+                    return new DilithiumPrivateKeyParameters(spParams, keyEnc.GetOctets(), pubParams);
                 }
 
-                return new DilithiumPrivateKeyParameters(spParams,
-                    DerBitString.GetInstance(keyEnc[1]).GetOctets(),
-                    DerBitString.GetInstance(keyEnc[2]).GetOctets(),
-                    DerBitString.GetInstance(keyEnc[3]).GetOctets(),
-                    DerBitString.GetInstance(keyEnc[4]).GetOctets(),
-                    DerBitString.GetInstance(keyEnc[5]).GetOctets(),
-                    DerBitString.GetInstance(keyEnc[6]).GetOctets(),
-                    t1); // encT1
+                return new DilithiumPrivateKeyParameters(spParams, keyEnc.GetOctets(), null);
             }
             if (algOid.Equals(BCObjectIdentifiers.falcon_512) ||
                 algOid.Equals(BCObjectIdentifiers.falcon_1024))

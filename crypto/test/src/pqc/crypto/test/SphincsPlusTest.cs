@@ -21,32 +21,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class SphincsPlusTest
     {
-        private static readonly string[] TestVectorFilesRobustFast =
-        {
-            "sha2-128f-robust.rsp",
-            "sha2-192f-robust.rsp",
-            "sha2-256f-robust.rsp",
-            "shake-128f-robust.rsp",
-            "shake-192f-robust.rsp",
-            "shake-256f-robust.rsp",
-            "haraka-128f-robust.rsp",
-            "haraka-192f-robust.rsp",
-            "haraka-256f-robust.rsp",
-        };
-
-        private static readonly string[] TestVectorFilesRobustSlow =
-        {
-            "sha2-128s-robust.rsp",
-            "sha2-192s-robust.rsp",
-            "sha2-256s-robust.rsp",
-            "shake-128s-robust.rsp",
-            "shake-192s-robust.rsp",
-            "shake-256s-robust.rsp",
-            "haraka-128s-robust.rsp",
-            "haraka-192s-robust.rsp",
-            "haraka-256s-robust.rsp",
-        };
-
         private static readonly string[] TestVectorFilesSimpleFast =
         {
             "sha2-128f-simple.rsp",
@@ -72,20 +46,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "haraka-192s-simple.rsp",
             "haraka-256s-simple.rsp",
         };
-
-        [TestCaseSource(nameof(TestVectorFilesRobustFast))]
-        [Parallelizable(ParallelScope.All)]
-        public void TVRobustFast(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
-
-        [Explicit, TestCaseSource(nameof(TestVectorFilesRobustSlow))]
-        [Parallelizable(ParallelScope.All)]
-        public void TVRobustSlow(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
 
         [TestCaseSource(nameof(TestVectorFilesSimpleFast))]
         [Parallelizable(ParallelScope.All)]
@@ -249,7 +209,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SphincsPlusPublicKeyParameters pubParams = (SphincsPlusPublicKeyParameters)kp.Public;
             SphincsPlusPrivateKeyParameters privParams = (SphincsPlusPrivateKeyParameters)kp.Private;
 
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.Parameters.GetEncoded(), Hex.Decode("b505d7cfad1b497499323c8686325e47afbc007ba1e2b4a138f03aa9a6195ac8")), pubParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Hex.Decode("b505d7cfad1b497499323c8686325e47afbc007ba1e2b4a138f03aa9a6195ac8"), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.Parameters.GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e47afbc007ba1e2b4a138f03aa9a6195ac8")), privParams.GetEncoded()));
         }
 
@@ -307,7 +267,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SphincsPlusPublicKeyParameters pubParams = (SphincsPlusPublicKeyParameters)kp.Public;
             SphincsPlusPrivateKeyParameters privParams = (SphincsPlusPrivateKeyParameters)kp.Private;
 
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.Parameters.GetEncoded(), Hex.Decode("b505d7cfad1b497499323c8686325e4714be46e5b92237d09a0ea8a0404033a6")), pubParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Hex.Decode("b505d7cfad1b497499323c8686325e4714be46e5b92237d09a0ea8a0404033a6"), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.Parameters.GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4714be46e5b92237d09a0ea8a0404033a6")), privParams.GetEncoded()));
         }
 

@@ -22,6 +22,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             m_rho = Arrays.Clone(rho);
         }
 
+        public KyberPrivateKeyParameters(KyberParameters parameters, byte[] encoding)
+            : base(true, parameters)
+        {
+            KyberEngine eng = parameters.Engine;
+
+            int index = 0;
+            m_s = Arrays.CopyOfRange(encoding, 0, eng.IndCpaSecretKeyBytes); index += eng.IndCpaSecretKeyBytes;
+            m_t = Arrays.CopyOfRange(encoding, index, index + eng.IndCpaPublicKeyBytes - KyberEngine.SymBytes); index += eng.IndCpaPublicKeyBytes - KyberEngine.SymBytes;
+            m_rho = Arrays.CopyOfRange(encoding, index, index + 32); index += 32;
+            m_hpk = Arrays.CopyOfRange(encoding, index, index + 32); index += 32;
+            m_nonce = Arrays.CopyOfRange(encoding, index, index + KyberEngine.SymBytes);       
+        }
+
         public byte[] GetEncoded() => Arrays.ConcatenateAll(m_s, m_t, m_rho, m_hpk, m_nonce);
 
         public byte[] GetHpk() => Arrays.Clone(m_hpk);

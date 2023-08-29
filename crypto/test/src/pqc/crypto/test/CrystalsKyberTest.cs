@@ -109,8 +109,8 @@ ss = C9786ED936508E178D55A1208C590A10F25CFBFEB50BE4207395A8B2F8AA192E
         [Test]
         public void TestParameters()
         {
-            Assert.AreEqual(128, KyberParameters.kyber512.SessionKeySize);
-            Assert.AreEqual(192, KyberParameters.kyber768.SessionKeySize);
+            Assert.AreEqual(256, KyberParameters.kyber512.SessionKeySize);
+            Assert.AreEqual(256, KyberParameters.kyber768.SessionKeySize);
             Assert.AreEqual(256, KyberParameters.kyber1024.SessionKeySize);
         }
 

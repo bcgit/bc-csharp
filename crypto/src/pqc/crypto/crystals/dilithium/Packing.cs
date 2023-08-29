@@ -70,8 +70,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             int i, j, k, end = 0;
 
-            Array.Copy(c, 0, sig, 0, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
+            Array.Copy(c, 0, sig, 0, engine.CTilde);
+            end += engine.CTilde;
 
             for (i = 0; i < engine.L; ++i)
             {
@@ -101,31 +101,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         }
 
-        public static bool UnpackSignature(PolyVecL z, PolyVecK h, byte[] sig, DilithiumEngine Engine)
+        public static bool UnpackSignature(PolyVecL z, PolyVecK h, byte[] sig, DilithiumEngine engine)
         {
             int i, j, k;
             
-            int end = DilithiumEngine.SeedBytes;
-            for (i = 0; i < Engine.L; ++i)
+            int end = engine.CTilde;
+            for (i = 0; i < engine.L; ++i)
             {
-                z.Vec[i].UnpackZ(Arrays.CopyOfRange(sig, end + i * Engine.PolyZPackedBytes, end + (i + 1) * Engine.PolyZPackedBytes));
+                z.Vec[i].UnpackZ(Arrays.CopyOfRange(sig, end + i * engine.PolyZPackedBytes, end + (i + 1) * engine.PolyZPackedBytes));
             }
-            end += Engine.L * Engine.PolyZPackedBytes;
+            end += engine.L * engine.PolyZPackedBytes;
 
             k = 0;
-            for (i = 0; i < Engine.K; ++i)
+            for (i = 0; i < engine.K; ++i)
             {
                 for (j = 0; j < DilithiumEngine.N; ++j)
                 {
                     h.Vec[i].Coeffs[j] = 0;
                 }
 
-                if ((sig[end + Engine.Omega + i] & 0xFF) < k || (sig[end + Engine.Omega + i] & 0xFF) > Engine.Omega)
+                if ((sig[end + engine.Omega + i] & 0xFF) < k || (sig[end + engine.Omega + i] & 0xFF) > engine.Omega)
                 {
                     return false;
                 }
 
-                for (j = k; j < (sig[end + Engine.Omega + i] & 0xFF); ++j)
+                for (j = k; j < (sig[end + engine.Omega + i] & 0xFF); ++j)
                 {
                     if (j > k && (sig[end + j] & 0xFF) <= (sig[end + j - 1] & 0xFF))
                     {
@@ -134,9 +134,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                     h.Vec[i].Coeffs[sig[end + j] & 0xFF] = 1;
                 }
 
-                k = (int)(sig[end + Engine.Omega + i]);
+                k = (int)(sig[end + engine.Omega + i]);
             }
-            for (j = k; j < Engine.Omega; ++j)
+            for (j = k; j < engine.Omega; ++j)
             {
                 if ((sig[end + j] & 0xFF) != 0)
                 {
