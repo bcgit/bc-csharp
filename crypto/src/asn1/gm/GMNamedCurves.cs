@@ -107,6 +107,7 @@ namespace Org.BouncyCastle.Asn1.GM
         static GMNamedCurves()
         {
             DefineCurve("wapip192v1", GMObjectIdentifiers.wapip192v1, WapiP192V1Holder.Instance);
+            DefineCurve("wapi192v1", GMObjectIdentifiers.wapi192v1, WapiP192V1Holder.Instance);
             DefineCurve("sm2p256v1", GMObjectIdentifiers.sm2p256v1, SM2P256V1Holder.Instance);
         }
 
