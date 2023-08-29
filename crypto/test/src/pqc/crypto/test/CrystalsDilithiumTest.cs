@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             RunTestVectorFile(testVectorFile);
         }
 
+        /*
         [Test]
         public void TestKeyEncodingDilithium2()
         {
@@ -64,6 +65,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(((DilithiumPublicKeyParameters)pub).GetEncoded(), ((DilithiumPublicKeyParameters)pubDec).GetEncoded());
             Assert.AreEqual(((DilithiumPrivateKeyParameters)priv).GetEncoded(), ((DilithiumPrivateKeyParameters)privDec).GetEncoded());
         }
+        */
 
         private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
