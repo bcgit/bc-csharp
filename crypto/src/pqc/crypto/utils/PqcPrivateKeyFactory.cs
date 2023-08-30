@@ -86,14 +86,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new FrodoPrivateKeyParameters(spParams, keyEnc);
             }
-            if (algOid.On(BCObjectIdentifiers.sphincsPlus))
+            if (algOid.On(BCObjectIdentifiers.sphincsPlus) || algOid.On(BCObjectIdentifiers.sphincsPlus_interop))
             {
-                SphincsPlusPrivateKey spKey = SphincsPlusPrivateKey.GetInstance(keyInfo.ParsePrivateKey());
+                Asn1Encodable obj = keyInfo.ParsePrivateKey();
                 SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(algOid);
-                SphincsPlusPublicKey publicKey = spKey.PublicKey;
 
-                return new SphincsPlusPrivateKeyParameters(spParams, spKey.GetSkseed(), spKey.GetSkprf(),
-                    publicKey.GetPkseed(), publicKey.GetPkroot());
+                if (obj is Asn1Sequence keySeq) 
+                { 
+                    SphincsPlusPrivateKey spKey = SphincsPlusPrivateKey.GetInstance(keySeq);
+                    
+                    SphincsPlusPublicKey publicKey = spKey.PublicKey;
+
+                    return new SphincsPlusPrivateKeyParameters(spParams, spKey.GetSkseed(), spKey.GetSkprf(),
+                        publicKey.GetPkseed(), publicKey.GetPkroot());
+                }
+                else
+                {
+                    Asn1OctetString oct = Asn1OctetString.GetInstance(obj);
+
+                    return new SphincsPlusPrivateKeyParameters(spParams, oct.GetOctets());
+                }
             }
             if (algOid.On(BCObjectIdentifiers.pqc_kem_saber))
             {

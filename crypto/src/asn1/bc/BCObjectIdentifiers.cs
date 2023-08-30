@@ -180,6 +180,8 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3_simple = sphincsPlus.Branch("36");
 
         // Interop OIDs.
+        public static readonly DerObjectIdentifier sphincsPlus_interop = new DerObjectIdentifier("1.3.9999.6");
+
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128f = new DerObjectIdentifier("1.3.9999.6.4.13");
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128s = new DerObjectIdentifier("1.3.9999.6.4.16");
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192f = new DerObjectIdentifier("1.3.9999.6.5.10");
