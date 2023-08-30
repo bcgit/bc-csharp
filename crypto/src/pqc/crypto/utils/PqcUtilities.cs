@@ -234,15 +234,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusOids[SphincsPlusParameters.haraka_256s] = BCObjectIdentifiers.sphincsPlus_haraka_256s_r3;
             sphincsPlusOids[SphincsPlusParameters.haraka_256f] = BCObjectIdentifiers.sphincsPlus_haraka_256f_r3;
 
-            sphincsPlusOids[SphincsPlusParameters.sha2_128s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_128s_simple;
-            sphincsPlusOids[SphincsPlusParameters.sha2_128f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_128f_simple;
-            sphincsPlusOids[SphincsPlusParameters.shake_128f_simple] = BCObjectIdentifiers.sphincsPlus_shake_128f_simple;
-            sphincsPlusOids[SphincsPlusParameters.sha2_192s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_192s_simple;
-            sphincsPlusOids[SphincsPlusParameters.sha2_192f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_192f_simple;
-            sphincsPlusOids[SphincsPlusParameters.shake_192f_simple] = BCObjectIdentifiers.sphincsPlus_shake_192f_simple;
-            sphincsPlusOids[SphincsPlusParameters.sha2_256s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_256s_simple;
-            sphincsPlusOids[SphincsPlusParameters.sha2_256f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_256f_simple;
-            sphincsPlusOids[SphincsPlusParameters.shake_256f_simple] = BCObjectIdentifiers.sphincsPlus_shake_256f_simple;
+            sphincsPlusOids[SphincsPlusParameters.sha2_128s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_128s;
+            sphincsPlusOids[SphincsPlusParameters.sha2_128f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_128f;
+            sphincsPlusOids[SphincsPlusParameters.shake_128s_simple] = BCObjectIdentifiers.sphincsPlus_shake_128s;
+            sphincsPlusOids[SphincsPlusParameters.shake_128f_simple] = BCObjectIdentifiers.sphincsPlus_shake_128f;
+            sphincsPlusOids[SphincsPlusParameters.sha2_192s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_192s;
+            sphincsPlusOids[SphincsPlusParameters.sha2_192f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_192f;
+            sphincsPlusOids[SphincsPlusParameters.shake_192s_simple] = BCObjectIdentifiers.sphincsPlus_shake_192s;
+            sphincsPlusOids[SphincsPlusParameters.shake_192f_simple] = BCObjectIdentifiers.sphincsPlus_shake_192f;
+            sphincsPlusOids[SphincsPlusParameters.sha2_256s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_256s;
+            sphincsPlusOids[SphincsPlusParameters.sha2_256f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_256f;
+            sphincsPlusOids[SphincsPlusParameters.shake_256s_simple] = BCObjectIdentifiers.sphincsPlus_shake_256s;
+            sphincsPlusOids[SphincsPlusParameters.shake_256f_simple] = BCObjectIdentifiers.sphincsPlus_shake_256f;
 
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128s_r3] = SphincsPlusParameters.sha2_128s;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128f_r3] = SphincsPlusParameters.sha2_128f;
@@ -262,15 +265,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_256f_r3] = SphincsPlusParameters.shake_256f;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3] = SphincsPlusParameters.haraka_256s;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3] = SphincsPlusParameters.haraka_256f;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128s_simple] = SphincsPlusParameters.sha2_128s_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128f_simple] = SphincsPlusParameters.sha2_128f_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_128f_simple] = SphincsPlusParameters.shake_128f_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_192s_simple] = SphincsPlusParameters.sha2_192s_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_192f_simple] = SphincsPlusParameters.sha2_192f_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_192f_simple] = SphincsPlusParameters.shake_192f_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_256s_simple] = SphincsPlusParameters.sha2_256s_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_256f_simple] = SphincsPlusParameters.sha2_256f_simple;
-            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_256f_simple] = SphincsPlusParameters.shake_256f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128s] = SphincsPlusParameters.sha2_128s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128f] = SphincsPlusParameters.sha2_128f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_128s] = SphincsPlusParameters.shake_128s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_128f] = SphincsPlusParameters.shake_128f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_192s] = SphincsPlusParameters.sha2_192s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_192f] = SphincsPlusParameters.sha2_192f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_192s] = SphincsPlusParameters.shake_192s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_192f] = SphincsPlusParameters.shake_192f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_256s] = SphincsPlusParameters.sha2_256s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_256f] = SphincsPlusParameters.sha2_256f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_256s] = SphincsPlusParameters.shake_256s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_256f] = SphincsPlusParameters.shake_256f_simple;
         }
 
         internal static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)

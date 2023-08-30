@@ -143,15 +143,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3] = new SphincsPlusConverter();
             Converters[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3] = new SphincsPlusConverter();
 
-            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_shake_128f_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192s_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192f_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_shake_192f_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256s_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256f_simple] = new SphincsPlusConverter();
-            Converters[BCObjectIdentifiers.sphincsPlus_shake_256f_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_128s] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_128f] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192s] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_192f] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_192s] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_192f] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256s] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_sha2_256f] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_256s] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_shake_256f] = new SphincsPlusConverter();
         }
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
