@@ -1714,6 +1714,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             int bit = 128;
             while (--bit >= 0)
             {
+                if (((int)ws_b[bit] | (int)ws_b[128 + bit] | (int)ws_p[bit] | (int)ws_q[bit]) != 0)
+                    break;
+            }
+
+            for (; bit >= 0; --bit)
+            {
                 int wb = ws_b[bit];
                 if (wb != 0)
                 {
