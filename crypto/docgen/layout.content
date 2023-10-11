@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Topics>
+  <Topic id="About" visible="True" isDefault="true" isSelected="true" apiParentMode="InsertAfter" title="The Bouncy Castle Cryptography Library for .NET Documentation" tocTitle="About" linkText="https://www.bouncycastle.org/">
+    <HelpKeywords>
+      <HelpKeyword index="K" term="welcome, getting started, Bouncy, Castle" />
+    </HelpKeywords>
+  </Topic>
+</Topics>

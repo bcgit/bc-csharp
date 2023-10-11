@@ -17,6 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BouncyCastle.Crypto", "cryp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BouncyCastle.Crypto.Tests", "crypto\test\BouncyCastle.Crypto.Tests.csproj", "{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}"
 EndProject
+Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "BouncyCastle.DocGen", "crypto\docgen\BouncyCastle.DocGen.shfbproj", "{8D3A56C4-E999-4AF3-9854-E9EF80013761}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25326952-177B-4D34-9448-3024AF0D7B46} = {25326952-177B-4D34-9448-3024AF0D7B46}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +41,12 @@ Global
 		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Publish|Any CPU.Build.0 = Publish|Any CPU
 		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D3A56C4-E999-4AF3-9854-E9EF80013761}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D3A56C4-E999-4AF3-9854-E9EF80013761}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D3A56C4-E999-4AF3-9854-E9EF80013761}.Publish|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D3A56C4-E999-4AF3-9854-E9EF80013761}.Publish|Any CPU.Build.0 = Debug|Any CPU
+		{8D3A56C4-E999-4AF3-9854-E9EF80013761}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D3A56C4-E999-4AF3-9854-E9EF80013761}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

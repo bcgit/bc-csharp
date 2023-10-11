@@ -1,0 +1,99 @@
+{% comment %}
+<!-- Do not make changes to this file in Gemstone Library projects, the content source is shared. -->
+<!-- The source for this file exists here: https://github.com/gemstone/shared-content  -->
+<!-- When content is updated in the shared-content repo, updates will be applied by build script. -->
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+
+    {% if site.google_analytics %}
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ site.google_analytics }}');
+      </script>
+    {% endif %}
+    <meta charset="UTF-8">
+
+{% seo %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link rel="icon" href="{{ site.baseurl }}/img/favicon.ico" type="image/x-icon">
+    <style>
+      h1 {
+        margin-left: -20px;
+        padding-left: 10px; 
+      }
+
+      h2 {
+        margin-left: -18px;
+        padding-left: 10px; 
+      }
+
+      h3 {
+        margin-left: -16px;
+        padding-left: 10px; 
+      }
+      
+      h4 {
+        margin-left: -14px;
+        padding-left: 10px; 
+      }
+      
+      h5 {
+        margin-left: -12px;
+        padding-left: 10px; 
+      }
+      
+      h6 {
+        margin-left: -10px;
+        padding-left: 10px; 
+      }
+      
+      h1 .octicon, h2 .octicon, h3 .octicon, h4 .octicon, h5 .octicon, h6 .octicon  {
+        visibility: hidden;
+      }
+    
+      h1:hover .octicon, h2:hover .octicon, h3:hover .octicon, h4:hover .octicon, h5:hover .octicon, h6:hover .octicon {
+        visibility: visible;
+      }
+
+      .octicon {
+        fill: currentColor;
+        padding: 0;
+        margin-left: -16px;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page-header" role="banner">
+      <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+      <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
+        <a href="{{ site.baseurl }}" class="btn">Home</a>
+      {% if site.github.is_project_page %}
+        <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
+      {% endif %}
+      {% if site.show_downloads %}
+        <a href="{{ site.github.zip_url }}" class="btn">Download .zip</a>
+        <a href="{{ site.github.tar_url }}" class="btn">Download .tar.gz</a>
+      {% endif %}
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      {% include anchor_headings.html html=content beforeHeading=true anchorBody="<svg class='octicon' viewBox='0 0 16 16' version='1.1' width='16' height='32' aria-hidden='true'><path fill-rule='evenodd' d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'></path></svg>" %}
+
+      <footer class="site-footer">
+        {% if site.github.is_project_page %}
+          <span class="site-footer-owner"><a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>, © {{ site.time | date: '%Y' }}.</span>
+        {% endif %}
+          <span class="site-footer-credits"><a href="SECURITY">security policy</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="coding-style">coding style</a></span>
+      </footer>
+    </main>
+  </body>
+</html>
