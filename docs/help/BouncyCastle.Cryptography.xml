@@ -21480,7 +21480,7 @@
       <summary>
             Optionally initialises the Skein digest with the provided parameters.
             </summary>
-      <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+      <param name="parameters">the parameters to apply to this engine, or <code language="cs">null</code> to use no parameters.</param>
     </member>
     <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinDigest.Reset"></member>
     <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinDigest.Reset(Org.BouncyCastle.Utilities.IMemoable)"></member>
@@ -23665,7 +23665,7 @@
             clearing required bits in the <code>r</code> (second 16 bytes) portion of the key.<br />
             Specifically:
             <ul><li>r[3], r[7], r[11], r[15] have top four bits clear (i.e., are {0, 1, . . . , 15})</li><li>r[4], r[8], r[12] have bottom two bits clear (i.e., are in {0, 4, 8, . . . , 252})</li></ul></summary>
-      <param name="key">a 32 byte key value <code language="cs">k[0] ... k[15], r[0] ... r[15]</code></param>
+      <param name="key">a 32 byte key value <code>k[0] ... k[15], r[0] ... r[15]</code></param>
     </member>
     <member name="M:Org.BouncyCastle.Crypto.Generators.Poly1305KeyGenerator.Clamp(System.Span{System.Byte})"></member>
     <member name="M:Org.BouncyCastle.Crypto.Generators.Poly1305KeyGenerator.EngineGenerateKey">
@@ -27156,7 +27156,7 @@
     </member>
     <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetKey">
       <summary>
-            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY">key parameter</see>, or <code language="cs">null</code> if not
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY">key parameter</see>, or <code>null</code> if not
             set.
             </summary>
       <returns>The key.</returns>
@@ -27169,7 +27169,7 @@
     </member>
     <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetNonce">
       <summary>
-            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_NONCE">nonce parameter</see>, or <code>null</code> if
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_NONCE">nonce parameter</see>, or <code language="cs">null</code> if
             not set.
             </summary>
     </member>
@@ -31237,7 +31237,7 @@
     <member name="M:Org.BouncyCastle.Pkix.PkixBuilderParameters.SetExcludedCerts(System.Collections.Generic.ISet{Org.BouncyCastle.X509.X509Certificate})">
       <summary>
             Sets the excluded certificates which are not used for building a
-            certification path. If the <code>ISet</code> is <code>null</code> an
+            certification path. If the <code language="cs">ISet</code> is <code>null</code> an
             empty set is assumed.
             </summary>
       <param name="excludedCerts">The excluded certificates to set.</param>
@@ -31421,7 +31421,7 @@
     </member>
     <member name="M:Org.BouncyCastle.Pkix.PkixCertPathValidatorException.#ctor(System.String,System.Exception,System.Int32)">
       <summary>
-            Creates a <code>PkixCertPathValidatorException</code> with the specified
+            Creates a <code language="cs">PkixCertPathValidatorException</code> with the specified
             detail message, cause, certification path, and index.
             </summary>
       <param name="message">the detail message (or <code>null</code> if none)</param>
@@ -43393,9 +43393,7 @@
             otherwise.</summary>
       <param name="candidate">The object to be matched.</param>
       <returns>
-        <codeSnippetGroup>
-          <code language="cs" codeLanguage="CSharp" style="cs">true</code>
-        </codeSnippetGroup> if the objects is matched by this selector, false otherwise.</returns>
+        <code>true</code> if the objects is matched by this selector, false otherwise.</returns>
     </member>
     <member name="T:Org.BouncyCastle.Utilities.Collections.IStore`1">
       <summary>A generic interface describing a simple store of objects.</summary>

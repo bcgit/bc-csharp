@@ -21,6 +21,7 @@
       <Argument Key="RobotsMetadata" Value="" />
       <Argument Key="BibliographyDataFile" Value="" />
       <Argument Key="RootBreadcrumbTitleText" Value="Docs" />
+      <Argument Key="ResizableTocColumn" Value="False" />
       <Argument Key="CollapsibleSections" Value="True" />
       <Argument Key="LogoFile" Value="bc-square-48.png" />
       <Argument Key="LogoHeight" Value="" />
@@ -35,7 +36,7 @@
       <Argument Key="EnumMemberSortOrder" Value="Value" />
       <Argument Key="FlagsEnumValueFormat" Value="IntegerValue" />
       <Argument Key="FlagsEnumSeparatorSize" Value="0" />
-      <Argument Key="BaseSourceCodeUrl" Value="https://github.com/bcgit/bc-csharp/blob/master/crypto/src/" />
+      <Argument Key="BaseSourceCodeUrl" Value="https://github.com/bcgit/bc-csharp/blob/master/crypto/" />
       <Argument Key="RequestExampleUrl" Value="Create a new issue: https://github.com/bcgit/bc-csharp/issues/new" />
     </TransformComponentArguments>
     <HelpFileFormat>Website</HelpFileFormat>

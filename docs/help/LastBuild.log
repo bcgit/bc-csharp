@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shfbBuild product="Sandcastle Help File Builder and Tools" version="2023.7.8.0" projectFile="D:\Projects\bc-csharp\crypto\docgen\BouncyCastle.DocGen.shfbproj" started="10/10/2023 8:26:55 PM">
+<shfbBuild product="Sandcastle Help File Builder and Tools" version="2023.7.8.0" projectFile="D:\Projects\bc-csharp\crypto\docgen\BouncyCastle.DocGen.shfbproj" started="10/10/2023 8:49:40 PM">
 <buildStep step="Initializing">
 The Sandcastle tools are located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder&#39;
 Locating components in the following folder(s):
@@ -191,18 +191,18 @@ Copying XML comments files
 </buildStep>
 <buildStep step="GenerateSharedContent">
 Generating shared content files (en-US, English (United States))...
-    Last step completed in 00:00:00.0015
+    Last step completed in 00:00:00.0012
 </buildStep>
 <buildStep step="GenerateApiFilter">
 Generating API filter for MRefBuilder...
-    Last step completed in 00:00:00.0060
+    Last step completed in 00:00:00.0221
 </buildStep>
 <buildStep step="GenerateReflectionInfo">
 Generating reflection information...
-[C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe - GenerateRefInfo-3645244e-3205-4162-bd80-95db8448d702.proj]
-Build started 10/10/2023 8:26:58 PM.
+[C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe - GenerateRefInfo-2055910e-1e30-413c-b3ea-c50d2c6fb9ce.proj]
+Build started 10/10/2023 8:49:42 PM.
 
-Project &quot;D:\Projects\bc-csharp\docs\help\Working\GenerateRefInfo-3645244e-3205-4162-bd80-95db8448d702.proj&quot; on node 1 (default targets).
+Project &quot;D:\Projects\bc-csharp\docs\help\Working\GenerateRefInfo-2055910e-1e30-413c-b3ea-c50d2c6fb9ce.proj&quot; on node 1 (default targets).
 PrepareForBuild:
   Creating directory &quot;obj\Debug\&quot;.
 GenerateRefInfo:
@@ -229,12 +229,12 @@ GenerateRefInfo:
   Wrote information on 122 namespaces, 1792 types, and 15886 members
   Merging duplicate type and member information
   Merged 0 duplicate type(s) and 0 duplicate member(s)
-Done Building Project &quot;D:\Projects\bc-csharp\docs\help\Working\GenerateRefInfo-3645244e-3205-4162-bd80-95db8448d702.proj&quot; (default targets).
-    Last step completed in 00:00:02.8008
+Done Building Project &quot;D:\Projects\bc-csharp\docs\help\Working\GenerateRefInfo-2055910e-1e30-413c-b3ea-c50d2c6fb9ce.proj&quot; (default targets).
+    Last step completed in 00:00:02.9471
 </buildStep>
 <buildStep step="ApplyDocumentModel">
 Applying document model to reflection output...
-    Last step completed in 00:00:00.5692
+    Last step completed in 00:00:00.6803
 </buildStep>
 <buildStep step="AddApiTopicFilenames">
 Adding topic filenames to API members...
@@ -2819,15 +2819,15 @@ Adding topic filenames to API members...
     Unique name M_Org_BouncyCastle_X509_Store_X509AttrCertStoreSelector_AddTargetName_1 generated for M:Org.BouncyCastle.X509.Store.X509AttrCertStoreSelector.AddTargetName(System.Byte[])
     Unique name M_Org_BouncyCastle_X509_Store_X509CertStoreSelector__ctor_1 generated for M:Org.BouncyCastle.X509.Store.X509CertStoreSelector.#ctor(Org.BouncyCastle.X509.Store.X509CertStoreSelector)
     Unique name M_Org_BouncyCastle_X509_Store_X509CrlStoreSelector__ctor_1 generated for M:Org.BouncyCastle.X509.Store.X509CrlStoreSelector.#ctor(Org.BouncyCastle.X509.Store.X509CrlStoreSelector)
-    Last step completed in 00:00:02.4605
+    Last step completed in 00:00:02.4879
 </buildStep>
 <buildStep step="GenerateApiTopicManifest">
 Generating API topic manifest...
-    Last step completed in 00:00:00.1886
+    Last step completed in 00:00:00.2530
 </buildStep>
 <buildStep step="GenerateNamespaceSummaries">
 Generating namespace summary information...
-    Last step completed in 00:00:00.4447
+    Last step completed in 00:00:00.4891
 </buildStep>
 <buildStep step="CopyConceptualContent">
 Copying conceptual content...
@@ -2838,14 +2838,14 @@ Copying images and creating the media map file...
 Generating conceptual topic files
     Parsing topic file &#39;D:\Projects\bc-csharp\crypto\docgen\content\About.aml&#39;
     D:\Projects\bc-csharp\crypto\docgen\content\About.aml -&gt; D:\Projects\bc-csharp\docs\help\Working\ddueXml\About.xml
-    Last step completed in 00:00:00.0035
+    Last step completed in 00:00:00.0030
 </buildStep>
 <buildStep step="CreateConceptualTopicConfigs">
 Creating conceptual topic configuration files...
     Companion files
     _ContentMetadata_.xml
     Merging topic IDs into reference topic manifest file
-    Last step completed in 00:00:00.0143
+    Last step completed in 00:00:00.0391
 </buildStep>
 <buildStep step="CopyAdditionalContent">
 Copying additional content files...
@@ -2853,7 +2853,7 @@ D:\Projects\bc-csharp\crypto\docgen\icons\favicon.ico -&gt; D:\Projects\bc-cshar
 D:\Projects\bc-csharp\crypto\docgen\icons\help.png -&gt; D:\Projects\bc-csharp\docs\help\Working\Output\Website\icons\help.png
 D:\Projects\bc-csharp\crypto\docgen\icons\bc-square-48.png -&gt; D:\Projects\bc-csharp\docs\help\Working\Output\Website\icons\bc-square-48.png
 D:\Projects\bc-csharp\crypto\docgen\css\presentationStyle.css -&gt; D:\Projects\bc-csharp\docs\help\Working\Output\Website\css\presentationStyle.css
-    Last step completed in 00:00:00.0030
+    Last step completed in 00:00:00.0039
 </buildStep>
 <buildStep step="MergeTablesOfContents">
 Merging conceptual and additional tables of contents...
@@ -2865,15 +2865,15 @@ Generating conceptual content intermediate TOC file...
 <plugIn name="Table of Contents Exclusion" behavior="After" priority="1500">
 Searching for comment members containing &lt;tocexclude /&gt;...
 Found 0 members to exclude from the TOC
-</plugIn>    Last step completed in 00:00:00.3231
+</plugIn>    Last step completed in 00:00:00.3764
 </buildStep>
 <buildStep step="CreateBuildAssemblerConfigs">
 Creating Sandcastle configuration files...
-    Last step completed in 00:00:00.3757
+    Last step completed in 00:00:00.3569
 </buildStep>
 <buildStep step="CombiningIntermediateTocFiles">
 Combining conceptual and API intermediate TOC files...
-    Last step completed in 00:00:00.0365
+    Last step completed in 00:00:00.0405
 </buildStep>
 <buildStep step="MergeCustomConfigs">
 Merging custom build component configurations
@@ -2909,7 +2909,7 @@ CopyFromIndexComponent: &quot;reflection&quot; in-memory cache entries used: 14 
 CopyFromIndexComponent: &quot;comments&quot; in-memory cache entries used: 2 of 30.
 <plugIn name="Website Table of Contents Generator" behavior="After" priority="1000">
 Generating TOC fragment files
-</plugIn>    Last step completed in 00:00:26.8600
+</plugIn>    Last step completed in 00:00:26.9046
 </buildStep>
 <buildStep step="CopyStandardHelpContent">
 Copying standard help content...
@@ -2943,12 +2943,12 @@ C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\Components\Defaul
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\Components\Default2022\RootWebsiteContent\SearchHelp.inc.php -&gt; D:\Projects\bc-csharp\docs\help\Working\Output\Website\SearchHelp.inc.php
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\Components\Default2022\RootWebsiteContent\SearchHelp.php -&gt; D:\Projects\bc-csharp\docs\help\Working\Output\Website\SearchHelp.php
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\Components\Default2022\RootWebsiteContent\Web.Config -&gt; D:\Projects\bc-csharp\docs\help\Working\Output\Website\Web.Config
-    Last step completed in 00:00:00.0395
+    Last step completed in 00:00:00.0565
 </buildStep>
 <buildStep step="GenerateFullTextIndex">
 Generating full-text index for the website...
 
-    Last step completed in 00:00:02.3049
+    Last step completed in 00:00:02.2415
 </buildStep>
 <buildStep step="CopyingWebsiteFiles">
 Copying website files to output folder...
@@ -3012,15 +3012,15 @@ Copied 28000 files
 Copied 28500 files
 Copied 29000 files
 Copied 29323 files for the website content
-    Last step completed in 00:00:13.8479
+    Last step completed in 00:00:13.0122
 </buildStep>
 <buildStep step="CleanIntermediates">
 Removing intermediate files...
-    Last step completed in 00:00:02.3610
+    Last step completed in 00:00:02.6179
 </buildStep>
 <buildStep step="Completed">
 
-Build completed successfully at 10/10/2023 8:27:50 PM.  Total time: 00:00:55.0316
+Build completed successfully at 10/10/2023 8:50:35 PM.  Total time: 00:00:54.7700
 
 </buildStep>
 </shfbBuild>
