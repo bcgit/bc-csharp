@@ -1,8 +1,8 @@
 theme: jekyll-theme-cayman
 title: Bouncy Castle
-description: .NET Cryptography Library Documentation
+description: .NET Library Documentation
 github:
-  repository_name: GridProtectionAlliance/bc-csharp
+  repository_name: bcgit/bc-csharp
   owner_url: https://www.bouncycastle.org
   owner_name: The Legion of the Bouncy Castle
 plugins:

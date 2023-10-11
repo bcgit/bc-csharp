@@ -22,6 +22,12 @@ Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "BouncyCastle.DocGen", "cryp
 		{25326952-177B-4D34-9448-3024AF0D7B46} = {25326952-177B-4D34-9448-3024AF0D7B46}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1F38A359-32F3-4350-BAA3-FF3F2C269778}"
+	ProjectSection(SolutionItems) = preProject
+		docs\README.md = docs\README.md
+		docs\_config.yml = docs\_config.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +56,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1F38A359-32F3-4350-BAA3-FF3F2C269778} = {F8F54480-386E-4CE7-8C0E-537922E2A634}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {491E9412-DD09-44EE-86A7-2D0C51842AFC}
