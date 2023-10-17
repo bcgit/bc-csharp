@@ -1515,7 +1515,38 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sig);
 		}
 
-		private void DoTestSample(string sigName)
+        public void TestEncryptionAlgECPublicKey()
+        {
+            bool isValid = true;
+            byte[] sigBlock = Base64.Decode(
+				"MIIEdwYJKoZIhvcNAQcCoIIEaDCCBGQCAQExDzANBglghkgBZQMEAgEFADAUBgkqhkiG9w" +
+				"0BBwGgBwQFAQIDBAWgggMPMIIDCzCCAm6gAwIBAgIJALt88oa4pHaNMAkGByqGSM49BAEw" +
+				"YzELMAkGA1UEBhMCR0ExCzAJBgNVBAgTAkFXMRAwDgYDVQQHEwdBdGxhbnRhMQwwCgYDVQ" +
+				"QKEwNWTVcxDzANBgNVBAsTBkFXIEVNTTEWMBQGA1UEAxMNd3d3LmF3bWRtLmNvbTAeFw0x" +
+				"NjA2MDgxNjQ2MTdaFw0xNjA3MDgxNjQ2MTdaMGMxCzAJBgNVBAYTAkdBMQswCQYDVQQIEw" +
+				"JBVzEQMA4GA1UEBxMHQXRsYW50YTEMMAoGA1UEChMDVk1XMQ8wDQYDVQQLEwZBVyBFTU0x" +
+				"FjAUBgNVBAMTDXd3dy5hd21kbS5jb20wgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAAAlW" +
+				"sasReERY0vzpm6WvDuznypGIyXfaf8Q/sieuHOdUxhzcMS8Gg4qxry9voSKozDn3vI1sFQ" +
+				"3ZPxDgIouHSKZAA8G4aP72k/gQ7G8wnHx2DF+UgchfIL0GypTZqmjo0c7jb8ZDgklfGr+a" +
+				"rFeL8gIVH+EqmUdJoYzBW0FX9RZmerjKOByDCBxTAdBgNVHQ4EFgQUHkakN+xGDRr7GCER" +
+				"2OSy0FvvN7QwgZUGA1UdIwSBjTCBioAUHkakN+xGDRr7GCER2OSy0FvvN7ShZ6RlMGMxCz" +
+				"AJBgNVBAYTAkdBMQswCQYDVQQIEwJBVzEQMA4GA1UEBxMHQXRsYW50YTEMMAoGA1UEChMD" +
+				"Vk1XMQ8wDQYDVQQLEwZBVyBFTU0xFjAUBgNVBAMTDXd3dy5hd21kbS5jb22CCQC7fPKGuK" +
+				"R2jTAMBgNVHRMEBTADAQH/MAkGByqGSM49BAEDgYsAMIGHAkIByvkebPlDlHVbZT+G+beF" +
+				"DwBzuSbTLp5cae0R+qUxbd24sXD5wozRiMs3GVRGd7L0sDeHbq8iJrLrKv7UJuh7HqECQV" +
+				"JVwthEuknri/pIajiuolJodLgVnaTqcCaOshuMejK1qT38yCqX/G5W/STw6iBv1/Dg6pwa" +
+				"IsmtrTn3NMDZkH+1MYIBIzCCAR8CAQEwcDBjMQswCQYDVQQGEwJHQTELMAkGA1UECBMCQV" +
+				"cxEDAOBgNVBAcTB0F0bGFudGExDDAKBgNVBAoTA1ZNVzEPMA0GA1UECxMGQVcgRU1NMRYw" +
+				"FAYDVQQDEw13d3cuYXdtZG0uY29tAgkAu3zyhrikdo0wDQYJYIZIAWUDBAIBBQAwCwYHKo" +
+				"ZIzj0CAQUABIGLMIGIAkIAth4AncbHuAVpUqiie/nY3E/2jarczGI4HfMHci4a+yLbsMaA" +
+				"fU6baty0Ei6VUCWX7je5dmV/wb1gcU0RogDu9AwCQgFuI0qfrnXiC8Rfir7PpYl66P6eD7" +
+				"bGT3XK+2UlfIO0N05yYZAaHu7jCIdHIhi1wwtq9dsHwpcEJhLlJ8LyifAxDw==");
+
+            CmsSignedData signedData = new CmsSignedData(sigBlock);
+            
+			VerifySignatures(signedData);
+        }
+        private void DoTestSample(string sigName)
 		{
 			CmsSignedData sig = new CmsSignedData(GetInput(sigName));
 			VerifySignatures(sig);
