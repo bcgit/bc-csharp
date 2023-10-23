@@ -215,6 +215,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             hqcOids[HqcParameters.hqc192] = BCObjectIdentifiers.hqc192;
             hqcOids[HqcParameters.hqc256] = BCObjectIdentifiers.hqc256;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             sphincsPlusOids[SphincsPlusParameters.sha2_128s] = BCObjectIdentifiers.sphincsPlus_sha2_128s_r3;
             sphincsPlusOids[SphincsPlusParameters.sha2_128f] = BCObjectIdentifiers.sphincsPlus_sha2_128f_r3;
             sphincsPlusOids[SphincsPlusParameters.shake_128s] = BCObjectIdentifiers.sphincsPlus_shake_128s_r3;
@@ -277,6 +278,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_256f] = SphincsPlusParameters.sha2_256f_simple;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_256s] = SphincsPlusParameters.shake_256s_simple;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_256f] = SphincsPlusParameters.shake_256f_simple;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         internal static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)

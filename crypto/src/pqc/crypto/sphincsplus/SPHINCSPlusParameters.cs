@@ -131,6 +131,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         static SphincsPlusParameters()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             SphincsPlusParameters[] all = new SphincsPlusParameters[]{
                 SphincsPlusParameters.sha2_128f, SphincsPlusParameters.sha2_128s,
                 SphincsPlusParameters.sha2_192f, SphincsPlusParameters.sha2_192s,
@@ -151,6 +152,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 SphincsPlusParameters.haraka_192f_simple, SphincsPlusParameters.haraka_192s_simple,
                 SphincsPlusParameters.haraka_256f_simple, SphincsPlusParameters.haraka_256s_simple,
             };
+#pragma warning restore CS0618 // Type or member is obsolete
 
             for (int i = 0; i < all.Length; ++i)
             {

@@ -240,7 +240,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                     return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     byte[] keyEnc = keyInfo.PublicKey.GetOctets();
 

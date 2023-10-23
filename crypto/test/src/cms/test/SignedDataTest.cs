@@ -1517,7 +1517,6 @@ namespace Org.BouncyCastle.Cms.Tests
 
         public void TestEncryptionAlgECPublicKey()
         {
-            bool isValid = true;
             byte[] sigBlock = Base64.Decode(
 				"MIIEdwYJKoZIhvcNAQcCoIIEaDCCBGQCAQExDzANBglghkgBZQMEAgEFADAUBgkqhkiG9w" +
 				"0BBwGgBwQFAQIDBAWgggMPMIIDCzCCAm6gAwIBAgIJALt88oa4pHaNMAkGByqGSM49BAEw" +
