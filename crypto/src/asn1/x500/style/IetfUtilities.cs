@@ -7,15 +7,123 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X500.Style
 {
+    // TODO[api] static
     public abstract class IetfUtilities
     {
+        internal static string Unescape(string elt)
+        {
+            if (elt.Length < 1)
+                return elt;
+
+            if (elt.IndexOf('\\') < 0 && elt.IndexOf('"') < 0)
+                return elt.Trim();
+
+            bool escaped = false;
+            bool quoted = false;
+            StringBuilder buf = new StringBuilder(elt.Length);
+            int start = 0;
+
+            // if it's an escaped hash string and not an actual encoding in string form
+            // we need to leave it escaped.
+            if (elt[0] == '\\')
+            {
+                if (elt[1] == '#')
+                {
+                    start = 2;
+                    buf.Append("\\#");
+                }
+            }
+
+            bool nonWhiteSpaceEncountered = false;
+            int lastEscaped = 0;
+            char hex1 = Convert.ToChar(0);
+
+            for (int i = start; i != elt.Length; i++)
+            {
+                char c = elt[i];
+
+                if (c != ' ')
+                {
+                    nonWhiteSpaceEncountered = true;
+                }
+
+                if (c == '"')
+                {
+                    if (!escaped)
+                    {
+                        quoted = !quoted;
+                    }
+                    else
+                    {
+                        buf.Append(c);
+                        escaped = false;
+                    }
+                }
+                else if (c == '\\' && !(escaped || quoted))
+                {
+                    escaped = true;
+                    lastEscaped = buf.Length;
+                }
+                else
+                {
+                    if (c == ' ' && !escaped && !nonWhiteSpaceEncountered)
+                    {
+                        continue;
+                    }
+                    if (escaped && IsHexDigit(c))
+                    {
+                        if (hex1 != 0)
+                        {
+                            buf.Append(Convert.ToChar(ConvertHex(hex1) * 16 + ConvertHex(c)));
+                            escaped = false;
+                            hex1 = Convert.ToChar(0);
+                            continue;
+                        }
+                        hex1 = c;
+                        continue;
+                    }
+                    buf.Append(c);
+                    escaped = false;
+                }
+            }
+
+            if (buf.Length > 0)
+            {
+                int last = buf.Length - 1;
+                while (buf[last] == ' ' && lastEscaped != last)
+                {
+                    buf.Length = last;
+                }
+            }
+
+            return buf.ToString();
+        }
+
+        private static bool IsHexDigit(char c)
+        {
+            return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+        }
+
+        private static int ConvertHex(char c)
+        {
+            if ('0' <= c && c <= '9')
+            {
+                return c - '0';
+            }
+            if ('a' <= c && c <= 'f')
+            {
+                return c - 'a' + 10;
+            }
+            return c - 'A' + 10;
+        }
+
         public static string ValueToString(Asn1Encodable value)
         {
             StringBuilder vBuf = new StringBuilder();
 
-            if (value is IAsn1String && !(value is DerUniversalString))
+            if (value is IAsn1String str && !(value is DerUniversalString))
             {
-                string v = ((IAsn1String)value).GetString();
+                string v = str.GetString();
                 if (v.Length > 0 && v[0] == '#')
                 {
                     vBuf.Append('\\');

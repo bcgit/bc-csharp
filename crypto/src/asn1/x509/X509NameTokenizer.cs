@@ -1,4 +1,4 @@
-using System.Text;
+using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -10,95 +10,71 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class X509NameTokenizer
     {
-        private string			value;
-        private int				index;
-        private char			separator;
-        private StringBuilder	buffer = new StringBuilder();
+        private readonly string m_value;
+        private readonly char m_separator;
 
-		public X509NameTokenizer(
-            string oid)
+        private int m_index;
+
+        public X509NameTokenizer(string oid)
             : this(oid, ',')
         {
         }
 
-		public X509NameTokenizer(
-            string	oid,
-            char	separator)
+		public X509NameTokenizer(string	oid, char separator)
         {
-            this.value = oid;
-            this.index = -1;
-            this.separator = separator;
+            if (oid == null)
+                throw new ArgumentNullException(nameof(oid));
+
+            if (separator == '"' || separator == '\\')
+                throw new ArgumentException("reserved separator character", nameof(separator));
+
+            m_value = oid;
+            m_separator = separator;
+            m_index = oid.Length < 1 ? 0 : -1;
         }
 
-		public bool HasMoreTokens()
-        {
-            return index != value.Length;
-        }
+        public bool HasMoreTokens() => m_index < m_value.Length;
 
 		public string NextToken()
         {
-            if (index == value.Length)
-            {
+            if (m_index >= m_value.Length)
                 return null;
-            }
 
-            int end = index + 1;
             bool quoted = false;
             bool escaped = false;
 
-			buffer.Remove(0, buffer.Length);
-
-			while (end != value.Length)
+            int beginIndex = m_index + 1;
+            while (++m_index < m_value.Length)
             {
-                char c = value[end];
+                char c = m_value[m_index];
 
-				if (c == '"')
+                if (escaped)
                 {
-                    if (!escaped)
-                    {
-                        quoted = !quoted;
-                    }
-                    else
-                    {
-                        buffer.Append(c);
-						escaped = false;
-                    }
+                    escaped = false;
                 }
-                else
+                else if (c == '"')
                 {
-                    if (escaped || quoted)
-                    {
-						if (c == '#' && buffer[buffer.Length - 1] == '=')
-						{
-							buffer.Append('\\');
-						}
-						else if (c == '+' && separator != '+')
-						{
-							buffer.Append('\\');
-						}
-						buffer.Append(c);
-                        escaped = false;
-                    }
-                    else if (c == '\\')
-                    {
-                        escaped = true;
-                    }
-                    else if (c == separator)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        buffer.Append(c);
-                    }
+                    quoted = !quoted;
                 }
-
-				end++;
+                else if (quoted)
+                {
+                }
+                else if (c == '\\')
+                {
+                    escaped = true;
+                }
+                else if (c == m_separator)
+                {
+                    // TODO[api] The Trim() is for backward compatibility; remove on transition to X500NameTokenizer
+                    return m_value.Substring(beginIndex, m_index - beginIndex).Trim();
+                }
             }
 
-			index = end;
+            if (escaped || quoted)
+                throw new ArgumentException("badly formatted directory string");
 
-			return buffer.ToString().Trim();
+            // TODO[api] The Trim() is for backward compatibility; remove on transition to X500NameTokenizer
+            return m_value.Substring(beginIndex, m_index - beginIndex).Trim();
         }
     }
 }
