@@ -89,10 +89,9 @@ namespace Org.BouncyCastle.Asn1.X500.Style
 
             if (buf.Length > 0)
             {
-                int last = buf.Length - 1;
-                while (buf[last] == ' ' && lastEscaped != last)
+                while (buf[buf.Length - 1] == ' ' && lastEscaped != buf.Length - 1)
                 {
-                    buf.Length = last;
+                    buf.Length = buf.Length - 1;
                 }
             }
 
@@ -107,13 +106,11 @@ namespace Org.BouncyCastle.Asn1.X500.Style
         private static int ConvertHex(char c)
         {
             if ('0' <= c && c <= '9')
-            {
                 return c - '0';
-            }
+
             if ('a' <= c && c <= 'f')
-            {
                 return c - 'a' + 10;
-            }
+
             return c - 'A' + 10;
         }
 
