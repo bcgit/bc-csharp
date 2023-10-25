@@ -167,13 +167,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Sqr(p.x, u);
             F.Sqr(p.y, v);
             F.Mul(u, v, t);
-            F.Sub(v, u, v);
+            F.Sub(u, v, u);
             F.Mul(t, C_d, t);
             F.AddOne(t);
-            F.Sub(t, v, t);
+            F.Add(t, u, t);
             F.Normalize(t);
+            F.Normalize(v);
 
-            return F.IsZero(t);
+            return F.IsZero(t) & ~F.IsZero(v);
         }
 
         private static int CheckPoint(PointAccum p)
@@ -187,15 +188,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Sqr(p.y, v);
             F.Sqr(p.z, w);
             F.Mul(u, v, t);
-            F.Sub(v, u, v);
-            F.Mul(v, w, v);
+            F.Sub(u, v, u);
+            F.Mul(u, w, u);
             F.Sqr(w, w);
             F.Mul(t, C_d, t);
             F.Add(t, w, t);
-            F.Sub(t, v, t);
+            F.Add(t, u, t);
             F.Normalize(t);
+            F.Normalize(v);
+            F.Normalize(w);
 
-            return F.IsZero(t);
+            return F.IsZero(t) & ~F.IsZero(v) & ~F.IsZero(w);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -950,7 +953,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Normalize(p.y);
             F.Normalize(p.z);
 
-            return F.IsZeroVar(p.x) && F.AreEqualVar(p.y, p.z);
+            return F.IsZeroVar(p.x) && !F.IsZeroVar(p.y) && F.AreEqualVar(p.y, p.z);
         }
 
         private static void PointAdd(ref PointExtended p, ref PointExtended q, ref PointExtended r, ref PointTemp t)

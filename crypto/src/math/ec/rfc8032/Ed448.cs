@@ -140,8 +140,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.SubOne(t);
             F.Add(t, u, t);
             F.Normalize(t);
+            F.Normalize(v);
 
-            return F.IsZero(t);
+            return F.IsZero(t) & ~F.IsZero(v);
         }
 
         private static int CheckPoint(PointProjective p)
@@ -162,8 +163,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Sub(t, w, t);
             F.Add(t, u, t);
             F.Normalize(t);
+            F.Normalize(v);
+            F.Normalize(w);
 
-            return F.IsZero(t);
+            return F.IsZero(t) & ~F.IsZero(v) & ~F.IsZero(w);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -868,7 +871,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Normalize(p.y);
             F.Normalize(p.z);
 
-            return F.IsZeroVar(p.x) && F.AreEqualVar(p.y, p.z);
+            return F.IsZeroVar(p.x) && !F.IsZeroVar(p.y) && F.AreEqualVar(p.y, p.z);
         }
 
         private static void PointAdd(ref PointAffine p, ref PointProjective r, ref PointTemp t)
