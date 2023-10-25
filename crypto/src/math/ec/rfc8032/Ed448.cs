@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             0x03AC222BU, 0x0304DB8EU, 0x083EE319U, 0x05E5DB0BU, 0x0ECA503BU, 0x0B1C6539U, 0x078A8DCEU, 0x02D256BCU,
             0x04A8B05EU, 0x0BD9FD57U, 0x0A1C3CB8U };
 
-        private const int C_d = -39081;
+        private const uint C_d = 39081U;
 
         //private const int WnafWidth = 6;
         private const int WnafWidth225 = 5;
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Sqr(p.y, v);
             F.Mul(u, v, t);
             F.Add(u, v, u);
-            F.Mul(t, -C_d, t);
+            F.Mul(t, C_d, t);
             F.SubOne(t);
             F.Add(t, u, t);
             F.Normalize(t);
@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Add(u, v, u);
             F.Mul(u, w, u);
             F.Sqr(w, w);
-            F.Mul(t, -C_d, t);
+            F.Mul(t, C_d, t);
             F.Sub(t, w, t);
             F.Add(t, u, t);
             F.Normalize(t);
@@ -313,7 +313,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] v = F.Create();
 
             F.Sqr(r.y, u);
-            F.Mul(u, (uint)-C_d, v);
+            F.Mul(u, C_d, v);
             F.Negate(u, u);
             F.AddOne(u);
             F.AddOne(v);
@@ -888,7 +888,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(p.x, r.x, c);
             F.Mul(p.y, r.y, d);
             F.Mul(c, d, e);
-            F.Mul(e, -C_d, e);
+            F.Mul(e, C_d, e);
             //F.Apm(b, e, f, g);
             F.Add(b, e, f);
             F.Sub(b, e, g);
@@ -923,7 +923,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(p.x, r.x, c);
             F.Mul(p.y, r.y, d);
             F.Mul(c, d, e);
-            F.Mul(e, -C_d, e);
+            F.Mul(e, C_d, e);
             //F.Apm(b, e, f, g);
             F.Add(b, e, f);
             F.Sub(b, e, g);
@@ -968,7 +968,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(p.x, r.x, c);
             F.Mul(p.y, r.y, d);
             F.Mul(c, d, e);
-            F.Mul(e, -C_d, e);
+            F.Mul(e, C_d, e);
             //F.Apm(b, e, nf, ng);
             F.Add(b, e, nf);
             F.Sub(b, e, ng);
@@ -1014,7 +1014,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(p.x, r.x, c);
             F.Mul(p.y, r.y, d);
             F.Mul(c, d, e);
-            F.Mul(e, -C_d, e);
+            F.Mul(e, C_d, e);
             //F.Apm(b, e, nf, ng);
             F.Add(b, e, nf);
             F.Sub(b, e, ng);
@@ -1152,7 +1152,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointCopy(ref p, ref q);
 
             Init(out PointProjective d);
-            PointCopy(ref q, ref d);
+            PointCopy(ref p, ref d);
             PointDouble(ref d, ref t);
 
             uint[] table = F.CreateTable(count * 3);
