@@ -715,10 +715,12 @@ namespace Org.BouncyCastle.Tls
             {
                 recordEpoch = m_readEpoch;
             }
-            else if (recordType == ContentType.handshake && null != m_retransmitEpoch
-                && epoch == m_retransmitEpoch.Epoch)
+            else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
             {
-                recordEpoch = m_retransmitEpoch;
+                if (recordType == ContentType.handshake)
+                {
+                    recordEpoch = m_retransmitEpoch;
+                }
             }
 
             if (null == recordEpoch)
@@ -994,7 +996,6 @@ namespace Org.BouncyCastle.Tls
             int recordLength = RecordHeaderLength;
             if (m_recordQueue.Available >= recordLength)
             {
-                short recordType = m_recordQueue.ReadUint8(0);
                 int epoch = m_recordQueue.ReadUint16(3);
 
                 DtlsEpoch recordEpoch = null;
@@ -1002,8 +1003,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     recordEpoch = m_readEpoch;
                 }
-                else if (recordType == ContentType.handshake && null != m_retransmitEpoch
-                    && epoch == m_retransmitEpoch.Epoch)
+                else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
                 {
                     recordEpoch = m_retransmitEpoch;
                 }
@@ -1038,7 +1038,6 @@ namespace Org.BouncyCastle.Tls
             {
                 this.m_inConnection = true;
 
-                short recordType = TlsUtilities.ReadUint8(buf, off);
                 int epoch = TlsUtilities.ReadUint16(buf, off + 3);
 
                 DtlsEpoch recordEpoch = null;
@@ -1046,8 +1045,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     recordEpoch = m_readEpoch;
                 }
-                else if (recordType == ContentType.handshake && null != m_retransmitEpoch
-                    && epoch == m_retransmitEpoch.Epoch)
+                else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
                 {
                     recordEpoch = m_retransmitEpoch;
                 }

@@ -770,10 +770,19 @@ namespace Org.BouncyCastle.Tls
 
         public static int ReadUint16(byte[] buf, int offset)
         {
-            int n = (buf[offset] & 0xff) << 8;
-            n |= (buf[++offset] & 0xff);
+            int n = buf[offset] << 8;
+            n |= buf[++offset];
             return n;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int ReadUint16(ReadOnlySpan<byte> buffer)
+        {
+            int n = buffer[0] << 8;
+            n |= buffer[1];
+            return n;
+        }
+#endif
 
         public static int ReadUint24(Stream input)
         {

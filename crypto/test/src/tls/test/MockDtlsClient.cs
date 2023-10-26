@@ -15,6 +15,8 @@ namespace Org.BouncyCastle.Tls.Tests
     {
         internal TlsSession m_session;
 
+        private int m_handshakeTimeoutMillis = 0;
+
         internal MockDtlsClient(TlsSession session)
             : base(new BcTlsCrypto())
         {
@@ -25,6 +27,10 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             return this.m_session;
         }
+
+        public override int GetHandshakeTimeoutMillis() => m_handshakeTimeoutMillis;
+
+        public void SetHandshakeTimeoutMillis(int millis) => m_handshakeTimeoutMillis = millis;
 
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)

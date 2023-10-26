@@ -22,15 +22,9 @@ namespace Org.BouncyCastle.Tls.Tests
             this.m_launchTimestamp = DateTimeUtilities.CurrentUnixMs();
         }
 
-        public virtual int GetReceiveLimit()
-        {
-            return m_transport.GetReceiveLimit();
-        }
+        public virtual int GetReceiveLimit() => m_transport.GetReceiveLimit();
 
-        public virtual int GetSendLimit()
-        {
-            return m_transport.GetSendLimit();
-        }
+        public virtual int GetSendLimit() => m_transport.GetSendLimit();
 
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis)
         {
@@ -80,10 +74,7 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 #endif
 
-        public virtual void Close()
-        {
-            m_transport.Close();
-        }
+        public virtual void Close() => m_transport.Close();
 
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER

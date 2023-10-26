@@ -25,15 +25,9 @@ namespace Org.BouncyCastle.Tls.Tests
             this.m_percentPacketLossSending = percentPacketLossSending;
         }
 
-        public virtual int GetReceiveLimit()
-        {
-            return m_transport.GetReceiveLimit();
-        }
+        public virtual int GetReceiveLimit() => m_transport.GetReceiveLimit();
 
-        public virtual int GetSendLimit()
-        {
-            return m_transport.GetSendLimit();
-        }
+        public virtual int GetSendLimit() => m_transport.GetSendLimit();
 
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis)
         {
@@ -48,7 +42,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 if (length < 0 || !LostPacket(m_percentPacketLossReceiving))
                     return length;
 
-                Console.WriteLine("PACKET LOSS (" + length + " byte packet not received)");
+                Console.WriteLine("PACKET LOSS ({0} byte packet not received)", length);
 
                 long now = DateTimeUtilities.CurrentUnixMs();
                 if (now >= endMillis)
@@ -70,7 +64,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 if (length < 0 || !LostPacket(m_percentPacketLossReceiving))
                     return length;
 
-                Console.WriteLine("PACKET LOSS (" + length + " byte packet not received)");
+                Console.WriteLine("PACKET LOSS ({0} byte packet not received)", length);
 
                 long now = DateTimeUtilities.CurrentUnixMs();
                 if (now >= endMillis)
@@ -89,7 +83,7 @@ namespace Org.BouncyCastle.Tls.Tests
 #else
             if (LostPacket(m_percentPacketLossSending))
             {
-                Console.WriteLine("PACKET LOSS (" + len + " byte packet not sent)");
+                Console.WriteLine("PACKET LOSS ({0} byte packet not sent)", len);
             }
             else
             {
@@ -104,7 +98,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (LostPacket(m_percentPacketLossSending))
             {
-                Console.WriteLine("PACKET LOSS (" + buffer.Length + " byte packet not sent)");
+                Console.WriteLine("PACKET LOSS ({0} byte packet not sent)", buffer.Length);
             }
             else
             {
@@ -113,10 +107,7 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 #endif
 
-        public virtual void Close()
-        {
-            m_transport.Close();
-        }
+        public virtual void Close() => m_transport.Close();
 
         private bool LostPacket(int percentPacketLoss)
         {
