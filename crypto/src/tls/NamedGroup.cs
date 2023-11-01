@@ -358,6 +358,8 @@ namespace Org.BouncyCastle.Tls
                 || (namedGroup == arbitrary_explicit_char2_curves);
         }
 
+        public static bool IsFiniteField(int namedGroup) => (namedGroup & 0xFFFFFF00) == 0x00000100;
+
         public static bool IsPrimeCurve(int namedGroup)
         {
             return (namedGroup >= secp160k1 && namedGroup <= curveSM2)

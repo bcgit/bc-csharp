@@ -69,37 +69,48 @@ namespace Org.BouncyCastle.Tls
 
         protected virtual int GetMaximumNegotiableCurveBits()
         {
+            int maxBits = 0;
             int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
-            if (clientSupportedGroups == null)
+            if (clientSupportedGroups != null)
+            {
+                for (int i = 0; i < clientSupportedGroups.Length; ++i)
+                {
+                    maxBits = System.Math.Max(maxBits, NamedGroup.GetCurveBits(clientSupportedGroups[i]));
+                }
+            }
+            else
             {
                 /*
                  * RFC 4492 4. A client that proposes ECC cipher suites may choose not to include these
-                 * extensions. In this case, the server is free to choose any one of the elliptic curves
-                 * or point formats [...].
+                 * extensions. In this case, the server is free to choose any one of the elliptic curves or point
+                 * formats [...].
                  */
-                return NamedGroup.GetMaximumCurveBits();
-            }
-
-            int maxBits = 0;
-            for (int i = 0; i < clientSupportedGroups.Length; ++i)
-            {
-                maxBits = System.Math.Max(maxBits, NamedGroup.GetCurveBits(clientSupportedGroups[i]));
+                maxBits = NamedGroup.GetMaximumCurveBits();
             }
             return maxBits;
         }
 
         protected virtual int GetMaximumNegotiableFiniteFieldBits()
         {
-            int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
-            if (clientSupportedGroups == null)
-            {
-                return NamedGroup.GetMaximumFiniteFieldBits();
-            }
-
             int maxBits = 0;
-            for (int i = 0; i < clientSupportedGroups.Length; ++i)
+            bool anyPeerFF = false;
+            int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
+            if (clientSupportedGroups != null)
             {
-                maxBits = System.Math.Max(maxBits, NamedGroup.GetFiniteFieldBits(clientSupportedGroups[i]));
+                for (int i = 0; i < clientSupportedGroups.Length; ++i)
+                {
+                    anyPeerFF |= NamedGroup.IsFiniteField(clientSupportedGroups[i]);
+                    maxBits = System.Math.Max(maxBits, NamedGroup.GetFiniteFieldBits(clientSupportedGroups[i]));
+                }
+            }
+            if (!anyPeerFF)
+            {
+                /*
+                 * RFC 7919 4. If [...] the Supported Groups extension is either absent from the ClientHello
+                 * entirely or contains no FFDHE groups (i.e., no codepoints between 256 and 511, inclusive), then
+                 * the server [...] MAY select an FFDHE cipher suite and offer an FFDHE group of its choice [...].
+                 */
+                maxBits = NamedGroup.GetMaximumFiniteFieldBits();
             }
             return maxBits;
         }
