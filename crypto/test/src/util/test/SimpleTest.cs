@@ -3,100 +3,59 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
+using Org.BouncyCastle.Utilities.IO;
+
 namespace Org.BouncyCastle.Utilities.Test
 {
     public abstract class SimpleTest
         : ITest
     {
-		public abstract string Name
-		{
-			get;
-		}
+        internal static readonly string NewLine = Environment.NewLine;
 
-		private ITestResult Success()
-        {
-            return SimpleTestResult.Successful(this, "Okay");
-        }
+        public abstract string Name { get; }
 
-        internal void Fail(
-            string message)
-        {
-            throw new TestFailedException(SimpleTestResult.Failed(this, message));
-        }
+		private ITestResult Success() => SimpleTestResult.Successful(this, "Okay");
 
-        internal void Fail(
-            string		message,
-            Exception	throwable)
-        {
+        internal void Fail(string message) => throw new TestFailedException(SimpleTestResult.Failed(this, message));
+
+        internal void Fail(string message, Exception throwable) =>
             throw new TestFailedException(SimpleTestResult.Failed(this, message, throwable));
-        }
 
-		internal void Fail(
-            string message,
-            object expected,
-            object found)
-        {
+		internal void Fail(string message, object expected, object found) =>
             throw new TestFailedException(SimpleTestResult.Failed(this, message, expected, found));
-        }
 
-        internal void IsTrue(bool value)
+        internal void FailIf(string message, bool condition)
         {
-            if (!value)
-                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
+            if (condition)
+            {
+                Fail(message);
+            }
         }
 
-        internal void IsTrue(string message, bool value)
-        {
-            if (!value)
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-        }
+        internal void IsTrue(bool value) => IsTrue("no message", value);
 
-        internal void IsEquals(object a, object b)
-        {
-            if (!a.Equals(b))
-                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
-        }
+        internal void IsTrue(string message, bool value) => FailIf(message, !value);
 
-        internal void IsEquals(int a, int b)
-        {
-            if (a != b)
-                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
-        }
+        internal void IsEquals(bool a, bool b) => IsEquals("no message", a, b);
 
-        internal void IsEquals(string message, bool a, bool b)
-        {
-            if (a != b)
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-        }
+        internal void IsEquals(int a, int b) => IsEquals("no message", a, b);
 
-        internal void IsEquals(string message, long a, long b)
-        {
-            if (a != b)
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-        }
+        internal void IsEquals(long a, long b) => IsEquals("no message", a, b);
 
-        internal void IsEquals(string message, object a, object b)
-        {
-            if (a == null && b == null)
-                return;
+        internal void IsEquals(object a, object b) => IsEquals("no message", a, b);
 
-            if (a == null)
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-            if (b == null)
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-            if (!a.Equals(b))
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-        }
+        internal void IsEquals(string message, bool a, bool b) => FailIf(message, a != b);
 
-        internal bool AreEqual(byte[] a, byte[] b)
-        {
-            return Arrays.AreEqual(a, b);
-        }
+        internal void IsEquals(string message, int a, int b) => FailIf(message, a != b);
 
-        internal bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex)
-        {
-            return Arrays.AreEqual(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
-        }
+        internal void IsEquals(string message, long a, long b) => FailIf(message, a != b);
+
+        internal void IsEquals(string message, object a, object b) => FailIf(message, !Objects.Equals(a, b));
+
+        internal bool AreEqual(byte[] a, byte[] b) => Arrays.AreEqual(a, b);
+
+        internal bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex) =>
+            Arrays.AreEqual(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
 
 		public virtual ITestResult Perform()
         {
@@ -116,15 +75,9 @@ namespace Org.BouncyCastle.Utilities.Test
             }
         }
 
-		internal static void RunTest(
-            ITest test)
-        {
-            RunTest(test, Console.Out);
-        }
+		internal static void RunTest(ITest test) => RunTest(test, Console.Out);
 
-		internal static void RunTest(
-            ITest		test,
-            TextWriter	outStream)
+		internal static void RunTest(ITest test, TextWriter outStream)
         {
             ITestResult result = test.Perform();
 
@@ -135,16 +88,12 @@ namespace Org.BouncyCastle.Utilities.Test
             }
         }
 
-		internal static Stream GetTestDataAsStream(
-			string name)
-		{
-			string fullName = GetFullName(name);
+        internal static byte[] GetTestData(string name) => Streams.ReadAll(GetTestDataAsStream(name));
 
-			return GetAssembly().GetManifestResourceStream(fullName);
-		}
+        internal static Stream GetTestDataAsStream(string name) =>
+            GetAssembly().GetManifestResourceStream(GetFullName(name));
 
-		internal static string[] GetTestDataEntries(
-			string prefix)
+		internal static string[] GetTestDataEntries(string prefix)
 		{
 			string fullPrefix = GetFullName(prefix);
 
@@ -161,36 +110,19 @@ namespace Org.BouncyCastle.Utilities.Test
             return result.ToArray();
 		}
 
-        private static Assembly GetAssembly()
-        {
-            return typeof(SimpleTest).Assembly;
-        }
+        private static Assembly GetAssembly() => typeof(SimpleTest).Assembly;
 
-        private static string GetFullName(string name)
-		{
-            return "Org.BouncyCastle.data." + name;
-        }
+        private static string GetFullName(string name) => "Org.BouncyCastle.data." + name;
 
-        private static string GetShortName(string fullName)
-		{
-            return fullName.Substring("Org.BouncyCastle.data.".Length);
-		}
-
-		private static string GetNewLine()
-		{
-			return Environment.NewLine;
-		}
-
-		internal static readonly string NewLine = GetNewLine();
+        private static string GetShortName(string fullName) => fullName.Substring("Org.BouncyCastle.data.".Length);
 
 		public abstract void PerformTest();
 
-        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second)
-        {
-            return new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
-        }
+        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second) =>
+            new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
 
-        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
+        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second,
+            int millisecond)
         {
             return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
         }

@@ -1,10 +1,6 @@
-using System;
-
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Icao;
-using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
@@ -13,31 +9,17 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class CscaMasterListTest
         : SimpleTest
     {
-		public override string Name
-		{
-			get { return "CscaMasterList"; }
-		}
+		public override string Name => "CscaMasterList";
 
-		public override void PerformTest() 
-		{
-			byte[] input = GetInput("masterlist-content.data");
+		public override void PerformTest()
+        {
+			byte[] input = SimpleTest.GetTestData("asn1.masterlist-content.data");
 			CscaMasterList parsedList = CscaMasterList.GetInstance(Asn1Object.FromByteArray(input));
 
-			if (parsedList.GetCertStructs().Length != 3)
-			{
-				Fail("Cert structure parsing failed: incorrect length");
-			}
+			IsEquals("Cert structure parsing failed: incorrect length", 3, parsedList.GetCertStructs().Length);
 
 			byte[] output = parsedList.GetEncoded();
-			if (!AreEqual(input, output))
-			{
-				Fail("Encoding failed after parse");
-			}
-		}
-
-		private byte[] GetInput(string name)
-		{
-			return Streams.ReadAll(SimpleTest.GetTestDataAsStream("asn1." + name));
+			FailIf("Encoding failed after parse", !AreEqual(input, output));
 		}
 
 		[Test]
@@ -47,5 +29,5 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
         }
-	}
+    }
 }

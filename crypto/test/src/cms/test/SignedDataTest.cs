@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 using NUnit.Framework;
@@ -12,14 +11,14 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	[TestFixture]
+    [TestFixture]
 	public class SignedDataTest
 	{
 		private const string OrigDN = "O=Bouncy Castle, C=AU";
@@ -372,67 +371,6 @@ namespace Org.BouncyCastle.Cms.Tests
 			+ "2bNo8XnlVXhu4pXfkn64en3yBcqnQusczr1XkhEq7K5DMccUGqxfGxEj2joq"
 			+ "g5+CWIP1dz4F4yB0rNCEGEFigVESryFAzSdJuoM0dgBDI0czNQD9lBQ7l2UW"
 			+ "4fwPDeINgCE2190+uVyEom2E");
-
-		private void VerifySignatures(
-			CmsSignedData	s,
-			byte[]			contentDigest)
-		{
-			var x509Certs = s.GetCertificates();
-
-			SignerInformationStore signers = s.GetSignerInfos();
-			var c = signers.GetSigners();
-
-			foreach (SignerInformation signer in c)
-			{
-				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
-
-				var certEnum = certCollection.GetEnumerator();
-
-				certEnum.MoveNext();
-				X509Certificate cert = certEnum.Current;
-
-				Assert.IsTrue(signer.Verify(cert));
-		
-				if (contentDigest != null)
-				{
-					Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
-				}
-			}
-		}
-
-		private void VerifyDirectSignatures(
-			CmsSignedData s,
-			byte[] contentDigest)
-		{
-			var x509Certs = s.GetCertificates();
-
-			SignerInformationStore signers = s.GetSignerInfos();
-			var c = signers.GetSigners();
-
-			foreach (SignerInformation signer in c)
-			{
-				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
-
-				var certEnum = certCollection.GetEnumerator();
-
-				certEnum.MoveNext();
-				X509Certificate cert = certEnum.Current;
-
-				Assert.IsTrue(signer.Verify(cert));
-				Assert.IsTrue(null == signer.GetEncodedSignedAttributes());
-
-				if (contentDigest != null)
-				{
-					Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
-				}
-			}
-		}
-
-		private void VerifySignatures(
-			CmsSignedData s)
-		{
-			VerifySignatures(s, null);
-		}
 
 		[Test]
 		public void TestDetachedVerification()
@@ -1262,21 +1200,6 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-	    class AsIsSignerInformation : SignerInformation
-		{
-			public AsIsSignerInformation(SignerInformation sInfo): base(sInfo)
-			{
-
-			}
-
-			public override byte[] GetEncodedSignedAttributes()
-			{
-				return signedAttributeSet == null
-					? null
-					: signedAttributeSet.GetEncoded();
-			}
-		}
-
 		[Test]
 		public void TestNullContentWithSigner()
 		{
@@ -1515,6 +1438,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sig);
 		}
 
+        [Test]
         public void TestEncryptionAlgECPublicKey()
         {
             byte[] sigBlock = Base64.Decode(
@@ -1545,41 +1469,40 @@ namespace Org.BouncyCastle.Cms.Tests
             
 			VerifySignatures(signedData);
         }
-        private void DoTestSample(string sigName)
-		{
-			CmsSignedData sig = new CmsSignedData(GetInput(sigName));
-			VerifySignatures(sig);
-		}
-
-        private void DoTestSample(string messageName, string sigName)
-		{
-			CmsSignedData sig = new CmsSignedData(
-				new CmsProcessableByteArray(GetInput(messageName)),
-				GetInput(sigName));
-
-            VerifySignatures(sig);
-		}
-
-        private byte[] GetInput(string name)
-		{
-			return Streams.ReadAll(SimpleTest.GetTestDataAsStream("cms.sigs." + name));
-		}
 
         [Test]
 		public void TestForMultipleCounterSignatures()
 		{
 			CmsSignedData sd = new CmsSignedData(xtraCounterSig);
 
-			foreach (SignerInformation sigI in sd.GetSignerInfos().GetSigners())
+			foreach (SignerInformation sigI in sd.GetSignerInfos())
 			{
 				SignerInformationStore counter = sigI.GetCounterSignatures();
-				var sigs = counter.GetSigners();
+                Assert.AreEqual(2, counter.Count);
 
-				Assert.AreEqual(2, sigs.Count);
+				var sigs = counter.GetSigners();
+                Assert.AreEqual(2, sigs.Count);
 			}
 		}
 
-        private void RsaDigestTest(string signatureAlgorithmName)
+        private static void DoTestSample(string sigName)
+        {
+            CmsSignedData sig = new CmsSignedData(GetInput(sigName));
+            VerifySignatures(sig);
+        }
+
+        private static void DoTestSample(string messageName, string sigName)
+        {
+            CmsSignedData sig = new CmsSignedData(
+                new CmsProcessableByteArray(GetInput(messageName)),
+                GetInput(sigName));
+
+            VerifySignatures(sig);
+        }
+
+        private static byte[] GetInput(string name) => SimpleTest.GetTestData("cms.sigs." + name);
+
+        private static void RsaDigestTest(string signatureAlgorithmName)
         {
             byte[] data = Encoding.ASCII.GetBytes("Hello World!");
             CmsProcessable msg = new CmsProcessableByteArray(data);
@@ -1601,30 +1524,79 @@ namespace Org.BouncyCastle.Cms.Tests
             VerifySignatures(s, DigestUtilities.CalculateDigest(digestName, data));
         }
 
-        private void VerifySignatures(
-			CmsSignedDataParser sp)
+        private static void VerifyDirectSignatures(CmsSignedData s, byte[] contentDigest)
+        {
+            var x509Certs = s.GetCertificates();
+            var signers = s.GetSignerInfos();
+
+            foreach (var signer in signers)
+            {
+                var matches = x509Certs.EnumerateMatches(signer.SignerID);
+                var cert = CollectionUtilities.GetFirstOrNull(matches);
+
+                Assert.IsTrue(signer.Verify(cert));
+                Assert.IsTrue(null == signer.GetEncodedSignedAttributes());
+
+                if (contentDigest != null)
+                {
+                    Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+                }
+            }
+        }
+
+        private static void VerifySignatures(CmsSignedData s) => VerifySignatures(s, null);
+
+        private static void VerifySignatures(CmsSignedData s, byte[] contentDigest)
+        {
+            var x509Certs = s.GetCertificates();
+            var signers = s.GetSignerInfos();
+
+            foreach (var signer in signers)
+            {
+                var matches = x509Certs.EnumerateMatches(signer.SignerID);
+                var cert = CollectionUtilities.GetFirstOrNull(matches);
+
+                Assert.IsTrue(signer.Verify(cert));
+
+                if (contentDigest != null)
+                {
+                    Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+                }
+            }
+        }
+
+        private static void VerifySignatures(CmsSignedDataParser sp)
 		{
 			var x509Certs = sp.GetCertificates();
-			SignerInformationStore signers = sp.GetSignerInfos();
+			var signers = sp.GetSignerInfos();
 
-			foreach (SignerInformation signer in signers.GetSigners())
+			foreach (var signer in signers)
 			{
-				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
-
-				var certEnum = certCollection.GetEnumerator();
-				certEnum.MoveNext();
-				X509Certificate cert = certEnum.Current;
+				var matches = x509Certs.EnumerateMatches(signer.SignerID);
+				var cert = CollectionUtilities.GetFirstOrNull(matches);
 
 				Assert.IsTrue(signer.Verify(cert));
 				Assert.IsTrue(new MySignerInformation(signer).Verify(cert)); // test simple copy works
 			}
 		}
 
-		class MySignerInformation: SignerInformation
-		{
-			public MySignerInformation(SignerInformation sigInf): base(sigInf)
-			{
+        private class AsIsSignerInformation
+			: SignerInformation
+        {
+            public AsIsSignerInformation(SignerInformation sInfo)
+				: base(sInfo)
+            {
+            }
 
+			public override byte[] GetEncodedSignedAttributes() => signedAttributeSet?.GetEncoded();
+        }
+
+        private class MySignerInformation
+			: SignerInformation
+		{
+			public MySignerInformation(SignerInformation sigInf)
+				: base(sigInf)
+			{
 			}
 		}
     }

@@ -1,5 +1,3 @@
-using System;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
@@ -10,13 +8,12 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	[TestFixture]
+    [TestFixture]
 	public class Rfc4134Test
 	{
 		private static readonly byte[] exContent = GetRfc4134Data("ExContent.bin");
@@ -245,7 +242,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.IsTrue(attr.AttrValues[0].Equals(new DerSequence(v)));
 		}
 
-		private void VerifySignatures(CmsSignedData s, byte[] contentDigest)
+		private static void VerifySignatures(CmsSignedData s, byte[] contentDigest)
 		{
 			var x509Certs = s.GetCertificates();
 			SignerInformationStore signers = s.GetSignerInfos();
@@ -268,12 +265,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		private void VerifySignatures(CmsSignedData s)
-		{
-			VerifySignatures(s, null);
-		}
+		private static void VerifySignatures(CmsSignedData s) => VerifySignatures(s, null);
 
-		private void VerifySignatures(CmsSignedDataParser sp)
+		private static void VerifySignatures(CmsSignedDataParser sp)
 		{
 	        CmsTypedStream sc = sp.GetSignedContent();
 	        if (sc != null)
@@ -296,7 +290,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		private void VerifySigner(SignerInformation signer, X509Certificate cert)
+		private static void VerifySigner(SignerInformation signer, X509Certificate cert)
 		{
 			if (cert.GetPublicKey() is DsaPublicKeyParameters)
 			{
@@ -317,7 +311,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		private DsaPublicKeyParameters GetInheritedKey(DsaPublicKeyParameters dsaPubKey)
+		private static DsaPublicKeyParameters GetInheritedKey(DsaPublicKeyParameters dsaPubKey)
 		{
 			X509Certificate cert = new X509CertificateParser().ReadCertificate(
 				GetRfc4134Data("CarlDSSSelf.cer"));
@@ -327,9 +321,6 @@ namespace Org.BouncyCastle.Cms.Tests
 			return new DsaPublicKeyParameters(dsaPubKey.Y, dsaParams);
 		}
 
-		private static byte[] GetRfc4134Data(string name)
-		{
-			return Streams.ReadAll(SimpleTest.GetTestDataAsStream("rfc4134." + name));
-		}
+		private static byte[] GetRfc4134Data(string name) => SimpleTest.GetTestData("rfc4134." + name);
 	}
 }
