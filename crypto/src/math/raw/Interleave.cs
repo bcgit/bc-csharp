@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Math.Raw
             uint t = x;
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return Bmi2.ParallelBitDeposit(t, 0x55555555U);
             }
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Math.Raw
             uint t = x;
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return Bmi2.ParallelBitDeposit(t, 0x55555555U);
             }
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Expand32to64(uint x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return (ulong)Bmi2.ParallelBitDeposit(x >> 16, 0x55555555U) << 32
                     |         Bmi2.ParallelBitDeposit(x      , 0x55555555U);
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static void Expand64To128(ulong x, ulong[] z, int zOff)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
                 z[zOff + 1] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0x5555555555555555UL);
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static void Expand64To128(ulong x, Span<ulong> z)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 z[0] = Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
                 z[1] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0x5555555555555555UL);
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Expand64To128Rev(ulong x, out ulong low)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 low  = Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL);
                 return Bmi2.X64.ParallelBitDeposit(x      , 0xAAAAAAAAAAAAAAAAUL);
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static uint Shuffle(uint x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return Bmi2.ParallelBitDeposit(x >> 16, 0xAAAAAAAAU)
                     |  Bmi2.ParallelBitDeposit(x      , 0x55555555U);
@@ -175,7 +175,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Shuffle(ulong x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 return Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL)
                     |  Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
@@ -194,7 +194,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static uint Shuffle2(uint x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return Bmi2.ParallelBitDeposit(x >> 24, 0x88888888U)
                     |  Bmi2.ParallelBitDeposit(x >> 16, 0x44444444U)
@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Shuffle2(ulong x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 return Bmi2.X64.ParallelBitDeposit(x >> 48, 0x8888888888888888UL)
                     |  Bmi2.X64.ParallelBitDeposit(x >> 32, 0x4444444444444444UL)
@@ -242,7 +242,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static uint Unshuffle(uint x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return Bmi2.ParallelBitExtract(x, 0xAAAAAAAAU) << 16
                     |  Bmi2.ParallelBitExtract(x, 0x55555555U);
@@ -260,7 +260,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Unshuffle(ulong x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 return Bmi2.X64.ParallelBitExtract(x, 0xAAAAAAAAAAAAAAAAUL) << 32
                     |  Bmi2.X64.ParallelBitExtract(x, 0x5555555555555555UL);
@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Unshuffle(ulong x, out ulong even)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 even = Bmi2.X64.ParallelBitExtract(x, 0x5555555555555555UL);
                 return Bmi2.X64.ParallelBitExtract(x, 0xAAAAAAAAAAAAAAAAUL);
@@ -294,7 +294,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Unshuffle(ulong x0, ulong x1, out ulong even)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 even = Bmi2.X64.ParallelBitExtract(x0, 0x5555555555555555UL)
                     |  Bmi2.X64.ParallelBitExtract(x1, 0x5555555555555555UL) << 32;
@@ -312,7 +312,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static uint Unshuffle2(uint x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
                 return Bmi2.ParallelBitExtract(x, 0x88888888U) << 24
                     |  Bmi2.ParallelBitExtract(x, 0x44444444U) << 16
@@ -337,7 +337,7 @@ namespace Org.BouncyCastle.Math.Raw
         internal static ulong Unshuffle2(ulong x)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 return Bmi2.X64.ParallelBitExtract(x, 0x8888888888888888UL) << 48
                     |  Bmi2.X64.ParallelBitExtract(x, 0x4444444444444444UL) << 32

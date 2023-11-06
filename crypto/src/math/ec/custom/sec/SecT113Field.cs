@@ -287,7 +287,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         private static void ImplMultiply(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> zz)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<ulong>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
                 var X01 = Vector128.Create(x[0], x[1]);
                 var Y01 = Vector128.Create(y[0], y[1]);
@@ -424,7 +425,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 #endif
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 zz[3] = Bmi2.X64.ParallelBitDeposit(x[1] >> 32, 0x5555555555555555UL);
                 zz[2] = Bmi2.X64.ParallelBitDeposit(x[1]      , 0x5555555555555555UL);

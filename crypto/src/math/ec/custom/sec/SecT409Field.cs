@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Debug.Assert(y >> 59 == 0);
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
             {
                 var X = Vector128.CreateScalar(x);
                 var Y = Vector128.CreateScalar(y);
@@ -607,7 +607,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[12] = Interleave.Expand32to64((uint)x[6]);
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi2.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
             {
                 zz[11] = Bmi2.X64.ParallelBitDeposit(x[5] >> 32, 0x5555555555555555UL);
                 zz[10] = Bmi2.X64.ParallelBitDeposit(x[5]      , 0x5555555555555555UL);

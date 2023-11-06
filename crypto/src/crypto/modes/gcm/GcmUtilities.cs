@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             ulong z0, z1, z2;
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
             {
                 var X = Vector128.Create(x.n1, x.n0);
                 var Y = Vector128.Create(y.n1, y.n0);
@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         internal static void MultiplyExt(Vector128<ulong> X, Vector128<ulong> Y, out Vector128<ulong> Z0,
             out Vector128<ulong> Z1, out Vector128<ulong> Z2)
         {
-            if (!Pclmulqdq.IsSupported)
+            if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
                 throw new PlatformNotSupportedException(nameof(GcmUtilities.MultiplyExt));
 
             Z0 =          Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SquareExt(Vector128<ulong> X, out Vector128<ulong> Z0, out Vector128<ulong> Z2)
         {
-            if (!Pclmulqdq.IsSupported)
+            if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
                 throw new PlatformNotSupportedException(nameof(GcmUtilities.SquareExt));
 
             Z0 = Pclmulqdq.CarrylessMultiply(X, X, 0x00);

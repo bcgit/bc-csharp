@@ -1458,7 +1458,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         public static void Sub(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Avx2.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<uint>>() == 32)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
                 var ControlCarry = Vector256.Create(7U, 0U, 1U, 2U, 3U, 4U, 5U, 6U);
                 var Mask28 = Vector256.Create(M28);

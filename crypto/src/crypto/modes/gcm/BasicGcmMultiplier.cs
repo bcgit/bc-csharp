@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         : IGcmMultiplier
     {
 #if NETCOREAPP3_0_OR_GREATER
-        internal static bool IsHardwareAccelerated => Pclmulqdq.IsSupported;
+        internal static bool IsHardwareAccelerated => Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled;
 #else
         internal static bool IsHardwareAccelerated => false;
 #endif

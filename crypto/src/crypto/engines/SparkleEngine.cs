@@ -1140,7 +1140,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Debug.Assert((steps & 1) == 0);
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Sse2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled)
             {
                 var s0246 = Vector128.Create(state[0], state[2], state[4], state[6]);
                 var s1357 = Vector128.Create(state[1], state[3], state[5], state[7]);
@@ -1348,7 +1348,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector128<uint> Load128(ReadOnlySpan<uint> t)
         {
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.AsBytes(t));
 
             return Vector128.Create(t[0], t[1], t[2], t[3]);
@@ -1358,7 +1358,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private static void Store128(Vector128<uint> s, Span<uint> t)
         {
             var b = MemoryMarshal.AsBytes(t);
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
                 MemoryMarshal.Write(b, ref s);
                 return;

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     public struct AesEngine_X86
         : IBlockCipher
     {
-        public static bool IsSupported => Aes.IsSupported;
+        public static bool IsSupported => Org.BouncyCastle.Runtime.Intrinsics.X86.Aes.IsEnabled;
 
         private static Vector128<byte>[] CreateRoundKeys(ReadOnlySpan<byte> key, bool forEncryption)
         {
@@ -798,7 +798,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector128<byte> Load128(ReadOnlySpan<byte> t)
         {
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<byte>>(t);
 
             return Vector128.Create(
@@ -810,7 +810,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector64<byte> Load64(ReadOnlySpan<byte> t)
         {
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector64<byte>>() == 8)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector64<byte>>(t);
 
             return Vector64.Create(
@@ -821,7 +821,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Store128(Vector128<byte> s, Span<byte> t)
         {
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
                 MemoryMarshal.Write(t, ref s);
                 return;

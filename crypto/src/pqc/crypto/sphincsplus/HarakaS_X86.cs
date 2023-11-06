@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector128<byte> Load128(ReadOnlySpan<byte> t)
         {
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<byte>>(t);
 
             return Vector128.Create(

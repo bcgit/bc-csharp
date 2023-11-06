@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             var zzBounds = zz[SizeExt - 1];
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
             {
                 int i = 0;
 

@@ -144,13 +144,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             Debug.Assert(index == 0);
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Avx2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
             {
                 ImplProcessBlocks2_X86_Avx2(rounds, engineState, input, output);
                 return;
             }
 
-            if (Sse2.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled)
             {
                 ImplProcessBlocks2_X86_Sse2(rounds, engineState, input, output);
                 return;
@@ -222,7 +222,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
 			Span<byte> output)
 		{
-			if (!Avx2.IsSupported)
+            if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
 				throw new PlatformNotSupportedException();
 
 			Debug.Assert(rounds % 2 == 0);
@@ -310,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
 			Span<byte> output)
 		{
-			if (!Sse2.IsSupported)
+            if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled)
 				throw new PlatformNotSupportedException();
 
 			Debug.Assert(rounds % 2 == 0);
@@ -455,7 +455,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector128<byte> Load128_Byte(ReadOnlySpan<byte> t)
 		{
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<byte>>(t);
 
             return Vector128.Create(
@@ -467,7 +467,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
 		{
-			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.AsBytes(t));
 
 			return Vector128.Create(t[0], t[1], t[2], t[3]);
@@ -476,7 +476,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static Vector256<byte> Load256_Byte(ReadOnlySpan<byte> t)
         {
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector256<byte>>(t);
 
             return Vector256.Create(
@@ -490,7 +490,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static void Store128_Byte(Vector128<byte> s, Span<byte> t)
 		{
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
                 MemoryMarshal.Write(t, ref s);
                 return;
@@ -504,8 +504,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static void Store256_Byte(Vector256<byte> s, Span<byte> t)
 		{
-            if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
-			{
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
+            {
                 MemoryMarshal.Write(t, ref s);
 				return;
 			}

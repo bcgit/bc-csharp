@@ -263,7 +263,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 				throw new ArgumentException("Number of rounds must be even");
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Sse41.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<short>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse41.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
 			{
 				Vector128<uint> b0, b1, b2, b3;
 				{

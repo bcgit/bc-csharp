@@ -1016,7 +1016,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         private static int Ctz(ulong input)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (Bmi1.X64.IsSupported)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi1.X64.IsEnabled)
             {
                 return (int)Bmi1.X64.TrailingZeroCount(input);
             }
