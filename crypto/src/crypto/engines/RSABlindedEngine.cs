@@ -110,31 +110,25 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new InvalidOperationException("RSA engine not initialised");
 
             BigInteger input = core.ConvertInput(inBuf, inOff, inLen);
-
-            BigInteger result;
-            if (key is RsaPrivateCrtKeyParameters crt)
-            {
-                BigInteger e = crt.PublicExponent;
-                BigInteger m = crt.Modulus;
-                BigInteger r = BigIntegers.CreateRandomInRange(
-                    BigInteger.One, m.Subtract(BigInteger.One), random);
-
-                BigInteger blindedInput = r.ModPow(e, m).Multiply(input).Mod(m);
-                BigInteger blindedResult = core.ProcessBlock(blindedInput);
-
-                BigInteger rInv = BigIntegers.ModOddInverse(m, r);
-                result = blindedResult.Multiply(rInv).Mod(m);
-
-                // defence against Arjen Lenstra’s CRT attack
-                if (!input.Equals(result.ModPow(e, m)))
-                    throw new InvalidOperationException("RSA engine faulty decryption/signing detected");
-            }
-            else
-            {
-                result = core.ProcessBlock(input);
-            }
-
+            BigInteger result = ProcessInput(input);
             return core.ConvertOutput(result);
+        }
+
+        private BigInteger ProcessInput(BigInteger input)
+        {
+            if (!(key is RsaPrivateCrtKeyParameters crt))
+                return core.ProcessBlock(input);
+
+            BigInteger e = crt.PublicExponent;
+            BigInteger m = crt.Modulus;
+
+            BigInteger r = BigIntegers.CreateRandomInRange(BigInteger.One, m.Subtract(BigInteger.One), random);
+            BigInteger blind = r.ModPow(e, m);
+            BigInteger unblind = BigIntegers.ModOddInverse(m, r);
+
+            BigInteger blindedInput = blind.Multiply(input).Mod(m);
+            BigInteger blindedResult = core.ProcessBlock(blindedInput);
+            return unblind.Multiply(blindedResult).Mod(m);
         }
     }
 }

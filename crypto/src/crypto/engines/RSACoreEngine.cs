@@ -113,38 +113,42 @@ namespace Org.BouncyCastle.Crypto.Engines
 				: BigIntegers.AsUnsignedByteArray(result);
 		}
 
-        public virtual BigInteger ProcessBlock(
-			BigInteger input)
+        public virtual BigInteger ProcessBlock(BigInteger input)
 		{
             CheckInitialised();
 
-            if (key is RsaPrivateCrtKeyParameters crt)
-			{
-				//
-				// we have the extra factors, use the Chinese Remainder Theorem - the author
-				// wishes to express his thanks to Dirk Bonekaemper at rtsffm.com for
-				// advice regarding the expression of this.
-				//
-				BigInteger p = crt.P;
-				BigInteger q = crt.Q;
-				BigInteger dP = crt.DP;
-				BigInteger dQ = crt.DQ;
-				BigInteger qInv = crt.QInv;
+            if (!(key is RsaPrivateCrtKeyParameters crt))
+                return input.ModPow(key.Exponent, key.Modulus);
 
-				// mP = ((input Mod p) ^ dP)) Mod p
-				BigInteger mP = (input.Remainder(p)).ModPow(dP, p);
+            //
+            // we have the extra factors, use the Chinese Remainder Theorem - the author
+            // wishes to express his thanks to Dirk Bonekaemper at rtsffm.com for
+            // advice regarding the expression of this.
+            //
+            BigInteger p = crt.P;
+			BigInteger q = crt.Q;
+			BigInteger dP = crt.DP;
+			BigInteger dQ = crt.DQ;
+			BigInteger qInv = crt.QInv;
 
-                // mQ = ((input Mod q) ^ dQ)) Mod q
-                BigInteger mQ = (input.Remainder(q)).ModPow(dQ, q);
+			// mP = ((input Mod p) ^ dP)) Mod p
+			BigInteger mP = (input.Remainder(p)).ModPow(dP, p);
 
-				// h = qInv * (mP - mQ) Mod p
-				BigInteger h = mP.Subtract(mQ).Multiply(qInv).Mod(p);
+            // mQ = ((input Mod q) ^ dQ)) Mod q
+            BigInteger mQ = (input.Remainder(q)).ModPow(dQ, q);
 
-                // m = h * q + mQ
-                return h.Multiply(q).Add(mQ);
-			}
+			// h = qInv * (mP - mQ) Mod p
+			BigInteger h = mP.Subtract(mQ).Multiply(qInv).Mod(p);
 
-			return input.ModPow(key.Exponent, key.Modulus);
+            // m = h * q + mQ
+            BigInteger m = h.Multiply(q).Add(mQ);
+
+			// defence against Arjen Lenstra’s CRT attack
+			BigInteger check = m.ModPow(crt.PublicExponent, crt.Modulus);
+            if (!check.Equals(input))
+                throw new InvalidOperationException("RSA engine faulty decryption/signing detected");
+
+            return m;
 		}
 	}
 }
