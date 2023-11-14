@@ -130,7 +130,6 @@ namespace Org.BouncyCastle.Cms
             m_digestAliases.Add("SHA512", new string[]{ "SHA-512" });
 
             m_noParams.Add(CmsSignedGenerator.EncryptionDsa);
-            //m_noParams.Add(EncryptionECDsa);
             m_noParams.Add(EncryptionECDsaWithSha1);
             m_noParams.Add(EncryptionECDsaWithSha224);
             m_noParams.Add(EncryptionECDsaWithSha256);
@@ -174,10 +173,8 @@ namespace Org.BouncyCastle.Cms
         * JCA string representations rather than the algorithm identifier (if
         * possible).
         */
-        internal static string GetEncryptionAlgName(string encryptionAlgOid)
-        {
-            return CollectionUtilities.GetValueOrKey(m_encryptionAlgs, encryptionAlgOid);
-        }
+        internal static string GetEncryptionAlgName(string encryptionAlgOid) =>
+            CollectionUtilities.GetValueOrKey(m_encryptionAlgs, encryptionAlgOid);
 
         internal static IDigest GetDigestInstance(string algorithm)
         {

@@ -500,7 +500,7 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert(bits > 0);
 
             int avail = 0;
-            ulong data = 0L;
+            ulong data = 0UL;
 
             int xOff = 0, zOff = 0;
             while (bits > 0)
@@ -522,7 +522,7 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert(bits > 0);
 
             int avail = 0;
-            ulong data = 0L;
+            ulong data = 0UL;
 
             while (bits > 0)
             {
