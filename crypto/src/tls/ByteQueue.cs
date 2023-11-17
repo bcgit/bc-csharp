@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Tls
             if ((m_available - skip) < buffer.Length)
                 throw new InvalidOperationException("Not enough data to read");
 
-            buffer.CopyFrom(m_databuf.AsSpan(m_skipped + skip));
+            m_databuf.AsSpan(m_skipped + skip, buffer.Length).CopyTo(buffer);
         }
 #endif
 

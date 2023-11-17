@@ -66,7 +66,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int msgLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return CalculateMac(seqNo, type, Spans.FromNullableReadOnly(connectionID), msg.AsSpan(msgOff, msgLen));
+            var connIDSpan = connectionID == null ? Span<byte>.Empty : connectionID.AsSpan();
+
+            return CalculateMac(seqNo, type, connIDSpan, msg.AsSpan(msgOff, msgLen));
 #else
             ProtocolVersion serverVersion = m_cryptoParams.ServerVersion;
 

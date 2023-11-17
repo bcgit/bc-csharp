@@ -156,8 +156,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial)
         {
+            // TODO[api] Require non-null additionalSeedMaterial
+            //if (additionalSeedMaterial == null)
+            //    throw new ArgumentNullException(nameof(additionalSeedMaterial));
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return CreateNonceGenerator(Spans.FromNullableReadOnly(additionalSeedMaterial));
+            var seed = additionalSeedMaterial == null ? Span<byte>.Empty : additionalSeedMaterial.AsSpan();
+
+            return CreateNonceGenerator(seed);
 #else
             int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
             IDigest digest = CreateDigest(cryptoHashAlgorithm);
