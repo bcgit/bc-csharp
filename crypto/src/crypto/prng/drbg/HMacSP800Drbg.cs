@@ -139,9 +139,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 			bool predictionResistant)
 	    {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-			return additionalInput == null
-				? Generate(output.AsSpan(outputOff, outputLen), predictionResistant)
-				: GenerateWithInput(output.AsSpan(outputOff, outputLen), additionalInput.AsSpan(), predictionResistant);
+            var outputSpan = output.AsSpan(outputOff, outputLen);
+            return additionalInput == null
+				? Generate(outputSpan, predictionResistant)
+				: GenerateWithInput(outputSpan, additionalInput.AsSpan(), predictionResistant);
 #else
 			int numberOfBits = outputLen * 8;
 
@@ -280,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
                 mHMac.BlockUpdate(mV);
                 mHMac.DoFinal(mV);
 
-                mV[..remaining].CopyTo(output[(m * mV.Length)..]);
+                mV.AsSpan(0, remaining).CopyTo(output[(m * mV.Length)..]);
             }
         }
 #endif

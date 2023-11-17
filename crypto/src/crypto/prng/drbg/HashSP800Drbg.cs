@@ -107,9 +107,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 			bool predictionResistant)
 	    {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var outputSpan = output.AsSpan(outputOff, outputLen);
             return additionalInput == null
-                ? Generate(output.AsSpan(outputOff, outputLen), predictionResistant)
-                : GenerateWithInput(output.AsSpan(outputOff, outputLen), additionalInput.AsSpan(), predictionResistant);
+                ? Generate(outputSpan, predictionResistant)
+                : GenerateWithInput(outputSpan, additionalInput.AsSpan(), predictionResistant);
 #else
 			// 1. If reseed_counter > reseed_interval, then return an indication that a
 			// reseed is required.
