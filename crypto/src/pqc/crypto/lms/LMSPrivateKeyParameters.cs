@@ -91,59 +91,46 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LmsPrivateKeyParameters GetInstance(object src)
         {
             if (src is LmsPrivateKeyParameters lmsPrivateKeyParameters)
-            {
                 return lmsPrivateKeyParameters;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                if (version != 0)
-                    throw new Exception("unknown version for LMS private key");
 
-                int sigParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMSigParameters sigParameter = LMSigParameters.GetParametersByID(sigParamType);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                int otsParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMOtsParameters otsParameter = LMOtsParameters.GetParametersByID(otsParamType);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
-
-                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
-
-                int maxQ = BinaryReaders.ReadInt32BigEndian(binaryReader);
-
-                int l = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                if (l < 0)
-                    throw new Exception("secret length less than zero");
-
-                byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
-
-                return new LmsPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
-            }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes, false));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null)
-                    {
-                        input.Close();
-                    }
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
             throw new ArgumentException($"cannot parse {src}");
         }
 
+        internal static LmsPrivateKeyParameters Parse(BinaryReader binaryReader)
+        {
+            int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (version != 0)
+                throw new Exception("unknown version for LMS private key");
+
+            int sigParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMSigParameters sigParameter = LMSigParameters.GetParametersByID(sigParamType);
+
+            int otsParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMOtsParameters otsParameter = LMOtsParameters.GetParametersByID(otsParamType);
+
+            byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+            int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            int maxQ = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            int l = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (l < 0)
+                throw new Exception("secret length less than zero");
+
+            byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
+
+            return new LmsPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
+        }
 
         internal LMOtsPrivateKey GetCurrentOtsKey()
         {

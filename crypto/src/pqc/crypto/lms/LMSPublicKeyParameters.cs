@@ -26,44 +26,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LmsPublicKeyParameters GetInstance(object src)
         {
             if (src is LmsPublicKeyParameters lmsPublicKeyParameters)
-            {
                 return lmsPublicKeyParameters;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int pubType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
 
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
-                return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
-            }
-            else if (src is byte[] bytes)
-             {
-                 BinaryReader input = null;
-                 try // 1.5 / 1.6 compatibility
-                 {
-                     input = new BinaryReader(new MemoryStream(bytes, false));
-                     return GetInstance(input);
-                 }
-                 finally
-                 {
-                     if (input != null)
-                     {
-                         input.Close();
-                     }
-                 }
-             }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+            throw new ArgumentException($"cannot parse {src}");
+        }
+
+        internal static LmsPublicKeyParameters Parse(BinaryReader binaryReader)
+        {
+            int pubType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
+
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
+
+            byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+            byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
+
+            return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
         }
 
         public override byte[] GetEncoded()

@@ -25,42 +25,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static LMOtsPublicKey GetInstance(object src)
         {
-            //todo
             if (src is LMOtsPublicKey lmOtsPublicKey)
-            {
                 return lmOtsPublicKey;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
 
-                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                byte[] K = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
-                return new LMOtsPublicKey(parameter, I, q, K);
-            }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes, false));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null) input.Close();//todo Platform Dispose
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+            throw new ArgumentException($"cannot parse {src}");
+        }
+
+        internal static LMOtsPublicKey Parse(BinaryReader binaryReader)
+        {
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
+
+            byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+            int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            byte[] K = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+
+            return new LMOtsPublicKey(parameter, I, q, K);
         }
 
         public LMOtsParameters Parameters => m_parameters;

@@ -1,10 +1,19 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
     public static class BinaryReaders
     {
+        internal static T Parse<T>(Func<BinaryReader, T> parse, Stream stream, bool leaveOpen)
+        {
+            using (var binaryReader = new BinaryReader(stream, Encoding.UTF8, leaveOpen))
+            {
+                return parse(binaryReader);
+            }
+        }
+
         public static byte[] ReadBytesFully(BinaryReader binaryReader, int count)
         {
             byte[] bytes = binaryReader.ReadBytes(count);

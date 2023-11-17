@@ -25,45 +25,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LmsSignature GetInstance(object src)
         {
             if (src is LmsSignature lmsSignature)
-            {
                 return lmsSignature;
-            }
-            else if (src is BinaryReader binaryReader)
+
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
+
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+
+            throw new ArgumentException($"cannot parse {src}");
+        }
+
+        internal static LmsSignature Parse(BinaryReader binaryReader)
+        {
+            int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            LMOtsSignature otsSignature = LMOtsSignature.Parse(binaryReader);
+
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMSigParameters type = LMSigParameters.GetParametersByID(index);
+
+            byte[][] path = new byte[type.H][];
+            for (int h = 0; h < path.Length; h++)
             {
-                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
-
-                LMOtsSignature otsSignature = LMOtsSignature.GetInstance(src);
-
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMSigParameters type = LMSigParameters.GetParametersByID(index);
-
-                byte[][] path = new byte[type.H][];
-                for (int h = 0; h < path.Length; h++)
-                {
-                    path[h] = new byte[type.M];
-                    binaryReader.Read(path[h], 0, path[h].Length);
-                }
-
-                return new LmsSignature(q, otsSignature, type, path);
+                path[h] = new byte[type.M];
+                binaryReader.Read(path[h], 0, path[h].Length);
             }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes, false));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null) input.Close();// todo platform dispose
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+
+            return new LmsSignature(q, otsSignature, type, path);
         }
 
         public override bool Equals(Object o)

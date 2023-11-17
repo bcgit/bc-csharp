@@ -64,60 +64,47 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static HssPrivateKeyParameters GetInstance(object src)
         {
             if (src is HssPrivateKeyParameters hssPrivateKeyParameters)
-            {
                 return hssPrivateKeyParameters;
-            }
-            else if (src is BinaryReader binaryReader)
+
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
+
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+
+            throw new ArgumentException($"cannot parse {src}");
+        }
+
+        internal static HssPrivateKeyParameters Parse(BinaryReader binaryReader)
+        {
+            int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (version != 0)
+                throw new Exception("unknown version for HSS private key");
+
+            int d = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            long index = BinaryReaders.ReadInt64BigEndian(binaryReader);
+
+            long maxIndex = BinaryReaders.ReadInt64BigEndian(binaryReader);
+
+            bool limited = binaryReader.ReadBoolean();
+
+            var keys = new List<LmsPrivateKeyParameters>(d);
+            for (int t = 0; t < d; t++)
             {
-                int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                if (version != 0)
-                    throw new Exception("unknown version for HSS private key");
-
-                int d = BinaryReaders.ReadInt32BigEndian(binaryReader);
-
-                long index = BinaryReaders.ReadInt64BigEndian(binaryReader);
-
-                long maxIndex = BinaryReaders.ReadInt64BigEndian(binaryReader);
-
-                bool limited = binaryReader.ReadBoolean();
-
-                var keys = new List<LmsPrivateKeyParameters>();
-                var signatures = new List<LmsSignature>();
-
-                for (int t = 0; t < d; t++)
-                {
-                    keys.Add(LmsPrivateKeyParameters.GetInstance(src));
-                }
-
-                for (int t = 0; t < d - 1; t++)
-                {
-                    signatures.Add(LmsSignature.GetInstance(src));
-                }
-
-                return new HssPrivateKeyParameters(d, keys, signatures, index, maxIndex, limited);
+                keys.Add(LmsPrivateKeyParameters.Parse(binaryReader));
             }
-            else if (src is byte[] bytes)
+
+            var signatures = new List<LmsSignature>(d - 1);
+            for (int t = 1; t < d; t++)
             {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null)
-                    {
-                        input.Close();
-                    }
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
+                signatures.Add(LmsSignature.Parse(binaryReader));
             }
 
-            throw new Exception($"cannot parse {src}");
+            return new HssPrivateKeyParameters(d, keys, signatures, index, maxIndex, limited);
         }
 
         public int L => l;

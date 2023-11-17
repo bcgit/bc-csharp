@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 using Org.BouncyCastle.Utilities.IO;
 
@@ -21,35 +22,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static HssPublicKeyParameters GetInstance(object src)
         {
             if (src is HssPublicKeyParameters hssPublicKeyParameters)
-            {
                 return hssPublicKeyParameters;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int L = BinaryReaders.ReadInt32BigEndian(binaryReader);
 
-                LmsPublicKeyParameters lmsPublicKey = LmsPublicKeyParameters.GetInstance(src);
-                return new HssPublicKeyParameters(L, lmsPublicKey);
-            }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null) input.Close();
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
+
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
             throw new ArgumentException($"cannot parse {src}");
+        }
+
+        internal static HssPublicKeyParameters Parse(BinaryReader binaryReader)
+        {
+            int L = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LmsPublicKeyParameters lmsPublicKey = LmsPublicKeyParameters.Parse(binaryReader);
+            return new HssPublicKeyParameters(L, lmsPublicKey);
         }
 
         public int L => m_l;
