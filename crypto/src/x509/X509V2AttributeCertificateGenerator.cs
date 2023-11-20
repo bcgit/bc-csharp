@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
 {
-	/// <remarks>Class to produce an X.509 Version 2 AttributeCertificate.</remarks>
-	public class X509V2AttributeCertificateGenerator
+    /// <remarks>Class to produce an X.509 Version 2 AttributeCertificate.</remarks>
+    public class X509V2AttributeCertificateGenerator
 	{
 		private readonly X509ExtensionsGenerator extGenerator = new X509ExtensionsGenerator();
 
@@ -70,13 +67,10 @@ namespace Org.BouncyCastle.X509
 			acInfoGen.AddAttribute(AttributeX509.GetInstance(attribute.ToAsn1Object()));
 		}
 
-		public void SetIssuerUniqueId(
-			bool[] iui)
-		{
-			// TODO convert bool array to bit string
-			//acInfoGen.SetIssuerUniqueID(iui);
-			throw new NotImplementedException("SetIssuerUniqueId()");
-		}
+        public void SetIssuerUniqueId(bool[] iui)
+        {
+            acInfoGen.SetIssuerUniqueID(X509V3CertificateGenerator.BooleanToBitString(iui));
+        }
 
 		/// <summary>Add a given extension field for the standard extensions tag.</summary>
 		public void AddExtension(

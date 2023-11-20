@@ -315,7 +315,7 @@ namespace Org.BouncyCastle.X509
 		/// </summary>
 		public IEnumerable<string> SignatureAlgNames => X509Utilities.GetAlgNames();
 
-        private static DerBitString BooleanToBitString(bool[] id)
+        internal static DerBitString BooleanToBitString(bool[] id)
         {
             int byteLength = (id.Length + 7) / 8;
 
