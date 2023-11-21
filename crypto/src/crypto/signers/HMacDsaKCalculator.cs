@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             hMac.BlockUpdate(x, 0, x.Length);
             hMac.BlockUpdate(m, 0, m.Length);
 #endif
+            InitAdditionalInput1(hMac);
             hMac.DoFinal(K, 0);
 
             hMac.Init(new KeyParameter(K));
@@ -134,7 +135,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
-        /// <summary>Supports use of additional input.</summary>
+        /// <summary>Supply additional input to HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1)).</summary>
         /// <remarks>
         /// RFC 6979 3.6. Additional data may be added to the input of HMAC [..]. A use case may be a protocol that
         /// requires a non-deterministic signature algorithm on a system that does not have access to a high-quality
@@ -147,6 +148,15 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// </remarks>
         /// <param name="hmac0">The <see cref="HMac"/> to which the additional input should be added.</param>
         protected virtual void InitAdditionalInput0(HMac hmac0)
+        {
+        }
+
+        /// <summary>Supply additional input to HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1)).</summary>
+        /// <remarks>
+        /// Refer to comments for <see cref="InitAdditionalInput0(HMac)"/>.
+        /// </remarks>
+        /// <param name="hmac1">The <see cref="HMac"/> to which the additional input should be added.</param>
+        protected virtual void InitAdditionalInput1(HMac hmac1)
         {
         }
 
