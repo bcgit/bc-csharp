@@ -28,8 +28,10 @@ namespace Org.BouncyCastle.Crypto.Signers
         public HMacDsaKCalculator(IDigest digest)
         {
             this.hMac = new HMac(digest);
-            this.V = new byte[hMac.GetMacSize()];
-            this.K = new byte[hMac.GetMacSize()];
+
+            int macSize = hMac.GetMacSize();
+            this.V = new byte[macSize];
+            this.K = new byte[macSize];
         }
 
         public virtual bool IsDeterministic
@@ -45,9 +47,6 @@ namespace Org.BouncyCastle.Crypto.Signers
         public void Init(BigInteger n, BigInteger d, byte[] message)
         {
             this.n = n;
-
-            Arrays.Fill(V, 0x01);
-            Arrays.Fill(K, 0);
 
             BigInteger mInt = BitsToInt(message);
             if (mInt.CompareTo(n) >= 0)
@@ -68,6 +67,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] x = BigIntegers.AsUnsignedByteArray(size, d);
             byte[] m = BigIntegers.AsUnsignedByteArray(size, mInt);
 #endif
+
+            Arrays.Fill(K, 0x00);
+            Arrays.Fill(V, 0x01);
 
             hMac.Init(new KeyParameter(K));
 
@@ -162,13 +164,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         private BigInteger BitsToInt(byte[] t)
         {
-            BigInteger v = new BigInteger(1, t);
+            int blen = t.Length * 8;
+            int qlen = n.BitLength;
 
-            if (t.Length * 8 > n.BitLength)
+            BigInteger v = BigIntegers.FromUnsignedByteArray(t);
+            if (blen > qlen)
             {
-                v = v.ShiftRight(t.Length * 8 - n.BitLength);
+                v = v.ShiftRight(blen - qlen);
             }
-
             return v;
         }
     }
