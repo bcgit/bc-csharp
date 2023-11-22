@@ -464,7 +464,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 			if (bufOff == bufBlock.Length)
 			{
-                Check.OutputLength(outBytes, outOff, blockSize, "Output buffer is too short");
+                Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
 
                 // TODO Could move the ProcessByte(s) calls to here
 //                InitCipher();

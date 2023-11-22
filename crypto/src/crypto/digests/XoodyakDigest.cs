@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public int DoFinal(byte[] output, int outOff)
         {
-            Check.OutputLength(output, outOff, 32, "output buffer is too short");
+            Check.OutputLength(output, outOff, 32, "output buffer too short");
 
             byte[] input = buffer.GetBuffer();
             int inLen = (int)buffer.Length;

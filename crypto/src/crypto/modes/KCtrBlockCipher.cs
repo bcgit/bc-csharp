@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
-            Check.DataLength(input, inOff, len, "input buffer too small");
+            Check.DataLength(input, inOff, len, "input buffer too short");
             Check.OutputLength(output, outOff, len, "output buffer too short");
 
             int inStart = inOff;

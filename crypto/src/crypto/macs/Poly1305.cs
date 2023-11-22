@@ -292,7 +292,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(output.AsSpan(outOff));
 #else
-            Check.OutputLength(output, outOff, BlockSize, "output buffer is too short.");
+            Check.OutputLength(output, outOff, BlockSize, "output buffer too short");
 
             if (currentBlockOffset > 0)
             {
@@ -338,7 +338,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-            Check.OutputLength(output, BlockSize, "output buffer is too short.");
+            Check.OutputLength(output, BlockSize, "output buffer too short.");
 
             if (currentBlockOffset > 0)
             {

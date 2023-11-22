@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(output.AsSpan(outOff));
 #else
-            Check.OutputLength(output, outOff, 32, "output buffer is too short");
+            Check.OutputLength(output, outOff, 32, "output buffer too short");
 
             FinishAbsorbing();
 
@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-            Check.OutputLength(output, 32, "output buffer is too short");
+            Check.OutputLength(output, 32, "output buffer too short");
 
             FinishAbsorbing();
 

@@ -292,7 +292,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (forEncryption)
             {
                 outputLen = inLen + macSize;
-                Check.OutputLength(output, outOff, outputLen, "Output buffer too short.");
+                Check.OutputLength(output, outOff, outputLen, "output buffer too short");
 
                 CalculateMac(input, inOff, inLen, macBlock);
 
@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     throw new InvalidCipherTextException("data too short");
 
                 outputLen = inLen - macSize;
-                Check.OutputLength(output, outOff, outputLen, "Output buffer too short.");
+                Check.OutputLength(output, outOff, outputLen, "output buffer too short");
 
                 Array.Copy(input, inOff + outputLen, macBlock, 0, macSize);
 
