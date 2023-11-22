@@ -720,7 +720,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
         private void PadKey(byte[] keyMaster, int keyOff, byte[] tmp, int tmpOff)
 	    {
-	        tmp[tmpOff + 0] = (byte)(keyMaster[keyOff + 0] & 0xfe);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            PadKey(keyMaster.AsSpan(keyOff), tmp.AsSpan(tmpOff));
+#else
+            tmp[tmpOff + 0] = (byte)(keyMaster[keyOff + 0] & 0xfe);
 	        tmp[tmpOff + 1] = (byte)((keyMaster[keyOff + 0] << 7) | ((keyMaster[keyOff + 1] & 0xfc) >> 1));
 	        tmp[tmpOff + 2] = (byte)((keyMaster[keyOff + 1] << 6) | ((keyMaster[keyOff + 2] & 0xf8) >> 2));
 	        tmp[tmpOff + 3] = (byte)((keyMaster[keyOff + 2] << 5) | ((keyMaster[keyOff + 3] & 0xf0) >> 3));
@@ -730,6 +733,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        tmp[tmpOff + 7] = (byte)(keyMaster[keyOff + 6] << 1);
 
             DesParameters.SetOddParity(tmp, tmpOff, 8);
+#endif
 	    }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
