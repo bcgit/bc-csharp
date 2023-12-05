@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
                 BigInteger n = FromHex("F1FD178C0B3AD58F10126DE8CE42435B53DC67E140D2BF941FFDD459C6D655E1");
                 BigInteger h = BigInteger.One;
 
-                return ConfigureCurve(new FpCurve(p, a, b, n, h, true));
+                return ConfigureCurve(new FpCurve(p, a, b, n, h, isInternal: true));
             }
 
             protected override X9ECParameters CreateParameters()

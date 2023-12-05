@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Math.EC.Abc;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
@@ -675,40 +675,26 @@ namespace Org.BouncyCastle.Math.EC
     public abstract class AbstractFpCurve
         : ECCurve
     {
-        private static readonly HashSet<BigInteger> KnownQs = new HashSet<BigInteger>();
+        private static readonly ConcurrentDictionary<BigInteger, bool> KnownPrimes =
+            new ConcurrentDictionary<BigInteger, bool>();
 
         protected AbstractFpCurve(BigInteger q)
-            : this(q, false)
+            : this(q, isInternal: false)
         {
         }
 
         internal AbstractFpCurve(BigInteger q, bool isInternal)
             : base(FiniteFields.GetPrimeField(q))
         {
-            if (!isInternal)
+            if (isInternal)
             {
-                bool unknownQ;
-                lock (KnownQs) unknownQ = !KnownQs.Contains(q);
-
-                if (unknownQ)
-                {
-                    int maxBitLength = ImplGetInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
-                    int certainty = ImplGetInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
-
-                    int qBitLength = q.BitLength;
-                    if (maxBitLength < qBitLength)
-                        throw new ArgumentException("Fp q value out of range");
-
-                    if (Primes.HasAnySmallFactors(q) ||
-                        !Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom,
-                            ImplGetNumberOfIterations(qBitLength, certainty)))
-                    {
-                        throw new ArgumentException("Fp q value not prime");
-                    }
-                }
+                KnownPrimes.AddOrUpdate(q, true, (key, value) => true);
             }
-
-            lock (KnownQs) KnownQs.Add(q);
+            else if (!KnownPrimes.ContainsKey(q))
+            {
+                ImplCheckPrime(q);
+                KnownPrimes.TryAdd(q, false);
+            }
         }
 
         public override bool IsValidFieldElement(BigInteger x)
@@ -761,6 +747,26 @@ namespace Org.BouncyCastle.Math.EC
             return CreateRawPoint(x, y);
         }
 
+        private static void ImplCheckPrime(BigInteger q)
+        {
+            int maxBitLength = ImplGetInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
+
+            int qBitLength = q.BitLength;
+            if (maxBitLength < qBitLength)
+                throw new ArgumentException("Fp q value out of range");
+
+            if (!Primes.HasAnySmallFactors(q))
+            {
+                int certainty = ImplGetInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
+                int iterations = ImplGetIterations(qBitLength, certainty);
+
+                if (Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom, iterations))
+                    return;
+            }
+
+            throw new ArgumentException("Fp q value not prime");
+        }
+
         private static int ImplGetInteger(string envVariable, int defaultValue)
         {
             string v = Platform.GetEnvironmentVariable(envVariable);
@@ -770,7 +776,7 @@ namespace Org.BouncyCastle.Math.EC
             return int.Parse(v);
         }
 
-        private static int ImplGetNumberOfIterations(int bits, int certainty)
+        private static int ImplGetIterations(int bits, int certainty)
         {
             /*
              * NOTE: We enforce a minimum 'certainty' of 100 for bits >= 1024 (else 80). Where the
@@ -864,7 +870,7 @@ namespace Org.BouncyCastle.Math.EC
 
         internal FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order,
             BigInteger cofactor)
-            : base(q, true)
+            : base(q, isInternal: true)
         {
             this.m_q = q;
             this.m_r = r;
