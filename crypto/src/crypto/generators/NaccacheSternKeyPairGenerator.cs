@@ -1,18 +1,18 @@
-using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-	/**
+    /**
 	 * Key generation parameters for NaccacheStern cipher. For details on this cipher, please see
 	 *
 	 * http://www.gemplus.com/smart/rd/publications/pdf/NS98pkcs.pdf
 	 */
-	public class NaccacheSternKeyPairGenerator
+    public class NaccacheSternKeyPairGenerator
 		: IAsymmetricCipherKeyPairGenerator
 	{
 		private static readonly int[] smallPrimes =
@@ -58,11 +58,11 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			for (int i = 0; i < smallPrimes.Count / 2; i++)
 			{
-				u = u.Multiply((BigInteger)smallPrimes[i]);
+				u = u.Multiply(smallPrimes[i]);
 			}
 			for (int i = smallPrimes.Count / 2; i < smallPrimes.Count; i++)
 			{
-				v = v.Multiply((BigInteger)smallPrimes[i]);
+				v = v.Multiply(smallPrimes[i]);
 			}
 
 			BigInteger sigma = u.Multiply(v);
@@ -87,6 +87,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 			BigInteger _2au = a.Multiply(u).ShiftLeft(1);
 			BigInteger _2bv = b.Multiply(v).ShiftLeft(1);
 
+			BigInteger n;
 			for (;;)
 			{
 				tries++;
@@ -117,14 +118,12 @@ namespace Org.BouncyCastle.Crypto.Generators
 					continue;
 				}
 
-				if (p.Multiply(q).BitLength < strength)
-				{
-					continue;
-				}
-				break;
+                n = p.Multiply(q);
+
+				if (n.BitLength >= strength)
+					break;
 			}
 
-			BigInteger n = p.Multiply(q);
 			BigInteger phi_n = p.Subtract(BigInteger.One).Multiply(q.Subtract(BigInteger.One));
 			BigInteger g;
 			tries = 0;
@@ -154,8 +153,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 				g = BigInteger.One;
 				for (int i = 0; i < smallPrimes.Count; i++)
 				{
-					BigInteger gPart = (BigInteger) gParts[i];
-					BigInteger smallPrime = (BigInteger) smallPrimes[i];
+					BigInteger gPart = gParts[i];
+					BigInteger smallPrime = smallPrimes[i];
 					g = g.Multiply(gPart.ModPow(sigma.Divide(smallPrime), n)).Mod(n);
 				}
 
@@ -163,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				bool divisible = false;
 				for (int i = 0; i < smallPrimes.Count; i++)
 				{
-					if (g.ModPow(phi_n.Divide((BigInteger)smallPrimes[i]), n).Equals(BigInteger.One))
+					if (g.ModPow(phi_n.Divide(smallPrimes[i]), n).Equals(BigInteger.One))
 					{
 						divisible = true;
 						break;
@@ -202,7 +201,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 				break;
 			}
 
-			return new AsymmetricCipherKeyPair(new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),
+			return new AsymmetricCipherKeyPair(
+				new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),
 				new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n));
 		}
 
@@ -254,6 +254,5 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			return primes;
 		}
-
 	}
 }
