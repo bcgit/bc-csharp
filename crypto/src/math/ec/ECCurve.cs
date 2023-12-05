@@ -692,7 +692,7 @@ namespace Org.BouncyCastle.Math.EC
             }
             else if (!KnownPrimes.ContainsKey(q))
             {
-                ImplCheckPrime(q);
+                ImplCheckQ(q);
                 KnownPrimes.TryAdd(q, false);
             }
         }
@@ -747,33 +747,21 @@ namespace Org.BouncyCastle.Math.EC
             return CreateRawPoint(x, y);
         }
 
-        private static void ImplCheckPrime(BigInteger q)
+        private static void ImplCheckQ(BigInteger q)
         {
             int maxBitLength = ImplGetInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
-
-            int qBitLength = q.BitLength;
-            if (maxBitLength < qBitLength)
+            if (q.BitLength > maxBitLength)
                 throw new ArgumentException("Fp q value out of range");
 
-            if (!Primes.HasAnySmallFactors(q))
-            {
-                int certainty = ImplGetInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
-                int iterations = ImplGetIterations(qBitLength, certainty);
-
-                if (Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom, iterations))
-                    return;
-            }
-
-            throw new ArgumentException("Fp q value not prime");
+            if (!ImplIsPrime(q))
+                throw new ArgumentException("Fp q value not prime");
         }
 
         private static int ImplGetInteger(string envVariable, int defaultValue)
         {
-            string v = Platform.GetEnvironmentVariable(envVariable);
-            if (v == null)
-                return defaultValue;
+            string property = Platform.GetEnvironmentVariable(envVariable);
 
-            return int.Parse(v);
+            return int.TryParse(property, out int value) ? value : defaultValue;
         }
 
         private static int ImplGetIterations(int bits, int certainty)
@@ -806,6 +794,17 @@ namespace Org.BouncyCastle.Math.EC
                 return certainty <= 80 ? 40
                     : 40 + (certainty - 80 + 1) / 2;
             }
+        }
+
+        private static bool ImplIsPrime(BigInteger q)
+        {
+            if (Primes.HasAnySmallFactors(q))
+                return false;
+
+            int certainty = ImplGetInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
+            int iterations = ImplGetIterations(q.BitLength, certainty);
+
+            return Primes.IsMRProbablePrime(q, SecureRandom.ArbitraryRandom, iterations);
         }
 
         private static BigInteger ImplRandomFieldElement(SecureRandom r, BigInteger p)
@@ -849,15 +848,15 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
-            : this(q, a, b, order, cofactor, false)
+            : this(q, a, b, order, cofactor, isInternal: false)
         {
         }
 
-        internal FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor, bool isInternal)
+        internal FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor,
+            bool isInternal)
             : base(q, isInternal)
         {
             this.m_q = q;
-
             this.m_r = FpFieldElement.CalculateResidue(q);
             this.m_infinity = new FpPoint(this, null, null);
 

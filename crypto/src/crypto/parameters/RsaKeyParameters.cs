@@ -20,18 +20,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private static BigInteger Validate(BigInteger modulus)
         {
             if ((modulus.IntValue & 1) == 0)
-                throw new ArgumentException("RSA modulus is even", "modulus");
+                throw new ArgumentException("RSA modulus is even", nameof(modulus));
             if (!modulus.Gcd(SmallPrimesProduct).Equals(BigInteger.One))
-                throw new ArgumentException("RSA modulus has a small prime factor");
+                throw new ArgumentException("RSA modulus has a small prime factor", nameof(modulus));
 
-            int maxBitLength = AsInteger("Org.BouncyCastle.Rsa.MaxSize", 15360);
-
-            int modBitLength = modulus.BitLength;
-            if (maxBitLength < modBitLength)
-            {
+            int maxBitLength = ImplGetInteger("Org.BouncyCastle.Rsa.MaxSize", 16384);
+            if (modulus.BitLength > maxBitLength)
                 throw new ArgumentException("modulus value out of range");
-            }
-        
+
             // TODO: add additional primePower/Composite test - expensive!!
 
             return modulus;
@@ -91,16 +87,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return modulus.GetHashCode() ^ exponent.GetHashCode() ^ IsPrivate.GetHashCode();
         }
 
-        internal static int AsInteger(string envVariable, int defaultValue)
+        private static int ImplGetInteger(string envVariable, int defaultValue)
         {
-            string v = Platform.GetEnvironmentVariable(envVariable);
+            string property = Platform.GetEnvironmentVariable(envVariable);
 
-            if (v == null)
-            {
-                return defaultValue;
-            }
-
-            return int.Parse(v);
+            return int.TryParse(property, out int value) ? value : defaultValue;
         }
     }
 }
