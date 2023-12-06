@@ -2,7 +2,6 @@ using System;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
@@ -751,5 +750,23 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
-	}
+
+        [Test, Explicit]
+        public void BenchPublicKeyModulusValidation()
+        {
+			SecureRandom secureRandom = SecureRandom.GetInstance("SHA512PRNG", false);
+			secureRandom.SetSeed(2);
+
+            var kpg = new RsaKeyPairGenerator();
+			kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x11), secureRandom, 2048, 100));
+
+			var kp = kpg.GenerateKeyPair();
+			var pub = (RsaKeyParameters)kp.Public;
+
+			for (int i = 0; i < 1000000; ++i)
+            {
+				new RsaKeyParameters(false, pub.Modulus, pub.Exponent);
+            }
+        }
+    }
 }

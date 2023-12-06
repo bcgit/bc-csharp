@@ -17,16 +17,29 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 + "f3cfd51e474afb6bc6974f78db8aba8e9e517fded658591ab7502bd41849462f",
             16);
 
+        private static bool HasAnySmallFactors(BigInteger modulus)
+        {
+            BigInteger M = modulus, X = SmallPrimesProduct;
+            if (modulus.CompareTo(SmallPrimesProduct) < 0)
+            {
+                M = SmallPrimesProduct;
+                X = modulus;
+            }
+
+            return !BigIntegers.ModOddIsCoprimeVar(M, X);
+        }
+
         private static BigInteger Validate(BigInteger modulus)
         {
             if ((modulus.IntValue & 1) == 0)
                 throw new ArgumentException("RSA modulus is even", nameof(modulus));
-            if (!modulus.Gcd(SmallPrimesProduct).Equals(BigInteger.One))
-                throw new ArgumentException("RSA modulus has a small prime factor", nameof(modulus));
 
             int maxBitLength = ImplGetInteger("Org.BouncyCastle.Rsa.MaxSize", 16384);
             if (modulus.BitLength > maxBitLength)
-                throw new ArgumentException("modulus value out of range");
+                throw new ArgumentException("RSA modulus out of range", nameof(modulus));
+
+            if (HasAnySmallFactors(modulus))
+                throw new ArgumentException("RSA modulus has a small prime factor", nameof(modulus));
 
             // TODO: add additional primePower/Composite test - expensive!!
 

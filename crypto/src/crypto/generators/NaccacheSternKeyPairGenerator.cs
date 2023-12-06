@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 						break;
 				}
 
-				if (!sigma.Gcd(_p.Multiply(_q)).Equals(BigInteger.One))
+				if (!BigIntegers.ModOddIsCoprime(_p.Multiply(_q), sigma))
 				{
                     //Console.WriteLine("sigma.gcd(_p.mult(_q)) != 1!\n _p: " + _p +"\n _q: "+ _q );
 					continue;
