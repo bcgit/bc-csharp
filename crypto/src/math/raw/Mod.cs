@@ -17,6 +17,8 @@ namespace Org.BouncyCastle.Math.Raw
         private const int M30 = 0x3FFFFFFF;
         private const ulong M32UL = 0xFFFFFFFFUL;
 
+        private static readonly int MaxStackAlloc = Platform.Is64BitProcess ? 4096 : 1024;
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void CheckedModOddInverse(ReadOnlySpan<uint> m, ReadOnlySpan<uint> x, Span<uint> z)
 #else
@@ -125,9 +127,10 @@ namespace Org.BouncyCastle.Math.Raw
             int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
-            Span<int> alloc = len30 <= 50
-                ? stackalloc int[len30 * 5]
-                : new int[len30 * 5];
+            int allocSize = len30 * 5;
+            Span<int> alloc = (allocSize * Integers.NumBytes <= MaxStackAlloc)
+                ? stackalloc int[allocSize]
+                : new int[allocSize];
 
             Span<int> t = stackalloc int[4];
             Span<int> D = alloc[..len30]; alloc = alloc[len30..];
@@ -189,11 +192,11 @@ namespace Org.BouncyCastle.Math.Raw
             Encode30(bits, m, 0, M, 0);
             Array.Copy(M, 0, F, 0, len30);
 
-            int clzG = Integers.NumberOfLeadingZeros(G[len30 - 1] | 1) - (len30 * 30 + 2 - bits);
-            int eta = -1 - clzG;
+            int clz = System.Math.Max(0, bits - 1 - Nat.GetBitLength(len32, x));
+            int eta = -1 - clz;
             int lenDE = len30, lenFG = len30;
             int m0Inv32 = (int)Inverse32((uint)M[0]);
-            int maxDivsteps = GetMaximumDivsteps(bits);
+            int maxDivsteps = GetMaximumDivsteps(bits) - clz;
 
             int divsteps = 0;
             while (!EqualToZeroVar_Unlikely(lenFG, G))
@@ -206,20 +209,7 @@ namespace Org.BouncyCastle.Math.Raw
                 eta = Divsteps30Var(eta, F[0], G[0], t);
                 UpdateDE30(lenDE, D, E, t, m0Inv32, M);
                 UpdateFG30(lenFG, F, G, t);
-
-                int fn = F[lenFG - 1];
-                int gn = G[lenFG - 1];
-
-                int cond = (lenFG - 2) >> 31;
-                cond |= fn ^ (fn >> 31);
-                cond |= gn ^ (gn >> 31);
-
-                if (cond == 0)
-                {
-                    F[lenFG - 2] |= fn << 30;
-                    G[lenFG - 2] |= gn << 30;
-                    --lenFG;
-                }
+                lenFG = TrimFG30Var(lenFG, F, G);
             }
 
             int signF = F[lenFG - 1] >> 31;
@@ -268,9 +258,10 @@ namespace Org.BouncyCastle.Math.Raw
             int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
-            Span<int> alloc = len30 <= 50
-                ? stackalloc int[len30 * 5]
-                : new int[len30 * 5];
+            int allocSize = len30 * 5;
+            Span<int> alloc = (allocSize * Integers.NumBytes <= MaxStackAlloc)
+                ? stackalloc int[allocSize]
+                : new int[allocSize];
 
             Span<int> t = stackalloc int[4];
             Span<int> D = alloc[..len30]; alloc = alloc[len30..];
@@ -284,11 +275,11 @@ namespace Org.BouncyCastle.Math.Raw
             Encode30(bits, m, M);
             M.CopyTo(F);
 
-            int clzG = Integers.NumberOfLeadingZeros(G[len30 - 1] | 1) - (len30 * 30 + 2 - bits);
-            int eta = -1 - clzG;
+            int clz = System.Math.Max(0, bits - 1 - Nat.GetBitLength(len32, x));
+            int eta = -1 - clz;
             int lenDE = len30, lenFG = len30;
             int m0Inv32 = (int)Inverse32((uint)M[0]);
-            int maxDivsteps = GetMaximumDivsteps(bits);
+            int maxDivsteps = GetMaximumDivsteps(bits) - clz;
 
             int divsteps = 0;
             while (!EqualToZeroVar_Unlikely(lenFG, G))
@@ -301,20 +292,7 @@ namespace Org.BouncyCastle.Math.Raw
                 eta = Divsteps30Var(eta, F[0], G[0], t);
                 UpdateDE30(lenDE, D, E, t, m0Inv32, M);
                 UpdateFG30(lenFG, F, G, t);
-
-                int fn = F[lenFG - 1];
-                int gn = G[lenFG - 1];
-
-                int cond = (lenFG - 2) >> 31;
-                cond |= fn ^ (fn >> 31);
-                cond |= gn ^ (gn >> 31);
-
-                if (cond == 0)
-                {
-                    F[lenFG - 2] |= fn << 30;
-                    G[lenFG - 2] |= gn << 30;
-                    --lenFG;
-                }
+                lenFG = TrimFG30Var(lenFG, F, G);
             }
 
             int signF = F[lenFG - 1] >> 31;
@@ -392,9 +370,10 @@ namespace Org.BouncyCastle.Math.Raw
             m |= m >> 8;
             m |= m >> 16;
 
-            Span<byte> bytes = len <= 256
-                ? stackalloc byte[len << 2]
-                : new byte[len << 2];
+            int allocSize = len * Integers.NumBytes;
+            Span<byte> bytes = allocSize <= MaxStackAlloc
+                ? stackalloc byte[allocSize]
+                : new byte[allocSize];
 
             do
             {
@@ -781,6 +760,33 @@ namespace Org.BouncyCastle.Math.Raw
             c -= D[last];
             D[last] = c; c >>= 30;
             return c;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static int TrimFG30Var(int len30, Span<int> F, Span<int> G)
+#else
+        private static int TrimFG30Var(int len30, int[] F, int[] G)
+#endif
+        {
+            Debug.Assert(len30 > 0);
+            Debug.Assert(F.Length >= len30);
+            Debug.Assert(G.Length >= len30);
+
+            int fn = F[len30 - 1];
+            int gn = G[len30 - 1];
+
+            int cond = (len30 - 2) >> 31;
+            cond |= fn ^ (fn >> 31);
+            cond |= gn ^ (gn >> 31);
+
+            if (cond == 0)
+            {
+                F[len30 - 2] |= fn << 30;
+                G[len30 - 2] |= gn << 30;
+                --len30;
+            }
+
+            return len30;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

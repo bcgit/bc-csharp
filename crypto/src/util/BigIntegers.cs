@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Utilities
         public static BigInteger ModOddInverse(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
-                throw new ArgumentException("must be odd", "M");
+                throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
             if (X.SignValue < 0 || X.CompareTo(M) >= 0)
@@ -226,7 +226,7 @@ namespace Org.BouncyCastle.Utilities
         public static BigInteger ModOddInverseVar(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
-                throw new ArgumentException("must be odd", "M");
+                throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
             if (M.Equals(One))

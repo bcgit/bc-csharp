@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 #endif
 
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.Raw
 {
@@ -953,6 +954,32 @@ namespace Org.BouncyCastle.Math.Raw
             return (x[w] >> b) & 1;
         }
 #endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int GetBitLength(int len, ReadOnlySpan<uint> x)
+#else
+        public static int GetBitLength(int len, uint[] x)
+#endif
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[i];
+                if (x_i != 0)
+                    return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x_i);
+            }
+            return 0;
+        }
+
+        public static int GetBitLength(int len, uint[] x, int xOff)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[xOff + i];
+                if (x_i != 0)
+                    return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x_i);
+            }
+            return 0;
+        }
 
         public static int GetLengthForBits(int bits)
         {
