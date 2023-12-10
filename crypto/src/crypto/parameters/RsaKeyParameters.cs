@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private static bool HasAnySmallFactors(BigInteger modulus)
         {
             BigInteger M = modulus, X = SmallPrimesProduct;
-            if (modulus.CompareTo(SmallPrimesProduct) < 0)
+            if (modulus.BitLength < SmallPrimesProduct.BitLength)
             {
                 M = SmallPrimesProduct;
                 X = modulus;

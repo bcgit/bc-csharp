@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
-            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
             {
                 X = X.Mod(M);
             }
@@ -231,7 +231,7 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArithmeticException("BigInteger: modulus not positive");
             if (M.Equals(One))
                 return Zero;
-            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
             {
                 X = X.Mod(M);
             }
@@ -272,7 +272,7 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
-            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
             {
                 X = X.Mod(M);
             }
@@ -304,10 +304,12 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
-            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
             {
                 X = X.Mod(M);
             }
+            if (X.Equals(One))
+                return true;
 
             int bits = M.BitLength;
 
