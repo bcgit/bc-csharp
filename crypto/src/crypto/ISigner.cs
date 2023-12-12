@@ -35,6 +35,11 @@ namespace Org.BouncyCastle.Crypto
         /// <returns>A byte array containing the signature for the message.</returns>
         byte[] GenerateSignature();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api]
+        //int GenerateSignature(Span<byte> output);
+#endif
+
         /// <summary>Return true if the internal state represents the signature described in the passed in array.
         /// </summary>
         /// <param name="signature">an array containing the candidate signature to verify.</param>
