@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (privateKey is HssPrivateKeyParameters hssPrivateKeyParameters)
             {
-                int L = hssPrivateKeyParameters.L;
+                int L = hssPrivateKeyParameters.Level;
                 byte[] encoding = Composer.Compose().U32Str(L).Bytes(hssPrivateKeyParameters).Build();
                 byte[] pubEncoding = Composer.Compose().U32Str(L).Bytes(hssPrivateKeyParameters.GetPublicKey().LmsPublicKey).Build();
 

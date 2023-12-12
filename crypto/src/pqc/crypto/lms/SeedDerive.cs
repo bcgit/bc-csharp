@@ -2,9 +2,11 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public sealed class SeedDerive
     {
         private readonly byte[] m_I;
@@ -18,15 +20,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_digest = digest;
         }
 
-        public int Q { get; set; }
+        public byte[] GetI() => Arrays.Clone(m_I);
+
+        public byte[] GetMasterSeed() => Arrays.Clone(m_masterSeed);
 
         public int J { get; set; }
 
-        // FIXME
-        public byte[] I => m_I;
-
-        // FIXME
-        public byte[] MasterSeed => m_masterSeed;
+        public int Q { get; set; }
 
         public byte[] DeriveSeed(bool incJ, byte[] target, int offset)
         {
@@ -35,7 +35,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             int q = Q, j = J;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             m_digest.BlockUpdate(I, 0, I.Length);
+#pragma warning restore CS0618 // Type or member is obsolete
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> qj = stackalloc byte[7];
@@ -54,7 +56,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_digest.Update(0xFF);
 #endif
 
+#pragma warning disable CS0618 // Type or member is obsolete
             m_digest.BlockUpdate(m_masterSeed, 0, m_masterSeed.Length);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             m_digest.DoFinal(target, offset); // Digest resets here.
 
@@ -65,5 +69,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             return target;
         }
+
+        [Obsolete("Use 'GetI' instead")]
+        public byte[] I => m_I;
+
+        [Obsolete("Use 'GetMasterSeed' instead")]
+        public byte[] MasterSeed => m_masterSeed;
     }
 }

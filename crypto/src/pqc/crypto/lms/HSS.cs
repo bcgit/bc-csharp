@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 
+using Org.BouncyCastle.Security;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public static class Hss
     {
         public static HssPrivateKeyParameters GenerateHssKeyPair(HssKeyGenerationParameters parameters)
@@ -13,11 +16,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LmsPrivateKeyParameters[] keys = new LmsPrivateKeyParameters[parameters.Depth];
             LmsSignature[] sig = new LmsSignature[parameters.Depth - 1];
 
-            byte[] rootSeed = new byte[32];
-            parameters.Random.NextBytes(rootSeed);
-
-            byte[] I = new byte[16];
-            parameters.Random.NextBytes(I);
+            byte[] rootSeed = SecureRandom.GetNextBytes(parameters.Random,
+                parameters.GetLmsParameters(0).LMSigParameters.M);
+            byte[] I = SecureRandom.GetNextBytes(parameters.Random, 16);
 
             //
             // Set the HSS key up with a valid root LMSPrivateKeyParameters and placeholders for the remaining LMS keys.
@@ -85,7 +86,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 RangeTestKeys(keyPair);
                 keyPair.IncIndex();
-                keyPair.GetKeys()[keyPair.L - 1].IncIndex();
+                keyPair.GetKeys()[keyPair.Level - 1].IncIndex();
             }
         }
 
@@ -95,18 +96,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 if (keyPair.GetIndex() >= keyPair.IndexLimit)
                 {
+                    // TODO ExhaustedPrivateKeyException
                     throw new Exception(
-                        "hss private key" +
-                            ((keyPair.IsShard()) ? " shard" : "") +
-                            " is exhausted");
+                        "hss private key" + (keyPair.IsShard() ? " shard" : "") + " is exhausted");
                 }
 
-                int L = keyPair.L;
+                int L = keyPair.Level;
                 int d = L;
                 var prv = keyPair.GetKeys();
                 while (prv[d - 1].GetIndex() == 1 << prv[d - 1].GetSigParameters().H)
                 {
                     if (--d == 0)
+                        // TODO ExhaustedPrivateKeyException
                         throw new Exception("hss private key" + (keyPair.IsShard() ? " shard" : "") +
                             " is exhausted the maximum limit for this HSS private key");
                 }
@@ -118,12 +119,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-
         public static HssSignature GenerateSignature(HssPrivateKeyParameters keyPair, byte[] message)
         {
             LmsSignedPubKey[] signed_pub_key;
             LmsPrivateKeyParameters nextKey;
-            int L = keyPair.L;
+            int L = keyPair.Level;
 
             lock (keyPair)
             {
@@ -163,8 +163,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static bool VerifySignature(HssPublicKeyParameters publicKey, HssSignature signature, byte[] message)
         {
-            int Nspk = signature.GetLMinus1();
-            if (Nspk + 1 != publicKey.L)
+            int Nspk = signature.LMinus1;
+            if (Nspk + 1 != publicKey.Level)
                 return false;
 
             LmsSignature[] sigList = new LmsSignature[Nspk + 1];
@@ -172,8 +172,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             for (int i = 0; i < Nspk; i++)
             {
-                sigList[i] = signature.GetSignedPubKeys()[i].GetSignature();
-                pubList[i] = signature.GetSignedPubKeys()[i].GetPublicKey();
+                sigList[i] = signature.SignedPubKeys[i].Signature;
+                pubList[i] = signature.SignedPubKeys[i].PublicKey;
             }
             sigList[Nspk] = signature.Signature;
 
@@ -184,9 +184,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 LmsSignature sig = sigList[i];
                 byte[] msg = pubList[i].ToByteArray();
                 if (!Lms.VerifySignature(key, sig, msg))
-                {
                     return false;
-                }
+
                 try
                 {
                     key = pubList[i];

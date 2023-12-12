@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public static class Lms
     {
         internal static ushort D_LEAF = 0x8282;
@@ -95,7 +96,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             // tmp = H(I || u32str(node_num) || u16str(D_LEAF) || Kc)
             byte[] I = publicKey.GetI();
-            IDigest H = DigestUtilities.GetDigest(lmsParameter.DigestOid);
+            IDigest H = LmsUtilities.GetDigest(lmsParameter);
             byte[] tmp = new byte[H.GetDigestSize()];
 
             H.BlockUpdate(I, 0, I.Length);
@@ -130,6 +131,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 node_num = node_num / 2;
                 i++;
+                // these two can get out of sync with an invalid signature, we'll
+                // try and fail gracefully
+                if (i == path.Length && node_num > 1)
+                    return false;
             }
 
             byte[] Tc = tmp;

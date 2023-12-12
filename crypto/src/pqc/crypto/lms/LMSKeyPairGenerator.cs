@@ -15,16 +15,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            SecureRandom source = m_parameters.Random;
+            var random = m_parameters.Random;
+            byte[] I = SecureRandom.GetNextBytes(random, 16);
 
-            byte[] I = new byte[16];
-            source.NextBytes(I);
+            var lmsParameters = m_parameters.LmsParameters;
+            var sigParameters = lmsParameters.LMSigParameters;
+            var otsParameters = lmsParameters.LMOtsParameters;
+            byte[] rootSecret = SecureRandom.GetNextBytes(random, sigParameters.M);
 
-            byte[] rootSecret = new byte[32];
-            source.NextBytes(rootSecret);
-
-            LmsPrivateKeyParameters privKey = Lms.GenerateKeys(m_parameters.LmsParameters.LMSigParameters,
-                m_parameters.LmsParameters.LMOtsParameters, 0, I, rootSecret);
+            LmsPrivateKeyParameters privKey = Lms.GenerateKeys(sigParameters, otsParameters, 0, I, rootSecret);
 
             return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);
         }

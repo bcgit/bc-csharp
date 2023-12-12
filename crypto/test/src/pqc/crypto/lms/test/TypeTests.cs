@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
 
             {
-                object o = new HssPublicKeyParameters(0, null);
+                object o = new HssPublicKeyParameters(0, new LmsPublicKeyParameters(null, null, null, null));
                 Assert.True(o.Equals(HssPublicKeyParameters.GetInstance(o)));
             }
 

@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             HssPublicKeyParameters publicKey = HssPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = blocks[1];
-            HssSignature signature = HssSignature.GetInstance(blocks[2], publicKey.L);
+            HssSignature signature = HssSignature.GetInstance(blocks[2], publicKey.Level);
             Assert.True(Hss.VerifySignature(publicKey, signature, message), "Test Case 1 ");
         }
 
@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssPublicKeyParameters publicKey = HssPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = blocks[1];
             byte[] sig = blocks[2];
-            HssSignature signature = HssSignature.GetInstance(sig, publicKey.L);
+            HssSignature signature = HssSignature.GetInstance(sig, publicKey.Level);
             Assert.True(Hss.VerifySignature(publicKey, signature, message), "Test Case 2 Signature");
 
             LmsPublicKeyParameters lmsPub = LmsPublicKeyParameters.GetInstance(blocks[3]);
@@ -548,7 +548,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                         Assert.True(Hss.VerifySignature(pubKeyGenerated, sigCalculated, message));
 
                         HssSignature sigFromVector = HssSignature.GetInstance(sigVectors[c],
-                            pubKeyFromVector.L);
+                            pubKeyFromVector.Level);
 
                         Assert.True(Hss.VerifySignature(pubKeyFromVector, sigFromVector, message));
                         Assert.True(Hss.VerifySignature(pubKeyGenerated, sigFromVector, message));
@@ -790,7 +790,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                             //
                             byte[] rawSig = sig.GetEncoded();
                             rawSig[100] ^= 1;
-                            HssSignature parsedSig = HssSignature.GetInstance(rawSig, pk.L);
+                            HssSignature parsedSig = HssSignature.GetInstance(rawSig, pk.Level);
                             Assert.False(Hss.VerifySignature(pk, parsedSig, message));
 
                             try

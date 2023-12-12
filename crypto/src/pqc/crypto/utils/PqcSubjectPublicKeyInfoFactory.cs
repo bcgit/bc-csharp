@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (publicKey is HssPublicKeyParameters hssPublicKeyParameters)
             {
-                int L = hssPublicKeyParameters.L;
+                int L = hssPublicKeyParameters.Level;
                 byte[] encoding = Composer.Compose().U32Str(L).Bytes(hssPublicKeyParameters.LmsPublicKey).Build();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);

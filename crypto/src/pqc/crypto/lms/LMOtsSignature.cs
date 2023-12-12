@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public sealed class LMOtsSignature
         : IEncodable
     {
@@ -49,13 +50,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsSignature(parameter, C, sig);
         }
 
+        public byte[] GetC() => Arrays.Clone(m_C);
+
+        public byte[] GetY() => Arrays.Clone(m_y);
+
         public LMOtsParameters ParamType => m_paramType;
-
-        // FIXME
-        public byte[] C => m_C;
-
-        // FIXME
-        public byte[] Y => m_y;
 
         public override bool Equals(object obj)
         {
@@ -85,5 +84,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Bytes(m_y)
                 .Build();
         }
+
+        [Obsolete("Use 'GetC' instead")]
+        public byte[] C => m_C;
+
+        [Obsolete("Use 'GetY' instead")]
+        public byte[] Y => m_y;
     }
 }

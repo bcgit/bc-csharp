@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
@@ -15,14 +14,53 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LMSigParameters lms_sha256_n32_h20 = new LMSigParameters(8, 32, 20, NistObjectIdentifiers.IdSha256);
         public static LMSigParameters lms_sha256_n32_h25 = new LMSigParameters(9, 32, 25, NistObjectIdentifiers.IdSha256);
 
+        public static LMSigParameters lms_sha256_n24_h5 = new LMSigParameters(10, 24, 5, NistObjectIdentifiers.IdSha256);
+        public static LMSigParameters lms_sha256_n24_h10 = new LMSigParameters(11, 24, 10, NistObjectIdentifiers.IdSha256);
+        public static LMSigParameters lms_sha256_n24_h15 = new LMSigParameters(12, 24, 15, NistObjectIdentifiers.IdSha256);
+        public static LMSigParameters lms_sha256_n24_h20 = new LMSigParameters(13, 24, 20, NistObjectIdentifiers.IdSha256);
+        public static LMSigParameters lms_sha256_n24_h25 = new LMSigParameters(14, 24, 25, NistObjectIdentifiers.IdSha256);
+
+        public static LMSigParameters lms_shake256_n32_h5 = new LMSigParameters(15, 32, 5, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n32_h10 = new LMSigParameters(16, 32, 10, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n32_h15 = new LMSigParameters(17, 32, 15, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n32_h20 = new LMSigParameters(18, 32, 20, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n32_h25 = new LMSigParameters(19, 32, 25, NistObjectIdentifiers.IdShake256Len);
+
+        public static LMSigParameters lms_shake256_n24_h5 = new LMSigParameters(20, 24, 5, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n24_h10 = new LMSigParameters(21, 24, 10, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n24_h15 = new LMSigParameters(22, 24, 15, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n24_h20 = new LMSigParameters(23, 24, 20, NistObjectIdentifiers.IdShake256Len);
+        public static LMSigParameters lms_shake256_n24_h25 = new LMSigParameters(24, 24, 25, NistObjectIdentifiers.IdShake256Len);
+
         private static Dictionary<int, LMSigParameters> ParametersByID = new Dictionary<int, LMSigParameters>
         {
             { lms_sha256_n32_h5.ID, lms_sha256_n32_h5 },
             { lms_sha256_n32_h10.ID, lms_sha256_n32_h10 },
             { lms_sha256_n32_h15.ID, lms_sha256_n32_h15 },
             { lms_sha256_n32_h20.ID, lms_sha256_n32_h20 },
-            { lms_sha256_n32_h25.ID, lms_sha256_n32_h25 }
+            { lms_sha256_n32_h25.ID, lms_sha256_n32_h25 },
+
+            { lms_sha256_n24_h5.ID, lms_sha256_n24_h5 },
+            { lms_sha256_n24_h10.ID, lms_sha256_n24_h10 },
+            { lms_sha256_n24_h15.ID, lms_sha256_n24_h15 },
+            { lms_sha256_n24_h20.ID, lms_sha256_n24_h20 },
+            { lms_sha256_n24_h25.ID, lms_sha256_n24_h25 },
+
+            { lms_shake256_n32_h5.ID, lms_shake256_n32_h5 },
+            { lms_shake256_n32_h10.ID, lms_shake256_n32_h10 },
+            { lms_shake256_n32_h15.ID, lms_shake256_n32_h15 },
+            { lms_shake256_n32_h20.ID, lms_shake256_n32_h20 },
+            { lms_shake256_n32_h25.ID, lms_shake256_n32_h25 },
+
+            { lms_shake256_n24_h5.ID, lms_shake256_n24_h5 },
+            { lms_shake256_n24_h10.ID, lms_shake256_n24_h10 },
+            { lms_shake256_n24_h15.ID, lms_shake256_n24_h15 },
+            { lms_shake256_n24_h20.ID, lms_shake256_n24_h20 },
+            { lms_shake256_n24_h25.ID, lms_shake256_n24_h25 },
         };
+
+        public static LMSigParameters GetParametersByID(int id) =>
+            CollectionUtilities.GetValueOrNull(ParametersByID, id);
 
         private readonly int m_id;
         private readonly int m_m;
@@ -37,17 +75,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_digestOid = digestOid;
         }
 
-        public int ID => m_id;
+        public DerObjectIdentifier DigestOid => m_digestOid;
 
         public int H => m_h;
 
+        public int ID => m_id;
+
         public int M => m_m;
-
-        public DerObjectIdentifier DigestOid => m_digestOid;
-
-        public static LMSigParameters GetParametersByID(int id)
-        {
-            return CollectionUtilities.GetValueOrNull(ParametersByID, id);
-        }
     }
 }

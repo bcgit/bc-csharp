@@ -4,61 +4,51 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public class LmsSignedPubKey
         : IEncodable
     {
-        private LmsSignature signature;
-        private LmsPublicKeyParameters publicKey;
+        private readonly LmsSignature m_signature;
+        private readonly LmsPublicKeyParameters m_publicKey;
 
         public LmsSignedPubKey(LmsSignature signature, LmsPublicKeyParameters publicKey)
         {
-            this.signature = signature;
-            this.publicKey = publicKey;
+            m_signature = signature;
+            m_publicKey = publicKey;
         }
 
+        [Obsolete("Use 'PublicKey' instead")]
+        public LmsPublicKeyParameters GetPublicKey() => m_publicKey;
 
-        public LmsSignature GetSignature()
-        {
-            return signature;
-        }
+        [Obsolete("Use 'Signature' instead")]
+        public LmsSignature GetSignature() => m_signature;
 
-        public LmsPublicKeyParameters GetPublicKey()
-        {
-            return publicKey;
-        }
+        public LmsPublicKeyParameters PublicKey => m_publicKey;
 
-        public override  bool Equals(Object o)
+        public LmsSignature Signature => m_signature;
+
+        public override bool Equals(object obj)
         {
-            if (this == o)
-            {
+            if (this == obj)
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
-                return false;
-            }
 
-            LmsSignedPubKey that = (LmsSignedPubKey)o;
-
-            if (signature != null ? !signature.Equals(that.signature) : that.signature != null)
-            {
-                return false;
-            }
-            return publicKey != null ? publicKey.Equals(that.publicKey) : that.publicKey == null;
+            return obj is LmsSignedPubKey that
+                && Objects.Equals(this.m_signature, that.m_signature)
+                && Objects.Equals(this.m_publicKey, that.m_publicKey);
         }
-        
+
         public override int GetHashCode()
         {
-            int result = signature != null ? signature.GetHashCode() : 0;
-            result = 31 * result + (publicKey != null ? publicKey.GetHashCode() : 0);
+            int result = Objects.GetHashCode(m_signature);
+            result = 31 * result + Objects.GetHashCode(m_publicKey);
             return result;
         }
 
         public byte[] GetEncoded()
         {
             return Composer.Compose()
-                .Bytes(signature.GetEncoded())
-                .Bytes(publicKey.GetEncoded())
+                .Bytes(m_signature.GetEncoded())
+                .Bytes(m_publicKey.GetEncoded())
                 .Build();
         }
     }

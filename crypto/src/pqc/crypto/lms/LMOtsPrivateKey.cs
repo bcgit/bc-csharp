@@ -1,8 +1,11 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public sealed class LMOtsPrivateKey
     {
         private readonly LMOtsParameters m_parameters;
@@ -20,13 +23,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public LmsContext GetSignatureContext(LMSigParameters sigParams, byte[][] path)
         {
-            byte[] C = new byte[LMOts.SEED_LEN];
+            byte[] C = new byte[m_parameters.N];
 
             SeedDerive derive = GetDerivationFunction();
             derive.J = LMOts.SEED_RANDOMISER_INDEX; // This value from reference impl.
             derive.DeriveSeed(false, C, 0);
 
-            IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
+            IDigest ctx = LmsUtilities.GetDigest(m_parameters);
 
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
@@ -36,23 +39,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LmsContext(this, sigParams, ctx, C, path);
         }
 
+        public byte[] GetI() => Arrays.Clone(m_I);
+
+        public byte[] GetMasterSecret() => Arrays.Clone(m_masterSecret);
+
+        public LMOtsParameters Parameters => m_parameters;
+
+        public int Q => m_q;
+
         internal SeedDerive GetDerivationFunction()
         {
-            return new SeedDerive(m_I, m_masterSecret, DigestUtilities.GetDigest(m_parameters.DigestOid))
+            return new SeedDerive(m_I, m_masterSecret, LmsUtilities.GetDigest(m_parameters))
             {
                 Q = m_q,
                 J = 0,
             };
         }
 
-        public LMOtsParameters Parameters => m_parameters;
-
-        // FIXME
+        [Obsolete("Use 'GetI' instead")]
         public byte[] I => m_I;
 
-        public int Q => m_q;
-
-        // FIXME
+        [Obsolete("Use 'GetMasterSecret' instead")]
         public byte[] MasterSecret => m_masterSecret;
     }
 }

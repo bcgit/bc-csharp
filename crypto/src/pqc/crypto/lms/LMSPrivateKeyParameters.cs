@@ -12,8 +12,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public sealed class LmsPrivateKeyParameters
         : LmsKeyParameters, ILmsContextBasedSigner
     {
-        private static CacheKey T1 = new CacheKey(1);
-        private static CacheKey[] internedKeys = new CacheKey[129];
+        private static readonly CacheKey T1 = new CacheKey(1);
+        private static readonly CacheKey[] internedKeys = new CacheKey[129];
+
+        private static LmsPublicKeyParameters DerivePublicKey(LmsPrivateKeyParameters privateKey)
+        {
+            return new LmsPublicKeyParameters(privateKey.parameters, privateKey.otsParameters, privateKey.FindT(T1),
+                privateKey.I);
+        }
 
         static LmsPrivateKeyParameters()
         {
@@ -40,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // These are not final because they can be generated.
         // They also do not need to be persisted.
         //
-        private LmsPublicKeyParameters publicKey;
+        private LmsPublicKeyParameters m_publicKey;
 
         public LmsPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I,
             int maxQ, byte[] masterSecret)
@@ -60,7 +66,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = Arrays.Clone(masterSecret);
             this.maxCacheR = 1 << (parameters.H + 1);
             this.tCache = new Dictionary<CacheKey, byte[]>();
-            this.tDigest = DigestUtilities.GetDigest(lmsParameter.DigestOid);
+            this.tDigest = LmsUtilities.GetDigest(lmsParameter);
             this.m_isPlaceholder = isPlaceholder;
         }
 
@@ -75,16 +81,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = parent.masterSecret;
             this.maxCacheR = 1 << parameters.H;
             this.tCache = parent.tCache;
-            this.tDigest = DigestUtilities.GetDigest(parameters.DigestOid);
-            this.publicKey = parent.publicKey;
+            this.tDigest = LmsUtilities.GetDigest(parameters);
+            this.m_publicKey = parent.m_publicKey;
         }
 
         public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc)
         {
             LmsPrivateKeyParameters pKey = GetInstance(privEnc);
-        
-            pKey.publicKey = LmsPublicKeyParameters.GetInstance(pubEnc);
-
+            pKey.m_publicKey = LmsPublicKeyParameters.GetInstance(pubEnc);
             return pKey;
         }
 
@@ -137,6 +141,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             lock (this)
             {
                 if (q >= maxQ)
+                    // TODO ExhaustedPrivateKeyException
                     throw new Exception("ots private keys expired");
 
                 return new LMOtsPrivateKey(otsParameters, I, q, masterSecret);
@@ -266,14 +271,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (m_isPlaceholder)
                 throw new Exception("placeholder only");
 
-            lock (this)
-            {
-                if (publicKey == null)
-                {
-                    publicKey = new LmsPublicKeyParameters(parameters, otsParameters, this.FindT(T1), I);
-                }
-                return publicKey;
-            }
+            return Objects.EnsureSingletonInitialized(ref m_publicKey, this, DerivePublicKey);
         }
 
         internal byte[] FindT(int r)
@@ -293,7 +291,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 if (tCache.TryGetValue(key, out byte[] t))
                     return t;
 
-                return tCache[key] = CalcT(key.index);
+                return tCache[key] = CalcT(key.m_index);
             }
         }
 
@@ -339,65 +337,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return T;
         }
 
-        public override bool Equals(Object o)
+        // TODO[api] Fix parameter name
+        public override bool Equals(object o)
         {
             if (this == o)
-            {
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
-                return false;
-            }
 
-            LmsPrivateKeyParameters that = (LmsPrivateKeyParameters)o;
-
-            if (q != that.q)
-            {
-                return false;
-            }
-            if (maxQ != that.maxQ)
-            {
-                return false;
-            }
-            if (!Arrays.AreEqual(I, that.I))
-            {
-                return false;
-            }
-            if (parameters != null ? !parameters.Equals(that.parameters) : that.parameters != null)
-            {
-                return false;
-            }
-            if (otsParameters != null ? !otsParameters.Equals(that.otsParameters) : that.otsParameters != null)
-            {
-                return false;
-            }
-            if (!Arrays.AreEqual(masterSecret, that.masterSecret))
-            {
-                return false;
-            }
-
-            //
-            // Only compare public keys if they both exist.
-            // Otherwise we would trigger the creation of one or both of them
-            //
-            if (publicKey != null && that.publicKey != null)
-            {
-                return publicKey.Equals(that.publicKey);
-            }
-
-            return true;
+            return o is LmsPrivateKeyParameters that
+                && this.q == that.q
+                && this.maxQ == that.maxQ
+                && Arrays.AreEqual(this.I, that.I)
+                && Objects.Equals(this.parameters, that.parameters)
+                && Objects.Equals(this.otsParameters, that.otsParameters)
+                && Arrays.AreEqual(this.masterSecret, that.masterSecret);
         }
 
         public override int GetHashCode()
         {
             int result = q;
-            result = 31 * result + Arrays.GetHashCode(I);
-            result = 31 * result + (parameters != null ? parameters.GetHashCode() : 0);
-            result = 31 * result + (otsParameters != null ? otsParameters.GetHashCode() : 0);
             result = 31 * result + maxQ;
+            result = 31 * result + Arrays.GetHashCode(I);
+            result = 31 * result + Objects.GetHashCode(parameters);
+            result = 31 * result + Objects.GetHashCode(otsParameters);
             result = 31 * result + Arrays.GetHashCode(masterSecret);
-            result = 31 * result + (publicKey != null ? publicKey.GetHashCode() : 0);
             return result;
         }
 
@@ -430,29 +392,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        class CacheKey
+        internal struct CacheKey
         {
-            internal int index;
+            internal readonly int m_index;
 
             public CacheKey(int index)
             {
-                this.index = index;
+                m_index = index;
             }
 
-            public override int GetHashCode()
+            public override bool Equals(object obj)
             {
-                return index;
+                return obj is CacheKey that
+                    && this.m_index == that.m_index;
             }
 
-            public override bool Equals(Object o)
-            {
-                if (o is CacheKey)
-                {
-                    return ((CacheKey)o).index == this.index;
-                }
-
-                return false;
-            }
+            public override int GetHashCode() => m_index;
         }
     }
 }

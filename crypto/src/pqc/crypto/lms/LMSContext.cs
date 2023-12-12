@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private LmsSignedPubKey[] m_signedPubKeys;
         private volatile IDigest m_digest;
 
+        // TODO[api] Make internal
         public LmsContext(LMOtsPrivateKey privateKey, LMSigParameters sigParams, IDigest digest, byte[] C,
             byte[][] path)
         {
@@ -29,6 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_signature = null;
         }
 
+        // TODO[api] Make internal
         public LmsContext(LMOtsPublicKey publicKey, object signature, IDigest digest)
         {
             m_publicKey = publicKey;
@@ -54,6 +56,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LMOtsPrivateKey PrivateKey => m_privateKey;
 
+        // TODO[api] Make internal
         public LMOtsPublicKey PublicKey => m_publicKey;
 
         internal LMSigParameters SigParams => m_sigParams;

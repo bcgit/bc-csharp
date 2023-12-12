@@ -115,6 +115,44 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        public static bool AreEqual(object[] a, object[] b)
+        {
+            if (a == b)
+                return true;
+
+            if (a == null || b == null)
+                return false;
+
+            int length = a.Length;
+            if (length != b.Length)
+                return false;
+
+            for (int i = 0; i < length; ++i)
+            {
+                if (!Objects.Equals(a[i], b[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static bool AreEqual(object[] a, int aFromIndex, int aToIndex, object[] b, int bFromIndex, int bToIndex)
+        {
+            int aLength = aToIndex - aFromIndex;
+            int bLength = bToIndex - bFromIndex;
+
+            if (aLength != bLength)
+                return false;
+
+            for (int i = 0; i < aLength; ++i)
+            {
+                if (!Objects.Equals(a[aFromIndex + i], b[bFromIndex + i]))
+                    return false;
+            }
+
+            return true;
+        }
+
         [Obsolete("Use 'FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(byte[] a, byte[] b)
         {
@@ -527,6 +565,35 @@ namespace Org.BouncyCastle.Utilities
                 hc ^= (int)(di >> 32);
             }
 
+            return hc;
+        }
+
+        public static int GetHashCode(object[] data)
+        {
+            if (data == null)
+                return 0;
+
+            int len = data.Length;
+            int hc = len + 1;
+            for (int i = 0; i < len; ++i)
+            {
+                hc *= 257;
+                hc ^= Objects.GetHashCode(data[i]);
+            }
+            return hc;
+        }
+
+        public static int GetHashCode(object[] data, int off, int len)
+        {
+            if (data == null)
+                return 0;
+
+            int hc = len + 1;
+            for (int i = 0; i < len; ++i)
+            {
+                hc *= 257;
+                hc ^= Objects.GetHashCode(data[off + i]);
+            }
             return hc;
         }
 

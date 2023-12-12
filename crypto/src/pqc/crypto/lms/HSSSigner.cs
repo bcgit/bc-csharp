@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return Hss.VerifySignature(pubKey, HssSignature.GetInstance(signature, pubKey.L), message);
+                return Hss.VerifySignature(pubKey, HssSignature.GetInstance(signature, pubKey.Level), message);
             }
             catch (IOException e)
             {

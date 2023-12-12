@@ -68,6 +68,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         [Test]
+        public void TestHssKeyGenAndSign()
+        {
+            byte[] msg = Strings.ToByteArray("Hello, world!");
+
+            IAsymmetricCipherKeyPairGenerator kpGen = new HssKeyPairGenerator();
+            kpGen.Init(new HssKeyGenerationParameters(
+                new LmsParameters[]{
+                    new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
+                    new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4)
+                },
+                new SecureRandom()));
+
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+
+            HssSigner signer = new HssSigner();
+            signer.Init(true, kp.Private);
+            byte[] sig = signer.GenerateSignature(msg);
+
+            signer.Init(false, kp.Public);
+            Assert.IsTrue(signer.VerifySignature(msg, sig));
+        }
+
+        [Test]
 		public void TestKeyGenAndUsage()
         {
             byte[] msg = Strings.ToByteArray("Hello, world!");

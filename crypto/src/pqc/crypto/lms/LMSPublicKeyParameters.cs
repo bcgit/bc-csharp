@@ -55,72 +55,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
         }
 
-        public override byte[] GetEncoded()
-        {
-            return this.ToByteArray();
-        }
+        public override byte[] GetEncoded() => ToByteArray();
 
-        public LMSigParameters GetSigParameters()
-        {
-            return parameterSet;
-        }
+        public LMSigParameters GetSigParameters() => parameterSet;
 
-        public LMOtsParameters GetOtsParameters()
-        {
-            return lmOtsType;
-        }
+        public LMOtsParameters GetOtsParameters() => lmOtsType;
 
-        public LmsParameters GetLmsParameters()
-        {
-            return new LmsParameters(this.GetSigParameters(), this.GetOtsParameters());
-        }
+        public LmsParameters GetLmsParameters() => new LmsParameters(GetSigParameters(), GetOtsParameters());
 
-        public byte[] GetT1()
-        {
-            return Arrays.Clone(T1);
-        }
+        public byte[] GetT1() => Arrays.Clone(T1);
 
-        internal bool MatchesT1(byte[] sig)
-        {
-            return Arrays.FixedTimeEquals(T1, sig);
-        }
+        internal bool MatchesT1(byte[] sig) => Arrays.FixedTimeEquals(T1, sig);
 
-        public byte[] GetI()
-        {
-            return Arrays.Clone(I);
-        }
+        public byte[] GetI() => Arrays.Clone(I);
 
-        byte[] RefI()
-        {
-            return I;
-        }
+        internal byte[] RefI() => I;
 
-        public override bool Equals(Object o)
+        // TODO[api] Fix parameter name
+        public override bool Equals(object o)
         {
             if (this == o)
-            {
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
-                return false;
-            }
 
-            LmsPublicKeyParameters publicKey = (LmsPublicKeyParameters)o;
-
-            if (!parameterSet.Equals(publicKey.parameterSet))
-            {
-                return false;
-            }
-            if (!lmOtsType.Equals(publicKey.lmOtsType))
-            {
-                return false;
-            }
-            if (!Arrays.AreEqual(I, publicKey.I))
-            {
-                return false;
-            }
-            return Arrays.AreEqual(T1, publicKey.T1);
+            return o is LmsPublicKeyParameters that
+                && this.parameterSet.Equals(that.parameterSet)
+                && this.lmOtsType.Equals(that.lmOtsType)
+                && Arrays.AreEqual(this.I, that.I)
+                && Arrays.AreEqual(this.T1, that.T1);
         }
 
         public override int GetHashCode()
@@ -167,9 +128,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .CreateOtsContext(S);
         }
 
-        public bool Verify(LmsContext context)
-        {
-            return Lms.VerifySignature(this, context);
-        }
+        public bool Verify(LmsContext context) => Lms.VerifySignature(this, context);
     }
 }
