@@ -8,5 +8,8 @@ namespace Org.BouncyCastle.Utilities
         /// <returns>An encoding of this object as a byte array.</returns>
         /// <exception cref="IOException"/>
         byte[] GetEncoded();
+
+        // TODO[api]
+        //void EncodeTo(Stream output);
     }
 }
