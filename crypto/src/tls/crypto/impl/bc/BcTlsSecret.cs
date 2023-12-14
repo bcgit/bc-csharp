@@ -98,126 +98,119 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return HkdfExpand(cryptoHashAlgorithm, info.AsSpan(), length);
 #else
+            if (length < 1)
+                return m_crypto.AdoptLocalSecret(TlsUtilities.EmptyBytes);
+
+            int hashLen = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+            if (length > (255 * hashLen))
+                throw new ArgumentException("must be <= 255 * (output size of 'hashAlgorithm')", "length");
+
+            HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
+
             lock (this)
             {
-                if (length < 1)
-                    return m_crypto.AdoptLocalSecret(TlsUtilities.EmptyBytes);
-
-                int hashLen = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
-                if (length > (255 * hashLen))
-                    throw new ArgumentException("must be <= 255 * (output size of 'hashAlgorithm')", "length");
-
                 CheckAlive();
 
                 byte[] prk = m_data;
 
-                HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
                 hmac.Init(new KeyParameter(prk));
+            }
 
-                byte[] okm = new byte[length];
+            byte[] okm = new byte[length];
 
-                byte[] t = new byte[hashLen];
-                byte counter = 0x00;
+            byte[] t = new byte[hashLen];
+            byte counter = 0x00;
 
-                int pos = 0;
-                for (;;)
+            int pos = 0;
+            for (;;)
+            {
+                hmac.BlockUpdate(info, 0, info.Length);
+                hmac.Update(++counter);
+                hmac.DoFinal(t, 0);
+
+                int remaining = length - pos;
+                if (remaining <= hashLen)
                 {
-                    hmac.BlockUpdate(info, 0, info.Length);
-                    hmac.Update(++counter);
-                    hmac.DoFinal(t, 0);
-
-                    int remaining = length - pos;
-                    if (remaining <= hashLen)
-                    {
-                        Array.Copy(t, 0, okm, pos, remaining);
-                        break;
-                    }
-
-                    Array.Copy(t, 0, okm, pos, hashLen);
-                    pos += hashLen;
-                    hmac.BlockUpdate(t, 0, t.Length);
+                    Array.Copy(t, 0, okm, pos, remaining);
+                    break;
                 }
 
-                return m_crypto.AdoptLocalSecret(okm);
+                Array.Copy(t, 0, okm, pos, hashLen);
+                pos += hashLen;
+                hmac.BlockUpdate(t, 0, t.Length);
             }
+
+            return m_crypto.AdoptLocalSecret(okm);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override TlsSecret HkdfExpand(int cryptoHashAlgorithm, ReadOnlySpan<byte> info, int length)
         {
+            if (length < 1)
+                return m_crypto.AdoptLocalSecret(TlsUtilities.EmptyBytes);
+
+            int hashLen = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+            if (length > (255 * hashLen))
+                throw new ArgumentException("must be <= 255 * (output size of 'hashAlgorithm')", "length");
+
+            HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
+
             lock (this)
             {
-                if (length < 1)
-                    return m_crypto.AdoptLocalSecret(TlsUtilities.EmptyBytes);
-
-                int hashLen = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
-                if (length > (255 * hashLen))
-                    throw new ArgumentException("must be <= 255 * (output size of 'hashAlgorithm')", "length");
-
                 CheckAlive();
 
                 ReadOnlySpan<byte> prk = m_data;
 
-                HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
                 hmac.Init(new KeyParameter(prk));
+            }
 
-                byte[] okm = new byte[length];
+            byte[] okm = new byte[length];
 
-                Span<byte> t = hashLen <= 128
-                    ? stackalloc byte[hashLen]
-                    : new byte[hashLen];
-                byte counter = 0x00;
+            Span<byte> t = hashLen <= 128
+                ? stackalloc byte[hashLen]
+                : new byte[hashLen];
+            byte counter = 0x00;
 
-                int pos = 0;
-                for (;;)
+            int pos = 0;
+            for (;;)
+            {
+                hmac.BlockUpdate(info);
+                hmac.Update(++counter);
+                hmac.DoFinal(t);
+
+                int remaining = length - pos;
+                if (remaining <= hashLen)
                 {
-                    hmac.BlockUpdate(info);
-                    hmac.Update(++counter);
-                    hmac.DoFinal(t);
-
-                    int remaining = length - pos;
-                    if (remaining <= hashLen)
-                    {
-                        t[..remaining].CopyTo(okm.AsSpan(pos));
-                        break;
-                    }
-
-                    t.CopyTo(okm.AsSpan(pos));
-                    pos += hashLen;
-                    hmac.BlockUpdate(t);
+                    t[..remaining].CopyTo(okm.AsSpan(pos));
+                    break;
                 }
 
-                return m_crypto.AdoptLocalSecret(okm);
+                t.CopyTo(okm.AsSpan(pos));
+                pos += hashLen;
+                hmac.BlockUpdate(t);
             }
+
+            return m_crypto.AdoptLocalSecret(okm);
         }
 #endif
 
         public override TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm)
         {
-            lock (this)
-            {
-                CheckAlive();
+            byte[] salt = Extract();
 
-                byte[] salt = m_data;
-                this.m_data = null;
+            HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
+            hmac.Init(new KeyParameter(salt));
 
-                HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
-                hmac.Init(new KeyParameter(salt));
+            Convert(m_crypto, ikm).UpdateMac(hmac);
 
-                Convert(m_crypto, ikm).UpdateMac(hmac);
+            byte[] prk = new byte[hmac.GetMacSize()];
+            hmac.DoFinal(prk, 0);
 
-                byte[] prk = new byte[hmac.GetMacSize()];
-                hmac.DoFinal(prk, 0);
-
-                return m_crypto.AdoptLocalSecret(prk);
-            }
+            return m_crypto.AdoptLocalSecret(prk);
         }
 
-        protected override AbstractTlsCrypto Crypto
-        {
-            get { return m_crypto; }
-        }
+        protected override AbstractTlsCrypto Crypto => m_crypto;
 
         protected virtual void HmacHash(int cryptoHashAlgorithm, byte[] secret, int secretOff, int secretLen,
             byte[] seed, byte[] output)
