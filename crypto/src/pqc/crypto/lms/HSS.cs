@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 int L = keyPair.Level;
                 int d = L;
                 var prv = keyPair.GetKeys();
-                while (prv[d - 1].GetIndex() == 1 << prv[d - 1].GetSigParameters().H)
+                while (prv[d - 1].GetIndex() == 1 << prv[d - 1].SigParameters.H)
                 {
                     if (--d == 0)
                         // TODO ExhaustedPrivateKeyException

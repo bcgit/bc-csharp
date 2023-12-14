@@ -770,7 +770,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                         for (int t = keyPair.GetKeys().Count - 1; t >= 0; t--)
                         {
-                            LMSigParameters sigParameters = keyPair.GetKeys()[t].GetSigParameters();
+                            LMSigParameters sigParameters = keyPair.GetKeys()[t].SigParameters;
                             int mask = (1 << sigParameters.H) - 1;
                             qValues[t] = q & mask;
                             q >>= sigParameters.H;

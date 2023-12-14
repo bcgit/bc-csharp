@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 {
                     LmsPrivateKeyParameters lmsPrivateKey = m_keys[i];
 
-                    parameters[i] = new LmsParameters(lmsPrivateKey.GetSigParameters(), lmsPrivateKey.GetOtsParameters());
+                    parameters[i] = new LmsParameters(lmsPrivateKey.SigParameters, lmsPrivateKey.OtsParameters);
                 }
 
                 return parameters;
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             for (int t = originalKeys.Count - 1; t >= 0; t--)
             {
-                LMSigParameters sigParameters = originalKeys[t].GetSigParameters();
+                LMSigParameters sigParameters = originalKeys[t].SigParameters;
                 int mask = (1 << sigParameters.H) - 1;
                 qTreePath[t] = q & mask;
                 q >>= sigParameters.H;
@@ -241,8 +241,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (m_keys[0].GetIndex() - 1 != qTreePath[0])
             {
                 m_keys[0] = Lms.GenerateKeys(
-                    originalRootKey.GetSigParameters(),
-                    originalRootKey.GetOtsParameters(),
+                    originalRootKey.SigParameters,
+                    originalRootKey.OtsParameters,
                     (int)qTreePath[0], originalRootKey.GetI(), originalRootKey.GetMasterSecret());
                 changed = true;
             }
@@ -250,14 +250,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             for (int i = 1; i < qTreePath.Length; i++)
             {
                 LmsPrivateKeyParameters intermediateKey = m_keys[i - 1];
-                int n = intermediateKey.GetOtsParameters().N;
+                int n = intermediateKey.OtsParameters.N;
 
                 byte[] childI = new byte[16];
                 byte[] childSeed = new byte[n];
                 SeedDerive derive = new SeedDerive(
                     intermediateKey.GetI(),
                     intermediateKey.GetMasterSecret(),
-                    LmsUtilities.GetDigest(intermediateKey.GetOtsParameters()))
+                    LmsUtilities.GetDigest(intermediateKey.OtsParameters))
                 {
                     Q = (int)qTreePath[i - 1],
                     J = ~1,
@@ -290,8 +290,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // This means the parent has changed.
                     //
                     m_keys[i] = Lms.GenerateKeys(
-                        originalKeys[i].GetSigParameters(),
-                        originalKeys[i].GetOtsParameters(),
+                        originalKeys[i].SigParameters,
+                        originalKeys[i].OtsParameters,
                         (int)qTreePath[i], childI, childSeed);
 
                     //
@@ -307,8 +307,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // key so we do not need to sign it again.
                     //
                     m_keys[i] = Lms.GenerateKeys(
-                        originalKeys[i].GetSigParameters(),
-                        originalKeys[i].GetOtsParameters(),
+                        originalKeys[i].SigParameters,
+                        originalKeys[i].OtsParameters,
                         (int)qTreePath[i], childI, childSeed);
                     changed = true;
                 }
@@ -348,7 +348,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             //
             LmsPrivateKeyParameters oldPk = m_keys[d];
 
-            newKeys[d] = Lms.GenerateKeys(oldPk.GetSigParameters(), oldPk.GetOtsParameters(), 0, childI, childRootSeed);
+            newKeys[d] = Lms.GenerateKeys(oldPk.SigParameters, oldPk.OtsParameters, 0, childI, childRootSeed);
 
             var newSig = new List<LmsSignature>(m_sig);
 
