@@ -765,6 +765,7 @@ namespace Org.BouncyCastle.Math.Tests
             }
         }
 
+#if !NET8_0_OR_GREATER
         [Test]
         public void TestSerialization()
         {
@@ -785,6 +786,7 @@ namespace Org.BouncyCastle.Math.Tests
                 Assert.AreEqual(x, y);
             }
         }
+#endif
 
         [Test]
         public void TestSetBit()
