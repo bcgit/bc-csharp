@@ -225,7 +225,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                     t *= 80635;
                     t >>= 28;
                     t &= 1;
-                    outMsg[i] |= (byte)(t << j);
+                    msg[i] |= (byte)(t << j);
                 }
             }
         }
