@@ -215,8 +215,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 msg[i] = 0;
                 for (int j = 0; j < 8; j++)
                 {
-                    short t = (short)(((((short)(Coeffs[8 * i + j] << 1) + KyberEngine.Q / 2) / KyberEngine.Q) & 1));
-                    msg[i] |= (byte)(t << j);
+                    // short t = (short)(((((short)(Coeffs[8 * i + j] << 1) + KyberEngine.Q / 2) / KyberEngine.Q) & 1));
+                    // msg[i] |= (byte)(t << j);
+                    // we've done it like this as there is a chance a division instruction might
+                    // get generated introducing a timing signal on the secret input
+                    int t = Coeffs[8 * i + j] & 0xFFFF;
+                    t <<= 1;
+                    t += 1665;
+                    t *= 80635;
+                    t >>= 28;
+                    t &= 1;
+                    outMsg[i] |= (byte)(t << j);
                 }
             }
         }
