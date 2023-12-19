@@ -8,26 +8,14 @@ namespace Org.BouncyCastle.Asn1
     // TODO[api] Make static
     public abstract class Asn1Utilities
     {
-        internal static Asn1TaggedObject CheckTagClass(Asn1TaggedObject taggedObject, int tagClass)
+        internal static Asn1TaggedObject CheckContextTag(Asn1TaggedObject taggedObject)
         {
-            if (!taggedObject.HasTagClass(tagClass))
-            {
-                string expected = GetTagClassText(tagClass);
-                string found = GetTagClassText(taggedObject);
-                throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
-            }
-            return taggedObject;
+            return CheckTagClass(taggedObject, Asn1Tags.ContextSpecific);
         }
 
-        internal static Asn1TaggedObjectParser CheckTagClass(Asn1TaggedObjectParser taggedObjectParser, int tagClass)
+        internal static Asn1TaggedObjectParser CheckContextTag(Asn1TaggedObjectParser taggedObjectParser)
         {
-            if (taggedObjectParser.TagClass != tagClass)
-            {
-                string expected = GetTagClassText(tagClass);
-                string found = GetTagClassText(taggedObjectParser);
-                throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
-            }
-            return taggedObjectParser;
+            return CheckTagClass(taggedObjectParser, Asn1Tags.ContextSpecific);
         }
 
         internal static Asn1TaggedObject CheckTag(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
@@ -53,6 +41,27 @@ namespace Org.BouncyCastle.Asn1
             return taggedObjectParser;
         }
 
+        internal static Asn1TaggedObject CheckTagClass(Asn1TaggedObject taggedObject, int tagClass)
+        {
+            if (!taggedObject.HasTagClass(tagClass))
+            {
+                string expected = GetTagClassText(tagClass);
+                string found = GetTagClassText(taggedObject);
+                throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
+            }
+            return taggedObject;
+        }
+
+        internal static Asn1TaggedObjectParser CheckTagClass(Asn1TaggedObjectParser taggedObjectParser, int tagClass)
+        {
+            if (taggedObjectParser.TagClass != tagClass)
+            {
+                string expected = GetTagClassText(tagClass);
+                string found = GetTagClassText(taggedObjectParser);
+                throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
+            }
+            return taggedObjectParser;
+        }
 
         internal static TChoice GetInstanceFromChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
             Func<object, TChoice> constructor)
@@ -73,6 +82,25 @@ namespace Org.BouncyCastle.Asn1
         }
 
 
+        /*
+         * Tag text methods
+         */
+
+        internal static string GetTagClassText(Asn1Tag tag)
+        {
+            return GetTagClassText(tag.TagClass);
+        }
+
+        public static string GetTagClassText(Asn1TaggedObject taggedObject)
+        {
+            return GetTagClassText(taggedObject.TagClass);
+        }
+
+        public static string GetTagClassText(Asn1TaggedObjectParser taggedObjectParser)
+        {
+            return GetTagClassText(taggedObjectParser.TagClass);
+        }
+
         public static string GetTagClassText(int tagClass)
         {
             switch (tagClass)
@@ -86,16 +114,6 @@ namespace Org.BouncyCastle.Asn1
             default:
                 return "UNIVERSAL";
             }
-        }
-
-        public static string GetTagClassText(Asn1TaggedObject taggedObject)
-        {
-            return GetTagClassText(taggedObject.TagClass);
-        }
-
-        public static string GetTagClassText(Asn1TaggedObjectParser taggedObjectParser)
-        {
-            return GetTagClassText(taggedObjectParser.TagClass);
         }
 
         internal static string GetTagText(Asn1Tag tag)

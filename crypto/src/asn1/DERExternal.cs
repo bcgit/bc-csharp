@@ -251,11 +251,9 @@ namespace Org.BouncyCastle.Asn1
 
         private static Asn1Object GetExternalContent(Asn1TaggedObject encoding)
         {
-            int tagClass = encoding.TagClass, tagNo = encoding.TagNo;
-            if (Asn1Tags.ContextSpecific != tagClass)
-                throw new ArgumentException("invalid tag: " + Asn1Utilities.GetTagText(tagClass, tagNo), "encoding");
+            Asn1Utilities.CheckContextTag(encoding);
 
-            switch (tagNo)
+            switch (encoding.TagNo)
             {
             case 0:
                 return encoding.GetExplicitBaseObject().ToAsn1Object();
@@ -264,7 +262,7 @@ namespace Org.BouncyCastle.Asn1
             case 2:
                 return DerBitString.GetInstance(encoding, false);
             default:
-                throw new ArgumentException("invalid tag: " + Asn1Utilities.GetTagText(tagClass, tagNo), "encoding");
+                throw new ArgumentException("invalid tag: " + Asn1Utilities.GetTagText(encoding), nameof(encoding));
             }
         }
 

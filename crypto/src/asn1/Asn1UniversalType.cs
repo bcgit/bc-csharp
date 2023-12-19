@@ -42,10 +42,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal Asn1Object GetContextInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            if (Asn1Tags.ContextSpecific != taggedObject.TagClass)
-                throw new InvalidOperationException("this method only valid for CONTEXT_SPECIFIC tags");
-
-            return CheckedCast(taggedObject.GetBaseUniversal(declaredExplicit, this));
+            return CheckedCast(Asn1Utilities.CheckContextTag(taggedObject).GetBaseUniversal(declaredExplicit, this));
         }
 
         internal Asn1Tag Tag

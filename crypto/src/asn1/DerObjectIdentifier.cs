@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
              * 
              * - see https://github.com/bcgit/bc-java/issues/1015
              */
-            if (!declaredExplicit && !taggedObject.IsParsed() && Asn1Tags.ContextSpecific == taggedObject.TagClass)
+            if (!declaredExplicit && !taggedObject.IsParsed() && taggedObject.HasContextTag())
             {
                 Asn1Object baseObject = taggedObject.GetBaseObject().ToAsn1Object();
                 if (!(baseObject is DerObjectIdentifier))

@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (obj is Evidence evidence)
                 return evidence;
             if (obj is Asn1TaggedObject taggedObject)
-                return new Evidence(Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific));
+                return new Evidence(Asn1Utilities.CheckContextTag(taggedObject));
 
             throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
