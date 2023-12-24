@@ -116,14 +116,14 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
 		    // Compute the own client evidence message 'M1'
 		    BigInteger computedM1 = Srp6Utilities.CalculateM1(digest, N, A, pubB, S);
-		    if (computedM1.Equals(clientM1))
-		    {
-			    this.M1 = clientM1;
+            if (computedM1.Equals(clientM1))
+            {
+                this.M1 = clientM1;
                 this.isRFC2945 = false;
-			    return true;
-		    }
-		    return false;
-	    }
+                return true;
+            }
+            return false;
+        }
 
         /** 
 	     * Authenticates the received client evidence message M1 using RFC2945 and saves it only if correct.
@@ -164,26 +164,26 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 	     * @return M2: the server side generated evidence message
 	     * @throws CryptoException
 	     */
-	    public virtual BigInteger CalculateServerEvidenceMessage()
-	    {
-		    // Verify pre-requirements
-		    if (this.A == null || this.M1 == null || this.S == null)
-		    {
-			    throw new CryptoException("Impossible to compute M2: " +
-					    "some data are missing from the previous operations (A,M1,S)");
-		    }
+        public virtual BigInteger CalculateServerEvidenceMessage()
+        {
+            // Verify pre-requirements
+            if (this.A == null || this.M1 == null || this.S == null)
+            {
+                throw new CryptoException("Impossible to compute M2: " +
+                   "some data are missing from the previous operations (A,M1,S)");
+            }
 
-			// Compute the server evidence message 'M2'
-			if (isRFC2945)
-			{
+            // Compute the server evidence message 'M2'
+            if (isRFC2945)
+            {
                 this.M2 = Srp6Utilities.CalculateM2(digest, N, A, M1, Key);
             }
-			else
-			{
-				this.M2 = Srp6Utilities.CalculateM2(digest, N, A, M1, S);
-			}
-		    return M2;
-	    }
+            else
+            {
+                this.M2 = Srp6Utilities.CalculateM2(digest, N, A, M1, S);
+            }
+            return M2;
+        }
 
         /**
 	     * Computes the final session key as a result of the SRP successful mutual authentication

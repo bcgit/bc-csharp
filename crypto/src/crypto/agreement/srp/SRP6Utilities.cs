@@ -64,10 +64,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         public static byte[] CalculateY(IDigest digest, byte[] salt, byte[] identity)
         {
             byte[] output = new byte[digest.GetDigestSize()];
-	        digest.BlockUpdate(identity, 0, identity.Length);
-	        digest.DoFinal(output, 0);
-	        output = output.Concat(salt).ToArray();
-	        return output;
+            digest.BlockUpdate(identity, 0, identity.Length);
+            digest.DoFinal(output, 0);
+            output = output.Concat(salt).ToArray();
+            return output;
         }
 
         public static BigInteger GeneratePrivateValue(IDigest digest, BigInteger N, BigInteger g, SecureRandom random)

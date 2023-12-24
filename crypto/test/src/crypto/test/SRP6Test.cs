@@ -32,20 +32,20 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 	    public override void PerformTest()
 	    {
-	    	rfc5054AppendixBTestVectors();
-			rfc2945MessageVerify();
+            rfc5054AppendixBTestVectors();
+            rfc2945MessageVerify();
 
             testMutualVerification(Srp6StandardGroups.rfc5054_1024);
             testClientCatchesBadB(Srp6StandardGroups.rfc5054_1024);
             testServerCatchesBadA(Srp6StandardGroups.rfc5054_1024);
 
-			testWithRandomParams(256);
-			testWithRandomParams(384);
-			testWithRandomParams(512);
-	    }
+            testWithRandomParams(256);
+            testWithRandomParams(384);
+            testWithRandomParams(512);
+        }
 
         private void rfc2945MessageVerify()
-		{
+        {
             BigInteger N = Srp6StandardGroups.rfc5054_1024.N;
             BigInteger g = Srp6StandardGroups.rfc5054_1024.G;
 
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] s = new byte[16];
             random.NextBytes(s);
 
-			var group = new Srp6GroupParameters(N, g);
+            var group = new Srp6GroupParameters(N, g);
 
             Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
             gen.Init(group, new Sha256Digest());
@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger B = server.GenerateServerCredentials();
 
             BigInteger clientS = client.CalculateSecret(B);
-			BigInteger clientM1 = client.CalculateClientEvidenceMessageRFC2945(messageVerifier);
+            BigInteger clientM1 = client.CalculateClientEvidenceMessageRFC2945(messageVerifier);
 
             BigInteger serverS = server.CalculateSecret(A);
 
@@ -82,13 +82,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             bool isClientM1Valid =  server.VerifyClientEvidenceMessageRFC2945(clientM1, messageVerifier);
             if(!isClientM1Valid)
-			{
+            {
                 Fail("SRP server was not able to verify M1 from the client");
             }
 
-			BigInteger serverM2 = server.CalculateServerEvidenceMessage();
-			bool isServerM2Valid = client.VerifyServerEvidenceMessage(serverM2);
-			if(!isServerM2Valid)
+            BigInteger serverM2 = server.CalculateServerEvidenceMessage();
+            bool isServerM2Valid = client.VerifyServerEvidenceMessage(serverM2);
+            if (!isServerM2Valid)
             {
                 Fail("SRP client was not able to verify M2 from the server");
             }
