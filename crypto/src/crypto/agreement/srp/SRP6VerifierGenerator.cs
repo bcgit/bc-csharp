@@ -50,6 +50,18 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
 	        return g.ModPow(x, N);
 	    }
-	}
+
+        /**
+	     * Creates a new SRP verifier for M1
+	     * @param salt The salt to use, generally should be large and random
+	     * @param identity The user's identifying information (eg. username)
+	     * @return A new verifier for use in future SRP authentication
+	     */
+        public virtual byte[] GenerateMessageVerifierRFC2945(byte[] salt, byte[] identity)
+        {
+            byte[] mv = Srp6Utilities.CalculateY(digest, salt, identity);
+            return mv;
+        }
+    }
 }
 

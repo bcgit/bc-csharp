@@ -13,7 +13,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 	 */
 	public class Srp6Client
 	{
-	    protected BigInteger N;
+        private bool isRFC2945 = false;
+
+        protected BigInteger N;
 	    protected BigInteger g;
 
 	    protected BigInteger privA;
@@ -115,9 +117,38 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 					    "some data are missing from the previous operations (A,B,S)");
 		    }
 		    // compute the client evidence message 'M1'
-		    this.M1 = Srp6Utilities.CalculateM1(digest, N, pubA, B, S);  
-		    return M1;
+		    this.M1 = Srp6Utilities.CalculateM1(digest, N, pubA, B, S);
+			this.isRFC2945 = false;
+
+            return M1;
 	    }
+
+        /**
+	     * Computes the client evidence message M1 using the previously received values.
+	     * To be called after calculating the secret S.
+	     * @return M1: the client side generated evidence message
+	     * @param messageVerifier: message verifier pre-generated from identity and salt
+	     * @throws CryptoException
+	     */
+        public virtual BigInteger CalculateClientEvidenceMessageRFC2945(byte[] messageVerifier)
+        {
+            // Verify pre-requirements
+            if (this.pubA == null || this.B == null || this.S == null)
+            {
+                throw new CryptoException("Impossible to compute M1: " +
+                        "some data are missing from the previous operations (A,B,S)");
+            }
+
+            if (this.Key == null)
+            {
+                this.Key = Srp6Utilities.CalculateKey(digest, N, S);
+            }
+
+            // compute the client evidence message 'M1'
+            this.M1 = Srp6Utilities.CalculateM1(digest, N, g, pubA, B, Key, messageVerifier);
+            this.isRFC2945 = true;
+            return M1;
+        }
 
         /** Authenticates the server evidence message M2 received and saves it only if correct.
 	     * @param M2: the server side generated evidence message
@@ -133,9 +164,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 					    "some data are missing from the previous operations (A,M1,S)");
 		    }
 
-		    // Compute the own server evidence message 'M2'
-		    BigInteger computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, S);
-		    if (computedM2.Equals(serverM2))
+			// Compute the own server evidence message 'M2'
+			BigInteger computedM2;
+						
+			if(isRFC2945)
+			{
+				computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, Key);
+			}
+			else
+			{
+                computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, S);
+            }
+		    
+			if (computedM2.Equals(serverM2))
 		    {
 			    this.M2 = serverM2;
 			    return true;
