@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         private bool isRFC2945 = false;
 
         protected BigInteger N;
-	    protected BigInteger g;
+        protected BigInteger g;
 
 	    protected BigInteger privA;
 	    protected BigInteger pubA;
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 		    }
 		    // compute the client evidence message 'M1'
 		    this.M1 = Srp6Utilities.CalculateM1(digest, N, pubA, B, S);
-			this.isRFC2945 = false;
+		    this.isRFC2945 = false;
 
             return M1;
 	    }
@@ -167,19 +167,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 			// Compute the own server evidence message 'M2'
 			BigInteger computedM2;
 						
-			if(isRFC2945)
-			{
-				computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, Key);
-			}
-			else
-			{
-                computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, S);
-            }
-		    
-			if (computedM2.Equals(serverM2))
+		    if(isRFC2945)
 		    {
-			    this.M2 = serverM2;
-			    return true;
+			    computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, Key);
+		    }
+		    else
+		    {
+		        computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, S);
+		    }
+		    
+		    if (computedM2.Equals(serverM2))
+		    {
+		        this.M2 = serverM2;
+		        return true;
 		    }
 		    return false;
 	    }

@@ -122,12 +122,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             byte[] bA = VALUEOF(A);
             byte[] bB = VALUEOF(B);
             byte[] bK = VALUEOF(K, digest.GetDigestSize());
-
-            System.Diagnostics.Debug.WriteLine($"---K: {Convert.ToBase64String(bK)}");
-
             byte[] bM1 = SHA(digest, CONCAT(XOR(SHA(digest, N), SHA(digest, g)), CONCAT(messageVerifier, CONCAT(bA, CONCAT(bB, bK)))));
-            System.Diagnostics.Debug.WriteLine($"---M1: {Convert.ToBase64String(bM1)}");
-
             BigInteger M1 = new BigInteger(1, bM1);
             return M1;
         }
