@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.cms;
 using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -115,8 +116,16 @@ namespace Org.BouncyCastle.Cms
 			//
 			if (signedData.EncapContentInfo.Content != null)
 			{
-				this.signedContent = new CmsProcessableByteArray(
-					((Asn1OctetString)signedData.EncapContentInfo.Content).GetOctets());
+				if (signedData.EncapContentInfo.Content is Asn1OctetString)
+				{
+					signedContent = new CmsProcessableByteArray(
+						((Asn1OctetString)(signedData.EncapContentInfo.Content)).GetOctets());
+				}
+				else
+				{
+					signedContent = new Pkcs7ProcessableObject(signedData.EncapContentInfo.ContentType,
+						signedData.EncapContentInfo.Content);
+				}
 			}
 //			else
 //			{
