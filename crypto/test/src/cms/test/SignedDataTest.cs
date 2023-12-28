@@ -1484,6 +1484,14 @@ namespace Org.BouncyCastle.Cms.Tests
                 Assert.AreEqual(2, sigs.Count);
 			}
 		}
+				
+		[Test]
+		public void TestPkcs7SignedContent()
+		{
+			CmsSignedData sig = new CmsSignedData(GetInput("Pkcs7SignedContent.p7b"));
+
+			VerifySignatures(sig);
+		}
 
         private static void DoTestSample(string sigName)
         {
