@@ -44,12 +44,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             this._defaultKeySize = defaultKeySize;
         }
 
-        public static SNtruPrimeParameters sntrup653 = new SNtruPrimeParameters("SNTRU_Prime_653", 653, 4621, false, 288, -1,-1,-1,-1,1518,994,897, 865, 994, 128);
-        public static SNtruPrimeParameters sntrup761 = new SNtruPrimeParameters("SNTRU_Prime_761", 761, 4591, false, 286, -1,-1,-1,-1,1763,1158,1039, 1007, 1158, 128);
-        public static SNtruPrimeParameters sntrup857 = new SNtruPrimeParameters("SNTRU_Prime_857", 857, 5167, false, 322, -1,-1,-1,-1,1999,1322,1184, 1152, 1322, 128);
-        public static SNtruPrimeParameters sntrup953 = new SNtruPrimeParameters("SNTRU_Prime_953", 953, 6343, false, 396, -1,-1,-1,-1,2254,1505,1349, 1317, 1505, 192);
-        public static SNtruPrimeParameters sntrup1013 = new SNtruPrimeParameters("SNTRU_Prime_1013", 1013, 7177, false, 448, -1,-1,-1,-1,2417,1623,1455, 1423, 1623, 192);
-        public static SNtruPrimeParameters sntrup1277 = new SNtruPrimeParameters("SNTRU_Prime_1277", 1277, 7879, false, 492, -1,-1,-1,-1,3059,2067,1847, 1815, 2067, 256);
+        public static readonly SNtruPrimeParameters sntrup653 = new SNtruPrimeParameters("SNTRU_Prime_653", 653, 4621, false, 288, -1,-1,-1,-1,1518,994,897, 865, 994, 256);
+        public static readonly SNtruPrimeParameters sntrup761 = new SNtruPrimeParameters("SNTRU_Prime_761", 761, 4591, false, 286, -1,-1,-1,-1,1763,1158,1039, 1007, 1158, 256);
+        public static readonly SNtruPrimeParameters sntrup857 = new SNtruPrimeParameters("SNTRU_Prime_857", 857, 5167, false, 322, -1,-1,-1,-1,1999,1322,1184, 1152, 1322, 256);
+        public static readonly SNtruPrimeParameters sntrup953 = new SNtruPrimeParameters("SNTRU_Prime_953", 953, 6343, false, 396, -1,-1,-1,-1,2254,1505,1349, 1317, 1505, 256);
+        public static readonly SNtruPrimeParameters sntrup1013 = new SNtruPrimeParameters("SNTRU_Prime_1013", 1013, 7177, false, 448, -1,-1,-1,-1,2417,1623,1455, 1423, 1623, 256);
+        public static readonly SNtruPrimeParameters sntrup1277 = new SNtruPrimeParameters("SNTRU_Prime_1277", 1277, 7879, false, 492, -1,-1,-1,-1,3059,2067,1847, 1815, 2067, 256);
 
         public int P => p;
 

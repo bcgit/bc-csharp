@@ -38,6 +38,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         private static readonly IEnumerable<string> TestVectorFilesSNtruP = ParametersSNtruP.Keys;
 
+        [Test]
+        public void TestParameters()
+        {
+            Assert.AreEqual(256, SNtruPrimeParameters.sntrup653.DefaultKeySize);
+            Assert.AreEqual(256, SNtruPrimeParameters.sntrup761.DefaultKeySize);
+            Assert.AreEqual(256, SNtruPrimeParameters.sntrup857.DefaultKeySize);
+            Assert.AreEqual(256, SNtruPrimeParameters.sntrup953.DefaultKeySize);
+            Assert.AreEqual(256, SNtruPrimeParameters.sntrup1013.DefaultKeySize);
+            Assert.AreEqual(256, SNtruPrimeParameters.sntrup1277.DefaultKeySize);
+
+            Assert.AreEqual(256, NtruLPRimeParameters.ntrulpr653.DefaultKeySize);
+            Assert.AreEqual(256, NtruLPRimeParameters.ntrulpr761.DefaultKeySize);
+            Assert.AreEqual(256, NtruLPRimeParameters.ntrulpr857.DefaultKeySize);
+            Assert.AreEqual(256, NtruLPRimeParameters.ntrulpr953.DefaultKeySize);
+            Assert.AreEqual(256, NtruLPRimeParameters.ntrulpr1013.DefaultKeySize);
+            Assert.AreEqual(256, NtruLPRimeParameters.ntrulpr1277.DefaultKeySize);
+        }
+
         [TestCaseSource(nameof(TestVectorFilesNtruLP))]
         [Parallelizable(ParallelScope.All)]
         public void TVNtruLP(string testVectorFile)
