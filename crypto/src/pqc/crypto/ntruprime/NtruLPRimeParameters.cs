@@ -47,12 +47,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             this._defaultKeySize = defaultKeySize;
         }
 
-        public static readonly NtruLPRimeParameters ntrulpr653 = new NtruLPRimeParameters("NTRU_LPRime_653", 653, 4621, true, 252, 2175,113,2031,290,1125,897,1025, 865, -1, 256);
-        public static readonly NtruLPRimeParameters ntrulpr761 = new NtruLPRimeParameters("NTRU_LPRime_761", 761, 4591, true, 250, 2156,114,2007,287,1294,1039,1167, 1007, -1, 256);
-        public static readonly NtruLPRimeParameters ntrulpr857 = new NtruLPRimeParameters("NTRU_LPRime_857", 857, 5167, true, 281, 2433,101,2265,324,1463,1184,1312, 1152, -1, 256);
-        public static readonly NtruLPRimeParameters ntrulpr953 = new NtruLPRimeParameters("NTRU_LPRime_953", 953, 6343, true, 345, 2997,82,2798,400,1652,1349,1477, 1317, -1, 256);
-        public static readonly NtruLPRimeParameters ntrulpr1013 = new NtruLPRimeParameters("NTRU_LPRime_1013", 1013, 7177, true, 392, 3367,73,3143,449,1773,1455,1583, 1423, -1, 256);
-        public static readonly NtruLPRimeParameters ntrulpr1277 = new NtruLPRimeParameters("NTRU_LPRime_1277", 1277, 7879, true, 429, 3724,66,3469,496,2231,1847,1975, 1815, -1, 256);
+        // TODO[api] Make all these readonly
+        public static NtruLPRimeParameters ntrulpr653 = new NtruLPRimeParameters("NTRU_LPRime_653", 653, 4621, true, 252, 2175,113,2031,290,1125,897,1025, 865, -1, 256);
+        public static NtruLPRimeParameters ntrulpr761 = new NtruLPRimeParameters("NTRU_LPRime_761", 761, 4591, true, 250, 2156,114,2007,287,1294,1039,1167, 1007, -1, 256);
+        public static NtruLPRimeParameters ntrulpr857 = new NtruLPRimeParameters("NTRU_LPRime_857", 857, 5167, true, 281, 2433,101,2265,324,1463,1184,1312, 1152, -1, 256);
+        public static NtruLPRimeParameters ntrulpr953 = new NtruLPRimeParameters("NTRU_LPRime_953", 953, 6343, true, 345, 2997,82,2798,400,1652,1349,1477, 1317, -1, 256);
+        public static NtruLPRimeParameters ntrulpr1013 = new NtruLPRimeParameters("NTRU_LPRime_1013", 1013, 7177, true, 392, 3367,73,3143,449,1773,1455,1583, 1423, -1, 256);
+        public static NtruLPRimeParameters ntrulpr1277 = new NtruLPRimeParameters("NTRU_LPRime_1277", 1277, 7879, true, 429, 3724,66,3469,496,2231,1847,1975, 1815, -1, 256);
 
         public int P => p;
 
