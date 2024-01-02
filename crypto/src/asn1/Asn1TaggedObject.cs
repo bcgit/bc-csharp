@@ -231,7 +231,7 @@ namespace Org.BouncyCastle.Asn1
         [Obsolete("Will be removed")]
         public Asn1Object GetObject()
         {
-            Asn1Utilities.CheckContextTag(this);
+            Asn1Utilities.CheckContextTagClass(this);
 
             return m_object.ToAsn1Object();
         }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -17,46 +16,24 @@ namespace Org.BouncyCastle.Asn1
             m_constructed = constructed;
         }
 
-        public override bool IsConstructed
-        {
-            get { return m_constructed; }
-        }
+        public override bool IsConstructed => m_constructed;
 
         public override IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
         {
             if (declaredExplicit)
-            {
-                if (!m_constructed)
-                    throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
-
-                return m_parser.ParseObject(baseTagNo);
-            }
+                return CheckConstructed().ParseObject(baseTagNo);
 
             return m_constructed
                 ?  m_parser.ParseImplicitConstructedDL(baseTagNo)
                 :  m_parser.ParseImplicitPrimitive(baseTagNo);
         }
 
-        public override IAsn1Convertible ParseExplicitBaseObject()
-        {
-            if (!m_constructed)
-                throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
+        public override IAsn1Convertible ParseExplicitBaseObject() => CheckConstructed().ReadObject();
 
-            return m_parser.ReadObject();
-        }
+        public override Asn1TaggedObjectParser ParseExplicitBaseTagged() => CheckConstructed().ParseTaggedObject();
 
-        public override Asn1TaggedObjectParser ParseExplicitBaseTagged()
-        {
-            if (!m_constructed)
-                throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
-
-            return m_parser.ParseTaggedObject();
-        }
-
-        public override Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
-        {
-            return new DLTaggedObjectParser(baseTagClass, baseTagNo, m_constructed, m_parser);
-        }
+        public override Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo) =>
+            new DLTaggedObjectParser(baseTagClass, baseTagNo, m_constructed, m_parser);
 
         public override Asn1Object ToAsn1Object()
 		{
@@ -69,5 +46,13 @@ namespace Org.BouncyCastle.Asn1
 				throw new Asn1ParsingException(e.Message);
 			}
 		}
+
+        private Asn1StreamParser CheckConstructed()
+        {
+            if (!m_constructed)
+                throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
+
+            return m_parser;
+        }
     }
 }

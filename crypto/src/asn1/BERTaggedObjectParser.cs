@@ -1,9 +1,8 @@
-using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-	internal class BerTaggedObjectParser
+    internal class BerTaggedObjectParser
 		: Asn1TaggedObjectParser
 	{
         internal readonly int m_tagClass;
@@ -17,20 +16,11 @@ namespace Org.BouncyCastle.Asn1
             m_parser = parser;
 		}
 
-		public virtual bool IsConstructed
-		{
-			get { return true; }
-		}
+        public virtual bool IsConstructed => true;
 
-        public int TagClass
-        {
-            get { return m_tagClass; }
-        }
+        public int TagClass => m_tagClass;
 
-		public int TagNo
-		{
-			get { return m_tagNo; }
-		}
+		public int TagNo => m_tagNo;
 
         public bool HasContextTag()
         {
@@ -60,20 +50,12 @@ namespace Org.BouncyCastle.Asn1
             return m_parser.ParseImplicitConstructedIL(baseTagNo);
         }
 
-        public virtual IAsn1Convertible ParseExplicitBaseObject()
-        {
-            return m_parser.ReadObject();
-        }
+        public virtual IAsn1Convertible ParseExplicitBaseObject() => m_parser.ReadObject();
 
-        public virtual Asn1TaggedObjectParser ParseExplicitBaseTagged()
-        {
-            return m_parser.ParseTaggedObject();
-        }
+        public virtual Asn1TaggedObjectParser ParseExplicitBaseTagged() => m_parser.ParseTaggedObject();
 
-        public virtual Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
-        {
-            return new BerTaggedObjectParser(baseTagClass, baseTagNo, m_parser);
-        }
+        public virtual Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo) =>
+            new BerTaggedObjectParser(baseTagClass, baseTagNo, m_parser);
 
         public virtual Asn1Object ToAsn1Object()
 		{

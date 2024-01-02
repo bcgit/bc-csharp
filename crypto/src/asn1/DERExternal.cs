@@ -251,7 +251,7 @@ namespace Org.BouncyCastle.Asn1
 
         private static Asn1Object GetExternalContent(Asn1TaggedObject encoding)
         {
-            Asn1Utilities.CheckContextTag(encoding);
+            Asn1Utilities.CheckContextTagClass(encoding);
 
             switch (encoding.TagNo)
             {

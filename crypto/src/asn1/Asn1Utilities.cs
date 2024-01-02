@@ -8,12 +8,22 @@ namespace Org.BouncyCastle.Asn1
     // TODO[api] Make static
     public abstract class Asn1Utilities
     {
-        internal static Asn1TaggedObject CheckContextTag(Asn1TaggedObject taggedObject)
+        internal static Asn1TaggedObject CheckContextTag(Asn1TaggedObject taggedObject, int tagNo)
+        {
+            return CheckTag(taggedObject, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        internal static Asn1TaggedObjectParser CheckContextTag(Asn1TaggedObjectParser taggedObjectParser, int tagNo)
+        {
+            return CheckTag(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        internal static Asn1TaggedObject CheckContextTagClass(Asn1TaggedObject taggedObject)
         {
             return CheckTagClass(taggedObject, Asn1Tags.ContextSpecific);
         }
 
-        internal static Asn1TaggedObjectParser CheckContextTag(Asn1TaggedObjectParser taggedObjectParser)
+        internal static Asn1TaggedObjectParser CheckContextTagClass(Asn1TaggedObjectParser taggedObjectParser)
         {
             return CheckTagClass(taggedObjectParser, Asn1Tags.ContextSpecific);
         }

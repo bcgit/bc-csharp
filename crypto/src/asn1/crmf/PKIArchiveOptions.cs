@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 return pkiArchiveOptions;
 
             if (obj is Asn1TaggedObject taggedObject)
-                return new PkiArchiveOptions(Asn1Utilities.CheckContextTag(taggedObject));
+                return new PkiArchiveOptions(Asn1Utilities.CheckContextTagClass(taggedObject));
 
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }

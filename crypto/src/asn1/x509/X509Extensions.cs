@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
             // TODO[api] Rename this class to just Extensions and drop support for this
             if (obj is Asn1TaggedObject taggedObject)
-                return GetInstance(Asn1Utilities.CheckContextTag(taggedObject).GetBaseObject().ToAsn1Object());
+                return GetInstance(Asn1Utilities.CheckContextTagClass(taggedObject).GetBaseObject().ToAsn1Object());
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }

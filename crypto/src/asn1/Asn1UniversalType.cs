@@ -40,10 +40,8 @@ namespace Org.BouncyCastle.Asn1
             return CheckedCast(Asn1Object.FromByteArray(bytes));
         }
 
-        internal Asn1Object GetContextInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return CheckedCast(Asn1Utilities.CheckContextTag(taggedObject).GetBaseUniversal(declaredExplicit, this));
-        }
+        internal Asn1Object GetContextInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            CheckedCast(Asn1Utilities.CheckContextTagClass(taggedObject).GetBaseUniversal(declaredExplicit, this));
 
         internal Asn1Tag Tag
         {
