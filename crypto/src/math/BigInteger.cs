@@ -1719,6 +1719,8 @@ namespace Org.BouncyCastle.Math
             return (biggie.sign >= 0 ? biggie : biggie.Add(m));
         }
 
+        public BigInteger ModDivide(BigInteger y, BigInteger m) => ModMultiply(y.ModInverse(m), m);
+
         public BigInteger ModInverse(
             BigInteger m)
         {
@@ -1874,6 +1876,10 @@ namespace Org.BouncyCastle.Math
         {
             Array.Clear(x, 0, x.Length);
         }
+
+        public BigInteger ModMultiply(BigInteger y, BigInteger m) => Multiply(y).Mod(m);
+
+        public BigInteger ModSquare(BigInteger m) => Square().Mod(m);
 
         public BigInteger ModPow(BigInteger e, BigInteger m)
         {

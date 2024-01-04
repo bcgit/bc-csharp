@@ -512,9 +512,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             {
                 // For w <> 4, the values must be computed
                 BigInteger[] us = GetLucas(mu, w, false);
-                BigInteger twoToW = BigInteger.Zero.SetBit(w);
-                BigInteger u1invert = us[1].ModInverse(twoToW);
-                return us[0].ShiftLeft(1).Multiply(u1invert).Mod(twoToW);
+                return us[0].ShiftLeft(1).ModDivide(us[1], BigInteger.One.ShiftLeft(w));
             }
         }
 
