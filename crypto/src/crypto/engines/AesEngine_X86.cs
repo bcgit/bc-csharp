@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     using Aes = System.Runtime.Intrinsics.X86.Aes;
     using Sse2 = System.Runtime.Intrinsics.X86.Sse2;
 
-    public unsafe struct AesEngine_X86
+    public struct AesEngine_X86
         : IBlockCipher
     {
         public static bool IsSupported => Org.BouncyCastle.Runtime.Intrinsics.X86.Aes.IsEnabled;
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 length = 13;
                 K = K[..length];
 
-                    var s1 = Load128(key[..16]);
+                var s1 = Load128(key[..16]);
                 var s2 = Load64(key[16..24]).ToVector128();
                 K[0] = s1;
 

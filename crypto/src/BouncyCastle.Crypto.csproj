@@ -6,7 +6,6 @@
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.NET.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<NoWarn>1591</NoWarn>
 
     <AssemblyName>BouncyCastle.Cryptography</AssemblyName>
