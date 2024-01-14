@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Tls.Crypto
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             if (killBuf is not null)
             {
-                this.pool?.Return(this.buf);
+                this.pool?.Return(killBuf);
             }
 #endif
         }
