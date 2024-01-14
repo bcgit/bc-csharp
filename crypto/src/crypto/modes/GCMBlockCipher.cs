@@ -1043,7 +1043,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-                public void Reset()
+        public void Reset()
         {
             Reset(true);
         }
