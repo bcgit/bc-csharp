@@ -293,7 +293,7 @@ namespace Org.BouncyCastle.Tls
             long seqNo = m_writeSeqNo.NextValue(AlertDescription.internal_error);
             ProtocolVersion recordVersion = m_writeVersion;
 
-            TlsEncodeResult encoded = m_writeCipher.EncodePlaintext(seqNo, contentType, recordVersion,
+            using var encoded = m_writeCipher.EncodePlaintext(seqNo, contentType, recordVersion,
                 RecordFormat.FragmentOffset, plaintext, plaintextOffset, plaintextLength);
 
             int ciphertextLength = encoded.len - RecordFormat.FragmentOffset;
@@ -340,8 +340,12 @@ namespace Org.BouncyCastle.Tls
             long seqNo = m_writeSeqNo.NextValue(AlertDescription.internal_error);
             ProtocolVersion recordVersion = m_writeVersion;
 
-            TlsEncodeResult encoded = m_writeCipher.EncodePlaintext(seqNo, contentType, recordVersion,
-                RecordFormat.FragmentOffset, plaintext);
+            using var encoded = m_writeCipher.EncodePlaintext(seqNo, contentType, recordVersion,
+                RecordFormat.FragmentOffset, plaintext
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                , System.Buffers.ArrayPool<byte>.Shared
+#endif
+            );
 
             int ciphertextLength = encoded.len - RecordFormat.FragmentOffset;
             TlsUtilities.CheckUint16(ciphertextLength);
