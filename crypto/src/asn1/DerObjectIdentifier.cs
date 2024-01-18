@@ -114,15 +114,6 @@ namespace Org.BouncyCastle.Asn1
             m_identifier = identifier;
         }
 
-        private DerObjectIdentifier(DerObjectIdentifier oid, string branchID)
-        {
-            if (!Asn1RelativeOid.IsValidIdentifier(branchID, 0))
-                throw new FormatException("string " + branchID + " not a valid OID branch");
-
-            m_contents = Arrays.Concatenate(oid.m_contents, Asn1RelativeOid.ParseIdentifier(branchID));
-            m_identifier = oid.GetID() + "." + branchID;
-        }
-
         private DerObjectIdentifier(byte[] contents, bool clone)
         {
             if (!Asn1RelativeOid.IsValidContents(contents))
@@ -140,7 +131,12 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual DerObjectIdentifier Branch(string branchID)
         {
-            return new DerObjectIdentifier(this, branchID);
+            if (!Asn1RelativeOid.IsValidIdentifier(branchID, 0))
+                throw new FormatException("string " + branchID + " not a valid OID branch");
+
+            return new DerObjectIdentifier(
+                contents: Arrays.Concatenate(m_contents, Asn1RelativeOid.ParseIdentifier(branchID)),
+                identifier: GetID() + "." + branchID);
         }
 
         public string GetID()
