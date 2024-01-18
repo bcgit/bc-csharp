@@ -44,19 +44,23 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		private void CheckValid(string oid)
 		{
-			DerObjectIdentifier o = new DerObjectIdentifier(oid);
+            Assert.True(DerObjectIdentifier.TryFromID(oid, out var ignore));
+
+            DerObjectIdentifier o = new DerObjectIdentifier(oid);
 			o = (DerObjectIdentifier)Asn1Object.FromByteArray(o.GetEncoded());
 
 			if (!o.Id.Equals(oid))
 			{
 				Fail("failed oid check: " + oid);
 			}
-		}
+        }
 
-		private void CheckInvalid(string oid)
+        private void CheckInvalid(string oid)
 		{
-			try
-			{
+            Assert.False(DerObjectIdentifier.TryFromID(oid, out var ignore));
+
+            try
+            {
 				new DerObjectIdentifier(oid);
 				Fail("failed to catch bad oid: " + oid);
 			}
@@ -95,8 +99,20 @@ namespace Org.BouncyCastle.Asn1.Tests
 			CheckValid("1.1.127.32512.8323072.2130706432.545460846592.139637976727552.35747322042253312.9151314442816847872");
 			CheckValid("1.2.123.12345678901.1.1.1");
 			CheckValid("2.25.196556539987194312349856245628873852187.1");
+            CheckValid("0.0");
+            CheckValid("0.0.1");
+            CheckValid("0.39");
+            CheckValid("0.39.1");
+            CheckValid("1.0");
+            CheckValid("1.0.1");
+            CheckValid("1.39");
+            CheckValid("1.39.1");
+            CheckValid("2.0");
+            CheckValid("2.0.1");
+            CheckValid("2.40");
+            CheckValid("2.40.1");
 
-			CheckInvalid("0");
+            CheckInvalid("0");
 			CheckInvalid("1");
 			CheckInvalid("2");
 			CheckInvalid("3.1");
@@ -110,8 +126,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 			CheckInvalid(".12.345.77.234.");
 			CheckInvalid("1.2.3.4.A.5");
 			CheckInvalid("1,2");
+            CheckInvalid("0.40");
+            CheckInvalid("0.40.1");
+            CheckInvalid("0.100");
+            CheckInvalid("0.100.1");
+            CheckInvalid("1.40");
+            CheckInvalid("1.40.1");
+            CheckInvalid("1.100");
+            CheckInvalid("1.100.1");
 
-			BranchCheck("1.1", "2.2");
+            BranchCheck("1.1", "2.2");
 
 			OnCheck("1.1", "1.1", false);
 			OnCheck("1.1", "1.2", false);
@@ -121,9 +145,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 			OnCheck("1.12", "1.1.2", false);
 			OnCheck("1.1", "1.1.1", true);
 			OnCheck("1.1", "1.1.2", true);
-		}
+            OnCheck("1.2.3.4.5.6", "1.2.3.4.5.6", false);
+            OnCheck("1.2.3.4.5.6", "1.2.3.4.5.6.7", true);
+            OnCheck("1.2.3.4.5.6", "1.2.3.4.5.6.7.8", true);
+        }
 
-		[Test]
+        [Test]
 		public void TestFunction()
 		{
 			string resultText = Perform().ToString();

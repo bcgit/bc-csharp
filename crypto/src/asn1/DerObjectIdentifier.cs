@@ -25,6 +25,9 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerObjectIdentifier FromContents(byte[] contents)
         {
+            if (contents == null)
+                throw new ArgumentNullException(nameof(contents));
+
             return CreatePrimitive(contents, true);
         }
 
@@ -79,12 +82,26 @@ namespace Org.BouncyCastle.Asn1
             return (DerObjectIdentifier)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static bool TryFromID(string identifier, out DerObjectIdentifier oid)
+        {
+            if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+            if (!IsValidIdentifier(identifier))
+            {
+                oid = default;
+                return false;
+            }
+
+            oid = new DerObjectIdentifier(ParseIdentifier(identifier), identifier);
+            return true;
+        }
+
         private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
 
         private static readonly DerObjectIdentifier[] Cache = new DerObjectIdentifier[1024];
 
-        private readonly string identifier;
-        private byte[] contents;
+        private readonly byte[] m_contents;
+        private string m_identifier;
 
         public DerObjectIdentifier(string identifier)
         {
@@ -93,21 +110,32 @@ namespace Org.BouncyCastle.Asn1
             if (!IsValidIdentifier(identifier))
                 throw new FormatException("string " + identifier + " not an OID");
 
-            this.identifier = identifier;
+            m_contents = ParseIdentifier(identifier);
+            m_identifier = identifier;
         }
 
         private DerObjectIdentifier(DerObjectIdentifier oid, string branchID)
         {
             if (!Asn1RelativeOid.IsValidIdentifier(branchID, 0))
-                throw new ArgumentException("string " + branchID + " not a valid OID branch", "branchID");
+                throw new FormatException("string " + branchID + " not a valid OID branch");
 
-            this.identifier = oid.Id + "." + branchID;
+            m_contents = Arrays.Concatenate(oid.m_contents, Asn1RelativeOid.ParseIdentifier(branchID));
+            m_identifier = oid.GetID() + "." + branchID;
         }
 
         private DerObjectIdentifier(byte[] contents, bool clone)
         {
-            this.identifier = ParseContents(contents);
-            this.contents = clone ? Arrays.Clone(contents) : contents;
+            if (!Asn1RelativeOid.IsValidContents(contents))
+                throw new ArgumentException("invalid OID contents", nameof(contents));
+
+            m_contents = clone ? Arrays.Clone(contents) : contents;
+            m_identifier = null;
+        }
+
+        private DerObjectIdentifier(byte[] contents, string identifier)
+        {
+            m_contents = contents;
+            m_identifier = identifier;
         }
 
         public virtual DerObjectIdentifier Branch(string branchID)
@@ -115,10 +143,14 @@ namespace Org.BouncyCastle.Asn1
             return new DerObjectIdentifier(this, branchID);
         }
 
-        public string Id
+        public string GetID()
         {
-            get { return identifier; }
+            return Objects.EnsureSingletonInitialized(ref m_identifier, m_contents, ParseContents);
         }
+
+        // TODO[api]
+        //[Obsolete("Use 'GetID' instead")]
+        public string Id => GetID();
 
         /**
          * Return  true if this oid is an extension of the passed in branch, stem.
@@ -127,81 +159,44 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual bool On(DerObjectIdentifier stem)
         {
-            string id = Id, stemId = stem.Id;
-            return id.Length > stemId.Length && id[stemId.Length] == '.' && Platform.StartsWith(id, stemId);
+            byte[] contents = m_contents, stemContents = stem.m_contents;
+            int stemLength = stemContents.Length;
+
+            return contents.Length > stemLength
+                && Arrays.AreEqual(contents, 0, stemLength, stemContents, 0, stemLength);
         }
 
-        public override string ToString()
-        {
-            return identifier;
-        }
+        public override string ToString() => GetID();
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            DerObjectIdentifier that = asn1Object as DerObjectIdentifier;
-            return null != that
-                && this.identifier == that.identifier;
+            return asn1Object is DerObjectIdentifier that
+                && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
         protected override int Asn1GetHashCode()
         {
-            return identifier.GetHashCode();
+            return Arrays.GetHashCode(m_contents);
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.ObjectIdentifier, GetContents());
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.ObjectIdentifier, m_contents);
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return new PrimitiveEncoding(tagClass, tagNo, GetContents());
+            return new PrimitiveEncoding(tagClass, tagNo, m_contents);
         }
 
         internal sealed override DerEncoding GetEncodingDer()
         {
-            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.ObjectIdentifier, GetContents());
+            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.ObjectIdentifier, m_contents);
         }
 
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
         {
-            return new PrimitiveDerEncoding(tagClass, tagNo, GetContents());
-        }
-
-        private byte[] GetContents() => Objects.EnsureSingletonInitialized(ref contents, identifier, CreateContents);
-
-        private static byte[] CreateContents(string identifier)
-        {
-            MemoryStream bOut = new MemoryStream();
-            OidTokenizer tok = new OidTokenizer(identifier);
-
-            string token = tok.NextToken();
-            int first = int.Parse(token) * 40;
-
-            token = tok.NextToken();
-            if (token.Length <= 18)
-            {
-                Asn1RelativeOid.WriteField(bOut, first + long.Parse(token));
-            }
-            else
-            {
-                Asn1RelativeOid.WriteField(bOut, new BigInteger(token).Add(BigInteger.ValueOf(first)));
-            }
-
-            while (tok.HasMoreTokens)
-            {
-                token = tok.NextToken();
-                if (token.Length <= 18)
-                {
-                    Asn1RelativeOid.WriteField(bOut, long.Parse(token));
-                }
-                else
-                {
-                    Asn1RelativeOid.WriteField(bOut, new BigInteger(token));
-                }
-            }
-
-            return bOut.ToArray();
+            return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
         internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
@@ -213,7 +208,7 @@ namespace Org.BouncyCastle.Asn1
             index &= 1023;
 
             var originalEntry = Volatile.Read(ref Cache[index]);
-            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.GetContents()))
+            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.m_contents))
                 return originalEntry;
 
             var newEntry = new DerObjectIdentifier(contents, clone);
@@ -221,7 +216,7 @@ namespace Org.BouncyCastle.Asn1
             var exchangedEntry = Interlocked.CompareExchange(ref Cache[index], newEntry, originalEntry);
             if (exchangedEntry != originalEntry)
             {
-                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.GetContents()))
+                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.m_contents))
                     return exchangedEntry;
             }
 
@@ -237,7 +232,19 @@ namespace Org.BouncyCastle.Asn1
             if (first < '0' || first > '2')
                 return false;
 
-            return Asn1RelativeOid.IsValidIdentifier(identifier, 2);
+            if (!Asn1RelativeOid.IsValidIdentifier(identifier, 2))
+                return false;
+
+            if (first == '2')
+                return true;
+
+            if (identifier.Length == 3 || identifier[3] == '.')
+                return true;
+
+            if (identifier.Length == 4 || identifier[4] == '.')
+                return identifier[2] < '4';
+
+            return false;
         }
 
         private static string ParseContents(byte[] contents)
@@ -313,6 +320,40 @@ namespace Org.BouncyCastle.Asn1
             }
 
             return objId.ToString();
+        }
+
+        private static byte[] ParseIdentifier(string identifier)
+        {
+            MemoryStream bOut = new MemoryStream();
+            OidTokenizer tok = new OidTokenizer(identifier);
+
+            string token = tok.NextToken();
+            int first = int.Parse(token) * 40;
+
+            token = tok.NextToken();
+            if (token.Length <= 18)
+            {
+                Asn1RelativeOid.WriteField(bOut, first + long.Parse(token));
+            }
+            else
+            {
+                Asn1RelativeOid.WriteField(bOut, new BigInteger(token).Add(BigInteger.ValueOf(first)));
+            }
+
+            while (tok.HasMoreTokens)
+            {
+                token = tok.NextToken();
+                if (token.Length <= 18)
+                {
+                    Asn1RelativeOid.WriteField(bOut, long.Parse(token));
+                }
+                else
+                {
+                    Asn1RelativeOid.WriteField(bOut, new BigInteger(token));
+                }
+            }
+
+            return bOut.ToArray();
         }
     }
 }

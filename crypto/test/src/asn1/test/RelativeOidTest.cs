@@ -40,6 +40,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void CheckValid(string oid)
         {
+            Assert.True(Asn1RelativeOid.TryFromID(oid, out var ignore));
+
             Asn1RelativeOid o = new Asn1RelativeOid(oid);
 			o = (Asn1RelativeOid)Asn1Object.FromByteArray(o.GetEncoded());
 
@@ -51,6 +53,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void CheckInvalid(string oid)
         {
+            Assert.False(Asn1RelativeOid.TryFromID(oid, out var ignore));
+
             try
             {
                 new Asn1RelativeOid(oid);
