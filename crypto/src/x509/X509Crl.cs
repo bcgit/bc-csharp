@@ -59,9 +59,10 @@ namespace Org.BouncyCastle.X509
         }
 
         private readonly CertificateList c;
-		private readonly string sigAlgName;
 		private readonly byte[] sigAlgParams;
 		private readonly bool isIndirect;
+
+        private string m_sigAlgName = null;
 
         private CachedEncoding cachedEncoding;
 
@@ -79,10 +80,8 @@ namespace Org.BouncyCastle.X509
 
 			try
 			{
-				this.sigAlgName = X509SignatureUtilities.GetSignatureName(c.SignatureAlgorithm);
-
                 Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
-                this.sigAlgParams = (null == parameters) ? null : parameters.GetEncoded(Asn1Encodable.Der);
+                this.sigAlgParams = parameters?.GetEncoded(Asn1Encodable.Der);
 
                 this.isIndirect = IsIndirectCrl;
 			}
@@ -270,12 +269,14 @@ namespace Org.BouncyCastle.X509
 			return c.GetSignatureOctets();
 		}
 
-		public virtual string SigAlgName
-		{
-			get { return sigAlgName; }
-		}
+        /// <summary>
+		/// A meaningful version of the Signature Algorithm. (e.g. SHA1WITHRSA)
+		/// </summary>
+		/// <returns>A string representing the signature algorithm.</returns>
+        public virtual string SigAlgName => Objects.EnsureSingletonInitialized(ref m_sigAlgName, SignatureAlgorithm,
+            X509SignatureUtilities.GetSignatureName);
 
-		public virtual string SigAlgOid
+        public virtual string SigAlgOid
 		{
             get { return c.SignatureAlgorithm.Algorithm.Id; }
 		}
@@ -284,6 +285,8 @@ namespace Org.BouncyCastle.X509
 		{
 			return Arrays.Clone(sigAlgParams);
 		}
+
+        public virtual AlgorithmIdentifier SignatureAlgorithm => c.SignatureAlgorithm;
 
         /// <summary>
         /// Return the DER encoding of this CRL.

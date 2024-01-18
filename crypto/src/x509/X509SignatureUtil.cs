@@ -1,5 +1,3 @@
-using System;
-
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
@@ -8,61 +6,26 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.X509
 {
-	internal class X509SignatureUtilities
+    internal class X509SignatureUtilities
 	{
-		private static readonly Asn1Null derNull = DerNull.Instance;
-
-		internal static void SetSignatureParameters(
-			ISigner			signature,
-			Asn1Encodable	parameters)
+		internal static string GetSignatureName(AlgorithmIdentifier sigAlgID)
 		{
-			if (parameters != null && !derNull.Equals(parameters))
-			{
-				// TODO Put back in
-//				AlgorithmParameters sigParams = AlgorithmParameters.GetInstance(signature.getAlgorithm());
-//
-//				try
-//				{
-//					sigParams.Init(parameters.ToAsn1Object().GetDerEncoded());
-//				}
-//				catch (IOException e)
-//				{
-//					throw new SignatureException("IOException decoding parameters: " + e.Message);
-//				}
-//
-//				if (Platform.EndsWith(signature.getAlgorithm(), "MGF1"))
-//				{
-//					try
-//					{
-//						signature.setParameter(sigParams.getParameterSpec(PSSParameterSpec.class));
-//					}
-//					catch (GeneralSecurityException e)
-//					{
-//						throw new SignatureException("Exception extracting parameters: " + e.Message);
-//					}
-//				}
-			}
-		}
+			DerObjectIdentifier sigAlgOid = sigAlgID.Algorithm;
+			Asn1Encodable parameters = sigAlgID.Parameters;
 
-		internal static string GetSignatureName(
-			AlgorithmIdentifier sigAlgId)
-		{
-			Asn1Encodable parameters = sigAlgId.Parameters;
-
-			if (parameters != null && !derNull.Equals(parameters))
+			if (parameters != null && !DerNull.Instance.Equals(parameters))
 			{
-                if (sigAlgId.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
+                if (PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
 				{
 					RsassaPssParameters rsaParams = RsassaPssParameters.GetInstance(parameters);
 
                     return GetDigestAlgName(rsaParams.HashAlgorithm.Algorithm) + "withRSAandMGF1";
 				}
-                if (sigAlgId.Algorithm.Equals(X9ObjectIdentifiers.ECDsaWithSha2))
+                if (X9ObjectIdentifiers.ECDsaWithSha2.Equals(sigAlgOid))
 				{
 					Asn1Sequence ecDsaParams = Asn1Sequence.GetInstance(parameters);
 
@@ -70,21 +33,14 @@ namespace Org.BouncyCastle.X509
 				}
 			}
 
-            string sigName = SignerUtilities.GetEncodingName(sigAlgId.Algorithm);
-            if (null != sigName)
-            {
-                return sigName;
-            }
-
-            return sigAlgId.Algorithm.Id;
+			return SignerUtilities.GetEncodingName(sigAlgOid) ?? sigAlgOid.GetID();
 		}
 
 		/**
 		 * Return the digest algorithm using one of the standard JCA string
 		 * representations rather than the algorithm identifier (if possible).
 		 */
-		private static string GetDigestAlgName(
-			DerObjectIdentifier digestAlgOID)
+		private static string GetDigestAlgName(DerObjectIdentifier digestAlgOID)
 		{
 			if (PkcsObjectIdentifiers.MD5.Equals(digestAlgOID))
 			{
@@ -128,7 +84,7 @@ namespace Org.BouncyCastle.X509
 			}
 			else
 			{
-				return digestAlgOID.Id;
+				return digestAlgOID.GetID();
 			}
 		}
 	}
