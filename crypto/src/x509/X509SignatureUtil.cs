@@ -12,7 +12,25 @@ namespace Org.BouncyCastle.X509
 {
     internal class X509SignatureUtilities
 	{
-		internal static string GetSignatureName(AlgorithmIdentifier sigAlgID)
+        internal static bool AreEquivalentAlgorithms(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
+        {
+            if (!id1.Algorithm.Equals(id2.Algorithm))
+                return false;
+
+            Asn1Encodable p1 = id1.Parameters;
+            Asn1Encodable p2 = id2.Parameters;
+
+            if (p1 == p2)
+                return true;
+            if (p1 == null)
+                return p2.ToAsn1Object() is Asn1Null;
+            if (p2 == null)
+                return p1.ToAsn1Object() is Asn1Null;
+
+            return p1.Equals(p2);
+        }
+
+        internal static string GetSignatureName(AlgorithmIdentifier sigAlgID)
 		{
 			DerObjectIdentifier sigAlgOid = sigAlgID.Algorithm;
 			Asn1Encodable parameters = sigAlgID.Parameters;
@@ -87,5 +105,5 @@ namespace Org.BouncyCastle.X509
 				return digestAlgOID.GetID();
 			}
 		}
-	}
+    }
 }

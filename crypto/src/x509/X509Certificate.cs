@@ -717,7 +717,7 @@ namespace Org.BouncyCastle.X509
         {
             var tbsCertificate = c.TbsCertificate;
 
-            if (!IsAlgIDEqual(c.SignatureAlgorithm, tbsCertificate.Signature))
+            if (!X509SignatureUtilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
             return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);
@@ -747,23 +747,6 @@ namespace Org.BouncyCastle.X509
         private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
         {
             return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-        }
-
-        private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
-        {
-            if (!id1.Algorithm.Equals(id2.Algorithm))
-                return false;
-
-            Asn1Encodable p1 = id1.Parameters;
-            Asn1Encodable p2 = id2.Parameters;
-
-            if ((p1 == null) == (p2 == null))
-                return Objects.Equals(p1, p2);
-
-            // Exactly one of p1, p2 is null at this point
-            return p1 == null
-                ? p2.ToAsn1Object() is Asn1Null
-                : p1.ToAsn1Object() is Asn1Null;
         }
     }
 }
