@@ -99,9 +99,6 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_algorithms.Add("GOST3411-2012-256WITHECGOST3410-2012-256", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
             m_algorithms.Add("GOST3411-2012-512WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
             m_algorithms.Add("GOST3411-2012-512WITHECGOST3410-2012-512", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
-            m_algorithms.Add("Ed25519", EdECObjectIdentifiers.id_Ed25519);
-            m_algorithms.Add("Ed448", EdECObjectIdentifiers.id_Ed448);
-            // TODO Ed25519ctx, Ed25519ph, Ed448ph
 
             m_algorithms.Add("SHA256WITHSM2", GMObjectIdentifiers.sm2sign_with_sha256);
             m_algorithms.Add("SM3WITHSM2", GMObjectIdentifiers.sm2sign_with_sm3);
@@ -127,6 +124,14 @@ namespace Org.BouncyCastle.Crypto.Operators
 			//
 			noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
 			noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+
+			//
+			// RFC 8410
+			//
+			noParams.Add(EdECObjectIdentifiers.id_X25519);
+			noParams.Add(EdECObjectIdentifiers.id_X448);
+			noParams.Add(EdECObjectIdentifiers.id_Ed25519);
+			noParams.Add(EdECObjectIdentifiers.id_Ed448);
 
 			//
 			// explicit params
