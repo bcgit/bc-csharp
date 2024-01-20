@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
 {
@@ -17,42 +18,14 @@ namespace Org.BouncyCastle.X509
             if (!id1.Algorithm.Equals(id2.Algorithm))
                 return false;
 
-            Asn1Encodable p1 = id1.Parameters;
-            Asn1Encodable p2 = id2.Parameters;
+            // TODO Java has a property to control whether absent parameters can match NULL parameters
+            {
+                if (IsAbsentOrEmptyParameters(id1.Parameters) && IsAbsentOrEmptyParameters(id2.Parameters))
+                    return true;
+            }
 
-            if (p1 == p2)
-                return true;
-            if (p1 == null)
-                return p2.ToAsn1Object() is Asn1Null;
-            if (p2 == null)
-                return p1.ToAsn1Object() is Asn1Null;
-
-            return p1.Equals(p2);
+			return Objects.Equals(id1.Parameters, id2.Parameters);
         }
-
-        internal static string GetSignatureName(AlgorithmIdentifier sigAlgID)
-		{
-			DerObjectIdentifier sigAlgOid = sigAlgID.Algorithm;
-			Asn1Encodable parameters = sigAlgID.Parameters;
-
-			if (parameters != null && !DerNull.Instance.Equals(parameters))
-			{
-                if (PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
-				{
-					RsassaPssParameters rsaParams = RsassaPssParameters.GetInstance(parameters);
-
-                    return GetDigestAlgName(rsaParams.HashAlgorithm.Algorithm) + "withRSAandMGF1";
-				}
-                if (X9ObjectIdentifiers.ECDsaWithSha2.Equals(sigAlgOid))
-				{
-					Asn1Sequence ecDsaParams = Asn1Sequence.GetInstance(parameters);
-
-					return GetDigestAlgName((DerObjectIdentifier)ecDsaParams[0]) + "withECDSA";
-				}
-			}
-
-			return SignerUtilities.GetEncodingName(sigAlgOid) ?? sigAlgOid.GetID();
-		}
 
 		/**
 		 * Return the digest algorithm using one of the standard JCA string
@@ -103,7 +76,36 @@ namespace Org.BouncyCastle.X509
 			else
 			{
 				return digestAlgOID.GetID();
-			}
+            }
 		}
+
+        internal static string GetSignatureName(AlgorithmIdentifier sigAlgID)
+		{
+			DerObjectIdentifier sigAlgOid = sigAlgID.Algorithm;
+			Asn1Encodable parameters = sigAlgID.Parameters;
+
+			if (!IsAbsentOrEmptyParameters(parameters))
+			{
+                if (PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
+				{
+					RsassaPssParameters rsaParams = RsassaPssParameters.GetInstance(parameters);
+
+                    return GetDigestAlgName(rsaParams.HashAlgorithm.Algorithm) + "withRSAandMGF1";
+				}
+                if (X9ObjectIdentifiers.ECDsaWithSha2.Equals(sigAlgOid))
+				{
+					Asn1Sequence ecDsaParams = Asn1Sequence.GetInstance(parameters);
+
+					return GetDigestAlgName((DerObjectIdentifier)ecDsaParams[0]) + "withECDSA";
+				}
+			}
+
+			return SignerUtilities.GetEncodingName(sigAlgOid) ?? sigAlgOid.GetID();
+		}
+
+        private static bool IsAbsentOrEmptyParameters(Asn1Encodable parameters)
+        {
+            return parameters == null || DerNull.Instance.Equals(parameters);
+        }
     }
 }
