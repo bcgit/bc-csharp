@@ -516,29 +516,24 @@ namespace Org.BouncyCastle.Math.EC
             return x3;
         }
 
-        public override bool Equals(
-            object obj)
+        public override bool Equals(object obj) => obj is FpFieldElement that && Equals(that);
+
+        public virtual bool Equals(FpFieldElement other)
         {
-            if (obj == this)
+            if (this == other)
                 return true;
 
-            FpFieldElement other = obj as FpFieldElement;
-
-            if (other == null)
-                return false;
-
-            return Equals(other);
-        }
-
-        public virtual bool Equals(
-            FpFieldElement other)
-        {
-            return q.Equals(other.q) && base.Equals(other);
+            return q.Equals(other.q)
+                && x.Equals(other.x);
         }
 
         public override int GetHashCode()
         {
-            return q.GetHashCode() ^ base.GetHashCode();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return HashCode.Combine(q, x);
+#else
+            return q.GetHashCode() ^ x.GetHashCode();
+#endif
         }
     }
 
@@ -910,32 +905,26 @@ namespace Org.BouncyCastle.Math.EC
             get { return this.ks.Length >= 3 ? this.ks[2] : 0; }
         }
 
-        public override bool Equals(
-            object obj)
+        public override bool Equals(object obj) => obj is F2mFieldElement that && Equals(that);
+
+        public virtual bool Equals(F2mFieldElement other)
         {
-            if (obj == this)
+            if (this == other)
                 return true;
 
-            F2mFieldElement other = obj as F2mFieldElement;
-
-            if (other == null)
-                return false;
-
-            return Equals(other);
-        }
-
-        public virtual bool Equals(
-            F2mFieldElement other)
-        {
-            return ((this.m == other.m)
-                && (this.representation == other.representation)
+            return this.m == other.m
+                && this.representation == other.representation
                 && Arrays.AreEqual(this.ks, other.ks)
-                && (this.x.Equals(other.x)));
+                && this.x.Equals(other.x);
         }
 
         public override int GetHashCode()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return HashCode.Combine(x, m, Arrays.GetHashCode(ks));
+#else
             return x.GetHashCode() ^ m ^ Arrays.GetHashCode(ks);
+#endif
         }
     }
 }

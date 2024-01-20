@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 #endif
 using System.Text;
@@ -403,10 +404,13 @@ namespace Org.BouncyCastle.Utilities
         public static int GetHashCode(byte[] data)
         {
             if (data == null)
-            {
                 return 0;
-            }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(data);
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -417,15 +421,19 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(byte[] data, int off, int len)
         {
             if (data == null)
-            {
                 return 0;
-            }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(data.AsSpan(off, len));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -436,6 +444,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(int[] data)
@@ -443,6 +452,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -453,6 +467,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         [CLSCompliant(false)]
@@ -461,6 +476,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -471,6 +491,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(int[] data, int off, int len)
@@ -478,6 +499,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -488,6 +514,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         [CLSCompliant(false)]
@@ -496,6 +523,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -506,6 +538,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         [CLSCompliant(false)]
@@ -514,6 +547,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -524,6 +562,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         [CLSCompliant(false)]
@@ -532,6 +571,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -545,6 +589,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         [CLSCompliant(false)]
@@ -553,6 +598,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -566,6 +616,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(object[] data)
@@ -574,6 +625,15 @@ namespace Org.BouncyCastle.Utilities
                 return 0;
 
             int len = data.Length;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            for (int i = 0; i < len; ++i)
+            {
+                hc.Add(data[i]);
+            }
+            return hc.ToHashCode();
+#else
             int hc = len + 1;
             for (int i = 0; i < len; ++i)
             {
@@ -581,6 +641,7 @@ namespace Org.BouncyCastle.Utilities
                 hc ^= Objects.GetHashCode(data[i]);
             }
             return hc;
+#endif
         }
 
         public static int GetHashCode(object[] data, int off, int len)
@@ -588,6 +649,14 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            for (int i = 0; i < len; ++i)
+            {
+                hc.Add(data[off + i]);
+            }
+            return hc.ToHashCode();
+#else
             int hc = len + 1;
             for (int i = 0; i < len; ++i)
             {
@@ -595,6 +664,7 @@ namespace Org.BouncyCastle.Utilities
                 hc ^= Objects.GetHashCode(data[off + i]);
             }
             return hc;
+#endif
         }
 
         public static bool[] Clone(bool[] data)

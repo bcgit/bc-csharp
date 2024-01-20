@@ -5,6 +5,9 @@ using System.Globalization;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Numerics;
 #endif
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -1464,6 +1467,12 @@ namespace Org.BouncyCastle.Math
 
         public override int GetHashCode()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(magnitude.AsSpan()));
+            hc.Add(sign);
+            return hc.ToHashCode();
+#else
             int hc = magnitude.Length;
             if (magnitude.Length > 0)
             {
@@ -1476,6 +1485,7 @@ namespace Org.BouncyCastle.Math
             }
 
             return sign < 0 ? ~hc : hc;
+#endif
         }
 
         // TODO Make public?

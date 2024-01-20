@@ -1245,20 +1245,7 @@ namespace Org.BouncyCastle.Math.EC
             return true;
         }
 
-        public override int GetHashCode()
-        {
-            int usedLen = GetUsedLength();
-            int hash = 1;
-            for (int i = 0; i < usedLen; i++)
-            {
-                ulong mi = m_data[i];
-                hash *= 31;
-                hash ^= (int)mi;
-                hash *= 31;
-                hash ^= (int)(mi >> 32);
-            }
-            return hash;
-        }
+        public override int GetHashCode() => Arrays.GetHashCode(m_data, 0, GetUsedLength());
 
         public LongArray Copy()
         {
