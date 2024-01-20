@@ -14,8 +14,8 @@ namespace Org.BouncyCastle.Crypto.Utilities
 {
     public class AlgorithmIdentifierFactory
     {
-        public static readonly DerObjectIdentifier IDEA_CBC = new DerObjectIdentifier("1.3.6.1.4.1.188.7.1.1.2");
-        public static readonly DerObjectIdentifier CAST5_CBC = new DerObjectIdentifier("1.2.840.113533.7.66.10");
+        public static readonly DerObjectIdentifier IDEA_CBC = MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC;
+        public static readonly DerObjectIdentifier CAST5_CBC = MiscObjectIdentifiers.cast5CBC;
 
         private static readonly short[] rc2Table = {
             0xbd, 0x56, 0xea, 0xf2, 0xa2, 0xf1, 0xac, 0x2a, 0xb0, 0x93, 0xd1, 0x9c, 0x1b, 0x33, 0xfd, 0xd0,

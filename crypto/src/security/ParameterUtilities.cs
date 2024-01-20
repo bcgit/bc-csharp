@@ -93,7 +93,12 @@ namespace Org.BouncyCastle.Security
                 NsriObjectIdentifiers.id_aria256_ocb2,
                 NsriObjectIdentifiers.id_aria256_ofb);
             AddAlgorithm("BLOWFISH",
-                "1.3.6.1.4.1.3029.1.2");
+                /*
+                 * TODO[api] Incorrect version of cryptlib_algorithm_blowfish_CBC
+                 * Remove at major version update and delete bad test data "pbes2.bf-cbc.key"
+                 */
+                "1.3.6.1.4.1.3029.1.2",
+                MiscObjectIdentifiers.cryptlib_algorithm_blowfish_CBC);
             AddAlgorithm("CAMELLIA",
                 "CAMELLIAWRAP");
             AddAlgorithm("CAMELLIA128",
@@ -106,7 +111,7 @@ namespace Org.BouncyCastle.Security
                 NttObjectIdentifiers.IdCamellia256Cbc,
                 NttObjectIdentifiers.IdCamellia256Wrap);
             AddAlgorithm("CAST5",
-                "1.2.840.113533.7.66.10");
+                MiscObjectIdentifiers.cast5CBC);
             AddAlgorithm("CAST6");
             AddAlgorithm("CHACHA");
             AddAlgorithm("CHACHA7539",
@@ -132,14 +137,14 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("HC128");
             AddAlgorithm("HC256");
             AddAlgorithm("IDEA",
-                "1.3.6.1.4.1.188.7.1.1.2");
+                MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC);
             AddAlgorithm("NOEKEON");
             AddAlgorithm("RC2",
                 PkcsObjectIdentifiers.RC2Cbc,
                 PkcsObjectIdentifiers.IdAlgCmsRC2Wrap);
             AddAlgorithm("RC4",
                 "ARC4",
-                "1.2.840.113549.3.4");
+                PkcsObjectIdentifiers.rc4);
             AddAlgorithm("RC5",
                 "RC5-32");
             AddAlgorithm("RC5-64");

@@ -6,8 +6,8 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Oiw;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.UA;
@@ -43,9 +43,11 @@ namespace Org.BouncyCastle.Security
             WHIRLPOOL,
         };
 
-        private static readonly IDictionary<string, string> Aliases =
+        private static readonly Dictionary<string, string> AlgorithmMap =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private static readonly IDictionary<string, DerObjectIdentifier> Oids =
+        private static readonly Dictionary<DerObjectIdentifier, string> AlgorithmOidMap =
+            new Dictionary<DerObjectIdentifier, string>();
+        private static readonly Dictionary<string, DerObjectIdentifier> Oids =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
 
         static DigestUtilities()
@@ -53,84 +55,84 @@ namespace Org.BouncyCastle.Security
             // Signal to obfuscation tools not to change enum constants
             Enums.GetArbitraryValue<DigestAlgorithm>().ToString();
 
-            Aliases[PkcsObjectIdentifiers.MD2.Id] = "MD2";
-            Aliases[PkcsObjectIdentifiers.MD4.Id] = "MD4";
-            Aliases[PkcsObjectIdentifiers.MD5.Id] = "MD5";
+            AlgorithmOidMap[PkcsObjectIdentifiers.MD2] = "MD2";
+            AlgorithmOidMap[PkcsObjectIdentifiers.MD4] = "MD4";
+            AlgorithmOidMap[PkcsObjectIdentifiers.MD5] = "MD5";
 
-            Aliases["SHA1"] = "SHA-1";
-            Aliases[OiwObjectIdentifiers.IdSha1.Id] = "SHA-1";
-            Aliases[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "SHA-1";
-            Aliases[MiscObjectIdentifiers.HMAC_SHA1.Id] = "SHA-1";
-            Aliases["SHA224"] = "SHA-224";
-            Aliases[NistObjectIdentifiers.IdSha224.Id] = "SHA-224";
-            Aliases[PkcsObjectIdentifiers.IdHmacWithSha224.Id] = "SHA-224";
-            Aliases["SHA256"] = "SHA-256";
-            Aliases[NistObjectIdentifiers.IdSha256.Id] = "SHA-256";
-            Aliases[PkcsObjectIdentifiers.IdHmacWithSha256.Id] = "SHA-256";
-            Aliases["SHA384"] = "SHA-384";
-            Aliases[NistObjectIdentifiers.IdSha384.Id] = "SHA-384";
-            Aliases[PkcsObjectIdentifiers.IdHmacWithSha384.Id] = "SHA-384";
-            Aliases["SHA512"] = "SHA-512";
-            Aliases[NistObjectIdentifiers.IdSha512.Id] = "SHA-512";
-            Aliases[PkcsObjectIdentifiers.IdHmacWithSha512.Id] = "SHA-512";
+            AlgorithmMap["SHA1"] = "SHA-1";
+            AlgorithmOidMap[OiwObjectIdentifiers.IdSha1] = "SHA-1";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha1] = "SHA-1";
+            AlgorithmOidMap[MiscObjectIdentifiers.HMAC_SHA1] = "SHA-1";
+            AlgorithmMap["SHA224"] = "SHA-224";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha224] = "SHA-224";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha224] = "SHA-224";
+            AlgorithmMap["SHA256"] = "SHA-256";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha256] = "SHA-256";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha256] = "SHA-256";
+            AlgorithmMap["SHA384"] = "SHA-384";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha384] = "SHA-384";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha384] = "SHA-384";
+            AlgorithmMap["SHA512"] = "SHA-512";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha512] = "SHA-512";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512] = "SHA-512";
 
-            Aliases["SHA512/224"] = "SHA-512/224";
-            Aliases["SHA512(224)"] = "SHA-512/224";
-            Aliases["SHA-512(224)"] = "SHA-512/224";
-            Aliases[NistObjectIdentifiers.IdSha512_224.Id] = "SHA-512/224";
-            Aliases["SHA512/256"] = "SHA-512/256";
-            Aliases["SHA512(256)"] = "SHA-512/256";
-            Aliases["SHA-512(256)"] = "SHA-512/256";
-            Aliases[NistObjectIdentifiers.IdSha512_256.Id] = "SHA-512/256";
+            AlgorithmMap["SHA512/224"] = "SHA-512/224";
+            AlgorithmMap["SHA512(224)"] = "SHA-512/224";
+            AlgorithmMap["SHA-512(224)"] = "SHA-512/224";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha512_224] = "SHA-512/224";
+            AlgorithmMap["SHA512/256"] = "SHA-512/256";
+            AlgorithmMap["SHA512(256)"] = "SHA-512/256";
+            AlgorithmMap["SHA-512(256)"] = "SHA-512/256";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha512_256] = "SHA-512/256";
 
-            Aliases["RIPEMD-128"] = "RIPEMD128";
-            Aliases[TeleTrusTObjectIdentifiers.RipeMD128.Id] = "RIPEMD128";
-            Aliases["RIPEMD-160"] = "RIPEMD160";
-            Aliases[TeleTrusTObjectIdentifiers.RipeMD160.Id] = "RIPEMD160";
-            Aliases["RIPEMD-256"] = "RIPEMD256";
-            Aliases[TeleTrusTObjectIdentifiers.RipeMD256.Id] = "RIPEMD256";
-            Aliases["RIPEMD-320"] = "RIPEMD320";
-            //Aliases[TeleTrusTObjectIdentifiers.RipeMD320.Id] = "RIPEMD320";
+            AlgorithmMap["RIPEMD-128"] = "RIPEMD128";
+            AlgorithmOidMap[TeleTrusTObjectIdentifiers.RipeMD128] = "RIPEMD128";
+            AlgorithmMap["RIPEMD-160"] = "RIPEMD160";
+            AlgorithmOidMap[TeleTrusTObjectIdentifiers.RipeMD160] = "RIPEMD160";
+            AlgorithmMap["RIPEMD-256"] = "RIPEMD256";
+            AlgorithmOidMap[TeleTrusTObjectIdentifiers.RipeMD256] = "RIPEMD256";
+            AlgorithmMap["RIPEMD-320"] = "RIPEMD320";
+            //AlgorithmOidMap[TeleTrusTObjectIdentifiers.RipeMD320] = "RIPEMD320";
 
-            Aliases[CryptoProObjectIdentifiers.GostR3411.Id] = "GOST3411";
+            AlgorithmOidMap[CryptoProObjectIdentifiers.GostR3411] = "GOST3411";
 
-            Aliases["KECCAK224"] = "KECCAK-224";
-            Aliases["KECCAK256"] = "KECCAK-256";
-            Aliases["KECCAK288"] = "KECCAK-288";
-            Aliases["KECCAK384"] = "KECCAK-384";
-            Aliases["KECCAK512"] = "KECCAK-512";
+            AlgorithmMap["KECCAK224"] = "KECCAK-224";
+            AlgorithmMap["KECCAK256"] = "KECCAK-256";
+            AlgorithmMap["KECCAK288"] = "KECCAK-288";
+            AlgorithmMap["KECCAK384"] = "KECCAK-384";
+            AlgorithmMap["KECCAK512"] = "KECCAK-512";
 
-            Aliases[NistObjectIdentifiers.IdSha3_224.Id] = "SHA3-224";
-            Aliases[NistObjectIdentifiers.IdHMacWithSha3_224.Id] = "SHA3-224";
-            Aliases[NistObjectIdentifiers.IdSha3_256.Id] = "SHA3-256";
-            Aliases[NistObjectIdentifiers.IdHMacWithSha3_256.Id] = "SHA3-256";
-            Aliases[NistObjectIdentifiers.IdSha3_384.Id] = "SHA3-384";
-            Aliases[NistObjectIdentifiers.IdHMacWithSha3_384.Id] = "SHA3-384";
-            Aliases[NistObjectIdentifiers.IdSha3_512.Id] = "SHA3-512";
-            Aliases[NistObjectIdentifiers.IdHMacWithSha3_512.Id] = "SHA3-512";
-            Aliases["SHAKE128"] = "SHAKE128-256";
-            Aliases[NistObjectIdentifiers.IdShake128.Id] = "SHAKE128-256";
-            Aliases["SHAKE256"] = "SHAKE256-512";
-            Aliases[NistObjectIdentifiers.IdShake256.Id] = "SHAKE256-512";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha3_224] = "SHA3-224";
+            AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_224] = "SHA3-224";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha3_256] = "SHA3-256";
+            AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_256] = "SHA3-256";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha3_384] = "SHA3-384";
+            AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_384] = "SHA3-384";
+            AlgorithmOidMap[NistObjectIdentifiers.IdSha3_512] = "SHA3-512";
+            AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_512] = "SHA3-512";
+            AlgorithmMap["SHAKE128"] = "SHAKE128-256";
+            AlgorithmOidMap[NistObjectIdentifiers.IdShake128] = "SHAKE128-256";
+            AlgorithmMap["SHAKE256"] = "SHAKE256-512";
+            AlgorithmOidMap[NistObjectIdentifiers.IdShake256] = "SHAKE256-512";
 
-            Aliases[GMObjectIdentifiers.sm3.Id] = "SM3";
+            AlgorithmOidMap[GMObjectIdentifiers.sm3] = "SM3";
 
-            Aliases[MiscObjectIdentifiers.id_blake2b160.Id] = "BLAKE2B-160";
-            Aliases[MiscObjectIdentifiers.id_blake2b256.Id] = "BLAKE2B-256";
-            Aliases[MiscObjectIdentifiers.id_blake2b384.Id] = "BLAKE2B-384";
-            Aliases[MiscObjectIdentifiers.id_blake2b512.Id] = "BLAKE2B-512";
-            Aliases[MiscObjectIdentifiers.id_blake2s128.Id] = "BLAKE2S-128";
-            Aliases[MiscObjectIdentifiers.id_blake2s160.Id] = "BLAKE2S-160";
-            Aliases[MiscObjectIdentifiers.id_blake2s224.Id] = "BLAKE2S-224";
-            Aliases[MiscObjectIdentifiers.id_blake2s256.Id] = "BLAKE2S-256";
-            Aliases[MiscObjectIdentifiers.blake3_256.Id] = "BLAKE3-256";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2b160] = "BLAKE2B-160";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2b256] = "BLAKE2B-256";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2b384] = "BLAKE2B-384";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2b512] = "BLAKE2B-512";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2s128] = "BLAKE2S-128";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2s160] = "BLAKE2S-160";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2s224] = "BLAKE2S-224";
+            AlgorithmOidMap[MiscObjectIdentifiers.id_blake2s256] = "BLAKE2S-256";
+            AlgorithmOidMap[MiscObjectIdentifiers.blake3_256] = "BLAKE3-256";
 
-            Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id] = "GOST3411-2012-256";
-            Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id] = "GOST3411-2012-512";
+            AlgorithmOidMap[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256] = "GOST3411-2012-256";
+            AlgorithmOidMap[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512] = "GOST3411-2012-512";
 
-            Aliases[UAObjectIdentifiers.dstu7564digest_256.Id] = "DSTU7564-256";
-            Aliases[UAObjectIdentifiers.dstu7564digest_384.Id] = "DSTU7564-384";
-            Aliases[UAObjectIdentifiers.dstu7564digest_512.Id] = "DSTU7564-512";
+            AlgorithmOidMap[UAObjectIdentifiers.dstu7564digest_256] = "DSTU7564-256";
+            AlgorithmOidMap[UAObjectIdentifiers.dstu7564digest_384] = "DSTU7564-384";
+            AlgorithmOidMap[UAObjectIdentifiers.dstu7564digest_512] = "DSTU7564-512";
 
             Oids["MD2"] = PkcsObjectIdentifiers.MD2;
             Oids["MD4"] = PkcsObjectIdentifiers.MD4;
@@ -167,27 +169,105 @@ namespace Org.BouncyCastle.Security
             Oids["DSTU7564-256"] = UAObjectIdentifiers.dstu7564digest_256;
             Oids["DSTU7564-384"] = UAObjectIdentifiers.dstu7564digest_384;
             Oids["DSTU7564-512"] = UAObjectIdentifiers.dstu7564digest_512;
+
+#if DEBUG
+            foreach (var key in AlgorithmMap.Keys)
+            {
+                if (DerObjectIdentifier.TryFromID(key, out var ignore))
+                    throw new Exception("OID mapping belongs in AlgorithmOidMap: " + key);
+            }
+
+            var mechanisms = new HashSet<string>(AlgorithmMap.Values);
+            mechanisms.UnionWith(AlgorithmOidMap.Values);
+
+            foreach (var mechanism in mechanisms)
+            {
+                if (AlgorithmMap.TryGetValue(mechanism, out var check))
+                {
+                    if (mechanism != check)
+                        throw new Exception("Mechanism mapping MUST be to self: " + mechanism);
+                }
+                else
+                {
+                    if (!mechanism.Equals(mechanism.ToUpperInvariant()))
+                        throw new Exception("Unmapped mechanism MUST be uppercase: " + mechanism);
+                }
+            }
+#endif
         }
 
-        /// <summary>
-        /// Returns a ObjectIdentifier for a given digest mechanism.
-        /// </summary>
-        /// <param name="mechanism">A string representation of the digest meanism.</param>
-        /// <returns>A DerObjectIdentifier, null if the Oid is not available.</returns>
-
-        public static DerObjectIdentifier GetObjectIdentifier(string mechanism)
+        // TODO[api] Change parameter name to 'oid'
+        public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input)
         {
-            if (mechanism == null)
-                throw new ArgumentNullException(nameof(mechanism));
-
-            mechanism = CollectionUtilities.GetValueOrKey(Aliases, mechanism).ToUpperInvariant();
-
-            return CollectionUtilities.GetValueOrNull(Oids, mechanism);
+            return CalculateDigest(id.Id, input);
         }
 
+        public static byte[] CalculateDigest(string algorithm, byte[] input)
+        {
+            IDigest digest = GetDigest(algorithm);
+            return DoFinal(digest, input);
+        }
+
+        public static byte[] CalculateDigest(string algorithm, byte[] buf, int off, int len)
+        {
+            IDigest digest = GetDigest(algorithm);
+            return DoFinal(digest, buf, off, len);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] CalculateDigest(string algorithm, ReadOnlySpan<byte> buffer)
+        {
+            IDigest digest = GetDigest(algorithm);
+            return DoFinal(digest, buffer);
+        }
+#endif
+
+        public static byte[] DoFinal(IDigest digest)
+        {
+            byte[] b = new byte[digest.GetDigestSize()];
+            digest.DoFinal(b, 0);
+            return b;
+        }
+
+        public static byte[] DoFinal(IDigest digest, byte[] input)
+        {
+            digest.BlockUpdate(input, 0, input.Length);
+            return DoFinal(digest);
+        }
+
+        public static byte[] DoFinal(IDigest digest, byte[] buf, int off, int len)
+        {
+            digest.BlockUpdate(buf, off, len);
+            return DoFinal(digest);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] DoFinal(IDigest digest, ReadOnlySpan<byte> buffer)
+        {
+            digest.BlockUpdate(buffer);
+            return DoFinal(digest);
+        }
+#endif
+
+        public static string GetAlgorithmName(DerObjectIdentifier oid)
+        {
+            return CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
+        }
+
+        // TODO[api] Change parameter name to 'oid'
         public static IDigest GetDigest(DerObjectIdentifier id)
         {
-            return GetDigest(id.Id);
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (AlgorithmOidMap.TryGetValue(id, out var mechanism))
+            {
+                var digest = GetDigestForMechanism(mechanism);
+                if (digest != null)
+                    return digest;
+            }
+
+            throw new SecurityUtilityException("Digest OID not recognised.");
         }
 
         public static IDigest GetDigest(string algorithm)
@@ -195,8 +275,17 @@ namespace Org.BouncyCastle.Security
             if (algorithm == null)
                 throw new ArgumentNullException(nameof(algorithm));
 
-            string mechanism = CollectionUtilities.GetValueOrKey(Aliases, algorithm).ToUpperInvariant();
+            string mechanism = GetMechanism(algorithm) ?? algorithm.ToUpperInvariant();
 
+            var digest = GetDigestForMechanism(mechanism);
+            if (digest != null)
+                return digest;
+
+            throw new SecurityUtilityException("Digest " + algorithm + " not recognised.");
+        }
+
+        private static IDigest GetDigestForMechanism(string mechanism)
+        {
             try
             {
                 DigestAlgorithm digestAlgorithm = Enums.GetEnumValue<DigestAlgorithm>(mechanism);
@@ -253,64 +342,36 @@ namespace Org.BouncyCastle.Security
             {
             }
 
-            throw new SecurityUtilityException("Digest " + mechanism + " not recognised.");
+            return null;
         }
 
-        public static string GetAlgorithmName(DerObjectIdentifier oid)
+        private static string GetMechanism(string algorithm)
         {
-            return CollectionUtilities.GetValueOrNull(Aliases, oid.Id);
+            if (AlgorithmMap.TryGetValue(algorithm, out var mechanism1))
+                return mechanism1;
+
+            if (DerObjectIdentifier.TryFromID(algorithm, out var oid))
+            {
+                if (AlgorithmOidMap.TryGetValue(oid, out var mechanism2))
+                    return mechanism2;
+            }
+
+            return null;
         }
 
-        public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input)
+        /// <summary>
+        /// Returns an ObjectIdentifier for a given digest mechanism.
+        /// </summary>
+        /// <param name="mechanism">A string representation of the digest meanism.</param>
+        /// <returns>A DerObjectIdentifier, null if the Oid is not available.</returns>
+        public static DerObjectIdentifier GetObjectIdentifier(string mechanism)
         {
-            return CalculateDigest(id.Id, input);
-        }
+            if (mechanism == null)
+                throw new ArgumentNullException(nameof(mechanism));
 
-        public static byte[] CalculateDigest(string algorithm, byte[] input)
-        {
-            IDigest digest = GetDigest(algorithm);
-            return DoFinal(digest, input);
-        }
+            mechanism = GetMechanism(mechanism) ?? mechanism;
 
-        public static byte[] CalculateDigest(string algorithm, byte[] buf, int off, int len)
-        {
-            IDigest digest = GetDigest(algorithm);
-            return DoFinal(digest, buf, off, len);
+            return CollectionUtilities.GetValueOrNull(Oids, mechanism);
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static byte[] CalculateDigest(string algorithm, ReadOnlySpan<byte> buffer)
-        {
-            IDigest digest = GetDigest(algorithm);
-            return DoFinal(digest, buffer);
-        }
-#endif
-
-        public static byte[] DoFinal(IDigest digest)
-        {
-            byte[] b = new byte[digest.GetDigestSize()];
-            digest.DoFinal(b, 0);
-            return b;
-        }
-
-        public static byte[] DoFinal(IDigest digest, byte[] input)
-        {
-            digest.BlockUpdate(input, 0, input.Length);
-            return DoFinal(digest);
-        }
-
-        public static byte[] DoFinal(IDigest digest, byte[] buf, int off, int len)
-        {
-            digest.BlockUpdate(buf, off, len);
-            return DoFinal(digest);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static byte[] DoFinal(IDigest digest, ReadOnlySpan<byte> buffer)
-        {
-            digest.BlockUpdate(buffer);
-            return DoFinal(digest);
-        }
-#endif
     }
 }

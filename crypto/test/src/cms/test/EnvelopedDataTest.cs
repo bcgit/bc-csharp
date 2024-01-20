@@ -374,11 +374,11 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			CmsEnvelopedData ed = edGen.Generate(
 				new CmsProcessableByteArray(data),
-				"1.2.840.113549.3.4"); // RC4 OID
+                PkcsObjectIdentifiers.rc4.GetID());
 
 			RecipientInformationStore  recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(ed.EncryptionAlgOid, "1.2.840.113549.3.4");
+			Assert.AreEqual(ed.EncryptionAlgOid, PkcsObjectIdentifiers.rc4.GetID());
 
 			var c = recipients.GetRecipients();
 
@@ -404,11 +404,11 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			CmsEnvelopedData ed = edGen.Generate(
 				new CmsProcessableByteArray(data),
-				"1.2.840.113549.3.4", 128);  // RC4 OID
+                PkcsObjectIdentifiers.rc4.GetID(), 128);
 
 			RecipientInformationStore recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(ed.EncryptionAlgOid, "1.2.840.113549.3.4");
+			Assert.AreEqual(ed.EncryptionAlgOid, PkcsObjectIdentifiers.rc4.GetID());
 
 			var c = recipients.GetRecipients();
 

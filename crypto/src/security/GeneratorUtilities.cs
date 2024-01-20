@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Kisa;
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Nsri;
 using Org.BouncyCastle.Asn1.Ntt;
@@ -68,7 +69,12 @@ namespace Org.BouncyCastle.Security
                 NistObjectIdentifiers.IdAes256Wrap,
                 NistObjectIdentifiers.IdAes256WrapPad);
             AddKgAlgorithm("BLOWFISH",
-                "1.3.6.1.4.1.3029.1.2");
+                /*
+                 * TODO[api] Incorrect version of cryptlib_algorithm_blowfish_CBC
+                 * Remove at major version update and delete bad test data "pbes2.bf-cbc.key"
+                 */
+                "1.3.6.1.4.1.3029.1.2",
+                MiscObjectIdentifiers.cryptlib_algorithm_blowfish_CBC);
             AddKgAlgorithm("CAMELLIA",
                 "CAMELLIAWRAP");
             AddKgAlgorithm("ARIA");
@@ -115,7 +121,7 @@ namespace Org.BouncyCastle.Security
                 NttObjectIdentifiers.IdCamellia256Cbc,
                 NttObjectIdentifiers.IdCamellia256Wrap);
             AddKgAlgorithm("CAST5",
-                "1.2.840.113533.7.66.10");
+                MiscObjectIdentifiers.cast5CBC);
             AddKgAlgorithm("CAST6");
             AddKgAlgorithm("CHACHA");
             AddKgAlgorithm("CHACHA7539",
@@ -141,14 +147,14 @@ namespace Org.BouncyCastle.Security
             AddKgAlgorithm("HC128");
             AddKgAlgorithm("HC256");
             AddKgAlgorithm("IDEA",
-                "1.3.6.1.4.1.188.7.1.1.2");
+                MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC);
             AddKgAlgorithm("NOEKEON");
             AddKgAlgorithm("RC2",
                 PkcsObjectIdentifiers.RC2Cbc,
                 PkcsObjectIdentifiers.IdAlgCmsRC2Wrap);
             AddKgAlgorithm("RC4",
                 "ARC4",
-                "1.2.840.113549.3.4");
+                PkcsObjectIdentifiers.rc4);
             AddKgAlgorithm("RC5",
                 "RC5-32");
             AddKgAlgorithm("RC5-64");
@@ -250,7 +256,7 @@ namespace Org.BouncyCastle.Security
                 "GOST-3410",
                 "GOST-3410-94");
             AddKpgAlgorithm("RSA",
-                "1.2.840.113549.1.1.1");
+                PkcsObjectIdentifiers.RsaEncryption);
             AddKpgAlgorithm("RSASSA-PSS");
             AddKpgAlgorithm("X25519",
                 EdECObjectIdentifiers.id_X25519);

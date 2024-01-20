@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Org.BouncyCastle.Asn1.Smime
@@ -18,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Smime
 		/**
          * encryption algorithms preferences
          */
-        public static readonly DerObjectIdentifier DesCbc = new DerObjectIdentifier("1.3.14.3.2.7");
+        public static readonly DerObjectIdentifier DesCbc = OiwObjectIdentifiers.DesCbc;
         public static readonly DerObjectIdentifier DesEde3Cbc = PkcsObjectIdentifiers.DesEde3Cbc;
         public static readonly DerObjectIdentifier RC2Cbc = PkcsObjectIdentifiers.RC2Cbc;
 

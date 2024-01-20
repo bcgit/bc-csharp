@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Kisa;
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Nsri;
 using Org.BouncyCastle.Asn1.Ntt;
@@ -112,8 +113,10 @@ namespace Org.BouncyCastle.Security
             ZEROBYTEPADDING,
         };
 
-        private static readonly Dictionary<string, string> Algorithms =
+        private static readonly Dictionary<string, string> AlgorithmMap =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<DerObjectIdentifier, string> AlgorithmOidMap =
+            new Dictionary<DerObjectIdentifier, string>();
 
         static CipherUtilities()
         {
@@ -124,148 +127,192 @@ namespace Org.BouncyCastle.Security
 
             // TODO Flesh out the list of aliases
 
-            Algorithms[NistObjectIdentifiers.IdAes128Cbc.Id] = "AES/CBC/PKCS7PADDING";
-            Algorithms[NistObjectIdentifiers.IdAes192Cbc.Id] = "AES/CBC/PKCS7PADDING";
-            Algorithms[NistObjectIdentifiers.IdAes256Cbc.Id] = "AES/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes128Cbc] = "AES/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes192Cbc] = "AES/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes256Cbc] = "AES/CBC/PKCS7PADDING";
 
-            Algorithms[NistObjectIdentifiers.IdAes128Ccm.Id] = "AES/CCM/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes192Ccm.Id] = "AES/CCM/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes256Ccm.Id] = "AES/CCM/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes128Ccm] = "AES/CCM/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes192Ccm] = "AES/CCM/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes256Ccm] = "AES/CCM/NOPADDING";
 
-            Algorithms[NistObjectIdentifiers.IdAes128Cfb.Id] = "AES/CFB/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes192Cfb.Id] = "AES/CFB/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes256Cfb.Id] = "AES/CFB/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes128Cfb] = "AES/CFB/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes192Cfb] = "AES/CFB/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes256Cfb] = "AES/CFB/NOPADDING";
 
-            Algorithms[NistObjectIdentifiers.IdAes128Ecb.Id] = "AES/ECB/PKCS7PADDING";
-            Algorithms[NistObjectIdentifiers.IdAes192Ecb.Id] = "AES/ECB/PKCS7PADDING";
-            Algorithms[NistObjectIdentifiers.IdAes256Ecb.Id] = "AES/ECB/PKCS7PADDING";
-            Algorithms["AES//PKCS7"] = "AES/ECB/PKCS7PADDING";
-            Algorithms["AES//PKCS7PADDING"] = "AES/ECB/PKCS7PADDING";
-            Algorithms["AES//PKCS5"] = "AES/ECB/PKCS7PADDING";
-            Algorithms["AES//PKCS5PADDING"] = "AES/ECB/PKCS7PADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes128Ecb] = "AES/ECB/PKCS7PADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes192Ecb] = "AES/ECB/PKCS7PADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes256Ecb] = "AES/ECB/PKCS7PADDING";
+            AlgorithmMap["AES//PKCS7"] = "AES/ECB/PKCS7PADDING";
+            AlgorithmMap["AES//PKCS7PADDING"] = "AES/ECB/PKCS7PADDING";
+            AlgorithmMap["AES//PKCS5"] = "AES/ECB/PKCS7PADDING";
+            AlgorithmMap["AES//PKCS5PADDING"] = "AES/ECB/PKCS7PADDING";
 
-            Algorithms[NistObjectIdentifiers.IdAes128Gcm.Id] = "AES/GCM/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes192Gcm.Id] = "AES/GCM/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes256Gcm.Id] = "AES/GCM/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes128Gcm] = "AES/GCM/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes192Gcm] = "AES/GCM/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes256Gcm] = "AES/GCM/NOPADDING";
 
-            Algorithms[NistObjectIdentifiers.IdAes128Ofb.Id] = "AES/OFB/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes192Ofb.Id] = "AES/OFB/NOPADDING";
-            Algorithms[NistObjectIdentifiers.IdAes256Ofb.Id] = "AES/OFB/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes128Ofb] = "AES/OFB/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes192Ofb] = "AES/OFB/NOPADDING";
+            AlgorithmOidMap[NistObjectIdentifiers.IdAes256Ofb] = "AES/OFB/NOPADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_cbc.Id] = "ARIA/CBC/PKCS7PADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_cbc.Id] = "ARIA/CBC/PKCS7PADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_cbc.Id] = "ARIA/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_cbc] = "ARIA/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_cbc] = "ARIA/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_cbc] = "ARIA/CBC/PKCS7PADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_ccm.Id] = "ARIA/CCM/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_ccm.Id] = "ARIA/CCM/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_ccm.Id] = "ARIA/CCM/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_ccm] = "ARIA/CCM/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_ccm] = "ARIA/CCM/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_ccm] = "ARIA/CCM/NOPADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_cfb.Id] = "ARIA/CFB/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_cfb.Id] = "ARIA/CFB/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_cfb.Id] = "ARIA/CFB/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_cfb] = "ARIA/CFB/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_cfb] = "ARIA/CFB/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_cfb] = "ARIA/CFB/NOPADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_ctr.Id] = "ARIA/CTR/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_ctr.Id] = "ARIA/CTR/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_ctr.Id] = "ARIA/CTR/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_ctr] = "ARIA/CTR/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_ctr] = "ARIA/CTR/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_ctr] = "ARIA/CTR/NOPADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_ecb.Id] = "ARIA/ECB/PKCS7PADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_ecb.Id] = "ARIA/ECB/PKCS7PADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_ecb.Id] = "ARIA/ECB/PKCS7PADDING";
-            Algorithms["ARIA//PKCS7"] = "ARIA/ECB/PKCS7PADDING";
-            Algorithms["ARIA//PKCS7PADDING"] = "ARIA/ECB/PKCS7PADDING";
-            Algorithms["ARIA//PKCS5"] = "ARIA/ECB/PKCS7PADDING";
-            Algorithms["ARIA//PKCS5PADDING"] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_ecb] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_ecb] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_ecb] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmMap["ARIA//PKCS7"] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmMap["ARIA//PKCS7PADDING"] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmMap["ARIA//PKCS5"] = "ARIA/ECB/PKCS7PADDING";
+            AlgorithmMap["ARIA//PKCS5PADDING"] = "ARIA/ECB/PKCS7PADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_gcm.Id] = "ARIA/GCM/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_gcm.Id] = "ARIA/GCM/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_gcm.Id] = "ARIA/GCM/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_gcm] = "ARIA/GCM/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_gcm] = "ARIA/GCM/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_gcm] = "ARIA/GCM/NOPADDING";
 
-            Algorithms[NsriObjectIdentifiers.id_aria128_ofb.Id] = "ARIA/OFB/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria192_ofb.Id] = "ARIA/OFB/NOPADDING";
-            Algorithms[NsriObjectIdentifiers.id_aria256_ofb.Id] = "ARIA/OFB/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria128_ofb] = "ARIA/OFB/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria192_ofb] = "ARIA/OFB/NOPADDING";
+            AlgorithmOidMap[NsriObjectIdentifiers.id_aria256_ofb] = "ARIA/OFB/NOPADDING";
 
-            Algorithms["RSA/ECB/PKCS1"] = "RSA//PKCS1PADDING";
-            Algorithms["RSA/ECB/PKCS1PADDING"] = "RSA//PKCS1PADDING";
-            Algorithms[PkcsObjectIdentifiers.RsaEncryption.Id] = "RSA//PKCS1PADDING";
-            Algorithms[PkcsObjectIdentifiers.IdRsaesOaep.Id] = "RSA//OAEPPADDING";
+            AlgorithmMap["RSA/ECB/PKCS1"] = "RSA//PKCS1PADDING";
+            AlgorithmMap["RSA/ECB/PKCS1PADDING"] = "RSA//PKCS1PADDING";
+            AlgorithmOidMap[PkcsObjectIdentifiers.RsaEncryption] = "RSA//PKCS1PADDING";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdRsaesOaep] = "RSA//OAEPPADDING";
 
-            Algorithms[OiwObjectIdentifiers.DesCbc.Id] = "DES/CBC";
-            Algorithms[OiwObjectIdentifiers.DesCfb.Id] = "DES/CFB";
-            Algorithms[OiwObjectIdentifiers.DesEcb.Id] = "DES/ECB";
-            Algorithms[OiwObjectIdentifiers.DesOfb.Id] = "DES/OFB";
-            Algorithms[OiwObjectIdentifiers.DesEde.Id] = "DESEDE";
-            Algorithms["TDEA"] = "DESEDE";
-            Algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "DESEDE/CBC";
-            Algorithms[PkcsObjectIdentifiers.RC2Cbc.Id] = "RC2/CBC";
-            Algorithms["1.3.6.1.4.1.188.7.1.1.2"] = "IDEA/CBC";
-            Algorithms["1.2.840.113533.7.66.10"] = "CAST5/CBC";
+            AlgorithmOidMap[OiwObjectIdentifiers.DesCbc] = "DES/CBC";
+            AlgorithmOidMap[OiwObjectIdentifiers.DesCfb] = "DES/CFB";
+            AlgorithmOidMap[OiwObjectIdentifiers.DesEcb] = "DES/ECB";
+            AlgorithmOidMap[OiwObjectIdentifiers.DesOfb] = "DES/OFB";
+            AlgorithmOidMap[OiwObjectIdentifiers.DesEde] = "DESEDE";
+            AlgorithmMap["TDEA"] = "DESEDE";
+            AlgorithmOidMap[PkcsObjectIdentifiers.DesEde3Cbc] = "DESEDE/CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.RC2Cbc] = "RC2/CBC";
+            AlgorithmOidMap[MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC] = "IDEA/CBC";
+            AlgorithmOidMap[MiscObjectIdentifiers.cast5CBC] = "CAST5/CBC";
 
-            Algorithms["RC4"] = "ARC4";
-            Algorithms["ARCFOUR"] = "ARC4";
-            Algorithms["1.2.840.113549.3.4"] = "ARC4";
-
-
-
-            Algorithms["PBEWITHSHA1AND128BITRC4"] = "PBEWITHSHAAND128BITRC4";
-            Algorithms[PkcsObjectIdentifiers.PbeWithShaAnd128BitRC4.Id] = "PBEWITHSHAAND128BITRC4";
-            Algorithms["PBEWITHSHA1AND40BITRC4"] = "PBEWITHSHAAND40BITRC4";
-            Algorithms[PkcsObjectIdentifiers.PbeWithShaAnd40BitRC4.Id] = "PBEWITHSHAAND40BITRC4";
-
-            Algorithms["PBEWITHSHA1ANDDES"] = "PBEWITHSHA1ANDDES-CBC";
-            Algorithms[PkcsObjectIdentifiers.PbeWithSha1AndDesCbc.Id] = "PBEWITHSHA1ANDDES-CBC";
-            Algorithms["PBEWITHSHA1ANDRC2"] = "PBEWITHSHA1ANDRC2-CBC";
-            Algorithms[PkcsObjectIdentifiers.PbeWithSha1AndRC2Cbc.Id] = "PBEWITHSHA1ANDRC2-CBC";
-
-            Algorithms["PBEWITHSHA1AND3-KEYTRIPLEDES-CBC"] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
-            Algorithms["PBEWITHSHAAND3KEYTRIPLEDES"] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
-            Algorithms[PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc.Id] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
-            Algorithms["PBEWITHSHA1ANDDESEDE"] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
-
-            Algorithms["PBEWITHSHA1AND2-KEYTRIPLEDES-CBC"] = "PBEWITHSHAAND2-KEYTRIPLEDES-CBC";
-            Algorithms[PkcsObjectIdentifiers.PbeWithShaAnd2KeyTripleDesCbc.Id] = "PBEWITHSHAAND2-KEYTRIPLEDES-CBC";
-
-            Algorithms["PBEWITHSHA1AND128BITRC2-CBC"] = "PBEWITHSHAAND128BITRC2-CBC";
-            Algorithms[PkcsObjectIdentifiers.PbeWithShaAnd128BitRC2Cbc.Id] = "PBEWITHSHAAND128BITRC2-CBC";
-
-            Algorithms["PBEWITHSHA1AND40BITRC2-CBC"] = "PBEWITHSHAAND40BITRC2-CBC";
-            Algorithms[PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc.Id] = "PBEWITHSHAAND40BITRC2-CBC";
-
-            Algorithms["PBEWITHSHA1AND128BITAES-CBC-BC"] = "PBEWITHSHAAND128BITAES-CBC-BC";
-            Algorithms["PBEWITHSHA-1AND128BITAES-CBC-BC"] = "PBEWITHSHAAND128BITAES-CBC-BC";
-
-            Algorithms["PBEWITHSHA1AND192BITAES-CBC-BC"] = "PBEWITHSHAAND192BITAES-CBC-BC";
-            Algorithms["PBEWITHSHA-1AND192BITAES-CBC-BC"] = "PBEWITHSHAAND192BITAES-CBC-BC";
-
-            Algorithms["PBEWITHSHA1AND256BITAES-CBC-BC"] = "PBEWITHSHAAND256BITAES-CBC-BC";
-            Algorithms["PBEWITHSHA-1AND256BITAES-CBC-BC"] = "PBEWITHSHAAND256BITAES-CBC-BC";
-
-            Algorithms["PBEWITHSHA-256AND128BITAES-CBC-BC"] = "PBEWITHSHA256AND128BITAES-CBC-BC";
-            Algorithms["PBEWITHSHA-256AND192BITAES-CBC-BC"] = "PBEWITHSHA256AND192BITAES-CBC-BC";
-            Algorithms["PBEWITHSHA-256AND256BITAES-CBC-BC"] = "PBEWITHSHA256AND256BITAES-CBC-BC";
+            AlgorithmMap["RC4"] = "ARC4";
+            AlgorithmMap["ARCFOUR"] = "ARC4";
+            AlgorithmOidMap[PkcsObjectIdentifiers.rc4] = "ARC4";
 
 
-            Algorithms["GOST"] = "GOST28147";
-            Algorithms["GOST-28147"] = "GOST28147";
-            Algorithms[CryptoProObjectIdentifiers.GostR28147Gcfb.Id] = "GOST28147/CBC/PKCS7PADDING";
 
-            Algorithms["RC5-32"] = "RC5";
+            AlgorithmMap["PBEWITHSHA1AND128BITRC4"] = "PBEWITHSHAAND128BITRC4";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithShaAnd128BitRC4] = "PBEWITHSHAAND128BITRC4";
+            AlgorithmMap["PBEWITHSHA1AND40BITRC4"] = "PBEWITHSHAAND40BITRC4";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithShaAnd40BitRC4] = "PBEWITHSHAAND40BITRC4";
 
-            Algorithms[NttObjectIdentifiers.IdCamellia128Cbc.Id] = "CAMELLIA/CBC/PKCS7PADDING";
-            Algorithms[NttObjectIdentifiers.IdCamellia192Cbc.Id] = "CAMELLIA/CBC/PKCS7PADDING";
-            Algorithms[NttObjectIdentifiers.IdCamellia256Cbc.Id] = "CAMELLIA/CBC/PKCS7PADDING";
+            AlgorithmMap["PBEWITHSHA1ANDDES"] = "PBEWITHSHA1ANDDES-CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithSha1AndDesCbc] = "PBEWITHSHA1ANDDES-CBC";
+            AlgorithmMap["PBEWITHSHA1ANDRC2"] = "PBEWITHSHA1ANDRC2-CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithSha1AndRC2Cbc] = "PBEWITHSHA1ANDRC2-CBC";
 
-            Algorithms[KisaObjectIdentifiers.IdSeedCbc.Id] = "SEED/CBC/PKCS7PADDING";
+            AlgorithmMap["PBEWITHSHA1AND3-KEYTRIPLEDES-CBC"] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
+            AlgorithmMap["PBEWITHSHAAND3KEYTRIPLEDES"] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
+            AlgorithmMap["PBEWITHSHA1ANDDESEDE"] = "PBEWITHSHAAND3-KEYTRIPLEDES-CBC";
 
-            Algorithms["1.3.6.1.4.1.3029.1.2"] = "BLOWFISH/CBC";
+            AlgorithmMap["PBEWITHSHA1AND2-KEYTRIPLEDES-CBC"] = "PBEWITHSHAAND2-KEYTRIPLEDES-CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithShaAnd2KeyTripleDesCbc] = "PBEWITHSHAAND2-KEYTRIPLEDES-CBC";
 
-            Algorithms["CHACHA20"] = "CHACHA7539";
-            Algorithms[PkcsObjectIdentifiers.IdAlgAeadChaCha20Poly1305.Id] = "CHACHA20-POLY1305";
+            AlgorithmMap["PBEWITHSHA1AND128BITRC2-CBC"] = "PBEWITHSHAAND128BITRC2-CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbeWithShaAnd128BitRC2Cbc] = "PBEWITHSHAAND128BITRC2-CBC";
+
+            AlgorithmMap["PBEWITHSHA1AND40BITRC2-CBC"] = "PBEWITHSHAAND40BITRC2-CBC";
+            AlgorithmOidMap[PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc] = "PBEWITHSHAAND40BITRC2-CBC";
+
+            AlgorithmMap["PBEWITHSHA1AND128BITAES-CBC-BC"] = "PBEWITHSHAAND128BITAES-CBC-BC";
+            AlgorithmMap["PBEWITHSHA-1AND128BITAES-CBC-BC"] = "PBEWITHSHAAND128BITAES-CBC-BC";
+
+            AlgorithmMap["PBEWITHSHA1AND192BITAES-CBC-BC"] = "PBEWITHSHAAND192BITAES-CBC-BC";
+            AlgorithmMap["PBEWITHSHA-1AND192BITAES-CBC-BC"] = "PBEWITHSHAAND192BITAES-CBC-BC";
+
+            AlgorithmMap["PBEWITHSHA1AND256BITAES-CBC-BC"] = "PBEWITHSHAAND256BITAES-CBC-BC";
+            AlgorithmMap["PBEWITHSHA-1AND256BITAES-CBC-BC"] = "PBEWITHSHAAND256BITAES-CBC-BC";
+
+            AlgorithmMap["PBEWITHSHA-256AND128BITAES-CBC-BC"] = "PBEWITHSHA256AND128BITAES-CBC-BC";
+            AlgorithmMap["PBEWITHSHA-256AND192BITAES-CBC-BC"] = "PBEWITHSHA256AND192BITAES-CBC-BC";
+            AlgorithmMap["PBEWITHSHA-256AND256BITAES-CBC-BC"] = "PBEWITHSHA256AND256BITAES-CBC-BC";
+
+
+            AlgorithmMap["GOST"] = "GOST28147";
+            AlgorithmMap["GOST-28147"] = "GOST28147";
+            AlgorithmOidMap[CryptoProObjectIdentifiers.GostR28147Gcfb] = "GOST28147/CBC/PKCS7PADDING";
+
+            AlgorithmMap["RC5-32"] = "RC5";
+
+            AlgorithmOidMap[NttObjectIdentifiers.IdCamellia128Cbc] = "CAMELLIA/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NttObjectIdentifiers.IdCamellia192Cbc] = "CAMELLIA/CBC/PKCS7PADDING";
+            AlgorithmOidMap[NttObjectIdentifiers.IdCamellia256Cbc] = "CAMELLIA/CBC/PKCS7PADDING";
+
+            AlgorithmOidMap[KisaObjectIdentifiers.IdSeedCbc] = "SEED/CBC/PKCS7PADDING";
+
+            /*
+             * TODO[api] Incorrect version of cryptlib_algorithm_blowfish_CBC
+             * Remove at major version update and delete bad test data "pbes2.bf-cbc.key"
+             */
+            AlgorithmOidMap[new DerObjectIdentifier("1.3.6.1.4.1.3029.1.2")] = "BLOWFISH/CBC";
+            AlgorithmOidMap[MiscObjectIdentifiers.cryptlib_algorithm_blowfish_CBC] = "BLOWFISH/CBC";
+
+            AlgorithmMap["CHACHA20"] = "CHACHA7539";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdAlgAeadChaCha20Poly1305] = "CHACHA20-POLY1305";
+
+#if DEBUG
+            foreach (var key in AlgorithmMap.Keys)
+            {
+                if (DerObjectIdentifier.TryFromID(key, out var ignore))
+                    throw new Exception("OID mapping belongs in AlgorithmOidMap: " + key);
+            }
+
+            var mechanisms = new HashSet<string>(AlgorithmMap.Values);
+            mechanisms.UnionWith(AlgorithmOidMap.Values);
+
+            foreach (var mechanism in mechanisms)
+            {
+                if (AlgorithmMap.TryGetValue(mechanism, out var check))
+                {
+                    if (mechanism != check)
+                        throw new Exception("Mechanism mapping MUST be to self: " + mechanism);
+                }
+                else
+                {
+                    if (!mechanism.Equals(mechanism.ToUpperInvariant()))
+                        throw new Exception("Unmapped mechanism MUST be uppercase: " + mechanism);
+                }
+            }
+#endif
         }
 
-        public static IBufferedCipher GetCipher(
-            DerObjectIdentifier oid)
+        public static string GetAlgorithmName(DerObjectIdentifier oid)
         {
-            return GetCipher(oid.Id);
+            return CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
+        }
+
+        public static IBufferedCipher GetCipher(DerObjectIdentifier oid)
+        {
+            if (oid == null)
+                throw new ArgumentNullException(nameof(oid));
+
+            if (AlgorithmOidMap.TryGetValue(oid, out var mechanism))
+            {
+                var cipher = GetCipherForMechanism(mechanism);
+                if (cipher != null)
+                    return cipher;
+            }
+
+            throw new SecurityUtilityException("Cipher OID not recognised.");
         }
 
         public static IBufferedCipher GetCipher(string algorithm)
@@ -273,14 +320,23 @@ namespace Org.BouncyCastle.Security
             if (algorithm == null)
                 throw new ArgumentNullException(nameof(algorithm));
 
-            algorithm = CollectionUtilities.GetValueOrKey(Algorithms, algorithm).ToUpperInvariant();
+            string mechanism = GetMechanism(algorithm) ?? algorithm.ToUpperInvariant();
 
+            var cipher = GetCipherForMechanism(mechanism);
+            if (cipher != null)
+                return cipher;
+
+            throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+        }
+
+        private static IBufferedCipher GetCipherForMechanism(string mechanism)
+        {
             IBasicAgreement iesAgreement = null;
-            if (algorithm == "IES")
+            if (mechanism == "IES")
             {
                 iesAgreement = new DHBasicAgreement();
             }
-            else if (algorithm == "ECIES")
+            else if (mechanism == "ECIES")
             {
                 iesAgreement = new ECDHBasicAgreement();
             }
@@ -298,36 +354,36 @@ namespace Org.BouncyCastle.Security
 
 
 
-            if (Platform.StartsWith(algorithm, "PBE"))
+            if (Platform.StartsWith(mechanism, "PBE"))
             {
-                if (Platform.EndsWith(algorithm, "-CBC"))
+                if (Platform.EndsWith(mechanism, "-CBC"))
                 {
-                    if (algorithm == "PBEWITHSHA1ANDDES-CBC")
+                    if (mechanism == "PBEWITHSHA1ANDDES-CBC")
                     {
                         return new PaddedBufferedBlockCipher(
                             new CbcBlockCipher(new DesEngine()));
                     }
-                    else if (algorithm == "PBEWITHSHA1ANDRC2-CBC")
+                    else if (mechanism == "PBEWITHSHA1ANDRC2-CBC")
                     {
                         return new PaddedBufferedBlockCipher(
                             new CbcBlockCipher(new RC2Engine()));
                     }
-                    else if (Strings.IsOneOf(algorithm,
+                    else if (Strings.IsOneOf(mechanism,
                         "PBEWITHSHAAND2-KEYTRIPLEDES-CBC", "PBEWITHSHAAND3-KEYTRIPLEDES-CBC"))
                     {
                         return new PaddedBufferedBlockCipher(
                             new CbcBlockCipher(new DesEdeEngine()));
                     }
-                    else if (Strings.IsOneOf(algorithm,
+                    else if (Strings.IsOneOf(mechanism,
                         "PBEWITHSHAAND128BITRC2-CBC", "PBEWITHSHAAND40BITRC2-CBC"))
                     {
                         return new PaddedBufferedBlockCipher(
                             new CbcBlockCipher(new RC2Engine()));
                     }
                 }
-                else if (Platform.EndsWith(algorithm, "-BC") || Platform.EndsWith(algorithm, "-OPENSSL"))
+                else if (Platform.EndsWith(mechanism, "-BC") || Platform.EndsWith(mechanism, "-OPENSSL"))
                 {
-                    if (Strings.IsOneOf(algorithm,
+                    if (Strings.IsOneOf(mechanism,
                         "PBEWITHSHAAND128BITAES-CBC-BC",
                         "PBEWITHSHAAND192BITAES-CBC-BC",
                         "PBEWITHSHAAND256BITAES-CBC-BC",
@@ -346,14 +402,14 @@ namespace Org.BouncyCastle.Security
 
 
 
-            string[] parts = algorithm.Split('/');
+            string[] parts = mechanism.Split('/');
 
             IAeadCipher aeadCipher = null;
             IBlockCipher blockCipher = null;
             IAsymmetricBlockCipher asymBlockCipher = null;
             IStreamCipher streamCipher = null;
 
-            string algorithmName = CollectionUtilities.GetValueOrKey(Algorithms, parts[0]).ToUpperInvariant();
+            string algorithmName = CollectionUtilities.GetValueOrKey(AlgorithmMap, parts[0]).ToUpperInvariant();
 
             CipherAlgorithm cipherAlgorithm;
             try
@@ -362,7 +418,7 @@ namespace Org.BouncyCastle.Security
             }
             catch (ArgumentException)
             {
-                throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+                return null;
             }
 
             switch (cipherAlgorithm)
@@ -486,7 +542,7 @@ namespace Org.BouncyCastle.Security
                 blockCipher = new XteaEngine();
                 break;
             default:
-                throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+                return null;
             }
 
             if (aeadCipher != null)
@@ -535,7 +591,7 @@ namespace Org.BouncyCastle.Security
                     }
                     catch (ArgumentException)
                     {
-                        throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+                        return null;
                     }
                 }
 
@@ -615,7 +671,7 @@ namespace Org.BouncyCastle.Security
                     padding = new ZeroBytePadding();
                     break;
                 default:
-                    throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+                    return null;
                 }
             }
 
@@ -693,12 +749,12 @@ namespace Org.BouncyCastle.Security
                         blockCipherMode = new SicBlockCipher(blockCipher);
                         break;
                     default:
-                        throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+                        return null;
                     }
                 }
                 catch (ArgumentException)
                 {
-                    throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+                    return null;
                 }
             }
 
@@ -742,12 +798,7 @@ namespace Org.BouncyCastle.Security
                 return new BufferedAsymmetricBlockCipher(asymBlockCipher);
             }
 
-            throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
-        }
-
-        public static string GetAlgorithmName(DerObjectIdentifier oid)
-        {
-            return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);
+            return null;
         }
 
         private static int GetDigitIndex(string s)
@@ -759,6 +810,20 @@ namespace Org.BouncyCastle.Security
             }
 
             return -1;
+        }
+
+        private static string GetMechanism(string algorithm)
+        {
+            if (AlgorithmMap.TryGetValue(algorithm, out var mechanism1))
+                return mechanism1;
+
+            if (DerObjectIdentifier.TryFromID(algorithm, out var oid))
+            {
+                if (AlgorithmOidMap.TryGetValue(oid, out var mechanism2))
+                    return mechanism2;
+            }
+
+            return null;
         }
 
         private static IBlockCipher CreateBlockCipher(CipherAlgorithm cipherAlgorithm)
