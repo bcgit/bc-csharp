@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -125,11 +126,18 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> buf = stackalloc byte[5];
+                buf[0] = 0xFF;
+                Pack.UInt32_To_BE((uint)bodyLen, buf, 1);
+                outStr.Write(buf);
+#else
                 outStr.WriteByte(0xff);
                 outStr.WriteByte((byte)(bodyLen >> 24));
                 outStr.WriteByte((byte)(bodyLen >> 16));
                 outStr.WriteByte((byte)(bodyLen >> 8));
                 outStr.WriteByte((byte)bodyLen);
+#endif
             }
         }
 
@@ -169,11 +177,18 @@ namespace Org.BouncyCastle.Bcpg
                     }
                     else
                     {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        Span<byte> buf = stackalloc byte[5];
+                        buf[0] = (byte)(hdr | 0x02);
+                        Pack.UInt32_To_BE((uint)bodyLen, buf, 1);
+                        this.Write(buf);
+#else
                         this.WriteByte((byte)(hdr | 0x02));
                         this.WriteByte((byte)(bodyLen >> 24));
                         this.WriteByte((byte)(bodyLen >> 16));
                         this.WriteByte((byte)(bodyLen >> 8));
                         this.WriteByte((byte)bodyLen);
+#endif
                     }
                 }
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Sig;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.IO;
@@ -265,10 +266,7 @@ namespace Org.BouncyCastle.Bcpg
 
                 byte[] trailer = new byte[5];
 				trailer[0] = (byte)signatureType;
-                trailer[1] = (byte)(time >> 24);
-                trailer[2] = (byte)(time >> 16);
-                trailer[3] = (byte)(time >>  8);
-                trailer[4] = (byte)(time      );
+                Pack.UInt32_To_BE((uint)time, trailer, 1);
                 return trailer;
             }
 
