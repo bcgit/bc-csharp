@@ -127,38 +127,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        internal class Holder_gostR3410_2001_CryptoPro_XchB
-            : X9ECParametersHolder
-        {
-            private Holder_gostR3410_2001_CryptoPro_XchB() {}
-
-            internal static readonly X9ECParametersHolder Instance = new Holder_gostR3410_2001_CryptoPro_XchB();
-
-            protected override ECCurve CreateCurve()
-            {
-                BigInteger mod_p = FromHex("9B9F605F5A858107AB1EC85E6B41C8AACF846E86789051D37998F7B9022D759B");
-                BigInteger mod_q = FromHex("9B9F605F5A858107AB1EC85E6B41C8AA582CA3511EDDFB74F02F3A6598980BB9");
-
-                return ConfigureCurve(new FpCurve(
-                    mod_p,
-                    FromHex("9B9F605F5A858107AB1EC85E6B41C8AACF846E86789051D37998F7B9022D7598"),
-                    FromHex("805A"),
-                    mod_q, BigInteger.One, isInternal: true));
-            }
-
-            protected override X9ECParameters CreateParameters()
-            {
-                byte[] S = null;
-                ECCurve curve = Curve;
-
-                X9ECPoint G = ConfigureBasepoint(curve,
-                    BigInteger.Zero,
-                    FromHex("41ECE55743711A8C3CBF3783CD08C0EE4D4DC440D4641A8F366E550DFDB3BB67"));
-
-                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
-            }
-        };
-
         internal class Holder_id_tc26_gost_3410_12_256_paramSetA
             : X9ECParametersHolder
         {
@@ -317,10 +285,19 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
                 Holder_gostR3410_2001_CryptoPro_A.Instance);
             DefineCurve("GostR3410-2001-CryptoPro-XchB",
                 CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
-                Holder_gostR3410_2001_CryptoPro_XchB.Instance);
+                Holder_gostR3410_2001_CryptoPro_C.Instance);
             DefineCurve("Tc26-Gost-3410-12-256-paramSetA",
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
                 Holder_id_tc26_gost_3410_12_256_paramSetA.Instance);
+            DefineCurve("Tc26-Gost-3410-12-256-paramSetB",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetB,
+                Holder_gostR3410_2001_CryptoPro_A.Instance);
+            DefineCurve("Tc26-Gost-3410-12-256-paramSetC",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetC,
+                Holder_gostR3410_2001_CryptoPro_B.Instance);
+            DefineCurve("Tc26-Gost-3410-12-256-paramSetD",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetD,
+                Holder_gostR3410_2001_CryptoPro_C.Instance);
             DefineCurve("Tc26-Gost-3410-12-512-paramSetA",
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
                 Holder_id_tc26_gost_3410_12_512_paramSetA.Instance);
