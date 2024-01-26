@@ -847,6 +847,44 @@ namespace Org.BouncyCastle.Pkcs.Tests
       + "TK5wp093iTAxMCEwCQYFKw4DAhoFAAQU1SGg9xV7jfLcJh3tzd+phZTMN38E"
       + "CL6WgCtEom7kAgIIAA==");
 
+		private static readonly char[] hmacSha384TestPassword = "changeit".ToCharArray();
+		private static readonly byte[] hmacSha384Test = Base64.Decode(
+		"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"
+		+ "05M2znIOOdFEiVubcf9IBAgdTcmL1rwzgQICBAA=");
+
 		private readonly SecureRandom Random = new SecureRandom();
 
 		/**
@@ -1426,6 +1464,13 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			IsTrue(store.GetCertificateChain("45cbf1116fb3f38b2984b3c7224cae70a74f7789").Length == 1);
 		}
 
+		private void DoTestHmacSha384()
+		{
+			Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+			store.Load(new MemoryStream(hmacSha384Test, false), hmacSha384TestPassword);
+			IsTrue(store.GetCertificateChain("test").Length == 1);
+		}
+
 		public override string Name
 		{
 			get { return "PKCS12Store"; }
@@ -1436,6 +1481,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             DoTestCertsOnly();
 			DoTestPkcs12Store();
 			DoTestLoadRepeatedLocalKeyID();
+			DoTestHmacSha384();
 		}
 
 		[Test]
@@ -1443,7 +1489,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 		{
 			string resultText = Perform().ToString();
 
-            Assert.AreEqual(Name + ": Okay", resultText);
+			Assert.AreEqual(Name + ": Okay", resultText, resultText);
 		}
 	}
 }
