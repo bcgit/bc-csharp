@@ -4,9 +4,11 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -52,8 +54,8 @@ namespace Org.BouncyCastle.Pkcs
             new Dictionary<string, Asn1Encodable>(StringComparer.OrdinalIgnoreCase);
         internal static readonly Dictionary<DerObjectIdentifier, string> m_keyAlgorithms =
             new Dictionary<DerObjectIdentifier, string>();
-        internal static readonly Dictionary<DerObjectIdentifier, string> m_oids =
-            new Dictionary<DerObjectIdentifier, string>();
+        //internal static readonly Dictionary<DerObjectIdentifier, string> m_oids =
+        //    new Dictionary<DerObjectIdentifier, string>();
         internal static readonly HashSet<DerObjectIdentifier> m_noParams = new HashSet<DerObjectIdentifier>();
 
         static Pkcs10CertificationRequest()
@@ -120,33 +122,42 @@ namespace Org.BouncyCastle.Pkcs
             m_algorithms.Add("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
             m_algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
             m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+            m_algorithms.Add("GOST3411-2012-256WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
+            m_algorithms.Add("GOST3411-2012-256WITHECGOST3410-2012-256", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
+            m_algorithms.Add("GOST3411-2012-512WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
+            m_algorithms.Add("GOST3411-2012-512WITHECGOST3410-2012-512", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
+            m_algorithms.Add("Ed25519", EdECObjectIdentifiers.id_Ed25519);
+            m_algorithms.Add("Ed448", EdECObjectIdentifiers.id_Ed448);
 
             //
             // reverse mappings
             //
-            m_oids.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption, "SHA1WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption, "SHA224WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption, "SHA256WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.Sha384WithRsaEncryption, "SHA384WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.Sha512WithRsaEncryption, "SHA512WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.Sha512_224WithRSAEncryption, "SHA512(224)WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.Sha512_256WithRSAEncryption, "SHA512(256)WITHRSA");
-            m_oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, "GOST3411WITHGOST3410");
-            m_oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, "GOST3411WITHECGOST3410");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption, "SHA1WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption, "SHA224WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption, "SHA256WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha384WithRsaEncryption, "SHA384WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha512WithRsaEncryption, "SHA512WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha512_224WithRSAEncryption, "SHA512(224)WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.Sha512_256WithRSAEncryption, "SHA512(256)WITHRSA");
+            //m_oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, "GOST3411WITHGOST3410");
+            //m_oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, "GOST3411WITHECGOST3410");
 
-            m_oids.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, "MD5WITHRSA");
-            m_oids.Add(PkcsObjectIdentifiers.MD2WithRsaEncryption, "MD2WITHRSA");
-            m_oids.Add(X9ObjectIdentifiers.IdDsaWithSha1, "SHA1WITHDSA");
-            m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha1, "SHA1WITHECDSA");
-            m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha224, "SHA224WITHECDSA");
-            m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha256, "SHA256WITHECDSA");
-            m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha384, "SHA384WITHECDSA");
-            m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha512, "SHA512WITHECDSA");
-            m_oids.Add(OiwObjectIdentifiers.MD5WithRsa, "MD5WITHRSA");
-            m_oids.Add(OiwObjectIdentifiers.Sha1WithRsa, "SHA1WITHRSA");
-            m_oids.Add(OiwObjectIdentifiers.DsaWithSha1, "SHA1WITHDSA");
-            m_oids.Add(NistObjectIdentifiers.DsaWithSha224, "SHA224WITHDSA");
-            m_oids.Add(NistObjectIdentifiers.DsaWithSha256, "SHA256WITHDSA");
+            //m_oids.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, "MD5WITHRSA");
+            //m_oids.Add(PkcsObjectIdentifiers.MD2WithRsaEncryption, "MD2WITHRSA");
+            //m_oids.Add(X9ObjectIdentifiers.IdDsaWithSha1, "SHA1WITHDSA");
+            //m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha1, "SHA1WITHECDSA");
+            //m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha224, "SHA224WITHECDSA");
+            //m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha256, "SHA256WITHECDSA");
+            //m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha384, "SHA384WITHECDSA");
+            //m_oids.Add(X9ObjectIdentifiers.ECDsaWithSha512, "SHA512WITHECDSA");
+            //m_oids.Add(OiwObjectIdentifiers.MD5WithRsa, "MD5WITHRSA");
+            //m_oids.Add(OiwObjectIdentifiers.Sha1WithRsa, "SHA1WITHRSA");
+            //m_oids.Add(OiwObjectIdentifiers.DsaWithSha1, "SHA1WITHDSA");
+            //m_oids.Add(NistObjectIdentifiers.DsaWithSha224, "SHA224WITHDSA");
+            //m_oids.Add(NistObjectIdentifiers.DsaWithSha256, "SHA256WITHDSA");
+
+            //m_oids.Add(EdECObjectIdentifiers.id_Ed25519, "Ed25519");
+            //m_oids.Add(EdECObjectIdentifiers.id_Ed448, "Ed448");
 
             //
             // key types
@@ -173,6 +184,12 @@ namespace Org.BouncyCastle.Pkcs
             //
             m_noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
             m_noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+
+            //
+            // RFC 8410
+            //
+            m_noParams.Add(EdECObjectIdentifiers.id_Ed25519);
+            m_noParams.Add(EdECObjectIdentifiers.id_Ed448);
 
             //
             // explicit params
