@@ -133,9 +133,14 @@ namespace Org.BouncyCastle.Bcpg
         private static string CreateVersion()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var title = assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
-            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-            return title + " v" + version;
+
+            var titleAttr = assembly.GetCustomAttribute<AssemblyTitleAttribute>();
+            var versionAttr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+
+            if (titleAttr == null || versionAttr == null)
+                return "BouncyCastle (unknown version)";
+
+            return titleAttr.Title + " v" + versionAttr.InformationalVersion;
         }
 
         private static readonly string Version = CreateVersion();
