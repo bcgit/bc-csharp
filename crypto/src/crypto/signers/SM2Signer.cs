@@ -15,10 +15,18 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class SM2Signer
         : ISigner
     {
+        private enum State
+        {
+            Uninitialized = 0,
+            Init          = 1,
+            Data          = 2,
+        }
+
         private readonly IDsaKCalculator kCalculator = new RandomDsaKCalculator();
         private readonly IDigest digest;
         private readonly IDsaEncoding encoding;
 
+        private State m_state = State.Uninitialized;
         private ECDomainParameters ecParams;
         private ECPoint pubPoint;
         private ECKeyParameters ecKey;
@@ -100,23 +108,28 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             digest.Reset();
             z = GetZ(userID);
-
-            digest.BlockUpdate(z, 0, z.Length);
+            m_state = State.Init;
         }
 
         public virtual void Update(byte b)
         {
+            CheckData();
+
             digest.Update(b);
         }
 
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
+            CheckData();
+
             digest.BlockUpdate(input, inOff, inLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
+            CheckData();
+
             digest.BlockUpdate(input);
         }
 #endif
@@ -125,6 +138,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual byte[] GenerateSignature()
         {
+            CheckData();
+
             byte[] eHash = DigestUtilities.DoFinal(digest);
 
             BigInteger n = ecParams.N;
@@ -169,10 +184,16 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 throw new CryptoException("unable to encode signature: " + ex.Message, ex);
             }
+            finally
+            {
+                Reset();
+            }
         }
 
         public virtual bool VerifySignature(byte[] signature)
         {
+            CheckData();
+
             try
             {
                 BigInteger[] rs = encoding.Decode(ecParams.N, signature);
@@ -182,17 +203,28 @@ namespace Org.BouncyCastle.Crypto.Signers
             catch (Exception)
             {
             }
+            finally
+            {
+                Reset();
+            }
 
             return false;
         }
 
         public virtual void Reset()
         {
-            if (z != null)
+            switch (m_state)
             {
-                digest.Reset();
-                digest.BlockUpdate(z, 0, z.Length);
+            case State.Init:
+                return;
+            case State.Data:
+                break;
+            default:
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
             }
+
+            digest.Reset();
+            m_state = State.Init;
         }
 
         private bool VerifySignature(BigInteger r, BigInteger s)
@@ -226,7 +258,25 @@ namespace Org.BouncyCastle.Crypto.Signers
                 return false;
 
             // B7
-            return r.Equals(e.Add(x1y1.AffineXCoord.ToBigInteger()).Mod(n));
+            BigInteger expectedR = e.Add(x1y1.AffineXCoord.ToBigInteger()).Mod(n);
+
+            return expectedR.Equals(r);
+        }
+
+        private void CheckData()
+        {
+            switch (m_state)
+            {
+            case State.Init:
+                break;
+            case State.Data:
+                return;
+            default:
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
+            }
+
+            digest.BlockUpdate(z, 0, z.Length);
+            m_state = State.Data;
         }
 
         private byte[] GetZ(byte[] userID)

@@ -1,6 +1,3 @@
-﻿using System;
-using System.IO;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
@@ -136,6 +133,12 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void DoSignerTest(ECDomainParameters domainParams, IDigest d, string ident, string msg, string x, string nonce, string r, string s)
         {
+            ImplSignerTest(domainParams, d, ident, msg, x, nonce, r, s);
+            ImplSignerTestReuse(domainParams, d, ident, msg, x);
+        }
+
+        private void ImplSignerTest(ECDomainParameters domainParams, IDigest d, string ident, string msg, string x, string nonce, string r, string s)
+        {
             byte[] idBytes = Strings.ToByteArray(ident);
             byte[] msgBytes = Strings.ToByteArray(msg);
             AsymmetricCipherKeyPair kp = GenerateKeyPair(domainParams, x);
@@ -160,6 +163,39 @@ namespace Org.BouncyCastle.Crypto.Tests
             signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
 
             IsTrue("verification failed", signer.VerifySignature(sig));
+        }
+
+        private void ImplSignerTestReuse(ECDomainParameters domainParams, IDigest d, string ident, string msg, string x)
+        {
+            byte[] idBytes = Strings.ToByteArray(ident);
+            byte[] msgBytes = Strings.ToByteArray(msg);
+            AsymmetricCipherKeyPair kp = GenerateKeyPair(domainParams, x);
+
+            SM2Signer signer = new SM2Signer(d);
+
+            signer.Init(true, new ParametersWithID(kp.Private, idBytes));
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+            byte[] sig1 = signer.GenerateSignature();
+
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+            byte[] sig2 = signer.GenerateSignature();
+
+            signer.Update(0x00);
+            signer.Reset();
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+            byte[] sig3 = signer.GenerateSignature();
+
+            signer.Init(false, new ParametersWithID(kp.Public, idBytes));
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+            IsTrue("verification failed", signer.VerifySignature(sig1));
+
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+            IsTrue("verification failed", signer.VerifySignature(sig2));
+
+            signer.Update(0x00);
+            signer.Reset();
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+            IsTrue("verification failed", signer.VerifySignature(sig3));
         }
 
         private void DoVerifyBoundsCheck()
