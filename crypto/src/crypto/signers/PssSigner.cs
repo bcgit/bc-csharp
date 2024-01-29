@@ -35,19 +35,22 @@ namespace Org.BouncyCastle.Crypto.Signers
 
 		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest digest)
 		{
-			return new PssSigner(cipher, new NullDigest(), digest, digest, digest.GetDigestSize(), null, TrailerImplicit);
+			return new PssSigner(cipher, Prehash.ForDigest(digest), digest, digest, digest.GetDigestSize(), null,
+				TrailerImplicit);
 		}
 
 		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
 			int saltLen, byte trailer)
 		{
-			return new PssSigner(cipher, new NullDigest(), contentDigest, mgfDigest, saltLen, null, trailer);
+			return new PssSigner(cipher, Prehash.ForDigest(contentDigest), contentDigest, mgfDigest, saltLen, null,
+				trailer);
 		}
 
 		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
 			byte[] salt, byte trailer)
 		{
-			return new PssSigner(cipher, new NullDigest(), contentDigest, mgfDigest, salt.Length, salt, trailer);
+			return new PssSigner(cipher, Prehash.ForDigest(contentDigest), contentDigest, mgfDigest, salt.Length, salt,
+				trailer);
 		}
 
 		public PssSigner(

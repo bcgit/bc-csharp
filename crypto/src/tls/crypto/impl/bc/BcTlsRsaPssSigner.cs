@@ -30,8 +30,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(m_signatureScheme);
             IDigest digest = m_crypto.CreateDigest(cryptoHashAlgorithm);
 
-            PssSigner signer = PssSigner.CreateRawSigner(new RsaBlindedEngine(), digest, digest, digest.GetDigestSize(),
-                PssSigner.TrailerImplicit);
+            PssSigner signer = PssSigner.CreateRawSigner(new RsaBlindedEngine(), digest);
             signer.Init(true, new ParametersWithRandom(m_privateKey, m_crypto.SecureRandom));
             signer.BlockUpdate(hash, 0, hash.Length);
             try
