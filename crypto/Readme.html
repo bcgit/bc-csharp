@@ -337,9 +337,17 @@
             <li>HC128Engine now strictly requires 128 bits of IV.</li>
             <li>DTLS: Fixed server support for client_certificate_type extension.</li>
             <li>DTLS: Fixed retransmission in response to re-receipt of an aggregated ChangeCipherSpec.</li>
+            <li>SM2Signer: Fixed to support reuse (i.e. auto-reset after GenerateSignature or VerifySignature).</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>
+            <li>DTLS: Significantly improved performance of DtlsVerifier.</li>
+            <li>Added Rfc5649WrapEngine.</li>
+            <li>
+                ASN.1: Added support for "DL" encoding (Asn1Encodable.DL), which is like BER except that encodings always use
+                the definite-length form.
+            </li>
+            <li>Added support for PBE SHA-384 and SHA-512 HMAC algorithms, e.g. in Pkcs12Store.</li>
         </ul>
         <h5>Additional Notes</h5>
         <ul>
