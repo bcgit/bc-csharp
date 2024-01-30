@@ -13,7 +13,8 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Tests
 {
     [TestFixture]
-	public class SP80038GTest
+    [NonParallelizable] // Environment.SetEnvironmentVariable
+    public class SP80038GTest
 	    : SimpleTest
 {
     private class FFSample
