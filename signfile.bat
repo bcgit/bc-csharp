@@ -14,13 +14,18 @@ set SignToolDir=C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\
 set SignTool=%SignToolDir%signtool.exe
 
 echo Preparing to sign %Target%
-echo "%SignTool%" sign /f "%CodesignFile%" /fd sha256 /tr "%TimestampUrl%" /td sha256 /p "%CodesignPass%" %Target% || exit /b 1
-echo Waiting for 20 seconds before issuing command (avoid timeserver rejection)
+echo "%SignTool%" sign /f "%CodesignFile%" /fd sha256 /tr "%TimestampUrl%" /td sha256 /p PASSWORD %Target
 
 rem Timestamp server requires 15 seconds or more between signing requests
 rem When publishing need to limit parallel build tasks to 1 in Tools|Options|Projects and Solutions|Build and Run
-ping -n 20 127.0.0.1 >NUL
+set attempts=10
+:DoWhile
+    echo %attempts% attempts remaining
+    echo Waiting for 30 seconds before issuing command (avoid timeserver rejection)
+    ping -n 30 127.0.0.1 >NUL
+    "%SignTool%" sign /f "%CodesignFile%" /fd sha256 /tr "%TimestampUrl%" /td sha256 /p "%CodesignPass%" %Target% && goto EndDoWhile
+    set /a attempts = %attempts% - 1
+    if %attempts% gtr 0 goto DoWhile
+:EndDoWhile
 
-"%SignTool%" sign /f "%CodesignFile%" /fd sha256 /tr "%TimestampUrl%" /td sha256 /p "%CodesignPass%" %Target% || exit /b 1
-
-"%SignTool%" verify /pa /tw %Target% || exit /b 1
+"%SignTool%" verify /pa /tw %Target%
