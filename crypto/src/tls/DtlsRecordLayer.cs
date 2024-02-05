@@ -654,18 +654,18 @@ namespace Org.BouncyCastle.Tls
         {
             try
             {
-                return m_transport.Receive(buf, off, len, waitMillis);
+                // NOTE: the buffer is sized to support m_transport.GetReceiveLimit().
+                int received = m_transport.Receive(buf, off, len, waitMillis);
+
+                // Check the transport returned a sensible value, otherwise discard the datagram.
+                if (received <= len)
+                    return received;
             }
             catch (TlsTimeoutException)
             {
-                return -1;
             }
-            catch (SocketException e)
+            catch (SocketException e) when (TlsUtilities.IsTimeout(e))
             {
-                if (TlsUtilities.IsTimeout(e))
-                    return -1;
-
-                throw;
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
             //catch (InterruptedIOException e)
@@ -673,6 +673,8 @@ namespace Org.BouncyCastle.Tls
             //    e.bytesTransferred = 0;
             //    throw;
             //}
+
+            return -1;
         }
 
         // TODO Include 'currentTimeMillis' as an argument, use with Timeout, resetHeartbeat
