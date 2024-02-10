@@ -26,18 +26,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private static IDictionary<string, HashAlgorithmTag> CreateNameToHashID()
         {
-            var d = new Dictionary<string, HashAlgorithmTag>(StringComparer.OrdinalIgnoreCase);
-            d.Add("sha1", HashAlgorithmTag.Sha1);
-            d.Add("sha224", HashAlgorithmTag.Sha224);
-            d.Add("sha256", HashAlgorithmTag.Sha256);
-            d.Add("sha384", HashAlgorithmTag.Sha384);
-            d.Add("sha512", HashAlgorithmTag.Sha512);
-            d.Add("ripemd160", HashAlgorithmTag.RipeMD160);
-            d.Add("rmd160", HashAlgorithmTag.RipeMD160);
-            d.Add("md2", HashAlgorithmTag.MD2);
-            d.Add("tiger", HashAlgorithmTag.Tiger192);
-            d.Add("haval", HashAlgorithmTag.Haval5pass160);
-            d.Add("md5", HashAlgorithmTag.MD5);
+            var d = new Dictionary<string, HashAlgorithmTag>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "sha1", HashAlgorithmTag.Sha1 },
+                { "sha224", HashAlgorithmTag.Sha224 },
+                { "sha256", HashAlgorithmTag.Sha256 },
+                { "sha384", HashAlgorithmTag.Sha384 },
+                { "sha512", HashAlgorithmTag.Sha512 },
+                { "ripemd160", HashAlgorithmTag.RipeMD160 },
+                { "rmd160", HashAlgorithmTag.RipeMD160 },
+                { "md2", HashAlgorithmTag.MD2 },
+                { "tiger", HashAlgorithmTag.Tiger192 },
+                { "haval", HashAlgorithmTag.Haval5pass160 },
+                { "md5", HashAlgorithmTag.MD5 },
+                { "Sha3_256" , HashAlgorithmTag.Sha3_256},
+                { "Sha3_512" , HashAlgorithmTag.Sha3_512},
+            };
             return d;
         }
 
@@ -102,7 +106,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				return "SHA384";
 			case HashAlgorithmTag.Sha512:
 				return "SHA512";
-			default:
+            case HashAlgorithmTag.Sha3_256:
+                return "SHA3-256";
+            case HashAlgorithmTag.Sha3_512:
+                return "SHA3-512";
+            default:
 				throw new PgpException("unknown hash algorithm tag in GetDigestName: " + hashAlgorithm);
 			}
         }
@@ -157,11 +165,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			case PublicKeyAlgorithmTag.ElGamalGeneral:
 				encAlg = "ElGamal";
 				break;
-			default:
+            case PublicKeyAlgorithmTag.Ed25519:
+                encAlg = "Ed25519";
+                break;
+            case PublicKeyAlgorithmTag.Ed448:
+                encAlg = "Ed448";
+                break;
+            default:
 				throw new PgpException("unknown algorithm tag in signature:" + keyAlgorithm);
             }
 
-			return GetDigestName(hashAlgorithm) + "with" + encAlg;
+            string digestName = GetDigestName(hashAlgorithm);
+            return $"{digestName}with{encAlg}";
         }
 
 	    public static string GetSymmetricCipherName(
