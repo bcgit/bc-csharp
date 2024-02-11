@@ -241,6 +241,8 @@ namespace Org.BouncyCastle.Bcpg
                     return new SymmetricEncIntegrityPacket(objStream);
                 case PacketTag.ModificationDetectionCode:
                     return new ModDetectionCodePacket(objStream);
+                case PacketTag.Padding:
+                    return new PaddingPacket(objStream);
                 case PacketTag.Experimental1:
                 case PacketTag.Experimental2:
                 case PacketTag.Experimental3:
@@ -253,8 +255,13 @@ namespace Org.BouncyCastle.Bcpg
 
         public PacketTag SkipMarkerPackets()
         {
+            return SkipMarkerAndPaddingPackets();
+        }
+
+        public PacketTag SkipMarkerAndPaddingPackets()
+        {
             PacketTag tag;
-            while ((tag = NextPacketTag()) == PacketTag.Marker)
+            while ((tag = NextPacketTag()) == PacketTag.Marker || tag == PacketTag.Padding)
             {
                 ReadPacket();
             }
