@@ -1,5 +1,9 @@
 using System;
 
+#if NET6_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
+
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Utilities;
@@ -146,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 fpeEngine.ProcessBlock(plainText, 0, plainText.Length, plainText, 0);
-                Fail("no exception");
+                Fail("no exception - ImplTestFF1 first");
             }
             catch (ArgumentException e)
             {
@@ -156,7 +160,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 fpeEngine.ProcessBlock(new byte[] { 1 }, 0, 1, plainText, 0);
-                Fail("no exception");
+                Fail("no exception - ImplTestFF1 second");
             }
             catch (ArgumentException e)
             {
@@ -217,7 +221,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 fpeEngine.ProcessBlock(plainText, 0, plainText.Length, plainText, 0);
-                Fail("no exception");
+                Fail("no exception - ImplTestFF3_1 first");
             }
             catch (ArgumentException e)
             {
@@ -228,7 +232,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), 24, Hex.Decode("beef")));
 
-                Fail("no exception");
+                Fail("no exception - ImplTestFF3_1 second");
             }
             catch (ArgumentException e)
             {
@@ -277,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 ImplTestFF1();
-                Fail("no exception");
+                Fail("no exception - ImplTestDisable first");
             }
             catch (InvalidOperationException e)
             {
@@ -287,7 +291,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 ImplTestFF3_1();
-                Fail("no exception");
+                Fail("no exception - ImplTestDisable second");
             }
             catch (InvalidOperationException e)
             {
@@ -299,7 +303,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 ImplTestFF1();
-                Fail("no exception");
+                Fail("no exception - ImplTestDisable third");
             }
             catch (InvalidOperationException e)
             {
@@ -390,7 +394,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), alphabetMapper.Radix, tweak));
 
                 ImplProcess(fpeEngine, new byte[] { 1, 2, 3 });
-                Fail("no exception");
+                Fail("no exception - ImplTestFF1Bounds first");
             }
             catch (ArgumentException e)
             {
@@ -405,7 +409,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                             alphabetMapper.Radix, tweak));
 
                 ImplProcess(fpeEngine, new byte[] { 1, 2, 3 });
-                Fail("no exception");
+                Fail("no exception - ImplTestFF1Bounds second");
             }
             catch (ArgumentException e)
             {
@@ -522,6 +526,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue("no match", Arrays.AreEqual(input, decrypted));
         }
 
+        // On Linux platforms, ImplTestDisable requires setting
+        // environment variables, which isn't fully supported by
+        // dotnet due to libc's lack of locking semantics, which
+        // can result in race conditions reading and writing
+        // environment variables.
         public override void PerformTest()
         {
             ImplTestFF1();
@@ -532,7 +541,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             ImplTestFF3_1w();
             ImplTestFF3_1_255();
             ImplTestFF3_1Bounds();
-            ImplTestDisable();
+#if NET6_0_OR_GREATER
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                ImplTestDisable();
+            }
+#endif
             ImplTestUtility();
         }
 
