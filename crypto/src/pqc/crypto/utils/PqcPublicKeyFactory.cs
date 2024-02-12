@@ -143,6 +143,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3] = new SphincsPlusConverter();
             Converters[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3] = new SphincsPlusConverter();
 
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_128f_r3_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_128s_r3_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_192f_r3_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_192s_r3_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3_simple] = new SphincsPlusConverter();
+            Converters[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3_simple] = new SphincsPlusConverter();
+
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s] = new SphincsPlusConverter();
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f] = new SphincsPlusConverter();
             Converters[BCObjectIdentifiers.sphincsPlus_shake_128s] = new SphincsPlusConverter();
