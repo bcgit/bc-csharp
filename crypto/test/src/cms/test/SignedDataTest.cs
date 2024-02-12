@@ -1485,6 +1485,14 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
+		[Test]
+		public void TestPkcs7SignedContent()
+		{
+			CmsSignedData sig = new CmsSignedData(GetInput("Pkcs7SignedContent.p7b"));
+
+			VerifySignatures(sig);
+		}
+
         private static void DoTestSample(string sigName)
         {
             CmsSignedData sig = new CmsSignedData(GetInput(sigName));
