@@ -1493,6 +1493,26 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sig);
 		}
 
+		[Test]
+		public void TestMsPkcs7()
+		{
+			var data = GetInput("Pkcs7SignedContent.p7b");
+			var sData = new CmsSignedData(data);
+
+			var certStore = sData.GetCertificates();
+			var signers = sData.GetSignerInfos();
+			var c = signers.GetSigners();
+
+			foreach (var signer in c)
+			{
+				var certCollection = certStore.EnumerateMatches(signer.SignerID);
+				foreach (var cert in certCollection)
+				{
+					signer.Verify(cert);
+				}
+			}
+		}
+
         private static void DoTestSample(string sigName)
         {
             CmsSignedData sig = new CmsSignedData(GetInput(sigName));
