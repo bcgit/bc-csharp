@@ -562,6 +562,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             switch (publicKeyAlgorithm)
             {
             case PublicKeyAlgorithmTag.EdDsa_Legacy:
+            case PublicKeyAlgorithmTag.Ed25519:
+            case PublicKeyAlgorithmTag.Ed448:
             {
                 ISigner signer;
                 if (key is Ed25519PrivateKeyParameters || key is Ed25519PublicKeyParameters)

@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Bcpg
         EdDsa = 22,             // EdDSA - (internet draft, but appearing in use)
         EdDsa_Legacy = 22,      // new name for old EdDSA tag.
 
-        // defined as Reserver by crypto-refresh draft
+        // defined as Reserved by crypto-refresh draft
         AEDH = 23,
         AEDSA = 24,
 

@@ -1,5 +1,5 @@
+using System;
 using System.IO;
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
@@ -11,15 +11,18 @@ namespace Org.BouncyCastle.Bcpg
 		public const int UsageNone = 0x00;
 		public const int UsageChecksum = 0xff;
 		public const int UsageSha1 = 0xfe;
+        public const int UsageAead = 0xfd;
 
-		private PublicKeyPacket pubKeyPacket;
+
+        private readonly PublicKeyPacket pubKeyPacket;
         private readonly byte[] secKeyData;
-		private int s2kUsage;
-		private SymmetricKeyAlgorithmTag encAlgorithm;
-        private S2k s2k;
-        private byte[] iv;
+		private readonly int s2kUsage;
+		private readonly SymmetricKeyAlgorithmTag encAlgorithm;
+        private readonly S2k s2k;
+        private readonly byte[] iv;
+        private readonly AeadAlgorithmTag aeadAlgo;
 
-		internal SecretKeyPacket(
+        internal SecretKeyPacket(
             BcpgInputStream bcpgIn)
         {
 			if (this is SecretSubkeyPacket)
@@ -33,17 +36,32 @@ namespace Org.BouncyCastle.Bcpg
 
 			s2kUsage = bcpgIn.ReadByte();
 
-			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+            if (s2kUsage != UsageNone && pubKeyPacket.Version == PublicKeyPacket.Version6)
+            {
+                // TODO: Use length to parse unknown parameters
+                int conditionalParameterLength = bcpgIn.ReadByte();
+            }
+
+            if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag) bcpgIn.ReadByte();
+                if (s2kUsage == UsageAead)
+                {
+                    aeadAlgo = (AeadAlgorithmTag)bcpgIn.ReadByte();
+                }
+                if (pubKeyPacket.Version == 6 && (s2kUsage == UsageSha1 || s2kUsage == UsageAead))
+                {
+                    // TODO: Use length to parse unknown S2Ks
+                    int s2kLen = bcpgIn.ReadByte();
+                }
                 s2k = new S2k(bcpgIn);
             }
             else
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag) s2kUsage;
-			}
+            }
 
-			if (!(s2k != null && s2k.Type == S2k.GnuDummyS2K && s2k.ProtectionMode == 0x01))
+            if (!(s2k != null && s2k.Type == S2k.GnuDummyS2K && s2k.ProtectionMode == 0x01))
             {
 				if (s2kUsage != 0)
 				{

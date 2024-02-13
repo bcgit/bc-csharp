@@ -11,6 +11,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Rfc7748;
@@ -25,6 +26,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpPublicKey
         : PgpObject
     {
+        private const byte v4FingerprintPreamble = 0x99;
+        private const byte v5FingerprintPreamble = 0x9A;
+        private const byte v6FingerprintPreamble = 0x9B;
+
         // We default to these as they are specified as mandatory in RFC 6631.
         private static readonly PgpKdfParameters DefaultKdfParameters = new PgpKdfParameters(HashAlgorithmTag.Sha256,
             SymmetricKeyAlgorithmTag.Aes128);
@@ -34,7 +39,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             IBcpgKey key = publicPk.Key;
             IDigest digest;
 
-            if (publicPk.Version <= 3)
+            if (publicPk.Version <= PublicKeyPacket.Version3)
             {
                 RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
 
@@ -56,11 +61,29 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     byte[] kBytes = publicPk.GetEncodedContents();
 
-                    digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
+                    if (publicPk.Version == PublicKeyPacket.Version4)
+                    {
+                        digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
 
-                    digest.Update(0x99);
-                    digest.Update((byte)(kBytes.Length >> 8));
-                    digest.Update((byte)kBytes.Length);
+                        digest.Update(v4FingerprintPreamble);
+                        digest.Update((byte)(kBytes.Length >> 8));
+                        digest.Update((byte)kBytes.Length);
+                    }
+                    else if (publicPk.Version == PublicKeyPacket.Version5 || publicPk.Version == PublicKeyPacket.Version6)
+                    {
+                        digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256);
+
+                        digest.Update(publicPk.Version == PublicKeyPacket.Version5 ? v5FingerprintPreamble : v6FingerprintPreamble);
+                        digest.Update((byte)(kBytes.Length >> 24));
+                        digest.Update((byte)(kBytes.Length >> 16));
+                        digest.Update((byte)(kBytes.Length >> 8));
+                        digest.Update((byte)kBytes.Length);
+                    }
+                    else
+                    {
+                        throw new PgpException("unsupported OpenPGP key packet version: " + publicPk.Version);
+                    }
+
                     digest.BlockUpdate(kBytes, 0, kBytes.Length);
                 }
                 catch (Exception e)
@@ -106,7 +129,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             this.fingerprint = CalculateFingerprint(publicPk);
 
-            if (publicPk.Version <= 3)
+            if (publicPk.Version <= PublicKeyPacket.Version3)
             {
                 RsaPublicBcpgKey rK = (RsaPublicBcpgKey) key;
 
@@ -115,14 +138,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else
             {
-                this.keyId = (long)(((ulong)fingerprint[fingerprint.Length - 8] << 56)
-                    | ((ulong)fingerprint[fingerprint.Length - 7] << 48)
-                    | ((ulong)fingerprint[fingerprint.Length - 6] << 40)
-                    | ((ulong)fingerprint[fingerprint.Length - 5] << 32)
-                    | ((ulong)fingerprint[fingerprint.Length - 4] << 24)
-                    | ((ulong)fingerprint[fingerprint.Length - 3] << 16)
-                    | ((ulong)fingerprint[fingerprint.Length - 2] << 8)
-                    | (ulong)fingerprint[fingerprint.Length - 1]);
+                if (publicPk.Version == PublicKeyPacket.Version4)
+                {
+                    this.keyId = (long)Pack.BE_To_UInt64(fingerprint, fingerprint.Length - 8);
+                }
+                else
+                {
+                    this.keyId = (long)Pack.BE_To_UInt64(fingerprint);
+                }
 
                 if (key is RsaPublicBcpgKey)
                 {
@@ -408,7 +431,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>The number of valid seconds from creation time - zero means no expiry.</summary>
         public long GetValidSeconds()
         {
-            if (publicPk.Version <= 3)
+            if (publicPk.Version <= PublicKeyPacket.Version3)
             {
                 return (long)publicPk.ValidDays * (24 * 60 * 60);
             }
@@ -511,6 +534,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                     case PublicKeyAlgorithmTag.RsaEncrypt:
                     case PublicKeyAlgorithmTag.RsaGeneral:
+                    case PublicKeyAlgorithmTag.X25519:
+                    case PublicKeyAlgorithmTag.X448:
                         return true;
                     default:
                         return false;
@@ -643,8 +668,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
                     return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
+
+                case PublicKeyAlgorithmTag.Ed25519:
+                    Ed25519PublicBcpgKey ed25519key = (Ed25519PublicBcpgKey)publicPk.Key;
+                    return new Ed25519PublicKeyParameters(ed25519key.GetKey());
+
+                case PublicKeyAlgorithmTag.X25519:
+                    X25519PublicBcpgKey x25519key = (X25519PublicBcpgKey)publicPk.Key;
+                    return new X25519PublicKeyParameters(x25519key.GetKey());
+
+                case PublicKeyAlgorithmTag.Ed448:
+                    Ed448PublicBcpgKey ed448key = (Ed448PublicBcpgKey)publicPk.Key;
+                    return new Ed448PublicKeyParameters(ed448key.GetKey());
+
+                case PublicKeyAlgorithmTag.X448:
+                    X448PublicBcpgKey x448key = (X448PublicBcpgKey)publicPk.Key;
+                    return new X448PublicKeyParameters(x448key.GetKey());
+
                 default:
-                    throw new PgpException("unknown public key algorithm encountered");
+                throw new PgpException("unknown public key algorithm encountered");
                 }
             }
             catch (PgpException)

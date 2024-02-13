@@ -109,6 +109,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             try
             {
                 sig.Init(false, key);
+
+                if (Version == SignaturePacket.Version6)
+                {
+                    byte[] salt = GetSignatureSalt();
+                    sig.BlockUpdate(salt, 0, salt.Length);
+                }
             }
             catch (InvalidKeyException e)
             {
@@ -332,10 +338,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return sigPck.GetSignatureTrailer();
         }
 
-		/// <summary>
-		/// Return true if the signature has either hashed or unhashed subpackets.
-		/// </summary>
-		public bool HasSubpackets
+        public byte[] GetSignatureSalt()
+        {
+            return sigPck.GetSignatureSalt();
+        }
+
+        /// <summary>
+        /// Return true if the signature has either hashed or unhashed subpackets.
+        /// </summary>
+        public bool HasSubpackets
 		{
 			get
 			{

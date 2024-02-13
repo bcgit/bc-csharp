@@ -455,6 +455,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ECDsa:
                     case PublicKeyAlgorithmTag.EdDsa_Legacy:
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
+                    case PublicKeyAlgorithmTag.Ed25519:
+                    case PublicKeyAlgorithmTag.Ed448:
                         return true;
                     default:
                         return false;
@@ -777,6 +779,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     ElGamalParameters elParams = new ElGamalParameters(elPub.P, elPub.G);
                     privateKey = new ElGamalPrivateKeyParameters(elPriv.X, elParams);
                     break;
+
+
+                case PublicKeyAlgorithmTag.Ed25519:
+                    Ed25519SecretBcpgKey ed25519key = new Ed25519SecretBcpgKey(bcpgIn);
+                    privateKey = new Ed25519PrivateKeyParameters(ed25519key.GetKey());
+                    break;
+
+                case PublicKeyAlgorithmTag.X25519:
+                    X25519SecretBcpgKey x25519key = new X25519SecretBcpgKey(bcpgIn);
+                    privateKey = new X25519PrivateKeyParameters(x25519key.GetKey());
+                    break;
+
+                case PublicKeyAlgorithmTag.Ed448:
+                    Ed448SecretBcpgKey ed448key = new Ed448SecretBcpgKey(bcpgIn);
+                    privateKey = new Ed448PrivateKeyParameters(ed448key.GetKey());
+                    break;
+
+                case PublicKeyAlgorithmTag.X448:
+                    X448SecretBcpgKey x448key = new X448SecretBcpgKey(bcpgIn);
+                    privateKey = new X448PrivateKeyParameters(x448key.GetKey());
+                    break;
+
                 default:
                     throw new PgpException("unknown public key algorithm encountered");
                 }
