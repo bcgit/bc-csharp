@@ -2,7 +2,7 @@
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Cms;
 
-namespace Org.BouncyCastle.cms
+namespace Org.BouncyCastle.Cms
 {
   public class Pkcs7ProcessableObject : CmsProcessable
   {
