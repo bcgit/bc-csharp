@@ -170,6 +170,32 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         }
 
         [Test]
+        public void Version6PublicKeyCreationTest()
+        {
+            /* 
+             * Create a v6 Ed25519 pubkey with the same key material and creation datetime as the test vector
+             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
+             * the check the fingerprint and verify a signature
+            */
+            byte[] keyMaterial = Hex.Decode("f94da7bb48d60a61e567706a6587d0331999bb9d891a08242ead84543df895a3");
+            var key = new Ed25519PublicKeyParameters(keyMaterial);
+            var pubKey = new PgpPublicKey(PublicKeyPacket.Version6, PublicKeyAlgorithmTag.Ed25519, key, DateTime.Parse("2022-11-30 16:08:03Z"));
+
+            IsEquals(pubKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
+            IsEquals(pubKey.CreationTime.ToString("yyyyMMddHHmmss"), "20221130160803");
+            byte[] expectedFingerprint = Hex.Decode("CB186C4F0609A697E4D52DFA6C722B0C1F1E27C18A56708F6525EC27BAD9ACC9");
+            IsEquals((ulong)pubKey.KeyId, 0xCB186C4F0609A697);
+            IsTrue("wrong master key fingerprint", AreEqual(pubKey.GetFingerprint(), expectedFingerprint));
+
+            bool signatureOk = VerifySignature(
+                v6SampleCleartextSignedMessageSignature,
+                Encoding.UTF8.GetBytes(v6SampleCleartextSignedMessage),
+                pubKey);
+
+            IsTrue("Failed generated signature check against original data", signatureOk);
+        }
+
+        [Test]
         public void Version6UnlockedSecretKeyParsingTest()
         {
             /*
@@ -214,15 +240,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v6Certificate);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
-            PgpObjectFactory factory = new PgpObjectFactory(v6SampleCleartextSignedMessageSignature);
+            bool signatureOk = VerifySignature(
+                v6SampleCleartextSignedMessageSignature,
+                Encoding.UTF8.GetBytes(v6SampleCleartextSignedMessage),
+                pubKey);
+
+            IsTrue("Failed generated signature check against original data", signatureOk);
+        }
+
+        private static bool VerifySignature(byte[] sigPacket, byte[] data, PgpPublicKey signer)
+        {
+            PgpObjectFactory factory = new PgpObjectFactory(sigPacket);
             PgpSignatureList sigList = (PgpSignatureList)factory.NextPgpObject();
             PgpSignature signature = sigList[0];
 
-            byte[] data = Encoding.UTF8.GetBytes(v6SampleCleartextSignedMessage);
-            signature.InitVerify(pubKey);
+            signature.InitVerify(signer);
             signature.Update(data);
-
-            IsTrue("Failed generated signature check against original data", signature.Verify());
+            return signature.Verify();
         }
 
         private static AsymmetricCipherKeyPair GetKeyPair(PgpSecretKey secretKey, string password = "")
@@ -266,6 +300,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Version4Ed25519LegacyPubkeySampleTest();
             Version4Ed25519LegacySignatureSampleTest();
             Version6CertificateParsingTest();
+            Version6PublicKeyCreationTest();
             Version6UnlockedSecretKeyParsingTest();
             Version6SampleCleartextSignedMessageVerifySignatureTest();
         }

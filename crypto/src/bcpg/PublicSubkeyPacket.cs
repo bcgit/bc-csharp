@@ -13,12 +13,22 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
-		/// <summary>Construct a version 4 public subkey packet.</summary>
+        /// <summary>Construct a public subkey packet.</summary>
+        public PublicSubkeyPacket(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            DateTime time,
+            IBcpgKey key)
+            : base(version, algorithm, time, key)
+        {
+        }
+
+        /// <summary>Construct a version 4 public subkey packet.</summary>
         public PublicSubkeyPacket(
             PublicKeyAlgorithmTag	algorithm,
             DateTime				time,
             IBcpgKey				key)
-            : base(algorithm, time, key)
+            : base(DefaultVersion, algorithm, time, key)
         {
         }
 

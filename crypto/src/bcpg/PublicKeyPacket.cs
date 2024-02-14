@@ -15,6 +15,8 @@ namespace Org.BouncyCastle.Bcpg
         public const int Version5 = 5;
         public const int Version6 = 6;
 
+        public const int DefaultVersion = Version4;
+
         private readonly int version;
         private readonly long time;
         private readonly int validDays;
@@ -84,16 +86,32 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+
+        /// <summary>Construct a public key packet.</summary>
+        public PublicKeyPacket(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            DateTime time,
+            IBcpgKey key)
+        {
+            this.version = version;
+            this.time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
+            this.algorithm = algorithm;
+            this.key = key;
+
+            if (version == Version5 || version == Version6)
+            {
+                v6KeyLen = ((BcpgObject)key).GetEncoded().Length;
+            }
+        }
+
         /// <summary>Construct a version 4 public key packet.</summary>
         public PublicKeyPacket(
             PublicKeyAlgorithmTag	algorithm,
             DateTime				time,
             IBcpgKey				key)
+            :this(DefaultVersion, algorithm, time, key)
         {
-            this.version = Version4;
-            this.time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
-            this.algorithm = algorithm;
-            this.key = key;
         }
 
         public virtual int Version

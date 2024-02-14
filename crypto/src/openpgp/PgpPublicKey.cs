@@ -196,6 +196,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+
+        public PgpPublicKey(PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey, DateTime time)
+            :this(PublicKeyPacket.DefaultVersion, algorithm, pubKey, time)
+        {
+        }
+
         /// <summary>
         /// Create a PgpPublicKey from the passed in lightweight one.
         /// </summary>
@@ -208,7 +214,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="time">Date of creation.</param>
         /// <exception cref="ArgumentException">If <c>pubKey</c> is not public.</exception>
         /// <exception cref="PgpException">On key creation problem.</exception>
-        public PgpPublicKey(PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey, DateTime time)
+        public PgpPublicKey(int version, PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey, DateTime time)
         {
             if (pubKey.IsPrivate)
                 throw new ArgumentException("Expected a public key", nameof(pubKey));
@@ -248,44 +254,72 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else if (pubKey is Ed25519PublicKeyParameters ed25519PubKey)
             {
-                byte[] pointEnc = new byte[1 + Ed25519PublicKeyParameters.KeySize];
-                pointEnc[0] = 0x40;
-                ed25519PubKey.Encode(pointEnc, 1);
-                bcpgKey = new EdDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, pointEnc));
+                if (algorithm == PublicKeyAlgorithmTag.Ed25519)
+                {
+                    bcpgKey = new Ed25519PublicBcpgKey(ed25519PubKey.GetEncoded());
+                }
+                else
+                {
+                    byte[] pointEnc = new byte[1 + Ed25519PublicKeyParameters.KeySize];
+                    pointEnc[0] = 0x40;
+                    ed25519PubKey.Encode(pointEnc, 1);
+                    bcpgKey = new EdDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, pointEnc));
+                }
             }
             else if (pubKey is Ed448PublicKeyParameters ed448PubKey)
             {
-                byte[] pointEnc = new byte[Ed448PublicKeyParameters.KeySize];
-                ed448PubKey.Encode(pointEnc, 0);
-                bcpgKey = new EdDsaPublicBcpgKey(EdECObjectIdentifiers.id_Ed448, new BigInteger(1, pointEnc));
+                if (algorithm == PublicKeyAlgorithmTag.Ed448)
+                {
+                    bcpgKey = new Ed448PublicBcpgKey(ed448PubKey.GetEncoded());
+                }
+                else
+                {
+                    byte[] pointEnc = new byte[Ed448PublicKeyParameters.KeySize];
+                    ed448PubKey.Encode(pointEnc, 0);
+                    bcpgKey = new EdDsaPublicBcpgKey(EdECObjectIdentifiers.id_Ed448, new BigInteger(1, pointEnc));
+                }
             }
             else if (pubKey is X25519PublicKeyParameters x25519PubKey)
             {
-                byte[] pointEnc = new byte[1 + X25519PublicKeyParameters.KeySize];
-                pointEnc[0] = 0x40;
-                x25519PubKey.Encode(pointEnc, 1);
+                if (algorithm == PublicKeyAlgorithmTag.X25519)
+                {
+                    bcpgKey = new X25519PublicBcpgKey(x25519PubKey.GetEncoded());
+                }
+                else
+                {
+                    byte[] pointEnc = new byte[1 + X25519PublicKeyParameters.KeySize];
+                    pointEnc[0] = 0x40;
+                    x25519PubKey.Encode(pointEnc, 1);
 
-                PgpKdfParameters kdfParams = DefaultKdfParameters;
+                    PgpKdfParameters kdfParams = DefaultKdfParameters;
 
-                bcpgKey = new ECDHPublicBcpgKey(CryptlibObjectIdentifiers.curvey25519, new BigInteger(1, pointEnc),
-                    kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                    bcpgKey = new ECDHPublicBcpgKey(CryptlibObjectIdentifiers.curvey25519, new BigInteger(1, pointEnc),
+                        kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                }
             }
             else if (pubKey is X448PublicKeyParameters x448PubKey)
             {
-                byte[] pointEnc = new byte[X448PublicKeyParameters.KeySize];
-                x448PubKey.Encode(pointEnc, 0);
+                if (algorithm == PublicKeyAlgorithmTag.X448)
+                {
+                    bcpgKey = new X448PublicBcpgKey(x448PubKey.GetEncoded());
+                }
+                else
+                {
+                    byte[] pointEnc = new byte[X448PublicKeyParameters.KeySize];
+                    x448PubKey.Encode(pointEnc, 0);
 
-                PgpKdfParameters kdfParams = DefaultKdfParameters;
+                    PgpKdfParameters kdfParams = DefaultKdfParameters;
 
-                bcpgKey = new ECDHPublicBcpgKey(EdECObjectIdentifiers.id_X448, new BigInteger(1, pointEnc),
-                    kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                    bcpgKey = new ECDHPublicBcpgKey(EdECObjectIdentifiers.id_X448, new BigInteger(1, pointEnc),
+                        kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                }
             }
             else
             {
                 throw new PgpException("unknown key class");
             }
 
-            this.publicPk = new PublicKeyPacket(algorithm, time, bcpgKey);
+            this.publicPk = new PublicKeyPacket(version, algorithm, time, bcpgKey);
             this.ids = new List<IUserDataPacket>();
             this.idSigs = new List<IList<PgpSignature>>();
 
