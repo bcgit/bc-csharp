@@ -135,6 +135,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		public void TestKeyTransDESede()
 		{
 			tryKeyTrans(CmsAuthenticatedDataGenerator.DesEde3Cbc);
+			tryKeyTransWithOaepOverride(CmsAuthenticatedDataGenerator.DesEde3Cbc);
 		}
 		
 		[Test]
@@ -243,7 +244,39 @@ namespace Org.BouncyCastle.Cms.Tests
 				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
 			}
 		}
-		
+
+		private void tryKeyTransWithOaepOverride(string macAlg)
+		{
+			byte[] data = Encoding.ASCII.GetBytes("Eric H. Echidna");
+
+			CmsAuthenticatedDataGenerator adGen = new CmsAuthenticatedDataGenerator();
+
+			adGen.AddKeyTransRecipient("RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING", ReciCert);
+
+			CmsAuthenticatedData ad = adGen.Generate(
+				new CmsProcessableByteArray(data),
+				macAlg);
+
+			RecipientInformationStore recipients = ad.GetRecipientInfos();
+
+			Assert.AreEqual(ad.MacAlgOid, macAlg);
+
+			var c = recipients.GetRecipients();
+
+			Assert.AreEqual(1, c.Count);
+
+			foreach (RecipientInformation recipient in c)
+			{
+				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.IdRsaesOaep.Id);
+
+				byte[] recData = recipient.GetContent(ReciKP.Private);
+
+				Assert.IsTrue(Arrays.AreEqual(data, recData));
+				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
+			}
+		}
+
+
 		private void tryKekAlgorithm(KeyParameter kek, DerObjectIdentifier algOid)
 		{
 			byte[] data = Encoding.ASCII.GetBytes("Eric H. Echidna");

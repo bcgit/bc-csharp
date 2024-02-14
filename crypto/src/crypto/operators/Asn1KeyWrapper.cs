@@ -20,9 +20,14 @@ namespace Org.BouncyCastle.Crypto.Operators
         private IKeyWrapper wrapper;
 
         public Asn1KeyWrapper(string algorithm, X509Certificate cert)
+             : this(algorithm, cert.GetPublicKey())
+        {
+        }
+
+        public Asn1KeyWrapper(string algorithm, ICipherParameters key)
         {
             this.algorithm = algorithm;
-            wrapper = KeyWrapperUtil.WrapperForName(algorithm, cert.GetPublicKey());
+            wrapper = KeyWrapperUtil.WrapperForName(algorithm, key);
         }
 
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, X509Certificate cert)
