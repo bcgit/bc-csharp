@@ -7,7 +7,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
@@ -162,17 +161,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 Asn1OctetString keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
 
                 DilithiumParameters spParams = PqcUtilities.DilithiumParamsLookup(algOid);
+                DilithiumPublicKeyParameters pubKey = null;
 
                 DerBitString publicKeyData = keyInfo.PublicKey;
                 if (publicKeyData != null)
                 {
-                    var pubParams = PqcPublicKeyFactory.DilithiumConverter.GetPublicKeyParameters(spParams,
-                        publicKeyData);
-
-                    return new DilithiumPrivateKeyParameters(spParams, keyEnc.GetOctets(), pubParams);
+                    pubKey = PqcPublicKeyFactory.GetDilithiumPublicKey(spParams, publicKeyData);
                 }
 
-                return new DilithiumPrivateKeyParameters(spParams, keyEnc.GetOctets(), null);
+                return new DilithiumPrivateKeyParameters(spParams, encoding: keyEnc.GetOctets(), pubKey);
             }
             if (algOid.Equals(BCObjectIdentifiers.falcon_512) ||
                 algOid.Equals(BCObjectIdentifiers.falcon_1024))
