@@ -115,6 +115,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
         }
 
+        /// <summary>
+        /// Returns the V6 signature salt size for a hash algorithm.
+        /// https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-hash-algorithms
+        /// </summary>
+        public static int GetSaltSize(HashAlgorithmTag hashAlgorithm)
+        {
+            switch (hashAlgorithm)
+            {
+                case HashAlgorithmTag.Sha256:
+                case HashAlgorithmTag.Sha224:
+                case HashAlgorithmTag.Sha3_256:
+                    return 16;
+                case HashAlgorithmTag.Sha384:
+                    return 24;
+                case HashAlgorithmTag.Sha512:
+                case HashAlgorithmTag.Sha3_512:
+                    return 32;
+                default:
+                    return 0;
+            }
+        }
+
         public static int GetDigestIDForName(string name)
         {
             if (NameToHashID.TryGetValue(name, out var hashAlgorithmTag))

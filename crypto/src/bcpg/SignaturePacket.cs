@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -162,6 +162,16 @@ namespace Org.BouncyCastle.Bcpg
             if (version == Version6)
             {
                 int saltSize = bcpgIn.ReadByte();
+
+                if (saltSize != PgpUtilities.GetSaltSize(hashAlgorithm))
+                {
+                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-4-and-6-signature-p
+                    // The salt size MUST match the value defined for the hash algorithm as specified in Table 23
+                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#hash-algorithms-registry
+
+                    throw new IOException($"invalid salt size for v6 signature: expected {PgpUtilities.GetSaltSize(hashAlgorithm)} got {saltSize}");
+                }
+
                 salt = new byte[saltSize];
                 bcpgIn.ReadFully(salt);
             }
