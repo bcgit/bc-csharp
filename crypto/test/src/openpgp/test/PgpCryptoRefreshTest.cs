@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -167,6 +168,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsTrue("wrong sub key fingerprint", AreEqual(subKey.GetFingerprint(), expectedFingerprint));
 
             // TODO Verify subkey binding signature
+
+            // Encode test
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BcpgOutputStream bs = new BcpgOutputStream(ms, newFormatOnly: true))
+                {
+                    pubRing.Encode(bs);
+                }
+
+                byte[] encoded = ms.ToArray();
+                IsTrue(AreEqual(encoded, v6Certificate));
+            }
         }
 
         [Test]
@@ -230,6 +243,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
 
             IsTrue("X25519 agreement failed", EncryptThenDecryptX25519Test(alice, bob));
+
+            // Encode test
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BcpgOutputStream bs = new BcpgOutputStream(ms, newFormatOnly: true))
+                {
+                    secretKeyRing.Encode(bs);
+                }
+
+                byte[] encoded = ms.ToArray();
+                IsTrue(AreEqual(encoded, v6UnlockedSecretKey));
+            }
         }
 
         [Test]

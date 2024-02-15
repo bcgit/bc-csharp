@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Bcpg
         public const int Simple = 0;
         public const int Salted = 1;
         public const int SaltedAndIterated = 3;
+        public const int Argon2 = 4;
         public const int GnuDummyS2K = 101;
         public const int GnuProtectionModeNoPrivateKey = 1;
         public const int GnuProtectionModeDivertToCard = 2;

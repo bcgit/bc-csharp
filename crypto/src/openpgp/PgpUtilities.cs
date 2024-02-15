@@ -272,7 +272,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return keySize;
         }
 
-		public static KeyParameter MakeKey(
+        public static int GetKeySizeInOctets(SymmetricKeyAlgorithmTag algorithm)
+        {
+            return (GetKeySize(algorithm) + 7) / 8;
+        }
+
+        public static KeyParameter MakeKey(
 			SymmetricKeyAlgorithmTag	algorithm,
 			byte[]						keyBytes)
 		{

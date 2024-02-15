@@ -34,7 +34,19 @@ namespace Org.BouncyCastle.Bcpg
 		{
 		}
 
-		public override void Encode(BcpgOutputStream bcpgOut)
+        public SecretSubkeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            int s2kUsage,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData)
+            :base(pubKeyPacket, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, secKeyData)
+        {
+        }
+
+        public override void Encode(BcpgOutputStream bcpgOut)
         {
             bcpgOut.WritePacket(PacketTag.SecretSubkey, GetEncodedContents());
         }
