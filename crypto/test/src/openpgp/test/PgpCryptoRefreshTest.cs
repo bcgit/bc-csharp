@@ -258,6 +258,45 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         }
 
         [Test]
+        public void Version6LockedSecretKeyParsingTest()
+        {
+            /*
+             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-locked-v6-secret-key
+             * The same secret key as in Version6UnlockedSecretKeyParsingTest, but the secret key
+             * material is locked with a passphrase using AEAD and Argon2.
+             * 
+             * AEAD/Argon passphrase decryption is not implemented yet, so we just test
+             * parsing and encoding
+             */
+
+            PgpSecretKeyRing secretKeyRing = new PgpSecretKeyRing(v6LockedSecretKey);
+            PgpSecretKey[] secretKeys = secretKeyRing.GetSecretKeys().ToArray();
+            IsEquals("wrong number of secret keys", secretKeys.Length, 2);
+
+            // signing key
+            PgpSecretKey signingKey = secretKeys[0];
+            IsEquals(signingKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
+            IsEquals((ulong)signingKey.PublicKey.KeyId, 0xCB186C4F0609A697);
+
+            // encryption key
+            PgpSecretKey encryptionKey = secretKeys[1];
+            IsEquals(encryptionKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
+            IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
+
+            // Encode test
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BcpgOutputStream bs = new BcpgOutputStream(ms, newFormatOnly: true))
+                {
+                    secretKeyRing.Encode(bs);
+                }
+
+                byte[] encoded = ms.ToArray();
+                IsTrue(AreEqual(encoded, v6LockedSecretKey));
+            }
+        }
+
+        [Test]
         public void Version6SampleCleartextSignedMessageVerifySignatureTest()
         {
             // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-cleartext-signed-mes
@@ -324,9 +363,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             Version4Ed25519LegacyPubkeySampleTest();
             Version4Ed25519LegacySignatureSampleTest();
+            Version4Ed25519LegacyCreateTest();
+
             Version6CertificateParsingTest();
             Version6PublicKeyCreationTest();
             Version6UnlockedSecretKeyParsingTest();
+            Version6LockedSecretKeyParsingTest();
             Version6SampleCleartextSignedMessageVerifySignatureTest();
         }
     }

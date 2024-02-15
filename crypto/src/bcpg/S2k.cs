@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -20,69 +19,108 @@ namespace Org.BouncyCastle.Bcpg
         public const int GnuProtectionModeNoPrivateKey = 1;
         public const int GnuProtectionModeDivertToCard = 2;
 
-        internal int type;
-        internal HashAlgorithmTag algorithm;
-        internal byte[] iv;
-        internal int itCount = -1;
-        internal int protectionMode = -1;
+        private readonly int type;
+        private readonly HashAlgorithmTag algorithm;
+        private readonly byte[] iv;
+        
+        private readonly int itCount = -1;
+        private readonly int protectionMode = -1;
+
+        // params for Argon2
+        private readonly int passes;
+        private readonly int parallelism;
+        private readonly int memorySizeExponent;
 
         internal S2k(
             Stream inStr)
         {
 			type = inStr.ReadByte();
-            algorithm = (HashAlgorithmTag) inStr.ReadByte();
 
-            //
-            // if this happens we have a dummy-S2k packet.
-            //
-            if (type != GnuDummyS2K)
+            switch (type)
             {
-                if (type != 0)
-                {
-					iv = new byte[8];
-					if (Streams.ReadFully(inStr, iv, 0, iv.Length) < iv.Length)
-						throw new EndOfStreamException();
+                case Simple:
+                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    break;
 
-					if (type == 3)
-					{
-						itCount = inStr.ReadByte();
-					}
-				}
+                case Salted:
+                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    iv = new byte[8];
+                    Streams.ReadFully(inStr, iv);
+                    break;
+
+                case SaltedAndIterated:
+                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    iv = new byte[8];
+                    Streams.ReadFully(inStr, iv);
+                    itCount = inStr.ReadByte();
+                    break;
+
+                case Argon2:
+                    iv = new byte[16];
+                    Streams.ReadFully(inStr, iv);
+                    passes = inStr.ReadByte();
+                    parallelism = inStr.ReadByte();
+                    memorySizeExponent = inStr.ReadByte();
+                    break;
+
+                case GnuDummyS2K:
+                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    inStr.ReadByte(); // G
+                    inStr.ReadByte(); // N
+                    inStr.ReadByte(); // U
+                    protectionMode = inStr.ReadByte(); // protection mode
+                    break;
+
+                default:
+                    throw new UnsupportedPacketVersionException($"Invalid S2K type: {type}");
             }
-            else
-            {
-                inStr.ReadByte(); // G
-                inStr.ReadByte(); // N
-                inStr.ReadByte(); // U
-                protectionMode = inStr.ReadByte(); // protection mode
-            }
+
         }
 
+        /// <summary>Constructs a specifier for a simple S2K generation</summary>
+        /// <param name="algorithm">the digest algorithm to use.</param>
         public S2k(
             HashAlgorithmTag algorithm)
         {
-            this.type = 0;
+            this.type = Simple;
             this.algorithm = algorithm;
         }
 
+        /// <summary>Constructs a specifier for a salted S2K generation</summary>
+        /// <param name="algorithm">the digest algorithm to use.</param>
+        /// <param name="iv">the salt to apply to input to the key generation</param>
         public S2k(
             HashAlgorithmTag algorithm,
             byte[] iv)
         {
-            this.type = 1;
+            this.type = Salted;
             this.algorithm = algorithm;
-            this.iv = iv;
+            this.iv = Arrays.Clone(iv);
         }
 
+        /// <summary>Constructs a specifier for a salted and iterated S2K generation</summary>
+        /// <param name="algorithm">the digest algorithm to iterate.</param>
+        /// <param name="iv">the salt to apply to input to the key generation</param>
+        /// <param name="itCount">the single byte iteration count specifier</param>
         public S2k(
             HashAlgorithmTag algorithm,
             byte[] iv,
             int itCount)
         {
-            this.type = 3;
+            this.type = SaltedAndIterated;
             this.algorithm = algorithm;
-            this.iv = iv;
+            this.iv = Arrays.Clone(iv);
             this.itCount = itCount;
+        }
+
+        /// <summary>Constructs a specifier for an S2K method using Argon2</summary>
+        public S2k(byte[] salt, int passes, int parallelism, int memorySizeExponent)
+        {
+            this.type = Argon2;
+            this.iv = Arrays.Clone(salt);
+            this.passes = passes;
+            this.parallelism = parallelism;
+            this.memorySizeExponent = memorySizeExponent;
         }
 
         public virtual int Type
@@ -114,30 +152,66 @@ namespace Org.BouncyCastle.Bcpg
 			get { return protectionMode; }
         }
 
+        /// <summary>The number of passes - only if Argon2</summary>
+        public int Passes
+        {
+            get { return passes; }
+        }
+
+        /// <summary>The degree of parallelism - only if Argon2</summary>
+        public int Parallelism
+        {
+            get { return parallelism; }
+        }
+
+        /// <summary>The memory size exponent - only if Argon2</summary>
+        public int MemorySizeExponent
+        {
+            get { return memorySizeExponent; }
+        }
+        
         public override void Encode(
             BcpgOutputStream bcpgOut)
         {
-            bcpgOut.WriteByte((byte) type);
-            bcpgOut.WriteByte((byte) algorithm);
-
-            if (type != GnuDummyS2K)
+            switch (type)
             {
-                if (type != 0)
-                {
+                case Simple:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
+                    break;
+
+                case Salted:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
                     bcpgOut.Write(iv);
-                }
+                    break;
 
-                if (type == 3)
-                {
-                    bcpgOut.WriteByte((byte) itCount);
-                }
-            }
-            else
-            {
-                bcpgOut.WriteByte((byte) 'G');
-                bcpgOut.WriteByte((byte) 'N');
-                bcpgOut.WriteByte((byte) 'U');
-                bcpgOut.WriteByte((byte) protectionMode);
+                case SaltedAndIterated:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
+                    bcpgOut.Write(iv);
+                    bcpgOut.WriteByte((byte)itCount);
+                    break;
+
+                case Argon2:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.Write(iv);
+                    bcpgOut.WriteByte((byte)passes);
+                    bcpgOut.WriteByte((byte)parallelism);
+                    bcpgOut.WriteByte((byte)memorySizeExponent);
+                    break;
+
+                case GnuDummyS2K:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
+                    bcpgOut.WriteByte((byte)'G');
+                    bcpgOut.WriteByte((byte)'N');
+                    bcpgOut.WriteByte((byte)'U');
+                    bcpgOut.WriteByte((byte)protectionMode);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown S2K type {type}");
             }
         }
     }
