@@ -57,8 +57,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         /*
-         * TODO[tls-ops] Probably need to make RSA encryption/decryption into TlsCrypto functions so
-         * that users can implement "generic" encryption credentials externally
+         * TODO[tls-ops] Probably need to make RSA encryption/decryption into TlsCrypto functions so that users can
+         * implement "generic" encryption credentials externally
          */
         protected virtual TlsSecret SafeDecryptPreMasterSecret(TlsCryptoParameters cryptoParams,
             RsaKeyParameters rsaServerPrivateKey, byte[] encryptedPreMasterSecret)
@@ -70,12 +70,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
              */
             ProtocolVersion expectedVersion = cryptoParams.RsaPreMasterSecretVersion;
 
-            // TODO Provide as configuration option?
-            bool versionNumberCheckDisabled = false;
-
             /*
-             * Generate 48 random bytes we can use as a Pre-Master-Secret, if the
-             * PKCS1 padding check should fail.
+             * Generate 48 random bytes we can use as a Pre-Master-Secret, if the PKCS1 padding check should fail.
              */
             byte[] fallback = new byte[48];
             secureRandom.NextBytes(fallback);
@@ -91,46 +87,30 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             catch (Exception)
             {
                 /*
-                 * This should never happen since the decryption should never throw an exception
-                 * and return a random value instead.
+                 * This should never happen since the decryption should never throw an exception and return a random
+                 * value instead.
                  *
-                 * In any case, a TLS server MUST NOT generate an alert if processing an
-                 * RSA-encrypted premaster secret message fails, or the version number is not as
-                 * expected. Instead, it MUST continue the handshake with a randomly generated
-                 * premaster secret.
+                 * In any case, a TLS server MUST NOT generate an alert if processing an RSA-encrypted premaster secret
+                 * message fails, or the version number is not as expected. Instead, it MUST continue the handshake with
+                 * a randomly generated premaster secret.
                  */
             }
 
             /*
-             * If ClientHello.legacy_version is TLS 1.1 or higher, server implementations MUST check the
-             * version number [..].
+             * Compare the version number in the decrypted Pre-Master-Secret with the legacy_version field from the
+             * ClientHello. If they don't match, continue the handshake with the randomly generated 'fallback' value.
+             *
+             * NOTE: The comparison and replacement must be constant-time.
              */
-            if (versionNumberCheckDisabled && !TlsImplUtilities.IsTlsV11(expectedVersion))
-            {
-                /*
-                 * If the version number is TLS 1.0 or earlier, server implementations SHOULD check the
-                 * version number, but MAY have a configuration option to disable the check.
-                 */
-            }
-            else
-            {
-                /*
-                 * Compare the version number in the decrypted Pre-Master-Secret with the legacy_version
-                 * field from the ClientHello. If they don't match, continue the handshake with the
-                 * randomly generated 'fallback' value.
-                 *
-                 * NOTE: The comparison and replacement must be constant-time.
-                 */
-                int mask = (expectedVersion.MajorVersion ^ (M[0] & 0xFF))
-                         | (expectedVersion.MinorVersion ^ (M[1] & 0xFF));
+            int mask = (expectedVersion.MajorVersion ^ M[0])
+                     | (expectedVersion.MinorVersion ^ M[1]);
 
-                // 'mask' will be all 1s if the versions matched, or else all 0s.
-                mask = (mask - 1) >> 31;
+            // 'mask' will be all 1s if the versions matched, or else all 0s.
+            mask = (mask - 1) >> 31;
 
-                for (int i = 0; i < 48; i++)
-                {
-                    M[i] = (byte)((M[i] & mask) | (fallback[i] & ~mask));
-                }
+            for (int i = 0; i < 48; i++)
+            {
+                M[i] = (byte)((M[i] & mask) | (fallback[i] & ~mask));
             }
 
             return m_crypto.CreateSecret(M);
