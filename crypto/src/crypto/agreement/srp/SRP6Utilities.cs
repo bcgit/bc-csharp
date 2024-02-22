@@ -183,6 +183,56 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return M2;
         }
 
+        /** 
+         * Computes the server evidence message (M2) according to the standard routine:
+         * M2 = H( A | M1 | K )
+         * @param digest The Digest used as the hashing function H
+         * @param N Modulus used to get the pad length
+         * @param A The public client value
+         * @param M1 The client evidence message
+         * @param K The final key
+         * @return M2 The calculated server evidence message
+         */
+        public static BigInteger CalculateM2RFC2945(IDigest digest, BigInteger N, BigInteger A, BigInteger M1, BigInteger K)
+        {
+            int paddedLength = (N.BitLength + 7) / 8;
+            int digestSize = digest.GetDigestSize();
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bytes = paddedLength <= 512
+                ? stackalloc byte[paddedLength]
+                : new byte[paddedLength];
+            BigIntegers.AsUnsignedByteArray(A, bytes);
+            digest.BlockUpdate(bytes);
+
+            // no padding for M1 and K
+            bytes = BigIntegers.AsUnsignedByteArray(M1);
+            digest.BlockUpdate(bytes);
+            bytes = BigIntegers.AsUnsignedByteArray(K);
+            digest.BlockUpdate(bytes);
+
+            Span<byte> output = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
+            digest.DoFinal(output);
+#else
+            byte[] bytes = new byte[paddedLength];
+            BigIntegers.AsUnsignedByteArray(A, bytes, 0, bytes.Length);
+	        digest.BlockUpdate(bytes, 0, bytes.Length);
+
+            // no padding for M1 and K
+            bytes = BigIntegers.AsUnsignedByteArray(M1);
+            digest.BlockUpdate(bytes, 0, bytes.Length);
+            bytes = BigIntegers.AsUnsignedByteArray(K);
+            digest.BlockUpdate(bytes, 0, bytes.Length);
+
+            byte[] output = new byte[digestSize];
+            digest.DoFinal(output, 0);
+#endif
+
+            return new BigInteger(1, output);
+        }
+
         /**
          * Computes the final Key according to the standard routine: Key = H(S)
          * @param digest The Digest used as the hashing function H
@@ -285,5 +335,5 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
             return new BigInteger(1, output);
         }
-	}
+    }
 }

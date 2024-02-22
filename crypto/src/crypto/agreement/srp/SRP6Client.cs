@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 						
 		    if(isRFC2945)
 		    {
-			    computedM2 = Srp6Utilities.CalculateM2(digest, N, pubA, M1, Key);
+			    computedM2 = Srp6Utilities.CalculateM2RFC2945(digest, N, pubA, M1, Key);
 		    }
 		    else
 		    {

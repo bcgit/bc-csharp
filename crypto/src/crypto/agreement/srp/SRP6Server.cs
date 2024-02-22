@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             // Compute the server evidence message 'M2'
             if (isRFC2945)
             {
-                this.M2 = Srp6Utilities.CalculateM2(digest, N, A, M1, Key);
+                this.M2 = Srp6Utilities.CalculateM2RFC2945(digest, N, A, M1, Key);
             }
             else
             {
