@@ -71,8 +71,14 @@ namespace Org.BouncyCastle.Bcpg
         private bool HasS2KSpecifier
             => (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead);
 
-        internal SecretKeyPacket(
-            BcpgInputStream bcpgIn)
+        internal SecretKeyPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
+            BcpgInputStream bcpgIn, PacketTag tag)
+            :base(tag)
         {
 			if (this is SecretSubkeyPacket)
 			{
@@ -144,12 +150,25 @@ namespace Org.BouncyCastle.Bcpg
             secKeyData = bcpgIn.ReadAll();
         }
 
-		public SecretKeyPacket(
+
+        public SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData)
+            : this(pubKeyPacket, encAlgorithm, s2k, iv, secKeyData, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
             PublicKeyPacket				pubKeyPacket,
             SymmetricKeyAlgorithmTag	encAlgorithm,
             S2k							s2k,
             byte[]						iv,
-            byte[]						secKeyData)
+            byte[]						secKeyData,
+            PacketTag                   tag)
+            :base(tag)
         {
             this.pubKeyPacket = pubKeyPacket;
             this.encAlgorithm = encAlgorithm;
@@ -168,13 +187,26 @@ namespace Org.BouncyCastle.Bcpg
 			this.secKeyData = secKeyData;
         }
 
-		public SecretKeyPacket(
+        public SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            int s2kUsage,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData)
+            : this(pubKeyPacket, encAlgorithm, s2kUsage, s2k, iv, secKeyData, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
 			PublicKeyPacket				pubKeyPacket,
 			SymmetricKeyAlgorithmTag	encAlgorithm,
 			int							s2kUsage,
 			S2k							s2k,
 			byte[]						iv,
-			byte[]						secKeyData)
+			byte[]						secKeyData,
+            PacketTag                   tag)
+            :base(tag)
 		{
 			this.pubKeyPacket = pubKeyPacket;
 			this.encAlgorithm = encAlgorithm;
@@ -184,7 +216,6 @@ namespace Org.BouncyCastle.Bcpg
 			this.secKeyData = secKeyData;
 		}
 
-
         public SecretKeyPacket(
             PublicKeyPacket pubKeyPacket,
             SymmetricKeyAlgorithmTag encAlgorithm,
@@ -193,6 +224,20 @@ namespace Org.BouncyCastle.Bcpg
             S2k s2k,
             byte[] iv,
             byte[] secKeyData)
+            : this(pubKeyPacket, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, secKeyData, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            int s2kUsage,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData,
+            PacketTag tag)
+            :base(tag)
         {
             this.pubKeyPacket = pubKeyPacket;
             this.encAlgorithm = encAlgorithm;

@@ -9,13 +9,13 @@ namespace Org.BouncyCastle.Bcpg
     public class LiteralDataPacket
         : InputStreamPacket
 	{
-		private int		format;
-        private byte[]	fileName;
-        private long	modDate;
+		private readonly int	format;
+        private readonly byte[]	fileName;
+        private readonly long	modDate;
 
 		internal LiteralDataPacket(
             BcpgInputStream bcpgIn)
-			: base(bcpgIn)
+			: base(bcpgIn, PacketTag.LiteralData)
         {
             format = bcpgIn.ReadByte();
             int len = bcpgIn.ReadByte();

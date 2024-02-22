@@ -9,13 +9,14 @@ namespace Org.BouncyCastle.Bcpg
     public class SymmetricKeyEncSessionPacket
         : ContainedPacket
     {
-        private int version;
-        private SymmetricKeyAlgorithmTag encAlgorithm;
-        private S2k s2k;
+        private readonly int version;
+        private readonly SymmetricKeyAlgorithmTag encAlgorithm;
+        private readonly S2k s2k;
         private readonly byte[] secKeyData;
 
         public SymmetricKeyEncSessionPacket(
             BcpgInputStream bcpgIn)
+            :base(PacketTag.SymmetricKeyEncryptedSessionKey)
         {
             version = bcpgIn.ReadByte();
             encAlgorithm = (SymmetricKeyAlgorithmTag) bcpgIn.ReadByte();
@@ -29,6 +30,7 @@ namespace Org.BouncyCastle.Bcpg
             SymmetricKeyAlgorithmTag	encAlgorithm,
             S2k							s2k,
             byte[]						secKeyData)
+            : base(PacketTag.SymmetricKeyEncryptedSessionKey)
         {
             this.version = 4;
             this.encAlgorithm = encAlgorithm;

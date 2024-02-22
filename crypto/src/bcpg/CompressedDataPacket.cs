@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Bcpg
 
 		internal CompressedDataPacket(
             BcpgInputStream bcpgIn)
-			: base(bcpgIn)
+			: base(bcpgIn, PacketTag.CompressedData)
         {
             this.algorithm = (CompressionAlgorithmTag) bcpgIn.ReadByte();
         }

@@ -5,7 +5,16 @@ namespace Org.BouncyCastle.Bcpg
     {
         private readonly BcpgInputStream bcpgIn;
 
-		public InputStreamPacket(BcpgInputStream bcpgIn)
+        // for API backward compatibility
+        // it's unlikely this is being used, but just in case we'll mark
+        // unknown inputs as reserved.
+        public InputStreamPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, PacketTag.Reserved)
+        {
+        }
+
+        public InputStreamPacket(BcpgInputStream bcpgIn, PacketTag packetTag)
+            :base(packetTag)
         {
             this.bcpgIn = bcpgIn;
         }

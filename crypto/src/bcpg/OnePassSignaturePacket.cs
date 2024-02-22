@@ -7,15 +7,16 @@ namespace Org.BouncyCastle.Bcpg
 	public class OnePassSignaturePacket
 		: ContainedPacket
 	{
-		private int version;
-		private int sigType;
-		private HashAlgorithmTag hashAlgorithm;
-		private PublicKeyAlgorithmTag keyAlgorithm;
-		private long keyId;
-		private int nested;
+		private readonly int version;
+		private readonly int sigType;
+		private readonly HashAlgorithmTag hashAlgorithm;
+		private readonly PublicKeyAlgorithmTag keyAlgorithm;
+		private readonly long keyId;
+		private readonly int nested;
 
 		internal OnePassSignaturePacket(
 			BcpgInputStream	bcpgIn)
+			:base(PacketTag.OnePassSignature)
 		{
 			version = bcpgIn.ReadByte();
 			sigType = bcpgIn.ReadByte();
@@ -40,7 +41,8 @@ namespace Org.BouncyCastle.Bcpg
 			PublicKeyAlgorithmTag	keyAlgorithm,
 			long					keyId,
 			bool					isNested)
-		{
+			: base(PacketTag.OnePassSignature)
+        {
 			this.version = 3;
 			this.sigType = sigType;
 			this.hashAlgorithm = hashAlgorithm;

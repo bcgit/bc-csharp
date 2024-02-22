@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] salt;
 
         internal SignaturePacket(BcpgInputStream bcpgIn)
+            :base(PacketTag.Signature)
         {
             version = bcpgIn.ReadByte();
 
@@ -282,6 +283,7 @@ namespace Org.BouncyCastle.Bcpg
             SignatureSubpacket[]	unhashedData,
             byte[]					fingerprint,
             MPInteger[]				signature)
+            : base(PacketTag.Signature)
         {
             this.version = version;
             this.signatureType = signatureType;

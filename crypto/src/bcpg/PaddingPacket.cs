@@ -9,17 +9,20 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] padding;
 
         public PaddingPacket(BcpgInputStream bcpgIn)
+            :base(PacketTag.Padding)
         {
             padding = bcpgIn.ReadAll();
         }
 
         public PaddingPacket(int length, BcpgInputStream bcpgIn)
+            : base(PacketTag.Padding)
         {
             padding = new byte[length];
             bcpgIn.ReadFully(padding);
         }
 
         public PaddingPacket(byte[] padding)
+            : base(PacketTag.Padding)
         {
             this.padding = Arrays.Clone(padding);
         }

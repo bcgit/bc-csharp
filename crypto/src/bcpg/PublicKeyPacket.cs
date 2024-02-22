@@ -25,8 +25,15 @@ namespace Org.BouncyCastle.Bcpg
 
         private readonly long v6KeyLen;
 
-        internal PublicKeyPacket(
-            BcpgInputStream bcpgIn)
+        internal PublicKeyPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, PacketTag.PublicKey)
+        {
+        }
+
+        protected PublicKeyPacket(
+            BcpgInputStream bcpgIn,
+            PacketTag tag)
+            : base(tag)
         {
             version = bcpgIn.ReadByte();
 
@@ -93,6 +100,16 @@ namespace Org.BouncyCastle.Bcpg
             PublicKeyAlgorithmTag algorithm,
             DateTime time,
             IBcpgKey key)
+            : this(version, algorithm, time, key, PacketTag.PublicKey)
+        { }
+
+        protected PublicKeyPacket(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            DateTime time,
+            IBcpgKey key,
+            PacketTag tag)
+            : base(tag)
         {
             this.version = version;
             this.time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;

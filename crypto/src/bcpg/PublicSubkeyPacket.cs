@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Bcpg
             PublicKeyAlgorithmTag algorithm,
             DateTime time,
             IBcpgKey key)
-            : base(version, algorithm, time, key)
+            : base(version, algorithm, time, key, PacketTag.PublicSubkey)
         {
         }
 
@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Bcpg
             PublicKeyAlgorithmTag	algorithm,
             DateTime				time,
             IBcpgKey				key)
-            : base(DefaultVersion, algorithm, time, key)
+            : base(DefaultVersion, algorithm, time, key, PacketTag.PublicSubkey)
         {
         }
 

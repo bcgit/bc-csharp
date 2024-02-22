@@ -10,19 +10,21 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] levelAndTrustAmount;
 
 		public TrustPacket(BcpgInputStream bcpgIn)
+            :base(PacketTag.Trust)
         {
             MemoryStream bOut = new MemoryStream();
-
-			int ch;
+            
+            int ch;
             while ((ch = bcpgIn.ReadByte()) >= 0)
             {
                 bOut.WriteByte((byte) ch);
             }
-
-			levelAndTrustAmount = bOut.ToArray();
+            
+            levelAndTrustAmount = bOut.ToArray();
         }
 
 		public TrustPacket(int trustCode)
+            : base(PacketTag.Trust)
         {
 			this.levelAndTrustAmount = new byte[]{ (byte)trustCode };
         }

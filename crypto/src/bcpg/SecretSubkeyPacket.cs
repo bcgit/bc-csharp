@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     {
         internal SecretSubkeyPacket(
 			BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : base(bcpgIn, PacketTag.SecretSubkey)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Bcpg
             S2k							s2k,
             byte[]						iv,
             byte[]						secKeyData)
-            : base(pubKeyPacket, encAlgorithm, s2k, iv, secKeyData)
+            : base(pubKeyPacket, encAlgorithm, s2k, iv, secKeyData, PacketTag.SecretSubkey)
         {
         }
 
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Bcpg
 			S2k							s2k,
 			byte[]						iv,
 			byte[]						secKeyData)
-			: base(pubKeyPacket, encAlgorithm, s2kUsage, s2k, iv, secKeyData)
+			: base(pubKeyPacket, encAlgorithm, s2kUsage, s2k, iv, secKeyData, PacketTag.SecretSubkey)
 		{
 		}
 
@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Bcpg
             S2k s2k,
             byte[] iv,
             byte[] secKeyData)
-            :base(pubKeyPacket, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, secKeyData)
+            :base(pubKeyPacket, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, secKeyData, PacketTag.SecretSubkey)
         {
         }
 
