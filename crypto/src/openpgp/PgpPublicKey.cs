@@ -30,6 +30,37 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private const byte v5FingerprintPreamble = 0x9A;
         private const byte v6FingerprintPreamble = 0x9B;
 
+        internal static byte FingerprintPreamble(int version)
+        {
+            switch (version)
+            {
+                case PublicKeyPacket.Version4:
+                    return v4FingerprintPreamble;
+                case PublicKeyPacket.Version5:
+                    return v5FingerprintPreamble;
+                case PublicKeyPacket.Version6:
+                    return v6FingerprintPreamble;
+                default:
+                    throw new PgpException($"unsupported OpenPGP key packet version: {version}");
+            }
+        }
+        private static IDigest CreateDigestForFingerprint(int version)
+        {
+            switch (version)
+            {
+                case PublicKeyPacket.Version2:
+                case PublicKeyPacket.Version3:
+                    return PgpUtilities.CreateDigest(HashAlgorithmTag.MD5);
+                case PublicKeyPacket.Version4:
+                    return PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
+                case PublicKeyPacket.Version5:
+                case PublicKeyPacket.Version6:
+                    return PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256);
+                default:
+                    throw new PgpException($"unsupported OpenPGP key packet version: {version}");
+            }
+        }
+
         // We default to these as they are specified as mandatory in RFC 6631.
         private static readonly PgpKdfParameters DefaultKdfParameters = new PgpKdfParameters(HashAlgorithmTag.Sha256,
             SymmetricKeyAlgorithmTag.Aes128);
@@ -37,7 +68,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public static byte[] CalculateFingerprint(PublicKeyPacket publicPk)
         {
             IBcpgKey key = publicPk.Key;
-            IDigest digest;
+            IDigest digest = CreateDigestForFingerprint(publicPk.Version);
 
             if (publicPk.Version <= PublicKeyPacket.Version3)
             {
@@ -45,8 +76,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 try
                 {
-                    digest = PgpUtilities.CreateDigest(HashAlgorithmTag.MD5);
-
                     UpdateDigest(digest, rK.Modulus);
                     UpdateDigest(digest, rK.PublicExponent);
                 }
@@ -59,21 +88,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 try
                 {
+                    digest.Update(FingerprintPreamble(publicPk.Version));
+
                     byte[] kBytes = publicPk.GetEncodedContents();
 
                     if (publicPk.Version == PublicKeyPacket.Version4)
                     {
-                        digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
-
-                        digest.Update(v4FingerprintPreamble);
                         digest.Update((byte)(kBytes.Length >> 8));
                         digest.Update((byte)kBytes.Length);
                     }
                     else if (publicPk.Version == PublicKeyPacket.Version5 || publicPk.Version == PublicKeyPacket.Version6)
                     {
-                        digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256);
-
-                        digest.Update(publicPk.Version == PublicKeyPacket.Version5 ? v5FingerprintPreamble : v6FingerprintPreamble);
                         digest.Update((byte)(kBytes.Length >> 24));
                         digest.Update((byte)(kBytes.Length >> 16));
                         digest.Update((byte)(kBytes.Length >> 8));
@@ -81,7 +106,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     }
                     else
                     {
-                        throw new PgpException("unsupported OpenPGP key packet version: " + publicPk.Version);
+                        throw new PgpException($"unsupported OpenPGP key packet version: {publicPk.Version}");
                     }
 
                     digest.BlockUpdate(kBytes, 0, kBytes.Length);

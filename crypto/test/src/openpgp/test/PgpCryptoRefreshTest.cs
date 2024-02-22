@@ -157,7 +157,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals((ulong)masterKey.KeyId, 0xCB186C4F0609A697);
             IsTrue("wrong master key fingerprint", AreEqual(masterKey.GetFingerprint(), expectedFingerprint));
 
-            // TODO Verify self signatures
+            // Verify direct key self-signature
+            PgpSignature selfSig = masterKey.GetSignatures().First();
+            IsTrue(selfSig.SignatureType == PgpSignature.DirectKey);
+            selfSig.InitVerify(masterKey);
+            FailIf("self signature verification failed", !selfSig.VerifyCertification(masterKey));
 
             // subkey
             PgpPublicKey subKey = publicKeys[1];
@@ -167,7 +171,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(subKey.KeyId, 0x12C83F1E706F6308);
             IsTrue("wrong sub key fingerprint", AreEqual(subKey.GetFingerprint(), expectedFingerprint));
 
-            // TODO Verify subkey binding signature
+            // Verify subkey binding signature
+            PgpSignature bindingSig = subKey.GetSignatures().First();
+            IsTrue(bindingSig.SignatureType == PgpSignature.SubkeyBinding);
+            bindingSig.InitVerify(masterKey);
+            FailIf("subkey binding signature verification failed", !bindingSig.VerifyCertification(masterKey, subKey));
 
             // Encode test
             using (MemoryStream ms = new MemoryStream())
@@ -188,7 +196,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             /* 
              * Create a v6 Ed25519 pubkey with the same key material and creation datetime as the test vector
              * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
-             * the check the fingerprint and verify a signature
+             * then check the fingerprint and verify a signature
             */
             byte[] keyMaterial = Hex.Decode("f94da7bb48d60a61e567706a6587d0331999bb9d891a08242ead84543df895a3");
             var key = new Ed25519PublicKeyParameters(keyMaterial);

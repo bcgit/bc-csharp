@@ -228,10 +228,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 			byte[] keyBytes = GetEncodedPublicKey(key);
 
-			this.Update(
-				(byte) 0x99,
-				(byte)(keyBytes.Length >> 8),
-				(byte)(keyBytes.Length));
+            this.Update(PgpPublicKey.FingerprintPreamble(key.Version));
+
+            switch (key.Version)
+            {
+                case PublicKeyPacket.Version4:
+                    this.Update(
+                        (byte)(keyBytes.Length >> 8),
+                        (byte)(keyBytes.Length));
+                    break;
+                case PublicKeyPacket.Version5:
+                case PublicKeyPacket.Version6:
+                    this.Update(
+                        (byte)(keyBytes.Length >> 24),
+                        (byte)(keyBytes.Length >> 16),
+                        (byte)(keyBytes.Length >> 8),
+                        (byte)(keyBytes.Length));
+                    break;
+            }
+
 			this.Update(keyBytes);
 		}
 
@@ -306,7 +321,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpPublicKey pubKey)
         {
             if (SignatureType != KeyRevocation
-                && SignatureType != SubkeyRevocation)
+                && SignatureType != SubkeyRevocation
+                && SignatureType != DirectKey)
             {
                 throw new InvalidOperationException("signature is not a key signature");
             }
