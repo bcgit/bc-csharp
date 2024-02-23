@@ -55,6 +55,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			try
             {
                 sig.Init(false, key);
+                if (sigPack.Version == OnePassSignaturePacket.Version6)
+                {
+                    byte[] salt = sigPack.GetSignatureSalt();
+                    sig.BlockUpdate(salt, 0, salt.Length);
+                }
             }
 			catch (InvalidKeyException e)
             {
@@ -174,7 +179,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			get { return sigPack.KeyAlgorithm; }
 		}
 
-		public byte[] GetEncoded()
+        public byte[] GetSignatureSalt()
+        {
+            return sigPack.GetSignatureSalt();
+        }
+
+        public byte[] GetFingerprint()
+        {
+            return sigPack.GetFingerprint();
+        }
+
+        public byte[] GetEncoded()
         {
             var bOut = new MemoryStream();
 
