@@ -3,7 +3,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -100,6 +99,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void Version4Ed25519LegacyCreateTest()
         {
+            // create a v4 EdDsa_Legacy Pubkey with the same key material and creation datetime as the test vector
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-key
+            // then check KeyId/Fingerprint
             var key = new Ed25519PublicKeyParameters(Hex.Decode("3f098994bdd916ed4053197934e4a87c80733a1280d62f8010992e43ee3b2406"));
             var pubKey = new PgpPublicKey(PublicKeyAlgorithmTag.EdDsa_Legacy, key, DateTime.Parse("2014-08-19 14:28:27Z"));
             IsEquals(pubKey.Algorithm, PublicKeyAlgorithmTag.EdDsa_Legacy);
@@ -126,11 +128,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(signature.HashAlgorithm, HashAlgorithmTag.Sha256);
             IsEquals(signature.CreationTime.ToString("yyyyMMddHHmmss"), "20150916122453");
 
-            byte[] original = Encoding.UTF8.GetBytes("OpenPGP");
-            signature.InitVerify(pubKey);
-            signature.Update(original);
-            
-            IsTrue("Failed generated signature check against original data", signature.Verify());
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
+            VerifySignature(signature, data, pubKey);
+
+            // test with wrong data, verification should fail
+            data = Encoding.UTF8.GetBytes("OpePGP");
+            VerifySignature(signature, data, pubKey, shouldFail: true);
         }
 
         [Test]
@@ -208,12 +211,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals((ulong)pubKey.KeyId, 0xCB186C4F0609A697);
             IsTrue("wrong master key fingerprint", AreEqual(pubKey.GetFingerprint(), expectedFingerprint));
 
-            bool signatureOk = VerifySignature(
+            VerifyEncodedSignature(
                 v6SampleCleartextSignedMessageSignature,
                 Encoding.UTF8.GetBytes(v6SampleCleartextSignedMessage),
                 pubKey);
 
-            IsTrue("Failed generated signature check against original data", signatureOk);
+            VerifyEncodedSignature(
+                v6SampleCleartextSignedMessageSignature,
+                Encoding.UTF8.GetBytes("wrongdata"),
+                pubKey,
+                shouldFail: true);
         }
 
         [Test]
@@ -237,8 +244,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(signingKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
             IsEquals((ulong)signingKey.PublicKey.KeyId, 0xCB186C4F0609A697);
 
-            AsymmetricCipherKeyPair signingKeyPair = GetKeyPair(signingKey);
-            IsTrue("signature test failed", SignThenVerifyEd25519Test(signingKeyPair));
+            // generate and verify a v6 signature
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
+            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
+            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
+            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
+            PgpPrivateKey privKey = signingKey.ExtractPrivateKey("".ToCharArray());
+            spkGen.SetIssuerFingerprint(false, signingKey);
+            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
+            sigGen.Update(data);
+            sigGen.SetHashedSubpackets(spkGen.Generate());
+            PgpSignature signature = sigGen.Generate();
+
+            VerifySignature(signature, data, signingKey.PublicKey);
+            VerifySignature(signature, wrongData, signingKey.PublicKey, shouldFail: true);
+
+            byte[] encodedSignature = signature.GetEncoded();
+            VerifyEncodedSignature(encodedSignature, data, signingKey.PublicKey);
+            VerifyEncodedSignature(encodedSignature, wrongData, signingKey.PublicKey, shouldFail: true);
 
             // encryption key
             PgpSecretKey encryptionKey = secretKeys[1];
@@ -263,6 +286,41 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 byte[] encoded = ms.ToArray();
                 IsTrue(AreEqual(encoded, v6UnlockedSecretKey));
             }
+
+            // generate and verify a v6 userid self-cert
+            string userId = "Alice <alice@example.com>";
+            string wrongUserId = "Bob <bob@example.com>";
+            sigGen.InitSign(PgpSignature.PositiveCertification, privKey, new SecureRandom());
+            signature = sigGen.GenerateCertification(userId, signingKey.PublicKey);
+            signature.InitVerify(signingKey.PublicKey);
+            if (!signature.VerifyCertification(userId, signingKey.PublicKey))
+            {
+                Fail("self-cert verification failed.");
+            }
+            signature.InitVerify(signingKey.PublicKey);
+            if (signature.VerifyCertification(wrongUserId, signingKey.PublicKey))
+            {
+                Fail("self-cert verification failed.");
+            }
+            PgpPublicKey key = PgpPublicKey.AddCertification(signingKey.PublicKey, userId, signature);
+            byte[] keyEnc = key.GetEncoded();
+            PgpPublicKeyRing tmpRing = new PgpPublicKeyRing(keyEnc);
+            key = tmpRing.GetPublicKey();
+            IsTrue(key.GetUserIds().Contains(userId));
+
+            // generate and verify a v6 cert revocation
+            sigGen.InitSign(PgpSignature.KeyRevocation, privKey, new SecureRandom());
+            signature = sigGen.GenerateCertification(signingKey.PublicKey);
+            signature.InitVerify(signingKey.PublicKey);
+            if (!signature.VerifyCertification(signingKey.PublicKey))
+            {
+                Fail("revocation verification failed.");
+            }
+            key = PgpPublicKey.AddCertification(signingKey.PublicKey, signature);
+            keyEnc = key.GetEncoded();
+            tmpRing = new PgpPublicKeyRing(keyEnc);
+            key = tmpRing.GetPublicKey();
+            IsTrue(key.IsRevoked());
         }
 
         [Test]
@@ -312,23 +370,48 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v6Certificate);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
-            bool signatureOk = VerifySignature(
+            VerifyEncodedSignature(
                 v6SampleCleartextSignedMessageSignature,
                 Encoding.UTF8.GetBytes(v6SampleCleartextSignedMessage),
                 pubKey);
 
-            IsTrue("Failed generated signature check against original data", signatureOk);
+            VerifyEncodedSignature(
+                v6SampleCleartextSignedMessageSignature,
+                Encoding.UTF8.GetBytes("wrongdata"),
+                pubKey,
+                shouldFail: true);
         }
 
-        private static bool VerifySignature(byte[] sigPacket, byte[] data, PgpPublicKey signer)
+        private void VerifySignature(PgpSignature signature, byte[] data, PgpPublicKey signer, bool shouldFail = false)
+        {
+            IsEquals(signature.KeyAlgorithm, signer.Algorithm);
+            // the version of the signature is bound to the version of the signing key
+            IsEquals(signature.Version, signer.Version);
+
+            if (signature.KeyId != 0)
+            {
+                IsEquals(signature.KeyId, signer.KeyId);
+            }
+            byte[] issuerFpt = signature.GetIssuerFingerprint();
+            if (issuerFpt != null)
+            {
+                IsTrue(AreEqual(issuerFpt, signer.GetFingerprint()));
+            }
+
+            signature.InitVerify(signer);
+            signature.Update(data);
+
+            bool result = signature.Verify() != shouldFail;
+            IsTrue("signature test failed", result);
+        }
+
+        private void VerifyEncodedSignature(byte[] sigPacket, byte[] data, PgpPublicKey signer, bool shouldFail = false)
         {
             PgpObjectFactory factory = new PgpObjectFactory(sigPacket);
             PgpSignatureList sigList = (PgpSignatureList)factory.NextPgpObject();
             PgpSignature signature = sigList[0];
 
-            signature.InitVerify(signer);
-            signature.Update(data);
-            return signature.Verify();
+            VerifySignature(signature, data, signer, shouldFail);
         }
 
         private static AsymmetricCipherKeyPair GetKeyPair(PgpSecretKey secretKey, string password = "")
@@ -336,20 +419,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             return new AsymmetricCipherKeyPair(
                 secretKey.PublicKey.GetKey(),
                 secretKey.ExtractPrivateKey(password.ToCharArray()).Key);
-        }
-
-        private static bool SignThenVerifyEd25519Test(AsymmetricCipherKeyPair signingKeyPair)
-        {
-            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
-
-            ISigner signer = new Ed25519Signer();
-            signer.Init(true, signingKeyPair.Private);
-            signer.BlockUpdate(data, 0, data.Length);
-            byte[] signature = signer.GenerateSignature();
-
-            signer.Init(false, signingKeyPair.Public);
-            signer.BlockUpdate(data, 0, data.Length);
-            return signer.VerifySignature(signature);
         }
 
         private static bool EncryptThenDecryptX25519Test(AsymmetricCipherKeyPair alice, AsymmetricCipherKeyPair bob)

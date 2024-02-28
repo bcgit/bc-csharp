@@ -805,7 +805,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new PgpException("unknown public key algorithm encountered");
                 }
 
-                return new PgpPrivateKey(KeyId, pubPk, privateKey);
+                return new PgpPrivateKey(pub, privateKey);
             }
             catch (PgpException)
             {

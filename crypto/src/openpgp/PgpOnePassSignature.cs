@@ -152,6 +152,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Verify the calculated signature against the passed in PgpSignature.</summary>
         public bool Verify(PgpSignature pgpSig)
         {
+            // the versions of the Signature and the One-Pass Signature must be aligned as specified in
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#signed-message-versions
+            if (pgpSig.Version == SignaturePacket.Version6 && sigPack.Version != OnePassSignaturePacket.Version6)
+            {
+                return false;
+            }
+            if (pgpSig.Version < SignaturePacket.Version6 && sigPack.Version != OnePassSignaturePacket.Version3)
+            {
+                return false;
+            }
+
             byte[] trailer = pgpSig.GetSignatureTrailer();
 
 			sig.BlockUpdate(trailer, 0, trailer.Length);

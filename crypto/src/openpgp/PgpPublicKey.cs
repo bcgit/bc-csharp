@@ -569,7 +569,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>The fingerprint of the public key</summary>
         public byte[] GetFingerprint()
         {
-            return (byte[]) fingerprint.Clone();
+            return Arrays.Clone(fingerprint);
         }
 
         /// <summary>

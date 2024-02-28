@@ -14,16 +14,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>Generator for PGP signatures.</remarks>
     public class PgpSignatureGenerator
     {
-		private static readonly SignatureSubpacket[] EmptySignatureSubpackets = new SignatureSubpacket[0];
+		private static readonly SignatureSubpacket[] EmptySignatureSubpackets = Array.Empty<SignatureSubpacket>();
 
 		private readonly PublicKeyAlgorithmTag keyAlgorithm;
         private readonly HashAlgorithmTag hashAlgorithm;
 
+		private int version;
+
         private PgpPrivateKey			privKey;
         private ISigner					sig;
-        private IDigest					dig;
+        private readonly IDigest		dig;
         private int						signatureType;
         private byte					lastb;
+
+		private byte[] salt;
 
 		private SignatureSubpacket[] unhashed = EmptySignatureSubpackets;
         private SignatureSubpacket[] hashed = EmptySignatureSubpackets;
@@ -45,9 +49,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			InitSign(sigType, privKey, null);
         }
 
-		/// <summary>Initialise the generator for signing.</summary>
-		public void InitSign(int sigType, PgpPrivateKey privKey, SecureRandom random)
+        /// <summary>Initialise the generator for signing.</summary>
+        public void InitSign(int sigType, PgpPrivateKey privKey, SecureRandom random)
 		{
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-signature-packet-type-id-2
+            // An implementation MUST generate a version 6 signature when signing with a version 6 key.
+			// An implementation MUST generate a version 4 signature when signing with a version 4 key. 
+            this.version = privKey.Version;
 			this.privKey = privKey;
 			this.signatureType = sigType;
 
@@ -60,7 +68,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				ICipherParameters cp = key;
 
 				// TODO Ask SignerUtilities whether random is permitted?
-				if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
+				if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy
+					|| keyAlgorithm == PublicKeyAlgorithmTag.Ed25519
+					|| keyAlgorithm == PublicKeyAlgorithmTag.Ed448)
 				{
 					// EdDSA signers don't expect a SecureRandom
 				}
@@ -70,6 +80,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
 
 				sig.Init(true, cp);
+
+				// salt for v6 signatures
+				if(version == SignaturePacket.Version6)
+				{
+                    if (random is null)
+					{
+						throw new ArgumentNullException(nameof(random), "v6 signatures requires a SecureRandom() for salt generation");
+					}
+					int saltSize = PgpUtilities.GetSaltSize(hashAlgorithm);
+					salt = new byte[saltSize];
+					random.NextBytes(salt);
+                    sig.BlockUpdate(salt, 0, salt.Length);
+                }
 			}
 			catch (InvalidKeyException e)
 			{
@@ -190,9 +213,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public PgpOnePassSignature GenerateOnePassVersion(
             bool isNested)
         {
-            return new PgpOnePassSignature(
-				new OnePassSignaturePacket(
-					signatureType, hashAlgorithm, keyAlgorithm, privKey.KeyId, isNested));
+			OnePassSignaturePacket opsPkt;
+
+            // the versions of the Signature and the One-Pass Signature must be aligned as specified in
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#signed-message-versions
+            if (version == SignaturePacket.Version6)
+			{
+				opsPkt = new OnePassSignaturePacket(
+					signatureType, hashAlgorithm, keyAlgorithm, salt, privKey.GetFingerprint(), isNested);
+
+            }
+			else
+			{
+                opsPkt = new OnePassSignaturePacket(
+					signatureType, hashAlgorithm, keyAlgorithm, privKey.KeyId, isNested);
+            }
+
+            return new PgpOnePassSignature(opsPkt);
         }
 
 		/// <summary>Return a signature object containing the current signature state.</summary>
@@ -205,36 +242,65 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				hPkts = InsertSubpacket(hPkts, new SignatureCreationTime(false, DateTime.UtcNow));
 			}
 
-			if (!IsPacketPresent(hashed, SignatureSubpacketTag.IssuerKeyId)
-				&& !IsPacketPresent(unhashed, SignatureSubpacketTag.IssuerKeyId))
-			{
-				unhPkts = InsertSubpacket(unhPkts, new IssuerKeyId(false, privKey.KeyId));
-			}
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-issuer-key-id
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#issuer-fingerprint-subpacket
+            bool containsIssuerKeyId = IsPacketPresent(hashed, SignatureSubpacketTag.IssuerKeyId) || IsPacketPresent(unhashed, SignatureSubpacketTag.IssuerKeyId);
+            bool containsIssuerKeyFpr = IsPacketPresent(hashed, SignatureSubpacketTag.IssuerFingerprint) || IsPacketPresent(unhashed, SignatureSubpacketTag.IssuerFingerprint);
+            switch (version)
+            {
+                case SignaturePacket.Version4:
+                    // TODO enforce constraint: if a v4 signature contains both IssuerKeyId and IssuerFingerprint
+                    // subpackets, then the KeyId MUST match the low 64 bits of the fingerprint.
+                    if (!containsIssuerKeyId)
+					{
+                        unhPkts = InsertSubpacket(unhPkts, new IssuerKeyId(false, privKey.KeyId));
+                    }
+                    break;
+                case SignaturePacket.Version6:
+					// V6 signatures MUST NOT include an IssuerKeyId subpacket and SHOULD include an IssuerFingerprint subpacket
+					if (containsIssuerKeyId)
+					{
+                        // TODO enforce constraint: v6 signatures MUST NOT include an IssuerKeyId subpacket
+                    }
+                    if (!containsIssuerKeyFpr)
+                    {
+                        unhPkts = InsertSubpacket(unhPkts, new IssuerFingerprint(false, privKey.Version, privKey.GetFingerprint()));
+                    }
+                    break;
+            }
 
-			int version = 4;
 			byte[] hData;
 
 			try
             {
-				MemoryStream hOut = new MemoryStream();
-
-				for (int i = 0; i != hPkts.Length; i++)
+				using (MemoryStream hOut = new MemoryStream())
 				{
-					hPkts[i].Encode(hOut);
+
+					for (int i = 0; i != hPkts.Length; i++)
+					{
+						hPkts[i].Encode(hOut);
+					}
+
+					byte[] data = hOut.ToArray();
+
+					using (MemoryStream sOut = new MemoryStream(data.Length + 6))
+					{
+						sOut.WriteByte((byte)version);
+						sOut.WriteByte((byte)signatureType);
+						sOut.WriteByte((byte)keyAlgorithm);
+						sOut.WriteByte((byte)hashAlgorithm);
+						if (version == SignaturePacket.Version6)
+						{
+                            sOut.WriteByte((byte)(data.Length >> 24));
+                            sOut.WriteByte((byte)(data.Length >> 16));
+                        }
+						sOut.WriteByte((byte)(data.Length >> 8));
+						sOut.WriteByte((byte)data.Length);
+						sOut.Write(data, 0, data.Length);
+
+						hData = sOut.ToArray();
+					}
 				}
-
-				byte[] data = hOut.ToArray();
-
-				MemoryStream sOut = new MemoryStream(data.Length + 6);
-				sOut.WriteByte((byte)version);
-                sOut.WriteByte((byte)signatureType);
-                sOut.WriteByte((byte)keyAlgorithm);
-                sOut.WriteByte((byte)hashAlgorithm);
-				sOut.WriteByte((byte)(data.Length >> 8));
-                sOut.WriteByte((byte)data.Length);
-                sOut.Write(data, 0, data.Length);
-
-				hData = sOut.ToArray();
 			}
             catch (IOException e)
             {
@@ -261,41 +327,75 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			byte[] digest = DigestUtilities.DoFinal(dig);
 			byte[] fingerPrint = new byte[2]{ digest[0], digest[1] };
 
-			MPInteger[] sigValues;
-            if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
-            {
-                int sigLen = sigBytes.Length;
-                if (sigLen == Ed25519.SignatureSize)
-				{
-					sigValues = new MPInteger[2]{
-						new MPInteger(new BigInteger(1, sigBytes,  0, 32)),
-						new MPInteger(new BigInteger(1, sigBytes, 32, 32))
-					};
-				}
-                else if (sigLen == Ed448.SignatureSize)
-                {
-                    sigValues = new MPInteger[2]{
-                        new MPInteger(new BigInteger(1, Arrays.Prepend(sigBytes, 0x40))),
-                        new MPInteger(BigInteger.Zero)
-                    };
-                }
-                else
-				{
-					throw new InvalidOperationException();
-				}
-            }
-			else if (keyAlgorithm == PublicKeyAlgorithmTag.RsaSign || keyAlgorithm == PublicKeyAlgorithmTag.RsaGeneral)
+			SignaturePacket sigPkt;
+
+			if (keyAlgorithm == PublicKeyAlgorithmTag.Ed25519 || keyAlgorithm == PublicKeyAlgorithmTag.Ed448)
 			{
-                sigValues = PgpUtilities.RsaSigToMpi(sigBytes);
-            }
+				sigPkt = new SignaturePacket(
+					version,
+					signatureType,
+					privKey.KeyId,
+					keyAlgorithm,
+					hashAlgorithm,
+					hPkts,
+					unhPkts,
+					fingerPrint,
+					version == SignaturePacket.Version6 ? salt : null,
+					privKey.GetFingerprint(),
+					sigBytes);
+			}
 			else
 			{
-                sigValues = PgpUtilities.DsaSigToMpi(sigBytes);
+				MPInteger[] sigValues;
+				if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
+				{
+					int sigLen = sigBytes.Length;
+
+					if (sigLen == Ed25519.SignatureSize)
+					{
+						sigValues = new MPInteger[2]
+						{
+							new MPInteger(new BigInteger(1, sigBytes,  0, 32)),
+							new MPInteger(new BigInteger(1, sigBytes, 32, 32))
+						};
+					}
+					else if (sigLen == Ed448.SignatureSize)
+					{
+						sigValues = new MPInteger[2]
+						{
+							new MPInteger(new BigInteger(1, Arrays.Prepend(sigBytes, 0x40))),
+							new MPInteger(BigInteger.Zero)
+						};
+					}
+					else
+					{
+						throw new InvalidOperationException();
+					}
+				}
+				else if (keyAlgorithm == PublicKeyAlgorithmTag.RsaSign || keyAlgorithm == PublicKeyAlgorithmTag.RsaGeneral)
+				{
+					sigValues = PgpUtilities.RsaSigToMpi(sigBytes);
+				}
+				else
+				{
+					sigValues = PgpUtilities.DsaSigToMpi(sigBytes);
+				}
+
+				sigPkt = new SignaturePacket(
+					version,
+					signatureType,
+					privKey.KeyId,
+					keyAlgorithm,
+					hashAlgorithm,
+					hPkts,
+					unhPkts,
+					fingerPrint,
+					version == SignaturePacket.Version6 ? salt : null,
+					privKey.GetFingerprint(),
+					sigValues);
             }
 
-            return new PgpSignature(
-				new SignaturePacket(signatureType, privKey.KeyId, keyAlgorithm,
-					hashAlgorithm, hPkts, unhPkts, fingerPrint, sigValues));
+			return new PgpSignature(sigPkt);
         }
 
 		/// <summary>Generate a certification for the passed in ID and key.</summary>
@@ -387,7 +487,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return false;
 		}
 
-		private static SignatureSubpacket[] InsertSubpacket(SignatureSubpacket[] packets, SignatureSubpacket subpacket)
+        private static SignatureSubpacket[] InsertSubpacket(SignatureSubpacket[] packets, SignatureSubpacket subpacket)
 		{
 			return Arrays.Prepend(packets, subpacket);
 		}
@@ -408,11 +508,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 			byte[] keyBytes = GetEncodedPublicKey(key);
 
-			Update(
-				0x99,
-				(byte)(keyBytes.Length >> 8),
-				(byte)(keyBytes.Length));
-			Update(keyBytes);
-		}
+            this.Update(PgpPublicKey.FingerprintPreamble(version));
+
+            switch (version)
+            {
+                case SignaturePacket.Version4:
+                    this.Update(
+                        (byte)(keyBytes.Length >> 8),
+                        (byte)(keyBytes.Length));
+                    break;
+                case SignaturePacket.Version5:
+                case SignaturePacket.Version6:
+                    this.Update(
+                        (byte)(keyBytes.Length >> 24),
+                        (byte)(keyBytes.Length >> 16),
+                        (byte)(keyBytes.Length >> 8),
+                        (byte)(keyBytes.Length));
+                    break;
+            }
+
+            this.Update(keyBytes);
+        }
 	}
 }

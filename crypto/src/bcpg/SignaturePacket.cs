@@ -20,10 +20,13 @@ namespace Org.BouncyCastle.Bcpg
         public const int Version5 = 5;
         public const int Version6 = 6;
 
+        public const int DefaultVersion = Version4;
+
         private readonly int                    version;
         private readonly int                    signatureType;
         private long                            creationTime;
-        private readonly long                   keyId;
+        private long                            keyId;
+        private bool                            keyIdAlreadySet = false;
         private readonly PublicKeyAlgorithmTag  keyAlgorithm;
         private readonly HashAlgorithmTag       hashAlgorithm;
         private readonly MPInteger[]            signature;
@@ -34,6 +37,39 @@ namespace Org.BouncyCastle.Bcpg
 
         // fields for v6 signatures
         private readonly byte[] salt;
+        private byte[] issuerFingerprint = null;
+
+        private void CheckIssuerSubpacket(SignatureSubpacket p)
+        {
+            if (p is IssuerFingerprint issuerFingerprintPkt && !(issuerFingerprint is null))
+            {
+                issuerFingerprint = issuerFingerprintPkt.GetFingerprint();
+
+                if (issuerFingerprintPkt.KeyVersion == PublicKeyPacket.Version4)
+                {
+                    keyId = (long)Pack.BE_To_UInt64(issuerFingerprint, issuerFingerprint.Length - 8);
+                }
+                else
+                {
+                    // v5 or v6
+                    keyId = (long)Pack.BE_To_UInt64(issuerFingerprint);
+                }
+                keyIdAlreadySet = true;
+            }
+
+            else if (p is IssuerKeyId issuerKeyId && !keyIdAlreadySet)
+            {
+                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-issuer-key-id
+                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#issuer-fingerprint-subpacket
+                // V6 signatures MUST NOT include an IssuerKeyId subpacket and SHOULD include an IssuerFingerprint subpacket
+                if (version == Version6)
+                {
+                    throw new IOException("V6 signatures MUST NOT include an IssuerKeyId subpacket");
+                }
+                keyId = issuerKeyId.KeyId;
+                keyIdAlreadySet = true;
+            }
+        }
 
         internal SignaturePacket(BcpgInputStream bcpgIn)
             :base(PacketTag.Signature)
@@ -102,11 +138,9 @@ namespace Org.BouncyCastle.Bcpg
 
 				foreach (var p in hashedData)
                 {
-                    if (p is IssuerKeyId issuerKeyId)
-                    {
-                        keyId = issuerKeyId.KeyId;
-                    }
-                    else if (p is SignatureCreationTime sigCreationTime)
+                    CheckIssuerSubpacket(p);
+                    
+                    if (p is SignatureCreationTime sigCreationTime)
                     {
                         creationTime = DateTimeUtilities.DateTimeToUnixMs(sigCreationTime.GetTime());
                     }
@@ -144,10 +178,7 @@ namespace Org.BouncyCastle.Bcpg
 
 				foreach (var p in unhashedData)
                 {
-                    if (p is IssuerKeyId issuerKeyId)
-                    {
-                        keyId = issuerKeyId.KeyId;
-                    }
+                    CheckIssuerSubpacket(p);
                 }
             }
             else
@@ -226,7 +257,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-		/**
+        /**
         * Generate a version 4 signature packet.
         *
         * @param signatureType
@@ -246,7 +277,7 @@ namespace Org.BouncyCastle.Bcpg
             SignatureSubpacket[]	unhashedData,
             byte[]					fingerprint,
             MPInteger[]				signature)
-            : this(Version4, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint, signature)
+            : this(Version4, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint, null, null, signature)
         {
         }
 
@@ -268,7 +299,7 @@ namespace Org.BouncyCastle.Bcpg
             long					creationTime,
             byte[]					fingerprint,
             MPInteger[]				signature)
-            : this(version, signatureType, keyId, keyAlgorithm, hashAlgorithm, null, null, fingerprint, signature)
+            : this(version, signatureType, keyId, keyAlgorithm, hashAlgorithm, null, null, fingerprint, null, null, signature)
         {
 			this.creationTime = creationTime;
         }
@@ -283,6 +314,55 @@ namespace Org.BouncyCastle.Bcpg
             SignatureSubpacket[]	unhashedData,
             byte[]					fingerprint,
             MPInteger[]				signature)
+            :this(version, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint, null, null, signature)
+        {
+		}
+
+        public SignaturePacket(
+            int version,
+            int signatureType,
+            long keyId,
+            PublicKeyAlgorithmTag keyAlgorithm,
+            HashAlgorithmTag hashAlgorithm,
+            SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData,
+            byte[] fingerprint,
+            byte[] salt,
+            byte[] issuerFingerprint,
+            byte[] signatureEncoding)
+            : this(version, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint, salt, issuerFingerprint)
+        {
+            this.signatureEncoding = Arrays.Clone(signatureEncoding);
+        }
+
+        public SignaturePacket(
+            int version,
+            int signatureType,
+            long keyId,
+            PublicKeyAlgorithmTag keyAlgorithm,
+            HashAlgorithmTag hashAlgorithm,
+            SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData,
+            byte[] fingerprint,
+            byte[] salt,
+            byte[] issuerFingerprint,
+            MPInteger[] signature)
+            : this(version, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint, salt, issuerFingerprint)
+        {
+            this.signature = signature;
+        }
+
+        private SignaturePacket(
+            int version,
+            int signatureType,
+            long keyId,
+            PublicKeyAlgorithmTag keyAlgorithm,
+            HashAlgorithmTag hashAlgorithm,
+            SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData,
+            byte[] fingerprint,
+            byte[] salt,
+            byte[] issuerFingerprint)
             : base(PacketTag.Signature)
         {
             this.version = version;
@@ -292,16 +372,17 @@ namespace Org.BouncyCastle.Bcpg
             this.hashAlgorithm = hashAlgorithm;
             this.hashedData = hashedData;
             this.unhashedData = unhashedData;
-            this.fingerprint = fingerprint;
-            this.signature = signature;
+            this.fingerprint = Arrays.Clone(fingerprint);
+            this.salt = Arrays.Clone(salt);
+            this.issuerFingerprint = Arrays.Clone(issuerFingerprint);
 
-			if (hashedData != null)
-			{
-				SetCreationTime();
-			}
-		}
+            if (hashedData != null)
+            {
+                SetCreationTime();
+            }
+        }
 
-		public int Version => version;
+        public int Version => version;
 
 		public int SignatureType => signatureType;
 
@@ -310,6 +391,11 @@ namespace Org.BouncyCastle.Bcpg
         * @return the keyId that created the signature.
         */
         public long KeyId => keyId;
+
+        public byte[] GetIssuerFingerprint()
+        {
+            return Arrays.Clone(issuerFingerprint);
+        }
 
         /**
          * Return the signatures fingerprint.
