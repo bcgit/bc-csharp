@@ -3,10 +3,9 @@ using System;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /**
-     * Public/Secret BcpgKey which is encoded as an array of octets rather than an MPI
-     * 
-     */
+    /// <summary>
+    /// Public/Secret BcpgKey which is encoded as an array of octets rather than an MPI
+    /// </summary>
     public abstract class OctetArrayBcpgKey
         : BcpgObject, IBcpgKey
     {

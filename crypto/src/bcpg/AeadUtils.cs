@@ -7,12 +7,12 @@ namespace Org.BouncyCastle.Bcpg
 {
     public sealed class AeadUtils
     {
-        /**
-         * Return the length of the IV used by the given AEAD algorithm in octets.
-         * 
-         * @param aeadAlgorithmTag AEAD algorithm identifier
-         * @return length of the IV
-        */
+        /// <summary>
+        /// Return the length of the IV used by the given AEAD algorithm in octets.
+        /// </summary>
+        /// <param name="aeadAlgorithmTag">AEAD algorithm identifier</param>
+        /// <returns>length of the IV</returns>
+        /// <exception cref="ArgumentException">Thrown when aeadAlgorithmTag is unknown/invalid</exception>
         public static int GetIVLength(AeadAlgorithmTag aeadAlgorithmTag)
         {
             switch (aeadAlgorithmTag)
@@ -28,12 +28,12 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        /**
-         * Return the length of the authentication tag used by the given AEAD algorithm in octets.
-         *
-         * @param aeadAlgorithmTag AEAD algorithm identifier
-         * @return length of the auth tag
-         */
+        /// <summary>
+        /// Return the length of the authentication tag used by the given AEAD algorithm in octets.
+        /// </summary>
+        /// <param name="aeadAlgorithmTag">AEAD algorithm identifier</param>
+        /// <returns>length of the auth tag</returns>
+        /// <exception cref="ArgumentException">Thrown when aeadAlgorithmTag is unknown/invalid</exception>
         public static int GetAuthTagLength(AeadAlgorithmTag aeadAlgorithmTag)
         {
             switch (aeadAlgorithmTag)
@@ -47,18 +47,17 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        /**
-         * Split a given byte array containing <pre>m</pre> bytes of key and <pre>n-8</pre> bytes of IV into
-         * two separate byte arrays.
-         * <pre>m</pre> is the key length of the cipher algorithm, while <pre>n</pre> is the IV length of the AEAD algorithm.
-         * Note, that the IV is filled with <pre>n-8</pre> bytes only, the remainder is left as 0s.
-         * Return an array of both arrays with the key and index 0 and the IV at index 1.
-         *
-         * @param messageKeyAndIv <pre>m+n-8</pre> bytes of concatenated message key and IV
-         * @param cipherAlgo      symmetric cipher algorithm
-         * @param aeadAlgo        AEAD algorithm
-         * @return array of arrays containing message key and IV
-         */
+        /// <summary>
+        /// Split a given byte array containing m bytes of key and n-8 bytes of IV into
+        /// two separate byte arrays.
+        /// m is the key length of the cipher algorithm, while n is the IV length of the AEAD algorithm.
+        /// Note, that the IV is filled with <pre>n-8</pre> bytes only, the remainder is left as 0s.
+        /// Return an array of both arrays with the key and index 0 and the IV at index 1.
+        /// </summary>
+        /// <param name="messageKeyAndIv">m+n-8 bytes of concatenated message key and IV</param>
+        /// <param name="cipherAlgo">symmetric cipher algorithm</param>
+        /// <param name="aeadAlgo">AEAD algorithm</param>
+        /// <returns>array of arrays containing message key and IV</returns>
         public static byte[][] SplitMessageKeyAndIv(byte[] messageKeyAndIv, SymmetricKeyAlgorithmTag cipherAlgo, AeadAlgorithmTag aeadAlgo)
         {
             int keyLen = PgpUtilities.GetKeySizeInOctets(cipherAlgo);

@@ -1,7 +1,6 @@
+using Org.BouncyCastle.Utilities;
 using System;
 using System.IO;
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -10,53 +9,51 @@ namespace Org.BouncyCastle.Bcpg
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
 
-        /**
-         * Unprotected.
-         */
+        /// <summary>
+        /// Unprotected secret key
+        /// </summary>
         public const int UsageNone = 0x00;
 
-        /**
-         * Malleable CFB.
-         * Malleable-CFB-encrypted keys are vulnerable to corruption attacks
-         * that can cause leakage of secret data when the secret key is used.
-         *
-         * @see <a href="https://eprint.iacr.org/2002/076">
-         * Klíma, V. and T. Rosa,
-         * "Attack on Private Signature Keys of the OpenPGP Format,
-         * PGP(TM) Programs and Other Applications Compatible with OpenPGP"</a>
-         * @see <a href="https://www.kopenpgp.com/">
-         * Bruseghini, L., Paterson, K. G., and D. Huigens,
-         * "Victory by KO: Attacking OpenPGP Using Key Overwriting"</a>
-         * @deprecated Use of MalleableCFB is deprecated.
-         * For v4 keys, use {@link #USAGE_SHA1} instead.
-         * For v6 keys use {@link #USAGE_AEAD} instead.
-         */
+        /// <summary>
+        /// Malleable CFB.
+        /// Malleable-CFB-encrypted keys are vulnerable to corruption attacks
+        /// that can cause leakage of secret data when the secret key is used.
+        /// 
+        /// <see href="https://eprint.iacr.org/2002/076">
+        /// Klíma, V.and T. Rosa,
+        /// "Attack on Private Signature Keys of the OpenPGP Format,
+        /// PGP(TM) Programs and Other Applications Compatible with OpenPGP"</see>
+        /// <see href="https://www.kopenpgp.com/">
+        /// Bruseghini, L., Paterson, K.G., and D. Huigens,
+        /// "Victory by KO: Attacking OpenPGP Using Key Overwriting"</see>
+        /// </summary>
         public const int UsageChecksum = 0xff;
 
-        /**
-         * CFB.
-         * CFB-encrypted keys are vulnerable to corruption attacks that can
-         * cause leakage of secret data when the secret key is use.
-         *
-         * @see <a href="https://eprint.iacr.org/2002/076">
-         * Klíma, V. and T. Rosa,
-         * "Attack on Private Signature Keys of the OpenPGP Format,
-         * PGP(TM) Programs and Other Applications Compatible with OpenPGP"</a>
-         * @see <a href="https://www.kopenpgp.com/">
-         * Bruseghini, L., Paterson, K. G., and D. Huigens,
-         * "Victory by KO: Attacking OpenPGP Using Key Overwriting"</a>
-         */
+
+        /// <summary>
+        /// CFB.
+        /// CFB-encrypted keys are vulnerable to corruption attacks that can
+        /// cause leakage of secret data when the secret key is use.
+        /// 
+        /// <see href = "https://eprint.iacr.org/2002/076" >
+        /// Klíma, V. and T.Rosa,
+        /// "Attack on Private Signature Keys of the OpenPGP Format,
+        /// PGP(TM) Programs and Other Applications Compatible with OpenPGP"</see>
+        /// <see href = "https://www.kopenpgp.com/" >
+        /// Bruseghini, L., Paterson, K.G., and D. Huigens,
+        /// "Victory by KO: Attacking OpenPGP Using Key Overwriting"</see>
+        /// </summary>
         public const int UsageSha1 = 0xfe;
 
-        /**
-         * AEAD.
-         * This usage protects against above-mentioned attacks.
-         * Passphrase-protected secret key material in a v6 Secret Key or
-         * v6 Secret Subkey packet SHOULD be protected with AEAD encryption
-         * unless it will be transferred to an implementation that is known
-         * to not support AEAD.
-         * Users should migrate to AEAD with all due speed.
-         */
+        /// <summary>
+        /// AEAD.
+        /// This usage protects against corruption attacks.
+        /// Passphrase-protected secret key material in a v6 Secret Key or
+        /// v6 Secret Subkey packet SHOULD be protected with AEAD encryption
+        /// unless it will be transferred to an implementation that is known
+        /// to not support AEAD.
+        /// Users should migrate to AEAD with all due speed.
+        /// </summary>
         public const int UsageAead = 0xfd;
 
 
