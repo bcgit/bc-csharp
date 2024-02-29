@@ -81,6 +81,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "/FvLFuGWMbKAdA+epq7V4HOtAPlBWmU8QOd6aud+aSunHQaaEJ+iTFjP2OMW0KBr" +
             "NK2ay45cX1IVAQ==");
 
+        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-inline-signed-messag
+        private readonly byte[] v6SampleInlineSignedMessage = Base64.Decode(
+            "xEYGAQobIHZJX1AhiJD39eLuPBgiUU9wUA9VHYblySHkBONKU/usyxhsTwYJppfk" +
+            "1S36bHIrDB8eJ8GKVnCPZSXsJ7rZrMkBy0p1AAAAAABXaGF0IHdlIG5lZWQgZnJv" +
+            "bSB0aGUgZ3JvY2VyeSBzdG9yZToKCi0gdG9mdQotIHZlZ2V0YWJsZXMKLSBub29k" +
+            "bGVzCsKYBgEbCgAAACkFgmOYo2MiIQbLGGxPBgmml+TVLfpscisMHx4nwYpWcI9l" +
+            "JewnutmsyQAAAABpNiB2SV9QIYiQ9/Xi7jwYIlFPcFAPVR2G5ckh5ATjSlP7rCfQ" +
+            "b7gKqPxbyxbhljGygHQPnqau1eBzrQD5QVplPEDnemrnfmkrpx0GmhCfokxYz9jj" +
+            "FtCgazStmsuOXF9SFQE=");
+
+        private readonly char[] emptyPassphrase = Array.Empty<char>();
+
         [Test]
         public void Version4Ed25519LegacyPubkeySampleTest()
         {
@@ -120,7 +132,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
             PgpObjectFactory factory = new PgpObjectFactory(v4Ed25519LegacySignatureSample);
-            PgpSignatureList sigList = (PgpSignatureList)factory.NextPgpObject();
+            PgpSignatureList sigList = factory.NextPgpObject() as PgpSignatureList;
             PgpSignature signature = sigList[0];
 
             IsEquals(signature.KeyId, pubKey.KeyId);
@@ -249,7 +261,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
             PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
             PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
-            PgpPrivateKey privKey = signingKey.ExtractPrivateKey("".ToCharArray());
+            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(emptyPassphrase);
             spkGen.SetIssuerFingerprint(false, signingKey);
             sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
             sigGen.Update(data);
@@ -382,6 +394,92 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 shouldFail: true);
         }
 
+        [Test]
+        public void Version6SampleInlineSignedMessageVerifySignatureTest()
+        {
+            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-inline-signed-messag
+            PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v6Certificate);
+            PgpPublicKey pubKey = pubRing.GetPublicKey();
+
+            VerifyInlineSignature(v6SampleInlineSignedMessage, pubKey);
+        }
+
+        [Test]
+        public void Version6GenerateAndVerifyInlineSignatureTest()
+        {
+            PgpSecretKeyRing secretKeyRing = new PgpSecretKeyRing(v6UnlockedSecretKey);
+            PgpSecretKey signingKey = secretKeyRing.GetSecretKey();
+            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(emptyPassphrase);
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP\nOpenPGP");
+            byte[] inlineSignatureMessage;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BcpgOutputStream bcOut = new BcpgOutputStream(ms, newFormatOnly: true))
+                {
+                    PgpSignatureGenerator sGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha384);
+                    sGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
+                    sGen.GenerateOnePassVersion(false).Encode(bcOut);
+
+                    PgpLiteralDataGenerator lGen = new PgpLiteralDataGenerator();
+                    DateTime modificationTime = DateTime.UtcNow;
+                    using (var lOut = lGen.Open(
+                        new UncloseableStream(bcOut),
+                        PgpLiteralData.Utf8,
+                        "_CONSOLE",
+                        data.Length,
+                        modificationTime))
+                    {
+                        lOut.Write(data, 0, data.Length);
+                        sGen.Update(data);
+                    }
+
+                    sGen.Generate().Encode(bcOut);
+                }
+
+                inlineSignatureMessage = ms.ToArray();
+            }
+
+            VerifyInlineSignature(inlineSignatureMessage, signingKey.PublicKey);
+            // corrupt data
+            inlineSignatureMessage[88] = 80;
+            VerifyInlineSignature(inlineSignatureMessage, signingKey.PublicKey, shouldFail: true);
+        }
+
+        private void VerifyInlineSignature(byte[] message, PgpPublicKey signer, bool shouldFail = false)
+        {
+            byte[] data;
+            PgpObjectFactory factory = new PgpObjectFactory(message);
+
+            PgpOnePassSignatureList p1 = factory.NextPgpObject() as PgpOnePassSignatureList;
+            PgpOnePassSignature ops = p1[0];
+
+            PgpLiteralData p2 = factory.NextPgpObject() as PgpLiteralData;
+            Stream dIn = p2.GetInputStream();
+
+            ops.InitVerify(signer);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                byte[] buffer = new byte[30];
+                int bytesRead;
+                while ((bytesRead = dIn.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ops.Update(buffer, 0, bytesRead);
+                    ms.Write(buffer, 0, bytesRead);
+                }
+
+                data = ms.ToArray();
+            }
+            PgpSignatureList p3 = factory.NextPgpObject() as PgpSignatureList;
+            PgpSignature sig = p3[0];
+
+            bool result = ops.Verify(sig) != shouldFail;
+            IsTrue("signature test failed", result);
+
+            VerifySignature(sig, data, signer, shouldFail);
+        }
+
         private void VerifySignature(PgpSignature signature, byte[] data, PgpPublicKey signer, bool shouldFail = false)
         {
             IsEquals(signature.KeyAlgorithm, signer.Algorithm);
@@ -408,7 +506,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         private void VerifyEncodedSignature(byte[] sigPacket, byte[] data, PgpPublicKey signer, bool shouldFail = false)
         {
             PgpObjectFactory factory = new PgpObjectFactory(sigPacket);
-            PgpSignatureList sigList = (PgpSignatureList)factory.NextPgpObject();
+            PgpSignatureList sigList = factory.NextPgpObject() as PgpSignatureList;
             PgpSignature signature = sigList[0];
 
             VerifySignature(signature, data, signer, shouldFail);
@@ -447,6 +545,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Version6UnlockedSecretKeyParsingTest();
             Version6LockedSecretKeyParsingTest();
             Version6SampleCleartextSignedMessageVerifySignatureTest();
+            Version6SampleInlineSignedMessageVerifySignatureTest();
+            Version6GenerateAndVerifyInlineSignatureTest();
         }
     }
 }
