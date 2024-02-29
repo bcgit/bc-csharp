@@ -156,7 +156,20 @@ namespace Org.BouncyCastle.Cms
 		{
 			var algorithm = cert.SubjectPublicKeyInfo.Algorithm;
 			var keyWrapper = new Asn1KeyWrapper(algorithm, cert);
-            AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
+			AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
+		}
+
+		/**
+		 * add a recipient.
+		 *
+		 * @param algorithm to override automatic selection (useful for OAEP with PKCS#1v1.5 certs)
+		 * @param cert recipient's public key certificate
+		 * @exception ArgumentException if there is a problem with the certificate
+		 */
+		public void AddKeyTransRecipient(string algorithm, X509Certificate cert)
+		{
+			var keyWrapper = new Asn1KeyWrapper(algorithm, cert);
+			AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
 		}
 
 		/**
@@ -171,6 +184,21 @@ namespace Org.BouncyCastle.Cms
 			SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
 			AddRecipientInfoGenerator(
 				new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(info.Algorithm, pubKey)));
+		}
+
+		/**
+		* add a recipient
+		*
+		* @param algorithm to override automatic selection (useful for OAEP with PKCS#1v1.5 certs)
+		* @param key the public key used by the recipient
+		* @param subKeyId the identifier for the recipient's public key
+		* @exception ArgumentException if there is a problem with the key
+		*/
+		public void AddKeyTransRecipient(string algorithm, AsymmetricKeyParameter pubKey, byte[] subKeyId)
+		{
+			SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
+			AddRecipientInfoGenerator(
+				new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(algorithm, pubKey)));
 		}
 
 		/**

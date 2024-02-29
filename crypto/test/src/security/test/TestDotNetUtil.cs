@@ -1,8 +1,14 @@
 using System;
 using System.Collections.Generic;
+
 #if NET5_0_OR_GREATER
 using System.Runtime.Versioning;
 #endif
+
+#if NET6_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
+
 using System.Security.Cryptography;
 using SystemX509 = System.Security.Cryptography.X509Certificates;
 
@@ -52,13 +58,16 @@ namespace Org.BouncyCastle.Security.Tests
         }
 #endif
 
-//#if NET5_0_OR_GREATER
-#if NET6_0_OR_GREATER
-        [SupportedOSPlatform("windows")]
-#endif
         [Test]
 		public void TestRsaInterop()
 		{
+#if NET6_0_OR_GREATER
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				return;
+			}
+#endif
+
 			for (int i = 0; i < 10; ++i)
 			{
 				RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(512);

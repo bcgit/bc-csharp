@@ -155,6 +155,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.DL)));
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Ber)));
                 IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), der.GetEncoded(Asn1Encodable.Der)));
+
             }
 
             try
@@ -187,6 +188,16 @@ namespace Org.BouncyCastle.Asn1.Tests
                     Fail("failed UTC conversion test");
                 }
             }
+
+            try
+            {
+                // Ensure no stack overflow, only parse format.
+                DerGeneralizedTime shouldFail = new DerGeneralizedTime("20160601140601GMT-04:00");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue(e.Message.Contains("invalid format"));
+            }
         }
 
         [Test]
@@ -194,7 +205,7 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             string resultText = Perform().ToString();
 
-            Assert.AreEqual(Name + ": Okay", resultText);
+            Assert.AreEqual(Name + ": Okay", resultText, resultText);
         }
     }
 }

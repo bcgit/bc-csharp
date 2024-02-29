@@ -248,6 +248,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusOids[SphincsPlusParameters.shake_256s_simple] = BCObjectIdentifiers.sphincsPlus_shake_256s;
             sphincsPlusOids[SphincsPlusParameters.shake_256f_simple] = BCObjectIdentifiers.sphincsPlus_shake_256f;
 
+            sphincsPlusOids[SphincsPlusParameters.haraka_128f_simple] = BCObjectIdentifiers.sphincsPlus_haraka_128f_r3_simple;
+            sphincsPlusOids[SphincsPlusParameters.haraka_128s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_128s_r3_simple;
+            sphincsPlusOids[SphincsPlusParameters.haraka_192f_simple] = BCObjectIdentifiers.sphincsPlus_haraka_192f_r3_simple;
+            sphincsPlusOids[SphincsPlusParameters.haraka_192s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_192s_r3_simple;
+            sphincsPlusOids[SphincsPlusParameters.haraka_256f_simple] = BCObjectIdentifiers.sphincsPlus_haraka_256f_r3_simple;
+            sphincsPlusOids[SphincsPlusParameters.haraka_256s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_256s_r3_simple;
+            
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_128f_r3_simple] = SphincsPlusParameters.haraka_128f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_128s_r3_simple] = SphincsPlusParameters.haraka_128s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_192f_r3_simple] = SphincsPlusParameters.haraka_192f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_192s_r3_simple] = SphincsPlusParameters.haraka_192s_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_256f_r3_simple] = SphincsPlusParameters.haraka_256f_simple;
+            sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_256s_r3_simple] = SphincsPlusParameters.haraka_256s_simple;
+
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128s_r3] = SphincsPlusParameters.sha2_128s;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_sha2_128f_r3] = SphincsPlusParameters.sha2_128f;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_shake_128s_r3] = SphincsPlusParameters.shake_128s;
