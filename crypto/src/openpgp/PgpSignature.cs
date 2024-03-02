@@ -213,7 +213,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return sig.VerifySignature(GetSignature());
         }
 
-		private void UpdateWithIdData(int header, byte[] idBytes)
+        public bool Verify(byte[] additionalMetadata)
+        {
+            // Additional metadata for v5 signatures
+            byte[] trailer = sigPck.GetSignatureTrailer(additionalMetadata);
+
+            sig.BlockUpdate(trailer, 0, trailer.Length);
+
+            return sig.VerifySignature(GetSignature());
+        }
+
+        private void UpdateWithIdData(int header, byte[] idBytes)
 		{
 			this.Update(
 				(byte) header,
@@ -357,6 +367,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		public byte[] GetSignatureTrailer()
         {
             return sigPck.GetSignatureTrailer();
+        }
+
+        public byte[] GetSignatureTrailer(byte[] additionalMetadata)
+        {
+            // Additional metadata for v5 signatures
+            return sigPck.GetSignatureTrailer(additionalMetadata);
         }
 
         public byte[] GetSignatureSalt()

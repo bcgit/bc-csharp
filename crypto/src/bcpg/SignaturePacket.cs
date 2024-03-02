@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Bcpg
 
         private void CheckIssuerSubpacket(SignatureSubpacket p)
         {
-            if (p is IssuerFingerprint issuerFingerprintPkt && !(issuerFingerprint is null))
+            if (p is IssuerFingerprint issuerFingerprintPkt && issuerFingerprint is null)
             {
                 issuerFingerprint = issuerFingerprintPkt.GetFingerprint();
 
@@ -406,13 +406,19 @@ namespace Org.BouncyCastle.Bcpg
             return Arrays.Clone(fingerprint);
         }
 
-		/**
+        /**
         * return the signature trailer that must be included with the data
         * to reconstruct the signature
         *
         * @return byte[]
         */
+
         public byte[] GetSignatureTrailer()
+        {
+            return GetSignatureTrailer(Array.Empty<byte>());
+        }
+
+        public byte[] GetSignatureTrailer(byte[] additionalMetadata)
         {
 			if (version == Version3)
             {
@@ -424,56 +430,93 @@ namespace Org.BouncyCastle.Bcpg
                 return trailer;
             }
 
-            MemoryStream sOut = new MemoryStream();
-
-			sOut.WriteByte((byte)Version);
-            sOut.WriteByte((byte)SignatureType);
-            sOut.WriteByte((byte)KeyAlgorithm);
-            sOut.WriteByte((byte)HashAlgorithm);
-
-            // Mark position an reserve two bytes (version4) or four bytes (version6)
-            // for length
-            long lengthPosition = sOut.Position;
-            if (version == Version6)
+            using (MemoryStream sOut = new MemoryStream())
             {
+                sOut.WriteByte((byte)Version);
+                sOut.WriteByte((byte)SignatureType);
+                sOut.WriteByte((byte)KeyAlgorithm);
+                sOut.WriteByte((byte)HashAlgorithm);
+
+                // Mark position an reserve two bytes (version4) or four bytes (version6)
+                // for length
+                long lengthPosition = sOut.Position;
+                if (version == Version6)
+                {
+                    sOut.WriteByte(0x00);
+                    sOut.WriteByte(0x00);
+                }
                 sOut.WriteByte(0x00);
                 sOut.WriteByte(0x00);
+
+                SignatureSubpacket[] hashed = GetHashedSubPackets();
+                for (int i = 0; i != hashed.Length; i++)
+                {
+                    hashed[i].Encode(sOut);
+                }
+
+                ushort dataLength = Convert.ToUInt16(sOut.Position - lengthPosition - 2);
+                if (version == Version6)
+                {
+                    dataLength -= 2;
+                }
+
+                uint hDataLength = Convert.ToUInt32(sOut.Position);
+
+                // Additional metadata for v5 signatures
+                // https://www.ietf.org/archive/id/draft-ietf-openpgp-rfc4880bis-10.html#name-computing-signatures
+                // Only for document signatures (type 0x00 or 0x01) the following three data items are
+                // hashed here:
+                //   * the one-octet content format,
+                //   * the file name as a string (one octet length, followed by the file name)
+                //   * a four-octet number that indicates a date,
+                // The three data items hashed for document signatures need to mirror the values of the
+                // Literal Data packet.
+                // For detached and cleartext signatures 6 zero bytes are hashed instead.
+
+                if (version == Version5 && (signatureType == 0x00 || signatureType == 0x01))
+                {
+                    if (additionalMetadata != null && additionalMetadata.Length > 0)
+                    {
+                        sOut.Write(additionalMetadata, 0, additionalMetadata.Length);
+                    }
+                    else
+                    {
+                        sOut.WriteByte(0x00);
+                        sOut.WriteByte(0x00);
+                        sOut.WriteByte(0x00);
+                        sOut.WriteByte(0x00);
+                        sOut.WriteByte(0x00);
+                        sOut.WriteByte(0x00);
+                    }
+                }
+
+                sOut.WriteByte((byte)Version);
+                sOut.WriteByte(0xff);
+
+                if (version == Version5)
+                {
+                    sOut.WriteByte((byte)((ulong)hDataLength >> 56));
+                    sOut.WriteByte((byte)((ulong)hDataLength >> 48));
+                    sOut.WriteByte((byte)((ulong)hDataLength >> 40));
+                    sOut.WriteByte((byte)((ulong)hDataLength >> 32));
+                }
+                sOut.WriteByte((byte)(hDataLength >> 24));
+                sOut.WriteByte((byte)(hDataLength >> 16));
+                sOut.WriteByte((byte)(hDataLength >>  8));
+                sOut.WriteByte((byte)(hDataLength      ));
+
+                // Reset position and fill in length
+                sOut.Position = lengthPosition;
+                if (version == Version6)
+                {
+                    sOut.WriteByte((byte)(dataLength >> 24));
+                    sOut.WriteByte((byte)(dataLength >> 16));
+                }
+                sOut.WriteByte((byte)(dataLength >> 8));
+                sOut.WriteByte((byte)(dataLength     ));
+
+                return sOut.ToArray();
             }
-            sOut.WriteByte(0x00);
-            sOut.WriteByte(0x00);
-
-            SignatureSubpacket[] hashed = GetHashedSubPackets();
-			for (int i = 0; i != hashed.Length; i++)
-            {
-                hashed[i].Encode(sOut);
-            }
-
-            ushort dataLength = Convert.ToUInt16(sOut.Position - lengthPosition - 2);
-            if (version == Version6)
-            {
-                dataLength -= 2;
-            }
-
-            uint hDataLength = Convert.ToUInt32(sOut.Position);
-
-			sOut.WriteByte((byte)Version);
-            sOut.WriteByte(0xff);
-            sOut.WriteByte((byte)(hDataLength >> 24));
-            sOut.WriteByte((byte)(hDataLength >> 16));
-            sOut.WriteByte((byte)(hDataLength >>  8));
-            sOut.WriteByte((byte)(hDataLength      ));
-
-            // Reset position and fill in length
-            sOut.Position = lengthPosition;
-            if (version == Version6)
-            {
-                sOut.WriteByte((byte)(dataLength >> 24));
-                sOut.WriteByte((byte)(dataLength >> 16));
-            }
-            sOut.WriteByte((byte)(dataLength >> 8));
-            sOut.WriteByte((byte)(dataLength     ));
-
-            return sOut.ToArray();
         }
 
 		public PublicKeyAlgorithmTag KeyAlgorithm => keyAlgorithm;
