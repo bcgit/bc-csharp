@@ -285,7 +285,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             kpGen.Init(new X25519KeyGenerationParameters(new SecureRandom()));
             AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
 
-            IsTrue("X25519 agreement failed", EncryptThenDecryptX25519Test(alice, bob));
+            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, encryptionKey.PublicKey.Algorithm));
 
             // Encode test
             using (MemoryStream ms = new MemoryStream())
@@ -367,26 +367,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 shouldFail: true);
 
             // encode-decode roundtrip
-
+            SecureRandom rand = new SecureRandom();
+            string uid = "Alice <alice@example.com>";
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(
                 PgpSignature.PositiveCertification,
                 keypair,
-                "Alice <alice@example.com>",
+                uid,
                 SymmetricKeyAlgorithmTag.Null,
                 Array.Empty<char>(),
                 true,
                 null,
                 null,
-                new SecureRandom());
+                rand);
+
+            // add an encryption subkey
+            X25519KeyPairGenerator x25519gen = new X25519KeyPairGenerator();
+            x25519gen.Init(new X25519KeyGenerationParameters(rand));
+            AsymmetricCipherKeyPair x25519kp = x25519gen.GenerateKeyPair();
+            keypair = new PgpKeyPair(PublicKeyPacket.Version6, PublicKeyAlgorithmTag.X25519, x25519kp, DateTime.Parse("2022-11-30 16:08:03Z"));
+            keyRingGen.AddSubKey(keypair);
 
             PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
-            byte[] encodedsecring;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                secring.Encode(ms);
-                encodedsecring = ms.ToArray();
-            }
-
+            byte[] encodedsecring = secring.GetEncoded();
             PgpSecretKeyRing decodedsecring = new PgpSecretKeyRing(encodedsecring);
 
             PgpPublicKey pgppubkey = decodedsecring.GetPublicKey();
@@ -395,7 +397,33 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(pgppubkey.CreationTime.ToString("yyyyMMddHHmmss"), "20221130160803");
             IsEquals((ulong)pgppubkey.KeyId, 0xCB186C4F0609A697);
             IsTrue("wrong master key fingerprint", AreEqual(pgppubkey.GetFingerprint(), expectedFingerprint));
-            IsTrue(pgppubkey.GetUserIds().Contains("Alice <alice@example.com>"));
+            IsTrue(pgppubkey.GetUserIds().Contains(uid));
+
+            // verify selfsig
+            PgpSignature signature = pgppubkey.GetSignaturesForId(uid).ToArray()[0];
+            IsEquals(signature.Version, SignaturePacket.Version6);
+            IsEquals(signature.SignatureType, PgpSignature.PositiveCertification);
+            signature.InitVerify(pgppubkey);
+            IsTrue(signature.VerifyCertification(uid, pgppubkey));
+            IsTrue(!signature.VerifyCertification("Bob <bob@example.com>", pgppubkey));
+
+            // verify subkey
+            PgpSecretKey subKey = decodedsecring.GetSecretKeys().ToArray()[1];
+            IsEquals(subKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
+
+            // Verify subkey binding signature
+            PgpSignature bindingSig = subKey.PublicKey.GetSignatures().First();
+            IsTrue(bindingSig.SignatureType == PgpSignature.SubkeyBinding);
+            bindingSig.InitVerify(pgppubkey);
+            IsTrue("subkey binding signature verification failed", bindingSig.VerifyCertification(pgppubkey, subKey.PublicKey));
+
+            // encrypt-decrypt test
+            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
+            IAsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
+            kpGen.Init(new X25519KeyGenerationParameters(rand));
+            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
+            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
+
 
             // Sign-Verify roundtrip
             byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
@@ -407,7 +435,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
             sigGen.Update(data);
             sigGen.SetHashedSubpackets(spkGen.Generate());
-            PgpSignature signature = sigGen.Generate();
+            signature = sigGen.Generate();
 
             AreEqual(signature.GetIssuerFingerprint(), expectedFingerprint);
             VerifySignature(signature, data, pgppubkey);
@@ -435,10 +463,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(fpr.Length, 32);
 
             // encode-decode roundtrip
+            string uid = "Alice <alice@example.com>";
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(
                 PgpSignature.PositiveCertification,
                 keypair,
-                "Alice <alice@example.com>",
+                uid,
                 SymmetricKeyAlgorithmTag.Null,
                 Array.Empty<char>(),
                 true,
@@ -446,22 +475,49 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 null,
                 rand);
 
-            PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
-            byte[] encodedsecring;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                secring.Encode(ms);
-                encodedsecring = ms.ToArray();
-            }
+            // add an encryption subkey
+            X448KeyPairGenerator x448gen = new X448KeyPairGenerator();
+            x448gen.Init(new X448KeyGenerationParameters(rand));
+            AsymmetricCipherKeyPair x448kp = x448gen.GenerateKeyPair();
+            keypair = new PgpKeyPair(PublicKeyPacket.Version6, PublicKeyAlgorithmTag.X448, x448kp, now);
+            keyRingGen.AddSubKey(keypair);
 
+            PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
+            byte[] encodedsecring = secring.GetEncoded();
             PgpSecretKeyRing decodedsecring = new PgpSecretKeyRing(encodedsecring);
+
             PgpPublicKey pgppubkey = decodedsecring.GetPublicKey();
             PgpSecretKey pgpseckey = decodedsecring.GetSecretKey();
             IsEquals(pgppubkey.Algorithm, PublicKeyAlgorithmTag.Ed448);
             IsEquals(pgppubkey.CreationTime.ToString("yyyyMMddHHmmss"), now.ToString("yyyyMMddHHmmss"));
             IsEquals(pgppubkey.KeyId, keyId);
             IsTrue("wrong master key fingerprint", AreEqual(pgppubkey.GetFingerprint(), fpr));
-            IsTrue(pgppubkey.GetUserIds().Contains("Alice <alice@example.com>"));
+            IsTrue(pgppubkey.GetUserIds().Contains(uid));
+
+            // verify selfsig
+            PgpSignature signature = pgppubkey.GetSignaturesForId(uid).ToArray()[0];
+            IsEquals(signature.Version, SignaturePacket.Version6);
+            IsEquals(signature.SignatureType, PgpSignature.PositiveCertification);
+            signature.InitVerify(pgppubkey);
+            IsTrue(signature.VerifyCertification(uid, pgppubkey));
+            IsTrue(!signature.VerifyCertification("Bob <bob@example.com>", pgppubkey));
+
+            // verify subkey
+            PgpSecretKey subKey = decodedsecring.GetSecretKeys().ToArray()[1];
+            IsEquals(subKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X448);
+
+            // Verify subkey binding signature
+            PgpSignature bindingSig = subKey.PublicKey.GetSignatures().First();
+            IsTrue(bindingSig.SignatureType == PgpSignature.SubkeyBinding);
+            bindingSig.InitVerify(pgppubkey);
+            IsTrue("subkey binding signature verification failed", bindingSig.VerifyCertification(pgppubkey, subKey.PublicKey));
+
+            // encrypt-decrypt test
+            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
+            IAsymmetricCipherKeyPairGenerator kpGen = new X448KeyPairGenerator();
+            kpGen.Init(new X448KeyGenerationParameters(rand));
+            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
+            IsTrue("X448 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
 
             // Sign-Verify roundtrip
             byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
@@ -473,7 +529,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, rand);
             sigGen.Update(data);
             sigGen.SetHashedSubpackets(spkGen.Generate());
-            PgpSignature signature = sigGen.Generate();
+            signature = sigGen.Generate();
 
             AreEqual(signature.GetIssuerFingerprint(), fpr);
 
@@ -665,14 +721,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 secretKey.ExtractPrivateKey(password.ToCharArray()).Key);
         }
 
-        private static bool EncryptThenDecryptX25519Test(AsymmetricCipherKeyPair alice, AsymmetricCipherKeyPair bob)
+        private static bool EncryptThenDecryptTest(AsymmetricCipherKeyPair alice, AsymmetricCipherKeyPair bob, PublicKeyAlgorithmTag algo)
         {
-            X25519Agreement agreeA = new X25519Agreement();
+            IRawAgreement agreeA, agreeB;
+
+            switch (algo)
+            {
+                case PublicKeyAlgorithmTag.X25519:
+                    agreeA = new X25519Agreement();
+                    agreeB = new X25519Agreement();
+                    break;
+                case PublicKeyAlgorithmTag.X448:
+                    agreeA = new X448Agreement();
+                    agreeB = new X448Agreement();
+                    break;
+                default:
+                    throw new ArgumentException($"Unsupported algo {algo}");
+            }
+
             agreeA.Init(alice.Private);
             byte[] secretA = new byte[agreeA.AgreementSize];
             agreeA.CalculateAgreement(bob.Public, secretA, 0);
 
-            X25519Agreement agreeB = new X25519Agreement();
             agreeB.Init(bob.Private);
             byte[] secretB = new byte[agreeB.AgreementSize];
             agreeB.CalculateAgreement(alice.Public, secretB, 0);
