@@ -27,19 +27,38 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
-		public PgpKeyPair(
+        public PgpKeyPair(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            AsymmetricCipherKeyPair keyPair,
+            DateTime time)
+            : this(version, algorithm, keyPair.Public, keyPair.Private, time)
+        {
+        }
+
+        public PgpKeyPair(
             PublicKeyAlgorithmTag	algorithm,
             AsymmetricKeyParameter	pubKey,
             AsymmetricKeyParameter	privKey,
             DateTime				time)
+            :this(PublicKeyPacket.DefaultVersion, algorithm, pubKey, privKey, time)
         {
-            this.pub = new PgpPublicKey(algorithm, pubKey, time);
-			this.priv = new PgpPrivateKey(pub, privKey);
         }
 
-		/// <summary>Create a key pair from a PgpPrivateKey and a PgpPublicKey.</summary>
-		/// <param name="pub">The public key.</param>
-		/// <param name="priv">The private key.</param>
+        public PgpKeyPair(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            AsymmetricKeyParameter pubKey,
+            AsymmetricKeyParameter privKey,
+            DateTime time)
+        {
+            this.pub = new PgpPublicKey(version, algorithm, pubKey, time);
+            this.priv = new PgpPrivateKey(pub, privKey);
+        }
+
+        /// <summary>Create a key pair from a PgpPrivateKey and a PgpPublicKey.</summary>
+        /// <param name="pub">The public key.</param>
+        /// <param name="priv">The private key.</param>
         public PgpKeyPair(
             PgpPublicKey	pub,
             PgpPrivateKey	priv)

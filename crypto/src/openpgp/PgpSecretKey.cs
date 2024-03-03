@@ -110,6 +110,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     ElGamalPrivateKeyParameters esK = (ElGamalPrivateKeyParameters) privKey.Key;
                     secKey = new ElGamalSecretBcpgKey(esK.X);
                     break;
+                case PublicKeyAlgorithmTag.Ed25519:
+                    Ed25519PrivateKeyParameters e25519pk = (Ed25519PrivateKeyParameters)privKey.Key;
+                    secKey = new Ed25519SecretBcpgKey(e25519pk.GetEncoded());
+                    break;
+                case PublicKeyAlgorithmTag.Ed448:
+                    Ed448PrivateKeyParameters e448pk = (Ed448PrivateKeyParameters)privKey.Key;
+                    secKey = new Ed448SecretBcpgKey(e448pk.GetEncoded());
+                    break;
+                case PublicKeyAlgorithmTag.X25519:
+                    X25519PrivateKeyParameters x25519pk = (X25519PrivateKeyParameters)privKey.Key;
+                    secKey = new X25519SecretBcpgKey(x25519pk.GetEncoded());
+                    break;
+                case PublicKeyAlgorithmTag.X448:
+                    X448PrivateKeyParameters x448pk = (X448PrivateKeyParameters)privKey.Key;
+                    secKey = new X448SecretBcpgKey(x448pk.GetEncoded());
+                    break;
                 default:
                     throw new PgpException("unknown key class");
             }
@@ -243,7 +259,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector	hashedPackets,
             PgpSignatureSubpacketVector	unhashedPackets,
             SecureRandom				rand)
-            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets),
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, rand),
                 encAlgorithm, rawPassPhrase, clearPassPhrase, useSha1, rand, true)
         {
         }
@@ -319,7 +335,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector hashedPackets,
             PgpSignatureSubpacketVector unhashedPackets,
             SecureRandom                rand)
-            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, hashAlgorithm),
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, hashAlgorithm, rand),
                 encAlgorithm, rawPassPhrase, clearPassPhrase, useSha1, rand, true)
         {
         }
@@ -329,7 +345,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpKeyPair					keyPair,
             string						id,
             PgpSignatureSubpacketVector	hashedPackets,
-            PgpSignatureSubpacketVector	unhashedPackets)
+            PgpSignatureSubpacketVector	unhashedPackets,
+            SecureRandom rand)
         {
             PgpSignatureGenerator sGen;
             try
@@ -344,7 +361,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
             // Generate the certification
             //
-            sGen.InitSign(certificationLevel, keyPair.PrivateKey);
+            sGen.InitSign(certificationLevel, keyPair.PrivateKey, rand);
 
             sGen.SetHashedSubpackets(hashedPackets);
             sGen.SetUnhashedSubpackets(unhashedPackets);
@@ -367,7 +384,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             string id,
             PgpSignatureSubpacketVector hashedPackets,
             PgpSignatureSubpacketVector unhashedPackets,
-            HashAlgorithmTag hashAlgorithm)
+            HashAlgorithmTag hashAlgorithm,
+            SecureRandom rand)
         {
             PgpSignatureGenerator sGen;
             try
@@ -382,7 +400,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
             // Generate the certification
             //
-            sGen.InitSign(certificationLevel, keyPair.PrivateKey);
+            sGen.InitSign(certificationLevel, keyPair.PrivateKey, rand);
 
             sGen.SetHashedSubpackets(hashedPackets);
             sGen.SetUnhashedSubpackets(unhashedPackets);

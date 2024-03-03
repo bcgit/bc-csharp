@@ -336,6 +336,152 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         }
 
         [Test]
+        public void Version6Ed25519KeyPairCreationTest()
+        {
+            /* 
+             * Create a v6 Ed25519 keypair with the same key material and creation datetime as the test vector
+             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
+             * then check the fingerprint and verify a signature
+             */
+            byte[] keyMaterial = Hex.Decode("1972817b12be707e8d5f586ce61361201d344eb266a2c82fde6835762b65b0b7");
+            Ed25519PrivateKeyParameters seckey = new Ed25519PrivateKeyParameters(keyMaterial);
+            Ed25519PublicKeyParameters pubkey = seckey.GeneratePublicKey();
+            PgpKeyPair keypair = new PgpKeyPair(PublicKeyPacket.Version6, PublicKeyAlgorithmTag.Ed25519, pubkey, seckey, DateTime.Parse("2022-11-30 16:08:03Z"));
+
+            IsEquals(keypair.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
+            IsEquals(keypair.PublicKey.CreationTime.ToString("yyyyMMddHHmmss"), "20221130160803");
+            byte[] expectedFingerprint = Hex.Decode("CB186C4F0609A697E4D52DFA6C722B0C1F1E27C18A56708F6525EC27BAD9ACC9");
+            IsEquals((ulong)keypair.KeyId, 0xCB186C4F0609A697);
+            IsTrue("wrong master key fingerprint", AreEqual(keypair.PublicKey.GetFingerprint(), expectedFingerprint));
+
+
+            VerifyEncodedSignature(
+                v6SampleCleartextSignedMessageSignature,
+                Encoding.UTF8.GetBytes(v6SampleCleartextSignedMessage),
+                keypair.PublicKey);
+
+            VerifyEncodedSignature(
+                v6SampleCleartextSignedMessageSignature,
+                Encoding.UTF8.GetBytes("wrongdata"),
+                keypair.PublicKey,
+                shouldFail: true);
+
+            // encode-decode roundtrip
+
+            PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(
+                PgpSignature.PositiveCertification,
+                keypair,
+                "Alice <alice@example.com>",
+                SymmetricKeyAlgorithmTag.Null,
+                Array.Empty<char>(),
+                true,
+                null,
+                null,
+                new SecureRandom());
+
+            PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
+            byte[] encodedsecring;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                secring.Encode(ms);
+                encodedsecring = ms.ToArray();
+            }
+
+            PgpSecretKeyRing decodedsecring = new PgpSecretKeyRing(encodedsecring);
+
+            PgpPublicKey pgppubkey = decodedsecring.GetPublicKey();
+            PgpSecretKey pgpseckey = decodedsecring.GetSecretKey();
+            IsEquals(pgppubkey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
+            IsEquals(pgppubkey.CreationTime.ToString("yyyyMMddHHmmss"), "20221130160803");
+            IsEquals((ulong)pgppubkey.KeyId, 0xCB186C4F0609A697);
+            IsTrue("wrong master key fingerprint", AreEqual(pgppubkey.GetFingerprint(), expectedFingerprint));
+            IsTrue(pgppubkey.GetUserIds().Contains("Alice <alice@example.com>"));
+
+            // Sign-Verify roundtrip
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
+            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
+            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(pgppubkey.Algorithm, HashAlgorithmTag.Sha512);
+            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
+            PgpPrivateKey privKey = pgpseckey.ExtractPrivateKey(emptyPassphrase);
+            spkGen.SetIssuerFingerprint(false, pgpseckey);
+            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
+            sigGen.Update(data);
+            sigGen.SetHashedSubpackets(spkGen.Generate());
+            PgpSignature signature = sigGen.Generate();
+
+            AreEqual(signature.GetIssuerFingerprint(), expectedFingerprint);
+            VerifySignature(signature, data, pgppubkey);
+            VerifySignature(signature, wrongData, pgppubkey, shouldFail: true);
+        }
+
+        [Test]
+        public void Version6Ed448KeyPairCreationTest()
+        {
+            /* 
+             * Create a v6 Ed448 keypair, then perform encode-decode and sign-verify roundtrips
+             */
+            SecureRandom rand = new SecureRandom();
+            DateTime now = DateTime.UtcNow;
+
+            Ed448KeyPairGenerator ed448gen = new Ed448KeyPairGenerator();
+            ed448gen.Init(new Ed448KeyGenerationParameters(rand));
+            AsymmetricCipherKeyPair kp = ed448gen.GenerateKeyPair();
+
+            PgpKeyPair keypair = new PgpKeyPair(PublicKeyPacket.Version6, PublicKeyAlgorithmTag.Ed448, kp, now);
+            IsEquals(keypair.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed448);
+            IsEquals(keypair.PublicKey.CreationTime.ToString("yyyyMMddHHmmss"), now.ToString("yyyyMMddHHmmss"));
+            long keyId = keypair.PublicKey.KeyId;
+            byte[] fpr = keypair.PublicKey.GetFingerprint();
+            IsEquals(fpr.Length, 32);
+
+            // encode-decode roundtrip
+            PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(
+                PgpSignature.PositiveCertification,
+                keypair,
+                "Alice <alice@example.com>",
+                SymmetricKeyAlgorithmTag.Null,
+                Array.Empty<char>(),
+                true,
+                null,
+                null,
+                rand);
+
+            PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
+            byte[] encodedsecring;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                secring.Encode(ms);
+                encodedsecring = ms.ToArray();
+            }
+
+            PgpSecretKeyRing decodedsecring = new PgpSecretKeyRing(encodedsecring);
+            PgpPublicKey pgppubkey = decodedsecring.GetPublicKey();
+            PgpSecretKey pgpseckey = decodedsecring.GetSecretKey();
+            IsEquals(pgppubkey.Algorithm, PublicKeyAlgorithmTag.Ed448);
+            IsEquals(pgppubkey.CreationTime.ToString("yyyyMMddHHmmss"), now.ToString("yyyyMMddHHmmss"));
+            IsEquals(pgppubkey.KeyId, keyId);
+            IsTrue("wrong master key fingerprint", AreEqual(pgppubkey.GetFingerprint(), fpr));
+            IsTrue(pgppubkey.GetUserIds().Contains("Alice <alice@example.com>"));
+
+            // Sign-Verify roundtrip
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
+            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
+            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(pgppubkey.Algorithm, HashAlgorithmTag.Sha512);
+            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
+            PgpPrivateKey privKey = pgpseckey.ExtractPrivateKey(emptyPassphrase);
+            spkGen.SetIssuerFingerprint(false, pgpseckey);
+            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, rand);
+            sigGen.Update(data);
+            sigGen.SetHashedSubpackets(spkGen.Generate());
+            PgpSignature signature = sigGen.Generate();
+
+            AreEqual(signature.GetIssuerFingerprint(), fpr);
+
+            VerifySignature(signature, data, pgppubkey);
+            VerifySignature(signature, wrongData, pgppubkey, shouldFail: true);
+        }
+
+        [Test]
         public void Version6LockedSecretKeyParsingTest()
         {
             /*
@@ -539,9 +685,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Version4Ed25519LegacyPubkeySampleTest();
             Version4Ed25519LegacySignatureSampleTest();
             Version4Ed25519LegacyCreateTest();
-
             Version6CertificateParsingTest();
             Version6PublicKeyCreationTest();
+            Version6Ed25519KeyPairCreationTest();
+            Version6Ed448KeyPairCreationTest();
             Version6UnlockedSecretKeyParsingTest();
             Version6LockedSecretKeyParsingTest();
             Version6SampleCleartextSignedMessageVerifySignatureTest();

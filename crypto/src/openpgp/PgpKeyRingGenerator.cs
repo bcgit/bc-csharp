@@ -1,15 +1,13 @@
+using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>
-	/// Generator for a PGP master and subkey ring.
-	/// This class will generate both the secret and public key rings
-	/// </remarks>
+    /// <remarks>
+    /// Generator for a PGP master and subkey ring.
+    /// This class will generate both the secret and public key rings
+    /// </remarks>
     public class PgpKeyRingGenerator
     {
         private IList<PgpSecretKey>         keys = new List<PgpSecretKey>();
@@ -300,7 +298,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 //
                 // Generate the certification
                 //
-                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey);
+                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey, rand);
 
                 sGen.SetHashedSubpackets(hashedPackets);
                 sGen.SetUnhashedSubpackets(unhashedPackets);
@@ -346,12 +344,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 //
                 // Generate the certification
                 //
-                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey);
+                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey, rand);
 
                 // add primary key binding sub packet
                 PgpSignatureGenerator pGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, primaryKeyBindingHashAlgorithm);
 
-                pGen.InitSign(PgpSignature.PrimaryKeyBinding, keyPair.PrivateKey);
+                pGen.InitSign(PgpSignature.PrimaryKeyBinding, keyPair.PrivateKey, rand);
 
                 PgpSignatureSubpacketGenerator spGen = new PgpSignatureSubpacketGenerator(hashedPackets);
 
