@@ -112,12 +112,24 @@ namespace Org.BouncyCastle.Cms
         public static readonly string Gost28147Wrap     = CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Id;
 		public static readonly string Gost28147CryptoProWrap = CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Id;
 
-        public static readonly string ECCDHSha1Kdf      = X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id;
         public static readonly string ECDHSha1Kdf       = X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
+        public static readonly string ECCDHSha1Kdf      = X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id;
         public static readonly string ECMqvSha1Kdf      = X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
+
+        public static readonly string ECDHSha224Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme.Id;
+        public static readonly string ECCDHSha224Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme.Id;
         public static readonly string ECMqvSha224Kdf    = SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Id;
+
+        public static readonly string ECDHSha256Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme.Id;
+        public static readonly string ECCDHSha256Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme.Id;
         public static readonly string ECMqvSha256Kdf    = SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme.Id;
+
+        public static readonly string ECDHSha384Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme.Id;
+        public static readonly string ECCDHSha384Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme.Id;
         public static readonly string ECMqvSha384Kdf    = SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme.Id;
+
+        public static readonly string ECDHSha512Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme.Id;
+        public static readonly string ECCDHSha512Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme.Id;
         public static readonly string ECMqvSha512Kdf    = SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme.Id;
 
 		internal readonly IList<RecipientInfoGenerator> recipientInfoGenerators = new List<RecipientInfoGenerator>();

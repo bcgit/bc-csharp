@@ -4,7 +4,9 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -20,7 +22,41 @@ namespace Org.BouncyCastle.Cms
 		// TODO Is there a .NET equivalent to this?
 //		private static readonly Runtime RUNTIME = Runtime.getRuntime();
 
-		internal static int MaximumMemory
+        private static readonly HashSet<DerObjectIdentifier> ECAlgorithms = new HashSet<DerObjectIdentifier>();
+        private static readonly HashSet<DerObjectIdentifier> GostAlgorithms = new HashSet<DerObjectIdentifier>();
+        private static readonly HashSet<DerObjectIdentifier> MqvAlgorithms = new HashSet<DerObjectIdentifier>();
+
+		static CmsUtilities()
+		{
+            ECAlgorithms.Add(X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme);
+            ECAlgorithms.Add(X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme);
+            ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme);
+
+            GostAlgorithms.Add(CryptoProObjectIdentifiers.GostR3410x2001CryptoProESDH);
+            GostAlgorithms.Add(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256);
+            GostAlgorithms.Add(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512);
+
+            MqvAlgorithms.Add(X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme);
+            MqvAlgorithms.Add(SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme);
+            MqvAlgorithms.Add(SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme);
+            MqvAlgorithms.Add(SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme);
+            MqvAlgorithms.Add(SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme);
+        }
+
+        internal static bool IsEC(DerObjectIdentifier oid) => ECAlgorithms.Contains(oid);
+
+        internal static bool IsGost(DerObjectIdentifier oid) => GostAlgorithms.Contains(oid);
+
+        internal static bool IsMqv(DerObjectIdentifier oid) => MqvAlgorithms.Contains(oid);
+
+        internal static int MaximumMemory
 		{
 			get
 			{
@@ -234,12 +270,5 @@ namespace Org.BouncyCastle.Cms
                     throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
             }
         }
-
-		internal static bool IsMqv(DerObjectIdentifier oid) =>
-			X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Equals(oid) ||
-			SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Equals(oid) ||
-			SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme.Equals(oid) ||
-			SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme.Equals(oid) ||
-			SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme.Equals(oid);
     }
 }

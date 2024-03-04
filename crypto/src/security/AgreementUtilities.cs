@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
@@ -22,9 +23,25 @@ namespace Org.BouncyCastle.Security
 
         static AgreementUtilities()
 		{
-            AlgorithmOidMap[X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme] = "ECCDHWITHSHA1KDF";
             AlgorithmOidMap[X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme] = "ECDHWITHSHA1KDF";
+            AlgorithmOidMap[X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme] = "ECCDHWITHSHA1KDF";
             AlgorithmOidMap[X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme] = "ECMQVWITHSHA1KDF";
+
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme] = "ECDHWITHSHA224KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme] = "ECCDHWITHSHA224KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme] = "ECMQVWITHSHA224KDF";
+
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme] = "ECDHWITHSHA256KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme] = "ECCDHWITHSHA256KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme] = "ECMQVWITHSHA256KDF";
+
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme] = "ECDHWITHSHA384KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme] = "ECCDHWITHSHA384KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme] = "ECMQVWITHSHA384KDF";
+
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme] = "ECDHWITHSHA512KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme] = "ECCDHWITHSHA512KDF";
+            AlgorithmOidMap[SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme] = "ECMQVWITHSHA512KDF";
 
             AlgorithmOidMap[EdECObjectIdentifiers.id_X25519] = "X25519";
             AlgorithmOidMap[EdECObjectIdentifiers.id_X448] = "X448";
@@ -152,12 +169,36 @@ namespace Org.BouncyCastle.Security
             // 'DHWITHSHA1KDF' retained for backward compatibility
             if (mechanism == "DHWITHSHA1KDF" || mechanism == "ECDHWITHSHA1KDF")
                 return new ECDHWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha1Digest()));
+            if (mechanism == "ECDHWITHSHA224KDF")
+                return new ECDHWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha224Digest()));
+            if (mechanism == "ECDHWITHSHA256KDF")
+                return new ECDHWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha256Digest()));
+            if (mechanism == "ECDHWITHSHA384KDF")
+                return new ECDHWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha384Digest()));
+            if (mechanism == "ECDHWITHSHA512KDF")
+                return new ECDHWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha512Digest()));
 
             if (mechanism == "ECCDHWITHSHA1KDF")
                 return new ECDHCWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha1Digest()));
+            if (mechanism == "ECCDHWITHSHA224KDF")
+                return new ECDHCWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha224Digest()));
+            if (mechanism == "ECCDHWITHSHA256KDF")
+                return new ECDHCWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha256Digest()));
+            if (mechanism == "ECCDHWITHSHA384KDF")
+                return new ECDHCWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha384Digest()));
+            if (mechanism == "ECCDHWITHSHA512KDF")
+                return new ECDHCWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha512Digest()));
 
             if (mechanism == "ECMQVWITHSHA1KDF")
                 return new ECMqvWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha1Digest()));
+            if (mechanism == "ECMQVWITHSHA224KDF")
+                return new ECMqvWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha224Digest()));
+            if (mechanism == "ECMQVWITHSHA256KDF")
+                return new ECMqvWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha256Digest()));
+            if (mechanism == "ECMQVWITHSHA384KDF")
+                return new ECMqvWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha384Digest()));
+            if (mechanism == "ECMQVWITHSHA512KDF")
+                return new ECMqvWithKdfBasicAgreement(wrapAlgorithm, new ECDHKekGenerator(new Sha512Digest()));
 
             return null;
         }
