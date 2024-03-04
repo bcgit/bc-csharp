@@ -18,9 +18,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     public class PgpCryptoRefreshTest
         : SimpleTest
     {
-        public override string Name => "PgpCryptoRefreshTest";
-
-
         // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-key
         private readonly byte[] v4Ed25519LegacyPubkeySample = Base64.Decode(
             "xjMEU/NfCxYJKwYBBAHaRw8BAQdAPwmJlL3ZFu1AUxl5NOSofIBzOhKA1i+AEJku" +
@@ -280,14 +277,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(encryptionKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
             IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
 
-            AsymmetricCipherKeyPair alice = GetKeyPair(encryptionKey);
-            IAsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
-            kpGen.Init(new X25519KeyGenerationParameters(new SecureRandom()));
-            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
-
-            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, encryptionKey.PublicKey.Algorithm));
-
-            // Encode test
+            // Encode-Decode roundtrip
             using (MemoryStream ms = new MemoryStream())
             {
                 using (BcpgOutputStream bs = new BcpgOutputStream(ms, newFormatOnly: true))
@@ -366,7 +356,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 keypair.PublicKey,
                 shouldFail: true);
 
-            // encode-decode roundtrip
+            // Encode-Decode roundtrip
             SecureRandom rand = new SecureRandom();
             string uid = "Alice <alice@example.com>";
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(
@@ -417,14 +407,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             bindingSig.InitVerify(pgppubkey);
             IsTrue("subkey binding signature verification failed", bindingSig.VerifyCertification(pgppubkey, subKey.PublicKey));
 
-            // encrypt-decrypt test
-            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
-            IAsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
-            kpGen.Init(new X25519KeyGenerationParameters(rand));
-            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
-            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
-
-
             // Sign-Verify roundtrip
             byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
             byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
@@ -440,6 +422,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             AreEqual(signature.GetIssuerFingerprint(), expectedFingerprint);
             VerifySignature(signature, data, pgppubkey);
             VerifySignature(signature, wrongData, pgppubkey, shouldFail: true);
+
+            // encrypt-decrypt test
+            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
+
+            PgpSecretKeyRing bobSecring = new PgpSecretKeyRing(v6UnlockedSecretKey);
+            PgpSecretKey bobEncryptionKey = bobSecring.GetSecretKeys().ToArray()[1];
+            AsymmetricCipherKeyPair bob = GetKeyPair(bobEncryptionKey);
+
+            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
         }
 
         [Test]
@@ -512,13 +503,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             bindingSig.InitVerify(pgppubkey);
             IsTrue("subkey binding signature verification failed", bindingSig.VerifyCertification(pgppubkey, subKey.PublicKey));
 
-            // encrypt-decrypt test
-            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
-            IAsymmetricCipherKeyPairGenerator kpGen = new X448KeyPairGenerator();
-            kpGen.Init(new X448KeyGenerationParameters(rand));
-            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
-            IsTrue("X448 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
-
             // Sign-Verify roundtrip
             byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
             byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
@@ -532,9 +516,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             signature = sigGen.Generate();
 
             AreEqual(signature.GetIssuerFingerprint(), fpr);
-
             VerifySignature(signature, data, pgppubkey);
             VerifySignature(signature, wrongData, pgppubkey, shouldFail: true);
+
+            // Encrypt-Decrypt test
+            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
+            IAsymmetricCipherKeyPairGenerator kpGen = new X448KeyPairGenerator();
+            kpGen.Init(new X448KeyGenerationParameters(rand));
+            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
+            IsTrue("X448 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
         }
 
         [Test]
@@ -563,7 +553,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(encryptionKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
             IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
 
-            // Encode test
+            // Encode-Decode roundtrip
             using (MemoryStream ms = new MemoryStream())
             {
                 using (BcpgOutputStream bs = new BcpgOutputStream(ms, newFormatOnly: true))
@@ -580,7 +570,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public void Version6SampleCleartextSignedMessageVerifySignatureTest()
         {
             // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-cleartext-signed-mes
-
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v6Certificate);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
@@ -749,6 +738,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             return Arrays.AreEqual(secretA, secretB);
         }
+
+        public override string Name => "PgpCryptoRefreshTest";
 
         public override void PerformTest()
         {
