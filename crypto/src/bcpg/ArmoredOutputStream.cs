@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Bcpg
         : BaseOutputStream
     {
         public static readonly string HeaderVersion = "Version";
+        private readonly bool showVersion;
 
         private static readonly byte[] encodingTable =
         {
@@ -148,14 +149,29 @@ namespace Org.BouncyCastle.Bcpg
         private readonly IDictionary<string, IList<string>> m_headers;
 
         public ArmoredOutputStream(Stream outStream)
+            : this(outStream, false)
         {
+        }
+
+        public ArmoredOutputStream(Stream outStream, bool showVersion)
+        {
+            this.showVersion = showVersion;
             this.outStream = outStream;
             this.m_headers = new Dictionary<string, IList<string>>(1);
-            SetHeader(HeaderVersion, Version);
+
+            if (showVersion)
+            {
+                SetHeader(HeaderVersion, Version);
+            }
         }
 
         public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers)
-            : this(outStream)
+            :this(outStream, headers, false)
+        {
+        }
+
+        public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers, bool showVersion)
+            : this(outStream, showVersion)
         {
             foreach (var header in headers)
             {
@@ -229,21 +245,42 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        /**
-         * Start a clear text signed message.
-         * @param hashAlgorithm
-         */
+        /// <summary>
+        /// Start a clear text signed message.
+        /// </summary>
+        public void BeginClearText() 
+        {
+            DoWrite("-----BEGIN PGP SIGNED MESSAGE-----" + NewLine + NewLine);
+
+            clearText = true;
+            newLine = true;
+            lastb = 0;
+
+        }
+
+        /// <summary>
+        /// Start a clear text signed message with a "Hash" Armor Header.
+        /// This header is deprecated and SHOULD NOT be emitted unless:
+        ///    * The cleartext signed message contains a v4 signature made using a SHA2-based digest(SHA224, SHA256, SHA384, or SHA512), and
+        ///    * The cleartext signed message might be verified by a legacy OpenPGP implementation that requires this header.
+        ///    <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-hash-armor-header"/>
+        /// </summary>
+        /// <param name="hashAlgorithm"></param>
+        /// <exception cref="IOException"></exception>
         public void BeginClearText(
             HashAlgorithmTag    hashAlgorithm)
         {
-            string    hash;
+            string hash;
 
             switch (hashAlgorithm)
             {
             case HashAlgorithmTag.Sha1:
                 hash = "SHA1";
                 break;
-            case HashAlgorithmTag.Sha256:
+            case HashAlgorithmTag.Sha224:
+                hash = "SHA224";
+                break;
+             case HashAlgorithmTag.Sha256:
                 hash = "SHA256";
                 break;
             case HashAlgorithmTag.Sha384:
@@ -336,7 +373,10 @@ namespace Org.BouncyCastle.Bcpg
 
                 DoWrite(headerStart + type + headerTail + NewLine);
 
-                if (m_headers.TryGetValue(HeaderVersion, out var versionHeaders))
+                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-armor-header
+                // To minimize metadata, implementations SHOULD NOT emit this key and its corresponding value except
+                // for debugging purposes with explicit user consent.
+                if (showVersion && m_headers.TryGetValue(HeaderVersion, out var versionHeaders))
                 {
                     WriteHeaderEntry(HeaderVersion, versionHeaders[0]);
                 }
