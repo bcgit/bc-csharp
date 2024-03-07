@@ -58,10 +58,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
             ProtocolVersion expectedVersion = cryptoParams.RsaPreMasterSecretVersion;
 
-            byte[] M = Org.BouncyCastle.Crypto.Tls.TlsRsaKeyExchange.DecryptPreMasterSecret(encryptedPreMasterSecret,
-                rsaServerPrivateKey, expectedVersion.FullVersion, m_crypto.SecureRandom);
+            byte[] preMasterSecret = Org.BouncyCastle.Crypto.Tls.TlsRsaKeyExchange.DecryptPreMasterSecret(
+                encryptedPreMasterSecret, rsaServerPrivateKey, expectedVersion.FullVersion, m_crypto.SecureRandom);
 
-            return m_crypto.CreateSecret(M);
+            return m_crypto.CreateSecret(preMasterSecret);
         }
     }
 }
