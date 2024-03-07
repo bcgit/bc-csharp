@@ -227,8 +227,16 @@ namespace Org.BouncyCastle.Security
                 "DIFFIEHELLMAN");
             AddKpgAlgorithm("DSA");
             AddKpgAlgorithm("EC",
-                // TODO Should this be an alias for ECDH?
-                X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme);
+                X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme,
+                X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme);
             AddKpgAlgorithm("ECDH",
                 "ECIES");
             AddKpgAlgorithm("ECDHC");

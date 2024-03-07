@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
@@ -215,7 +216,44 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "PSSTest"; }
 		}
 
-		private void doTestSig(
+		[Test]
+        public void TestRegression_GitHub_bc_csharp_524()
+		{
+            SecureRandom secureRandom = new SecureRandom();
+
+            var kpg = new RsaKeyPairGenerator();
+			kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(17), secureRandom, 1024, 100));
+            var keyPair = kpg.GenerateKeyPair();
+
+			var digest = new Sha256Digest();
+
+			var hash = SecureRandom.GetNextBytes(secureRandom, digest.GetDigestSize());
+
+			var signer = PssSigner.CreateRawSigner(new RsaBlindedEngine(), digest);
+            signer.Init(true, keyPair.Private);
+            // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+            //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            signer.BlockUpdate(hash);
+#else
+			signer.BlockUpdate(hash, 0, hash.Length);
+#endif
+            byte[] signature = signer.GenerateSignature();
+
+            signer.Init(false, keyPair.Public);
+			// NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            signer.BlockUpdate(hash);
+#else
+			signer.BlockUpdate(hash, 0, hash.Length);
+#endif
+            bool verified = signer.VerifySignature(signature);
+
+			Assert.IsTrue(verified);
+        }
+
+        private void doTestSig(
 			int					id,
 			RsaKeyParameters	pub,
 			RsaKeyParameters	prv,
