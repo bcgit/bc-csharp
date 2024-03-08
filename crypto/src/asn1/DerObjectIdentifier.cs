@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
         {
-            int index = Arrays.GetHashCode(contents);
+            uint index = (uint)Arrays.GetHashCode(contents);
 
             index ^= index >> 20;
             index ^= index >> 10;

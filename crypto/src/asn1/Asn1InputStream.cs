@@ -377,7 +377,9 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
             case Asn1Tags.BmpString:
+            {
                 return CreateDerBmpString(defIn);
+            }
             case Asn1Tags.Boolean:
             {
                 GetBuffer(defIn, tmpBuffers, out var contents);
@@ -392,6 +394,11 @@ namespace Org.BouncyCastle.Asn1
             {
                 bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
                 return DerObjectIdentifier.CreatePrimitive(contents, clone: usedBuffer);
+            }
+            case Asn1Tags.RelativeOid:
+            {
+                bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
+                return Asn1RelativeOid.CreatePrimitive(contents, clone: usedBuffer);
             }
             }
 
@@ -421,8 +428,6 @@ namespace Org.BouncyCastle.Asn1
                 return Asn1OctetString.CreatePrimitive(bytes);
             case Asn1Tags.PrintableString:
                 return DerPrintableString.CreatePrimitive(bytes);
-            case Asn1Tags.RelativeOid:
-                return Asn1RelativeOid.CreatePrimitive(bytes, false);
             case Asn1Tags.T61String:
                 return DerT61String.CreatePrimitive(bytes);
             case Asn1Tags.UniversalString:
