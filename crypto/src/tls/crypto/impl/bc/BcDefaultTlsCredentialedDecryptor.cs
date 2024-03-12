@@ -1,11 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Encodings;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
@@ -40,15 +36,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 throw new ArgumentException("'privateKey' type not supported: " + privateKey.GetType().FullName);
             }
 
-            this.m_crypto = crypto;
-            this.m_certificate = certificate;
-            this.m_privateKey = privateKey;
+            m_crypto = crypto;
+            m_certificate = certificate;
+            m_privateKey = privateKey;
         }
 
-        public virtual Certificate Certificate
-        {
-            get { return m_certificate; }
-        }
+        public virtual Certificate Certificate => m_certificate;
 
         public virtual TlsSecret Decrypt(TlsCryptoParameters cryptoParams, byte[] ciphertext)
         {
@@ -63,57 +56,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected virtual TlsSecret SafeDecryptPreMasterSecret(TlsCryptoParameters cryptoParams,
             RsaKeyParameters rsaServerPrivateKey, byte[] encryptedPreMasterSecret)
         {
-            SecureRandom secureRandom = m_crypto.SecureRandom;
-
-            /*
-             * RFC 5246 7.4.7.1.
-             */
             ProtocolVersion expectedVersion = cryptoParams.RsaPreMasterSecretVersion;
 
-            /*
-             * Generate 48 random bytes we can use as a Pre-Master-Secret, if the PKCS1 padding check should fail.
-             */
-            byte[] fallback = new byte[48];
-            secureRandom.NextBytes(fallback);
+            byte[] preMasterSecret = Org.BouncyCastle.Crypto.Tls.TlsRsaKeyExchange.DecryptPreMasterSecret(
+                encryptedPreMasterSecret, rsaServerPrivateKey, expectedVersion.FullVersion, m_crypto.SecureRandom);
 
-            byte[] M = Arrays.Clone(fallback);
-            try
-            {
-                Pkcs1Encoding encoding = new Pkcs1Encoding(new RsaBlindedEngine(), fallback);
-                encoding.Init(false, new ParametersWithRandom(rsaServerPrivateKey, secureRandom));
-
-                M = encoding.ProcessBlock(encryptedPreMasterSecret, 0, encryptedPreMasterSecret.Length);
-            }
-            catch (Exception)
-            {
-                /*
-                 * This should never happen since the decryption should never throw an exception and return a random
-                 * value instead.
-                 *
-                 * In any case, a TLS server MUST NOT generate an alert if processing an RSA-encrypted premaster secret
-                 * message fails, or the version number is not as expected. Instead, it MUST continue the handshake with
-                 * a randomly generated premaster secret.
-                 */
-            }
-
-            /*
-             * Compare the version number in the decrypted Pre-Master-Secret with the legacy_version field from the
-             * ClientHello. If they don't match, continue the handshake with the randomly generated 'fallback' value.
-             *
-             * NOTE: The comparison and replacement must be constant-time.
-             */
-            int mask = (expectedVersion.MajorVersion ^ M[0])
-                     | (expectedVersion.MinorVersion ^ M[1]);
-
-            // 'mask' will be all 1s if the versions matched, or else all 0s.
-            mask = (mask - 1) >> 31;
-
-            for (int i = 0; i < 48; i++)
-            {
-                M[i] = (byte)((M[i] & mask) | (fallback[i] & ~mask));
-            }
-
-            return m_crypto.CreateSecret(M);
+            return m_crypto.CreateSecret(preMasterSecret);
         }
     }
 }

@@ -41,34 +41,17 @@ namespace Org.BouncyCastle.Crypto.Engines
          */
         public virtual void Init(bool forEncryption, ICipherParameters param)
         {
+            SecureRandom providedRandom = null;
+            if (param is ParametersWithRandom withRandom)
+            {
+                providedRandom = withRandom.Random;
+                param = withRandom.Parameters;
+            }
+
             core.Init(forEncryption, param);
 
-            if (param is ParametersWithRandom rParam)
-            {
-                this.key = (RsaKeyParameters)rParam.Parameters;
-
-                if (key is RsaPrivateCrtKeyParameters)
-                {
-                    this.random = rParam.Random;
-                }
-                else
-                {
-                    this.random = null;
-                }
-            }
-            else
-            {
-                this.key = (RsaKeyParameters)param;
-
-                if (key is RsaPrivateCrtKeyParameters)
-                {
-                    this.random = CryptoServicesRegistrar.GetSecureRandom();
-                }
-                else
-                {
-                    this.random = null;
-                }
-            }
+            this.key = (RsaKeyParameters)param;
+            this.random = InitSecureRandom(needed: key is RsaPrivateCrtKeyParameters, providedRandom);
         }
 
         /**
@@ -112,6 +95,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             BigInteger input = core.ConvertInput(inBuf, inOff, inLen);
             BigInteger result = ProcessInput(input);
             return core.ConvertOutput(result);
+        }
+
+        protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
+        {
+            return needed ? CryptoServicesRegistrar.GetSecureRandom(provided) : null;
         }
 
         private BigInteger ProcessInput(BigInteger input)

@@ -116,10 +116,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             BigInteger qInv = crt.QInv;
 
             // mP = ((input Mod p) ^ dP)) Mod p
-            BigInteger mP = (input.Remainder(p)).ModPow(dP, p);
+            BigInteger mP = input.Remainder(p).ModPow(dP, p);
 
             // mQ = ((input Mod q) ^ dQ)) Mod q
-            BigInteger mQ = (input.Remainder(q)).ModPow(dQ, q);
+            BigInteger mQ = input.Remainder(q).ModPow(dQ, q);
 
             // h = qInv * (mP - mQ) Mod p
             BigInteger h = mP.Subtract(mQ).Multiply(qInv).Mod(p);
