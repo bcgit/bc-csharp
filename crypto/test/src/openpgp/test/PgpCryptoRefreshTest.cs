@@ -358,6 +358,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             // Encode-Decode roundtrip
             SecureRandom rand = new SecureRandom();
+
+            PgpSignatureSubpacketGenerator spgen = new PgpSignatureSubpacketGenerator();
+            spgen.SetPreferredHashAlgorithms(true, new int[] { (int)HashAlgorithmTag.Sha512, (int)HashAlgorithmTag.Sha256 });
+            spgen.SetPreferredSymmetricAlgorithms(true, new int[] { (int)SymmetricKeyAlgorithmTag.Aes256, (int)SymmetricKeyAlgorithmTag.Aes128 });
+            PgpSignatureSubpacketVector hashed = spgen.Generate();
+
             string uid = "Alice <alice@example.com>";
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(
                 PgpSignature.PositiveCertification,
@@ -365,8 +371,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 uid,
                 SymmetricKeyAlgorithmTag.Null,
                 Array.Empty<char>(),
-                true,
-                null,
+                false,
+                hashed,
                 null,
                 rand);
 
@@ -378,7 +384,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             keyRingGen.AddSubKey(keypair);
 
             PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
+            
             byte[] encodedsecring = secring.GetEncoded();
+            // expected length of v6 unencrypted Ed25519 secret key packet: 75 octets
+            FailIf("unexpected packet length", encodedsecring[1] != 75);
+
             PgpSecretKeyRing decodedsecring = new PgpSecretKeyRing(encodedsecring);
 
             PgpPublicKey pgppubkey = decodedsecring.GetPublicKey();
@@ -461,7 +471,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 uid,
                 SymmetricKeyAlgorithmTag.Null,
                 Array.Empty<char>(),
-                true,
+                false,
                 null,
                 null,
                 rand);
@@ -474,7 +484,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             keyRingGen.AddSubKey(keypair);
 
             PgpSecretKeyRing secring = keyRingGen.GenerateSecretKeyRing();
+
             byte[] encodedsecring = secring.GetEncoded();
+            // expected length of v6 unencrypted Ed448 secret key packet: 125 octets
+            FailIf("unexpected packet length", encodedsecring[1] != 125);
+
             PgpSecretKeyRing decodedsecring = new PgpSecretKeyRing(encodedsecring);
 
             PgpPublicKey pgppubkey = decodedsecring.GetPublicKey();
@@ -545,11 +559,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             // signing key
             PgpSecretKey signingKey = secretKeys[0];
+            IsEquals(signingKey.KeyEncryptionAlgorithm, SymmetricKeyAlgorithmTag.Aes256);
+            IsEquals(signingKey.KeyEncryptionAeadAlgorithm, AeadAlgorithmTag.Ocb);
             IsEquals(signingKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
             IsEquals((ulong)signingKey.PublicKey.KeyId, 0xCB186C4F0609A697);
 
             // encryption key
             PgpSecretKey encryptionKey = secretKeys[1];
+            IsEquals(encryptionKey.KeyEncryptionAlgorithm, SymmetricKeyAlgorithmTag.Aes256);
+            IsEquals(encryptionKey.KeyEncryptionAeadAlgorithm, AeadAlgorithmTag.Ocb);
             IsEquals(encryptionKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
             IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
 

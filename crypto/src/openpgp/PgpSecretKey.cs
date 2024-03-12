@@ -25,6 +25,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private readonly SecretKeyPacket	secret;
         private readonly PgpPublicKey		pub;
 
+        #region "Internal constructors"
+
         internal PgpSecretKey(
             SecretKeyPacket	secret,
             PgpPublicKey	pub)
@@ -34,12 +36,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpSecretKey(
+            PgpPrivateKey               privKey,
+            PgpPublicKey                pubKey,
+            SymmetricKeyAlgorithmTag    encAlgorithm,
+            byte[]                      rawPassPhrase,
+            bool                        clearPassPhrase,
+            bool                        useSha1,
+            SecureRandom                rand,
+            bool                        isMasterKey)
+            :this(privKey, pubKey, encAlgorithm, 0, rawPassPhrase, clearPassPhrase,
+                 useSha1 ? SecretKeyPacket.UsageSha1 : SecretKeyPacket.UsageChecksum,
+                 rand, isMasterKey)
+        {
+        }
+
+        internal PgpSecretKey(
             PgpPrivateKey				privKey,
             PgpPublicKey				pubKey,
             SymmetricKeyAlgorithmTag	encAlgorithm,
+            AeadAlgorithmTag            aeadAlgorithm,
             byte[]						rawPassPhrase,
             bool                        clearPassPhrase,
-            bool						useSha1,
+            int						    s2kUsage,
             SecureRandom				rand,
             bool						isMasterKey)
         {
@@ -132,25 +150,53 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             try
             {
-                MemoryStream bOut = new MemoryStream();
-                BcpgOutputStream pOut = new BcpgOutputStream(bOut);
+                byte[] keyData = secKey.GetEncoded();
 
-                pOut.WriteObject(secKey);
+                if (encAlgorithm == SymmetricKeyAlgorithmTag.Null)
+                {
+                    s2kUsage = SecretKeyPacket.UsageNone;
+                }
 
-                byte[] keyData = bOut.ToArray();
-                byte[] checksumData = Checksum(useSha1, keyData, keyData.Length);
+                // RFC 4880 § 5.5.3 + "RFC 4880bis" § 5.5.3 + Crypto-refresh § 5.5.3. 
+                // v6       keys with UsageNone:    No checksum
+                // v5 v6    keys with MalleableCFB: Not allowed
+                // v3 v4 v5 keys with UsageNone:    two-octet checksum
+                // v3 v4    keys with MalleableCFB: two-octet checksum
+                // all      keys with UsageSha1:    Sha1 checksum
+                // all      keys with UsageAead:    No checksum (use the auth tag of the AEAD algo)
+                if (pub.Version > PublicKeyPacket.Version4 && s2kUsage == SecretKeyPacket.UsageChecksum)
+                {
+                    throw new PgpException($"A version {pub.Version} key MUST NOT use MalleableCFB S2K Usage");
+                }
+                else
+                {
+                    byte[] checksumData = Array.Empty<byte>();
 
-                keyData = Arrays.Concatenate(keyData, checksumData);
+                    if (s2kUsage == SecretKeyPacket.UsageSha1)
+                    {
+                        checksumData = Checksum(true, keyData, keyData.Length);
+                    }
+                    else if (s2kUsage == SecretKeyPacket.UsageNone && pub.Version != PublicKeyPacket.Version6)
+                    {
+                        checksumData = Checksum(false, keyData, keyData.Length);
+                    }
+                    else if (s2kUsage == SecretKeyPacket.UsageChecksum)
+                    {
+                        checksumData = Checksum(false, keyData, keyData.Length);
+                    }
+
+                    keyData = Arrays.Concatenate(keyData, checksumData);
+                }
 
                 if (encAlgorithm == SymmetricKeyAlgorithmTag.Null)
                 {
                     if (isMasterKey)
                     {
-                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, null, null, keyData);
+                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, aeadAlgorithm, s2kUsage, null, null, keyData);
                     }
                     else
                     {
-                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, null, null, keyData);
+                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, aeadAlgorithm, s2kUsage, null, null, keyData);
                     }
                 }
                 else
@@ -168,17 +214,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         encData = EncryptKeyDataV3(keyData, encAlgorithm, rawPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
 
-                    int s2kUsage = useSha1
-                        ?	SecretKeyPacket.UsageSha1
-                        :	SecretKeyPacket.UsageChecksum;
-
                     if (isMasterKey)
                     {
-                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, s2kUsage, s2k, iv, encData);
+                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, encData);
                     }
                     else
                     {
-                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, s2kUsage, s2k, iv, encData);
+                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, encData);
                     }
                 }
             }
@@ -191,6 +233,97 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("Exception encrypting key", e);
             }
         }
+
+
+        internal PgpSecretKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            byte[] rawPassPhrase,
+            bool clearPassPhrase,
+            bool useSha1,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom rand)
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, rand),
+                encAlgorithm, rawPassPhrase, clearPassPhrase, useSha1, rand, true)
+        {
+        }
+
+        internal PgpSecretKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            HashAlgorithmTag hashAlgorithm,
+            byte[] rawPassPhrase,
+            bool clearPassPhrase,
+            bool useSha1,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom rand)
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, hashAlgorithm, rand),
+                encAlgorithm, rawPassPhrase, clearPassPhrase, useSha1, rand, true)
+        {
+        }
+
+        private static PgpPublicKey CertifiedPublicKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom rand)
+        {
+            return CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, HashAlgorithmTag.Sha1, rand);
+        }
+
+
+        private static PgpPublicKey CertifiedPublicKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            HashAlgorithmTag hashAlgorithm,
+            SecureRandom rand)
+        {
+            PgpSignatureGenerator sGen;
+            try
+            {
+                sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, hashAlgorithm);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Creating signature generator: " + e.Message, e);
+            }
+
+            // TODO For v6 keys, the User Id should be optional and information about
+            // the primary Public-Key (key flags, key expiration, features, algorithm
+            // preferences, etc.) should be stored in a direct key signature over the
+            // Public-Key instead of in a User ID self-signature.
+
+            //
+            // Generate the certification
+            //
+            sGen.InitSign(certificationLevel, keyPair.PrivateKey, rand);
+
+            sGen.SetHashedSubpackets(hashedPackets);
+            sGen.SetUnhashedSubpackets(unhashedPackets);
+
+            try
+            {
+                PgpSignature certification = sGen.GenerateCertification(id, keyPair.PublicKey);
+                return PgpPublicKey.AddCertification(keyPair.PublicKey, id, certification);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Exception doing certification: " + e.Message, e);
+            }
+        }
+
+        #endregion
 
         /// <remarks>
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
@@ -245,22 +378,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector	unhashedPackets,
             SecureRandom				rand)
             : this(certificationLevel, keyPair, id, encAlgorithm, rawPassPhrase, false, useSha1, hashedPackets, unhashedPackets, rand)
-        {
-        }
-
-        internal PgpSecretKey(
-            int							certificationLevel,
-            PgpKeyPair					keyPair,
-            string						id,
-            SymmetricKeyAlgorithmTag	encAlgorithm,
-            byte[]						rawPassPhrase,
-            bool                        clearPassPhrase,
-            bool						useSha1,
-            PgpSignatureSubpacketVector	hashedPackets,
-            PgpSignatureSubpacketVector	unhashedPackets,
-            SecureRandom				rand)
-            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, rand),
-                encAlgorithm, rawPassPhrase, clearPassPhrase, useSha1, rand, true)
         {
         }
 
@@ -321,99 +438,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SecureRandom                rand)
             : this(certificationLevel, keyPair, id, encAlgorithm, hashAlgorithm, rawPassPhrase, false, useSha1, hashedPackets, unhashedPackets, rand)
         {
-        }
-
-        internal PgpSecretKey(
-            int                         certificationLevel,
-            PgpKeyPair                  keyPair,
-            string                      id,
-            SymmetricKeyAlgorithmTag    encAlgorithm,
-            HashAlgorithmTag            hashAlgorithm,
-            byte[]                      rawPassPhrase,
-            bool                        clearPassPhrase,
-            bool                        useSha1,
-            PgpSignatureSubpacketVector hashedPackets,
-            PgpSignatureSubpacketVector unhashedPackets,
-            SecureRandom                rand)
-            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, hashAlgorithm, rand),
-                encAlgorithm, rawPassPhrase, clearPassPhrase, useSha1, rand, true)
-        {
-        }
-
-        private static PgpPublicKey CertifiedPublicKey(
-            int							certificationLevel,
-            PgpKeyPair					keyPair,
-            string						id,
-            PgpSignatureSubpacketVector	hashedPackets,
-            PgpSignatureSubpacketVector	unhashedPackets,
-            SecureRandom rand)
-        {
-            PgpSignatureGenerator sGen;
-            try
-            {
-                sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("Creating signature generator: " + e.Message, e);
-            }
-
-            //
-            // Generate the certification
-            //
-            sGen.InitSign(certificationLevel, keyPair.PrivateKey, rand);
-
-            sGen.SetHashedSubpackets(hashedPackets);
-            sGen.SetUnhashedSubpackets(unhashedPackets);
-
-            try
-            {
-                PgpSignature certification = sGen.GenerateCertification(id, keyPair.PublicKey);
-                return PgpPublicKey.AddCertification(keyPair.PublicKey, id, certification);
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("Exception doing certification: " + e.Message, e);
-            }
-        }
-
-
-        private static PgpPublicKey CertifiedPublicKey(
-            int certificationLevel,
-            PgpKeyPair keyPair,
-            string id,
-            PgpSignatureSubpacketVector hashedPackets,
-            PgpSignatureSubpacketVector unhashedPackets,
-            HashAlgorithmTag hashAlgorithm,
-            SecureRandom rand)
-        {
-            PgpSignatureGenerator sGen;
-            try
-            {
-                sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, hashAlgorithm);
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("Creating signature generator: " + e.Message, e);
-            }
-
-            //
-            // Generate the certification
-            //
-            sGen.InitSign(certificationLevel, keyPair.PrivateKey, rand);
-
-            sGen.SetHashedSubpackets(hashedPackets);
-            sGen.SetUnhashedSubpackets(unhashedPackets);
-
-            try
-            {
-                PgpSignature certification = sGen.GenerateCertification(id, keyPair.PublicKey);
-                return PgpPublicKey.AddCertification(keyPair.PublicKey, id, certification);
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("Exception doing certification: " + e.Message, e);
-            }
         }
 
         public PgpSecretKey(
@@ -503,6 +527,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public SymmetricKeyAlgorithmTag KeyEncryptionAlgorithm
         {
             get { return secret.EncAlgorithm; }
+        }
+
+        /// <summary>The AEAD algorithm the key is encrypted with.</summary>
+        public AeadAlgorithmTag KeyEncryptionAeadAlgorithm
+        {
+            get { return secret.AeadAlgorithm; }
         }
 
         /// <summary>The key ID of the public key associated with this key.</summary>
@@ -1020,7 +1050,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             if (newEncAlgorithm == SymmetricKeyAlgorithmTag.Null)
             {
                 s2kUsage = SecretKeyPacket.UsageNone;
-                if (key.secret.S2kUsage == SecretKeyPacket.UsageSha1)   // SHA-1 hash, need to rewrite Checksum
+
+                // v6 keys with UsageNone don't use checksums
+                if (key.PublicKey.Version == PublicKeyPacket.Version6)
+                {
+                    keyData = new byte[rawKeyData.Length - 2];
+                    Array.Copy(rawKeyData, 0, keyData, 0, keyData.Length - 2);
+                }
+                else if (key.secret.S2kUsage == SecretKeyPacket.UsageSha1)   // SHA-1 hash, need to rewrite Checksum
                 {
                     keyData = new byte[rawKeyData.Length - 18];
 
@@ -1040,13 +1077,34 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 if (s2kUsage == SecretKeyPacket.UsageNone)
                 {
-                    s2kUsage = SecretKeyPacket.UsageChecksum;
+                    if (key.PublicKey.Version == PublicKeyPacket.Version6)
+                    {
+                        // v6 keys with UsageNone don't use checksums
+                    }
+                    else if (key.PublicKey.Version == PublicKeyPacket.Version3)
+                    {
+                        // for backward compatibility with legacy v3 keys use the deprecated UsageChecksum (MalleableCFB)
+                        s2kUsage = SecretKeyPacket.UsageChecksum;
+                    }
+                    else
+                    {
+                        // rewrite Checksum using SHA-1 instead of the deprecated UsageChecksum (MalleableCFB)
+                        s2kUsage = SecretKeyPacket.UsageSha1;
+                        byte[] check = Checksum(true, rawKeyData, rawKeyData.Length - 2);
+                        byte[] newKeyData = new byte[rawKeyData.Length - 2 + 20];
+                        Array.Copy(rawKeyData, 0, newKeyData, 0, rawKeyData.Length - 2);
+                        Array.Copy(check, 0, newKeyData, rawKeyData.Length - 2, check.Length);
+
+                        rawKeyData = newKeyData;
+                    }
+
                 }
 
                 try
                 {
-                    if (pubKeyPacket.Version >= 4)
+                    if (pubKeyPacket.Version >= PublicKeyPacket.Version4)
                     {
+                        // TODO for v6 use AEAD when implemented
                         keyData = EncryptKeyDataV4(rawKeyData, newEncAlgorithm, HashAlgorithmTag.Sha1, rawNewPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
                     else

@@ -263,9 +263,9 @@ namespace Org.BouncyCastle.Bcpg
 			get { return encAlgorithm; }
         }
 
-        public AeadAlgorithmTag GetAeadAlgorithm()
+        public AeadAlgorithmTag AeadAlgorithm
         {
-            return aeadAlgorithm;
+            get { return aeadAlgorithm; }
         }
 
         public int S2kUsage
