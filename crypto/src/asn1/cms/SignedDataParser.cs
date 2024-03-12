@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -19,59 +18,52 @@ namespace Org.BouncyCastle.Asn1.Cms
 	*/
     public class SignedDataParser
     {
-        private Asn1SequenceParser _seq;
-        private DerInteger _version;
+        private readonly Asn1SequenceParser m_seq;
+        private readonly DerInteger m_version;
+
         private object _nextObject;
         private bool _certsCalled;
         private bool _crlsCalled;
 
-        public static SignedDataParser GetInstance(
-            object o)
+        public static SignedDataParser GetInstance(object o)
         {
-            if (o is Asn1Sequence)
-                return new SignedDataParser(((Asn1Sequence)o).Parser);
+            if (o is Asn1SequenceParser parser)
+                return new SignedDataParser(parser);
 
-            if (o is Asn1SequenceParser)
-                return new SignedDataParser((Asn1SequenceParser)o);
+            if (o is Asn1Sequence seq)
+                return new SignedDataParser(seq.Parser);
 
             throw new IOException("unknown object encountered: " + Platform.GetTypeName(o));
         }
 
-        public SignedDataParser(
-            Asn1SequenceParser seq)
+        public SignedDataParser(Asn1SequenceParser seq)
         {
-            this._seq = seq;
-            this._version = (DerInteger)seq.ReadObject();
+            m_seq = seq;
+            m_version = (DerInteger)seq.ReadObject();
         }
 
-        public DerInteger Version
-        {
-            get { return _version; }
-        }
+        public DerInteger Version => m_version;
 
         public Asn1SetParser GetDigestAlgorithms()
         {
-            return (Asn1SetParser)_seq.ReadObject();
+            return (Asn1SetParser)m_seq.ReadObject();
         }
 
         public ContentInfoParser GetEncapContentInfo()
         {
-            return new ContentInfoParser((Asn1SequenceParser)_seq.ReadObject());
+            return new ContentInfoParser((Asn1SequenceParser)m_seq.ReadObject());
         }
 
         public Asn1SetParser GetCertificates()
         {
             _certsCalled = true;
-            _nextObject = _seq.ReadObject();
+            _nextObject = m_seq.ReadObject();
 
-            if (_nextObject is Asn1TaggedObjectParser o)
+            if (_nextObject is Asn1TaggedObjectParser tagged && tagged.HasContextTag(0))
             {
-                if (o.HasContextTag(0))
-                {
-                    Asn1SetParser certs = (Asn1SetParser)o.ParseBaseUniversal(false, Asn1Tags.SetOf);
-                    _nextObject = null;
-                    return certs;
-                }
+                Asn1SetParser certs = (Asn1SetParser)tagged.ParseBaseUniversal(false, Asn1Tags.SetOf);
+                _nextObject = null;
+                return certs;
             }
 
             return null;
@@ -86,17 +78,14 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (_nextObject == null)
             {
-                _nextObject = _seq.ReadObject();
+                _nextObject = m_seq.ReadObject();
             }
 
-            if (_nextObject is Asn1TaggedObjectParser o)
+            if (_nextObject is Asn1TaggedObjectParser tagged && tagged.HasContextTag(1))
             {
-                if (o.HasContextTag(1))
-                {
-                    Asn1SetParser crls = (Asn1SetParser)o.ParseBaseUniversal(false, Asn1Tags.SetOf);
-                    _nextObject = null;
-                    return crls;
-                }
+                Asn1SetParser crls = (Asn1SetParser)tagged.ParseBaseUniversal(false, Asn1Tags.SetOf);
+                _nextObject = null;
+                return crls;
             }
 
             return null;
@@ -109,7 +98,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (_nextObject == null)
             {
-                _nextObject = _seq.ReadObject();
+                _nextObject = m_seq.ReadObject();
             }
 
             return (Asn1SetParser)_nextObject;

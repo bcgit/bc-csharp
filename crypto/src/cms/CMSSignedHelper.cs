@@ -23,24 +23,20 @@ namespace Org.BouncyCastle.Cms
 {
     internal static class CmsSignedHelper
     {
-        private static readonly string EncryptionECDsaWithSha1 = X9ObjectIdentifiers.ECDsaWithSha1.Id;
-        private static readonly string EncryptionECDsaWithSha224 = X9ObjectIdentifiers.ECDsaWithSha224.Id;
-        private static readonly string EncryptionECDsaWithSha256 = X9ObjectIdentifiers.ECDsaWithSha256.Id;
-        private static readonly string EncryptionECDsaWithSha384 = X9ObjectIdentifiers.ECDsaWithSha384.Id;
-        private static readonly string EncryptionECDsaWithSha512 = X9ObjectIdentifiers.ECDsaWithSha512.Id;
+        private static readonly Dictionary<DerObjectIdentifier, string> m_encryptionAlgs =
+            new Dictionary<DerObjectIdentifier, string>();
+        private static readonly Dictionary<DerObjectIdentifier, string> m_digestAlgs =
+            new Dictionary<DerObjectIdentifier, string>();
+        private static readonly Dictionary<string, string[]> m_digestAliases = new Dictionary<string, string[]>();
 
-        private static readonly IDictionary<string, string> m_encryptionAlgs = new Dictionary<string, string>();
-        private static readonly IDictionary<string, string> m_digestAlgs = new Dictionary<string, string>();
-        private static readonly IDictionary<string, string[]> m_digestAliases = new Dictionary<string, string[]>();
-
-        private static readonly HashSet<string> m_noParams = new HashSet<string>();
-        private static readonly IDictionary<string, string> m_ecAlgorithms = new Dictionary<string, string>();
+        private static readonly HashSet<DerObjectIdentifier> m_noParams = new HashSet<DerObjectIdentifier>();
+        private static readonly Dictionary<string, DerObjectIdentifier> m_ecAlgorithms =
+            new Dictionary<string, DerObjectIdentifier>();
 
         private static void AddEntries(DerObjectIdentifier oid, string digest, string encryption)
         {
-            string alias = oid.Id;
-            m_digestAlgs.Add(alias, digest);
-            m_encryptionAlgs.Add(alias, encryption);
+            m_digestAlgs.Add(oid, digest);
+            m_encryptionAlgs.Add(oid, encryption);
         }
 
         static CmsSignedHelper()
@@ -88,40 +84,40 @@ namespace Org.BouncyCastle.Cms
             AddEntries(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256, "GOST3411-2012-256", "ECGOST3410");
             AddEntries(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512, "GOST3411-2012-512", "ECGOST3410");
 
-            m_encryptionAlgs.Add(X9ObjectIdentifiers.IdDsa.Id, "DSA");
-            m_encryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption.Id, "RSA");
-            m_encryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm.Id, "RSA");
-            m_encryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa.Id, "RSA");
-            m_encryptionAlgs.Add(CmsSignedGenerator.EncryptionRsaPss, "RSAandMGF1");
-            m_encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94.Id, "GOST3410");
-            m_encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x2001.Id, "ECGOST3410");
-            m_encryptionAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256.Id, "ECGOST3410");
-            m_encryptionAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512.Id, "ECGOST3410");
-            m_encryptionAlgs.Add("1.3.6.1.4.1.5849.1.6.2", "ECGOST3410");
-            m_encryptionAlgs.Add("1.3.6.1.4.1.5849.1.1.5", "GOST3410");
-            m_encryptionAlgs.Add(X9ObjectIdentifiers.IdECPublicKey.Id, "ECDSA");
+            m_encryptionAlgs.Add(X9ObjectIdentifiers.IdDsa, "DSA");
+            m_encryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption, "RSA");
+            m_encryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm, "RSA");
+            m_encryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa, "RSA");
+            m_encryptionAlgs.Add(PkcsObjectIdentifiers.IdRsassaPss, "RSAandMGF1");
+            m_encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94, "GOST3410");
+            m_encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x2001, "ECGOST3410");
+            m_encryptionAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256, "ECGOST3410");
+            m_encryptionAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512, "ECGOST3410");
+            m_encryptionAlgs.Add(new DerObjectIdentifier("1.3.6.1.4.1.5849.1.6.2"), "ECGOST3410");
+            m_encryptionAlgs.Add(new DerObjectIdentifier("1.3.6.1.4.1.5849.1.1.5"), "GOST3410");
+            m_encryptionAlgs.Add(X9ObjectIdentifiers.IdECPublicKey, "ECDSA");
 
-            m_digestAlgs.Add(PkcsObjectIdentifiers.MD2.Id, "MD2");
-            m_digestAlgs.Add(PkcsObjectIdentifiers.MD4.Id, "MD4");
-            m_digestAlgs.Add(PkcsObjectIdentifiers.MD5.Id, "MD5");
-            m_digestAlgs.Add(OiwObjectIdentifiers.IdSha1.Id, "SHA1");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha224.Id, "SHA224");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha256.Id, "SHA256");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha384.Id, "SHA384");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha512.Id, "SHA512");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha512_224.Id, "SHA512(224)");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha512_256.Id, "SHA512(256)");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_224.Id, "SHA3-224");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_256.Id, "SHA3-256");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_384.Id, "SHA3-384");
-            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_512.Id, "SHA3-512");
-            m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD128.Id, "RIPEMD128");
-            m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD160.Id, "RIPEMD160");
-            m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256.Id, "RIPEMD256");
-            m_digestAlgs.Add(CryptoProObjectIdentifiers.GostR3411.Id,  "GOST3411");
-            m_digestAlgs.Add("1.3.6.1.4.1.5849.1.2.1",  "GOST3411");
-            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id, "GOST3411-2012-256");
-            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id, "GOST3411-2012-512");
+            m_digestAlgs.Add(PkcsObjectIdentifiers.MD2, "MD2");
+            m_digestAlgs.Add(PkcsObjectIdentifiers.MD4, "MD4");
+            m_digestAlgs.Add(PkcsObjectIdentifiers.MD5, "MD5");
+            m_digestAlgs.Add(OiwObjectIdentifiers.IdSha1, "SHA1");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha224, "SHA224");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha256, "SHA256");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha384, "SHA384");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha512, "SHA512");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha512_224, "SHA512(224)");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha512_256, "SHA512(256)");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_224, "SHA3-224");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_256, "SHA3-256");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_384, "SHA3-384");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_512, "SHA3-512");
+            m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD128, "RIPEMD128");
+            m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD160, "RIPEMD160");
+            m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256, "RIPEMD256");
+            m_digestAlgs.Add(CryptoProObjectIdentifiers.GostR3411, "GOST3411");
+            m_digestAlgs.Add(new DerObjectIdentifier("1.3.6.1.4.1.5849.1.2.1"), "GOST3411");
+            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256, "GOST3411-2012-256");
+            m_digestAlgs.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512, "GOST3411-2012-512");
 
             m_digestAliases.Add("SHA1", new string[]{ "SHA-1" });
             m_digestAliases.Add("SHA224", new string[]{ "SHA-224" });
@@ -129,36 +125,37 @@ namespace Org.BouncyCastle.Cms
             m_digestAliases.Add("SHA384", new string[]{ "SHA-384" });
             m_digestAliases.Add("SHA512", new string[]{ "SHA-512" });
 
-            m_noParams.Add(CmsSignedGenerator.EncryptionDsa);
-            m_noParams.Add(EncryptionECDsaWithSha1);
-            m_noParams.Add(EncryptionECDsaWithSha224);
-            m_noParams.Add(EncryptionECDsaWithSha256);
-            m_noParams.Add(EncryptionECDsaWithSha384);
-            m_noParams.Add(EncryptionECDsaWithSha512);
+            m_noParams.Add(X9ObjectIdentifiers.IdDsaWithSha1);
+            m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
+            m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
+            m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
+            m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
+            m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
 
-            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha1, EncryptionECDsaWithSha1);
-            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha224, EncryptionECDsaWithSha224);
-            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha256, EncryptionECDsaWithSha256);
-            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha384, EncryptionECDsaWithSha384);
-            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha512, EncryptionECDsaWithSha512);
+            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha1, X9ObjectIdentifiers.ECDsaWithSha1);
+            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha224, X9ObjectIdentifiers.ECDsaWithSha224);
+            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha256, X9ObjectIdentifiers.ECDsaWithSha256);
+            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha384, X9ObjectIdentifiers.ECDsaWithSha384);
+            m_ecAlgorithms.Add(CmsSignedGenerator.DigestSha512, X9ObjectIdentifiers.ECDsaWithSha512);
         }
 
         /**
         * Return the digest algorithm using one of the standard JCA string
         * representations rather than the algorithm identifier (if possible).
         */
-        internal static string GetDigestAlgName(string digestAlgOid)
+        internal static string GetDigestAlgName(DerObjectIdentifier digestOid)
         {
-            return CollectionUtilities.GetValueOrKey(m_digestAlgs, digestAlgOid);
+            if (m_digestAlgs.TryGetValue(digestOid, out var name))
+                return name;
+
+            return digestOid.Id;
         }
 
         internal static AlgorithmIdentifier GetEncAlgorithmIdentifier(DerObjectIdentifier encOid,
             Asn1Encodable sigX509Parameters)
         {
-            if (m_noParams.Contains(encOid.Id))
-            {
+            if (m_noParams.Contains(encOid))
                 return new AlgorithmIdentifier(encOid);
-            }
 
             return new AlgorithmIdentifier(encOid, sigX509Parameters);
         }
@@ -173,8 +170,13 @@ namespace Org.BouncyCastle.Cms
         * JCA string representations rather than the algorithm identifier (if
         * possible).
         */
-        internal static string GetEncryptionAlgName(string encryptionAlgOid) =>
-            CollectionUtilities.GetValueOrKey(m_encryptionAlgs, encryptionAlgOid);
+        internal static string GetEncryptionAlgName(DerObjectIdentifier encryptionOid)
+        {
+            if (m_encryptionAlgs.TryGetValue(encryptionOid, out var name))
+                return name;
+
+            return encryptionOid.Id;
+        }
 
         internal static IDigest GetDigestInstance(string algorithm)
         {
@@ -210,38 +212,38 @@ namespace Org.BouncyCastle.Cms
             return algID;
         }
 
-        internal static string GetEncOid(AsymmetricKeyParameter key, string digestOID)
+        internal static DerObjectIdentifier GetEncOid(AsymmetricKeyParameter key, string digestOID)
         {
-            string encOID = null;
+            DerObjectIdentifier encOid = null;
 
             if (key is RsaKeyParameters rsaKeyParameters)
             {
                 if (!rsaKeyParameters.IsPrivate)
                     throw new ArgumentException("Expected RSA private key");
 
-                encOID = CmsSignedGenerator.EncryptionRsa;
+                encOid = PkcsObjectIdentifiers.RsaEncryption;
             }
             else if (key is DsaPrivateKeyParameters)
             {
                 if (digestOID.Equals(CmsSignedGenerator.DigestSha1))
                 {
-                    encOID = CmsSignedGenerator.EncryptionDsa;
+                    encOid = X9ObjectIdentifiers.IdDsaWithSha1;
                 }
                 else if (digestOID.Equals(CmsSignedGenerator.DigestSha224))
                 {
-                    encOID = NistObjectIdentifiers.DsaWithSha224.Id;
+                    encOid = NistObjectIdentifiers.DsaWithSha224;
                 }
                 else if (digestOID.Equals(CmsSignedGenerator.DigestSha256))
                 {
-                    encOID = NistObjectIdentifiers.DsaWithSha256.Id;
+                    encOid = NistObjectIdentifiers.DsaWithSha256;
                 }
                 else if (digestOID.Equals(CmsSignedGenerator.DigestSha384))
                 {
-                    encOID = NistObjectIdentifiers.DsaWithSha384.Id;
+                    encOid = NistObjectIdentifiers.DsaWithSha384;
                 }
                 else if (digestOID.Equals(CmsSignedGenerator.DigestSha512))
                 {
-                    encOID = NistObjectIdentifiers.DsaWithSha512.Id;
+                    encOid = NistObjectIdentifiers.DsaWithSha512;
                 }
                 else
                 {
@@ -254,18 +256,18 @@ namespace Org.BouncyCastle.Cms
 
                 if (algName == "ECGOST3410")
                 {
-                    encOID = CmsSignedGenerator.EncryptionECGost3410;
+                    encOid = CryptoProObjectIdentifiers.GostR3410x2001;
                 }
                 else if (ecPrivKey.Parameters is ECGost3410Parameters ecGost3410Parameters)
                 {
                     var digestParamSet = ecGost3410Parameters.DigestParamSet;
                     if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256))
                     {
-                        encOID = CmsSignedGenerator.EncryptionECGost3410_2012_256;
+                        encOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
                     }
                     else if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512))
                     {
-                        encOID = CmsSignedGenerator.EncryptionECGost3410_2012_512;
+                        encOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512;
                     }
                     else
                     {
@@ -275,20 +277,20 @@ namespace Org.BouncyCastle.Cms
                 else
                 {
                     // TODO Should we insist on algName being one of "EC" or "ECDSA", as Java does?
-                    if (!m_ecAlgorithms.TryGetValue(digestOID, out encOID))
+                    if (!m_ecAlgorithms.TryGetValue(digestOID, out encOid))
                         throw new ArgumentException("can't mix ECDSA with anything but SHA family digests");
                 }
             }
             else if (key is Gost3410PrivateKeyParameters)
             {
-                encOID = CmsSignedGenerator.EncryptionGost3410;
+                encOid = CryptoProObjectIdentifiers.GostR3410x94;
             }
             else
             {
                 throw new ArgumentException("Unknown algorithm in CmsSignedGenerator.GetEncOid");
             }
 
-            return encOID;
+            return encOid;
         }
 
         internal static IStore<X509V2AttributeCertificate> GetAttributeCertificates(Asn1Set attrCertSet)
@@ -298,14 +300,11 @@ namespace Org.BouncyCastle.Cms
             {
                 foreach (Asn1Encodable ae in attrCertSet)
                 {
-                    if (ae != null && ae.ToAsn1Object() is Asn1TaggedObject t)
+                    if (ae.ToAsn1Object() is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(2))
                     {
-                        if (t.HasContextTag(2))
-                        {
-                            Asn1Sequence s = Asn1Sequence.GetInstance(t, false);
+                        var attributeCertificate = AttributeCertificate.GetInstance(taggedObject, false);
 
-                            contents.Add(new X509V2AttributeCertificate(AttributeCertificate.GetInstance(s)));
-                        }
+                        contents.Add(new X509V2AttributeCertificate(attributeCertificate));
                     }
                 }
             }
@@ -319,9 +318,6 @@ namespace Org.BouncyCastle.Cms
             {
                 foreach (Asn1Encodable ae in certSet)
                 {
-                    if (ae == null)
-                        continue;
-
                     if (ae is X509CertificateStructure c)
                     {
                         contents.Add(new X509Certificate(c));
@@ -342,9 +338,6 @@ namespace Org.BouncyCastle.Cms
             {
                 foreach (Asn1Encodable ae in crlSet)
                 {
-                    if (ae == null)
-                        continue;
-
                     if (ae is CertificateList c)
                     {
                         contents.Add(new X509Crl(c));
@@ -358,23 +351,20 @@ namespace Org.BouncyCastle.Cms
             return CollectionUtilities.CreateStore(contents);
         }
 
-        internal static IStore<Asn1Encodable> GetOtherRevInfos(Asn1Set crlSet, DerObjectIdentifier otherRevInfoFormat)
+        internal static IStore<Asn1Encodable> GetOtherRevInfos(Asn1Set crlSet, DerObjectIdentifier infoFormat)
         {
             var contents = new List<Asn1Encodable>();
-            if (crlSet != null && otherRevInfoFormat != null)
+            if (crlSet != null && infoFormat != null)
             {
                 foreach (Asn1Encodable ae in crlSet)
                 {
-                    if (ae != null && ae.ToAsn1Object() is Asn1TaggedObject taggedObject)
+                    if (ae.ToAsn1Object() is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(1))
                     {
-                        if (taggedObject.HasContextTag(1))
-                        {
-                            var otherRevocationInfo = OtherRevocationInfoFormat.GetInstance(taggedObject, false);
+                        var otherRevocationInfoFormat = OtherRevocationInfoFormat.GetInstance(taggedObject, false);
 
-                            if (otherRevInfoFormat.Equals(otherRevocationInfo.InfoFormat))
-                            {
-                                contents.Add(otherRevocationInfo.Info);
-                            }
+                        if (infoFormat.Equals(otherRevocationInfoFormat.InfoFormat))
+                        {
+                            contents.Add(otherRevocationInfoFormat.Info);
                         }
                     }
                 }

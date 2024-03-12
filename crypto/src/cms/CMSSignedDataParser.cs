@@ -14,7 +14,7 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-	/**
+    /**
 	* Parsing class for an CMS Signed Data object from an input stream.
 	* <p>
 	* Note: that because we are in a streaming mode only one signer can be tried and it is important
@@ -52,14 +52,14 @@ namespace Org.BouncyCastle.Cms
 	*  </pre>
 	*  where bufSize is a suitably large buffer size.
 	*/
-	public class CmsSignedDataParser
+    public class CmsSignedDataParser
 		: CmsContentInfoParser
 	{
 		private SignedDataParser        _signedData;
 		private DerObjectIdentifier		_signedContentType;
 		private CmsTypedStream          _signedContent;
-		private IDictionary<string, IDigest> m_digests;
-		private HashSet<string>			_digestOids;
+		private Dictionary<string, IDigest> m_digests;
+		private HashSet<string> m_digestOids;
 
 		private SignerInformationStore  _signerInfoStore;
 		private Asn1Set                 _certSet, _crlSet;
@@ -102,25 +102,25 @@ namespace Org.BouncyCastle.Cms
 			{
 				this._signedContent = signedContent;
 				this._signedData = SignedDataParser.GetInstance(this.contentInfo.GetContent(Asn1Tags.Sequence));
-				this.m_digests = new Dictionary<string, IDigest>(StringComparer.OrdinalIgnoreCase);
-				this._digestOids = new HashSet<string>();
+				m_digests = new Dictionary<string, IDigest>(StringComparer.OrdinalIgnoreCase);
+				m_digestOids = new HashSet<string>();
 
 				Asn1SetParser digAlgs = _signedData.GetDigestAlgorithms();
 				IAsn1Convertible o;
 
 				while ((o = digAlgs.ReadObject()) != null)
 				{
-					AlgorithmIdentifier id = AlgorithmIdentifier.GetInstance(o.ToAsn1Object());
+					AlgorithmIdentifier id = AlgorithmIdentifier.GetInstance(o);
 
 					try
 					{
-                        string digestOid = id.Algorithm.Id;
+                        DerObjectIdentifier digestOid = id.Algorithm;
 						string digestName = CmsSignedHelper.GetDigestAlgName(digestOid);
 
 						if (!this.m_digests.ContainsKey(digestName))
 						{
-							this.m_digests[digestName] = CmsSignedHelper.GetDigestInstance(digestName);
-							this._digestOids.Add(digestOid);
+							m_digests[digestName] = CmsSignedHelper.GetDigestInstance(digestName);
+							m_digestOids.Add(digestOid.Id);
 						}
 					}
 					catch (SecurityUtilityException)
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Cms
 
 		public ISet<string> DigestOids
 		{
-			get { return new HashSet<string>(_digestOids); }
+			get { return new HashSet<string>(m_digestOids); }
 		}
 
 		/**
@@ -205,8 +205,8 @@ namespace Org.BouncyCastle.Cms
 
 					while ((o = s.ReadObject()) != null)
 					{
-						SignerInfo info = SignerInfo.GetInstance(o.ToAsn1Object());
-						string digestName = CmsSignedHelper.GetDigestAlgName(info.DigestAlgorithm.Algorithm.Id);
+						SignerInfo info = SignerInfo.GetInstance(o);
+						string digestName = CmsSignedHelper.GetDigestAlgName(info.DigestAlgorithm.Algorithm);
 
 						byte[] hash = hashes[digestName];
 
@@ -302,17 +302,12 @@ namespace Org.BouncyCastle.Cms
 		/// Return the <c>DerObjectIdentifier</c> associated with the encapsulated
 		/// content info structure carried in the signed data.
 		/// </summary>
-		public DerObjectIdentifier SignedContentType
-		{
-			get { return _signedContentType; }
-		}
+		public DerObjectIdentifier SignedContentType => _signedContentType;
 
 		public CmsTypedStream GetSignedContent()
 		{
 			if (_signedContent == null)
-			{
 				return null;
-			}
 
 			Stream digStream = _signedContent.ContentStream;
 
@@ -417,12 +412,9 @@ namespace Org.BouncyCastle.Cms
             return outStr;
 		}
 
-        private static Asn1Set GetAsn1Set(
-			Asn1SetParser asn1SetParser)
+        private static Asn1Set GetAsn1Set(Asn1SetParser asn1SetParser)
 		{
-			return asn1SetParser == null
-				?	null
-				:	Asn1Set.GetInstance(asn1SetParser.ToAsn1Object());
+			return asn1SetParser == null ? null : Asn1Set.GetInstance(asn1SetParser);
 		}
 	}
 }

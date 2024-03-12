@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			{
 				CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 				gen.AddSigner(OrigKP.Private, OrigCert,
-					"DSA", // DOESN'T MATCH KEY ALG
+					CmsSignedDataStreamGenerator.EncryptionDsa, // DOESN'T MATCH KEY ALG
 					CmsSignedDataStreamGenerator.DigestSha1);
 
 				Assert.Fail("Expected InvalidKeyException in AddSigner");
