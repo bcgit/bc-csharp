@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -79,6 +80,8 @@ namespace Org.BouncyCastle.Asn1
         }
 
         private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
+
+        private static readonly Asn1RelativeOid[] Cache = new Asn1RelativeOid[64];
 
         private readonly byte[] m_contents;
         private string m_identifier;
@@ -167,7 +170,27 @@ namespace Org.BouncyCastle.Asn1
 
         internal static Asn1RelativeOid CreatePrimitive(byte[] contents, bool clone)
         {
-            return new Asn1RelativeOid(contents, clone);
+            uint index = (uint)Arrays.GetHashCode(contents);
+
+            index ^= index >> 24;
+            index ^= index >> 12;
+            index ^= index >> 6;
+            index &= 63;
+
+            var originalEntry = Volatile.Read(ref Cache[index]);
+            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.m_contents))
+                return originalEntry;
+
+            var newEntry = new Asn1RelativeOid(contents, clone);
+
+            var exchangedEntry = Interlocked.CompareExchange(ref Cache[index], newEntry, originalEntry);
+            if (exchangedEntry != originalEntry)
+            {
+                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.m_contents))
+                    return exchangedEntry;
+            }
+
+            return newEntry;
         }
 
         internal static bool IsValidContents(byte[] contents)
