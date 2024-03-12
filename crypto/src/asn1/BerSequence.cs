@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1
                 return base.GetEncoding(encoding);
 
             return new ConstructedILEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
-                Asn1OutputStream.GetContentsEncodings(encoding, elements));
+                Asn1OutputStream.GetContentsEncodings(encoding, m_elements));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
                 return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
             return new ConstructedILEncoding(tagClass, tagNo,
-                Asn1OutputStream.GetContentsEncodings(encoding, elements));
+                Asn1OutputStream.GetContentsEncodings(encoding, m_elements));
         }
 
         internal override DerBitString ToAsn1BitString()
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override Asn1Set ToAsn1Set()
         {
-            return new BerSet(false, elements);
+            return new BerSet(false, m_elements);
         }
     }
 }

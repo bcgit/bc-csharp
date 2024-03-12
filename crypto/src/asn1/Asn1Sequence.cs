@@ -76,11 +76,11 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Sequence)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        internal readonly Asn1Encodable[] elements;
+        internal readonly Asn1Encodable[] m_elements;
 
         protected internal Asn1Sequence()
         {
-            this.elements = Asn1EncodableVector.EmptyElements;
+            m_elements = Asn1EncodableVector.EmptyElements;
         }
 
         protected internal Asn1Sequence(Asn1Encodable element)
@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == element)
                 throw new ArgumentNullException(nameof(element));
 
-            this.elements = new Asn1Encodable[]{ element };
+            m_elements = new Asn1Encodable[]{ element };
         }
 
         protected internal Asn1Sequence(Asn1Encodable element1, Asn1Encodable element2)
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == element2)
                 throw new ArgumentNullException(nameof(element2));
 
-            this.elements = new Asn1Encodable[]{ element1, element2 };
+            m_elements = new Asn1Encodable[]{ element1, element2 };
         }
 
         protected internal Asn1Sequence(params Asn1Encodable[] elements)
@@ -106,12 +106,12 @@ namespace Org.BouncyCastle.Asn1
             if (Arrays.IsNullOrContainsNull(elements))
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
-            this.elements = Asn1EncodableVector.CloneElements(elements);
+            m_elements = Asn1EncodableVector.CloneElements(elements);
         }
 
         internal Asn1Sequence(Asn1Encodable[] elements, bool clone)
         {
-            this.elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
+            m_elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
         }
 
         protected internal Asn1Sequence(Asn1EncodableVector elementVector)
@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == elementVector)
                 throw new ArgumentNullException("elementVector");
 
-            this.elements = elementVector.TakeElements();
+            m_elements = elementVector.TakeElements();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -129,48 +129,42 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
-            IEnumerable<Asn1Encodable> e = elements;
+            IEnumerable<Asn1Encodable> e = m_elements;
             return e.GetEnumerator();
         }
 
         private class Asn1SequenceParserImpl
             : Asn1SequenceParser
         {
-            private readonly Asn1Sequence outer;
-            private readonly int max;
-            private int index;
+            private readonly Asn1Sequence m_outer;
+            private int m_index;
 
-            public Asn1SequenceParserImpl(
-                Asn1Sequence outer)
+            public Asn1SequenceParserImpl(Asn1Sequence outer)
             {
-                this.outer = outer;
-                this.max = outer.Count;
+                m_outer = outer;
+                m_index = 0;
             }
 
             public IAsn1Convertible ReadObject()
             {
-                if (index == max)
+                var elements = m_outer.m_elements;
+                if (m_index >= elements.Length)
                     return null;
 
-                Asn1Encodable obj = outer[index++];
+                Asn1Encodable obj = elements[m_index++];
 
-                if (obj is Asn1Sequence)
-                    return ((Asn1Sequence)obj).Parser;
+                if (obj is Asn1Sequence asn1Sequence)
+                    return asn1Sequence.Parser;
 
-                if (obj is Asn1Set)
-                    return ((Asn1Set)obj).Parser;
+                if (obj is Asn1Set asn1Set)
+                    return asn1Set.Parser;
 
                 // NB: Asn1OctetString implements Asn1OctetStringParser directly
-//				if (obj is Asn1OctetString)
-//					return ((Asn1OctetString)obj).Parser;
 
                 return obj;
             }
 
-            public Asn1Object ToAsn1Object()
-            {
-                return outer;
-            }
+            public Asn1Object ToAsn1Object() => m_outer;
         }
 
         public virtual Asn1SequenceParser Parser
@@ -186,12 +180,12 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual Asn1Encodable this[int index]
         {
-            get { return elements[index]; }
+            get { return m_elements[index]; }
         }
 
         public virtual int Count
         {
-            get { return elements.Length; }
+            get { return m_elements.Length; }
         }
 
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
@@ -200,14 +194,14 @@ namespace Org.BouncyCastle.Asn1
             T[] result = new T[count];
             for (int i = 0; i < count; ++i)
             {
-                result[i] = func(elements[i]);
+                result[i] = func(m_elements[i]);
             }
             return result;
         }
 
         public virtual Asn1Encodable[] ToArray()
         {
-            return Asn1EncodableVector.CloneElements(elements);
+            return Asn1EncodableVector.CloneElements(m_elements);
         }
 
         protected override int Asn1GetHashCode()
@@ -218,7 +212,7 @@ namespace Org.BouncyCastle.Asn1
             while (--i >= 0)
             {
                 hc *= 257;
-                hc ^= elements[i].ToAsn1Object().CallAsn1GetHashCode();
+                hc ^= m_elements[i].ToAsn1Object().CallAsn1GetHashCode();
             }
 
             return hc;
@@ -226,8 +220,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            Asn1Sequence that = asn1Object as Asn1Sequence;
-            if (null == that)
+            if (!(asn1Object is Asn1Sequence that))
                 return false;
 
             int count = this.Count;
@@ -236,8 +229,8 @@ namespace Org.BouncyCastle.Asn1
 
             for (int i = 0; i < count; ++i)
             {
-                Asn1Object o1 = this.elements[i].ToAsn1Object();
-                Asn1Object o2 = that.elements[i].ToAsn1Object();
+                Asn1Object o1 = this.m_elements[i].ToAsn1Object();
+                Asn1Object o2 = that.m_elements[i].ToAsn1Object();
 
                 if (!o1.Equals(o2))
                     return false;
@@ -248,7 +241,7 @@ namespace Org.BouncyCastle.Asn1
 
         public override string ToString()
         {
-            return CollectionUtilities.ToString(elements);
+            return CollectionUtilities.ToString(m_elements);
         }
 
         // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)
