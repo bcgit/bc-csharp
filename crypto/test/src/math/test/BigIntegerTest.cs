@@ -941,7 +941,7 @@ namespace Org.BouncyCastle.Math.Tests
 
             for (int i = 16; i <= 48; ++i)
             {
-                BigInteger x = BigInteger.ProbablePrime(i, random);
+                BigInteger x = new BigInteger(i, random).SetBit(i - 1);
                 byte[] b = x.ToByteArray();
                 Assert.AreEqual((i / 8 + 1), b.Length);
                 BigInteger y = new BigInteger(b);
@@ -963,7 +963,7 @@ namespace Org.BouncyCastle.Math.Tests
 
             for (int i = 16; i <= 48; ++i)
             {
-                BigInteger x = BigInteger.ProbablePrime(i, random);
+                BigInteger x = new BigInteger(i, random).SetBit(i - 1);
                 byte[] b = x.ToByteArrayUnsigned();
                 Assert.AreEqual((i + 7) / 8, b.Length);
                 BigInteger y = new BigInteger(1, b);
