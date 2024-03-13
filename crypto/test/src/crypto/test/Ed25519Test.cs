@@ -25,6 +25,21 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestRegression_GitHub_bc_java_1599()
+        {
+            Ed25519PublicKeyParameters publicKey = new Ed25519PublicKeyParameters(
+                Hex.DecodeStrict("386e7cf7b9e8353933b07f1db8d84d3720bb667cbd811b312b4e338672338a6d"));
+            byte[] content = Hex.DecodeStrict("414141624c6743596c6f414141514943486e6a4a71326a75705455472d5a36694d716871313467414854486f64757677694844664f594a3230775f77426c6e35444a3953614e616353496835336b626e716e723965ef34c5");
+            byte[] sig = Hex.DecodeStrict("74dc43223fc21b9157e686a1446621a4640464b8ee4877ea7e3963cb5da8b21b9089241defdd7f36448ec4c76174af131994321da7e28483b3c2a7906947fa0f");
+
+            ISigner signer = new Ed25519Signer();
+            signer.Init(false, publicKey);
+            signer.BlockUpdate(content, 0, content.Length);
+            bool verified = signer.VerifySignature(sig);
+            Assert.True(verified);
+        }
+
+        [Test]
         public void TestFunction()
         {
             string resultText = Perform().ToString();

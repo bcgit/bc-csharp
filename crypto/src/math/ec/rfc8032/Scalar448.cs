@@ -1125,6 +1125,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Span<uint> Nu = stackalloc uint[28];    LSq.CopyTo(Nu);
             Span<uint> Nv = stackalloc uint[28];    Nat448.Square(k, Nv); ++Nv[0];
             Span<uint> p  = stackalloc uint[28];    Nat448.Mul(L, k, p);
+            Span<uint> t  = stackalloc uint[28];
             Span<uint> u0 = stackalloc uint[8];     u0.CopyFrom(L);
             Span<uint> u1 = stackalloc uint[8];
             Span<uint> v0 = stackalloc uint[8];     v0.CopyFrom(k);
@@ -1141,12 +1142,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 if ((int)p[last] < 0)
                 {
-                    ScalarUtilities.AddShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.AddShifted_NP(last, s, Nu, Nv, p, t);
                     ScalarUtilities.AddShifted_UV(last: 7, s, u0, u1, v0, v1);
                 }
                 else
                 {
-                    ScalarUtilities.SubShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.SubShifted_NP(last, s, Nu, Nv, p, t);
                     ScalarUtilities.SubShifted_UV(last: 7, s, u0, u1, v0, v1);
                 }
 
@@ -1180,6 +1181,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] Nu = new uint[28];       Array.Copy(LSq, Nu, 28);
             uint[] Nv = new uint[28];       Nat448.Square(k, Nv); ++Nv[0];
             uint[] p  = new uint[28];       Nat448.Mul(L, k, p);
+            uint[] t  = new uint[28];
             uint[] u0 = new uint[8];        Array.Copy(L, u0, 8);
             uint[] u1 = new uint[8];
             uint[] v0 = new uint[8];        Array.Copy(k, v0, 8);
@@ -1196,12 +1198,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 if ((int)p[last] < 0)
                 {
-                    ScalarUtilities.AddShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.AddShifted_NP(last, s, Nu, Nv, p, t);
                     ScalarUtilities.AddShifted_UV(last: 7, s, u0, u1, v0, v1);
                 }
                 else
                 {
-                    ScalarUtilities.SubShifted_NP(last, s, Nu, Nv, p);
+                    ScalarUtilities.SubShifted_NP(last, s, Nu, Nv, p, t);
                     ScalarUtilities.SubShifted_UV(last: 7, s, u0, u1, v0, v1);
                 }
 
