@@ -71,11 +71,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             else
             {
-                // Keep the original value of p in t
+                // Copy the low limbs of the original p
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                t[..(last + 1)].CopyFrom(p);
+                t[..last].CopyFrom(p);
 #else
-                Array.Copy(p, 0, t, 0, last + 1);
+                Array.Copy(p, 0, t, 0, last);
 #endif
 
                 int sWords = s >> 5, sBits = s & 31;
@@ -288,11 +288,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             else
             {
-                // Keep the original value of p in t
+                // Copy the low limbs of the original p
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                t[..(last + 1)].CopyFrom(p);
+                t[..last].CopyFrom(p);
 #else
-                Array.Copy(p, 0, t, 0, last + 1);
+                Array.Copy(p, 0, t, 0, last);
 #endif
 
                 int sWords = s >> 5, sBits = s & 31;
