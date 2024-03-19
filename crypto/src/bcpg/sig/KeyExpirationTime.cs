@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Crypto.Utilities;
+using System;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
@@ -8,23 +8,16 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class KeyExpirationTime
         : SignatureSubpacket
     {
-        protected static byte[] TimeToBytes(long t)
-        {
-            return Pack.UInt32_To_BE((uint)t);
-        }
+        [Obsolete("Will be removed")]
+        protected static byte[] TimeToBytes(long t) => Utilities.TimeToBytes((uint)t);
 
-        public KeyExpirationTime(
-            bool    critical,
-            bool    isLongLength,
-            byte[]  data)
+        public KeyExpirationTime(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.KeyExpireTime, critical, isLongLength, data)
         {
         }
 
-        public KeyExpirationTime(
-            bool    critical,
-            long    seconds)
-            : base(SignatureSubpacketTag.KeyExpireTime, critical, false, TimeToBytes(seconds))
+        public KeyExpirationTime(bool critical, long seconds)
+            : base(SignatureSubpacketTag.KeyExpireTime, critical, false, Utilities.TimeToBytes((uint)seconds))
         {
         }
 
@@ -33,6 +26,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         *
         * @return second count for key validity.
         */
-        public long Time => (long)Pack.BE_To_UInt32(data);
+        public long Time => (long)Utilities.TimeFromBytes(data);
     }
 }
