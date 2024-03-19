@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static byte[] UInt16_To_BE(ushort n)
         {
             byte[] bs = new byte[2];
-            UInt16_To_BE(n, bs, 0);
+            UInt16_To_BE(n, bs);
             return bs;
         }
 
@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static byte[] UInt32_To_BE(uint n)
         {
             byte[] bs = new byte[4];
-            UInt32_To_BE(n, bs, 0);
+            UInt32_To_BE(n, bs);
             return bs;
         }
 
@@ -267,7 +267,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static byte[] UInt64_To_BE(ulong n)
         {
             byte[] bs = new byte[8];
-            UInt64_To_BE(n, bs, 0);
+            UInt64_To_BE(n, bs);
             return bs;
         }
 
@@ -415,7 +415,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static byte[] UInt16_To_LE(ushort n)
         {
             byte[] bs = new byte[2];
-            UInt16_To_LE(n, bs, 0);
+            UInt16_To_LE(n, bs);
             return bs;
         }
 
@@ -494,7 +494,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static byte[] UInt32_To_LE(uint n)
         {
             byte[] bs = new byte[4];
-            UInt32_To_LE(n, bs, 0);
+            UInt32_To_LE(n, bs);
             return bs;
         }
 
@@ -642,7 +642,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static byte[] UInt64_To_LE(ulong n)
         {
             byte[] bs = new byte[8];
-            UInt64_To_LE(n, bs, 0);
+            UInt64_To_LE(n, bs);
             return bs;
         }
 
