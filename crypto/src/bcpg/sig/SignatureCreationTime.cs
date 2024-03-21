@@ -22,10 +22,12 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         public SignatureCreationTime(bool critical, DateTime date)
             : base(SignatureSubpacketTag.CreationTime, critical, false, TimeToBytes(date))
         {
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public DateTime GetTime()
         {
