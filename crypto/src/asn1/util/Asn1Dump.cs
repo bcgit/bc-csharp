@@ -104,12 +104,12 @@ namespace Org.BouncyCastle.Asn1.Utilities
             else if (obj is DerObjectIdentifier oid)
             {
                 buf.Append(indent);
-                buf.AppendLine("ObjectIdentifier(" + oid.Id + ")");
+                buf.AppendLine("ObjectIdentifier(" + oid.GetID() + ")");
             }
             else if (obj is Asn1RelativeOid relativeOid)
             {
                 buf.Append(indent);
-                buf.AppendLine("RelativeOID(" + relativeOid.Id + ")");
+                buf.AppendLine("RelativeOID(" + relativeOid.GetID() + ")");
             }
             else if (obj is DerBoolean derBoolean)
             {
@@ -230,7 +230,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
                 if (ext.DirectReference != null)
                 {
                     buf.Append(tab);
-                    buf.AppendLine("Direct Reference: " + ext.DirectReference.Id);
+                    buf.AppendLine("Direct Reference: " + ext.DirectReference.GetID());
                 }
                 if (ext.IndirectReference != null)
                 {

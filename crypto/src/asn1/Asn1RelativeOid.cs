@@ -134,8 +134,7 @@ namespace Org.BouncyCastle.Asn1
             return Objects.EnsureSingletonInitialized(ref m_identifier, m_contents, ParseContents);
         }
 
-        // TODO[api]
-        //[Obsolete("Use 'GetID' instead")]
+        [Obsolete("Use 'GetID' instead")]
         public string Id => GetID();
 
         public override string ToString() => GetID();
@@ -180,7 +179,7 @@ namespace Org.BouncyCastle.Asn1
         internal static void CheckIdentifier(string identifier)
         {
             if (identifier == null)
-                throw new ArgumentNullException("identifier");
+                throw new ArgumentNullException(nameof(identifier));
             if (identifier.Length > MaxIdentifierLength)
                 throw new ArgumentException("exceeded relative OID contents length limit");
             if (!IsValidIdentifier(identifier, from: 0))

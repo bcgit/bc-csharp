@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Asn1
         internal static void CheckIdentifier(string identifier)
         {
             if (identifier == null)
-                throw new ArgumentNullException("identifier");
+                throw new ArgumentNullException(nameof(identifier));
             if (identifier.Length > MaxIdentifierLength)
                 throw new ArgumentException("exceeded OID contents length limit");
             if (!IsValidIdentifier(identifier))
