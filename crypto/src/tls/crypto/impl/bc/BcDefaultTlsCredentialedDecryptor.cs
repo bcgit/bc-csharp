@@ -45,7 +45,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public virtual TlsSecret Decrypt(TlsCryptoParameters cryptoParams, byte[] ciphertext)
         {
-            // TODO Keep only the decryption itself here - move error handling outside 
             return SafeDecryptPreMasterSecret(cryptoParams, (RsaKeyParameters)m_privateKey, ciphertext);
         }
 
@@ -53,13 +52,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
          * TODO[tls-ops] Probably need to make RSA encryption/decryption into TlsCrypto functions so that users can
          * implement "generic" encryption credentials externally
          */
+        // TODO[api] Just inline this into Decrypt
         protected virtual TlsSecret SafeDecryptPreMasterSecret(TlsCryptoParameters cryptoParams,
             RsaKeyParameters rsaServerPrivateKey, byte[] encryptedPreMasterSecret)
         {
             ProtocolVersion expectedVersion = cryptoParams.RsaPreMasterSecretVersion;
 
             byte[] preMasterSecret = Org.BouncyCastle.Crypto.Tls.TlsRsaKeyExchange.DecryptPreMasterSecret(
-                encryptedPreMasterSecret, rsaServerPrivateKey, expectedVersion.FullVersion, m_crypto.SecureRandom);
+                encryptedPreMasterSecret, 0, encryptedPreMasterSecret.Length, rsaServerPrivateKey,
+                expectedVersion.FullVersion, m_crypto.SecureRandom);
 
             return m_crypto.CreateSecret(preMasterSecret);
         }
