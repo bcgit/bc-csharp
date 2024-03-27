@@ -19,9 +19,6 @@ namespace Org.BouncyCastle.Asn1.Mozilla
     public class PublicKeyAndChallenge
         : Asn1Encodable
     {
-        private readonly SubjectPublicKeyInfo m_spki;
-		private readonly DerIA5String m_challenge;
-
         public static PublicKeyAndChallenge GetInstance(object obj)
         {
             if (obj == null)
@@ -40,6 +37,9 @@ namespace Org.BouncyCastle.Asn1.Mozilla
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        private readonly SubjectPublicKeyInfo m_spki;
+        private readonly DerIA5String m_challenge;
+
         public PublicKeyAndChallenge(SubjectPublicKeyInfo spki, DerIA5String challenge)
         {
             m_spki = spki ?? throw new ArgumentNullException(nameof(spki));
@@ -49,6 +49,11 @@ namespace Org.BouncyCastle.Asn1.Mozilla
         [Obsolete("Use 'GetInstance' instead")]
         public PublicKeyAndChallenge(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+            if (seq.Count != 2)
+                throw new ArgumentException($"Expected 2 elements, but found {seq.Count}", nameof(seq));
+
             m_spki = SubjectPublicKeyInfo.GetInstance(seq[0]);
             m_challenge = DerIA5String.GetInstance(seq[1]);
         }

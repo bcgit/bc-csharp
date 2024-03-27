@@ -1,138 +1,71 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Asn1.Mozilla
 {
-    /**
-	 * This is designed to parse
-	 * the SignedPublicKeyAndChallenge created by the KEYGEN tag included by
-	 * Mozilla based browsers.
-     *  <pre>
-     *
-     *  SignedPublicKeyAndChallenge ::= SEQUENCE {
-     *    publicKeyAndChallenge PublicKeyAndChallenge,
-     *    signatureAlgorithm AlgorithmIdentifier,
-     *    signature BIT STRING
-     *  }
-     *  </pre>
-     */
-    internal class SignedPublicKeyAndChallenge : Asn1Encodable
+    /// <summary>
+    /// For parsing the SignedPublicKeyAndChallenge created by the KEYGEN tag included by Mozilla based browsers.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// SignedPublicKeyAndChallenge ::= SEQUENCE
+    /// {
+    ///     publicKeyAndChallenge   PublicKeyAndChallenge,
+    ///     signatureAlgorithm      AlgorithmIdentifier,
+    ///     signature               BIT STRING
+    /// }
+    /// </code>
+    /// </remarks>
+    public class SignedPublicKeyAndChallenge
+        : Asn1Encodable
     {
-        private Asn1Sequence            seq;
-        private PublicKeyAndChallenge   publicKeyAndChallenge;
-        private AlgorithmIdentifier     algorithmIdentifier;
-        private DerBitString            signature;
-
-        public PublicKeyAndChallenge PublicKeyAndChallenge
-        {
-            get { return publicKeyAndChallenge; }
-        }
-
-        public AlgorithmIdentifier AlgorithmIdentifier
-        {
-            get { return algorithmIdentifier; }
-        }
-
-        public DerBitString Signature
-        {
-            get { return signature; }
-        }
-
-        public static SignedPublicKeyAndChallenge GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
         public static SignedPublicKeyAndChallenge GetInstance(object obj)
         {
-            if (null == obj)
-            {
+            if (obj == null)
                 return null;
-            }
-
-            if (obj is SignedPublicKeyAndChallenge value)
-            {
-                return value;
-            }
-
-            if (obj is Asn1Sequence asn1Sequence)
-            {
-                return new SignedPublicKeyAndChallenge(asn1Sequence);
-            }
-
-            throw new ArgumentException(string.Format("object of unexpected type provided, type=[{0}]", obj.GetType().FullName));
+            if (obj is SignedPublicKeyAndChallenge signedPublicKeyAndChallenge)
+                return signedPublicKeyAndChallenge;
+            return new SignedPublicKeyAndChallenge(Asn1Sequence.GetInstance(obj));
         }
 
-        public SignedPublicKeyAndChallenge(
-            PublicKeyAndChallenge   publicKeyAndChallenge,
-            AlgorithmIdentifier     algorithmIdentifier,
-            DerBitString            signature)
+        public static SignedPublicKeyAndChallenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            this.publicKeyAndChallenge = publicKeyAndChallenge;
-            this.algorithmIdentifier = algorithmIdentifier;
-            this.signature = signature;
+            return new SignedPublicKeyAndChallenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        public SignedPublicKeyAndChallenge(
-            Asn1Sequence seq)
-        {
-            this.seq = seq;
+        private readonly PublicKeyAndChallenge m_publicKeyAndChallenge;
+        private readonly AlgorithmIdentifier m_signatureAlgorithm;
+        private readonly DerBitString m_signature;
 
+        public SignedPublicKeyAndChallenge(PublicKeyAndChallenge publicKeyAndChallenge,
+            AlgorithmIdentifier signatureAlgorithm, DerBitString signature)
+        {
+            m_publicKeyAndChallenge = publicKeyAndChallenge
+                ?? throw new ArgumentNullException(nameof(publicKeyAndChallenge));
+            m_signatureAlgorithm = signatureAlgorithm ?? throw new ArgumentNullException(nameof(signatureAlgorithm));
+            m_signature = signature ?? throw new ArgumentNullException(nameof(signature));
+        }
+
+        private SignedPublicKeyAndChallenge(Asn1Sequence seq)
+        {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
             if (seq.Count != 3)
-                throw new FormatException($"Sequence contains {seq.Count} elements. Expected 3 elements");
+                throw new ArgumentException($"Expected 3 elements, but found {seq.Count}", nameof(seq));
 
-            this.publicKeyAndChallenge = PublicKeyAndChallenge.GetInstance(seq[0]);
-            this.algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[1]);
-            this.signature = DerBitString.GetInstance(seq[2]);
+            m_publicKeyAndChallenge = PublicKeyAndChallenge.GetInstance(seq[0]);
+            m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[1]);
+            m_signature = DerBitString.GetInstance(seq[2]);
         }
 
-        public bool Verify()
-        {
-            AsymmetricKeyParameter publicKey = PublicKeyFactory.CreateKey(this.PublicKeyAndChallenge.SubjectPublicKeyInfo);
-            Asn1VerifierFactoryProvider factory = new Asn1VerifierFactoryProvider(publicKey);
-            IVerifierFactory verifier = factory.CreateVerifierFactory(this.AlgorithmIdentifier);
+        public PublicKeyAndChallenge PublicKeyAndChallenge => m_publicKeyAndChallenge;
 
-            try
-            {
-                byte[] derEncoded = this.PublicKeyAndChallenge.GetEncoded();
-                IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
-                streamCalculator.Stream.Write(derEncoded, 0, derEncoded.Length);
-                streamCalculator.Stream.Dispose();
+        public DerBitString Signature => m_signature;
 
-                return streamCalculator.GetResult().IsVerified(this.Signature.GetOctets());
-            }
-            catch (Exception exception)
-            {
-                throw new SignatureException("exception encoding SPKAC request", exception);
-            }
-        }
+        public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
-        public override Asn1Object ToAsn1Object()
-        {
-            if (null == this.seq)
-            {
-                Asn1EncodableVector v = new Asn1EncodableVector();
-
-                if (null == this.PublicKeyAndChallenge)
-                    throw new FormatException($"{nameof(this.PublicKeyAndChallenge)} can not be null");
-
-                if (null == this.AlgorithmIdentifier)
-                    throw new FormatException($"{nameof(this.AlgorithmIdentifier)} can not be null");
-
-                if (null == this.Signature)
-                    throw new FormatException($"{nameof(this.Signature)} can not be null");
-
-                v.Add(this.PublicKeyAndChallenge);
-                v.Add(this.AlgorithmIdentifier);
-                v.Add(this.Signature);
-
-                this.seq = new DerSequence(v);
-            }
-            return this.seq;
-        }
+        public override Asn1Object ToAsn1Object() =>
+            new DerSequence(m_publicKeyAndChallenge, m_signatureAlgorithm, m_signature);
     }
 }
