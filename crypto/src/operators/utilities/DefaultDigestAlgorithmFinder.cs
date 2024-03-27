@@ -308,16 +308,10 @@ namespace Org.BouncyCastle.Operators.Utilities
 
         public virtual AlgorithmIdentifier Find(string digestName)
         {
-            if (DigestNameToOids.TryGetValue(digestName, out var digestOid))
+            if (DigestNameToOids.TryGetValue(digestName, out var digestOid) ||
+                DerObjectIdentifier.TryFromID(digestName, out digestOid))
+            {
                 return Find(digestOid);
-
-            try
-            {
-                return Find(new DerObjectIdentifier(digestName));
-            }
-            catch (Exception)
-            {
-                // ignore - tried it but it didn't work...
             }
 
             return null;

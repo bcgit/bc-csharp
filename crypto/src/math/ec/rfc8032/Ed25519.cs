@@ -751,7 +751,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] v1 = new uint[4];
 #endif
 
-            Scalar25519.ReduceBasisVar(nA, v0, v1);
+            if (!Scalar25519.ReduceBasisVar(nA, v0, v1))
+                throw new InvalidOperationException();
+
             Scalar25519.Multiply128Var(nS, v1, nS);
 
             Init(out PointAccum pZ);
@@ -852,7 +854,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] v1 = new uint[4];
 #endif
 
-            Scalar25519.ReduceBasisVar(nA, v0, v1);
+            if (!Scalar25519.ReduceBasisVar(nA, v0, v1))
+                throw new InvalidOperationException();
+
             Scalar25519.Multiply128Var(nS, v1, nS);
 
             Init(out PointAccum pZ);

@@ -532,11 +532,11 @@ namespace Org.BouncyCastle.Asn1.X509
             if (name.StartsWith("OID.", StringComparison.OrdinalIgnoreCase))
                 return new DerObjectIdentifier(name.Substring("OID.".Length));
 
-            if (name[0] >= '0' && name[0] <= '9')
-                return new DerObjectIdentifier(name);
-
-            if (lookup.TryGetValue(name, out var oid))
+            if (DerObjectIdentifier.TryFromID(name, out var oid) ||
+                lookup.TryGetValue(name, out oid))
+            {
                 return oid;
+            }
 
             throw new ArgumentException("Unknown object id - " + name + " - passed to distinguished name");
         }

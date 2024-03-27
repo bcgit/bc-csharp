@@ -2,15 +2,8 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.BC;
-using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.Eac;
-using Org.BouncyCastle.Asn1.EdEC;
-using Org.BouncyCastle.Asn1.GM;
-using Org.BouncyCastle.Asn1.Isara;
-using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -82,8 +75,7 @@ namespace Org.BouncyCastle.Cms
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
         internal IList<SignerInformation> _signers = new List<SignerInformation>();
-        internal IDictionary<string, byte[]> m_digests =
-            new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        internal IDictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
@@ -197,7 +189,12 @@ namespace Org.BouncyCastle.Cms
 		 */
         public IDictionary<string, byte[]> GetGeneratedDigests()
         {
-            return new Dictionary<string, byte[]>(m_digests, StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+            foreach (var entry in m_digests)
+            {
+                result.Add(entry.Key.GetID(), entry.Value);
+            }
+            return result;
         }
 
         public bool UseDerForCerts

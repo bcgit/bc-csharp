@@ -392,11 +392,13 @@ namespace Org.BouncyCastle.Asn1
             }
             case Asn1Tags.ObjectIdentifier:
             {
+                DerObjectIdentifier.CheckContentsLength(defIn.Remaining);
                 bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
                 return DerObjectIdentifier.CreatePrimitive(contents, clone: usedBuffer);
             }
             case Asn1Tags.RelativeOid:
             {
+                Asn1RelativeOid.CheckContentsLength(defIn.Remaining);
                 bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
                 return Asn1RelativeOid.CreatePrimitive(contents, clone: usedBuffer);
             }

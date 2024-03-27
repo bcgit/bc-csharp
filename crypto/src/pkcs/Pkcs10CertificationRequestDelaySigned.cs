@@ -95,18 +95,12 @@ namespace Org.BouncyCastle.Pkcs
 			if (publicKey.IsPrivate)
 				throw new ArgumentException("expected public key", "publicKey");
 
-			DerObjectIdentifier sigOid = CollectionUtilities.GetValueOrNull(m_algorithms, signatureAlgorithm);
-			if (sigOid == null)
-			{
-				try
-				{
-					sigOid = new DerObjectIdentifier(signatureAlgorithm);
-				}
-				catch (Exception e)
-				{
-					throw new ArgumentException("Unknown signature type requested", e);
-				}
-			}
+            if (!m_algorithms.TryGetValue(signatureAlgorithm, out var sigOid) &&
+                !DerObjectIdentifier.TryFromID(signatureAlgorithm, out sigOid))
+            {
+                throw new ArgumentException("Unknown signature type requested");
+            }
+
 			if (m_noParams.Contains(sigOid))
 			{
 				this.sigAlgId = new AlgorithmIdentifier(sigOid);

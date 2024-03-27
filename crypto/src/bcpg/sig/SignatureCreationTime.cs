@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Bcpg.Sig
@@ -11,10 +10,11 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class SignatureCreationTime
         : SignatureSubpacket
     {
-		protected static byte[] TimeToBytes(DateTime time)
+        [Obsolete("Will be removed")]
+        protected static byte[] TimeToBytes(DateTime time)
         {
 			long t = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
-            return Pack.UInt32_To_BE((uint)t);
+            return Utilities.TimeToBytes((uint)t);
         }
 
         public SignatureCreationTime(bool critical, bool isLongLength, byte[] data)
@@ -22,14 +22,16 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         public SignatureCreationTime(bool critical, DateTime date)
             : base(SignatureSubpacketTag.CreationTime, critical, false, TimeToBytes(date))
         {
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public DateTime GetTime()
         {
-            uint time = Pack.BE_To_UInt32(data, 0);
+            long time = Utilities.TimeFromBytes(data);
 			return DateTimeUtilities.UnixMsToDateTime(time * 1000L);
         }
     }

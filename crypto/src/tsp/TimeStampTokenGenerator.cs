@@ -137,17 +137,19 @@ namespace Org.BouncyCastle.Tsp
            string digestOID,
            string tsaPolicyOID,
            Asn1.Cms.AttributeTable signedAttr,
-           Asn1.Cms.AttributeTable unsignedAttr) : this(
-               makeInfoGenerator(key, cert, digestOID, signedAttr, unsignedAttr),
-               Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
-               tsaPolicyOID != null ? new DerObjectIdentifier(tsaPolicyOID):null, false)
+           Asn1.Cms.AttributeTable unsignedAttr)
+            : this(
+                MakeInfoGenerator(key, cert, new DerObjectIdentifier(digestOID), signedAttr, unsignedAttr),
+                Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
+                tsaPolicyOID != null ? new DerObjectIdentifier(tsaPolicyOID) : null,
+                false)
         {
         }
 
-        internal static SignerInfoGenerator makeInfoGenerator(
+        internal static SignerInfoGenerator MakeInfoGenerator(
           AsymmetricKeyParameter key,
           X509Certificate cert,
-          string digestOID,
+          DerObjectIdentifier digestOid,
           Asn1.Cms.AttributeTable signedAttr,
           Asn1.Cms.AttributeTable unsignedAttr)
         {
@@ -187,9 +189,9 @@ namespace Org.BouncyCastle.Tsp
             //    throw new TspException("Can't find a SHA-1 implementation.", e);
             //}
 
-            string digestName = CmsSignedHelper.GetDigestAlgName(digestOID);
-            string signatureName = digestName + "with"
-                + CmsSignedHelper.GetEncryptionAlgName(CmsSignedHelper.GetEncOid(key, digestOID));
+            string digestName = CmsSignedHelper.GetDigestAlgName(digestOid);
+            DerObjectIdentifier encOid = CmsSignedHelper.GetEncOid(key, digestOid.Id);
+            string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(encOid);
 
             Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
             return new SignerInfoGeneratorBuilder()

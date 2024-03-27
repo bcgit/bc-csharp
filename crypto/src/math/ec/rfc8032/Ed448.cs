@@ -695,7 +695,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] v1 = new uint[8];
 #endif
 
-            Scalar448.ReduceBasisVar(nA, v0, v1);
+            if (!Scalar448.ReduceBasisVar(nA, v0, v1))
+                throw new InvalidOperationException();
+
             Scalar448.Multiply225Var(nS, v1, nS);
 
             Init(out PointProjective pZ);
@@ -790,7 +792,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] v1 = new uint[8];
 #endif
 
-            Scalar448.ReduceBasisVar(nA, v0, v1);
+            if (!Scalar448.ReduceBasisVar(nA, v0, v1))
+                throw new InvalidOperationException();
+
             Scalar448.Multiply225Var(nS, v1, nS);
 
             Init(out PointProjective pZ);

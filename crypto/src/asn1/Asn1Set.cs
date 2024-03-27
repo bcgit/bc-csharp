@@ -188,40 +188,35 @@ namespace Org.BouncyCastle.Asn1
         private class Asn1SetParserImpl
             : Asn1SetParser
         {
-            private readonly Asn1Set outer;
-            private readonly int max;
-            private int index;
+            private readonly Asn1Set m_outer;
+            private int m_index;
 
-            public Asn1SetParserImpl(
-                Asn1Set outer)
+            public Asn1SetParserImpl(Asn1Set outer)
             {
-                this.outer = outer;
-                this.max = outer.Count;
+                m_outer = outer;
+                m_index = 0;
             }
 
             public IAsn1Convertible ReadObject()
             {
-                if (index == max)
+                var elements = m_outer.m_elements;
+                if (m_index >= elements.Length)
                     return null;
 
-                Asn1Encodable obj = outer[index++];
-                if (obj is Asn1Sequence)
-                    return ((Asn1Sequence)obj).Parser;
+                Asn1Encodable obj = elements[m_index++];
 
-                if (obj is Asn1Set)
-                    return ((Asn1Set)obj).Parser;
+                if (obj is Asn1Sequence asn1Sequence)
+                    return asn1Sequence.Parser;
+
+                if (obj is Asn1Set asn1Set)
+                    return asn1Set.Parser;
 
                 // NB: Asn1OctetString implements Asn1OctetStringParser directly
-//				if (obj is Asn1OctetString)
-//					return ((Asn1OctetString)obj).Parser;
 
                 return obj;
             }
 
-            public virtual Asn1Object ToAsn1Object()
-            {
-                return outer;
-            }
+            public virtual Asn1Object ToAsn1Object() => m_outer;
         }
 
         public Asn1SetParser Parser

@@ -57,25 +57,25 @@ namespace Org.BouncyCastle.Asn1
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             return new ConstructedDLEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
-                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, elements));
+                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, m_elements));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             return new ConstructedDLEncoding(tagClass, tagNo,
-                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, elements));
+                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, m_elements));
         }
 
         internal sealed override DerEncoding GetEncodingDer()
         {
             return new ConstructedDerEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
-                Asn1OutputStream.GetContentsEncodingsDer(elements));
+                Asn1OutputStream.GetContentsEncodingsDer(m_elements));
         }
 
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
         {
             return new ConstructedDerEncoding(tagClass, tagNo,
-                Asn1OutputStream.GetContentsEncodingsDer(elements));
+                Asn1OutputStream.GetContentsEncodingsDer(m_elements));
         }
 
         internal override DerBitString ToAsn1BitString()
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Asn1
         internal override Asn1Set ToAsn1Set()
         {
             // NOTE: DLSet is intentional, we don't want sorting
-            return new DLSet(false, elements);
+            return new DLSet(false, m_elements);
         }
 
         internal static int GetEncodingLength(int contentsLength)

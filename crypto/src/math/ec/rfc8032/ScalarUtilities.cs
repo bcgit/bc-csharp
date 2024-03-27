@@ -12,60 +12,118 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void AddShifted_NP(int last, int s, Span<uint> Nu, ReadOnlySpan<uint> Nv, Span<uint> _p)
+        internal static void AddShifted_NP(int last, int s, Span<uint> Nu, ReadOnlySpan<uint> Nv, Span<uint> p, Span<uint> t)
 #else
-        internal static void AddShifted_NP(int last, int s, uint[] Nu, uint[] Nv, uint[] _p)
+        internal static void AddShifted_NP(int last, int s, uint[] Nu, uint[] Nv, uint[] p, uint[] t)
 #endif
         {
-            int sWords = s >> 5, sBits = s & 31;
-
-            ulong cc__p = 0UL;
+            ulong cc_p = 0UL;
             ulong cc_Nu = 0UL;
 
-            if (sBits == 0)
+            if (s == 0)
             {
-                for (int i = sWords; i <= last; ++i)
+                for (int i = 0; i <= last; ++i)
                 {
+                    uint p_i = p[i];
+
                     cc_Nu += Nu[i];
-                    cc_Nu += _p[i - sWords];
+                    cc_Nu += p_i;
 
-                    cc__p += _p[i];
-                    cc__p += Nv[i - sWords];
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
+                    cc_p += p_i;
+                    cc_p += Nv[i];
+                    p_i   = (uint)cc_p; cc_p >>= 32;
+                    p[i]  = p_i;
 
-                    cc_Nu += _p[i - sWords];
+                    cc_Nu += p_i;
                     Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
                 }
             }
-            else
+            else if (s < 32)
             {
                 uint prev_p = 0U;
                 uint prev_q = 0U;
                 uint prev_v = 0U;
 
-                for (int i = sWords; i <= last; ++i)
+                for (int i = 0; i <= last; ++i)
                 {
-                    uint next_p = _p[i - sWords];
-                    uint p_s = (next_p << sBits) | (prev_p >> -sBits);
-                    prev_p = next_p;
+                    uint p_i = p[i];
+                    uint p_s = (p_i << s) | (prev_p >> -s);
+                    prev_p = p_i;
 
                     cc_Nu += Nu[i];
                     cc_Nu += p_s;
 
-                    uint next_v = Nv[i - sWords];
-                    uint v_s = (next_v << sBits) | (prev_v >> -sBits);
+                    uint next_v = Nv[i];
+                    uint v_s = (next_v << s) | (prev_v >> -s);
                     prev_v = next_v;
 
-                    cc__p += _p[i];
-                    cc__p += v_s;
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
+                    cc_p += p_i;
+                    cc_p += v_s;
+                    p_i   = (uint)cc_p; cc_p >>= 32;
+                    p[i]  = p_i;
 
-                    uint next_q = _p[i - sWords];
-                    uint q_s = (next_q << sBits) | (prev_q >> -sBits);
-                    prev_q = next_q;
+                    uint q_s = (p_i << s) | (prev_q >> -s);
+                    prev_q = p_i;
 
                     cc_Nu += q_s;
                     Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
+                }
+            }
+            else
+            {
+                // Copy the low limbs of the original p
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                t[..last].CopyFrom(p);
+#else
+                Array.Copy(p, 0, t, 0, last);
+#endif
+
+                int sWords = s >> 5, sBits = s & 31;
+                if (sBits == 0)
+                {
+                    for (int i = sWords; i <= last; ++i)
+                    {
+                        cc_Nu += Nu[i];
+                        cc_Nu += t[i - sWords];
+
+                        cc_p += p[i];
+                        cc_p += Nv[i - sWords];
+                        p[i]  = (uint)cc_p; cc_p >>= 32;
+
+                        cc_Nu += p[i - sWords];
+                        Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
+                    }
+                }
+                else
+                {
+                    uint prev_t = 0U;
+                    uint prev_q = 0U;
+                    uint prev_v = 0U;
+
+                    for (int i = sWords; i <= last; ++i)
+                    {
+                        uint next_t = t[i - sWords];
+                        uint t_s = (next_t << sBits) | (prev_t >> -sBits);
+                        prev_t = next_t;
+
+                        cc_Nu += Nu[i];
+                        cc_Nu += t_s;
+
+                        uint next_v = Nv[i - sWords];
+                        uint v_s = (next_v << sBits) | (prev_v >> -sBits);
+                        prev_v = next_v;
+
+                        cc_p += p[i];
+                        cc_p += v_s;
+                        p[i]  = (uint)cc_p; cc_p >>= 32;
+
+                        uint next_q = p[i - sWords];
+                        uint q_s = (next_q << sBits) | (prev_q >> -sBits);
+                        prev_q = next_q;
+
+                        cc_Nu += q_s;
+                        Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
+                    }
                 }
             }
         }
@@ -171,60 +229,118 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void SubShifted_NP(int last, int s, Span<uint> Nu, ReadOnlySpan<uint> Nv, Span<uint> _p)
+        internal static void SubShifted_NP(int last, int s, Span<uint> Nu, ReadOnlySpan<uint> Nv, Span<uint> p, Span<uint> t)
 #else
-        internal static void SubShifted_NP(int last, int s, uint[] Nu, uint[] Nv, uint[] _p)
+        internal static void SubShifted_NP(int last, int s, uint[] Nu, uint[] Nv, uint[] p, uint[] t)
 #endif
         {
-            int sWords = s >> 5, sBits = s & 31;
-
-            long cc__p = 0L;
+            long cc_p = 0L;
             long cc_Nu = 0L;
 
-            if (sBits == 0)
+            if (s == 0)
             {
-                for (int i = sWords; i <= last; ++i)
+                for (int i = 0; i <= last; ++i)
                 {
+                    uint p_i = p[i];
+
                     cc_Nu += Nu[i];
-                    cc_Nu -= _p[i - sWords];
+                    cc_Nu -= p_i;
 
-                    cc__p += _p[i];
-                    cc__p -= Nv[i - sWords];
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
+                    cc_p += p_i;
+                    cc_p -= Nv[i];
+                    p_i   = (uint)cc_p; cc_p >>= 32;
+                    p[i]  = p_i;
 
-                    cc_Nu -= _p[i - sWords];
+                    cc_Nu -= p_i;
                     Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
                 }
             }
-            else
+            else if (s < 32)
             {
                 uint prev_p = 0U;
                 uint prev_q = 0U;
                 uint prev_v = 0U;
 
-                for (int i = sWords; i <= last; ++i)
+                for (int i = 0; i <= last; ++i)
                 {
-                    uint next_p = _p[i - sWords];
-                    uint p_s = (next_p << sBits) | (prev_p >> -sBits);
-                    prev_p = next_p;
+                    uint p_i = p[i];
+                    uint p_s = (p_i << s) | (prev_p >> -s);
+                    prev_p = p_i;
 
                     cc_Nu += Nu[i];
                     cc_Nu -= p_s;
 
-                    uint next_v = Nv[i - sWords];
-                    uint v_s = (next_v << sBits) | (prev_v >> -sBits);
+                    uint next_v = Nv[i];
+                    uint v_s = (next_v << s) | (prev_v >> -s);
                     prev_v = next_v;
 
-                    cc__p += _p[i];
-                    cc__p -= v_s;
-                    _p[i]  = (uint)cc__p; cc__p >>= 32;
+                    cc_p += p_i;
+                    cc_p -= v_s;
+                    p_i   = (uint)cc_p; cc_p >>= 32;
+                    p[i]  = p_i;
 
-                    uint next_q = _p[i - sWords];
-                    uint q_s = (next_q << sBits) | (prev_q >> -sBits);
-                    prev_q = next_q;
+                    uint q_s = (p_i << s) | (prev_q >> -s);
+                    prev_q = p_i;
 
                     cc_Nu -= q_s;
                     Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
+                }
+            }
+            else
+            {
+                // Copy the low limbs of the original p
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                t[..last].CopyFrom(p);
+#else
+                Array.Copy(p, 0, t, 0, last);
+#endif
+
+                int sWords = s >> 5, sBits = s & 31;
+                if (sBits == 0)
+                {
+                    for (int i = sWords; i <= last; ++i)
+                    {
+                        cc_Nu += Nu[i];
+                        cc_Nu -= t[i - sWords];
+
+                        cc_p += p[i];
+                        cc_p -= Nv[i - sWords];
+                        p[i]  = (uint)cc_p; cc_p >>= 32;
+
+                        cc_Nu -= p[i - sWords];
+                        Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
+                    }
+                }
+                else
+                {
+                    uint prev_t = 0U;
+                    uint prev_q = 0U;
+                    uint prev_v = 0U;
+
+                    for (int i = sWords; i <= last; ++i)
+                    {
+                        uint next_t = t[i - sWords];
+                        uint t_s = (next_t << sBits) | (prev_t >> -sBits);
+                        prev_t = next_t;
+
+                        cc_Nu += Nu[i];
+                        cc_Nu -= t_s;
+
+                        uint next_v = Nv[i - sWords];
+                        uint v_s = (next_v << sBits) | (prev_v >> -sBits);
+                        prev_v = next_v;
+
+                        cc_p += p[i];
+                        cc_p -= v_s;
+                        p[i]  = (uint)cc_p; cc_p >>= 32;
+
+                        uint next_q = p[i - sWords];
+                        uint q_s = (next_q << sBits) | (prev_q >> -sBits);
+                        prev_q = next_q;
+
+                        cc_Nu -= q_s;
+                        Nu[i]  = (uint)cc_Nu; cc_Nu >>= 32;
+                    }
                 }
             }
         }
