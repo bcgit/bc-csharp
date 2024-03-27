@@ -81,12 +81,12 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             switch (algorithm)
             {
-                case Ed448.Algorithm.Ed448:
-                    return new Ed448Signer(context);
-                case Ed448.Algorithm.Ed448ph:
-                    return new Ed448phSigner(context);
-                default:
-                    throw new ArgumentException("algorithm");
+            case Ed448.Algorithm.Ed448:
+                return new Ed448Signer(context);
+            case Ed448.Algorithm.Ed448ph:
+                return new Ed448phSigner(context);
+            default:
+                throw new ArgumentException(nameof(algorithm));
             }
         }
 

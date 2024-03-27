@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             case Ed25519.Algorithm.Ed25519ph:
                 return new Ed25519phSigner(context);
             default:
-                throw new ArgumentException("algorithm");
+                throw new ArgumentException(nameof(algorithm));
             }
         }
 
