@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Bcpg
 
 		internal SymmetricEncIntegrityPacket(
 			BcpgInputStream bcpgIn)
-			: base(bcpgIn)
+			: base(bcpgIn, PacketTag.SymmetricEncryptedIntegrityProtected)
         {
 			version = bcpgIn.ReadByte();
         }

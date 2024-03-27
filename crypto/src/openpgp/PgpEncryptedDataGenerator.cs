@@ -23,8 +23,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		private BcpgOutputStream	pOut;
         private CipherStream		cOut;
         private IBufferedCipher		c;
-        private bool				withIntegrityPacket;
-        private bool				oldFormat;
+        private readonly bool		withIntegrityPacket;
+        private readonly bool		oldFormat;
         private DigestStream		digestOut;
 
 		private abstract class EncMethod
@@ -34,18 +34,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             protected SymmetricKeyAlgorithmTag  encAlgorithm;
             protected KeyParameter              key;
 
-			public abstract void AddSessionInfo(byte[] si, SecureRandom random);
+            protected EncMethod(PacketTag packetTag)
+                : base(packetTag)
+            {
+            }
+
+            public abstract void AddSessionInfo(byte[] si, SecureRandom random);
         }
 
         private class PbeMethod
             : EncMethod
         {
-            private S2k s2k;
+            private readonly S2k s2k;
 
             internal PbeMethod(
                 SymmetricKeyAlgorithmTag  encAlgorithm,
                 S2k                       s2k,
                 KeyParameter              key)
+                : base(PacketTag.SymmetricKeyEncryptedSessionKey)
             {
                 this.encAlgorithm = encAlgorithm;
                 this.s2k = s2k;
@@ -87,6 +93,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             internal byte[][] data;
 
             internal PubMethod(PgpPublicKey pubKey, bool sessionKeyObfuscation)
+                : base(PacketTag.PublicKeyEncryptedSession)
             {
                 this.pubKey = pubKey;
                 this.sessionKeyObfuscation = sessionKeyObfuscation;

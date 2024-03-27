@@ -11,13 +11,14 @@ namespace Org.BouncyCastle.Bcpg
 	public class PublicKeyEncSessionPacket
 		: ContainedPacket //, PublicKeyAlgorithmTag
 	{
-		private int version;
-		private long keyId;
-		private PublicKeyAlgorithmTag algorithm;
-        private byte[][] data;
+		private readonly int version;
+		private readonly long keyId;
+		private readonly PublicKeyAlgorithmTag algorithm;
+        private readonly byte[][] data;
 
 		internal PublicKeyEncSessionPacket(
 			BcpgInputStream bcpgIn)
+			:base(PacketTag.PublicKeyEncryptedSession)
 		{
 			version = bcpgIn.ReadByte();
 
@@ -59,7 +60,8 @@ namespace Org.BouncyCastle.Bcpg
 			long                    keyId,
 			PublicKeyAlgorithmTag   algorithm,
 			byte[][]                data)
-		{
+            : base(PacketTag.PublicKeyEncryptedSession)
+        {
 			this.version = 3;
 			this.keyId = keyId;
 			this.algorithm = algorithm;

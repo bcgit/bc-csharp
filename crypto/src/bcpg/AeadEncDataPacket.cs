@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_iv;
 
         public AeadEncDataPacket(BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : base(bcpgIn, PacketTag.ReservedAeadEncryptedData)
         {
             m_version = (byte)bcpgIn.ReadByte();
             if (m_version != 1)
@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public AeadEncDataPacket(SymmetricKeyAlgorithmTag algorithm, AeadAlgorithmTag aeadAlgorithm, int chunkSize,
             byte[] iv)
-            : base(null)
+            : base(null, PacketTag.ReservedAeadEncryptedData)
         {
             m_version = 1;
             m_algorithm = algorithm;
