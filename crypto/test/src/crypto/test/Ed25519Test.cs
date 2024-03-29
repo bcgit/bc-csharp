@@ -82,13 +82,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private byte[] RandomContext(int length)
-        {
-            byte[] context = new byte[length];
-            Random.NextBytes(context);
-            return context;
-        }
-
         private void DoTestConsistency(Ed25519.Algorithm algorithm, byte[] context)
         {
             Ed25519KeyPairGenerator kpg = new Ed25519KeyPairGenerator();
@@ -155,6 +148,13 @@ namespace Org.BouncyCastle.Crypto.Tests
                     Fail("Ed25519(" + algorithm + ") bad signature incorrectly verified");
                 }
             }
+        }
+
+        private byte[] RandomContext(int length)
+        {
+            byte[] context = new byte[length];
+            Random.NextBytes(context);
+            return context;
         }
 
         private void TestRegressionInfiniteLoop()
@@ -845,10 +845,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 signer.Init(false, pub);
                 signer.BlockUpdate(msg, 0, msg.Length);
-                if (!signer.VerifySignature(sig))
-                {
-                    Fail("signature verification failed for test vector: " + error);
-                }
+                bool shouldVerify = signer.VerifySignature(sig);
+
+                IsTrue("signature verification failed for test vector: " + error, shouldVerify);
             }
         }
     }
