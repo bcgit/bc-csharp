@@ -224,9 +224,7 @@ namespace Org.BouncyCastle.Tls
         public static string GetCurveName(int namedGroup)
         {
             if (RefersToASpecificCurve(namedGroup))
-            {
                 return CurveNames[namedGroup - sect163k1];
-            }
 
             return null;
         }

@@ -5019,7 +5019,7 @@ namespace Org.BouncyCastle.Tls
                 }
 
                 TlsAgreement agreement = null;
-                if (NamedGroup.RefersToASpecificCurve(supportedGroup))
+                if (NamedGroup.RefersToAnECDHCurve(supportedGroup))
                 {
                     if (crypto.HasECDHAgreement())
                     {
@@ -5079,7 +5079,7 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToASpecificCurve(group) && !crypto.HasECDHAgreement()) ||
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && !crypto.HasECDHAgreement()) ||
                         (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
                     {
                         continue;
@@ -5107,7 +5107,7 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToASpecificCurve(group) && !crypto.HasECDHAgreement()) ||
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && !crypto.HasECDHAgreement()) ||
                         (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
                     {
                         continue;
