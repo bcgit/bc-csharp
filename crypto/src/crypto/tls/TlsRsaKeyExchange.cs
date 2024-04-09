@@ -11,11 +11,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public static class TlsRsaKeyExchange
     {
-        public static byte[] DecryptPreMasterSecret(byte[] encryptedPreMasterSecret, RsaKeyParameters privateKey,
+        public const int PreMasterSecretLength = 48;
+
+        public static byte[] DecryptPreMasterSecret(byte[] buf, int off, int len, RsaKeyParameters privateKey,
             int protocolVersion, SecureRandom secureRandom)
         {
-            if (Arrays.IsNullOrEmpty(encryptedPreMasterSecret))
-                throw new ArgumentException("cannot be null or empty", nameof(encryptedPreMasterSecret));
+            if (buf == null || len < 1 || len > GetInputLimit(privateKey) || off < 0 || off > buf.Length - len)
+                throw new ArgumentException("input not a valid EncryptedPreMasterSecret");
 
             if (!privateKey.IsPrivate)
                 throw new ArgumentException("must be an RSA private key", nameof(privateKey));
@@ -31,24 +33,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             secureRandom = CryptoServicesRegistrar.GetSecureRandom(secureRandom);
 
             /*
-             * Generate 48 random bytes we can use as a Pre-Master-Secret if the decrypted value is invalid.
+             * Generate random bytes we can use as a Pre-Master-Secret if the decrypted value is invalid.
              */
-            byte[] result = new byte[48];
+            byte[] result = new byte[PreMasterSecretLength];
             secureRandom.NextBytes(result);
 
             try
             {
-                BigInteger input = ConvertInput(modulus, encryptedPreMasterSecret);
+                BigInteger input = ConvertInput(modulus, buf, off, len);
                 byte[] encoding = RsaBlinded(privateKey, input, secureRandom);
 
                 int pkcs1Length = (bitLength - 1) / 8;
-                int plainTextOffset = encoding.Length - 48;
+                int plainTextOffset = encoding.Length - PreMasterSecretLength;
 
-                int badEncodingMask = CheckPkcs1Encoding2(encoding, pkcs1Length, 48);
+                int badEncodingMask = CheckPkcs1Encoding2(encoding, pkcs1Length, PreMasterSecretLength);
                 int badVersionMask = -(Pack.BE_To_UInt16(encoding, plainTextOffset) ^ protocolVersion) >> 31;
                 int fallbackMask = badEncodingMask | badVersionMask;
 
-                for (int i = 0; i < 48; ++i)
+                for (int i = 0; i < PreMasterSecretLength; ++i)
                 {
                     result[i] = (byte)((result[i] & fallbackMask) | (encoding[plainTextOffset + i] & ~fallbackMask));
                 }
@@ -67,6 +69,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             return result;
+        }
+
+        public static int GetInputLimit(RsaKeyParameters privateKey)
+        {
+            return (privateKey.Modulus.BitLength + 7) / 8;
         }
 
         private static int CAddTo(int len, int cond, byte[] x, byte[] z)
@@ -116,16 +123,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             return errorSign >> 31;
         }
 
-        private static BigInteger ConvertInput(BigInteger modulus, byte[] input)
+        private static BigInteger ConvertInput(BigInteger modulus, byte[] buf, int off, int len)
         {
-            int inputLimit = (modulus.BitLength + 7) / 8;
-
-            if (input.Length <= inputLimit)
-            {
-                BigInteger result = new BigInteger(1, input);
-                if (result.CompareTo(modulus) < 0)
-                    return result;
-            }
+            BigInteger result = BigIntegers.FromUnsignedByteArray(buf, off, len);
+            if (result.CompareTo(modulus) < 0)
+                return result;
 
             throw new DataLengthException("input too large for RSA cipher.");
         }

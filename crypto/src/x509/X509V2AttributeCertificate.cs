@@ -161,6 +161,7 @@ namespace Org.BouncyCastle.X509
             return cert.GetSignatureOctets();
 		}
 
+        // TODO[api] Rename 'key' to 'publicKey'
         public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
         {
             return CheckSignatureValid(new Asn1VerifierFactory(cert.SignatureAlgorithm, key));
@@ -171,6 +172,7 @@ namespace Org.BouncyCastle.X509
             return CheckSignatureValid(verifierProvider.CreateVerifierFactory(cert.SignatureAlgorithm));
         }
 
+        // TODO[api] Rename 'key' to 'publicKey'
         public virtual void Verify(AsymmetricKeyParameter key)
         {
             CheckSignature(new Asn1VerifierFactory(cert.SignatureAlgorithm, key));

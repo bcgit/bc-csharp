@@ -103,6 +103,7 @@ namespace Org.BouncyCastle.X509
 				:	null;
 		}
 
+        // TODO[api] Rename 'key' to 'publicKey'
         public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
         {
             return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));

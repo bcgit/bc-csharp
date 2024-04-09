@@ -679,6 +679,7 @@ namespace Org.BouncyCastle.X509
         /// <param name="key">An appropriate public key parameter object, RsaPublicKeyParameters, DsaPublicKeyParameters or ECDsaPublicKeyParameters</param>
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If key submitted is not of the above nominated types.</exception>
+        // TODO[api] Rename 'key' to 'publicKey'
         public virtual void Verify(AsymmetricKeyParameter key)
         {
             CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
