@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.Cryptlib;
@@ -11,6 +10,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Rfc7748;
@@ -115,14 +115,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else
             {
-                this.keyId = (long)(((ulong)fingerprint[fingerprint.Length - 8] << 56)
-                    | ((ulong)fingerprint[fingerprint.Length - 7] << 48)
-                    | ((ulong)fingerprint[fingerprint.Length - 6] << 40)
-                    | ((ulong)fingerprint[fingerprint.Length - 5] << 32)
-                    | ((ulong)fingerprint[fingerprint.Length - 4] << 24)
-                    | ((ulong)fingerprint[fingerprint.Length - 3] << 16)
-                    | ((ulong)fingerprint[fingerprint.Length - 2] << 8)
-                    | (ulong)fingerprint[fingerprint.Length - 1]);
+                this.keyId = (long)Pack.BE_To_UInt64(fingerprint, fingerprint.Length - 8);
 
                 if (key is RsaPublicBcpgKey)
                 {
@@ -488,6 +481,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public byte[] GetFingerprint()
         {
             return (byte[]) fingerprint.Clone();
+        }
+
+        public bool HasFingerprint(byte[] fingerprint)
+        {
+            return Arrays.AreEqual(this.fingerprint, fingerprint);
         }
 
         /// <summary>

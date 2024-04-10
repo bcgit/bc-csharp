@@ -202,8 +202,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpPublicKeyRing pubKeyRing = new PgpPublicKeyRing(aIn);
 
-            IsTrue(AreEqual(Hex.Decode("EB85 BB5F A33A 75E1 5E94 4E63 F231 550C 4F47 E38E"),
-                pubKeyRing.GetPublicKey().GetFingerprint()));
+            IsTrue(AreEqual(pubKeyRing.GetPublicKey().GetFingerprint(),
+                Hex.Decode("EB85 BB5F A33A 75E1 5E94 4E63 F231 550C 4F47 E38E")));
+            IsTrue(pubKeyRing.GetPublicKey().HasFingerprint(
+                Hex.Decode("EB85 BB5F A33A 75E1 5E94 4E63 F231 550C 4F47 E38E")));
 
             aIn = new ArmoredInputStream(new MemoryStream(Strings.ToByteArray(edDSASecretKey), false));
 

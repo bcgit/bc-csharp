@@ -8,10 +8,10 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>
-	/// Often a PGP key ring file is made up of a succession of master/sub-key key rings.
-	/// If you want to read an entire secret key file in one hit this is the class for you.
-	/// </remarks>
+    /// <remarks>
+    /// Often a PGP key ring file is made up of a succession of master/sub-key key rings.
+    /// If you want to read an entire secret key file in one hit this is the class for you.
+    /// </remarks>
     public class PgpSecretKeyRingBundle
     {
         private readonly IDictionary<long, PgpSecretKeyRing> m_secretRings;
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>Allow enumeration of the secret key rings making up this collection.</summary>
 		public IEnumerable<PgpSecretKeyRing> GetKeyRings()
         {
-            return CollectionUtilities.Proxy(m_secretRings.Values);
+            return CollectionUtilities.Proxy(KeyRings);
         }
 
 		/// <summary>Allow enumeration of the key rings associated with the passed in userId.</summary>
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
 			var compareOptions = ignoreCase ? CompareOptions.OrdinalIgnoreCase : CompareOptions.Ordinal;
 
-			foreach (PgpSecretKeyRing secRing in GetKeyRings())
+			foreach (PgpSecretKeyRing secRing in KeyRings)
 			{
 				foreach (string nextUserID in secRing.GetSecretKey().UserIds)
 				{
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <param name="keyId">The ID of the secret key to return.</param>
 		public PgpSecretKey GetSecretKey(long keyId)
         {
-            foreach (PgpSecretKeyRing secRing in GetKeyRings())
+            foreach (PgpSecretKeyRing secRing in KeyRings)
             {
                 PgpSecretKey sec = secRing.GetSecretKey(keyId);
 				if (sec != null)
@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			if (m_secretRings.TryGetValue(keyId, out var keyRing))
 				return keyRing;
 
-			foreach (PgpSecretKeyRing secretRing in GetKeyRings())
+			foreach (PgpSecretKeyRing secretRing in KeyRings)
             {
                 if (secretRing.GetSecretKey(keyId) != null)
                     return secretRing;
@@ -170,14 +170,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-		/// <summary>
-		/// Return a new bundle containing the contents of the passed in bundle and
-		/// the passed in secret key ring.
-		/// </summary>
-		/// <param name="bundle">The <c>PgpSecretKeyRingBundle</c> the key ring is to be added to.</param>
-		/// <param name="secretKeyRing">The key ring to be added.</param>
-		/// <returns>A new <c>PgpSecretKeyRingBundle</c> merging the current one with the passed in key ring.</returns>
-		/// <exception cref="ArgumentException">If the keyId for the passed in key ring is already present.</exception>
+        private ICollection<PgpSecretKeyRing> KeyRings => m_secretRings.Values;
+
+        /// <summary>
+        /// Return a new bundle containing the contents of the passed in bundle and
+        /// the passed in secret key ring.
+        /// </summary>
+        /// <param name="bundle">The <c>PgpSecretKeyRingBundle</c> the key ring is to be added to.</param>
+        /// <param name="secretKeyRing">The key ring to be added.</param>
+        /// <returns>A new <c>PgpSecretKeyRingBundle</c> merging the current one with the passed in key ring.</returns>
+        /// <exception cref="ArgumentException">If the keyId for the passed in key ring is already present.</exception>
         public static PgpSecretKeyRingBundle AddSecretKeyRing(PgpSecretKeyRingBundle bundle,
             PgpSecretKeyRing secretKeyRing)
         {
