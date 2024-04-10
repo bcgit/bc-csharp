@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.Cryptlib;
@@ -570,6 +569,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public byte[] GetFingerprint()
         {
             return Arrays.Clone(fingerprint);
+        }
+
+        public bool HasFingerprint(byte[] fingerprint)
+        {
+            return Arrays.AreEqual(this.fingerprint, fingerprint);
         }
 
         /// <summary>

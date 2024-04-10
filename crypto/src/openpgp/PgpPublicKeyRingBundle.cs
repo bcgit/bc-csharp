@@ -8,10 +8,10 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>
-	/// Often a PGP key ring file is made up of a succession of master/sub-key key rings.
-	/// If you want to read an entire public key file in one hit this is the class for you.
-	/// </remarks>
+    /// <remarks>
+    /// Often a PGP key ring file is made up of a succession of master/sub-key key rings.
+    /// If you want to read an entire public key file in one hit this is the class for you.
+    /// </remarks>
     public class PgpPublicKeyRingBundle
     {
         private readonly IDictionary<long, PgpPublicKeyRing> m_pubRings;
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>Allow enumeration of the public key rings making up this collection.</summary>
         public IEnumerable<PgpPublicKeyRing> GetKeyRings()
         {
-			return CollectionUtilities.Proxy(m_pubRings.Values);
+			return CollectionUtilities.Proxy(KeyRings);
         }
 
 		/// <summary>Allow enumeration of the key rings associated with the passed in userId.</summary>
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
 			var compareOptions = ignoreCase ? CompareOptions.OrdinalIgnoreCase : CompareOptions.Ordinal;
 
-			foreach (PgpPublicKeyRing pubRing in GetKeyRings())
+			foreach (PgpPublicKeyRing pubRing in KeyRings)
 			{
 				foreach (string nextUserID in pubRing.GetPublicKey().GetUserIds())
 				{
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <param name="keyId">The ID of the public key to return.</param>
         public PgpPublicKey GetPublicKey(long keyId)
         {
-            foreach (PgpPublicKeyRing pubRing in GetKeyRings())
+            foreach (PgpPublicKeyRing pubRing in KeyRings)
             {
                 PgpPublicKey pub = pubRing.GetPublicKey(keyId);
 				if (pub != null)
@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			if (m_pubRings.TryGetValue(keyId, out var keyRing))
 				return keyRing;
 
-			foreach (PgpPublicKeyRing pubRing in GetKeyRings())
+			foreach (PgpPublicKeyRing pubRing in KeyRings)
             {
                 if (pubRing.GetPublicKey(keyId) != null)
                     return pubRing;
@@ -144,11 +144,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return null;
         }
 
-		/// <summary>
-		/// Return true if a key matching the passed in key ID is present, false otherwise.
-		/// </summary>
-		/// <param name="keyID">key ID to look for.</param>
-		public bool Contains(long keyID)
+        /// <summary>Return the PGP public key associated with the given key fingerprint.</summary>
+        /// <param name="fingerprint">the public key fingerprint to match against.</param>
+        public PgpPublicKey GetPublicKey(byte[] fingerprint)
+        {
+            foreach (PgpPublicKeyRing pubRing in KeyRings)
+            {
+                PgpPublicKey pub = pubRing.GetPublicKey(fingerprint);
+                if (pub != null)
+                    return pub;
+            }
+
+            return null;
+        }
+
+        /// <summary>Return the public key ring which contains the key associated with the given key fingerprint.
+        /// </summary>
+        /// <param name="fingerprint">the public key fingerprint to match against.</param>
+        public PgpPublicKeyRing GetPublicKeyRing(byte[] fingerprint)
+        {
+            foreach (PgpPublicKeyRing pubRing in KeyRings)
+            {
+                if (pubRing.GetPublicKey(fingerprint) != null)
+                    return pubRing;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Return true if a key matching the passed in key ID is present, false otherwise.
+        /// </summary>
+        /// <param name="keyID">key ID to look for.</param>
+        public bool Contains(long keyID)
 		{
 			return GetPublicKey(keyID) != null;
 		}
@@ -170,14 +198,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-		/// <summary>
-		/// Return a new bundle containing the contents of the passed in bundle and
-		/// the passed in public key ring.
-		/// </summary>
-		/// <param name="bundle">The <c>PgpPublicKeyRingBundle</c> the key ring is to be added to.</param>
-		/// <param name="publicKeyRing">The key ring to be added.</param>
-		/// <returns>A new <c>PgpPublicKeyRingBundle</c> merging the current one with the passed in key ring.</returns>
-		/// <exception cref="ArgumentException">If the keyId for the passed in key ring is already present.</exception>
+        private ICollection<PgpPublicKeyRing> KeyRings => m_pubRings.Values;
+
+        /// <summary>
+        /// Return a new bundle containing the contents of the passed in bundle and
+        /// the passed in public key ring.
+        /// </summary>
+        /// <param name="bundle">The <c>PgpPublicKeyRingBundle</c> the key ring is to be added to.</param>
+        /// <param name="publicKeyRing">The key ring to be added.</param>
+        /// <returns>A new <c>PgpPublicKeyRingBundle</c> merging the current one with the passed in key ring.</returns>
+        /// <exception cref="ArgumentException">If the keyId for the passed in key ring is already present.</exception>
         public static PgpPublicKeyRingBundle AddPublicKeyRing(PgpPublicKeyRingBundle bundle,
             PgpPublicKeyRing publicKeyRing)
         {

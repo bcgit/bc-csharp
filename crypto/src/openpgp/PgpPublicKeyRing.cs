@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
@@ -74,6 +73,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             foreach (PgpPublicKey k in keys)
             {
                 if (keyId == k.KeyId)
+                    return k;
+            }
+
+            return null;
+        }
+
+        /// <summary>Return the public key with the passed in fingerprint if it is present.</summary>
+        public virtual PgpPublicKey GetPublicKey(byte[] fingerprint)
+        {
+            foreach (PgpPublicKey k in keys)
+            {
+                if (k.HasFingerprint(fingerprint))
                     return k;
             }
 
@@ -239,17 +250,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public static PgpPublicKeyRing Join(PgpPublicKeyRing first, PgpPublicKeyRing second, bool joinTrustPackets,
             bool allowSubkeySigsOnNonSubkey)
         {
-            if (!Arrays.AreEqual(first.GetPublicKey().GetFingerprint(), second.GetPublicKey().GetFingerprint()))
+            if (!second.GetPublicKey().HasFingerprint(first.GetPublicKey().GetFingerprint()))
                 throw new ArgumentException("Cannot merge certificates with differing primary keys.");
 
             var secondKeys = new HashSet<long>();
-            foreach (var key in second.GetPublicKeys())
+            foreach (var key in second.keys)
             {
                 secondKeys.Add(key.KeyId);
             }
 
             var merged = new List<PgpPublicKey>();
-            foreach (var key in first.GetPublicKeys())
+            foreach (var key in first.keys)
             {
                 var copy = second.GetPublicKey(key.KeyId);
                 if (copy != null)

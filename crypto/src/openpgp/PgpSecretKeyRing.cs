@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
@@ -115,6 +114,38 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return keys[0].PublicKey;
         }
 
+        /// <summary>Return the public key referred to by the passed in keyID if it is present.</summary>
+        public PgpPublicKey GetPublicKey(long keyID)
+        {
+            PgpSecretKey key = GetSecretKey(keyID);
+            if (key != null)
+                return key.PublicKey;
+
+            foreach (PgpPublicKey k in extraPubKeys)
+            {
+                if (keyID == k.KeyId)
+                    return k;
+            }
+
+            return null;
+        }
+
+        /// <summary>Return the public key with the passed in fingerprint if it is present.</summary>
+        public PgpPublicKey GetPublicKey(byte[] fingerprint)
+        {
+            PgpSecretKey key = GetSecretKey(fingerprint);
+            if (key != null)
+                return key.PublicKey;
+
+            foreach (PgpPublicKey k in extraPubKeys)
+            {
+                if (k.HasFingerprint(fingerprint))
+                    return k;
+            }
+
+            return null;
+        }
+
         /**
          * Return any keys carrying a signature issued by the key represented by keyID.
          *
@@ -165,11 +196,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return CollectionUtilities.Proxy(keys);
         }
 
+        /// <summary>Return the secret key referred to by the passed in keyID if it is present.</summary>
         public PgpSecretKey GetSecretKey(long keyId)
         {
             foreach (PgpSecretKey k in keys)
             {
                 if (keyId == k.KeyId)
+                    return k;
+            }
+
+            return null;
+        }
+
+        /// <summary>Return the secret key associated with the passed in fingerprint if it is present.</summary>
+        public PgpSecretKey GetSecretKey(byte[] fingerprint)
+        {
+            foreach (PgpSecretKey k in keys)
+            {
+                if (k.PublicKey.HasFingerprint(fingerprint))
                     return k;
             }
 
@@ -247,7 +291,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             var newKeys = new List<PgpSecretKey>(ring.keys.Count);
 
-            foreach (PgpSecretKey secretKey in ring.GetSecretKeys())
+            foreach (PgpSecretKey secretKey in ring.keys)
             {
                 if (secretKey.IsPrivateKeyEmpty)
                 {

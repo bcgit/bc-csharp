@@ -325,7 +325,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpPublicKey pubKey = pgpPub.GetPublicKey();
 
-            if (!Arrays.AreEqual(pubKey.GetFingerprint(), Hex.Decode("4FFB9F0884266C715D1CEAC804A3BBFA")))
+            byte[] expectedVersion3 = Hex.Decode("4FFB9F0884266C715D1CEAC804A3BBFA");
+            if (!Arrays.AreEqual(pubKey.GetFingerprint(), expectedVersion3))
+            {
+                Fail("version 3 fingerprint test failed");
+            }
+            if (!pubKey.HasFingerprint(expectedVersion3))
             {
                 Fail("version 3 fingerprint test failed");
             }
@@ -337,9 +342,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             pubKey = pgpPub.GetPublicKey();
 
-            if (!Arrays.AreEqual(pubKey.GetFingerprint(), Hex.Decode("3062363c1046a01a751946bb35586146fdf3f373")))
+            byte[] expectedVersion4 = Hex.Decode("3062363c1046a01a751946bb35586146fdf3f373");
+            if (!Arrays.AreEqual(pubKey.GetFingerprint(), expectedVersion4))
             {
                Fail("version 4 fingerprint test failed");
+            }
+            if (!pubKey.HasFingerprint(expectedVersion4))
+            {
+                Fail("version 4 fingerprint test failed");
             }
         }
 
