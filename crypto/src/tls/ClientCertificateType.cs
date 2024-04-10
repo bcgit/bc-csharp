@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Tls
         public const short ecdsa_fixed_ecdh = 66;
 
         /*
-         * draft-smyshlyaev-tls12-gost-suites-10
+         * RFC 9189
          */
         public const short gost_sign256 = 67;
         public const short gost_sign512 = 68;

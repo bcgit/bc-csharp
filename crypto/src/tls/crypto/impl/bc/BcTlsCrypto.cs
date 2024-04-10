@@ -125,9 +125,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_SM4_Gcm(cryptoParams);
 
+            case EncryptionAlgorithm.cls_28147_CNT_IMIT:
             case EncryptionAlgorithm.DES40_CBC:
             case EncryptionAlgorithm.DES_CBC:
             case EncryptionAlgorithm.IDEA_CBC:
+            case EncryptionAlgorithm.KUZNYECHIK_CTR_OMAC:
+            case EncryptionAlgorithm.MAGMA_CTR_OMAC:
             case EncryptionAlgorithm.RC2_CBC_40:
             case EncryptionAlgorithm.RC4_128:
             case EncryptionAlgorithm.RC4_40:
@@ -230,6 +233,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case CryptoHashAlgorithm.sha384:
             case CryptoHashAlgorithm.sha512:
             case CryptoHashAlgorithm.sm3:
+            case CryptoHashAlgorithm.gostr3411_2012_256:
                 return true;
 
             default:
@@ -254,7 +258,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case CryptoSignatureAlgorithm.rsa_pss_pss_sha512:
                 return true;
 
-            // TODO[draft-smyshlyaev-tls12-gost-suites-10]
+            // TODO[RFC 9189]
             case CryptoSignatureAlgorithm.gostr34102012_256:
             case CryptoSignatureAlgorithm.gostr34102012_512:
 
@@ -305,9 +309,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case EncryptionAlgorithm.SM4_GCM:
                 return true;
 
+            case EncryptionAlgorithm.cls_28147_CNT_IMIT:
             case EncryptionAlgorithm.DES_CBC:
             case EncryptionAlgorithm.DES40_CBC:
             case EncryptionAlgorithm.IDEA_CBC:
+            case EncryptionAlgorithm.KUZNYECHIK_CTR_OMAC:
+            case EncryptionAlgorithm.MAGMA_CTR_OMAC:
             case EncryptionAlgorithm.RC2_CBC_40:
             case EncryptionAlgorithm.RC4_128:
             case EncryptionAlgorithm.RC4_40:
@@ -377,11 +384,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureAlgorithm.ecdsa_brainpoolP512r1tls13_sha512:
                 return true;
 
-            // TODO[draft-smyshlyaev-tls12-gost-suites-10]
+            // TODO[RFC 9189]
             case SignatureAlgorithm.gostr34102012_256:
             case SignatureAlgorithm.gostr34102012_512:
+
             // TODO[RFC 8998]
             //case SignatureAlgorithm.sm2:
+
             default:
                 return false;
             }
@@ -468,6 +477,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 return new Sha512Digest((Sha512Digest)digest);
             case CryptoHashAlgorithm.sm3:
                 return new SM3Digest((SM3Digest)digest);
+            case CryptoHashAlgorithm.gostr3411_2012_256:
+                return new Gost3411_2012_256Digest((Gost3411_2012_256Digest)digest);
             default:
                 throw new ArgumentException("invalid CryptoHashAlgorithm: " + cryptoHashAlgorithm);
             }
@@ -491,6 +502,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 return new Sha512Digest();
             case CryptoHashAlgorithm.sm3:
                 return new SM3Digest();
+            case CryptoHashAlgorithm.gostr3411_2012_256:
+                return new Gost3411_2012_256Digest();
             default:
                 throw new ArgumentException("invalid CryptoHashAlgorithm: " + cryptoHashAlgorithm);
             }

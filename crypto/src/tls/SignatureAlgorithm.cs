@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Tls
         public const short ecdsa_brainpoolP512r1tls13_sha512 = 28;
 
         /*
-         * draft-smyshlyaev-tls12-gost-suites-10
+         * RFC 9189
          */
         public const short gostr34102012_256 = 64;
         public const short gostr34102012_512 = 65;

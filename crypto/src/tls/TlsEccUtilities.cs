@@ -37,6 +37,7 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.ECDHE_ECDSA:
             case KeyExchangeAlgorithm.ECDHE_PSK:
             case KeyExchangeAlgorithm.ECDHE_RSA:
+            case KeyExchangeAlgorithm.GOSTR341112_256:
                 return true;
 
             default:

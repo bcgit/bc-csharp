@@ -4,6 +4,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Tls.Crypto
@@ -68,6 +69,8 @@ namespace Org.BouncyCastle.Tls.Crypto
                 return CryptoHashAlgorithm.sha384;
             case PrfAlgorithm.tls13_hkdf_sm3:
                 return CryptoHashAlgorithm.sm3;
+            case PrfAlgorithm.tls_prf_gostr3411_2012_256:
+                return CryptoHashAlgorithm.gostr3411_2012_256;
             default:
                 throw new ArgumentException("unknown PrfAlgorithm: " + PrfAlgorithm.GetText(prfAlgorithm));
             }
@@ -82,6 +85,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             case CryptoHashAlgorithm.sha224:
             case CryptoHashAlgorithm.sha256:
             case CryptoHashAlgorithm.sm3:
+            case CryptoHashAlgorithm.gostr3411_2012_256:
                 return 64;
             case CryptoHashAlgorithm.sha384:
             case CryptoHashAlgorithm.sha512:
@@ -103,6 +107,7 @@ namespace Org.BouncyCastle.Tls.Crypto
                 return 28;
             case CryptoHashAlgorithm.sha256:
             case CryptoHashAlgorithm.sm3:
+            case CryptoHashAlgorithm.gostr3411_2012_256:
                 return 32;
             case CryptoHashAlgorithm.sha384:
                 return 48;
@@ -132,6 +137,8 @@ namespace Org.BouncyCastle.Tls.Crypto
             // TODO[RFC 8998]
             //case CryptoHashAlgorithm.sm3:
             //    return GMObjectIdentifiers.sm3;
+            case CryptoHashAlgorithm.gostr3411_2012_256:
+                return RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
             default:
                 throw new ArgumentException();
             }
