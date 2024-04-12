@@ -740,11 +740,10 @@ namespace Org.BouncyCastle.Tls
             if (null == sessionVersion || !sessionVersion.IsDtls)
                 return false;
 
-            bool isEms = sessionParameters.IsExtendedMasterSecret;
-            if (!TlsUtilities.IsExtendedMasterSecretOptional(sessionVersion))
+            if (!sessionParameters.IsExtendedMasterSecret &&
+                !TlsUtilities.IsExtendedMasterSecretOptional(sessionVersion))
             {
-                if (!isEms)
-                    return false;
+                return false;
             }
 
             TlsCrypto crypto = state.serverContext.Crypto;
