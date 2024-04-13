@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
@@ -275,6 +276,36 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public static int GetKeySizeInOctets(SymmetricKeyAlgorithmTag algorithm)
         {
             return (GetKeySize(algorithm) + 7) / 8;
+        }
+
+        /// <summary>
+        /// Derive a message key and IV from the given session key.
+        /// </summary>
+        /// <param name="sessionKey">session key</param>
+        /// <param name="encAlgorithm">symmetric cipher algorithm tag</param>
+        /// <param name="aeadAlgorithm">AEAD algorithm tag</param>
+        /// <param name="salt">salt</param>
+        /// <param name="hkdfInfo">HKDF info</param>
+        /// <param name="messageKey"></param>
+        /// <param name="iv"></param>
+        public static void DeriveAeadMessageKeyAndIv(
+            KeyParameter sessionKey,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            byte[] salt,
+            byte[] hkdfInfo,
+            out KeyParameter messageKey,
+            out byte[] iv)
+        {
+            var hkdfGen = new HkdfBytesGenerator(CreateDigest(HashAlgorithmTag.Sha256));
+            var hkdfParams = new HkdfParameters(sessionKey.GetKey(), salt, hkdfInfo);
+            hkdfGen.Init(hkdfParams);
+            var hkdfOutput = new byte[GetKeySizeInOctets(encAlgorithm) + AeadUtils.GetIVLength(aeadAlgorithm) - 8];
+            hkdfGen.GenerateBytes(hkdfOutput, 0, hkdfOutput.Length);
+
+            AeadUtils.SplitMessageKeyAndIv(hkdfOutput, encAlgorithm, aeadAlgorithm, out var messageKeyBytes, out iv);
+
+            messageKey = new KeyParameter(messageKeyBytes);
         }
 
         public static KeyParameter MakeKey(

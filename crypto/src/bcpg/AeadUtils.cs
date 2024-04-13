@@ -29,6 +29,28 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>
+        /// Returns the name of the AEAD Algorithm
+        /// </summary>
+        /// <param name="aeadAlgorithmTag">AEAD algorithm identifier</param>
+        /// <returns>name of the AEAD Algorithm</returns>
+        /// <exception cref="ArgumentException"></exception>
+
+        public static string GetAeadAlgorithmName(AeadAlgorithmTag aeadAlgorithmTag)
+        {
+            switch (aeadAlgorithmTag)
+            {
+                case AeadAlgorithmTag.Eax:
+                    return "EAX";
+                case AeadAlgorithmTag.Ocb:
+                    return "OCB";
+                case AeadAlgorithmTag.Gcm:
+                    return "GCM";
+                default:
+                    throw new ArgumentException($"Invalid AEAD algorithm tag: {aeadAlgorithmTag}");
+            }
+        }
+
+        /// <summary>
         /// Return the length of the authentication tag used by the given AEAD algorithm in octets.
         /// </summary>
         /// <param name="aeadAlgorithmTag">AEAD algorithm identifier</param>
@@ -52,23 +74,22 @@ namespace Org.BouncyCastle.Bcpg
         /// two separate byte arrays.
         /// m is the key length of the cipher algorithm, while n is the IV length of the AEAD algorithm.
         /// Note, that the IV is filled with <pre>n-8</pre> bytes only, the remainder is left as 0s.
-        /// Return an array of both arrays with the key and index 0 and the IV at index 1.
         /// </summary>
         /// <param name="messageKeyAndIv">m+n-8 bytes of concatenated message key and IV</param>
         /// <param name="cipherAlgo">symmetric cipher algorithm</param>
         /// <param name="aeadAlgo">AEAD algorithm</param>
-        /// <returns>array of arrays containing message key and IV</returns>
-        public static byte[][] SplitMessageKeyAndIv(byte[] messageKeyAndIv, SymmetricKeyAlgorithmTag cipherAlgo, AeadAlgorithmTag aeadAlgo)
+        /// <param name="messageKey">Message key</param>
+        /// <param name="iv">IV</param>
+        public static void SplitMessageKeyAndIv(byte[] messageKeyAndIv, SymmetricKeyAlgorithmTag cipherAlgo, AeadAlgorithmTag aeadAlgo, out byte[] messageKey, out byte[] iv)
         {
             int keyLen = PgpUtilities.GetKeySizeInOctets(cipherAlgo);
             int ivLen = GetIVLength(aeadAlgo);
-            byte[] messageKey = new byte[keyLen];
-            byte[] iv = new byte[ivLen];
+
+            messageKey = new byte[keyLen];
+            iv = new byte[ivLen];
 
             Array.Copy(messageKeyAndIv, messageKey, messageKey.Length);
             Array.Copy(messageKeyAndIv, messageKey.Length, iv, 0, ivLen-8);
-
-            return new byte[][] { messageKey, iv };
         }
     }
 }

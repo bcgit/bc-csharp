@@ -88,6 +88,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "b7gKqPxbyxbhljGygHQPnqau1eBzrQD5QVplPEDnemrnfmkrpx0GmhCfokxYz9jj" +
             "FtCgazStmsuOXF9SFQE=");
 
+        // Sample AEAD encryption and decryption
+        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-eax-encryption-
+        // encrypts the cleartext string Hello, world! with the passphrase password, using AES-128 with AEAD-EAX encryption.
+        private readonly byte[] v6skesk_aes128_eax = Base64.Decode(
+            "w0AGHgcBCwMIpa5XnR/F2Cv/aSJPkZmTs1Bvo7WaanPP+MXvxfQcV/tU4cImgV14" +
+            "KPX5LEVOtl6+AKtZhsaObnxV0mkCBwEGn/kOOzIZZPOkKRPI3MZhkyUBUifvt+rq" +
+            "pJ8EwuZ0F11KPSJu1q/LnKmsEiwUcOEcY9TAqyQcapOK1Iv5mlqZuQu6gyXeYQR1" +
+            "QCWKt5Wala0FHdqW6xVDHf719eIlXKeCYVRuM5o=");
+
+        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-ocb-encryption-
+        // encrypts the cleartext string Hello, world! with the passphrase password, using AES-128 with AEAD-OCB encryption.
+        private readonly byte[] v6skesk_aes128_ocb = Base64.Decode(
+            "wz8GHQcCCwMIVqKY0vXjZFP/z8xcEWZO2520JZDX3EawckG2EsOBLP/76gDyNHsl" +
+            "ZBEj+IeuYNT9YU4IN9gZ02zSaQIHAgYgpmH3MfyaMDK1YjMmAn46XY21dI6+/wsM" +
+            "WRDQns3WQf+f04VidYA1vEl1TOG/P/+n2tCjuBBPUTPPQqQQCoPu9MobSAGohGv0" +
+            "K82nyM6dZeIS8wHLzZj9yt5pSod61CRzI/boVw==");
+
+        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-gcm-encryption-
+        // encrypts the cleartext string Hello, world! with the passphrase password, using AES-128 with AEAD-GCM encryption.
+        private readonly byte[] v6skesk_aes128_gcm = Base64.Decode(
+            "wzwGGgcDCwMI6dOXhbIHAAj/tC58SD70iERXyzcmubPbn/d25fTZpAlS4kRymIUa" +
+            "v/91Jt8t1VRBdXmneZ/SaQIHAwb8uUSQvLmLvcnRBsYJAmaUD3LontwhtVlrFXax" +
+            "Ae0Pn/xvxtZbv9JNzQeQlm5tHoWjAFN4TLHYtqBpnvEhVaeyrWJYUxtXZR/Xd3kS" +
+            "+pXjXZtAIW9ppMJI2yj/QzHxYykHOZ5v+Q==");
+
         private readonly char[] emptyPassphrase = Array.Empty<char>();
 
         [Test]
@@ -757,6 +782,114 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             return Arrays.AreEqual(secretA, secretB);
         }
 
+        [Test]
+        public void Version6SkeskVersion2SeipdTest()
+        {
+            byte[][] messages = new byte[][]
+            {
+                v6skesk_aes128_eax,
+                v6skesk_aes128_ocb,
+                v6skesk_aes128_gcm
+            };
+
+            byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
+            byte[] password = Encoding.UTF8.GetBytes("password");
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                PgpObjectFactory factory = new PgpObjectFactory(messages[i]);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encData is null);
+
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                FailIf("invalid PgpPbeEncryptedData", encData0 is null);
+
+                using (var stream = encData0.GetDataStreamRaw(password))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (var ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        var decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                // corrupt AEAD nonce
+                var message = Arrays.Clone(messages[i]);
+                message[0x18]--;
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(password);
+                });
+            }
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                // corrupt encrypted session key
+                var message = Arrays.Clone(messages[i]);
+                message[0x28]--;
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(password);
+                });
+            }
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                // corrupt chunk #0 encrypted data
+                var message = Arrays.Clone(messages[i]);
+                message[message.Length - 35]--;
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(password);
+                });
+            }
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                // corrupt chunk #0 authtag
+                var message = Arrays.Clone(messages[i]);
+                message[message.Length - 20]--;
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(password);
+                });
+            }
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                // corrupt final authtag
+                var message = Arrays.Clone(messages[i]);
+                message[message.Length-2]--;
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(password);
+                });
+            }
+
+
+        }
+
         public override string Name => "PgpCryptoRefreshTest";
 
         public override void PerformTest()
@@ -773,6 +906,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Version6SampleCleartextSignedMessageVerifySignatureTest();
             Version6SampleInlineSignedMessageVerifySignatureTest();
             Version6GenerateAndVerifyInlineSignatureTest();
+            Version6SkeskVersion2SeipdTest();
         }
     }
 }
