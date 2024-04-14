@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC.Rfc8032;
@@ -595,7 +596,35 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] iv = secret.GetIV();
                 byte[] data;
 
-                if (secret.PublicKeyPacket.Version >= 4)
+                if (secret.S2kUsage == SecretKeyPacket.UsageAead)
+                {
+                    var aeadAlgorithm = secret.AeadAlgorithm;
+                    var hkdfInfo = secret.GetAAData();
+                    var hkdfParams = new HkdfParameters(key.GetKey(), Array.Empty<byte>(), hkdfInfo);
+                    var hkdfGen = new HkdfBytesGenerator(PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256));
+                    hkdfGen.Init(hkdfParams);
+                    var hkdfOutput = new byte[PgpUtilities.GetKeySizeInOctets(encAlgorithm)];
+                    hkdfGen.GenerateBytes(hkdfOutput, 0, hkdfOutput.Length);
+
+                    var encodedPubkeyContents = secret.PublicKeyPacket.GetEncodedContents();
+                    byte[] aadata = new byte[encodedPubkeyContents.Length + 1];
+                    aadata[0] = (byte)(0xC0 | (byte)secret.Tag);
+                    Array.Copy(encodedPubkeyContents, 0, aadata, 1, encodedPubkeyContents.Length);
+
+                    var encAlgoName = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
+                    var aeadAlgoName = AeadUtils.GetAeadAlgorithmName(aeadAlgorithm);
+                    var cipher = CipherUtilities.GetCipher($"{encAlgoName}/{aeadAlgoName}/NoPadding");
+
+                    var aeadParams = new AeadParameters(
+                        new KeyParameter(hkdfOutput),
+                        8 * AeadUtils.GetAuthTagLength(aeadAlgorithm),
+                        iv,
+                        aadata);
+
+                    cipher.Init(false, aeadParams);
+                    data = cipher.DoFinal(encData);
+                }
+                else if (secret.PublicKeyPacket.Version >= PublicKeyPacket.Version4)
                 {
                     data = RecoverKeyData(encAlgorithm, "/CFB/NoPadding", key, iv, encData, 0, encData.Length);
 

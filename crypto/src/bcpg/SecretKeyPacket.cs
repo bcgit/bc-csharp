@@ -293,7 +293,17 @@ namespace Org.BouncyCastle.Bcpg
             return secKeyData;
         }
 
-
+        internal byte[] GetAAData()
+        {
+            // HKDF Info used for key derivation in UsageAead
+            return new byte[]
+            {
+                (byte)(0xC0 | (byte)Tag),
+                (byte)pubKeyPacket.Version,
+                (byte)encAlgorithm,
+                (byte)aeadAlgorithm
+            };
+        }
 
         private byte[] EncodeConditionalParameters()
         {

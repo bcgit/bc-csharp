@@ -370,7 +370,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			int generatedBytes = 0;
             int loopCount = 0;
 
-			while (generatedBytes < keyBytes.Length)
+            if (s2k != null && s2k.Type == S2k.Argon2)
+            {
+                Argon2Parameters.Builder builder =
+                    new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+                        .WithVersion(Argon2Parameters.ARGON2_VERSION_13)
+                        .WithIterations(s2k.Passes)
+                        .WithMemoryPowOfTwo(s2k.MemorySizeExponent)
+                        .WithParallelism(s2k.Parallelism)
+                        .WithSalt(s2k.GetIV());
+                
+                Argon2BytesGenerator gen = new Argon2BytesGenerator();
+                
+                gen.Init(builder.Build());
+                gen.GenerateBytes(rawPassPhrase, keyBytes, 0, keyBytes.Length);
+                return MakeKey(algorithm, keyBytes);
+            }
+            
+            while (generatedBytes < keyBytes.Length)
             {
 				IDigest digest;
 				if (s2k != null)

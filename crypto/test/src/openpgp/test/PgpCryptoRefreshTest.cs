@@ -88,9 +88,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "b7gKqPxbyxbhljGygHQPnqau1eBzrQD5QVplPEDnemrnfmkrpx0GmhCfokxYz9jj" +
             "FtCgazStmsuOXF9SFQE=");
 
-        // Sample AEAD encryption and decryption
+        // Sample AEAD encryption and decryption - V6 SKESK + V2 SEIPD
         // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-eax-encryption-
-        // encrypts the cleartext string Hello, world! with the passphrase password, using AES-128 with AEAD-EAX encryption.
+        // encrypts the cleartext string Hello, world! with the passphrase password, S2K type iterated+salted,
+        // using AES-128 with AEAD-EAX encryption.
         private readonly byte[] v6skesk_aes128_eax = Base64.Decode(
             "w0AGHgcBCwMIpa5XnR/F2Cv/aSJPkZmTs1Bvo7WaanPP+MXvxfQcV/tU4cImgV14" +
             "KPX5LEVOtl6+AKtZhsaObnxV0mkCBwEGn/kOOzIZZPOkKRPI3MZhkyUBUifvt+rq" +
@@ -98,7 +99,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "QCWKt5Wala0FHdqW6xVDHf719eIlXKeCYVRuM5o=");
 
         // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-ocb-encryption-
-        // encrypts the cleartext string Hello, world! with the passphrase password, using AES-128 with AEAD-OCB encryption.
+        // encrypts the cleartext string Hello, world! with the passphrase password, S2K type iterated+salted,
+        // using AES-128 with AEAD-OCB encryption.
         private readonly byte[] v6skesk_aes128_ocb = Base64.Decode(
             "wz8GHQcCCwMIVqKY0vXjZFP/z8xcEWZO2520JZDX3EawckG2EsOBLP/76gDyNHsl" +
             "ZBEj+IeuYNT9YU4IN9gZ02zSaQIHAgYgpmH3MfyaMDK1YjMmAn46XY21dI6+/wsM" +
@@ -106,12 +108,41 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "K82nyM6dZeIS8wHLzZj9yt5pSod61CRzI/boVw==");
 
         // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-gcm-encryption-
-        // encrypts the cleartext string Hello, world! with the passphrase password, using AES-128 with AEAD-GCM encryption.
+        // encrypts the cleartext string Hello, world! with the passphrase password, S2K type iterated+salted,
+        // using AES-128 with AEAD-GCM encryption.
         private readonly byte[] v6skesk_aes128_gcm = Base64.Decode(
             "wzwGGgcDCwMI6dOXhbIHAAj/tC58SD70iERXyzcmubPbn/d25fTZpAlS4kRymIUa" +
             "v/91Jt8t1VRBdXmneZ/SaQIHAwb8uUSQvLmLvcnRBsYJAmaUD3LontwhtVlrFXax" +
             "Ae0Pn/xvxtZbv9JNzQeQlm5tHoWjAFN4TLHYtqBpnvEhVaeyrWJYUxtXZR/Xd3kS" +
             "+pXjXZtAIW9ppMJI2yj/QzHxYykHOZ5v+Q==");
+
+        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-messages-encrypted-u
+        // V4 SKESK + V1 SEIPD using Argon2 (t=1, p=4, m=21) with AES-128/192/256,
+        // cleartext string "Hello, world!", passphrase "password"
+        private readonly byte[] v4skesk_argon2_aes128 = Base64.Decode(
+            "wycEBwScUvg8J/leUNU1RA7N/zE2AQQVnlL8rSLPP5VlQsunlO+ECxHSPgGYGKY+" +
+            "YJz4u6F+DDlDBOr5NRQXt/KJIf4m4mOlKyC/uqLbpnLJZMnTq3o79GxBTdIdOzhH" +
+            "XfA3pqV4mTzF");
+
+        private readonly byte[] v4skesk_argon2_aes192 = Base64.Decode(
+            "wy8ECAThTKxHFTRZGKli3KNH4UP4AQQVhzLJ2va3FG8/pmpIPd/H/mdoVS5VBLLw" +
+            "F9I+AdJ1Sw56PRYiKZjCvHg+2bnq02s33AJJoyBexBI4QKATFRkyez2gldJldRys" +
+            "LVg77Mwwfgl2n/d572WciAM=");
+
+        private readonly byte[] v4skesk_argon2_aes256 = Base64.Decode(
+            "wzcECQS4eJUgIG/3mcaILEJFpmJ8AQQVnZ9l7KtagdClm9UaQ/Z6M/5roklSGpGu" +
+            "623YmaXezGj80j4B+Ku1sgTdJo87X1Wrup7l0wJypZls21Uwd67m9koF60eefH/K" +
+            "95D1usliXOEm8ayQJQmZrjf6K6v9PWwqMQ==");
+
+        // V6 SKESK + V2 SEIPD using Argon2 with AES-256 in OCB mode
+        // cleartext string "Hello, world!", passphrase "password"
+        // Session key 9DC22B5D8DFCED080C881885335E5A1A7E1215F17BBEC0B485655A308BE3D934
+        // generated with gosop 2.0.0-alpha
+        private readonly byte[] v6skesk_argon2_aes256_ocb = Base64.Decode(
+            "w1gGJgkCFARXue/MBMPDOPspqjeXOAwCAwQQdUzaSpJVUWXsrfYfYX6Bu+PWWSv5" +
+            "v6yNbe7XcntA8BuivOCuH6FU3Mt0UJPZRO9/fRjiEGTuwg6Q7ar/gZ/N0lkCCQIM" +
+            "Zjd4SG7Tv4RJHeycolKmqSHDoK5XlOsA7vlw50nKuRjDyRfsPOFDfHz8hR/z7D1i" +
+            "HST68tjRCRmwqeqVgusCmBlXrXzYTkPXGtmZl2+EYazSACQFVg==");
 
         private readonly char[] emptyPassphrase = Array.Empty<char>();
 
@@ -257,6 +288,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 shouldFail: true);
         }
 
+
+        private void SignVerifyRoundtrip(PgpSecretKey signingKey, char[] passphrase)
+        {
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
+            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
+
+            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
+            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
+            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(passphrase);
+            spkGen.SetIssuerFingerprint(false, signingKey);
+            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
+            sigGen.Update(data);
+            sigGen.SetHashedSubpackets(spkGen.Generate());
+            PgpSignature signature = sigGen.Generate();
+
+            AreEqual(signature.GetIssuerFingerprint(), signingKey.GetFingerprint());
+
+            VerifySignature(signature, data, signingKey.PublicKey);
+            VerifySignature(signature, wrongData, signingKey.PublicKey, shouldFail: true);
+
+            byte[] encodedSignature = signature.GetEncoded();
+            VerifyEncodedSignature(encodedSignature, data, signingKey.PublicKey);
+            VerifyEncodedSignature(encodedSignature, wrongData, signingKey.PublicKey, shouldFail: true);
+        }
+
         [Test]
         public void Version6UnlockedSecretKeyParsingTest()
         {
@@ -278,24 +334,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(signingKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
             IsEquals((ulong)signingKey.PublicKey.KeyId, 0xCB186C4F0609A697);
 
-            // generate and verify a v6 signature
-            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
-            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
-            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
-            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
-            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(emptyPassphrase);
-            spkGen.SetIssuerFingerprint(false, signingKey);
-            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
-            sigGen.Update(data);
-            sigGen.SetHashedSubpackets(spkGen.Generate());
-            PgpSignature signature = sigGen.Generate();
-
-            VerifySignature(signature, data, signingKey.PublicKey);
-            VerifySignature(signature, wrongData, signingKey.PublicKey, shouldFail: true);
-
-            byte[] encodedSignature = signature.GetEncoded();
-            VerifyEncodedSignature(encodedSignature, data, signingKey.PublicKey);
-            VerifyEncodedSignature(encodedSignature, wrongData, signingKey.PublicKey, shouldFail: true);
+            SignVerifyRoundtrip(signingKey, emptyPassphrase);
 
             // encryption key
             PgpSecretKey encryptionKey = secretKeys[1];
@@ -317,8 +356,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             // generate and verify a v6 userid self-cert
             string userId = "Alice <alice@example.com>";
             string wrongUserId = "Bob <bob@example.com>";
+            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
+            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(emptyPassphrase);
             sigGen.InitSign(PgpSignature.PositiveCertification, privKey, new SecureRandom());
-            signature = sigGen.GenerateCertification(userId, signingKey.PublicKey);
+            PgpSignature signature = sigGen.GenerateCertification(userId, signingKey.PublicKey);
             signature.InitVerify(signingKey.PublicKey);
             if (!signature.VerifyCertification(userId, signingKey.PublicKey))
             {
@@ -443,20 +484,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsTrue("subkey binding signature verification failed", bindingSig.VerifyCertification(pgppubkey, subKey.PublicKey));
 
             // Sign-Verify roundtrip
-            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
-            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
-            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(pgppubkey.Algorithm, HashAlgorithmTag.Sha512);
-            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
-            PgpPrivateKey privKey = pgpseckey.ExtractPrivateKey(emptyPassphrase);
-            spkGen.SetIssuerFingerprint(false, pgpseckey);
-            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
-            sigGen.Update(data);
-            sigGen.SetHashedSubpackets(spkGen.Generate());
-            signature = sigGen.Generate();
-
-            AreEqual(signature.GetIssuerFingerprint(), expectedFingerprint);
-            VerifySignature(signature, data, pgppubkey);
-            VerifySignature(signature, wrongData, pgppubkey, shouldFail: true);
+            SignVerifyRoundtrip(pgpseckey, emptyPassphrase);
 
             // encrypt-decrypt test
             AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
@@ -543,20 +571,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsTrue("subkey binding signature verification failed", bindingSig.VerifyCertification(pgppubkey, subKey.PublicKey));
 
             // Sign-Verify roundtrip
-            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
-            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
-            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(pgppubkey.Algorithm, HashAlgorithmTag.Sha512);
-            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
-            PgpPrivateKey privKey = pgpseckey.ExtractPrivateKey(emptyPassphrase);
-            spkGen.SetIssuerFingerprint(false, pgpseckey);
-            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, rand);
-            sigGen.Update(data);
-            sigGen.SetHashedSubpackets(spkGen.Generate());
-            signature = sigGen.Generate();
-
-            AreEqual(signature.GetIssuerFingerprint(), fpr);
-            VerifySignature(signature, data, pgppubkey);
-            VerifySignature(signature, wrongData, pgppubkey, shouldFail: true);
+            SignVerifyRoundtrip(pgpseckey, emptyPassphrase);
 
             // Encrypt-Decrypt test
             AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
@@ -573,9 +588,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
              * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-locked-v6-secret-key
              * The same secret key as in Version6UnlockedSecretKeyParsingTest, but the secret key
              * material is locked with a passphrase using AEAD and Argon2.
-             * 
-             * AEAD/Argon passphrase decryption is not implemented yet, so we just test
-             * parsing and encoding
              */
 
             PgpSecretKeyRing secretKeyRing = new PgpSecretKeyRing(v6LockedSecretKey);
@@ -589,12 +601,33 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(signingKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
             IsEquals((ulong)signingKey.PublicKey.KeyId, 0xCB186C4F0609A697);
 
+            // try to decrypt with wrong passphrases
+            Assert.Throws<PgpException>(() =>
+            {
+                PgpPrivateKey pk = signingKey.ExtractPrivateKey(emptyPassphrase);
+            });
+            Assert.Throws<PgpException>(() =>
+            {
+                PgpPrivateKey pk = signingKey.ExtractPrivateKey("wrong".ToCharArray());
+            });
+
+            string passphrase = "correct horse battery staple";
+            SignVerifyRoundtrip(signingKey, passphrase.ToCharArray());
+
             // encryption key
             PgpSecretKey encryptionKey = secretKeys[1];
             IsEquals(encryptionKey.KeyEncryptionAlgorithm, SymmetricKeyAlgorithmTag.Aes256);
             IsEquals(encryptionKey.KeyEncryptionAeadAlgorithm, AeadAlgorithmTag.Ocb);
             IsEquals(encryptionKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
             IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
+
+            // decrypt test
+            AsymmetricCipherKeyPair alice = GetKeyPair(encryptionKey, passphrase);
+            IAsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
+            kpGen.Init(new X25519KeyGenerationParameters(new SecureRandom()));
+            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
+            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, encryptionKey.PublicKey.Algorithm));
+
 
             // Encode-Decode roundtrip
             using (MemoryStream ms = new MemoryStream())
@@ -785,11 +818,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void Version6SkeskVersion2SeipdTest()
         {
+            // encrypts the cleartext string "Hello, world!" with the passphrase "password",
+            // S2K type iterated+salted, using AES-128 with AEAD encryption.
             byte[][] messages = new byte[][]
             {
-                v6skesk_aes128_eax,
-                v6skesk_aes128_ocb,
-                v6skesk_aes128_gcm
+                v6skesk_aes128_eax,   // from crypto-refresh A.9
+                v6skesk_aes128_ocb,   // from crypto-refresh A.10
+                v6skesk_aes128_gcm    // from crypto-refresh A.11
             };
 
             byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
@@ -815,6 +850,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                         IsTrue(Arrays.AreEqual(plaintext, decrypted));
                     }
                 }
+            }
+
+            // wrong passsword
+            byte[] wrongpassword = Encoding.UTF8.GetBytes("wrongpassword");
+            for (int i = 0; i < messages.Length; i++)
+            {
+                PgpObjectFactory factory = new PgpObjectFactory(messages[i]);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(wrongpassword);
+                });
             }
 
             for (int i = 0; i < messages.Length; i++)
@@ -887,6 +935,89 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 });
             }
 
+            /*
+             *  V6 SKESK + V2 SEIPD AEAD encrypted message that spans over 4 chunks
+             *  (chunk size 512 octets)
+             *  2000 octets of /dev/zero encrypted with password "password" using Argon2
+             *  and AES-256 in OCB mode. Generated with gosop 2.0.0-alpha
+             *  Session key A96F671431CEB0F859CFC653976417CCC4126BC0F93C30C6E5F0073E0B91E65A
+             */
+            {
+                plaintext = new byte[2000];
+                Arrays.Fill(plaintext, 0);
+
+                Stream message = PgpUtilities.GetDecoderStream(
+                    SimpleTest.GetTestDataAsStream("openpgp.big-aead-msg.asc"));
+
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encData is null);
+
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                FailIf("invalid PgpPbeEncryptedData", encData0 is null);
+
+                using (var stream = encData0.GetDataStreamRaw(password))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (var ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        var decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void SkeskWithArgon2Test()
+        {
+            byte[][] messages = new byte[][]
+            {
+                v4skesk_argon2_aes128,    // from crypto-refresh A.12.1
+                v4skesk_argon2_aes192,    // from crypto-refresh A.12.2
+                v4skesk_argon2_aes256,    // from crypto-refresh A.12.3
+                v6skesk_argon2_aes256_ocb // generated with gosop 2.0.0-alpha
+            };
+
+            byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
+            byte[] password = Encoding.UTF8.GetBytes("password");
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                PgpObjectFactory factory = new PgpObjectFactory(messages[i]);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encData is null);
+
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                FailIf("invalid PgpPbeEncryptedData", encData0 is null);
+
+                using (var stream = encData0.GetDataStreamRaw(password))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (var ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        var decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
+
+            // wrong passsword
+            byte[] wrongpassword = Encoding.UTF8.GetBytes("wrongpassword");
+            for (int i = 0; i < messages.Length; i++)
+            {
+                PgpObjectFactory factory = new PgpObjectFactory(messages[i]);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                var encData0 = encData[0] as PgpPbeEncryptedData;
+                var err = Assert.Throws<PgpException>(() =>
+                {
+                    var stream = encData0.GetDataStreamRaw(wrongpassword);
+                });
+            }
 
         }
 
@@ -907,6 +1038,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Version6SampleInlineSignedMessageVerifySignatureTest();
             Version6GenerateAndVerifyInlineSignatureTest();
             Version6SkeskVersion2SeipdTest();
+            SkeskWithArgon2Test();
         }
     }
 }
