@@ -1,7 +1,8 @@
 ﻿using System;
-using System.IO;
 using Org.BouncyCastle.Bcpg.OpenPgp;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
+
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -90,6 +91,16 @@ namespace Org.BouncyCastle.Bcpg
 
             Array.Copy(messageKeyAndIv, messageKey, messageKey.Length);
             Array.Copy(messageKeyAndIv, messageKey.Length, iv, 0, ivLen-8);
+        }
+
+        public static BufferedAeadBlockCipher CreateAeadCipher(
+            SymmetricKeyAlgorithmTag encAlgorithm, AeadAlgorithmTag aeadAlgorithm)
+        {
+            string algo = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
+            string mode = GetAeadAlgorithmName(aeadAlgorithm);
+            string cName = $"{algo}/{mode}/NoPadding";
+
+            return CipherUtilities.GetCipher(cName) as BufferedAeadBlockCipher;
         }
     }
 }

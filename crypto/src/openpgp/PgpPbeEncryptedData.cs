@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 var aadata = seipd.GetAAData();
                 var salt = seipd.GetSalt();
                 PgpUtilities.DeriveAeadMessageKeyAndIv(sessionKey, seipd.CipherAlgorithm, seipd.AeadAlgorithm, salt, aadata, out var messageKey, out var iv);
-                var cipher = CreateAeadCipher(seipd.CipherAlgorithm, seipd.AeadAlgorithm);
+                var cipher = AeadUtils.CreateAeadCipher(seipd.CipherAlgorithm, seipd.AeadAlgorithm);
 
                 var aeadStream = new AeadInputStream(
                     encData.GetInputStream(),
@@ -285,16 +285,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			return CipherUtilities.GetCipher(cName);
 		}
-
-        private static BufferedAeadBlockCipher CreateAeadCipher(
-            SymmetricKeyAlgorithmTag keyAlgorithm, AeadAlgorithmTag aeadAlgorithm)
-        {
-            string algo = PgpUtilities.GetSymmetricCipherName(keyAlgorithm);
-            string mode = AeadUtils.GetAeadAlgorithmName(aeadAlgorithm);
-            string cName = $"{algo}/{mode}/NoPadding";
-
-            return CipherUtilities.GetCipher(cName) as BufferedAeadBlockCipher;
-        }
 
     }
 }

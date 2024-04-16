@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using System;
@@ -114,6 +115,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 return new PgpPublicKeyRingBundle(ms.ToArray());
             }
         }
+        private static PgpSecretKeyRingBundle CreateBundle(params PgpSecretKeyRing[] keyrings)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                foreach (var keyring in keyrings)
+                {
+                    keyring.Encode(ms);
+                }
+                return new PgpSecretKeyRingBundle(ms.ToArray());
+            }
+        }
 
         private void VerifyMultipleInlineSignaturesTest(byte[] message, PgpPublicKeyRingBundle bundle, bool shouldFail = false)
         {
@@ -147,6 +159,70 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 IsTrue(shouldFail != opss[i].Verify(sigs[sigCount - i]));
             }
+        }
+
+        [Test]
+        public void MultiplePkeskTest()
+        {
+            // Encrypt-Decrypt roundtrip with multiple keys: the plaintext
+            // "Hello World :)" is encrypted with the X25519 sample key from
+            // Appendix A.3 of crypto-refresh and the 'Alice' ECDH key from
+            // "OpenPGP Example Keys and Certificates"
+            byte[] message = Base64.Decode(
+                "wVQDEsg/HnBvYwgZaeKxsIieN+FvNLxmgMfRKJZGKt8vAa5BYX2k0QAetCMpCQbE" +
+                "mvXtq2XatB3H8NG7zlY2dyYKcHAK0xvgAo8YbinpCZ+xOciOkmDBXgNHZva51fIe" +
+                "thIBB0CRPS2kBUVTTtVLGjBKVCmc+KoPTzUXqVpPJdgiPmNvGTBME7unL3IP2CdO" +
+                "hL+uO3LVBJGfRy3JJDH1SIQhQ7oS47AFIOjpG0R0CBtf8M6dzwDSPwG1BrsfRn86" +
+                "mFm666ZINIHL1IDH1HQVF5OYxcRRVFjTJhms03+nu6N8I6Vy2G5yekVb1Vh2tM39" +
+                "/aGWVXTHJw==");
+
+            PgpSecretKeyRingBundle bundle = CreateBundle(
+                new PgpSecretKeyRing(aliceSecretkey),
+                new PgpSecretKeyRing(v6UnlockedSecretKey));
+
+            byte[] plaintext = Encoding.UTF8.GetBytes("Hello World :)");
+            PgpObjectFactory factory = new PgpObjectFactory(message);
+            PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
+            FailIf("invalid PgpEncryptedDataList", encDataList is null);
+
+            IsEquals(2, encDataList.Count);
+
+            // decrypt with crypto-refresh sample X25519 key
+            var encData = encDataList[0] as PgpPublicKeyEncryptedData;
+            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
+            PgpSecretKey secKey = bundle.GetSecretKey(encData.KeyId);
+            PgpPrivateKey privKey = secKey.ExtractPrivateKey(emptyPassphrase);
+            using (var stream = encData.GetDataStream(privKey))
+            {
+                factory = new PgpObjectFactory(stream);
+                PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                using (var ms = new MemoryStream())
+                {
+                    lit.GetDataStream().CopyTo(ms);
+                    var decrypted = ms.ToArray();
+                    IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                }
+            }
+
+            // decrypt with 'Alice' ECDH key
+            factory = new PgpObjectFactory(message);
+            encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
+            encData = encDataList[1] as PgpPublicKeyEncryptedData;
+            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
+            secKey = bundle.GetSecretKey(encData.KeyId);
+            privKey = secKey.ExtractPrivateKey(emptyPassphrase);
+            using (var stream = encData.GetDataStream(privKey))
+            {
+                factory = new PgpObjectFactory(stream);
+                PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                using (var ms = new MemoryStream())
+                {
+                    lit.GetDataStream().CopyTo(ms);
+                    var decrypted = ms.ToArray();
+                    IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                }
+            }
+
         }
 
         [Test]
@@ -435,6 +511,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
         public override void PerformTest()
         {
+            MultiplePkeskTest();
+
             MultipleInlineSignatureTest();
             GenerateAndVerifyMultipleInlineSignatureTest();
 

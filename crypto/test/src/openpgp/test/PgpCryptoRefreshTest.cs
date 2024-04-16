@@ -144,6 +144,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "Zjd4SG7Tv4RJHeycolKmqSHDoK5XlOsA7vlw50nKuRjDyRfsPOFDfHz8hR/z7D1i" +
             "HST68tjRCRmwqeqVgusCmBlXrXzYTkPXGtmZl2+EYazSACQFVg==");
 
+        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-x25519-aead-ocb-encr
+        // encrypts the cleartext string "Hello, world!" for the sample certificate v6Certificate
+        // V6 PKESK + V2 SEIPD X25519 AES-128 OCB
+        private readonly byte[] v6pkesk_v2seipd_aes128_ocb = Base64.Decode(
+            "wV0GIQYSyD8ecG9jCP4VGkF3Q6HwM3kOk+mXhIjR2zeNqZMIhRmHzxjV8bU/gXzO" +
+            "WgBM85PMiVi93AZfJfhK9QmxfdNnZBjeo1VDeVZheQHgaVf7yopqR6W1FT6NOrfS" +
+            "aQIHAgZhZBZTW+CwcW1g4FKlbExAf56zaw76/prQoN+bAzxpohup69LA7JW/Vp0l" +
+            "yZnuSj3hcFj0DfqLTGgr4/u717J+sPWbtQBfgMfG9AOIwwrUBqsFE9zW+f1zdlYo" +
+            "bhF30A+IitsxxA==");
+
+        // from the "OpenPGP interoperability test suite"
+        // https://tests.sequoia-pgp.org/#Encrypt-Decrypt_roundtrip_with_minimal_key_from_RFC9760
+        // encrypts the cleartext string "Hello World :)" for the sample certificate v6Certificate
+        // V3 PKESK + V1 SEIPD X25519 AES-256
+        private readonly byte[] v3pkesk_v1seipd_aes256 = Base64.Decode(
+            "wVQDEsg/HnBvYwgZEFZQspuRTLEGqQ4oEX+0ap/cDogTvDbh+Fu5K6O7ZCkpCZu4" +
+            "g6JfGwkmmqn6Ekff2LPS+jcsgz4S3y+90y7zg+bw6jgy81vJYZLSPwHPmq3ld0oV" +
+            "codBvOUSOAvARPpDCHvAOyMT+ZmYEbbQK/ahc3P6HGDArsfcAETvsIHBE8U45o4g" +
+            "poZLYyxi0A==");
+
         private readonly char[] emptyPassphrase = Array.Empty<char>();
 
         [Test]
@@ -947,7 +967,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 Arrays.Fill(plaintext, 0);
 
                 Stream message = PgpUtilities.GetDecoderStream(
-                    SimpleTest.GetTestDataAsStream("openpgp.big-aead-msg.asc"));
+                    SimpleTest.GetTestDataAsStream("openpgp.big-skesk-aead-msg.asc"));
 
                 PgpObjectFactory factory = new PgpObjectFactory(message);
                 PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
@@ -1018,7 +1038,106 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     var stream = encData0.GetDataStreamRaw(wrongpassword);
                 });
             }
+        }
 
+        [Test]
+        public void PkeskTest()
+        {
+            PgpSecretKeyRing secretKeyRing = new PgpSecretKeyRing(v6UnlockedSecretKey);
+            PgpSecretKey[] secretKeys = secretKeyRing.GetSecretKeys().ToArray();
+            PgpSecretKey encryptionSubkey = secretKeys[1];
+            PgpPrivateKey privKey = encryptionSubkey.ExtractPrivateKey(emptyPassphrase);
+
+            // V6 PKESK + V2 SEIPD X25519 AES-128 OCB
+            {
+                byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
+                PgpObjectFactory factory = new PgpObjectFactory(v6pkesk_v2seipd_aes128_ocb);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encData is null);
+
+                var encData0 = encData[0] as PgpPublicKeyEncryptedData;
+                FailIf("invalid PgpPublicKeyEncryptedData", encData0 is null);
+
+                IsEquals(encryptionSubkey.KeyId, encData0.KeyId);
+                IsTrue(Arrays.AreEqual(encryptionSubkey.GetFingerprint(), encData0.GetKeyFingerprint()));
+                IsEquals(SymmetricKeyAlgorithmTag.Aes128, encData0.GetSymmetricAlgorithm(privKey));
+
+                using (var stream = encData0.GetDataStream(privKey))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (var ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        var decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
+
+            /*
+             *  V6 PKESK + V2 SEIPD AEAD encrypted message that spans over 4 chunks
+             *  (chunk size 512 octets)
+             *  2000 octets of /dev/zero encrypted with sample V6 certificate from
+             *  crypto-refresh Appendix A.3 and AES-256 in OCB mode.
+             *  Generated with gosop 2.0.0-alpha
+             *  Session key CFB73D46CF7C13B7535227BEDB5B2D8B4023C5B58289D19CF2C33B0DB388B0B6
+             */
+            {
+                var plaintext = new byte[2000];
+                Arrays.Fill(plaintext, 0);
+
+                Stream message = PgpUtilities.GetDecoderStream(
+                    SimpleTest.GetTestDataAsStream("openpgp.big-pkesk-aead-msg.asc"));
+
+                PgpObjectFactory factory = new PgpObjectFactory(message);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encData is null);
+
+                var encData0 = encData[0] as PgpPublicKeyEncryptedData;
+                FailIf("invalid PgpPublicKeyEncryptedData", encData0 is null);
+
+                IsEquals(encryptionSubkey.KeyId, encData0.KeyId);
+                IsEquals(SymmetricKeyAlgorithmTag.Aes256, encData0.GetSymmetricAlgorithm(privKey));
+
+                using (var stream = encData0.GetDataStream(privKey))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (var ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        var decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
+
+            // V3 PKESK + V1 SEIPD X25519 AES-256
+            {
+                byte[] plaintext = Encoding.UTF8.GetBytes("Hello World :)");
+                PgpObjectFactory factory = new PgpObjectFactory(v3pkesk_v1seipd_aes256);
+                PgpEncryptedDataList encData = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encData is null);
+
+                var encData0 = encData[0] as PgpPublicKeyEncryptedData;
+                FailIf("invalid PgpPublicKeyEncryptedData", encData0 is null);
+
+                IsEquals(encryptionSubkey.KeyId, encData0.KeyId);
+                IsEquals(SymmetricKeyAlgorithmTag.Aes256, encData0.GetSymmetricAlgorithm(privKey));
+
+                using (var stream = encData0.GetDataStream(privKey))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (var ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        var decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
         }
 
         public override string Name => "PgpCryptoRefreshTest";
@@ -1039,6 +1158,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Version6GenerateAndVerifyInlineSignatureTest();
             Version6SkeskVersion2SeipdTest();
             SkeskWithArgon2Test();
+            PkeskTest();
         }
     }
 }
