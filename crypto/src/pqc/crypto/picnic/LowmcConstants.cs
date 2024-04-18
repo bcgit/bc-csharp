@@ -1,57 +1,9 @@
-using System.Collections.Generic;
-using System.IO;
-
-using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     abstract internal class LowmcConstants
     {
-        internal Dictionary<string, string> _matrixToHex;
-
-        // private () 
-        // private LowmcConstants()
-        // {
-        //     _matrixToHex = new Dictionary<string, string>(); 
-        //     Stream input = typeof(LowmcConstants).Assembly
-        //         .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.picnic.lowmcconstants.properties");
-        //
-        //     using (StreamReader sr = new StreamReader(input))
-        //     {
-        //         // load a properties file
-        //         string line = sr.ReadLine();
-        //         string matrix, hexString;
-        //
-        //         while (line != null)
-        //         {
-        //             string header = line;
-        //             if (header != "")
-        //             {
-        //                 header = header.Replace(",", "");
-        //                 int index = header.IndexOf('=');
-        //                 matrix = header.Substring(0, index).Trim();
-        //                 hexString = header.Substring(index + 1).Trim();
-        //                 _matrixToHex.Add(matrix, hexString);
-        //             }
-        //
-        //             line = sr.ReadLine();
-        //         }
-        //     }
-        //
-        
-       
-        
-        // }
-        //
-        // internal static LowmcConstants Instance
-        // {
-        //     get { return instance; }
-        // }
-
-        // private static Dictionary<string, string> _matrixToHex;
-
-
         internal uint[] linearMatrices;
         internal uint[] roundConstants;
         internal uint[] keyMatrices;
@@ -71,16 +23,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         internal KMatrices KMatrix_full;
         internal KMatrices KMatrix_inv;
         internal KMatrices RConstants_full;
-        
-        internal static uint[] ReadFromProperty(string s, int intSize)
+
+        internal static uint[] ReadFromProperty(uint[] data, int intSize)
         {
-            byte[] bytes = Hex.Decode(s);
             uint[] ints = new uint[intSize];
-            for (int i = 0; i < bytes.Length/4; i++)
-            {
-                ints[i] = Pack.LE_To_UInt32(bytes, i*4);
-            }
-                
+            Array.Copy(data, ints, data.Length);
             return ints;
         }
 
