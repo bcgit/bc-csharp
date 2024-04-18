@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -123,6 +125,12 @@ namespace Org.BouncyCastle.Bcpg
             this.memorySizeExponent = memorySizeExponent;
         }
 
+        /// <summary>Constructs a specifier for an S2K method using Argon2</summary>
+        public S2k(Argon2Parameters argon2Params)
+            :this(argon2Params.Salt, argon2Params.Passes, argon2Params.Parallelism, argon2Params.MemSizeExp)
+        {
+        }
+
         public virtual int Type
         {
 			get { return type; }
@@ -212,6 +220,123 @@ namespace Org.BouncyCastle.Bcpg
 
                 default:
                     throw new InvalidOperationException($"Unknown S2K type {type}");
+            }
+        }
+
+        /// <summary>
+        /// Parameters for Argon2 S2K
+        /// <see href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#s2k-argon2">Sect. 3.7.1.4 of crypto-refresh</see>see>
+        /// </summary>
+        public class Argon2Parameters
+        {
+            private readonly byte[] salt;
+            private readonly int passes;
+            private readonly int parallelism;
+            private readonly int memSizeExp;
+
+            internal byte[] Salt => salt;
+            internal int Passes => passes;
+            internal int Parallelism => parallelism;
+            internal int MemSizeExp => memSizeExp;
+
+            /// <summary>
+            /// Uniformly safe and recommended parameters not tailored to any hardware.
+            /// Uses Argon2id, 1 pass, 4 parallelism, 2 GiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            public Argon2Parameters()
+                :this (CryptoServicesRegistrar.GetSecureRandom())
+            {
+            }
+
+
+            /// <summary>
+            /// Uniformly safe and recommended parameters not tailored to any hardware.
+            /// Uses Argon2id, 1 pass, 4 parallelism, 2 GiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            /// <param name="secureRandom"></param>
+            public Argon2Parameters(SecureRandom secureRandom)
+                : this(1, 4, 21, secureRandom)
+            {
+            }
+
+            /// <summary>
+            /// Create customized Argon2 S2K parameters.
+            /// </summary>
+            /// <param name="passes">number of iterations, must be greater than 0</param>
+            /// <param name="parallelism">number of lanes, must be greater 0</param>
+            /// <param name="memSizeExp">exponent for memory consumption, must be between 3+ceil(log_2(p)) and 31</param>
+            /// <param name="secureRandom">A secure random generator</param>
+            /// <exception cref="ArgumentException"></exception>
+            public Argon2Parameters(int passes, int parallelism, int memSizeExp, SecureRandom secureRandom)
+                :this(GenerateSalt(secureRandom), passes, parallelism, memSizeExp)
+            {
+            }
+
+            /// <summary>
+            /// Create customized Argon2 S2K parameters.
+            /// </summary>
+            /// <param name="salt">16 bytes of random salt</param>
+            /// <param name="passes">number of iterations, must be greater than 0</param>
+            /// <param name="parallelism">number of lanes, must be greater 0</param>
+            /// <param name="memSizeExp">exponent for memory consumption, must be between 3+ceil(log_2(p)) and 31</param>
+            /// <exception cref="ArgumentException"></exception>
+            public Argon2Parameters(byte[] salt, int passes, int parallelism, int memSizeExp)
+            {
+                if (salt.Length != 16)
+                {
+                    throw new ArgumentException("Argon2 uses 16 bytes of salt");
+                }
+                this.salt = salt;
+
+                if (passes < 1)
+                {
+                    throw new ArgumentException("Number of passes MUST be positive, non-zero");
+                }
+                this.passes = passes;
+
+                if (parallelism < 1)
+                {
+                    throw new ArgumentException("Parallelism MUST be positive, non-zero.");
+                }
+                this.parallelism = parallelism;
+
+                // log_2(p) = log_e(p) / log_e(2)
+                double log2_p = System.Math.Log(parallelism) / System.Math.Log(2);
+                // see https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-argon2
+                if (memSizeExp < (3 + System.Math.Ceiling(log2_p)) || memSizeExp > 31)
+                {
+                    throw new ArgumentException("Memory size exponent MUST be between 3+ceil(log_2(parallelism)) and 31");
+                }
+                this.memSizeExp = memSizeExp;
+            }
+            
+            /// <summary>
+            /// Uniformly safe and recommended parameters not tailored to any hardware.
+            /// Uses Argon2id, 1 pass, 4 parallelism, 2 GiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            public static Argon2Parameters UniversallyRecommendedParameters()
+            {
+                return new Argon2Parameters(1, 4, 21, CryptoServicesRegistrar.GetSecureRandom());
+            }
+
+            /// <summary>
+            /// Recommended parameters for memory constrained environments(64MiB RAM).
+            /// Uses Argon2id with 3 passes, 4 lanes and 64 MiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            public static Argon2Parameters MemoryConstrainedParameters()
+            {
+                return new Argon2Parameters(3, 4, 16, CryptoServicesRegistrar.GetSecureRandom());
+            }
+
+            private static byte[] GenerateSalt(SecureRandom secureRandom)
+            {
+                byte[] salt = new byte[16];
+                secureRandom.NextBytes(salt);
+                return salt;
             }
         }
     }

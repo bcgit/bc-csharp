@@ -402,6 +402,46 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)));
         }
 
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        public void AddMethod(char[] passPhrase, S2k.Argon2Parameters argon2Parameters)
+        {
+            DoAddMethod(PgpUtilities.EncodePassPhrase(passPhrase, false), true, argon2Parameters);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// </remarks>
+        public void AddMethodUtf8(char[] passPhrase, S2k.Argon2Parameters argon2Parameters)
+        {
+            DoAddMethod(PgpUtilities.EncodePassPhrase(passPhrase, true), true, argon2Parameters);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// Allows the caller to handle the encoding of the passphrase to bytes.
+        /// </remarks>
+        public void AddMethodRaw(byte[] rawPassPhrase, S2k.Argon2Parameters argon2Parameters)
+        {
+            DoAddMethod(rawPassPhrase, false, argon2Parameters);
+        }
+
+        internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, S2k.Argon2Parameters argon2Parameters)
+        {
+            S2k s2k = new S2k(argon2Parameters);
+
+            methods.Add(
+                new PbeMethod(
+                    defAlgorithm,
+                    s2k,
+                    PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)
+                ));
+        }
+
         /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
         public void AddMethod(PgpPublicKey key)
         {

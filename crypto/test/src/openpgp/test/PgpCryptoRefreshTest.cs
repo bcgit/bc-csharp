@@ -1038,6 +1038,59 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     var stream = encData0.GetDataStreamRaw(wrongpassword);
                 });
             }
+
+            // encrypt-decrypt roundtrip - V4 SKESK + V1 SEIPD
+            {
+                // encrypt
+                byte[] enc;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    byte[] buffer = new byte[1024];
+                    PgpEncryptedDataGenerator endDataGen = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, new SecureRandom());
+                    endDataGen.AddMethodRaw(password, S2k.Argon2Parameters.MemoryConstrainedParameters());
+
+                    using (Stream cOut = endDataGen.Open(ms, buffer))
+                    {
+                        using (BcpgOutputStream bcOut = new BcpgOutputStream(cOut, newFormatOnly: true))
+                        {
+                            PgpLiteralDataGenerator literalDataGen = new PgpLiteralDataGenerator();
+                            DateTime modificationTime = DateTime.UtcNow;
+
+                            using (Stream lOut = literalDataGen.Open(
+                                new UncloseableStream(bcOut),
+                                PgpLiteralData.Utf8,
+                                PgpLiteralData.Console,
+                                plaintext.Length,
+                                modificationTime))
+                            {
+                                lOut.Write(plaintext, 0, plaintext.Length);
+                            }
+                        }
+                    }
+
+                    enc = ms.ToArray();
+                }
+
+                // decrypt
+                PgpObjectFactory factory = new PgpObjectFactory(enc);
+                PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
+                FailIf("invalid PgpEncryptedDataList", encDataList is null);
+
+                PgpPbeEncryptedData encData = encDataList[0] as PgpPbeEncryptedData;
+                FailIf("invalid PgpPbeEncryptedData", encData is null);
+
+                using (Stream stream = encData.GetDataStreamRaw(password))
+                {
+                    factory = new PgpObjectFactory(stream);
+                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        lit.GetDataStream().CopyTo(ms);
+                        byte[] decrypted = ms.ToArray();
+                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                    }
+                }
+            }
         }
 
         [Test]
