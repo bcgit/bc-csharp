@@ -41,6 +41,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 return Lms.VerifySignature(m_publicKey, LmsSignature.GetInstance(signature), message);
             }
+            catch (InvalidDataException e)
+            {
+                throw new Exception($"unable to decode signature: {e.Message}");
+            }
             catch (IOException e)
             {
                 throw new Exception($"unable to decode signature: {e.Message}");

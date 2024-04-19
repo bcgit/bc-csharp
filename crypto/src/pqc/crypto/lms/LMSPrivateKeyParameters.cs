@@ -103,11 +103,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (version != 0)
                 throw new Exception("unknown version for LMS private key");
 
-            int sigParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMSigParameters sigParameter = LMSigParameters.GetParametersByID(sigParamType);
-
-            int otsParamType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMOtsParameters otsParameter = LMOtsParameters.GetParametersByID(otsParamType);
+            LMSigParameters sigParameter = LMSigParameters.ParseByID(binaryReader);
+            LMOtsParameters otsParameter = LMOtsParameters.ParseByID(binaryReader);
 
             byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
 

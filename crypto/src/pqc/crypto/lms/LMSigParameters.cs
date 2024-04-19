@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -61,6 +63,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static LMSigParameters GetParametersByID(int id) =>
             CollectionUtilities.GetValueOrNull(ParametersByID, id);
+
+        internal static LMSigParameters ParseByID(BinaryReader binaryReader)
+        {
+            int id = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (!ParametersByID.TryGetValue(id, out var parameters))
+                throw new InvalidDataException($"unknown LMSigParameters {id}");
+            return parameters;
+        }
 
         private readonly int m_id;
         private readonly int m_m;

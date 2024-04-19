@@ -41,6 +41,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 return Hss.VerifySignature(pubKey, HssSignature.GetInstance(signature, pubKey.Level), message);
             }
+            catch (InvalidDataException e)
+            {
+                throw new Exception($"unable to decode signature: {e.Message}");
+            }
             catch (IOException e)
             {
                 throw new Exception($"unable to decode signature: {e.Message}");

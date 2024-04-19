@@ -42,17 +42,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal static LmsPublicKeyParameters Parse(BinaryReader binaryReader)
         {
-            int pubType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
-
-            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
+            LMSigParameters sigParameter = LMSigParameters.ParseByID(binaryReader);
+            LMOtsParameters otsParameter = LMOtsParameters.ParseByID(binaryReader);
 
             byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
 
-            byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
+            byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, sigParameter.M);
 
-            return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
+            return new LmsPublicKeyParameters(sigParameter, otsParameter, T1, I);
         }
 
         public override byte[] GetEncoded() => ToByteArray();

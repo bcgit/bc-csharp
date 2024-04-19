@@ -40,8 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal static LMOtsSignature Parse(BinaryReader binaryReader)
         {
-            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
+            LMOtsParameters parameter = LMOtsParameters.ParseByID(binaryReader);
 
             byte[] C = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
 
