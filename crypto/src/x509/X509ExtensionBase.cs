@@ -47,9 +47,13 @@ namespace Org.BouncyCastle.X509
 			return GetExtensionOids(true);
 		}
 
-		public virtual Asn1OctetString GetExtensionValue(DerObjectIdentifier oid)
-		{
-			return GetX509Extensions()?.GetExtension(oid)?.Value;
-		}
-	}
+        public virtual X509Extension GetExtension(DerObjectIdentifier oid) =>
+            GetX509Extensions()?.GetExtension(oid);
+
+        public virtual Asn1Object GetExtensionParsedValue(DerObjectIdentifier oid) =>
+            GetX509Extensions()?.GetExtensionParsedValue(oid);
+
+        public virtual Asn1OctetString GetExtensionValue(DerObjectIdentifier oid) =>
+            GetX509Extensions()?.GetExtensionValue(oid);
+    }
 }

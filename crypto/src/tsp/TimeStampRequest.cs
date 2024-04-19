@@ -152,8 +152,6 @@ namespace Org.BouncyCastle.Tsp
 
 		public virtual bool HasExtensions => Extensions != null;
 
-		public virtual X509Extension GetExtension(DerObjectIdentifier oid) => Extensions?.GetExtension(oid);
-
 		public virtual IList<DerObjectIdentifier> GetExtensionOids() => TspUtil.GetExtensionOids(Extensions);
 
 		protected override X509Extensions GetX509Extensions() => Extensions;
