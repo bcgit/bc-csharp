@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
+using System.Text;
 using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Crypto;
@@ -46,16 +46,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             : EncMethod
         {
             private readonly S2k s2k;
+            private readonly int skeskVersion;
 
             internal PbeMethod(
                 SymmetricKeyAlgorithmTag  encAlgorithm,
                 S2k                       s2k,
-                KeyParameter              key)
+                KeyParameter              key,
+                int                       skeskVersion)
                 : base(PacketTag.SymmetricKeyEncryptedSessionKey)
             {
                 this.encAlgorithm = encAlgorithm;
                 this.s2k = s2k;
                 this.key = key;
+                this.skeskVersion = skeskVersion;
             }
 
             public KeyParameter GetKey()
@@ -91,12 +94,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			internal PgpPublicKey pubKey;
             internal bool sessionKeyObfuscation;
             internal byte[][] data;
+            private readonly int pkeskVersion;
 
-            internal PubMethod(PgpPublicKey pubKey, bool sessionKeyObfuscation)
+            internal PubMethod(PgpPublicKey pubKey, bool sessionKeyObfuscation, int pkeskVersion)
                 : base(PacketTag.PublicKeyEncryptedSession)
             {
                 this.pubKey = pubKey;
                 this.sessionKeyObfuscation = sessionKeyObfuscation;
+                this.pkeskVersion = pkeskVersion;
             }
 
             public override void AddSessionInfo(
@@ -111,6 +116,86 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             private byte[] EncryptSessionInfo(byte[] sessionInfo, SecureRandom random)
             {
                 var cryptoPublicKey = pubKey.GetKey();
+
+                if (pubKey.Algorithm == PublicKeyAlgorithmTag.X25519 || pubKey.Algorithm == PublicKeyAlgorithmTag.X448)
+                {
+                    IAsymmetricCipherKeyPairGenerator kpGen;
+                    IRawAgreement agreement;
+                    AsymmetricCipherKeyPair ephemeral;
+                    byte[] ephPubEncoding;
+                    IDigest digestForHkdf;
+                    byte[] hkdfInfo;
+                    SymmetricKeyAlgorithmTag wrappingAlgo;
+
+                    if (pubKey.Algorithm == PublicKeyAlgorithmTag.X25519)
+                    {
+                        agreement = new X25519Agreement();
+                        kpGen = new X25519KeyPairGenerator();
+                        kpGen.Init(new X25519KeyGenerationParameters(random));
+                        digestForHkdf = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256);
+                        hkdfInfo = Encoding.ASCII.GetBytes("OpenPGP X25519");
+                        wrappingAlgo = SymmetricKeyAlgorithmTag.Aes128;
+                        ephemeral = kpGen.GenerateKeyPair();
+                        ephPubEncoding = new byte[X25519PublicKeyParameters.KeySize];
+                        ((X25519PublicKeyParameters)ephemeral.Public).Encode(ephPubEncoding, 0);
+                    }
+                    else
+                    {
+                        // X448
+                        agreement = new X448Agreement();
+                        kpGen = new X448KeyPairGenerator();
+                        kpGen.Init(new X448KeyGenerationParameters(random));
+                        digestForHkdf = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha512);
+                        hkdfInfo = Encoding.ASCII.GetBytes("OpenPGP X448");
+                        wrappingAlgo = SymmetricKeyAlgorithmTag.Aes256;
+                        ephemeral = kpGen.GenerateKeyPair();
+                        ephPubEncoding = new byte[X448PublicKeyParameters.KeySize];
+                        ((X448PublicKeyParameters)ephemeral.Public).Encode(ephPubEncoding, 0);
+                    }
+
+                    agreement.Init(ephemeral.Private);
+                    byte[] sharedSecret = new byte[agreement.AgreementSize];
+                    agreement.CalculateAgreement(cryptoPublicKey, sharedSecret, 0);
+
+                    byte[] pubKeyMaterial = ((OctetArrayBcpgKey)pubKey.PublicKeyPacket.Key).GetKey();
+                    byte[] ikm = Arrays.ConcatenateAll(ephPubEncoding, pubKeyMaterial, sharedSecret);
+                    byte[] hkdfSalt = Array.Empty<byte>();
+                    var hkdfParams = new HkdfParameters(ikm, hkdfSalt, hkdfInfo);
+                    var hkdfGen = new HkdfBytesGenerator(digestForHkdf);
+                    hkdfGen.Init(hkdfParams);
+                    var hkdfOutput = new byte[PgpUtilities.GetKeySizeInOctets(wrappingAlgo)];
+                    hkdfGen.GenerateBytes(hkdfOutput, 0, hkdfOutput.Length);
+                    
+                    KeyParameter kek = ParameterUtilities.CreateKeyParameter("AES", hkdfOutput);
+                    var wrapper = PgpUtilities.CreateWrapper(wrappingAlgo);
+                    wrapper.Init(true, kek);
+
+                    int offset = 0; 
+                    int length = sessionInfo.Length - 2; // no checksum for X25519 and X448 keys
+                    // for X25519 and X448 keys the SymmetricKeyAlgorithmTag, when present (V3 PKESK)
+                    // is not encrypted, is prepended to the ESK in plaintext
+                    if (pkeskVersion == PublicKeyEncSessionPacket.Version3)
+                    {
+                        offset = 1;
+                        length--;
+                    }
+                    var keyBytes = wrapper.Wrap(sessionInfo, offset, length);
+
+                    byte[] esk;
+                    using (var ms = new MemoryStream())
+                    {
+                        ms.Write(ephPubEncoding, 0, ephPubEncoding.Length);
+                        if (pkeskVersion == PublicKeyEncSessionPacket.Version3)
+                        {
+                            // Unencrypted SymmetricKeyAlgorithmTag (V3 PKESK only)
+                            ms.WriteByte(sessionInfo[0]);
+                        }
+                        ms.Write(keyBytes, 0, keyBytes.Length);
+                        esk = ms.ToArray();
+                    }
+
+                    return esk;
+                }
 
                 if (pubKey.Algorithm != PublicKeyAlgorithmTag.ECDH)
                 {
@@ -275,6 +360,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.ECDH:
                     data = new byte[1][]{ encryptedSessionInfo };
                     break;
+                case PublicKeyAlgorithmTag.X25519:
+                case PublicKeyAlgorithmTag.X448:
+                    int ephemeralKeyLen = pubKey.Algorithm == PublicKeyAlgorithmTag.X25519 ? 32 : 56;
+                    byte[] ephemeralKey = new byte[ephemeralKeyLen];
+                    byte[] encryptedSessionKey = new byte[encryptedSessionInfo.Length - ephemeralKeyLen];
+                    Array.Copy(encryptedSessionInfo, 0, ephemeralKey, 0, ephemeralKeyLen);
+                    Array.Copy(encryptedSessionInfo, ephemeralKeyLen, encryptedSessionKey, 0, encryptedSessionKey.Length);
+
+                    data = new byte[][] { ephemeralKey, encryptedSessionKey };
+                    break;
                 default:
                     throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
                 }
@@ -306,20 +401,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private readonly SymmetricKeyAlgorithmTag defAlgorithm;
         private readonly SecureRandom rand;
 
-		public PgpEncryptedDataGenerator(
+        private readonly int skeskVersion;
+        private readonly int pkeskVersion;
+        private readonly int seipdVersion;
+
+        public PgpEncryptedDataGenerator(
 			SymmetricKeyAlgorithmTag encAlgorithm)
+            :this(encAlgorithm, CryptoServicesRegistrar.GetSecureRandom(), false, false)
 		{
-			this.defAlgorithm = encAlgorithm;
-            this.rand = CryptoServicesRegistrar.GetSecureRandom();
 		}
 
 		public PgpEncryptedDataGenerator(
 			SymmetricKeyAlgorithmTag	encAlgorithm,
 			bool						withIntegrityPacket)
-		{
-			this.defAlgorithm = encAlgorithm;
-			this.withIntegrityPacket = withIntegrityPacket;
-            this.rand = CryptoServicesRegistrar.GetSecureRandom();
+            : this(encAlgorithm, CryptoServicesRegistrar.GetSecureRandom(), false, withIntegrityPacket)
+        {
         }
 
         /// <summary>Existing SecureRandom constructor.</summary>
@@ -328,12 +424,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public PgpEncryptedDataGenerator(
             SymmetricKeyAlgorithmTag	encAlgorithm,
             SecureRandom				random)
+            : this(encAlgorithm, random, false, false)
         {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            this.defAlgorithm = encAlgorithm;
-            this.rand = random;
         }
 
 		/// <summary>Creates a cipher stream which will have an integrity packet associated with it.</summary>
@@ -341,13 +433,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SymmetricKeyAlgorithmTag	encAlgorithm,
             bool						withIntegrityPacket,
             SecureRandom				random)
+            :this(encAlgorithm, random, false, withIntegrityPacket)
         {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            this.defAlgorithm = encAlgorithm;
-            this.rand = random;
-            this.withIntegrityPacket = withIntegrityPacket;
         }
 
         /// <summary>Base constructor.</summary>
@@ -358,13 +445,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SymmetricKeyAlgorithmTag	encAlgorithm,
             SecureRandom				random,
             bool						oldFormat)
+            :this (encAlgorithm, random, oldFormat, false)
         {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
+        }
 
+        private PgpEncryptedDataGenerator(
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            SecureRandom random,
+            bool oldFormat,
+            bool withIntegrityPacket)
+        {
+            this.rand = random ?? throw new ArgumentNullException(nameof(random));
             this.defAlgorithm = encAlgorithm;
-            this.rand = random;
             this.oldFormat = oldFormat;
+            this.withIntegrityPacket = withIntegrityPacket;
+
+            skeskVersion = SymmetricKeyEncSessionPacket.Version4;
+            pkeskVersion = PublicKeyEncSessionPacket.Version3;
+            seipdVersion = SymmetricEncIntegrityPacket.Version1;
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -399,7 +497,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             S2k s2k = PgpUtilities.GenerateS2k(s2kDigest, 0x60, rand);
 
-            methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)));
+            methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase), skeskVersion));
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -438,7 +536,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 new PbeMethod(
                     defAlgorithm,
                     s2k,
-                    PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)
+                    PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase),
+                    skeskVersion
                 ));
         }
 
@@ -455,7 +554,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new ArgumentException("passed in key not an encryption key!");
             }
 
-            methods.Add(new PubMethod(key, sessionKeyObfuscation));
+            methods.Add(new PubMethod(key, sessionKeyObfuscation, pkeskVersion));
         }
 
         private void AddCheckSum(
@@ -478,7 +577,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		private byte[] CreateSessionInfo(SymmetricKeyAlgorithmTag algorithm, KeyParameter key)
 		{
             int keyLength = key.KeyLength;
-			byte[] sessionInfo = new byte[keyLength + 3];
+            byte[] sessionInfo = new byte[keyLength + 3];
 			sessionInfo[0] = (byte)algorithm;
             key.CopyTo(sessionInfo, 1, keyLength);
 			AddCheckSum(sessionInfo);
@@ -516,7 +615,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 if (methods[0] is PbeMethod pbeMethod)
                 {
-					key = pbeMethod.GetKey();
+                    key = pbeMethod.GetKey();
                 }
                 else if (methods[0] is PubMethod pubMethod)
                 {

@@ -507,13 +507,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             SignVerifyRoundtrip(pgpseckey, emptyPassphrase);
 
             // encrypt-decrypt test
-            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
-
-            PgpSecretKeyRing bobSecring = new PgpSecretKeyRing(v6UnlockedSecretKey);
-            PgpSecretKey bobEncryptionKey = bobSecring.GetSecretKeys().ToArray()[1];
-            AsymmetricCipherKeyPair bob = GetKeyPair(bobEncryptionKey);
-
-            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
+            EncryptDecryptRoundtrip(
+                Encoding.UTF8.GetBytes("Hello, World!"),
+                subKey.PublicKey,
+                subKey.ExtractPrivateKey(emptyPassphrase));
         }
 
         [Test]
@@ -593,12 +590,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             // Sign-Verify roundtrip
             SignVerifyRoundtrip(pgpseckey, emptyPassphrase);
 
-            // Encrypt-Decrypt test
-            AsymmetricCipherKeyPair alice = GetKeyPair(subKey);
-            IAsymmetricCipherKeyPairGenerator kpGen = new X448KeyPairGenerator();
-            kpGen.Init(new X448KeyGenerationParameters(rand));
-            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
-            IsTrue("X448 agreement failed", EncryptThenDecryptTest(alice, bob, subKey.PublicKey.Algorithm));
+            // Encrypt-Decrypt roundtrip
+            EncryptDecryptRoundtrip(
+                Encoding.UTF8.GetBytes("Hello, World!"),
+                subKey.PublicKey,
+                subKey.ExtractPrivateKey(emptyPassphrase));
         }
 
         [Test]
@@ -641,13 +637,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(encryptionKey.PublicKey.Algorithm, PublicKeyAlgorithmTag.X25519);
             IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
 
-            // decrypt test
-            AsymmetricCipherKeyPair alice = GetKeyPair(encryptionKey, passphrase);
-            IAsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
-            kpGen.Init(new X25519KeyGenerationParameters(new SecureRandom()));
-            AsymmetricCipherKeyPair bob = kpGen.GenerateKeyPair();
-            IsTrue("X25519 agreement failed", EncryptThenDecryptTest(alice, bob, encryptionKey.PublicKey.Algorithm));
-
+            // encrypt-decrypt
+            EncryptDecryptRoundtrip(
+                Encoding.UTF8.GetBytes("Hello, World!"),
+                encryptionKey.PublicKey,
+                encryptionKey.ExtractPrivateKey(passphrase.ToCharArray()));
 
             // Encode-Decode roundtrip
             using (MemoryStream ms = new MemoryStream())
@@ -797,42 +791,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpSignature signature = sigList[0];
 
             VerifySignature(signature, data, signer, shouldFail);
-        }
-
-        private static AsymmetricCipherKeyPair GetKeyPair(PgpSecretKey secretKey, string password = "")
-        {
-            return new AsymmetricCipherKeyPair(
-                secretKey.PublicKey.GetKey(),
-                secretKey.ExtractPrivateKey(password.ToCharArray()).Key);
-        }
-
-        private static bool EncryptThenDecryptTest(AsymmetricCipherKeyPair alice, AsymmetricCipherKeyPair bob, PublicKeyAlgorithmTag algo)
-        {
-            IRawAgreement agreeA, agreeB;
-
-            switch (algo)
-            {
-                case PublicKeyAlgorithmTag.X25519:
-                    agreeA = new X25519Agreement();
-                    agreeB = new X25519Agreement();
-                    break;
-                case PublicKeyAlgorithmTag.X448:
-                    agreeA = new X448Agreement();
-                    agreeB = new X448Agreement();
-                    break;
-                default:
-                    throw new ArgumentException($"Unsupported algo {algo}");
-            }
-
-            agreeA.Init(alice.Private);
-            byte[] secretA = new byte[agreeA.AgreementSize];
-            agreeA.CalculateAgreement(bob.Public, secretA, 0);
-
-            agreeB.Init(bob.Private);
-            byte[] secretB = new byte[agreeB.AgreementSize];
-            agreeB.CalculateAgreement(alice.Public, secretB, 0);
-
-            return Arrays.AreEqual(secretA, secretB);
         }
 
         [Test]
@@ -1093,6 +1051,58 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
+
+        private void EncryptDecryptRoundtrip(byte[] plaintext, PgpPublicKey pubKey, PgpPrivateKey privKey)
+        {
+            byte[] enc;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                byte[] buffer = new byte[1024];
+                PgpEncryptedDataGenerator endDataGen = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, new SecureRandom());
+                endDataGen.AddMethod(pubKey);
+
+                using (Stream cOut = endDataGen.Open(ms, buffer))
+                {
+                    using (BcpgOutputStream bcOut = new BcpgOutputStream(cOut, newFormatOnly: true))
+                    {
+                        PgpLiteralDataGenerator literalDataGen = new PgpLiteralDataGenerator();
+                        DateTime modificationTime = DateTime.UtcNow;
+
+                        using (Stream lOut = literalDataGen.Open(
+                            new UncloseableStream(bcOut),
+                            PgpLiteralData.Utf8,
+                            PgpLiteralData.Console,
+                            plaintext.Length,
+                            modificationTime))
+                        {
+                            lOut.Write(plaintext, 0, plaintext.Length);
+                        }
+                    }
+                }
+                enc = ms.ToArray();
+            }
+
+            // decrypt
+            PgpObjectFactory factory = new PgpObjectFactory(enc);
+            PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
+            FailIf("invalid PgpEncryptedDataList", encDataList is null);
+
+            PgpPublicKeyEncryptedData encData = encDataList[0] as PgpPublicKeyEncryptedData;
+            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
+
+            using (Stream stream = encData.GetDataStream(privKey))
+            {
+                factory = new PgpObjectFactory(stream);
+                PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    lit.GetDataStream().CopyTo(ms);
+                    byte[] decrypted = ms.ToArray();
+                    IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                }
+            }
+        }
+
         [Test]
         public void PkeskTest()
         {
@@ -1190,6 +1200,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                         IsTrue(Arrays.AreEqual(plaintext, decrypted));
                     }
                 }
+            }
+
+            // encrypt-decrypt roundtrip - V3 PKESK + V1 SEIPD X25519
+            {
+                byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
+                PgpPublicKeyRing publicKeyRing = new PgpPublicKeyRing(v6Certificate);
+                PgpPublicKey pubKey = publicKeyRing.GetPublicKeys().First(k => k.IsEncryptionKey);
+
+                EncryptDecryptRoundtrip(plaintext, pubKey, privKey);
             }
         }
 
