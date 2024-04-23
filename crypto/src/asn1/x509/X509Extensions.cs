@@ -229,6 +229,8 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             m_ordering = new List<DerObjectIdentifier>();
 
+            // Don't require empty sequence; we see empty extension blocks in the wild
+
 			foreach (Asn1Encodable ae in seq)
 			{
 				Asn1Sequence s = Asn1Sequence.GetInstance(ae.ToAsn1Object());
