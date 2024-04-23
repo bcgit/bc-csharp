@@ -33,6 +33,8 @@ namespace Org.BouncyCastle.Crypto
 		int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		// TODO[api]
+		//byte[] ProcessBytes(ReadOnlySpan<byte> input);
 		int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
 #endif
 
@@ -44,6 +46,8 @@ namespace Org.BouncyCastle.Crypto
 		int DoFinal(byte[] input, int inOff, int length, byte[] output, int outOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		// TODO[api]
+		//byte[] DoFinal(ReadOnlySpan<byte> input);
 		int DoFinal(Span<byte> output);
 		int DoFinal(ReadOnlySpan<byte> input, Span<byte> output);
 #endif
