@@ -70,13 +70,13 @@ namespace Org.BouncyCastle.Bcpg
 
         internal byte[] GetAAData()
         {
-            return CreateAAData(Tag, Version, cipherAlgorithm, aeadAlgorithm, chunkSize);
+            return CreateAAData(Version, cipherAlgorithm, aeadAlgorithm, chunkSize);
         }
 
-        internal static byte[] CreateAAData(PacketTag tag, int version, SymmetricKeyAlgorithmTag cipherAlgorithm, AeadAlgorithmTag aeadAlgorithm, int chunkSize)
+        internal static byte[] CreateAAData(int version, SymmetricKeyAlgorithmTag cipherAlgorithm, AeadAlgorithmTag aeadAlgorithm, int chunkSize)
         {
             return new byte[]{
-                (byte)(0xC0 | (byte)tag),
+                0xC0 | (byte)PacketTag.SymmetricEncryptedIntegrityProtected,
                 (byte)version,
                 (byte)cipherAlgorithm,
                 (byte)aeadAlgorithm,

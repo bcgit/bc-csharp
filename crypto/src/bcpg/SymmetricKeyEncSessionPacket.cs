@@ -95,6 +95,39 @@ namespace Org.BouncyCastle.Bcpg
             this.secKeyData = secKeyData;
         }
 
+
+        /// <summary>
+        /// Create a v6 SKESK packet.
+        /// </summary>
+        /// <param name="encAlgorithm"></param>
+        /// <param name="aeadAlgorithm"></param>
+        /// <param name="iv"></param>
+        /// <param name="s2k"></param>
+        /// <param name="secKeyData"></param>
+        /// <exception cref="IllegalArgumentException"></exception>
+        public SymmetricKeyEncSessionPacket(
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            byte[] iv,
+            S2k s2k,
+            byte[] secKeyData)
+            : base(PacketTag.SymmetricKeyEncryptedSessionKey)
+        {
+            this.version = Version6;
+            this.encAlgorithm = encAlgorithm;
+            this.aeadAlgorithm = aeadAlgorithm;
+            this.s2k = s2k;
+            this.secKeyData = Arrays.Clone(secKeyData);
+
+            int expectedIVLen = AeadUtils.GetIVLength(aeadAlgorithm);
+            if (expectedIVLen != iv.Length)
+            {
+                throw new ArgumentException($"Mismatched AEAD IV length. Expected {expectedIVLen}, got {iv.Length}");
+            }
+
+            this.iv = Arrays.Clone(iv);
+        }
+
         /**
         * @return int
         */
@@ -134,14 +167,14 @@ namespace Org.BouncyCastle.Bcpg
 
         internal byte[] GetAAData()
         {
-            return CreateAAData(Tag, Version, EncAlgorithm, AeadAlgorithm);
+            return CreateAAData(Version, EncAlgorithm, AeadAlgorithm);
         }
 
-        internal static byte[] CreateAAData(PacketTag tag, int version, SymmetricKeyAlgorithmTag encAlgorithm, AeadAlgorithmTag aeadAlgorithm)
+        internal static byte[] CreateAAData(int version, SymmetricKeyAlgorithmTag encAlgorithm, AeadAlgorithmTag aeadAlgorithm)
         {
             return new byte[]
             {
-                (byte)(0xC0 | (byte)tag),
+                0xC0 | (byte)PacketTag.SymmetricKeyEncryptedSessionKey,
                 (byte)version,
                 (byte)encAlgorithm,
                 (byte)aeadAlgorithm

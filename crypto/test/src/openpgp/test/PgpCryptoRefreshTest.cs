@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -166,6 +165,228 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
         private readonly char[] emptyPassphrase = Array.Empty<char>();
 
+        #region "Helpers"
+        private void SignVerifyRoundtrip(PgpSecretKey signingKey, char[] passphrase)
+        {
+            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
+            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
+
+            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
+            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
+            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(passphrase);
+            spkGen.SetIssuerFingerprint(false, signingKey);
+            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
+            sigGen.Update(data);
+            sigGen.SetHashedSubpackets(spkGen.Generate());
+            PgpSignature signature = sigGen.Generate();
+
+            AreEqual(signature.GetIssuerFingerprint(), signingKey.GetFingerprint());
+
+            VerifySignature(signature, data, signingKey.PublicKey);
+            VerifySignature(signature, wrongData, signingKey.PublicKey, shouldFail: true);
+
+            byte[] encodedSignature = signature.GetEncoded();
+            VerifyEncodedSignature(encodedSignature, data, signingKey.PublicKey);
+            VerifyEncodedSignature(encodedSignature, wrongData, signingKey.PublicKey, shouldFail: true);
+        }
+
+        private void VerifyInlineSignature(byte[] message, PgpPublicKey signer, bool shouldFail = false)
+        {
+            byte[] data;
+            PgpObjectFactory factory = new PgpObjectFactory(message);
+
+            PgpOnePassSignatureList p1 = factory.NextPgpObject() as PgpOnePassSignatureList;
+            PgpOnePassSignature ops = p1[0];
+
+            PgpLiteralData p2 = factory.NextPgpObject() as PgpLiteralData;
+            Stream dIn = p2.GetInputStream();
+
+            ops.InitVerify(signer);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                byte[] buffer = new byte[30];
+                int bytesRead;
+                while ((bytesRead = dIn.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ops.Update(buffer, 0, bytesRead);
+                    ms.Write(buffer, 0, bytesRead);
+                }
+
+                data = ms.ToArray();
+            }
+            PgpSignatureList p3 = factory.NextPgpObject() as PgpSignatureList;
+            PgpSignature sig = p3[0];
+
+            bool result = ops.Verify(sig) != shouldFail;
+            IsTrue("signature test failed", result);
+
+            VerifySignature(sig, data, signer, shouldFail);
+        }
+
+        private void VerifySignature(PgpSignature signature, byte[] data, PgpPublicKey signer, bool shouldFail = false)
+        {
+            IsEquals(signature.KeyAlgorithm, signer.Algorithm);
+            // the version of the signature is bound to the version of the signing key
+            IsEquals(signature.Version, signer.Version);
+
+            if (signature.KeyId != 0)
+            {
+                IsEquals(signature.KeyId, signer.KeyId);
+            }
+            byte[] issuerFpt = signature.GetIssuerFingerprint();
+            if (issuerFpt != null)
+            {
+                IsTrue(AreEqual(issuerFpt, signer.GetFingerprint()));
+            }
+
+            signature.InitVerify(signer);
+            signature.Update(data);
+
+            bool result = signature.Verify() != shouldFail;
+            IsTrue("signature test failed", result);
+        }
+
+        private void VerifyEncodedSignature(byte[] sigPacket, byte[] data, PgpPublicKey signer, bool shouldFail = false)
+        {
+            PgpObjectFactory factory = new PgpObjectFactory(sigPacket);
+            PgpSignatureList sigList = factory.NextPgpObject() as PgpSignatureList;
+            PgpSignature signature = sigList[0];
+
+            VerifySignature(signature, data, signer, shouldFail);
+        }
+
+        private static PgpEncryptedDataGenerator CreatePgpEncryptedDataGenerator(bool useAead)
+        {
+            if (useAead)
+            {
+                return new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, AeadAlgorithmTag.Ocb, new SecureRandom());
+            }
+            else
+            {
+                return new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, new SecureRandom());
+            }
+        }
+
+        private static byte[] EncryptPlaintext(PgpEncryptedDataGenerator encDataGen, byte[] plaintext, bool useBuffer)
+        {
+            byte[] enc;
+
+            if (useBuffer)
+            {
+                byte[] buffer = new byte[1024];
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (Stream cOut = encDataGen.Open(ms, buffer))
+                    {
+                        using (BcpgOutputStream bcOut = new BcpgOutputStream(cOut, newFormatOnly: true))
+                        {
+                            PgpLiteralDataGenerator literalDataGen = new PgpLiteralDataGenerator();
+                            DateTime modificationTime = DateTime.UtcNow;
+
+                            using (Stream lOut = literalDataGen.Open(
+                                new UncloseableStream(bcOut),
+                                PgpLiteralData.Utf8,
+                                PgpLiteralData.Console,
+                                plaintext.Length,
+                                modificationTime))
+                            {
+                                lOut.Write(plaintext, 0, plaintext.Length);
+                            }
+                        }
+                    }
+                    enc = ms.ToArray();
+                }
+            }
+            else
+            {
+                byte[] literal;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    PgpLiteralDataGenerator literalDataGen = new PgpLiteralDataGenerator();
+                    DateTime modificationTime = DateTime.UtcNow;
+
+                    using (Stream lOut = literalDataGen.Open(
+                        new UncloseableStream(ms),
+                        PgpLiteralData.Utf8,
+                        PgpLiteralData.Console,
+                        plaintext.Length,
+                        modificationTime))
+                    {
+                        lOut.Write(plaintext, 0, plaintext.Length);
+                    }
+                    literal = ms.ToArray();
+                }
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (Stream cOut = encDataGen.Open(ms, literal.Length))
+                    {
+                        cOut.Write(literal, 0, literal.Length);
+                    }
+                    enc = ms.ToArray();
+                }
+            }
+
+            return enc;
+        }
+
+        private void SymmetricEncryptDecryptRoundtrip(byte[] plaintext, bool useAead, bool useBuffer, byte[] rawPassword)
+        {
+            // encrypt
+            PgpEncryptedDataGenerator encDataGen = CreatePgpEncryptedDataGenerator(useAead);
+            encDataGen.AddMethodRaw(rawPassword, S2k.Argon2Parameters.MemoryConstrainedParameters());
+            byte[] enc = EncryptPlaintext(encDataGen, plaintext, useBuffer);
+
+            // decrypt
+            PgpObjectFactory factory = new PgpObjectFactory(enc);
+            PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
+            FailIf("invalid PgpEncryptedDataList", encDataList is null);
+
+            PgpPbeEncryptedData encData = encDataList[0] as PgpPbeEncryptedData;
+            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
+
+            using (Stream stream = encData.GetDataStreamRaw(rawPassword))
+            {
+                factory = new PgpObjectFactory(stream);
+                PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    lit.GetDataStream().CopyTo(ms);
+                    byte[] decrypted = ms.ToArray();
+                    IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                }
+            }
+        }
+
+        private void PubkeyEncryptDecryptRoundtrip(byte[] plaintext, bool useAead,bool useBuffer,  PgpPublicKey pubKey, PgpPrivateKey privKey)
+        {
+            // encrypt
+            PgpEncryptedDataGenerator encDataGen = CreatePgpEncryptedDataGenerator(useAead);
+            encDataGen.AddMethod(pubKey);
+            byte[] enc = EncryptPlaintext(encDataGen, plaintext, useBuffer);
+
+            // decrypt
+            PgpObjectFactory factory = new PgpObjectFactory(enc);
+            PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
+            FailIf("invalid PgpEncryptedDataList", encDataList is null);
+
+            PgpPublicKeyEncryptedData encData = encDataList[0] as PgpPublicKeyEncryptedData;
+            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
+
+            using (Stream stream = encData.GetDataStream(privKey))
+            {
+                factory = new PgpObjectFactory(stream);
+                PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    lit.GetDataStream().CopyTo(ms);
+                    byte[] decrypted = ms.ToArray();
+                    IsTrue(Arrays.AreEqual(plaintext, decrypted));
+                }
+            }
+        }
+        #endregion
+
         [Test]
         public void Version4Ed25519LegacyPubkeySampleTest()
         {
@@ -306,31 +527,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 Encoding.UTF8.GetBytes("wrongdata"),
                 pubKey,
                 shouldFail: true);
-        }
-
-
-        private void SignVerifyRoundtrip(PgpSecretKey signingKey, char[] passphrase)
-        {
-            byte[] data = Encoding.UTF8.GetBytes("OpenPGP");
-            byte[] wrongData = Encoding.UTF8.GetBytes("OpePGP");
-
-            PgpSignatureGenerator sigGen = new PgpSignatureGenerator(signingKey.PublicKey.Algorithm, HashAlgorithmTag.Sha512);
-            PgpSignatureSubpacketGenerator spkGen = new PgpSignatureSubpacketGenerator();
-            PgpPrivateKey privKey = signingKey.ExtractPrivateKey(passphrase);
-            spkGen.SetIssuerFingerprint(false, signingKey);
-            sigGen.InitSign(PgpSignature.CanonicalTextDocument, privKey, new SecureRandom());
-            sigGen.Update(data);
-            sigGen.SetHashedSubpackets(spkGen.Generate());
-            PgpSignature signature = sigGen.Generate();
-
-            AreEqual(signature.GetIssuerFingerprint(), signingKey.GetFingerprint());
-
-            VerifySignature(signature, data, signingKey.PublicKey);
-            VerifySignature(signature, wrongData, signingKey.PublicKey, shouldFail: true);
-
-            byte[] encodedSignature = signature.GetEncoded();
-            VerifyEncodedSignature(encodedSignature, data, signingKey.PublicKey);
-            VerifyEncodedSignature(encodedSignature, wrongData, signingKey.PublicKey, shouldFail: true);
         }
 
         [Test]
@@ -506,9 +702,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             // Sign-Verify roundtrip
             SignVerifyRoundtrip(pgpseckey, emptyPassphrase);
 
-            // encrypt-decrypt test
-            EncryptDecryptRoundtrip(
+            // encrypt-decrypt roundtrip
+            // V3 PKESK + V1 SEIPD
+            PubkeyEncryptDecryptRoundtrip(
                 Encoding.UTF8.GetBytes("Hello, World!"),
+                false,
+                false,
+                subKey.PublicKey,
+                subKey.ExtractPrivateKey(emptyPassphrase));
+
+            // V6 PKESK + V2 SEIPD
+            PubkeyEncryptDecryptRoundtrip(
+                Encoding.UTF8.GetBytes("Hello, World!"),
+                true,
+                false,
                 subKey.PublicKey,
                 subKey.ExtractPrivateKey(emptyPassphrase));
         }
@@ -591,8 +798,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             SignVerifyRoundtrip(pgpseckey, emptyPassphrase);
 
             // Encrypt-Decrypt roundtrip
-            EncryptDecryptRoundtrip(
+            PubkeyEncryptDecryptRoundtrip(
                 Encoding.UTF8.GetBytes("Hello, World!"),
+                false,
+                false,
                 subKey.PublicKey,
                 subKey.ExtractPrivateKey(emptyPassphrase));
         }
@@ -638,8 +847,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(encryptionKey.PublicKey.KeyId, 0x12C83F1E706F6308);
 
             // encrypt-decrypt
-            EncryptDecryptRoundtrip(
+            PubkeyEncryptDecryptRoundtrip(
                 Encoding.UTF8.GetBytes("Hello, World!"),
+                false,
+                false,
                 encryptionKey.PublicKey,
                 encryptionKey.ExtractPrivateKey(passphrase.ToCharArray()));
 
@@ -725,72 +936,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             // corrupt data
             inlineSignatureMessage[88] = 80;
             VerifyInlineSignature(inlineSignatureMessage, signingKey.PublicKey, shouldFail: true);
-        }
-
-        private void VerifyInlineSignature(byte[] message, PgpPublicKey signer, bool shouldFail = false)
-        {
-            byte[] data;
-            PgpObjectFactory factory = new PgpObjectFactory(message);
-
-            PgpOnePassSignatureList p1 = factory.NextPgpObject() as PgpOnePassSignatureList;
-            PgpOnePassSignature ops = p1[0];
-
-            PgpLiteralData p2 = factory.NextPgpObject() as PgpLiteralData;
-            Stream dIn = p2.GetInputStream();
-
-            ops.InitVerify(signer);
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                byte[] buffer = new byte[30];
-                int bytesRead;
-                while ((bytesRead = dIn.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ops.Update(buffer, 0, bytesRead);
-                    ms.Write(buffer, 0, bytesRead);
-                }
-
-                data = ms.ToArray();
-            }
-            PgpSignatureList p3 = factory.NextPgpObject() as PgpSignatureList;
-            PgpSignature sig = p3[0];
-
-            bool result = ops.Verify(sig) != shouldFail;
-            IsTrue("signature test failed", result);
-
-            VerifySignature(sig, data, signer, shouldFail);
-        }
-
-        private void VerifySignature(PgpSignature signature, byte[] data, PgpPublicKey signer, bool shouldFail = false)
-        {
-            IsEquals(signature.KeyAlgorithm, signer.Algorithm);
-            // the version of the signature is bound to the version of the signing key
-            IsEquals(signature.Version, signer.Version);
-
-            if (signature.KeyId != 0)
-            {
-                IsEquals(signature.KeyId, signer.KeyId);
-            }
-            byte[] issuerFpt = signature.GetIssuerFingerprint();
-            if (issuerFpt != null)
-            {
-                IsTrue(AreEqual(issuerFpt, signer.GetFingerprint()));
-            }
-
-            signature.InitVerify(signer);
-            signature.Update(data);
-
-            bool result = signature.Verify() != shouldFail;
-            IsTrue("signature test failed", result);
-        }
-
-        private void VerifyEncodedSignature(byte[] sigPacket, byte[] data, PgpPublicKey signer, bool shouldFail = false)
-        {
-            PgpObjectFactory factory = new PgpObjectFactory(sigPacket);
-            PgpSignatureList sigList = factory.NextPgpObject() as PgpSignatureList;
-            PgpSignature signature = sigList[0];
-
-            VerifySignature(signature, data, signer, shouldFail);
         }
 
         [Test]
@@ -997,111 +1142,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 });
             }
 
-            // encrypt-decrypt roundtrip - V4 SKESK + V1 SEIPD
-            {
-                // encrypt
-                byte[] enc;
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    byte[] buffer = new byte[1024];
-                    PgpEncryptedDataGenerator endDataGen = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, new SecureRandom());
-                    endDataGen.AddMethodRaw(password, S2k.Argon2Parameters.MemoryConstrainedParameters());
-
-                    using (Stream cOut = endDataGen.Open(ms, buffer))
-                    {
-                        using (BcpgOutputStream bcOut = new BcpgOutputStream(cOut, newFormatOnly: true))
-                        {
-                            PgpLiteralDataGenerator literalDataGen = new PgpLiteralDataGenerator();
-                            DateTime modificationTime = DateTime.UtcNow;
-
-                            using (Stream lOut = literalDataGen.Open(
-                                new UncloseableStream(bcOut),
-                                PgpLiteralData.Utf8,
-                                PgpLiteralData.Console,
-                                plaintext.Length,
-                                modificationTime))
-                            {
-                                lOut.Write(plaintext, 0, plaintext.Length);
-                            }
-                        }
-                    }
-
-                    enc = ms.ToArray();
-                }
-
-                // decrypt
-                PgpObjectFactory factory = new PgpObjectFactory(enc);
-                PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
-                FailIf("invalid PgpEncryptedDataList", encDataList is null);
-
-                PgpPbeEncryptedData encData = encDataList[0] as PgpPbeEncryptedData;
-                FailIf("invalid PgpPbeEncryptedData", encData is null);
-
-                using (Stream stream = encData.GetDataStreamRaw(password))
-                {
-                    factory = new PgpObjectFactory(stream);
-                    PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        lit.GetDataStream().CopyTo(ms);
-                        byte[] decrypted = ms.ToArray();
-                        IsTrue(Arrays.AreEqual(plaintext, decrypted));
-                    }
-                }
-            }
+            // encrypt-decrypt roundtrip
+            byte[] largePlaintext = new byte[50000];
+            Arrays.Fill(largePlaintext, 0);
+            // V4 SKESK + V1 SEIPD
+            //    Using length in PgpEncryptedDataGenerator.Open
+            SymmetricEncryptDecryptRoundtrip(plaintext, false, false, password);
+            SymmetricEncryptDecryptRoundtrip(largePlaintext, false, false, password);
+            //    Using buffer in PgpEncryptedDataGenerator.Open
+            SymmetricEncryptDecryptRoundtrip(plaintext, false, true, password);
+            SymmetricEncryptDecryptRoundtrip(largePlaintext, false, true, password);
+            // AEAD V6 SKESK + V2 SEIPD
+            //    Using length
+            SymmetricEncryptDecryptRoundtrip(plaintext, true, false, password);
+            SymmetricEncryptDecryptRoundtrip(largePlaintext, true, false, password);
+            //    Using buffer
+            SymmetricEncryptDecryptRoundtrip(plaintext, true, true, password);
+            SymmetricEncryptDecryptRoundtrip(largePlaintext, true, true, password);
         }
 
-
-        private void EncryptDecryptRoundtrip(byte[] plaintext, PgpPublicKey pubKey, PgpPrivateKey privKey)
-        {
-            byte[] enc;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                byte[] buffer = new byte[1024];
-                PgpEncryptedDataGenerator endDataGen = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, new SecureRandom());
-                endDataGen.AddMethod(pubKey);
-
-                using (Stream cOut = endDataGen.Open(ms, buffer))
-                {
-                    using (BcpgOutputStream bcOut = new BcpgOutputStream(cOut, newFormatOnly: true))
-                    {
-                        PgpLiteralDataGenerator literalDataGen = new PgpLiteralDataGenerator();
-                        DateTime modificationTime = DateTime.UtcNow;
-
-                        using (Stream lOut = literalDataGen.Open(
-                            new UncloseableStream(bcOut),
-                            PgpLiteralData.Utf8,
-                            PgpLiteralData.Console,
-                            plaintext.Length,
-                            modificationTime))
-                        {
-                            lOut.Write(plaintext, 0, plaintext.Length);
-                        }
-                    }
-                }
-                enc = ms.ToArray();
-            }
-
-            // decrypt
-            PgpObjectFactory factory = new PgpObjectFactory(enc);
-            PgpEncryptedDataList encDataList = factory.NextPgpObject() as PgpEncryptedDataList;
-            FailIf("invalid PgpEncryptedDataList", encDataList is null);
-
-            PgpPublicKeyEncryptedData encData = encDataList[0] as PgpPublicKeyEncryptedData;
-            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
-
-            using (Stream stream = encData.GetDataStream(privKey))
-            {
-                factory = new PgpObjectFactory(stream);
-                PgpLiteralData lit = factory.NextPgpObject() as PgpLiteralData;
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    lit.GetDataStream().CopyTo(ms);
-                    byte[] decrypted = ms.ToArray();
-                    IsTrue(Arrays.AreEqual(plaintext, decrypted));
-                }
-            }
-        }
 
         [Test]
         public void PkeskTest()
@@ -1202,13 +1261,30 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 }
             }
 
-            // encrypt-decrypt roundtrip - V3 PKESK + V1 SEIPD X25519
+            // encrypt-decrypt roundtrip
             {
-                byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
+                byte[] shortPlaintext = Encoding.UTF8.GetBytes("Hello, world!");
+                byte[] largePlaintext = new byte[50000];
+                Arrays.Fill(largePlaintext, 0);
+
                 PgpPublicKeyRing publicKeyRing = new PgpPublicKeyRing(v6Certificate);
                 PgpPublicKey pubKey = publicKeyRing.GetPublicKeys().First(k => k.IsEncryptionKey);
 
-                EncryptDecryptRoundtrip(plaintext, pubKey, privKey);
+                // V3 PKESK + V1 SEIPD X25519
+                //    Using length in PgpEncryptedDataGenerator.Open
+                PubkeyEncryptDecryptRoundtrip(shortPlaintext, false, false, pubKey, privKey);
+                PubkeyEncryptDecryptRoundtrip(largePlaintext, false, false, pubKey, privKey);
+                //    Using buffer in PgpEncryptedDataGenerator.Open
+                PubkeyEncryptDecryptRoundtrip(shortPlaintext, false, true, pubKey, privKey);
+                PubkeyEncryptDecryptRoundtrip(largePlaintext, false, true, pubKey, privKey);
+
+                // V6 PKESK + V2 SEIPD X25519
+                //    Using length
+                PubkeyEncryptDecryptRoundtrip(shortPlaintext, true, false, pubKey, privKey);
+                PubkeyEncryptDecryptRoundtrip(largePlaintext, true, false, pubKey, privKey);
+                //    Using buffer
+                PubkeyEncryptDecryptRoundtrip(shortPlaintext, true, true, pubKey, privKey);
+                PubkeyEncryptDecryptRoundtrip(largePlaintext, true, true, pubKey, privKey);
             }
         }
 

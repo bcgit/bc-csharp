@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
 		private BcpgOutputStream	pOut;
         private CipherStream		cOut;
+        private AeadOutputStream    aeadOut;
         private IBufferedCipher		c;
         private readonly bool		withIntegrityPacket;
         private readonly bool		oldFormat;
@@ -32,7 +33,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             protected byte[]                    sessionInfo;
             protected SymmetricKeyAlgorithmTag  encAlgorithm;
+            protected AeadAlgorithmTag          aeadAlgorithm;
             protected KeyParameter              key;
+            protected byte[]                    aeadIv;
 
             protected EncMethod(PacketTag packetTag)
                 : base(packetTag)
@@ -50,12 +53,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             internal PbeMethod(
                 SymmetricKeyAlgorithmTag  encAlgorithm,
+                AeadAlgorithmTag          aeadAlgorithm,
                 S2k                       s2k,
                 KeyParameter              key,
                 int                       skeskVersion)
                 : base(PacketTag.SymmetricKeyEncryptedSessionKey)
             {
                 this.encAlgorithm = encAlgorithm;
+                this.aeadAlgorithm = aeadAlgorithm;
                 this.s2k = s2k;
                 this.key = key;
                 this.skeskVersion = skeskVersion;
@@ -66,23 +71,71 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 return key;
             }
 
-			public override void AddSessionInfo(
+            private byte[] EncryptSessionInfoForVersion4(byte[] si, SecureRandom random)
+            {
+                string cName = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
+                IBufferedCipher cipher = CipherUtilities.GetCipher($"{cName}/CFB/NoPadding");
+
+                byte[] iv = new byte[cipher.GetBlockSize()];
+                cipher.Init(true, new ParametersWithRandom(new ParametersWithIV(key, iv), random));
+
+                return cipher.DoFinal(si, 0, si.Length - 2);
+            }
+
+            private byte[] EncryptSessionInfoForVersion6(byte[] si, SecureRandom random)
+            {
+                byte[] aadata = SymmetricKeyEncSessionPacket.CreateAAData(skeskVersion, encAlgorithm, aeadAlgorithm);
+
+                // key-encryption key derivation
+                var hkdfParams = new HkdfParameters(key.GetKey(), Array.Empty<byte>(), aadata);
+                var hkdfGen = new HkdfBytesGenerator(PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256));
+                hkdfGen.Init(hkdfParams);
+                var hkdfOutput = new byte[PgpUtilities.GetKeySizeInOctets(encAlgorithm)];
+                hkdfGen.GenerateBytes(hkdfOutput, 0, hkdfOutput.Length);
+
+                BufferedAeadBlockCipher cipher = AeadUtils.CreateAeadCipher(encAlgorithm, aeadAlgorithm);
+
+                aeadIv = new byte[AeadUtils.GetIVLength(aeadAlgorithm)];
+                random.NextBytes(aeadIv);
+
+                var aeadParams = new AeadParameters(
+                    new KeyParameter(hkdfOutput),
+                    8 * AeadUtils.GetAuthTagLength(aeadAlgorithm),
+                    aeadIv,
+                    aadata);
+
+                cipher.Init(true, aeadParams);
+                byte[] keyBytes = cipher.DoFinal(si, 0, si.Length-2);
+
+                return keyBytes;
+            }
+
+            public override void AddSessionInfo(
                 byte[]			si,
 				SecureRandom	random)
             {
-                string cName = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
-                IBufferedCipher c = CipherUtilities.GetCipher(cName + "/CFB/NoPadding");
-
-				byte[] iv = new byte[c.GetBlockSize()];
-                c.Init(true, new ParametersWithRandom(new ParametersWithIV(key, iv), random));
-
-				this.sessionInfo = c.DoFinal(si, 0, si.Length - 2);
-			}
+                if (skeskVersion == SymmetricKeyEncSessionPacket.Version4)
+                {
+                    this.sessionInfo = EncryptSessionInfoForVersion4(si, random);
+                }
+                else if (skeskVersion == SymmetricKeyEncSessionPacket.Version6)
+                {
+                    this.sessionInfo = EncryptSessionInfoForVersion6(si, random);
+                }
+            }
 
 			public override void Encode(BcpgOutputStream pOut)
             {
-                SymmetricKeyEncSessionPacket pk = new SymmetricKeyEncSessionPacket(
-                    encAlgorithm, s2k, sessionInfo);
+                SymmetricKeyEncSessionPacket pk;
+                if (skeskVersion == SymmetricKeyEncSessionPacket.Version6)
+                {
+                    pk = new SymmetricKeyEncSessionPacket(
+                        encAlgorithm, aeadAlgorithm, aeadIv, s2k, sessionInfo);
+                }
+                else
+                {
+                    pk = new SymmetricKeyEncSessionPacket(encAlgorithm, s2k, sessionInfo);
+                }
 
 				pOut.WritePacket(pk);
             }
@@ -391,7 +444,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             public override void Encode(BcpgOutputStream pOut)
             {
-                PublicKeyEncSessionPacket pk = new PublicKeyEncSessionPacket(pubKey.KeyId, pubKey.Algorithm, data);
+                PublicKeyEncSessionPacket pk;
+
+                if (pkeskVersion == PublicKeyEncSessionPacket.Version6)
+                {
+                    pk = new PublicKeyEncSessionPacket(pubKey.Version, pubKey.GetFingerprint(), pubKey.Algorithm, data);
+                }
+                else
+                {
+                    pk = new PublicKeyEncSessionPacket(pubKey.KeyId, pubKey.Algorithm, data);
+                }
 
                 pOut.WritePacket(pk);
             }
@@ -399,11 +461,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private readonly List<EncMethod> methods = new List<EncMethod>();
         private readonly SymmetricKeyAlgorithmTag defAlgorithm;
+        private readonly AeadAlgorithmTag  defAeadAlgorithm;
         private readonly SecureRandom rand;
 
         private readonly int skeskVersion;
         private readonly int pkeskVersion;
         private readonly int seipdVersion;
+        private readonly byte chunkSizeOctet = 6; // 1 << (chunkSize + 6) = 4096
 
         public PgpEncryptedDataGenerator(
 			SymmetricKeyAlgorithmTag encAlgorithm)
@@ -465,6 +529,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             seipdVersion = SymmetricEncIntegrityPacket.Version1;
         }
 
+
+        public PgpEncryptedDataGenerator(
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm)
+            : this(encAlgorithm, aeadAlgorithm, CryptoServicesRegistrar.GetSecureRandom(), false)
+        {
+        }
+
+        public PgpEncryptedDataGenerator(
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            SecureRandom random)
+            : this(encAlgorithm, aeadAlgorithm, random, false)
+        {
+        }
+
+        public PgpEncryptedDataGenerator(
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            SecureRandom random,
+            bool oldFormat)
+        {
+            this.rand = random ?? throw new ArgumentNullException(nameof(random));
+            this.defAlgorithm = encAlgorithm;
+            this.defAeadAlgorithm = aeadAlgorithm;
+            this.oldFormat = oldFormat;
+            this.withIntegrityPacket = true;
+
+            skeskVersion = SymmetricKeyEncSessionPacket.Version6;
+            pkeskVersion = PublicKeyEncSessionPacket.Version6;
+            seipdVersion = SymmetricEncIntegrityPacket.Version2;
+        }
+
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
@@ -497,7 +594,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             S2k s2k = PgpUtilities.GenerateS2k(s2kDigest, 0x60, rand);
 
-            methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase), skeskVersion));
+            methods.Add(new PbeMethod(defAlgorithm, defAeadAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase), skeskVersion));
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -535,6 +632,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             methods.Add(
                 new PbeMethod(
                     defAlgorithm,
+                    defAeadAlgorithm,
                     s2k,
                     PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase),
                     skeskVersion
@@ -577,9 +675,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		private byte[] CreateSessionInfo(SymmetricKeyAlgorithmTag algorithm, KeyParameter key)
 		{
             int keyLength = key.KeyLength;
-            byte[] sessionInfo = new byte[keyLength + 3];
-			sessionInfo[0] = (byte)algorithm;
-            key.CopyTo(sessionInfo, 1, keyLength);
+            int infoLen = keyLength + 2;
+            int offset = 0;
+
+            if (seipdVersion == SymmetricEncIntegrityPacket.Version1)
+            {
+                infoLen++;
+                offset = 1;
+            }
+
+            byte[] sessionInfo = new byte[infoLen];
+
+            if (seipdVersion == SymmetricEncIntegrityPacket.Version1)
+            {
+                sessionInfo[0] = (byte)algorithm;
+            }
+            key.CopyTo(sessionInfo, offset, keyLength);
 			AddCheckSum(sessionInfo);
 			return sessionInfo;
 		}
@@ -600,7 +711,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             long	length,
             byte[]	buffer)
         {
-			if (cOut != null)
+			if (cOut != null || aeadOut != null)
 				throw new InvalidOperationException("generator already in open state");
 			if (methods.Count == 0)
 				throw new InvalidOperationException("No encryption methods specified");
@@ -613,29 +724,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			if (methods.Count == 1)
             {
-                if (methods[0] is PbeMethod pbeMethod)
+                if (methods[0] is PbeMethod pbeMethod && skeskVersion == SymmetricKeyEncSessionPacket.Version4)
                 {
+                    // For V4 SKESK, the encrypted session key is optional. If not present, the session key
+                    // is derived directly with the S2K algorithm applied to the passphrase
                     key = pbeMethod.GetKey();
                 }
-                else if (methods[0] is PubMethod pubMethod)
+                //else if (methods[0] is PubMethod pubMethod)
+                else
                 {
                     key = PgpUtilities.MakeRandomKey(defAlgorithm, rand);
-
 					byte[] sessionInfo = CreateSessionInfo(defAlgorithm, key);
 
                     try
                     {
-                        pubMethod.AddSessionInfo(sessionInfo, rand);
+                        methods[0].AddSessionInfo(sessionInfo, rand);
                     }
                     catch (Exception e)
                     {
                         throw new PgpException("exception encrypting session key", e);
                     }
                 }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                //else
+                //{
+                //    throw new InvalidOperationException();
+                //}
 
 				pOut.WritePacket(methods[0]);
             }
@@ -657,6 +770,63 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                     pOut.WritePacket(m);
                 }
+            }
+
+
+            if (seipdVersion == SymmetricEncIntegrityPacket.Version2)
+            {
+                if (buffer == null)
+                {
+                    int chunkSize = 1 << (chunkSizeOctet + 6);
+                    long chunks = ((length + chunkSize - 1) / chunkSize);
+
+                    long outputLength = length
+                        + 1     // version
+                        + 1     // algo ID
+                        + 1     // AEAD algo ID
+                        + 1     // chunk size octet
+                        + 32    // salt
+                        + AeadUtils.GetAuthTagLength(defAeadAlgorithm) * (chunks + 1); // one auth tag for each chunk plus final tag
+
+                    pOut = new BcpgOutputStream(outStr, PacketTag.SymmetricEncryptedIntegrityProtected, outputLength);
+                }
+                else
+                {
+                    pOut = new BcpgOutputStream(outStr, PacketTag.SymmetricEncryptedIntegrityProtected, buffer);
+                }
+
+                pOut.WriteByte(SymmetricEncIntegrityPacket.Version2);
+                pOut.WriteByte((byte)defAlgorithm);
+                pOut.WriteByte((byte)defAeadAlgorithm);
+                pOut.WriteByte((byte)chunkSizeOctet);
+
+                byte[] salt = new byte[32];
+                rand.NextBytes(salt);
+                pOut.Write(salt);
+
+                var cipher = AeadUtils.CreateAeadCipher(defAlgorithm, defAeadAlgorithm);
+                byte[] aadata = SymmetricEncIntegrityPacket.CreateAAData(SymmetricEncIntegrityPacket.Version2, defAlgorithm, defAeadAlgorithm, chunkSizeOctet);
+
+                AeadUtils.DeriveAeadMessageKeyAndIv(
+                    key,
+                    defAlgorithm,
+                    defAeadAlgorithm,
+                    salt,
+                    aadata,
+                    out var messageKey,
+                    out var iv);
+
+                aeadOut = new AeadOutputStream(
+                    pOut,
+                    cipher,
+                    messageKey,
+                    iv,
+                    defAlgorithm,
+                    defAeadAlgorithm,
+                    chunkSizeOctet);
+
+                return new WrappedGeneratorStream(this, aeadOut);
+
             }
 
             string cName = PgpUtilities.GetSymmetricCipherName(defAlgorithm);
@@ -773,6 +943,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         [Obsolete("Dispose any opened Stream directly")]
         public void Close()
         {
+            if(aeadOut != null)
+            {
+                aeadOut.Close();
+                pOut.Finish();
+
+                aeadOut = null;
+                pOut = null;
+            }
             if (cOut != null)
             {
 				// TODO Should this all be under the try/catch block?

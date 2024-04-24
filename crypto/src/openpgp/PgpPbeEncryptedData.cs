@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 var aadata = seipd.GetAAData();
                 var salt = seipd.GetSalt();
-                PgpUtilities.DeriveAeadMessageKeyAndIv(sessionKey, seipd.CipherAlgorithm, seipd.AeadAlgorithm, salt, aadata, out var messageKey, out var iv);
+                AeadUtils.DeriveAeadMessageKeyAndIv(sessionKey, seipd.CipherAlgorithm, seipd.AeadAlgorithm, salt, aadata, out var messageKey, out var iv);
                 var cipher = AeadUtils.CreateAeadCipher(seipd.CipherAlgorithm, seipd.AeadAlgorithm);
 
                 var aeadStream = new AeadInputStream(

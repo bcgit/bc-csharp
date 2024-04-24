@@ -1,7 +1,11 @@
 ﻿using System;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 
 namespace Org.BouncyCastle.Bcpg
@@ -91,6 +95,63 @@ namespace Org.BouncyCastle.Bcpg
 
             Array.Copy(messageKeyAndIv, messageKey, messageKey.Length);
             Array.Copy(messageKeyAndIv, messageKey.Length, iv, 0, ivLen-8);
+        }
+
+        /// <summary>
+        /// Derive a message key and IV from the given session key.
+        /// </summary>
+        /// <param name="sessionKey">session key</param>
+        /// <param name="encAlgorithm">symmetric cipher algorithm tag</param>
+        /// <param name="aeadAlgorithm">AEAD algorithm tag</param>
+        /// <param name="salt">salt</param>
+        /// <param name="hkdfInfo">HKDF info</param>
+        /// <param name="messageKey"></param>
+        /// <param name="iv"></param>
+        public static void DeriveAeadMessageKeyAndIv(
+            KeyParameter sessionKey,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            byte[] salt,
+            byte[] hkdfInfo,
+            out KeyParameter messageKey,
+            out byte[] iv)
+        {
+            var hkdfGen = new HkdfBytesGenerator(PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256));
+            var hkdfParams = new HkdfParameters(sessionKey.GetKey(), salt, hkdfInfo);
+            hkdfGen.Init(hkdfParams);
+            var hkdfOutput = new byte[PgpUtilities.GetKeySizeInOctets(encAlgorithm) + AeadUtils.GetIVLength(aeadAlgorithm) - 8];
+            hkdfGen.GenerateBytes(hkdfOutput, 0, hkdfOutput.Length);
+
+            AeadUtils.SplitMessageKeyAndIv(hkdfOutput, encAlgorithm, aeadAlgorithm, out var messageKeyBytes, out iv);
+
+            messageKey = new KeyParameter(messageKeyBytes);
+        }
+
+        public static byte[] CreateNonce(byte[] iv, long chunkIndex)
+        {
+            byte[] nonce = Arrays.Clone(iv);
+            byte[] chunkid = Pack.UInt64_To_BE((ulong)chunkIndex);
+            Array.Copy(chunkid, 0, nonce, nonce.Length - 8, 8);
+
+            return nonce;
+        }
+
+        public static byte[] CreateLastBlockAAData(bool isV5StyleAead, byte[] aaData, long chunkIndex, long totalBytes)
+        {
+            byte[] adata;
+            if (isV5StyleAead)
+            {
+                adata = new byte[13];
+                Array.Copy(aaData, 0, adata, 0, aaData.Length);
+                Array.Copy(Pack.UInt64_To_BE((ulong)chunkIndex), 0, adata, aaData.Length, 8);
+            }
+            else
+            {
+                adata = new byte[aaData.Length + 8];
+                Array.Copy(aaData, 0, adata, 0, aaData.Length);
+                Array.Copy(Pack.UInt64_To_BE((ulong)totalBytes), 0, adata, aaData.Length, 8);
+            }
+            return adata;
         }
 
         public static BufferedAeadBlockCipher CreateAeadCipher(

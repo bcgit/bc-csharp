@@ -26,13 +26,48 @@ namespace Org.BouncyCastle.Bcpg
         private int dataOff;
         private long chunkIndex = 0;
         private long totalBytes = 0;
+        private readonly bool isV5StyleAead;
 
         private static int GetChunkLength(int chunkSize)
         {
             return 1 << (chunkSize + 6);
         }
 
+        /// <summary>
+        /// InputStream for decrypting AEAD encrypted data.
+        /// </summary>
+        /// <param name="inputStream">underlying InputStream</param>
+        /// <param name="cipher">encryption cipher</param>
+        /// <param name="secretKey">decryption key</param>
+        /// <param name="iv">initialization vector</param>
+        /// <param name="aeadAlgorithm">AEAD algorithm</param>
+        /// <param name="chunkSize">chunk size of the AEAD encryption</param>
+        /// <param name="aaData">associated data</param>
         public AeadInputStream(
+            Stream inputStream,
+            BufferedAeadBlockCipher cipher,
+            KeyParameter secretKey,
+            byte[] iv,
+            AeadAlgorithmTag aeadAlgorithm,
+            int chunkSize,
+            byte[] aaData)
+            :this(false, inputStream, cipher, secretKey, iv, aeadAlgorithm, chunkSize, aaData)
+        {
+        }
+
+        /// <summary>
+        /// InputStream for decrypting AEAD encrypted data.
+        /// </summary>
+        /// <param name="isV5StyleAead">flavour of AEAD (OpenPGP v5 or v6)</param>
+        /// <param name="inputStream">underlying InputStream</param>
+        /// <param name="cipher">encryption cipher</param>
+        /// <param name="secretKey">decryption key</param>
+        /// <param name="iv">initialization vector</param>
+        /// <param name="aeadAlgorithm">AEAD algorithm</param>
+        /// <param name="chunkSize">chunk size of the AEAD encryption</param>
+        /// <param name="aaData">associated data</param>
+        public AeadInputStream(
+            bool isV5StyleAead,
             Stream inputStream,
             BufferedAeadBlockCipher cipher,
             KeyParameter secretKey,
@@ -46,6 +81,7 @@ namespace Org.BouncyCastle.Bcpg
             this.secretKey = secretKey;
             this.aaData = aaData;
             this.iv = iv;
+            this.isV5StyleAead = isV5StyleAead;
 
             chunkLength = GetChunkLength(chunkSize);
             tagLen = AeadUtils.GetAuthTagLength(aeadAlgorithm);
@@ -87,33 +123,6 @@ namespace Org.BouncyCastle.Bcpg
             return supplyLen;
         }
 
-        private static byte[] GetNonce(byte[] iv, long chunkIndex)
-        {
-            byte[] nonce = Arrays.Clone(iv);
-            byte[] chunkid =  Pack.UInt64_To_BE((ulong)chunkIndex);
-            Array.Copy(chunkid, 0, nonce, nonce.Length - 8, 8);
-
-            return nonce;
-        }
-
-        private static byte[] GetAdata(bool isV5StyleAead, byte[] aaData, long chunkIndex, long totalBytes)
-        {
-            byte[] adata;
-            if (isV5StyleAead)
-            {
-                adata = new byte[13];
-                Array.Copy(aaData, 0, adata, 0, aaData.Length);
-                Array.Copy(Pack.UInt64_To_BE((ulong)chunkIndex), 0, adata, aaData.Length, 8);
-            }
-            else
-            {
-                adata = new byte[aaData.Length + 8];
-                Array.Copy(aaData, 0, adata, 0, aaData.Length);
-                Array.Copy(Pack.UInt64_To_BE((ulong)totalBytes), 0, adata, aaData.Length, 8);
-            }
-            return adata;
-        }
-
         private byte[] ReadBlock()
         {
             int dataLen = Streams.ReadFully(inputStream, buf, tagLen + tagLen, chunkLength);
@@ -130,7 +139,7 @@ namespace Org.BouncyCastle.Bcpg
                 AeadParameters aeadParams = new AeadParameters(
                     secretKey,
                     8 * tagLen,
-                    GetNonce(iv, chunkIndex),
+                    AeadUtils.CreateNonce(iv, chunkIndex),
                     adata);
 
                 cipher.Init(false, aeadParams);
@@ -153,11 +162,11 @@ namespace Org.BouncyCastle.Bcpg
                 // last block
                 try
                 {
-                    adata = GetAdata(false, aaData, chunkIndex, totalBytes);
+                    adata = AeadUtils.CreateLastBlockAAData(isV5StyleAead, aaData, chunkIndex, totalBytes);
                     AeadParameters aeadParams = new AeadParameters(
                         secretKey,
                         8 * tagLen,
-                        GetNonce(iv, chunkIndex),
+                        AeadUtils.CreateNonce(iv, chunkIndex),
                         adata);
 
                     cipher.Init(false, aeadParams);

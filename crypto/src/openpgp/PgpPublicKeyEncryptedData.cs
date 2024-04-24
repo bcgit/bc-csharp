@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 PgpUtilities.GetSymmetricCipherName(encAlgo),
                 sessionData, 0, sessionData.Length);
 
-            PgpUtilities.DeriveAeadMessageKeyAndIv(sessionKey, encAlgo, aeadAlgo, salt, aadata, out var messageKey, out var iv);
+            AeadUtils.DeriveAeadMessageKeyAndIv(sessionKey, encAlgo, aeadAlgo, salt, aadata, out var messageKey, out var iv);
             var cipher = AeadUtils.CreateAeadCipher(seipd.CipherAlgorithm, seipd.AeadAlgorithm);
 
             var aeadStream = new AeadInputStream(

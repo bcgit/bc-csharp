@@ -153,6 +153,32 @@ namespace Org.BouncyCastle.Bcpg
             }
 		}
 
+        /// <summary>
+        /// Create a new V6 PKESK packet.
+        /// </summary>
+        /// <param name="keyVersion">version of the key</param>
+        /// <param name="keyFingerprint">fingerprint of the key</param>
+        /// <param name="algorithm">public key algorith</param>
+        /// <param name="data">session data</param>
+        public PublicKeyEncSessionPacket(
+            int keyVersion,
+            byte[] keyFingerprint,
+            PublicKeyAlgorithmTag algorithm,
+            byte[][] data)
+            : base(PacketTag.PublicKeyEncryptedSession)
+        {
+            this.version = Version6;
+            this.keyVersion = keyVersion;
+            this.keyFingerprint = Arrays.Clone(keyFingerprint);
+            this.algorithm = algorithm;
+            this.data = new byte[data.Length][];
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                this.data[i] = Arrays.Clone(data[i]);
+            }
+        }
+
         public int Version
 		{
 			get { return version; }
