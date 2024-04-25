@@ -9,26 +9,49 @@ namespace Org.BouncyCastle.Bcpg
     public class PublicKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
-        private int version;
-        private long time;
-        private int validDays;
-        private PublicKeyAlgorithmTag algorithm;
-        private IBcpgKey key;
+        public const int Version2 = 2;
+        public const int Version3 = 3;
+        public const int Version4 = 4;
+        public const int Version5 = 5;
+        public const int Version6 = 6;
 
-        internal PublicKeyPacket(
-            BcpgInputStream bcpgIn)
+        public const int DefaultVersion = Version4;
+
+        private readonly int version;
+        private readonly long time;
+        private readonly int validDays;
+        private readonly PublicKeyAlgorithmTag algorithm;
+        private readonly IBcpgKey key;
+
+        private readonly long v6KeyLen;
+
+        internal PublicKeyPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, PacketTag.PublicKey)
+        {
+        }
+
+        protected PublicKeyPacket(
+            BcpgInputStream bcpgIn,
+            PacketTag tag)
+            : base(tag)
         {
             version = bcpgIn.ReadByte();
 
             time = ((uint)bcpgIn.ReadByte() << 24) | ((uint)bcpgIn.ReadByte() << 16)
                 | ((uint)bcpgIn.ReadByte() << 8) | (uint)bcpgIn.ReadByte();
 
-            if (version <= 3)
+            if (version <= Version3)
             {
                 validDays = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
             }
 
             algorithm = (PublicKeyAlgorithmTag)bcpgIn.ReadByte();
+
+            if (version == Version5 || version == Version6)
+            {
+                v6KeyLen = ((uint)bcpgIn.ReadByte() << 24) | ((uint)bcpgIn.ReadByte() << 16)
+                    | ((uint)bcpgIn.ReadByte() << 8) | (uint)bcpgIn.ReadByte();
+            }
 
             switch (algorithm)
             {
@@ -53,8 +76,49 @@ namespace Org.BouncyCastle.Bcpg
             case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 key = new EdDsaPublicBcpgKey(bcpgIn);
                 break;
+            case PublicKeyAlgorithmTag.Ed25519:
+                key = new Ed25519PublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.Ed448:
+                key = new Ed448PublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.X25519:
+                key = new X25519PublicBcpgKey(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.X448:
+                key = new X448PublicBcpgKey(bcpgIn);
+                break;
             default:
-                throw new IOException("unknown PGP public key algorithm encountered");
+            throw new IOException("unknown PGP public key algorithm encountered");
+            }
+        }
+
+
+        /// <summary>Construct a public key packet.</summary>
+        public PublicKeyPacket(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            DateTime time,
+            IBcpgKey key)
+            : this(version, algorithm, time, key, PacketTag.PublicKey)
+        { }
+
+        protected PublicKeyPacket(
+            int version,
+            PublicKeyAlgorithmTag algorithm,
+            DateTime time,
+            IBcpgKey key,
+            PacketTag tag)
+            : base(tag)
+        {
+            this.version = version;
+            this.time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
+            this.algorithm = algorithm;
+            this.key = key;
+
+            if (version == Version5 || version == Version6)
+            {
+                v6KeyLen = ((BcpgObject)key).GetEncoded().Length;
             }
         }
 
@@ -63,11 +127,8 @@ namespace Org.BouncyCastle.Bcpg
             PublicKeyAlgorithmTag	algorithm,
             DateTime				time,
             IBcpgKey				key)
+            :this(DefaultVersion, algorithm, time, key)
         {
-            this.version = 4;
-            this.time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
-            this.algorithm = algorithm;
-            this.key = key;
         }
 
         public virtual int Version
@@ -103,12 +164,18 @@ namespace Org.BouncyCastle.Bcpg
                 pOut.WriteByte((byte)version);
                 pOut.WriteInt((int)time);
 
-                if (version <= 3)
+                if (version <= Version3)
                 {
                     pOut.WriteShort((short)validDays);
                 }
 
                 pOut.WriteByte((byte)algorithm);
+
+                if (version == Version5 || version == Version6)
+                {
+                    pOut.WriteInt((int)v6KeyLen);
+                }
+
                 pOut.WriteObject((BcpgObject)key);
             }
             return bOut.ToArray();

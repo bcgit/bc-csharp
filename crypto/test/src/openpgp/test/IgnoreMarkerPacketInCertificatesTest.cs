@@ -58,15 +58,66 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "=6mfA\n" +
             "-----END PGP PUBLIC KEY BLOCK-----";
 
-		public override string Name
+        // [PUBLIC KEY, MARKER, PADDING, USER-ID, SIGNATURE, SUBKEY, SIGNATURE]
+        private static readonly string CERT_WITH_MARKER_AND_PADDING = "" +
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" +
+            "\n" +
+            "xsDNBF2lnPIBDAC5cL9PQoQLTMuhjbYvb4Ncuuo0bfmgPRFywX53jPhoFf4Zg6mv\n" +
+            "/seOXpgecTdOcVttfzC8ycIKrt3aQTiwOG/ctaR4Bk/t6ayNFfdUNxHWk4WCKzdz\n" +
+            "/56fW2O0F23qIRd8UUJp5IIlN4RDdRCtdhVQIAuzvp2oVy/LaS2kxQoKvph/5pQ/\n" +
+            "5whqsyroEWDJoSV0yOb25B/iwk/pLUFoyhDG9bj0kIzDxrEqW+7Ba8nocQlecMF3\n" +
+            "X5KMN5kp2zraLv9dlBBpWW43XktjcCZgMy20SouraVma8Je/ECwUWYUiAZxLIlMv\n" +
+            "9CurEOtxUw6N3RdOtLmYZS9uEnn5y1UkF88o8Nku890uk6BrewFzJyLAx5wRZ4F0\n" +
+            "qV/yq36UWQ0JB/AUGhHVPdFf6pl6eaxBwT5GXvbBUibtf8YI2og5RsgTWtXfU7eb\n" +
+            "SGXrl5ZMpbA6mbfhd0R8aPxWfmDWiIOhBufhMCvUHh1sApMKVZnvIff9/0Dca3wb\n" +
+            "vLIwa3T4CyshfT0AEQEAAcoDUEdQ1QQo9HIzzSFCb2IgQmFiYmFnZSA8Ym9iQG9w\n" +
+            "ZW5wZ3AuZXhhbXBsZT7CwQ4EEwEKADgCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgEC\n" +
+            "F4AWIQTRpm4aI7GCyZgPeIz7/MgqAV5zMAUCXaWe+gAKCRD7/MgqAV5zMG9sC/9U\n" +
+            "2T3RrqEbw533FPNfEflhEVRIZ8gDXKM8hU6cqqEzCmzZT6xYTe6sv4y+PJBGXJFX\n" +
+            "yhj0g6FDkSyboM5litOcTupURObVqMgA/Y4UKERznm4fzzH9qek85c4ljtLyNufe\n" +
+            "doL2pp3vkGtn7eD0QFRaLLmnxPKQ/TlZKdLE1G3u8Uot8QHicaR6GnAdc5UXQJE3\n" +
+            "BiV7jZuDyWmZ1cUNwJkKL6oRtp+ZNDOQCrLNLecKHcgCqrpjSQG5oouba1I1Q6Vl\n" +
+            "sP44dhA1nkmLHtxlTOzpeHj4jnk1FaXmyasurrrI5CgU/L2Oi39DGKTH/A/cywDN\n" +
+            "4ZplIQ9zR8enkbXquUZvFDe+Xz+6xRXtb5MwQyWODB3nHw85HocLwRoIN9WdQEI+\n" +
+            "L8a/56AuOwhs8llkSuiITjR7r9SgKJC2WlAHl7E8lhJ3VDW3ELC56KH308d6mwOG\n" +
+            "ZRAqIAKzM1T5FGjMBhq7ZV0eqdEntBh3EcOIfj2M8rg1MzJv+0mHZOIjByawikbO\n" +
+            "wM0EXaWc8gEMANYwv1xsYyunXYK0X1vY/rP1NNPvhLyLIE7NpK90YNBj+xS1ldGD\n" +
+            "bUdZqZeef2xJe8gMQg05DoD1DF3GipZ0Ies65beh+d5hegb7N4pzh0LzrBrVNHar\n" +
+            "29b5ExdI7i4iYD5TO6Vr/qTUOiAN/byqELEzAb+L+b2DVz/RoCm4PIp1DU9ewcc2\n" +
+            "WB38Ofqut3nLYA5tqJ9XvAiEQme+qAVcM3ZFcaMt4I4dXhDZZNg+D9LiTWcxdUPB\n" +
+            "leu8iwDRjAgyAhPzpFp+nWoqWA81uIiULWD1Fj+IVoY3ZvgivoYOiEFBJ9lbb4te\n" +
+            "g9m5UT/AaVDTWuHzbspVlbiVe+qyB77C2daWzNyx6UYBPLOo4r0t0c91kbNE5lgj\n" +
+            "Z7xz6los0N1U8vq91EFSeQJoSQ62XWavYmlCLmdNT6BNfgh4icLsT7Vr1QMX9jzn\n" +
+            "JtTPxdXytSdHvpSpULsqJ016l0dtmONcK3z9mj5N5z0k1tg1AH970TGYOe2aUcSx\n" +
+            "IRDMXDOPyzEfjwARAQABwsD2BBgBCgAgFiEE0aZuGiOxgsmYD3iM+/zIKgFeczAF\n" +
+            "Al2lnPICGwwACgkQ+/zIKgFeczDp/wv/boLfh2SMF99PMyPkF3Obwy0Xrs5id4nh\n" +
+            "NAzDv7jUgvitVxIqEiGT/dR3mSdpG0/Z5/X7kXrqH39E9A4nn628HCEEBxRZK6kq\n" +
+            "dSt1VplBqdia1LFxVXY8v35ASI03e3OW6FpY7/+sALEn4r9ldCUjPBBVOk2F8bMB\n" +
+            "oxVX3Ol/e7STXiK1y/pqUpjz6stm87XAgh5FkuZTS1kMPke1YO9RXusgUjVa6gtv\n" +
+            "4pmBtifc5aMI8dV1Ot1nYKqdlsbdJfDprAf1vNEtX0ReRuEgx7PR14JV16j7AUWS\n" +
+            "WHz/lUrZvS+T/7CownF+lrWUe8kuhvM4/1++uzCyv3YwDb6T3TVZ4hJHuoTNwjQV\n" +
+            "2DwDIUATFoQrpXKM/tJcYvC9+KzDfg7G5mveqbHVK5+7i2gfdesHtAk3xfKqpuwb\n" +
+            "FQIGpaJ/1FIrjGPNFN7nqI96JIkk4hyIw/2LaV0j4qAvJzJ4O8agGPQcIs7eBVoF\n" +
+            "7i5tWuPkqOFfY9U0Ql3ddlHNpdkTZoAx\n" +
+            "=kgFK\n" +
+            "-----END PGP PUBLIC KEY BLOCK-----";
+
+
+        public override string Name
 		{
 			get { return "IgnoreMarkerPacketInCertificatesTest"; }
 		}
 
         public override void PerformTest()
         {
+            PerformTestMarker(CERT_WITH_MARKER);
+            PerformTestMarker(CERT_WITH_MARKER_AND_PADDING);
+        }
+
+        private void PerformTestMarker(string cert)
+        {
             ArmoredInputStream armorIn = new ArmoredInputStream(
-                new MemoryStream(Encoding.UTF8.GetBytes(CERT_WITH_MARKER), false));
+                new MemoryStream(Encoding.UTF8.GetBytes(cert), false));
             PgpObjectFactory objectFactory = new PgpObjectFactory(armorIn);
 
             PgpPublicKeyRing certificate = (PgpPublicKeyRing)objectFactory.NextPgpObject();
@@ -86,7 +137,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(1, Count(signatures));
         }
 
-		[Test]
+        [Test]
 		public void TestFunction()
 		{
 			string resultText = Perform().ToString();

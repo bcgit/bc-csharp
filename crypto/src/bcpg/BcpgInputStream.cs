@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     public class BcpgInputStream
         : BaseInputStream
     {
-        private Stream m_in;
+        private readonly Stream m_in;
         private bool next = false;
         private int nextB;
 
@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Bcpg
             }
 
             bool newPacket = (hdr & 0x40) != 0;
-            PacketTag tag = 0;
+            PacketTag tag = PacketTag.Reserved;
             int bodyLen = 0;
             bool partial = false;
 
@@ -206,7 +206,7 @@ namespace Org.BouncyCastle.Bcpg
             switch (tag)
             {
                 case PacketTag.Reserved:
-                    return new InputStreamPacket(objStream);
+                    return new InputStreamPacket(objStream, PacketTag.Reserved);
                 case PacketTag.PublicKeyEncryptedSession:
                     return new PublicKeyEncSessionPacket(objStream);
                 case PacketTag.Signature:
@@ -241,6 +241,10 @@ namespace Org.BouncyCastle.Bcpg
                     return new SymmetricEncIntegrityPacket(objStream);
                 case PacketTag.ModificationDetectionCode:
                     return new ModDetectionCodePacket(objStream);
+                case PacketTag.ReservedAeadEncryptedData:
+                    return new AeadEncDataPacket(objStream);
+                case PacketTag.Padding:
+                    return new PaddingPacket(objStream);
                 case PacketTag.Experimental1:
                 case PacketTag.Experimental2:
                 case PacketTag.Experimental3:
@@ -253,8 +257,13 @@ namespace Org.BouncyCastle.Bcpg
 
         public PacketTag SkipMarkerPackets()
         {
+            return SkipMarkerAndPaddingPackets();
+        }
+
+        public PacketTag SkipMarkerAndPaddingPackets()
+        {
             PacketTag tag;
-            while ((tag = NextPacketTag()) == PacketTag.Marker)
+            while ((tag = NextPacketTag()) == PacketTag.Marker || tag == PacketTag.Padding)
             {
                 ReadPacket();
             }
@@ -278,7 +287,7 @@ namespace Org.BouncyCastle.Bcpg
 		private class PartialInputStream
             : BaseInputStream
         {
-            private BcpgInputStream m_in;
+            private readonly BcpgInputStream m_in;
             private bool partial;
             private int dataLength;
 

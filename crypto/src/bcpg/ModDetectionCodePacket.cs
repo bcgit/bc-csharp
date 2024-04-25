@@ -11,9 +11,10 @@ namespace Org.BouncyCastle.Bcpg
 
 		internal ModDetectionCodePacket(
             BcpgInputStream bcpgIn)
+            :base(PacketTag.ModificationDetectionCode)
         {
 			if (bcpgIn == null)
-				throw new ArgumentNullException("bcpgIn");
+				throw new ArgumentNullException(nameof(bcpgIn));
 
 			this.digest = new byte[20];
             bcpgIn.ReadFully(this.digest);
@@ -21,9 +22,10 @@ namespace Org.BouncyCastle.Bcpg
 
 		public ModDetectionCodePacket(
             byte[] digest)
+            : base(PacketTag.ModificationDetectionCode)
         {
 			if (digest == null)
-				throw new ArgumentNullException("digest");
+				throw new ArgumentNullException(nameof(digest));
 
 			this.digest = (byte[]) digest.Clone();
         }
