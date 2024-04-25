@@ -343,7 +343,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             FailIf("invalid PgpEncryptedDataList", encDataList is null);
 
             PgpPbeEncryptedData encData = encDataList[0] as PgpPbeEncryptedData;
-            FailIf("invalid PgpPublicKeyEncryptedData", encData is null);
+            FailIf("invalid PgpPbeEncryptedData", encData is null);
 
             using (Stream stream = encData.GetDataStreamRaw(rawPassword))
             {

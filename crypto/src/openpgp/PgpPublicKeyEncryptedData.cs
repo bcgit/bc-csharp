@@ -179,9 +179,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             var aadata = seipd.GetAAData();
             var salt = seipd.GetSalt();
 
+            // no checksum and padding for X25519 and X448
+            int length = sessionData.Length;
+            if (keyData.Algorithm != PublicKeyAlgorithmTag.X25519 && keyData.Algorithm != PublicKeyAlgorithmTag.X448)
+            {
+                length -= 2;
+            }
+
             var sessionKey = ParameterUtilities.CreateKeyParameter(
                 PgpUtilities.GetSymmetricCipherName(encAlgo),
-                sessionData, 0, sessionData.Length);
+                sessionData, 0, length);
 
             AeadUtils.DeriveAeadMessageKeyAndIv(sessionKey, encAlgo, aeadAlgo, salt, aadata, out var messageKey, out var iv);
             var cipher = AeadUtils.CreateAeadCipher(seipd.CipherAlgorithm, seipd.AeadAlgorithm);
@@ -205,14 +212,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
 			byte[] sessionData = RecoverSessionData(privKey);
 
+            if (!ConfirmCheckSum(sessionData))
+                throw new PgpKeyValidationException("key checksum failed");
+
             if (keyData.Version == PublicKeyEncSessionPacket.Version6)
             {
                 // V6 PKESK + V2 SEIPD
-                return GetDataStreamSeipdVersion2(sessionData, (SymmetricEncIntegrityPacket)encData);
+                try
+                { 
+                    return GetDataStreamSeipdVersion2(sessionData, (SymmetricEncIntegrityPacket)encData);
+                }
+                catch (PgpException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    throw new PgpException("Exception starting decryption", e);
+                }
             }
-
-            if (!ConfirmCheckSum(sessionData))
-                throw new PgpKeyValidationException("key checksum failed");
 
             SymmetricKeyAlgorithmTag symmAlg;
             if (keyData.Algorithm == PublicKeyAlgorithmTag.X25519 || keyData.Algorithm == PublicKeyAlgorithmTag.X448)
