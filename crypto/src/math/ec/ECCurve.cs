@@ -110,6 +110,16 @@ namespace Org.BouncyCastle.Math.EC
             return new Config(this, this.m_coord, this.m_endomorphism, this.m_multiplier);
         }
 
+        public virtual int FieldElementEncodingLength => (FieldSize + 7) / 8;
+
+        public virtual int GetAffinePointEncodingLength(bool compressed)
+        {
+            int fieldLength = FieldElementEncodingLength;
+            return compressed
+                ?  1 + fieldLength
+                :  1 + fieldLength * 2;
+        }
+
         public virtual ECPoint ValidatePoint(BigInteger x, BigInteger y)
         {
             ECPoint p = CreatePoint(x, y);
@@ -362,24 +372,15 @@ namespace Org.BouncyCastle.Math.EC
          */
         public virtual ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)
         {
-            int FE_BYTES = (FieldSize + 7) / 8;
+            int FE_BYTES = FieldElementEncodingLength;
             byte[] table = new byte[len * FE_BYTES * 2];
+            int pos = 0;
+            for (int i = 0; i < len; ++i)
             {
-                int pos = 0;
-                for (int i = 0; i < len; ++i)
-                {
-                    ECPoint p = points[off + i];
-                    byte[] px = p.RawXCoord.ToBigInteger().ToByteArray();
-                    byte[] py = p.RawYCoord.ToBigInteger().ToByteArray();
-
-                    int pxStart = px.Length > FE_BYTES ? 1 : 0, pxLen = px.Length - pxStart;
-                    int pyStart = py.Length > FE_BYTES ? 1 : 0, pyLen = py.Length - pyStart;
-
-                    Array.Copy(px, pxStart, table, pos + FE_BYTES - pxLen, pxLen); pos += FE_BYTES;
-                    Array.Copy(py, pyStart, table, pos + FE_BYTES - pyLen, pyLen); pos += FE_BYTES;
-                }
+                ECPoint p = points[off + i];
+                p.RawXCoord.EncodeTo(table, pos);       pos += FE_BYTES;
+                p.RawYCoord.EncodeTo(table, pos);       pos += FE_BYTES;
             }
-
             return new DefaultLookupTable(this, table, len);
         }
 
@@ -465,7 +466,7 @@ namespace Org.BouncyCastle.Math.EC
             return DecodePoint(encoded.AsSpan());
 #else
             ECPoint p;
-            int expectedLength = (FieldSize + 7) / 8;
+            int expectedLength = FieldElementEncodingLength;
 
             byte type = encoded[0];
             switch (type)
@@ -538,7 +539,7 @@ namespace Org.BouncyCastle.Math.EC
         public virtual ECPoint DecodePoint(ReadOnlySpan<byte> encoded)
         {
             ECPoint p;
-            int expectedLength = (FieldSize + 7) / 8;
+            int expectedLength = FieldElementEncodingLength;
 
             byte type = encoded[0];
             switch (type)
@@ -635,7 +636,7 @@ namespace Org.BouncyCastle.Math.EC
 
             public override ECPoint Lookup(int index)
             {
-                int FE_BYTES = (m_outer.FieldSize + 7) / 8;
+                int FE_BYTES = m_outer.FieldElementEncodingLength;
                 byte[] x = new byte[FE_BYTES], y = new byte[FE_BYTES];
                 int pos = 0;
 
@@ -657,7 +658,7 @@ namespace Org.BouncyCastle.Math.EC
 
             public override ECPoint LookupVar(int index)
             {
-                int FE_BYTES = (m_outer.FieldSize + 7) / 8;
+                int FE_BYTES = m_outer.FieldElementEncodingLength;
                 byte[] x = new byte[FE_BYTES], y = new byte[FE_BYTES];
                 int pos = index * FE_BYTES * 2;
 

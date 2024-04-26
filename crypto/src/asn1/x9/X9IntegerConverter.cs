@@ -7,15 +7,9 @@ namespace Org.BouncyCastle.Asn1.X9
 {
     public abstract class X9IntegerConverter
     {
-        public static int GetByteLength(ECFieldElement fe)
-        {
-            return (fe.FieldSize + 7) / 8;
-        }
+        public static int GetByteLength(ECFieldElement fe) => fe.GetEncodedLength();
 
-        public static int GetByteLength(ECCurve c)
-        {
-            return (c.FieldSize + 7) / 8;
-        }
+        public static int GetByteLength(ECCurve c) => c.FieldElementEncodingLength;
 
         public static byte[] IntegerToBytes(BigInteger s, int qLength)
         {
