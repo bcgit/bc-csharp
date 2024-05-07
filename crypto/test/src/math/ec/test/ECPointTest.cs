@@ -179,6 +179,26 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
+        [Test]
+        public void TestLargeMInF2m()
+        {
+            int m = 2048;
+            int k1 = 1;
+            BigInteger aTpb = new BigInteger("1000", 2);
+            BigInteger bTpb = new BigInteger("1001", 2);
+            BigInteger n = new BigInteger("23");
+            BigInteger h = new BigInteger("1");
+
+            try
+            {
+                F2mCurve curve = new F2mCurve(m, k1, aTpb, bTpb, n, h);
+            }
+            catch (ArgumentException e)
+            {
+                Assert.AreEqual("F2m m value out of range", e.Message);
+            }
+        }
+
         /**
          * Calls <code>implTestAdd()</code> for <code>Fp</code> and
          * <code>F2m</code>.

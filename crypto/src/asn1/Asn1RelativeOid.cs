@@ -22,6 +22,16 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Implementation limit on the length of the contents octets for a Relative OID.</summary>
+        /// <remarks>
+        /// We adopt the same value used by OpenJDK for Object Identifier. In theory there is no limit on the length of
+        /// the contents, or the number of subidentifiers, or the length of individual subidentifiers. In practice,
+        /// supporting arbitrary lengths can lead to issues, e.g. denial-of-service attacks when attempting to convert a
+        /// parsed value to its (decimal) string form.
+        /// </remarks>
+        private const int MaxContentsLength = 4096;
+        private const int MaxIdentifierLength = MaxContentsLength * 4 - 1;
+
         public static Asn1RelativeOid FromContents(byte[] contents)
         {
             if (contents == null)
@@ -68,14 +78,18 @@ namespace Org.BouncyCastle.Asn1
         {
             if (identifier == null)
                 throw new ArgumentNullException(nameof(identifier));
-            if (!IsValidIdentifier(identifier, 0))
+            if (identifier.Length <= MaxIdentifierLength && IsValidIdentifier(identifier, from: 0))
             {
-                oid = default;
-                return false;
+                byte[] contents = ParseIdentifier(identifier);
+                if (contents.Length <= MaxContentsLength)
+                {
+                    oid = new Asn1RelativeOid(contents, identifier);
+                    return true;
+                }
             }
 
-            oid = new Asn1RelativeOid(ParseIdentifier(identifier), identifier);
-            return true;
+            oid = default;
+            return false;
         }
 
         private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
@@ -85,31 +99,13 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1RelativeOid(string identifier)
         {
-            if (identifier == null)
-                throw new ArgumentNullException("identifier");
-            if (!IsValidIdentifier(identifier, 0))
-                throw new FormatException("string " + identifier + " not a relative OID");
+            CheckIdentifier(identifier);
 
-            m_contents = ParseIdentifier(identifier);
+            byte[] contents = ParseIdentifier(identifier);
+            CheckContentsLength(contents.Length);
+
+            m_contents = contents;
             m_identifier = identifier;
-        }
-
-        private Asn1RelativeOid(Asn1RelativeOid oid, string branchID)
-        {
-            if (!IsValidIdentifier(branchID, 0))
-                throw new FormatException("string " + branchID + " not a valid relative OID branch");
-
-            m_contents = Arrays.Concatenate(oid.m_contents, ParseIdentifier(branchID));
-            m_identifier = oid.GetID() + "." + branchID;
-        }
-
-        private Asn1RelativeOid(byte[] contents, bool clone)
-        {
-            if (!IsValidContents(contents))
-                throw new ArgumentException("invalid relative OID contents", nameof(contents));
-
-            m_contents = clone ? Arrays.Clone(contents) : contents;
-            m_identifier = null;
         }
 
         private Asn1RelativeOid(byte[] contents, string identifier)
@@ -120,7 +116,14 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual Asn1RelativeOid Branch(string branchID)
         {
-            return new Asn1RelativeOid(this, branchID);
+            CheckIdentifier(branchID);
+
+            byte[] branchContents = ParseIdentifier(branchID);
+            CheckContentsLength(m_contents.Length + branchContents.Length);
+
+            return new Asn1RelativeOid(
+                contents: Arrays.Concatenate(m_contents, branchContents),
+                identifier: GetID() + "." + branchID);
         }
 
         public string GetID()
@@ -165,9 +168,30 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        internal static void CheckContentsLength(int contentsLength)
+        {
+            if (contentsLength > MaxContentsLength)
+                throw new ArgumentException("exceeded relative OID contents length limit");
+        }
+
+        internal static void CheckIdentifier(string identifier)
+        {
+            if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+            if (identifier.Length > MaxIdentifierLength)
+                throw new ArgumentException("exceeded relative OID contents length limit");
+            if (!IsValidIdentifier(identifier, from: 0))
+                throw new FormatException("string " + identifier + " not a valid relative OID");
+        }
+
         internal static Asn1RelativeOid CreatePrimitive(byte[] contents, bool clone)
         {
-            return new Asn1RelativeOid(contents, clone);
+            CheckContentsLength(contents.Length);
+
+            if (!IsValidContents(contents))
+                throw new ArgumentException("invalid relative OID contents", nameof(contents));
+
+            return new Asn1RelativeOid(clone ? Arrays.Clone(contents) : contents, identifier: null);
         }
 
         internal static bool IsValidContents(byte[] contents)
