@@ -140,8 +140,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			foreach (RecipientInformation recipient in c)
 			{
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+                Assert.True(recipient.RecipientID.Match(ReciCert));
 
-				CmsTypedStream recData = recipient.GetContentStream(ReciKP.Private);
+                CmsTypedStream recData = recipient.GetContentStream(ReciKP.Private);
 
 				Assert.IsTrue(Arrays.AreEqual(expectedData, CmsTestUtil.StreamToByteArray(
 					recData.ContentStream)));
@@ -323,8 +324,9 @@ namespace Org.BouncyCastle.Cms.Tests
 				RecipientInformation recipient = e.Current;
 
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+                Assert.True(recipient.RecipientID.Match(ReciCert));
 
-				CmsTypedStream recData = recipient.GetContentStream(ReciKP.Private);
+                CmsTypedStream recData = recipient.GetContentStream(ReciKP.Private);
 
 				Stream dataStream = recData.ContentStream;
 				MemoryStream dataOut = new MemoryStream();
@@ -377,6 +379,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 foreach (RecipientInformation recipient in recipients.GetRecipients())
                 {
                     Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+                    Assert.True(recipient.RecipientID.Match(ReciCert));
 
                     CmsTypedStream recData = recipient.GetContentStream(ReciKP.Private);
 
@@ -415,6 +418,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 foreach (RecipientInformation recipient in recipients.GetRecipients())
                 {
                     Assert.AreEqual(recipient.KeyEncryptionAlgOid, "2.16.840.1.101.3.4.1.25");
+                    Assert.True(Arrays.AreEqual(recipient.RecipientID.KeyIdentifier, kekId));
 
                     CmsTypedStream recData = recipient.GetContentStream(kek);
 
