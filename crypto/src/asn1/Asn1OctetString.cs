@@ -129,15 +129,10 @@ namespace Org.BouncyCastle.Asn1
 			return Arrays.GetHashCode(GetOctets());
         }
 
-		protected override bool Asn1Equals(
-			Asn1Object asn1Object)
+		protected override bool Asn1Equals(Asn1Object asn1Object)
 		{
-			DerOctetString other = asn1Object as DerOctetString;
-
-			if (other == null)
-				return false;
-
-			return Arrays.AreEqual(GetOctets(), other.GetOctets());
+            return asn1Object is Asn1OctetString that
+                && Arrays.AreEqual(this.GetOctets(), that.GetOctets());
 		}
 
 		public override string ToString()
