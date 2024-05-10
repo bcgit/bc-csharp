@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OtherKeyAttribute
@@ -9,18 +11,23 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is OtherKeyAttribute otherKeyAttribute)
                 return otherKeyAttribute;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new OtherKeyAttribute(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static OtherKeyAttribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new OtherKeyAttribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private DerObjectIdentifier	keyAttrId;
         private Asn1Encodable		keyAttr;
 
-		public OtherKeyAttribute(
+        [Obsolete("Use 'GetInstance' instead")]
+        public OtherKeyAttribute(
             Asn1Sequence seq)
         {
             keyAttrId = (DerObjectIdentifier) seq[0];

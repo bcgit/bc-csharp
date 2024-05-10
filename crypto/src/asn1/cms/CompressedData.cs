@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -21,12 +23,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is CompressedData compressedData)
                 return compressedData;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new CompressedData(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static CompressedData GetInstance(Asn1TaggedObject ato, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new CompressedData(Asn1Sequence.GetInstance(ato, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private DerInteger			version;
@@ -42,7 +48,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.encapContentInfo = encapContentInfo;
         }
 
-		public CompressedData(
+        [Obsolete("Use 'GetInstance' instead")]
+        public CompressedData(
             Asn1Sequence seq)
         {
             this.version = (DerInteger) seq[0];

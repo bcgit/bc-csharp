@@ -13,12 +13,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is OriginatorInfo originatorInfo)
                 return originatorInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new OriginatorInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static OriginatorInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new OriginatorInfo(Asn1Sequence.GetInstance(obj, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private Asn1Set certs;
@@ -32,7 +36,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.crls = crls;
         }
 
-		public OriginatorInfo(
+        [Obsolete("Use 'GetInstance' instead")]
+        public OriginatorInfo(
             Asn1Sequence seq)
         {
             switch (seq.Count)

@@ -14,12 +14,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is KeyTransRecipientInfo keyTransRecipientInfo)
                 return keyTransRecipientInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KeyTransRecipientInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static KeyTransRecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KeyTransRecipientInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private DerInteger          version;
@@ -46,7 +50,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.encryptedKey = encryptedKey;
         }
 
-		public KeyTransRecipientInfo(
+        [Obsolete("Use 'GetInstance' instead")]
+        public KeyTransRecipientInfo(
             Asn1Sequence seq)
         {
             this.version = (DerInteger) seq[0];

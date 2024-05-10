@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -11,12 +13,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is PasswordRecipientInfo passwordRecipientInfo)
                 return passwordRecipientInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new PasswordRecipientInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static PasswordRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new PasswordRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private readonly DerInteger				version;
@@ -44,7 +50,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.encryptedKey = encryptedKey;
 		}
 
-		public PasswordRecipientInfo(Asn1Sequence seq)
+        [Obsolete("Use 'GetInstance' instead")]
+        public PasswordRecipientInfo(Asn1Sequence seq)
         {
             version = (DerInteger)seq[0];
 

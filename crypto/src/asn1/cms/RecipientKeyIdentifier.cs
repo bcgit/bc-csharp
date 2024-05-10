@@ -13,12 +13,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is RecipientKeyIdentifier recipientKeyIdentifier)
                 return recipientKeyIdentifier;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new RecipientKeyIdentifier(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static RecipientKeyIdentifier GetInstance(Asn1TaggedObject ato, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new RecipientKeyIdentifier(Asn1Sequence.GetInstance(ato, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private Asn1OctetString      subjectKeyIdentifier;
@@ -51,7 +55,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.other = other;
 		}
 
-		public RecipientKeyIdentifier(Asn1Sequence seq)
+        [Obsolete("Use 'GetInstance' instead")]
+        public RecipientKeyIdentifier(Asn1Sequence seq)
         {
             subjectKeyIdentifier = Asn1OctetString.GetInstance(seq[0]);
 

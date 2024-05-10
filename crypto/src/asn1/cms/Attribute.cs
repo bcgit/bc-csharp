@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class Attribute
@@ -9,18 +11,23 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is Attribute attribute)
                 return attribute;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new Attribute(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static Attribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new Attribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private DerObjectIdentifier	attrType;
         private Asn1Set				attrValues;
 
-		public Attribute(
+        [Obsolete("Use 'GetInstance' instead")]
+        public Attribute(
             Asn1Sequence seq)
         {
             attrType = (DerObjectIdentifier)seq[0];

@@ -11,12 +11,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is KekIdentifier kekIdentifier)
                 return kekIdentifier;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KekIdentifier(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static KekIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KekIdentifier(Asn1Sequence.GetInstance(obj, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private Asn1OctetString		keyIdentifier;
@@ -33,7 +37,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.other = other;
         }
 
-		public KekIdentifier(Asn1Sequence seq)
+        [Obsolete("Use 'GetInstance' instead")]
+        public KekIdentifier(Asn1Sequence seq)
         {
             keyIdentifier = (Asn1OctetString)seq[0];
 

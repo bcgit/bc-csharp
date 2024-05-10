@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -11,12 +13,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is EncryptedContentInfo encryptedContentInfo)
                 return encryptedContentInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new EncryptedContentInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static EncryptedContentInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new EncryptedContentInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private DerObjectIdentifier	contentType;
@@ -33,7 +39,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.encryptedContent = encryptedContent;
         }
 
-		public EncryptedContentInfo(
+        [Obsolete("Use 'GetInstance' instead")]
+        public EncryptedContentInfo(
             Asn1Sequence seq)
         {
             contentType = (DerObjectIdentifier) seq[0];

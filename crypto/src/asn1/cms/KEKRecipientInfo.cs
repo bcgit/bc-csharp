@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -11,12 +13,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is KekRecipientInfo kekRecipientInfo)
                 return kekRecipientInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KekRecipientInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static KekRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KekRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private DerInteger			version;
@@ -35,7 +41,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.encryptedKey = encryptedKey;
         }
 
-		public KekRecipientInfo(
+        [Obsolete("Use 'GetInstance' instead")]
+        public KekRecipientInfo(
             Asn1Sequence seq)
         {
             version = (DerInteger) seq[0];
