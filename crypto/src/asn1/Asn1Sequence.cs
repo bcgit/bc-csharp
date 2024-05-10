@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -74,6 +75,28 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1Sequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1Sequence)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+        }
+
+        internal static Asn1Encodable[] ConcatenateElements(Asn1Sequence[] sequences)
+        {
+            int count = sequences.Length;
+            int totalElements = 0;
+            for (int i = 0; i < count; ++i)
+            {
+                totalElements += sequences[i].Count;
+            }
+
+            Asn1Encodable[] concatElements = new Asn1Encodable[totalElements];
+            int pos = 0;
+            for (int i = 0; i < count; ++i)
+            {
+                Asn1Encodable[] elements = sequences[i].m_elements;
+                Array.Copy(elements, 0, concatElements, pos, elements.Length);
+                pos += elements.Length;
+            }
+
+            Debug.Assert(pos == totalElements);
+            return concatElements;
         }
 
         internal readonly Asn1Encodable[] m_elements;

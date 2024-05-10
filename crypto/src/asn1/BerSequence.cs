@@ -7,6 +7,35 @@ namespace Org.BouncyCastle.Asn1
 	{
 		public static new readonly BerSequence Empty = new BerSequence();
 
+        public static new BerSequence Concatenate(params Asn1Sequence[] sequences)
+        {
+            if (sequences == null)
+                return Empty;
+
+            switch (sequences.Length)
+            {
+            case 0:
+                return Empty;
+            case 1:
+                return FromSequence(sequences[0]);
+            default:
+                return FromElements(ConcatenateElements(sequences));
+            }
+        }
+
+        internal static new BerSequence FromElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new BerSequence(elements, clone: false);
+        }
+
+        public static new BerSequence FromSequence(Asn1Sequence sequence)
+        {
+            if (sequence is BerSequence berSequence)
+                return berSequence;
+
+            return FromElements(sequence.m_elements);
+        }
+
 		public static new BerSequence FromVector(Asn1EncodableVector elementVector)
 		{
             return elementVector.Count < 1 ? Empty : new BerSequence(elementVector);

@@ -7,6 +7,35 @@ namespace Org.BouncyCastle.Asn1
     {
         public static new readonly DLSequence Empty = new DLSequence();
 
+        public static new DLSequence Concatenate(params Asn1Sequence[] sequences)
+        {
+            if (sequences == null)
+                return Empty;
+
+            switch (sequences.Length)
+            {
+            case 0:
+                return Empty;
+            case 1:
+                return FromSequence(sequences[0]);
+            default:
+                return FromElements(ConcatenateElements(sequences));
+            }
+        }
+
+        internal static new DLSequence FromElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new DLSequence(elements, clone: false);
+        }
+
+        public static new DLSequence FromSequence(Asn1Sequence sequence)
+        {
+            if (sequence is DLSequence dlSequence)
+                return dlSequence;
+
+            return FromElements(sequence.m_elements);
+        }
+
         public static new DLSequence FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSequence(elementVector);

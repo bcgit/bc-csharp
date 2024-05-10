@@ -7,6 +7,35 @@ namespace Org.BouncyCastle.Asn1
 	{
 		public static readonly DerSequence Empty = new DerSequence();
 
+        public static DerSequence Concatenate(params Asn1Sequence[] sequences)
+        {
+            if (sequences == null)
+                return Empty;
+
+            switch (sequences.Length)
+            {
+            case 0:
+                return Empty;
+            case 1:
+                return FromSequence(sequences[0]);
+            default:
+                return FromElements(ConcatenateElements(sequences));
+            }
+        }
+
+        internal static DerSequence FromElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new DerSequence(elements, clone: false);
+        }
+
+        public static DerSequence FromSequence(Asn1Sequence sequence)
+        {
+            if (sequence is DerSequence derSequence)
+                return derSequence;
+
+            return FromElements(sequence.m_elements);
+        }
+
 		public static DerSequence FromVector(Asn1EncodableVector elementVector)
 		{
             return elementVector.Count < 1 ? Empty : new DerSequence(elementVector);
