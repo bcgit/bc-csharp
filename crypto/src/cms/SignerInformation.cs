@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Cms
 				{
 					Asn1OctetString octs = Asn1OctetString.GetInstance(s.ID);
 
-					sid.SubjectKeyIdentifier = octs.GetEncoded();
+					sid.SubjectKeyIdentifier = octs.GetEncoded(Asn1Encodable.Der);
 				}
 				else
 				{
