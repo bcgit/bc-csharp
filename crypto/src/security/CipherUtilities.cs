@@ -70,6 +70,7 @@ namespace Org.BouncyCastle.Security
             VMPC,
             VMPC_KSA3,
             XTEA,
+            ZUC128,
         };
 
         private enum CipherMode { ECB, NONE, CBC, CCM, CFB, CTR, CTS, EAX, GCM, GOFB, OCB, OFB, OPENPGPCFB, SIC };
@@ -452,6 +453,9 @@ namespace Org.BouncyCastle.Security
                 break;
             case CipherAlgorithm.CHACHA7539:
                 streamCipher = new ChaCha7539Engine();
+                break;
+            case CipherAlgorithm.ZUC128:
+                streamCipher = new ZUC128Engine();
                 break;
             case CipherAlgorithm.DES:
                 blockCipher = new DesEngine();
