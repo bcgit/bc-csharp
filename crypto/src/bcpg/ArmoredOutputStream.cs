@@ -6,7 +6,6 @@ using System.Reflection;
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -145,24 +144,35 @@ namespace Org.BouncyCastle.Bcpg
 
         private static readonly string Version = CreateVersion();
 
-        private readonly IDictionary<string, IList<string>> m_headers;
+        private readonly Dictionary<string, List<string>> m_headers;
 
         public ArmoredOutputStream(Stream outStream)
+            : this(outStream, true)
+        {
+        }
+
+        public ArmoredOutputStream(Stream outStream, bool addVersionHeader)
         {
             this.outStream = outStream;
-            this.m_headers = new Dictionary<string, IList<string>>(1);
-            SetHeader(HeaderVersion, Version);
+            this.m_headers = new Dictionary<string, List<string>>();
+
+            if (addVersionHeader)
+            {
+                SetHeader(HeaderVersion, Version);
+            }
         }
 
         public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers)
-            : this(outStream)
+            : this(outStream, headers, true)
+        {
+        }
+
+        public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers, bool addVersionHeader)
+            : this(outStream, addVersionHeader && !headers.ContainsKey(HeaderVersion))
         {
             foreach (var header in headers)
             {
-                var headerList = new List<string>(1);
-                headerList.Add(header.Value);
-
-                m_headers[header.Key] = headerList;
+                m_headers.Add(header.Key, new List<string> { header.Value });
             }
         }
 
@@ -219,13 +229,13 @@ namespace Org.BouncyCastle.Bcpg
          */
         public void ResetHeaders()
         {
-            var versions = CollectionUtilities.GetValueOrNull(m_headers, HeaderVersion);
+            bool hadVersion = m_headers.TryGetValue(HeaderVersion, out var version);
 
             m_headers.Clear();
 
-            if (versions != null)
+            if (hadVersion)
             {
-                m_headers[HeaderVersion] = versions;
+                m_headers.Add(HeaderVersion, version);
             }
         }
 
