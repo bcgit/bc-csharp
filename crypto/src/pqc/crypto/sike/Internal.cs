@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-
-using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
@@ -137,59 +133,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         protected internal ulong[] ph3_T2;
 
 
-        internal static uint[] ReadIntsFromProperty(IDictionary<string, string> props, string key, uint intSize)
+        internal static uint[] ReadIntsFromProperty(uint[] data, uint intSize)
         {
             uint[] ints = new uint[intSize];
-            string s = props[key];
-            uint i = 0;
-            foreach (string number in s.Split(','))
-            {
-                ints[i] = UInt32.Parse(number);
-                i++;
-            }
+            Array.Copy(data, ints, data.Length);
             return ints;
         }
 
-        internal static ulong[] ReadFromProperty(IDictionary<string, string> props, string key, uint ulongSize)
+        internal static ulong[] ReadFromProperty(ulong[] data, uint ulongSize)
         {
-            string s = props[key];
-            s = s.Replace(",", "");
-            byte[] bytes = Hex.Decode(s);
             ulong[] ulongs = new ulong[ulongSize];
-            for (int i = 0; i < bytes.Length / 8; i++)
-            {
-                ulongs[i] = Pack.BE_To_UInt64(bytes, i * 8);
-            }
+            Array.Copy(data, ulongs, data.Length);
             return ulongs;
         }
 
-        internal static ulong[][] ReadFromProperty(IDictionary<string, string> props, string key, uint d1Size,
-            uint d2Size)
+        internal static ulong[][] ReadFromProperty(ulong[][] data, uint d1Size, uint d2Size)
         {
-            string s = props[key];
-            s = s.Replace(",", "");
-            byte[] bytes = Hex.Decode(s);
             ulong[][] ulongs = new ulong[d1Size][]; //[d2Size];
             for (int k = 0; k < d1Size; k++)
             {
                 ulongs[k] = new ulong[d2Size];
-            }
-            uint i, j;
-            for (uint x = 0; x < bytes.Length / 8; x++)
-            {
-                i = x/d2Size;
-                j = x%d2Size;
-                ulongs[i][j] = Pack.BE_To_UInt64(bytes, (int)x * 8);
+                Array.Copy(data[k], ulongs[k], data[k].Length);
             }
             return ulongs;
         }
 
-        internal static ulong[][][] ReadFromProperty(IDictionary<string, string> props, string key, uint d1Size,
-            uint d2Size, uint d3Size)
+        internal static ulong[][][] ReadFromProperty(ulong[][][] data, uint d1Size, uint d2Size, uint d3Size)
         {
-            string s = props[key];
-            s = s.Replace(",", "");
-            byte[] bytes = Hex.Decode(s);
             ulong[][][] ulongs = new ulong[d1Size][][]; //[d2Size][d3Size];
             for (int l = 0; l < d1Size; l++)
             {
@@ -197,16 +167,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 for (int m = 0; m < d2Size; m++)
                 {
                     ulongs[l][m] = new ulong[d3Size];
+                    Array.Copy(data[l][m], ulongs[l][m], data[l][m].Length);
                 }
-            }
-                        
-            uint i, j, k;
-            for (uint x = 0; x < bytes.Length / 8; x++)
-            {
-                i = x/(d2Size * d3Size);
-                j = x%(d2Size * d3Size)/d3Size;
-                k = x % d3Size;
-                ulongs[i][j][k] = Pack.BE_To_UInt64(bytes, (int)x * 8);
             }
             return ulongs;
         }
