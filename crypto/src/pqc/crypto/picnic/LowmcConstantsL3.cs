@@ -8,27 +8,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             // Parameters for security level L3
             // Block/key size: 192
             // Rounds: 30
-            linearMatrices = ReadFromProperty(s_linearMatrices, 138240);
-            roundConstants = ReadFromProperty(s_roundConstants, 720);
-            keyMatrices = ReadFromProperty(s_keyMatrices, 142848);
-            _LMatrix = new KMatrices(30, 192, 6, linearMatrices);
-            _KMatrix = new KMatrices(31, 192, 6, keyMatrices);
-            RConstants = new KMatrices(30, 1, 6, roundConstants);
+            _LMatrix = new KMatrices(30, 192, 6, s_linearMatrices);
+            _KMatrix = new KMatrices(31, 192, 6, s_keyMatrices);
+            RConstants = new KMatrices(30, 1, 6, s_roundConstants);
 
             // Parameters for security level L3, full s-box layer
             // Block/key size: 192
             // S-boxes: 64
             // Rounds: 4
-            linearMatrices_full = ReadFromProperty(s_linearMatrices_full, 18432);
-            linearMatrices_inv = ReadFromProperty(s_linearMatrices_inv, 18432);
-            roundConstants_full = ReadFromProperty(s_roundConstants_full, 96);
-            keyMatrices_full = ReadFromProperty(s_keyMatrices_full, 23040);
-            keyMatrices_inv = ReadFromProperty(s_keyMatrices_inv, 4608);
-            LMatrix_full = new KMatrices(4, 192, 6, linearMatrices_full);
-            LMatrix_inv = new KMatrices(4, 192, 6, linearMatrices_inv);
-            KMatrix_full = new KMatrices(5, 192, 6, keyMatrices_full);
-            KMatrix_inv = new KMatrices(1, 192, 6, keyMatrices_inv);
-            RConstants_full = new KMatrices(4, 1, 6, roundConstants_full);
+            LMatrix_full = new KMatrices(4, 192, 6, s_linearMatrices_full);
+            LMatrix_inv = new KMatrices(4, 192, 6, s_linearMatrices_inv);
+            KMatrix_full = new KMatrices(5, 192, 6, s_keyMatrices_full);
+            KMatrix_inv = new KMatrices(1, 192, 6, s_keyMatrices_inv);
+            RConstants_full = new KMatrices(4, 1, 6, s_roundConstants_full);
         }
 
         /// <summary>Length: 34560</summary>

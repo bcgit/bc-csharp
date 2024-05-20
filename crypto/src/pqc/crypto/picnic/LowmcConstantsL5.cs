@@ -8,27 +8,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             // Parameters for security level L5
             // Block/key size: 256
             // Rounds: 38
-            linearMatrices = ReadFromProperty(s_linearMatrices, 311296);
-            roundConstants = ReadFromProperty(s_roundConstants, 1216);
-            keyMatrices = ReadFromProperty(s_keyMatrices, 319488);
-            _LMatrix = new KMatrices(38, 256, 8, linearMatrices);
-            _KMatrix = new KMatrices(39, 256, 8, keyMatrices);
-            RConstants = new KMatrices(38, 1, 8, roundConstants);
+            _LMatrix = new KMatrices(38, 256, 8, s_linearMatrices);
+            _KMatrix = new KMatrices(39, 256, 8, s_keyMatrices);
+            RConstants = new KMatrices(38, 1, 8, s_roundConstants);
 
             // Parameters for security level L5, full nonlinear layer
             // Block/key size: 255
             // S-boxes: 85
             // Rounds: 4
-            linearMatrices_full = ReadFromProperty(s_linearMatrices_full, 32768);
-            linearMatrices_inv = ReadFromProperty(s_linearMatrices_inv, 32768);
-            roundConstants_full = ReadFromProperty(s_roundConstants_full, 128);
-            keyMatrices_full = ReadFromProperty(s_keyMatrices_full, 40960);
-            keyMatrices_inv = ReadFromProperty(s_keyMatrices_inv, 8160);
-            LMatrix_full = new KMatrices(4, 255, 8, linearMatrices_full);
-            LMatrix_inv = new KMatrices(4, 255, 8, linearMatrices_inv);
-            KMatrix_full = new KMatrices(5, 255, 8, keyMatrices_full);
-            KMatrix_inv = new KMatrices(1, 255, 8, keyMatrices_inv);
-            RConstants_full = new KMatrices(4, 1, 8, roundConstants_full);
+            LMatrix_full = new KMatrices(4, 255, 8, s_linearMatrices_full);
+            LMatrix_inv = new KMatrices(4, 255, 8, s_linearMatrices_inv);
+            KMatrix_full = new KMatrices(5, 255, 8, s_keyMatrices_full);
+            KMatrix_inv = new KMatrices(1, 255, 8, s_keyMatrices_inv);
+            RConstants_full = new KMatrices(4, 1, 8, s_roundConstants_full);
         }
 
         /// <summary>Length: 77824</summary>

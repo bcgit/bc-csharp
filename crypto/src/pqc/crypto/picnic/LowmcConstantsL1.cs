@@ -8,27 +8,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             // Parameters for security level L1
             // Block/key size: 128
             // Rounds: 20
-            linearMatrices = ReadFromProperty(s_linearMatrices, 40960);
-            roundConstants = ReadFromProperty(s_roundConstants, 320);
-            keyMatrices = ReadFromProperty(s_keyMatrices, 43008);
-            _LMatrix = new KMatrices(20, 128, 4, linearMatrices);
-            _KMatrix = new KMatrices(21, 128, 4, keyMatrices);
-            RConstants = new KMatrices(0, 1, 4, roundConstants);
+            _LMatrix = new KMatrices(20, 128, 4, s_linearMatrices);
+            _KMatrix = new KMatrices(21, 128, 4, s_keyMatrices);
+            RConstants = new KMatrices(0, 1, 4, s_roundConstants);
 
             // Parameters for security level L1, full s-box layer
             // Block/key size: 129
             // Rounds: 4
             // Note that each 129-bit row of the matrix is zero padded to 160 bits (the next multiple of 32)
-            linearMatrices_full = ReadFromProperty(s_linearMatrices_full, 12800);
-            keyMatrices_full = ReadFromProperty(s_keyMatrices_full, 12900);
-            keyMatrices_inv = ReadFromProperty(s_keyMatrices_inv, 2850);
-            linearMatrices_inv = ReadFromProperty(s_linearMatrices_inv, 12800);
-            roundConstants_full = ReadFromProperty(s_roundConstants_full, 80);
-            LMatrix_full = new KMatrices(4, 129, 5, linearMatrices_full);
-            LMatrix_inv = new KMatrices(4, 129, 5, linearMatrices_inv);
-            KMatrix_full = new KMatrices(5, 129, 5, keyMatrices_full);
-            KMatrix_inv = new KMatrices(1, 129, 5, keyMatrices_inv);
-            RConstants_full = new KMatrices(4, 1, 5, roundConstants_full);
+            LMatrix_full = new KMatrices(4, 129, 5, s_linearMatrices_full);
+            LMatrix_inv = new KMatrices(4, 129, 5, s_linearMatrices_inv);
+            KMatrix_full = new KMatrices(5, 129, 5, s_keyMatrices_full);
+            KMatrix_inv = new KMatrices(1, 129, 5, s_keyMatrices_inv);
+            RConstants_full = new KMatrices(4, 1, 5, s_roundConstants_full);
         }
 
         /// <summary>Length: 10240</summary>
@@ -2680,7 +2672,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             0x0AA6E4C9, 0x96E8B717, 0xF747CF1C, 0x1AB667F5, 0x59BA3271, 0x57E650A0, 0x332A8182, 0xBD2BB927,
         };
 
-        /// <summary>Length: 2579</summary>
+        /// <summary>Length: 2580</summary>
         private static readonly uint[] s_linearMatrices_full = new uint[]
         {
             0x3612C131, 0xD8AED3B1, 0x277D91FA, 0x2B03E602, 0x00000080, 0xFEC70D84, 0x8EB79B0F, 0x19C1BCC5,
@@ -3005,10 +2997,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             0x9E01EDE5, 0xF6020F78, 0x00000000, 0xF7308A23, 0x37F5A573, 0x631D3C01, 0x4F6017B2, 0x00000080,
             0x999D6735, 0x25362221, 0x8A6207D4, 0xC9577507, 0x00000080, 0xAF82DC2C, 0xF53DD937, 0xDDCAD420,
             0x2326BB3A, 0x00000080, 0x6DA94156, 0xFED82606, 0xC928D930, 0xDE002BAC, 0x00000080, 0xB90581C5,
-            0x022FD723, 0x6F4ED0CB, 0x0068CA91,
+            0x022FD723, 0x6F4ED0CB, 0x0068CA91, 0x00000000,
         };
 
-        /// <summary>Length: 3224</summary>
+        /// <summary>Length: 3225</summary>
         private static readonly uint[] s_keyMatrices_full = new uint[]
         {
             0x7E7B063A, 0x44899148, 0x828572C9, 0x1978D422, 0x00000000, 0xB18691C1, 0x02844B6C, 0x1CFF0611,
@@ -3414,6 +3406,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             0x2D5A1749, 0x3936E8A9, 0x9A2C9DAF, 0x67B8773D, 0x00000080, 0xA1CF8696, 0xC3519247, 0xBBFCFAC2,
             0x4CCA2E73, 0x00000080, 0x070196D4, 0xB4F5D0D4, 0xA6E09F54, 0xC82B0C48, 0x00000080, 0x2EB00F62,
             0x0A64A9C4, 0x0250A113, 0x972272B3, 0x00000000, 0x1F0DB6CF, 0x78DF0FC9, 0x49C2667B, 0xC55880A3,
+            0x00000000,
         };
 
         /// <summary>Length: 645</summary>
