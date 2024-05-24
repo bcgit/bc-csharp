@@ -649,5 +649,57 @@ namespace Org.BouncyCastle.Asn1
         {
             return TryParseExplicitBaseObject(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, out baseObject);
         }
+
+        #region Sequence cursor
+
+        public static TResult ReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
+            int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+            where TResult : class
+        {
+            return ReadOptionalTagged(sequence, ref sequencePosition, Asn1Tags.ContextSpecific, tagNo, state,
+                constructor);
+        }
+
+        public static TResult ReadOptionalTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition, int tagClass,
+            int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+            where TResult : class
+        {
+            if (sequencePosition < sequence.Count &&
+                sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
+                taggedObject.HasTag(tagClass, tagNo))
+            {
+                sequencePosition++;
+                return constructor(taggedObject, state);
+            }
+
+            return null;
+        }
+
+        public static bool TryReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence,
+            ref int sequencePosition, int tagNo, TState state, out TResult result,
+            Func<Asn1TaggedObject, TState, TResult> constructor)
+        {
+            return TryReadOptionalTagged(sequence, ref sequencePosition, Asn1Tags.ContextSpecific, tagNo,
+                state, out result, constructor);
+        }
+
+        public static bool TryReadOptionalTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
+            int tagClass, int tagNo, TState state, out TResult result,
+            Func<Asn1TaggedObject, TState, TResult> constructor)
+        {
+            if (sequencePosition < sequence.Count &&
+                sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
+                taggedObject.HasTag(tagClass, tagNo))
+            {
+                sequencePosition++;
+                result = constructor(taggedObject, state);
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        #endregion
     }
 }
