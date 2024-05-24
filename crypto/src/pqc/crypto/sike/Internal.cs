@@ -132,14 +132,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         protected internal ulong[] ph3_T1;
         protected internal ulong[] ph3_T2;
 
-
-        internal static uint[] ReadIntsFromProperty(uint[] data, uint intSize)
-        {
-            uint[] ints = new uint[intSize];
-            Array.Copy(data, ints, data.Length);
-            return ints;
-        }
-
         internal static ulong[] ReadFromProperty(ulong[] data, uint ulongSize)
         {
             ulong[] ulongs = new ulong[ulongSize];

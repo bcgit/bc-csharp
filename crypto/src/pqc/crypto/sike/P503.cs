@@ -142,8 +142,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             this.PLEN_2 = 51;
             this.PLEN_3 = 54;
 
-            ph2_path = ReadIntsFromProperty(s_ph2_path, PLEN_2);
-            ph3_path = ReadIntsFromProperty(s_ph3_path, PLEN_3);
+            ph2_path = s_ph2_path;
+            ph3_path = s_ph3_path;
             A_gen = ReadFromProperty(s_A_gen, 6 * NWORDS64_FIELD);
             B_gen = ReadFromProperty(s_B_gen, 6 * NWORDS64_FIELD);
             XQB3 = ReadFromProperty(s_XQB3, 2 * NWORDS64_FIELD);
