@@ -1,76 +1,62 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
     public class ServiceLocator
         : Asn1Encodable
     {
-        private readonly X509Name issuer;
-        private readonly Asn1Object locator;
-
-		public static ServiceLocator GetInstance(
-			Asn1TaggedObject	obj,
-			bool				explicitly)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+        public static ServiceLocator GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is ServiceLocator serviceLocator)
+				return serviceLocator;
+            return new ServiceLocator(Asn1Sequence.GetInstance(obj));
 		}
 
-		public static ServiceLocator GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is ServiceLocator)
-			{
-				return (ServiceLocator) obj;
-			}
+        public static ServiceLocator GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return new ServiceLocator(Asn1Sequence.GetInstance(obj, explicitly));
+        }
 
-			if (obj is Asn1Sequence)
-			{
-				return new ServiceLocator((Asn1Sequence) obj);
-			}
+        private readonly X509Name m_issuer;
+        private readonly Asn1Object m_locator;
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+        public ServiceLocator(X509Name issuer)
+            : this(issuer, null)
+        {
+        }
+
+        public ServiceLocator(X509Name issuer, Asn1Object locator)
+        {
+			m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
+			m_locator = locator;
 		}
 
-		public ServiceLocator(
-			X509Name	issuer)
-			: this(issuer, null)
-		{
+        private ServiceLocator(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            int pos = 0;
+
+            m_issuer = X509Name.GetInstance(seq[pos++]);
+
+            if (pos < count)
+            {
+                m_locator = seq[pos++].ToAsn1Object();
+            }
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		public ServiceLocator(
-			X509Name	issuer,
-			Asn1Object	locator)
-		{
-			if (issuer == null)
-				throw new ArgumentNullException("issuer");
+        public X509Name Issuer => m_issuer;
 
-			this.issuer = issuer;
-			this.locator = locator;
-		}
-
-		private ServiceLocator(
-			Asn1Sequence seq)
-		{
-			this.issuer = X509Name.GetInstance(seq[0]);
-
-			if (seq.Count > 1)
-			{
-				this.locator = seq[1].ToAsn1Object();
-			}
-		}
-
-		public X509Name Issuer
-		{
-			get { return issuer; }
-		}
-
-		public Asn1Object Locator
-		{
-			get { return locator; }
-		}
+        public Asn1Object Locator => m_locator;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -82,8 +68,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(issuer);
-            v.AddOptional(locator);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_issuer);
+            v.AddOptional(m_locator);
             return new DerSequence(v);
         }
     }

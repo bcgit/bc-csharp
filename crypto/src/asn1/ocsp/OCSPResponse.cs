@@ -1,71 +1,51 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
     public class OcspResponse
         : Asn1Encodable
     {
-        private readonly OcspResponseStatus	responseStatus;
-        private readonly ResponseBytes		responseBytes;
-
-		public static OcspResponse GetInstance(
-			Asn1TaggedObject	obj,
-			bool				explicitly)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-		}
-
-		public static OcspResponse GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is OcspResponse)
-			{
-				return (OcspResponse)obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new OcspResponse((Asn1Sequence)obj);
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public OcspResponse(
-            OcspResponseStatus	responseStatus,
-            ResponseBytes		responseBytes)
+        public static OcspResponse GetInstance(object obj)
         {
-			if (responseStatus == null)
-				throw new ArgumentNullException("responseStatus");
+            if (obj == null)
+                return null;
+            if (obj is OcspResponse ocspResponse)
+				return ocspResponse;
+            return new OcspResponse(Asn1Sequence.GetInstance(obj));
+		}
 
-			this.responseStatus = responseStatus;
-            this.responseBytes = responseBytes;
+        public static OcspResponse GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return new OcspResponse(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		private OcspResponse(
-            Asn1Sequence seq)
-        {
-            responseStatus = new OcspResponseStatus(
-				DerEnumerated.GetInstance(seq[0]));
+        private readonly OcspResponseStatus m_responseStatus;
+        private readonly ResponseBytes m_responseBytes;
 
-			if (seq.Count == 2)
-            {
-                responseBytes = ResponseBytes.GetInstance(
-					(Asn1TaggedObject)seq[1], true);
-            }
+        public OcspResponse(OcspResponseStatus responseStatus, ResponseBytes responseBytes)
+        {
+			m_responseStatus = responseStatus ?? throw new ArgumentNullException(nameof(responseStatus));
+            m_responseBytes = responseBytes;
         }
 
-		public OcspResponseStatus ResponseStatus
-		{
-			get { return responseStatus; }
-		}
+        private OcspResponse(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-		public ResponseBytes ResponseBytes
-		{
-			get { return responseBytes; }
-		}
+            int pos = 0;
+
+            m_responseStatus = new OcspResponseStatus(DerEnumerated.GetInstance(seq[pos++]));
+            m_responseBytes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ResponseBytes.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
+
+        public OcspResponseStatus ResponseStatus => m_responseStatus;
+
+        public ResponseBytes ResponseBytes => m_responseBytes;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -77,8 +57,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(responseStatus);
-            v.AddOptionalTagged(true, 0, responseBytes);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_responseStatus);
+            v.AddOptionalTagged(true, 0, m_responseBytes);
             return new DerSequence(v);
         }
     }

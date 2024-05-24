@@ -5,15 +5,6 @@ namespace Org.BouncyCastle.Asn1.Ocsp
     public class CrlID
         : Asn1Encodable
     {
-        private readonly DerIA5String		crlUrl;
-        private readonly DerInteger			crlNum;
-        private readonly Asn1GeneralizedTime crlTime;
-
-        public static CrlID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
-
         public static CrlID GetInstance(object obj)
         {
             if (obj == null)
@@ -25,42 +16,39 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static CrlID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CrlID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly DerIA5String m_crlUrl;
+        private readonly DerInteger m_crlNum;
+        private readonly Asn1GeneralizedTime m_crlTime;
+
         [Obsolete("Use 'GetInstance' instead")]
         public CrlID(Asn1Sequence seq)
         {
-			foreach (Asn1TaggedObject o in seq)
-			{
-				switch (o.TagNo)
-                {
-                case 0:
-                    crlUrl = DerIA5String.GetInstance(o, true);
-                    break;
-                case 1:
-                    crlNum = DerInteger.GetInstance(o, true);
-                    break;
-                case 2:
-                    crlTime = Asn1GeneralizedTime.GetInstance(o, true);
-                    break;
-                default:
-                    throw new ArgumentException("unknown tag number: " + o.TagNo);
-                }
-            }
+            int count = seq.Count;
+            if (count < 0 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            int pos = 0;
+
+            m_crlUrl = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerIA5String.GetInstance);
+            m_crlNum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DerInteger.GetInstance);
+            m_crlTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1GeneralizedTime.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public DerIA5String CrlUrl
-		{
-			get { return crlUrl; }
-		}
+        public DerIA5String CrlUrl => m_crlUrl;
 
-		public DerInteger CrlNum
-		{
-			get { return crlNum; }
-		}
+        public DerInteger CrlNum => m_crlNum;
 
-		public Asn1GeneralizedTime CrlTime
-		{
-			get { return crlTime; }
-		}
+        public Asn1GeneralizedTime CrlTime => m_crlTime;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -74,9 +62,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.AddOptionalTagged(true, 0, crlUrl);
-            v.AddOptionalTagged(true, 1, crlNum);
-            v.AddOptionalTagged(true, 2, crlTime);
+            v.AddOptionalTagged(true, 0, m_crlUrl);
+            v.AddOptionalTagged(true, 1, m_crlNum);
+            v.AddOptionalTagged(true, 2, m_crlTime);
             return new DerSequence(v);
         }
     }
