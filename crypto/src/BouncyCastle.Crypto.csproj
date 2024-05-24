@@ -14,12 +14,12 @@
     <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2024</Copyright>
     <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
     <PackageIcon>packageIcon.png</PackageIcon>
-    <PackageIconUrl>https://www.bouncycastle.org/images/nuget_packageIcon.png</PackageIconUrl>
+    <PackageIconUrl>https://www.bouncycastle.org/stable/nuget/csharp/packageIcon.png</PackageIconUrl>
     <PackageId>BouncyCastle.Cryptography</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
+    <PackageProjectUrl>https://www.bouncycastle.org/stable/nuget/csharp/website</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/</PackageReleaseNotes>
+    <PackageReleaseNotes>https://www.bouncycastle.org/stable/nuget/csharp/release_notes</PackageReleaseNotes>
     <PackageTags>bouncycastle cryptography dtls encryption open-source openpgp post-quantum security tls</PackageTags>
 	<Product>BouncyCastle.NET</Product>
 	<PublishRepositoryUrl>true</PublishRepositoryUrl>
