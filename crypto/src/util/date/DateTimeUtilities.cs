@@ -49,33 +49,18 @@ namespace Org.BouncyCastle.Utilities.Date
 		/// <summary>
 		/// Return the current number of milliseconds since the Unix epoch (1 Jan., 1970 UTC).
 		/// </summary>
-		public static long CurrentUnixMs()
-		{
-			return DateTimeToUnixMs(DateTime.UtcNow);
-		}
+		public static long CurrentUnixMs() => DateTimeToUnixMs(DateTime.UtcNow);
 
-        public static DateTime WithPrecisionCentisecond(DateTime dateTime)
-        {
-            long ticks = dateTime.Ticks - dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 10L);
-            return new DateTime(ticks, dateTime.Kind);
-        }
+        public static DateTime WithPrecisionCentisecond(DateTime dateTime) =>
+            dateTime.AddTicks(-(dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 10L)));
 
-        public static DateTime WithPrecisionDecisecond(DateTime dateTime)
-        {
-            long ticks = dateTime.Ticks - dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 100L);
-            return new DateTime(ticks, dateTime.Kind);
-        }
+        public static DateTime WithPrecisionDecisecond(DateTime dateTime) =>
+            dateTime.AddTicks(-(dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 100L)));
 
-        public static DateTime WithPrecisionMillisecond(DateTime dateTime)
-        {
-            long ticks = dateTime.Ticks - dateTime.Ticks % TimeSpan.TicksPerMillisecond;
-            return new DateTime(ticks, dateTime.Kind);
-        }
+        public static DateTime WithPrecisionMillisecond(DateTime dateTime) =>
+            dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerMillisecond));
 
-        public static DateTime WithPrecisionSecond(DateTime dateTime)
-        {
-            long ticks = dateTime.Ticks - dateTime.Ticks % TimeSpan.TicksPerSecond;
-            return new DateTime(ticks, dateTime.Kind);
-        }
+        public static DateTime WithPrecisionSecond(DateTime dateTime) =>
+            dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerSecond));
     }
 }
