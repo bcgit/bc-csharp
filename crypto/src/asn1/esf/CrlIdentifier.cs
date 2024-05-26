@@ -5,24 +5,20 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
-	/// <code>
-	/// CrlIdentifier ::= SEQUENCE 
-	/// {
-	/// 	crlissuer		Name,
-	/// 	crlIssuedTime	UTCTime,
-	/// 	crlNumber		INTEGER OPTIONAL
-	/// }
-	/// </code>
-	/// </remarks>
-	public class CrlIdentifier
+    /// <remarks>
+    /// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
+    /// <code>
+    /// CrlIdentifier ::= SEQUENCE 
+    /// {
+    /// 	crlissuer		Name,
+    /// 	crlIssuedTime	UTCTime,
+    /// 	crlNumber		INTEGER OPTIONAL
+    /// }
+    /// </code>
+    /// </remarks>
+    public class CrlIdentifier
 		: Asn1Encodable
 	{
-		private readonly X509Name m_crlIssuer;
-		private readonly Asn1UtcTime m_crlIssuedTime;
-		private readonly DerInteger m_crlNumber;
-
 		public static CrlIdentifier GetInstance(object obj)
 		{
 			if (obj == null)
@@ -37,22 +33,25 @@ namespace Org.BouncyCastle.Asn1.Esf
             return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
+        private readonly X509Name m_crlIssuer;
+        private readonly Asn1UtcTime m_crlIssuedTime;
+        private readonly DerInteger m_crlNumber;
+
         private CrlIdentifier(Asn1Sequence seq)
 		{
-			if (seq == null)
-				throw new ArgumentNullException(nameof(seq));
-			if (seq.Count < 2 || seq.Count > 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, nameof(seq));
+			int count = seq.Count;
+			if (count < 2 || count > 3)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			this.m_crlIssuer = X509Name.GetInstance(seq[0]);
-			this.m_crlIssuedTime = Asn1UtcTime.GetInstance(seq[1]);
+			m_crlIssuer = X509Name.GetInstance(seq[0]);
+			m_crlIssuedTime = Asn1UtcTime.GetInstance(seq[1]);
 
             // Validate crlIssuedTime is in the appropriate year range
             m_crlIssuedTime.ToDateTime(2049);
 
-			if (seq.Count > 2)
+			if (count > 2)
 			{
-				this.m_crlNumber = DerInteger.GetInstance(seq[2]);
+				m_crlNumber = DerInteger.GetInstance(seq[2]);
 			}
 		}
 
@@ -85,24 +84,16 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_crlIssuedTime.ToDateTime(2049);
         }
 
-        public X509Name CrlIssuer
-		{
-			get { return m_crlIssuer; }
-		}
+        public X509Name CrlIssuer => m_crlIssuer;
 
-		public DateTime CrlIssuedTime
-		{
-			get { return m_crlIssuedTime.ToDateTime(2049); }
-		}
+		public DateTime CrlIssuedTime => m_crlIssuedTime.ToDateTime(2049);
 
-		public BigInteger CrlNumber
-		{
-			get { return m_crlNumber?.Value; }
-		}
+		public BigInteger CrlNumber => m_crlNumber?.Value;
 
 		public override Asn1Object ToAsn1Object()
 		{
-			var v = new Asn1EncodableVector(m_crlIssuer.ToAsn1Object(), m_crlIssuedTime);
+			var v = new Asn1EncodableVector(3);
+			v.Add(m_crlIssuer, m_crlIssuedTime);
             v.AddOptional(m_crlNumber);
 			return new DerSequence(v);
 		}

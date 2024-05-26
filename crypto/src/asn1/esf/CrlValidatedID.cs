@@ -1,90 +1,69 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
-	/// <code>
-	/// CrlValidatedID ::= SEQUENCE {
-	///		crlHash			OtherHash,
-	///		crlIdentifier	CrlIdentifier OPTIONAL}
-	/// </code>
-	/// </remarks>
-	public class CrlValidatedID
+    /// <remarks>
+    /// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
+    /// <code>
+    /// CrlValidatedID ::= SEQUENCE {
+    ///		crlHash			OtherHash,
+    ///		crlIdentifier	CrlIdentifier OPTIONAL}
+    /// </code>
+    /// </remarks>
+    public class CrlValidatedID
 		: Asn1Encodable
 	{
-		private readonly OtherHash		crlHash;
-		private readonly CrlIdentifier	crlIdentifier;
+        public static CrlValidatedID GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CrlValidatedID crlValidatedID)
+                return crlValidatedID;
+            return new CrlValidatedID(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static CrlValidatedID GetInstance(
-			object obj)
+        public static CrlValidatedID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new CrlValidatedID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly OtherHash m_crlHash;
+        private readonly CrlIdentifier m_crlIdentifier;
+
+        private CrlValidatedID(Asn1Sequence seq)
 		{
-			if (obj == null || obj is CrlValidatedID)
-				return (CrlValidatedID) obj;
+			int count = seq.Count;
+			if (count < 1 || count > 2)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj is Asn1Sequence)
-				return new CrlValidatedID((Asn1Sequence) obj);
+			m_crlHash = OtherHash.GetInstance(seq[0]);
 
-			throw new ArgumentException(
-				"Unknown object in 'CrlValidatedID' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
-		}
-
-		private CrlValidatedID(
-			Asn1Sequence seq)
-		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
-
-			this.crlHash = OtherHash.GetInstance(seq[0].ToAsn1Object());
-
-			if (seq.Count > 1)
+			if (count > 1)
 			{
-				this.crlIdentifier = CrlIdentifier.GetInstance(seq[1].ToAsn1Object());
+				m_crlIdentifier = CrlIdentifier.GetInstance(seq[1]);
 			}
 		}
 
-		public CrlValidatedID(
-			OtherHash crlHash)
+		public CrlValidatedID(OtherHash crlHash)
 			: this(crlHash, null)
 		{
 		}
 
-		public CrlValidatedID(
-			OtherHash		crlHash,
-			CrlIdentifier	crlIdentifier)
-		{
-			if (crlHash == null)
-				throw new ArgumentNullException("crlHash");
-
-			this.crlHash = crlHash;
-			this.crlIdentifier = crlIdentifier;
+        public CrlValidatedID(OtherHash crlHash, CrlIdentifier crlIdentifier)
+        {
+			m_crlHash = crlHash ?? throw new ArgumentNullException(nameof(crlHash));
+            m_crlIdentifier = crlIdentifier;
 		}
 
-		public OtherHash CrlHash
-		{
-			get { return crlHash; }
-		}
+		public OtherHash CrlHash => m_crlHash;
 
-		public CrlIdentifier CrlIdentifier
-		{
-			get { return crlIdentifier; }
-		}
+		public CrlIdentifier CrlIdentifier => m_crlIdentifier;
 
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(crlHash.ToAsn1Object());
-
-			if (crlIdentifier != null)
-			{
-				v.Add(crlIdentifier.ToAsn1Object());
-			}
-
+			Asn1EncodableVector v = new Asn1EncodableVector(2);
+			v.Add(m_crlHash);
+			v.AddOptional(m_crlIdentifier);
 			return new DerSequence(v);
 		}
 	}

@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Esf
 {
     /**
@@ -16,39 +14,48 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class CommitmentTypeQualifier
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	commitmentTypeIdentifier;
-        private readonly Asn1Object				qualifier;
+        public static CommitmentTypeQualifier GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CommitmentTypeQualifier commitmentTypeQualifier)
+                return commitmentTypeQualifier;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CommitmentTypeQualifier(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static CommitmentTypeQualifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CommitmentTypeQualifier(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly DerObjectIdentifier m_commitmentTypeIdentifier;
+        private readonly Asn1Encodable m_qualifier;
 
         /**
-        * Creates a new <code>CommitmentTypeQualifier</code> instance.
-        *
-        * @param commitmentTypeIdentifier a <code>CommitmentTypeIdentifier</code> value
-        */
-        public CommitmentTypeQualifier(
-            DerObjectIdentifier commitmentTypeIdentifier)
+         * Creates a new <code>CommitmentTypeQualifier</code> instance.
+         *
+         * @param commitmentTypeIdentifier a <code>CommitmentTypeIdentifier</code> value
+         */
+        public CommitmentTypeQualifier(DerObjectIdentifier commitmentTypeIdentifier)
             : this(commitmentTypeIdentifier, null)
         {
         }
 
-    /**
-        * Creates a new <code>CommitmentTypeQualifier</code> instance.
-        *
-        * @param commitmentTypeIdentifier a <code>CommitmentTypeIdentifier</code> value
-        * @param qualifier the qualifier, defined by the above field.
-        */
-        public CommitmentTypeQualifier(
-            DerObjectIdentifier	commitmentTypeIdentifier,
-            Asn1Encodable		qualifier)
+        /**
+         * Creates a new <code>CommitmentTypeQualifier</code> instance.
+         *
+         * @param commitmentTypeIdentifier a <code>CommitmentTypeIdentifier</code> value
+         * @param qualifier the qualifier, defined by the above field.
+         */
+        public CommitmentTypeQualifier(DerObjectIdentifier commitmentTypeIdentifier, Asn1Encodable qualifier)
         {
-			if (commitmentTypeIdentifier == null)
-				throw new ArgumentNullException("commitmentTypeIdentifier");
-
-			this.commitmentTypeIdentifier = commitmentTypeIdentifier;
-
-			if (qualifier != null)
-			{
-				this.qualifier = qualifier.ToAsn1Object();
-			}
+			m_commitmentTypeIdentifier = commitmentTypeIdentifier
+                ?? throw new ArgumentNullException(nameof(commitmentTypeIdentifier));
+            m_qualifier = qualifier;
         }
 
         /**
@@ -57,46 +64,27 @@ namespace Org.BouncyCastle.Asn1.Esf
         * @param as <code>CommitmentTypeQualifier</code> structure
         * encoded as an Asn1Sequence.
         */
-        public CommitmentTypeQualifier(
-            Asn1Sequence seq)
+        [Obsolete("Use 'GetInstance' instead")]
+        public CommitmentTypeQualifier(Asn1Sequence seq)
         {
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+            int count = seq.Count;
+			if (count < 1 || count > 2)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			commitmentTypeIdentifier = (DerObjectIdentifier) seq[0].ToAsn1Object();
+			m_commitmentTypeIdentifier = DerObjectIdentifier.GetInstance(seq[0]);
 
-			if (seq.Count > 1)
+			if (count > 1)
             {
-                qualifier = seq[1].ToAsn1Object();
+                m_qualifier = seq[1];
             }
         }
 
-		public static CommitmentTypeQualifier GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is CommitmentTypeQualifier)
-				return (CommitmentTypeQualifier) obj;
+        public DerObjectIdentifier CommitmentTypeIdentifier => m_commitmentTypeIdentifier;
 
-			if (obj is Asn1Sequence)
-				return new CommitmentTypeQualifier((Asn1Sequence) obj);
+        public Asn1Encodable QualifierData => m_qualifier;
 
-			throw new ArgumentException(
-				"Unknown object in 'CommitmentTypeQualifier' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
-		}
-
-		public DerObjectIdentifier CommitmentTypeIdentifier
-		{
-			get { return commitmentTypeIdentifier; }
-		}
-
-		public Asn1Object Qualifier
-		{
-			get { return qualifier; }
-		}
+        [Obsolete("Use 'QualifierData' instead")]
+        public Asn1Object Qualifier => m_qualifier?.ToAsn1Object();
 
 		/**
         * Returns a DER-encodable representation of this instance.
@@ -105,8 +93,9 @@ namespace Org.BouncyCastle.Asn1.Esf
         */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(commitmentTypeIdentifier);
-            v.AddOptional(qualifier);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_commitmentTypeIdentifier);
+            v.AddOptional(m_qualifier);
 			return new DerSequence(v);
 		}
     }

@@ -1,58 +1,54 @@
 using System;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// <code>
-	/// SignaturePolicyId ::= SEQUENCE {
-	/// 	sigPolicyIdentifier		SigPolicyId,
-	/// 	sigPolicyHash			SigPolicyHash,
-	/// 	sigPolicyQualifiers		SEQUENCE SIZE (1..MAX) OF SigPolicyQualifierInfo OPTIONAL
-	/// }
-	/// 
-	/// SigPolicyId ::= OBJECT IDENTIFIER
-	/// 
-	/// SigPolicyHash ::= OtherHashAlgAndValue
-	/// </code>
-	/// </remarks>
-	public class SignaturePolicyId
+    /// <remarks>
+    /// <code>
+    /// SignaturePolicyId ::= SEQUENCE {
+    /// 	sigPolicyIdentifier		SigPolicyId,
+    /// 	sigPolicyHash			SigPolicyHash,
+    /// 	sigPolicyQualifiers		SEQUENCE SIZE (1..MAX) OF SigPolicyQualifierInfo OPTIONAL
+    /// }
+    /// 
+    /// SigPolicyId ::= OBJECT IDENTIFIER
+    /// 
+    /// SigPolicyHash ::= OtherHashAlgAndValue
+    /// </code>
+    /// </remarks>
+    public class SignaturePolicyId
 		: Asn1Encodable
 	{
-		private readonly DerObjectIdentifier m_sigPolicyIdentifier;
-		private readonly OtherHashAlgAndValue m_sigPolicyHash;
-		private readonly Asn1Sequence m_sigPolicyQualifiers;
-
 		public static SignaturePolicyId GetInstance(object obj)
 		{
 			if (obj == null)
 				return null;
-
 			if (obj is SignaturePolicyId signaturePolicyId)
 				return signaturePolicyId;
-
-			if (obj is Asn1Sequence asn1Sequence)
-				return new SignaturePolicyId(asn1Sequence);
-
-			throw new ArgumentException("Unknown object in 'SignaturePolicyId' factory: " + Platform.GetTypeName(obj),
-				nameof(obj));
+			return new SignaturePolicyId(Asn1Sequence.GetInstance(obj));
 		}
 
-		private SignaturePolicyId(Asn1Sequence seq)
+        public static SignaturePolicyId GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new SignaturePolicyId(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly DerObjectIdentifier m_sigPolicyIdentifier;
+        private readonly OtherHashAlgAndValue m_sigPolicyHash;
+        private readonly Asn1Sequence m_sigPolicyQualifiers;
+
+        private SignaturePolicyId(Asn1Sequence seq)
 		{
-			if (seq == null)
-				throw new ArgumentNullException(nameof(seq));
-			if (seq.Count < 2 || seq.Count > 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, nameof(seq));
+			int count = seq.Count;
+			if (count < 2 || count > 3)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_sigPolicyIdentifier = (DerObjectIdentifier)seq[0].ToAsn1Object();
-			m_sigPolicyHash = OtherHashAlgAndValue.GetInstance(seq[1].ToAsn1Object());
+			m_sigPolicyIdentifier = DerObjectIdentifier.GetInstance(seq[0]);
+			m_sigPolicyHash = OtherHashAlgAndValue.GetInstance(seq[1]);
 
-			if (seq.Count > 2)
+			if (count > 2)
 			{
-				m_sigPolicyQualifiers = (Asn1Sequence)seq[2].ToAsn1Object();
+				m_sigPolicyQualifiers = Asn1Sequence.GetInstance(seq[2]);
 			}
 		}
 
@@ -64,62 +60,39 @@ namespace Org.BouncyCastle.Asn1.Esf
 		public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash,
 			params SigPolicyQualifierInfo[]	sigPolicyQualifiers)
 		{
-			if (sigPolicyIdentifier == null)
-				throw new ArgumentNullException(nameof(sigPolicyIdentifier));
-			if (sigPolicyHash == null)
-				throw new ArgumentNullException(nameof(sigPolicyHash));
+			m_sigPolicyIdentifier = sigPolicyIdentifier ?? throw new ArgumentNullException(nameof(sigPolicyIdentifier));
+            m_sigPolicyHash = sigPolicyHash ?? throw new ArgumentNullException(nameof(sigPolicyHash));
 
-			m_sigPolicyIdentifier = sigPolicyIdentifier;
-			m_sigPolicyHash = sigPolicyHash;
-
-			if (sigPolicyQualifiers != null)
+            if (sigPolicyQualifiers != null)
 			{
-				m_sigPolicyQualifiers = new DerSequence(sigPolicyQualifiers);
+				m_sigPolicyQualifiers = DerSequence.FromElements(sigPolicyQualifiers);
 			}
 		}
 
 		public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash,
 			IEnumerable<SigPolicyQualifierInfo> sigPolicyQualifiers)
 		{
-            if (sigPolicyIdentifier == null)
-                throw new ArgumentNullException(nameof(sigPolicyIdentifier));
-            if (sigPolicyHash == null)
-                throw new ArgumentNullException(nameof(sigPolicyHash));
+			m_sigPolicyIdentifier = sigPolicyIdentifier ?? throw new ArgumentNullException(nameof(sigPolicyIdentifier));
+            m_sigPolicyHash = sigPolicyHash ?? throw new ArgumentNullException(nameof(sigPolicyHash));
 
-			m_sigPolicyIdentifier = sigPolicyIdentifier;
-			m_sigPolicyHash = sigPolicyHash;
-
-			if (sigPolicyQualifiers != null)
+            if (sigPolicyQualifiers != null)
 			{
-				m_sigPolicyQualifiers = new DerSequence(Asn1EncodableVector.FromEnumerable(sigPolicyQualifiers));
+				m_sigPolicyQualifiers = DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(sigPolicyQualifiers));
 			}
 		}
 
-		public DerObjectIdentifier SigPolicyIdentifier
-		{
-			get { return m_sigPolicyIdentifier; }
-		}
+		public DerObjectIdentifier SigPolicyIdentifier => m_sigPolicyIdentifier;
 
-		public OtherHashAlgAndValue SigPolicyHash
-		{
-			get { return m_sigPolicyHash; }
-		}
+		public OtherHashAlgAndValue SigPolicyHash => m_sigPolicyHash;
 
-		public SigPolicyQualifierInfo[] GetSigPolicyQualifiers()
-		{
-			return m_sigPolicyQualifiers?.MapElements(SigPolicyQualifierInfo.GetInstance);
-		}
+		public SigPolicyQualifierInfo[] GetSigPolicyQualifiers() =>
+			m_sigPolicyQualifiers?.MapElements(SigPolicyQualifierInfo.GetInstance);
 
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				m_sigPolicyIdentifier, m_sigPolicyHash.ToAsn1Object());
-
-			if (m_sigPolicyQualifiers != null)
-			{
-				v.Add(m_sigPolicyQualifiers.ToAsn1Object());
-			}
-
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_sigPolicyIdentifier, m_sigPolicyHash);
+			v.AddOptional(m_sigPolicyQualifiers);
 			return new DerSequence(v);
 		}
 	}

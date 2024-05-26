@@ -1,76 +1,60 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Esf
 {
     public class CommitmentTypeIndication
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	commitmentTypeId;
-        private readonly Asn1Sequence			commitmentTypeQualifier;
-
-		public static CommitmentTypeIndication GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is CommitmentTypeIndication)
-				return (CommitmentTypeIndication) obj;
-
-			if (obj is Asn1Sequence)
-				return new CommitmentTypeIndication((Asn1Sequence) obj);
-
-			throw new ArgumentException(
-				"Unknown object in 'CommitmentTypeIndication' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
-		}
-
-		public CommitmentTypeIndication(
-            Asn1Sequence seq)
+        public static CommitmentTypeIndication GetInstance(object obj)
         {
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+            if (obj == null)
+                return null;
+            if (obj is CommitmentTypeIndication commitmentTypeIndication)
+                return commitmentTypeIndication;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CommitmentTypeIndication(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-			this.commitmentTypeId = (DerObjectIdentifier) seq[0].ToAsn1Object();
+        public static CommitmentTypeIndication GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CommitmentTypeIndication(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-			if (seq.Count > 1)
+        private readonly DerObjectIdentifier m_commitmentTypeId;
+        private readonly Asn1Sequence m_commitmentTypeQualifier;
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public CommitmentTypeIndication(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+			if (count < 1 || count > 2)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_commitmentTypeId = DerObjectIdentifier.GetInstance(seq[0]);
+
+			if (count > 1)
             {
-                this.commitmentTypeQualifier = (Asn1Sequence) seq[1].ToAsn1Object();
+                m_commitmentTypeQualifier = Asn1Sequence.GetInstance(seq[1]);
             }
         }
 
-		public CommitmentTypeIndication(
-            DerObjectIdentifier commitmentTypeId)
+		public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId)
 			: this(commitmentTypeId, null)
         {
         }
 
-		public CommitmentTypeIndication(
-            DerObjectIdentifier	commitmentTypeId,
-            Asn1Sequence		commitmentTypeQualifier)
+		public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId, Asn1Sequence commitmentTypeQualifier)
         {
-			if (commitmentTypeId == null)
-				throw new ArgumentNullException("commitmentTypeId");
-
-			this.commitmentTypeId = commitmentTypeId;
-
-			if (commitmentTypeQualifier != null)
-			{
-				this.commitmentTypeQualifier = commitmentTypeQualifier;
-			}
+			m_commitmentTypeId = commitmentTypeId ?? throw new ArgumentNullException(nameof(commitmentTypeId));
+            m_commitmentTypeQualifier = commitmentTypeQualifier;
         }
 
-		public DerObjectIdentifier CommitmentTypeID
-		{
-			get { return commitmentTypeId; }
-		}
+        public DerObjectIdentifier CommitmentTypeID => m_commitmentTypeId;
 
-		public Asn1Sequence CommitmentTypeQualifier
-		{
-			get { return commitmentTypeQualifier; }
-		}
+        public Asn1Sequence CommitmentTypeQualifier => m_commitmentTypeQualifier;
 
 		/**
         * <pre>
@@ -82,8 +66,9 @@ namespace Org.BouncyCastle.Asn1.Esf
         */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(commitmentTypeId);
-            v.AddOptional(commitmentTypeQualifier);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_commitmentTypeId);
+            v.AddOptional(m_commitmentTypeQualifier);
 			return new DerSequence(v);
         }
     }

@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -16,79 +15,58 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class OtherCertID
 		: Asn1Encodable
 	{
-		private readonly OtherHash		otherCertHash;
-		private readonly IssuerSerial	issuerSerial;
-
-		public static OtherCertID GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is OtherCertID)
-				return (OtherCertID) obj;
-
-			if (obj is Asn1Sequence)
-				return new OtherCertID((Asn1Sequence) obj);
-
-			throw new ArgumentException(
-				"Unknown object in 'OtherCertID' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
+        public static OtherCertID GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OtherCertID otherCertID)
+                return otherCertID;
+            return new OtherCertID(Asn1Sequence.GetInstance(obj));
 		}
 
-		private OtherCertID(
-			Asn1Sequence seq)
+        public static OtherCertID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
 		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+			return new OtherCertID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+		}
 
-			this.otherCertHash = OtherHash.GetInstance(seq[0].ToAsn1Object());
+        private readonly OtherHash m_otherCertHash;
+        private readonly IssuerSerial m_issuerSerial;
 
-			if (seq.Count > 1)
+        private OtherCertID(Asn1Sequence seq)
+		{
+			int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_otherCertHash = OtherHash.GetInstance(seq[0]);
+
+			if (count > 1)
 			{
-				this.issuerSerial = IssuerSerial.GetInstance(seq[1].ToAsn1Object());
+				m_issuerSerial = IssuerSerial.GetInstance(seq[1]);
 			}
 		}
 
-		public OtherCertID(
-			OtherHash otherCertHash)
-			: this(otherCertHash, null)
-		{
+        public OtherCertID(OtherHash otherCertHash)
+            : this(otherCertHash, null)
+        {
+        }
+
+        public OtherCertID(OtherHash otherCertHash, IssuerSerial issuerSerial)
+        {
+            m_otherCertHash = otherCertHash ?? throw new ArgumentNullException(nameof(otherCertHash));
+			m_issuerSerial = issuerSerial;
 		}
 
-		public OtherCertID(
-			OtherHash		otherCertHash,
-			IssuerSerial	issuerSerial)
-		{
-			if (otherCertHash == null)
-				throw new ArgumentNullException("otherCertHash");
+		public OtherHash OtherCertHash => m_otherCertHash;
 
-			this.otherCertHash = otherCertHash;
-			this.issuerSerial = issuerSerial;
-		}
-
-		public OtherHash OtherCertHash
-		{
-			get { return otherCertHash; }
-		}
-
-		public IssuerSerial IssuerSerial
-		{
-			get { return issuerSerial; }
-		}
+		public IssuerSerial IssuerSerial => m_issuerSerial;
 
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				otherCertHash.ToAsn1Object());
-
-			if (issuerSerial != null)
-			{
-				v.Add(issuerSerial.ToAsn1Object());
-			}
-
+			Asn1EncodableVector v = new Asn1EncodableVector(2);
+			v.Add(m_otherCertHash);
+			v.AddOptional(m_issuerSerial);
 			return new DerSequence(v);
 		}
-
 	}
 }

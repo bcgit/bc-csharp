@@ -1,70 +1,54 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	public class SignerAttribute
+    public class SignerAttribute
 		: Asn1Encodable
 	{
-		private Asn1Sequence			claimedAttributes;
-		private AttributeCertificate	certifiedAttributes;
+        public static SignerAttribute GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SignerAttribute signerAttribute)
+                return signerAttribute;
+            return new SignerAttribute(Asn1Sequence.GetInstance(obj), dummy: true);
+        }
 
-		public static SignerAttribute GetInstance(
-			object obj)
+        private readonly Asn1Sequence m_claimedAttributes;
+        private readonly AttributeCertificate m_certifiedAttributes;
+
+        private SignerAttribute(Asn1Sequence seq, bool dummy)
 		{
-			if (obj == null || obj is SignerAttribute)
-				return (SignerAttribute) obj;
-
-			if (obj is Asn1Sequence)
-				return new SignerAttribute(obj);
-
-			throw new ArgumentException(
-				"Unknown object in 'SignerAttribute' factory: "
-                + Platform.GetTypeName(obj),
-				"obj");
-		}
-
-		private SignerAttribute(object obj)
-		{
-			Asn1Sequence seq = (Asn1Sequence)obj;
-			Asn1TaggedObject taggedObject = (Asn1TaggedObject)seq[0];
+			Asn1TaggedObject taggedObject = Asn1TaggedObject.GetInstance(seq[0], Asn1Tags.ContextSpecific);
 			if (taggedObject.TagNo == 0)
 			{
-				claimedAttributes = Asn1Sequence.GetInstance(taggedObject, true);
+				m_claimedAttributes = Asn1Sequence.GetInstance(taggedObject, true);
 			}
 			else if (taggedObject.TagNo == 1)
 			{
-				certifiedAttributes = AttributeCertificate.GetInstance(taggedObject);
+				m_certifiedAttributes = AttributeCertificate.GetInstance(taggedObject, true);
 			}
 			else
 			{
-				throw new ArgumentException("illegal tag.", "obj");
+				throw new ArgumentException("illegal tag.", nameof(seq));
 			}
 		}
 
-		public SignerAttribute(
-			Asn1Sequence claimedAttributes)
+		public SignerAttribute(Asn1Sequence claimedAttributes)
 		{
-			this.claimedAttributes = claimedAttributes;
+			m_claimedAttributes = claimedAttributes ?? throw new ArgumentNullException(nameof(claimedAttributes));
 		}
 
-		public SignerAttribute(
-			AttributeCertificate certifiedAttributes)
+		public SignerAttribute(AttributeCertificate certifiedAttributes)
 		{
-			this.certifiedAttributes = certifiedAttributes;
+			m_certifiedAttributes = certifiedAttributes ?? throw new ArgumentNullException(nameof(certifiedAttributes));
 		}
 
-		public virtual Asn1Sequence ClaimedAttributes
-		{
-			get { return claimedAttributes; }
-		}
+		public virtual Asn1Sequence ClaimedAttributes => m_claimedAttributes;
 
-		public virtual AttributeCertificate CertifiedAttributes
-		{
-			get { return certifiedAttributes; }
-		}
+		public virtual AttributeCertificate CertifiedAttributes => m_certifiedAttributes;
 
 		/**
 		*
@@ -79,9 +63,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			return claimedAttributes != null
-				?	new DerSequence(new DerTaggedObject(0, claimedAttributes))
-				:	new DerSequence(new DerTaggedObject(1, certifiedAttributes));
+			return m_claimedAttributes != null
+				?	new DerSequence(new DerTaggedObject(0, m_claimedAttributes))
+				:	new DerSequence(new DerTaggedObject(1, m_certifiedAttributes));
 		}
 	}
 }
