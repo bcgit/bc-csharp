@@ -153,13 +153,8 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return PartialHashtree.GetInstance(m_reducedHashTree[0]);
         }
 
-        public virtual PartialHashtree[] GetReducedHashTree()
-        {
-            if (m_reducedHashTree == null)
-                return null;
-
-            return m_reducedHashTree.MapElements(PartialHashtree.GetInstance);
-        }
+        public virtual PartialHashtree[] GetReducedHashTree() =>
+            m_reducedHashTree?.MapElements(PartialHashtree.GetInstance);
 
         public virtual ContentInfo TimeStamp => m_timeStamp;
 

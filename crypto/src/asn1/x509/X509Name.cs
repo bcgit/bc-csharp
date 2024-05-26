@@ -360,7 +360,7 @@ namespace Org.BouncyCastle.Asn1.X509
             foreach (Asn1Encodable asn1Obj in seq)
             {
                 // RelativeDistinguishedName ::= SET SIZE(1..MAX) OF AttributeTypeAndValue
-                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj.ToAsn1Object());
+                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj);
 
                 // TODO Apply this check? (Currently "breaks" CertificateTest.CheckDudCertificate)
                 //if (rdn.Count < 1)
@@ -368,7 +368,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
                 for (int i = 0; i < rdn.Count; ++i)
                 {
-                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i].ToAsn1Object());
+                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i]);
                     if (attributeTypeAndValue.Count != 2)
                         throw new ArgumentException("badly sized AttributeTypeAndValue");
 

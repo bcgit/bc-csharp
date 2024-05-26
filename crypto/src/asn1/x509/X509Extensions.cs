@@ -233,17 +233,16 @@ namespace Org.BouncyCastle.Asn1.X509
 
 			foreach (Asn1Encodable ae in seq)
 			{
-				Asn1Sequence s = Asn1Sequence.GetInstance(ae.ToAsn1Object());
+				Asn1Sequence s = Asn1Sequence.GetInstance(ae);
 
 				if (s.Count < 2 || s.Count > 3)
 					throw new ArgumentException("Bad sequence size: " + s.Count);
 
-				DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(s[0].ToAsn1Object());
+				DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(s[0]);
 
-				bool isCritical = s.Count == 3
-					&& DerBoolean.GetInstance(s[1].ToAsn1Object()).IsTrue;
+				bool isCritical = s.Count == 3 && DerBoolean.GetInstance(s[1]).IsTrue;
 
-				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1].ToAsn1Object());
+				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1]);
 
                 if (m_extensions.ContainsKey(oid))
                     throw new ArgumentException("repeated extension found: " + oid);

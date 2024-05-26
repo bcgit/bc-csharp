@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 func = new KeyDerivationFunc(funcSeq);
             }
 
-            scheme = EncryptionScheme.GetInstance(seq[1].ToAsn1Object());
+            scheme = EncryptionScheme.GetInstance(seq[1]);
         }
 
         public KeyDerivationFunc KeyDerivationFunc

@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 }
             }
 
-            throw new ArgumentException("Unknown tag encountered: " + Asn1Utilities.GetTagText(choice));
+            throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(choice), nameof(choice));
         }
 
         private readonly int m_tagNo;

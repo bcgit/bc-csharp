@@ -80,13 +80,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual DerInteger Action => m_action;
 
-        public virtual SinglePubInfo[] GetPubInfos()
-        {
-            if (m_pubInfos == null)
-                return null;
-
-            return m_pubInfos.MapElements(SinglePubInfo.GetInstance);
-        }
+        public virtual SinglePubInfo[] GetPubInfos() => m_pubInfos?.MapElements(SinglePubInfo.GetInstance);
 
         /**
          * <pre>

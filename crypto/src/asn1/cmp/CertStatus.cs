@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 					if (p is Asn1TaggedObject dto)
 					{
 						if (!dto.HasContextTag(0))
-							throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(dto));
+							throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(dto));
 
 						m_hashAlg = AlgorithmIdentifier.GetInstance(dto, true);
 					}

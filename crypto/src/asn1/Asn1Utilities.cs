@@ -668,8 +668,9 @@ namespace Org.BouncyCastle.Asn1
                 sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
                 taggedObject.HasTag(tagClass, tagNo))
             {
+                var result = constructor(taggedObject, state);
                 sequencePosition++;
-                return constructor(taggedObject, state);
+                return result;
             }
 
             return null;
@@ -691,8 +692,8 @@ namespace Org.BouncyCastle.Asn1
                 sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
                 taggedObject.HasTag(tagClass, tagNo))
             {
-                sequencePosition++;
                 result = constructor(taggedObject, state);
+                sequencePosition++;
                 return true;
             }
 

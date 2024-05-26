@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 				}
 				else
 				{
-                    throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(tObj));
+                    throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(tObj));
                 }
             }
 		}

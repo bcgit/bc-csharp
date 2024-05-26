@@ -41,24 +41,23 @@ namespace Org.BouncyCastle.Asn1.Cms
 			this.unprotectedAttrs = unprotectedAttrs;
 		}
 
-		private EncryptedData(
-			Asn1Sequence seq)
+		private EncryptedData(Asn1Sequence seq)
 		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count < 2 || seq.Count > 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+			int count = seq.Count;
+			if (count < 2 || count > 3)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			this.version = DerInteger.GetInstance(seq[0]);
-			this.encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[1]);
+			int pos = 0;
 
-			if (seq.Count > 2)
-			{
-                this.unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject)seq[2], false);
-            }
-		}
+			this.version = DerInteger.GetInstance(seq[pos++]);
+			this.encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[pos++]);
+			this.unprotectedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
 
-		public virtual DerInteger Version
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
+
+        public virtual DerInteger Version
 		{
 			get { return version; }
 		}

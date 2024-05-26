@@ -5,6 +5,20 @@ namespace Org.BouncyCastle.Asn1.X509
     public class PolicyInformation
         : Asn1Encodable
     {
+        public static PolicyInformation GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is PolicyInformation policyInformation)
+                return policyInformation;
+            return new PolicyInformation(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PolicyInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new PolicyInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
         private readonly DerObjectIdentifier	policyIdentifier;
         private readonly Asn1Sequence			policyQualifiers;
 
@@ -36,17 +50,6 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             this.policyIdentifier = policyIdentifier;
             this.policyQualifiers = policyQualifiers;
-        }
-
-		public static PolicyInformation GetInstance(
-            object obj)
-        {
-            if (obj == null || obj is PolicyInformation)
-            {
-                return (PolicyInformation) obj;
-            }
-
-			return new PolicyInformation(Asn1Sequence.GetInstance(obj));
         }
 
 		public DerObjectIdentifier PolicyIdentifier

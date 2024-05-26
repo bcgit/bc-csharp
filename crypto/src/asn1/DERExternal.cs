@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Asn1
             case 2:
                 return DerBitString.GetInstance(encoding, false);
             default:
-                throw new ArgumentException("invalid tag: " + Asn1Utilities.GetTagText(encoding), nameof(encoding));
+                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(encoding), nameof(encoding));
             }
         }
 
