@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public CrlIdentifier(X509Name crlIssuer, DateTime crlIssuedTime, BigInteger crlNumber)
-			: this(crlIssuer, new Asn1UtcTime(crlIssuedTime, 2049), crlNumber)
+			: this(crlIssuer, Rfc5280Asn1Utilities.CreateUtcTime(crlIssuedTime), crlNumber)
 		{
 		}
 

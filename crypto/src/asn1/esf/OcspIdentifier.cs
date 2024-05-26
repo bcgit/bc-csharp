@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
@@ -50,12 +51,8 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public OcspIdentifier(ResponderID ocspResponderID, DateTime producedAt)
+			: this(ocspResponderID, Rfc5280Asn1Utilities.CreateGeneralizedTime(producedAt))
 		{
-			if (ocspResponderID == null)
-				throw new ArgumentNullException(nameof(ocspResponderID));
-
-			this.ocspResponderID = ocspResponderID;
-			this.producedAt = new Asn1GeneralizedTime(producedAt);
 		}
 
         public OcspIdentifier(ResponderID ocspResponderID, Asn1GeneralizedTime producedAt)

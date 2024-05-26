@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Ocsp
 		{
 			internal CertificateID         certId;
 			internal CertStatus            certStatus;
-			internal Asn1GeneralizedTime   thisUpdate;
-			internal Asn1GeneralizedTime   nextUpdate;
+			internal DerGeneralizedTime    thisUpdate;
+			internal DerGeneralizedTime    nextUpdate;
 			internal X509Extensions        extensions;
 
 			internal ResponseObject(
@@ -55,12 +55,14 @@ namespace Org.BouncyCastle.Ocsp
 						?	new CrlReason(rs.RevocationReason)
 						:	null;
 
-					this.certStatus = new CertStatus(
-						new RevokedInfo(new Asn1GeneralizedTime(rs.RevocationTime), revocationReason));
+					var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(rs.RevocationTime);
+					var revokedInfo = new RevokedInfo(revocationTime, revocationReason);
+
+                    this.certStatus = new CertStatus(revokedInfo);
 				}
 
-				this.thisUpdate = new DerGeneralizedTime(thisUpdate);
-				this.nextUpdate = nextUpdate.HasValue ? new DerGeneralizedTime(nextUpdate.Value) : null;
+				this.thisUpdate = Rfc5280Asn1Utilities.CreateGeneralizedTime(thisUpdate);
+				this.nextUpdate = nextUpdate.HasValue ? Rfc5280Asn1Utilities.CreateGeneralizedTime(nextUpdate.Value) : null;
 
 				this.extensions = extensions;
 			}
@@ -69,12 +71,12 @@ namespace Org.BouncyCastle.Ocsp
 			{
 				return new SingleResponse(certId.ToAsn1Object(), certStatus, thisUpdate, nextUpdate, extensions);
 			}
-		}
+        }
 
-		/**
+        /**
 		 * basic constructor
 		 */
-		public BasicOcspRespGenerator(
+        public BasicOcspRespGenerator(
 			RespID responderID)
 		{
 			this.responderID = responderID;
@@ -184,8 +186,11 @@ namespace Org.BouncyCastle.Ocsp
 				}
 			}
 
-			var responseData = new ResponseData(responderID.ToAsn1Object(), new Asn1GeneralizedTime(producedAt),
-				new DerSequence(responses), responseExtensions);
+			var responseData = new ResponseData(
+				responderID.ToAsn1Object(),
+				Rfc5280Asn1Utilities.CreateGeneralizedTime(producedAt),
+				new DerSequence(responses),
+				responseExtensions);
 
 			DerBitString bitSig;
 			try

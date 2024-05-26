@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -56,11 +57,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			if (utc.Year < 1950 || utc.Year > 2049)
             {
-                m_timeObject = new DerGeneralizedTime(utc);
+                m_timeObject = Rfc5280Asn1Utilities.CreateGeneralizedTime(utc);
             }
             else
             {
-                m_timeObject = new DerUtcTime(utc, 2049);
+                m_timeObject = Rfc5280Asn1Utilities.CreateUtcTime(utc);
             }
         }
 

@@ -340,7 +340,12 @@ namespace Org.BouncyCastle.Tsp
                 respExtensions = extGen.Generate();
             }
 
-            var timeStampTime = new Asn1GeneralizedTime(WithResolution(genTime, resolution));
+            /*
+             * RFC 3161. The ASN.1 GeneralizedTime syntax can include fraction-of-second details. Such syntax, without
+             * the restrictions from RFC 2459 Section 4.1.2.5.2, where GeneralizedTime is limited to represent the
+             * time with a granularity of one second, may be used here.
+             */
+            var timeStampTime = new DerGeneralizedTime(WithResolution(genTime, resolution));
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
                 new DerInteger(serialNumber), timeStampTime, accuracy,
