@@ -67,6 +67,16 @@ namespace Org.BouncyCastle.Tls
             return "No selectable cipher suite";
         }
 
+        protected virtual int GetMaximumDefaultCurveBits()
+        {
+            return NamedGroup.GetCurveBits(NamedGroup.secp521r1);
+        }
+
+        protected virtual int GetMaximumDefaultFiniteFieldBits()
+        {
+            return NamedGroup.GetFiniteFieldBits(NamedGroup.ffdhe8192);
+        }
+
         protected virtual int GetMaximumNegotiableCurveBits()
         {
             int maxBits = 0;
@@ -85,7 +95,7 @@ namespace Org.BouncyCastle.Tls
                  * extensions. In this case, the server is free to choose any one of the elliptic curves or point
                  * formats [...].
                  */
-                maxBits = NamedGroup.GetMaximumCurveBits();
+                maxBits = GetMaximumDefaultCurveBits();
             }
             return maxBits;
         }
@@ -110,7 +120,7 @@ namespace Org.BouncyCastle.Tls
                  * entirely or contains no FFDHE groups (i.e., no codepoints between 256 and 511, inclusive), then
                  * the server [...] MAY select an FFDHE cipher suite and offer an FFDHE group of its choice [...].
                  */
-                maxBits = NamedGroup.GetMaximumFiniteFieldBits();
+                maxBits = GetMaximumDefaultFiniteFieldBits();
             }
             return maxBits;
         }
@@ -142,23 +152,39 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        // TODO[api] Preferably return TlsDHConfig from here to support custom DH groups more easily
         protected virtual int SelectDH(int minimumFiniteFieldBits)
         {
+            bool anyPeerFF = false;
             int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
-            if (clientSupportedGroups == null)
-                return SelectDHDefault(minimumFiniteFieldBits);
-
-            // Try to find a supported named group of the required size from the client's list.
-            for (int i = 0; i < clientSupportedGroups.Length; ++i)
+            if (clientSupportedGroups != null)
             {
-                int namedGroup = clientSupportedGroups[i];
-                if (NamedGroup.GetFiniteFieldBits(namedGroup) >= minimumFiniteFieldBits)
-                    return namedGroup;
-            }
+                // Try to find a supported named group of the required size from the client's list.
+                for (int i = 0; i < clientSupportedGroups.Length; ++i)
+                {
+                    int namedGroup = clientSupportedGroups[i];
+                    anyPeerFF |= NamedGroup.IsFiniteField(namedGroup);
 
+                    if (NamedGroup.GetFiniteFieldBits(namedGroup) >= minimumFiniteFieldBits)
+                    {
+                        // This default server implementation supports all NamedGroup finite fields
+                        return namedGroup;
+                    }
+                }
+            }
+            if (!anyPeerFF)
+            {
+                /*
+                 * RFC 7919 4. If [...] the Supported Groups extension is either absent from the ClientHello
+                 * entirely or contains no FFDHE groups (i.e., no codepoints between 256 and 511, inclusive), then
+                 * the server [...] MAY select an FFDHE cipher suite and offer an FFDHE group of its choice [...].
+                 */
+                return SelectDHDefault(minimumFiniteFieldBits);
+            }
             return -1;
         }
 
+        // TODO[api] Preferably return TlsDHConfig from here to support custom DH groups more easily
         protected virtual int SelectDHDefault(int minimumFiniteFieldBits)
         {
             return minimumFiniteFieldBits <= 2048 ? NamedGroup.ffdhe2048
@@ -173,14 +199,24 @@ namespace Org.BouncyCastle.Tls
         {
             int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
             if (clientSupportedGroups == null)
+            {
+                /*
+                 * RFC 4492 4. A client that proposes ECC cipher suites may choose not to include these
+                 * extensions. In this case, the server is free to choose any one of the elliptic curves or point
+                 * formats [...].
+                 */
                 return SelectECDHDefault(minimumCurveBits);
+            }
 
             // Try to find a supported named group of the required size from the client's list.
             for (int i = 0; i < clientSupportedGroups.Length; ++i)
             {
                 int namedGroup = clientSupportedGroups[i];
                 if (NamedGroup.GetCurveBits(namedGroup) >= minimumCurveBits)
+                {
+                    // This default server implementation supports all NamedGroup curves
                     return namedGroup;
+                }
             }
 
             return -1;
