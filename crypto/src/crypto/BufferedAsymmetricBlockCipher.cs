@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Crypto
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
 		{
-			Check.DataLength(input, buffer.Length - bufOff, "attempt to process message too long for cipher");
+            Check.DataLength(input.Length > buffer.Length - bufOff, "attempt to process message too long for cipher");
 
 			input.CopyTo(buffer.AsSpan(bufOff));
             bufOff += input.Length;
