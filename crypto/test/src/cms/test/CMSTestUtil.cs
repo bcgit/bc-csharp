@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -80,86 +81,39 @@ namespace Org.BouncyCastle.Cms.Tests
 			+ "6asYwy151HshbPNYz+Cgeqs45KkVzh7bL/0e1r8sDVIaaGIkjHK3CqBABnfSayr3"
 			+ "Rd1yBoDdEv8Qb+3eEPH6ab9021AsLEnJ6LWTmybbOpMNZ3tv");
 
-		private static IAsymmetricCipherKeyPairGenerator Kpg
+        public static IAsymmetricCipherKeyPairGenerator InitKpg(ref IAsymmetricCipherKeyPairGenerator kpg,
+			string algorithm, Func<KeyGenerationParameters> createParameters)
+        {
+            var current = Volatile.Read(ref kpg);
+            if (null != current)
+                return current;
+
+			var candidate = GeneratorUtilities.GetKeyPairGenerator(algorithm);
+			candidate.Init(createParameters());
+
+            return Interlocked.CompareExchange(ref kpg, candidate, null) ?? candidate;
+        }
+
+		private static IAsymmetricCipherKeyPairGenerator Kpg => InitKpg(ref kpg, "RSA", () =>
+			new RsaKeyGenerationParameters(BigInteger.ValueOf(17), Random, 1024, 25));
+
+        private static IAsymmetricCipherKeyPairGenerator GostKpg => InitKpg(ref gostKpg, "GOST3410", () =>
+			new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
+
+		private static IAsymmetricCipherKeyPairGenerator DsaKpg => InitKpg(ref dsaKpg, "DSA", () =>
 		{
-			get
-			{
-				if (kpg == null)
-				{
-					kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
-					kpg.Init(new RsaKeyGenerationParameters(
-						BigInteger.ValueOf(17), Random, 1024, 25));
-				}
+            DsaParameters dsaSpec = new DsaParameters(
+                new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
+                new BigInteger("1138656671590261728308283492178581223478058193247"),
+                new BigInteger("4182906737723181805517018315469082619513954319976782448649747742951189003482834321192692620856488639629011570381138542789803819092529658402611668375788410"));
+            return new DsaKeyGenerationParameters(Random, dsaSpec);
+        });
 
-				return kpg;
-			}
-		}
+        private static IAsymmetricCipherKeyPairGenerator ECGostKpg => InitKpg(ref ecGostKpg, "ECGOST3410", () =>
+            new ECKeyGenerationParameters(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA, Random));
 
-		private static IAsymmetricCipherKeyPairGenerator GostKpg
-		{
-			get
-			{
-				if (gostKpg == null)
-				{
-					gostKpg = GeneratorUtilities.GetKeyPairGenerator("GOST3410");
-					gostKpg.Init(
-						new Gost3410KeyGenerationParameters(
-							Random,
-							CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
-				}
-
-				return gostKpg;
-			}
-		}
-
-		private static IAsymmetricCipherKeyPairGenerator DsaKpg
-		{
-			get
-			{
-				if (dsaKpg == null)
-				{
-					DsaParameters dsaSpec = new DsaParameters(
-						new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
-						new BigInteger("1138656671590261728308283492178581223478058193247"),
-						new BigInteger("4182906737723181805517018315469082619513954319976782448649747742951189003482834321192692620856488639629011570381138542789803819092529658402611668375788410"));
-					dsaKpg = GeneratorUtilities.GetKeyPairGenerator("DSA");
-					dsaKpg.Init(new DsaKeyGenerationParameters(Random, dsaSpec));
-				}
-
-				return dsaKpg;
-			}
-		}
-
-		private static IAsymmetricCipherKeyPairGenerator ECGostKpg
-		{
-			get
-			{
-				if (ecGostKpg == null)
-				{
-					ecGostKpg = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
-					ecGostKpg.Init(
-						new ECKeyGenerationParameters(
-							CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
-							new SecureRandom()));
-				}
-
-				return ecGostKpg;
-			}
-		}
-
-		private static IAsymmetricCipherKeyPairGenerator ECDsaKpg
-		{
-			get
-			{
-				if (ecDsaKpg == null)
-				{
-					ecDsaKpg = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
-					ecDsaKpg.Init(new KeyGenerationParameters(Random, 239));
-				}
-
-				return ecDsaKpg;
-			}
-		}
+        private static IAsymmetricCipherKeyPairGenerator ECDsaKpg => InitKpg(ref ecDsaKpg, "ECDSA", () =>
+            new KeyGenerationParameters(Random, 239));
 
 		static CmsTestUtil()
 		{
