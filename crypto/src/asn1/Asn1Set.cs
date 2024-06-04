@@ -77,6 +77,24 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Set)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1Set GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1Set asn1Set)
+                return asn1Set;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object))
+            {
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1Set converted)
+                    return converted;
+            }
+
+            return null;
+        }
+
         internal readonly Asn1Encodable[] m_elements;
         internal DerEncoding[] m_sortedDerEncodings;
 

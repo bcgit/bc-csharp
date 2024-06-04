@@ -652,6 +652,23 @@ namespace Org.BouncyCastle.Asn1
 
         #region Sequence cursor
 
+        public static TResult ReadOptional<TResult>(Asn1Sequence sequence, ref int sequencePosition,
+            Func<Asn1Encodable, TResult> constructor)
+            where TResult : class
+        {
+            if (sequencePosition < sequence.Count)
+            {
+                var result = constructor(sequence[sequencePosition]);
+                if (result != null)
+                {
+                    sequencePosition++;
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
         public static TResult ReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
             int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class

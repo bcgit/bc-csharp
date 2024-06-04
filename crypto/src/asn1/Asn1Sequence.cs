@@ -77,6 +77,24 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Sequence)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1Sequence GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1Sequence asn1Sequence)
+                return asn1Sequence;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object))
+            {
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1Sequence converted)
+                    return converted;
+            }
+
+            return null;
+        }
+
         internal static Asn1Encodable[] ConcatenateElements(Asn1Sequence[] sequences)
         {
             int count = sequences.Length;
