@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Math;
+﻿using System;
+
+using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -22,13 +24,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static PkiPublicationInfo GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is PkiPublicationInfo pkiPublicationInfo)
                 return pkiPublicationInfo;
+            return new PkiPublicationInfo(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new PkiPublicationInfo(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static PkiPublicationInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new PkiPublicationInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly DerInteger m_action;
@@ -36,11 +41,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private PkiPublicationInfo(Asn1Sequence seq)
         {
-            m_action = DerInteger.GetInstance(seq[0]);
-            if (seq.Count > 1)
-            {
-                m_pubInfos = Asn1Sequence.GetInstance(seq[1]);
-            }
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            int pos = 0;
+
+            m_action = DerInteger.GetInstance(seq[pos++]);
+            m_pubInfos = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public PkiPublicationInfo(BigInteger action)
@@ -50,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public PkiPublicationInfo(DerInteger action)
         {
-            m_action = action;
+            m_action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         /**
@@ -97,10 +108,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            if (m_pubInfos == null)
-                return new DerSequence(m_action);
-
-            return new DerSequence(m_action, m_pubInfos);
+            return m_pubInfos == null
+                ?  new DerSequence(m_action)
+                :  new DerSequence(m_action, m_pubInfos);
         }
     }
 }

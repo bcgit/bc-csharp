@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.Cmp;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
@@ -28,6 +30,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private PKMacValue(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_algID = AlgorithmIdentifier.GetInstance(seq[0]);
             m_macValue = DerBitString.GetInstance(seq[1]);
         }

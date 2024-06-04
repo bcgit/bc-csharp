@@ -8,78 +8,74 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class EncKeyWithID
         : Asn1Encodable
     {
-        private readonly PrivateKeyInfo privKeyInfo;
-        private readonly Asn1Encodable identifier;
-
         public static EncKeyWithID GetInstance(object obj)
         {
-            if (obj is EncKeyWithID)
-                return (EncKeyWithID)obj;
-
-            if (obj != null)
-                return new EncKeyWithID(Asn1Sequence.GetInstance(obj));
-
-            return null;
+            if (obj == null)
+                return null;
+            if (obj is EncKeyWithID encKeyWithID)
+                return encKeyWithID;
+            return new EncKeyWithID(Asn1Sequence.GetInstance(obj));
         }
+
+        public static EncKeyWithID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new EncKeyWithID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private static Asn1Encodable GetOptionalChoice(Asn1Encodable element)
+        {
+            var _string = DerUtf8String.GetOptional(element);
+            if (_string != null)
+                return _string;
+
+            return GeneralName.GetInstance(element);
+        }
+
+        private readonly PrivateKeyInfo m_privKeyInfo;
+        private readonly Asn1Encodable m_identifier;
 
         private EncKeyWithID(Asn1Sequence seq)
         {
-            this.privKeyInfo = PrivateKeyInfo.GetInstance(seq[0]);
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            if (seq.Count > 1)
+            m_privKeyInfo = PrivateKeyInfo.GetInstance(seq[0]);
+
+            if (count > 1)
             {
-                if (!(seq[1] is DerUtf8String))
-                {
-                    this.identifier = GeneralName.GetInstance(seq[1]);
-                }
-                else
-                {
-                    this.identifier = seq[1];
-                }
+                m_identifier = GetOptionalChoice(seq[1]);
             }
-            else
-            {
-                this.identifier = null;
-            }
+        }
+
+        private EncKeyWithID(PrivateKeyInfo privKeyInfo, Asn1Encodable identifier)
+        {
+            m_privKeyInfo = privKeyInfo ?? throw new ArgumentNullException(nameof(privKeyInfo));
+            m_identifier = identifier;
         }
 
         public EncKeyWithID(PrivateKeyInfo privKeyInfo)
+            : this(privKeyInfo, (Asn1Encodable)null)
         {
-            this.privKeyInfo = privKeyInfo;
-            this.identifier = null;
         }
 
         public EncKeyWithID(PrivateKeyInfo privKeyInfo, DerUtf8String str)
+            : this(privKeyInfo, (Asn1Encodable)str)
         {
-            this.privKeyInfo = privKeyInfo;
-            this.identifier = str;
         }
 
         public EncKeyWithID(PrivateKeyInfo privKeyInfo, GeneralName generalName)
+            : this(privKeyInfo, (Asn1Encodable)generalName)
         {
-            this.privKeyInfo = privKeyInfo;
-            this.identifier = generalName;
         }
 
-        public virtual PrivateKeyInfo PrivateKey
-        {
-            get { return privKeyInfo; }
-        }
+        public virtual PrivateKeyInfo PrivateKey => m_privKeyInfo;
 
-        public virtual bool HasIdentifier
-        {
-            get { return identifier != null; }
-        }
+        public virtual bool HasIdentifier => m_identifier != null;
 
-        public virtual bool IsIdentifierUtf8String
-        {
-            get { return identifier is DerUtf8String; }
-        }
+        public virtual bool IsIdentifierUtf8String => m_identifier is DerUtf8String;
 
-        public virtual Asn1Encodable Identifier
-        {
-            get { return identifier; }
-        }
+        public virtual Asn1Encodable Identifier => m_identifier;
 
         /**
          * <pre>
@@ -95,9 +91,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(privKeyInfo);
-            v.AddOptional(identifier);
-            return new DerSequence(v);
+            return m_identifier == null
+                ?  new DerSequence(m_privKeyInfo)
+                :  new DerSequence(m_privKeyInfo, m_identifier);
         }
     }
 }

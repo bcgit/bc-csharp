@@ -9,13 +9,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
     {
         public static EncryptedValue GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is EncryptedValue encryptedValue)
                 return encryptedValue;
+            return new EncryptedValue(Asn1Sequence.GetInstance(obj));
+        }
 
-            if (obj != null)
-                return new EncryptedValue(Asn1Sequence.GetInstance(obj));
-
-            return null;
+        public static EncryptedValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new EncryptedValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly AlgorithmIdentifier m_intendedAlg;

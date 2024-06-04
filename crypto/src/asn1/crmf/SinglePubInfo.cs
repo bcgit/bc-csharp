@@ -1,41 +1,49 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class SinglePubInfo
         : Asn1Encodable
     {
-        private readonly DerInteger pubMethod;
-        private readonly GeneralName pubLocation;
+        public static SinglePubInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SinglePubInfo singlePubInfo)
+                return singlePubInfo;
+            return new SinglePubInfo(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static SinglePubInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new SinglePubInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly DerInteger m_pubMethod;
+        private readonly GeneralName m_pubLocation;
 
         private SinglePubInfo(Asn1Sequence seq)
         {
-            pubMethod = DerInteger.GetInstance(seq[0]);
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            if (seq.Count == 2)
+            int pos = 0;
+
+            m_pubMethod = DerInteger.GetInstance(seq[pos++]);
+
+            if (pos < count)
             {
-                pubLocation = GeneralName.GetInstance(seq[1]);
+                m_pubLocation = GeneralName.GetInstance(seq[pos++]);
             }
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public static SinglePubInfo GetInstance(object obj)
-        {
-            if (obj is SinglePubInfo)
-                return (SinglePubInfo)obj;
-
-            if (obj is Asn1Sequence)
-                return new SinglePubInfo((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-        }
-
-        public virtual GeneralName PubLocation
-        {
-            get { return pubLocation; }
-        }
+        public virtual GeneralName PubLocation => m_pubLocation;
 
         /**
          * <pre>
@@ -51,9 +59,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(pubMethod);
-            v.AddOptional(pubLocation);
-            return new DerSequence(v);
+            return m_pubLocation == null
+                ?  new DerSequence(m_pubMethod)
+                :  new DerSequence(m_pubMethod, m_pubLocation);
         }
     }
 }

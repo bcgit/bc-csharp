@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -17,9 +18,15 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             if (obj == null)
                 return null;
-            if (obj is PopoPrivKey popoPrivKey)
-                return popoPrivKey;
-            return new PopoPrivKey(Asn1TaggedObject.GetInstance(obj, Asn1Tags.ContextSpecific));
+
+            if (obj is Asn1Encodable element)
+            {
+                var result = GetOptional(element);
+                if (result != null)
+                    return result;
+            }
+
+            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         public static PopoPrivKey GetInstance(Asn1TaggedObject tagged, bool isExplicit)
@@ -27,56 +34,64 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return Asn1Utilities.GetInstanceFromChoice(tagged, isExplicit, GetInstance);
         }
 
-        private readonly int tagNo;
-        private readonly Asn1Encodable obj;
-
-        private PopoPrivKey(Asn1TaggedObject obj)
+        public static PopoPrivKey GetOptional(Asn1Encodable element)
         {
-            this.tagNo = obj.TagNo;
-
-            switch (tagNo)
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+            if (element is PopoPrivKey popoPrivKey)
+                return popoPrivKey;
+            if (element is Asn1TaggedObject taggedObject)
             {
-            case thisMessage:
-                this.obj = DerBitString.GetInstance(obj, false);
-                break;
-            case subsequentMessage:
-                this.obj = SubsequentMessage.ValueOf(DerInteger.GetInstance(obj, false).IntValueExact);
-                break;
-            case dhMAC:
-                this.obj = DerBitString.GetInstance(obj, false);
-                break;
-            case agreeMAC:
-                this.obj = PKMacValue.GetInstance(obj, false);
-                break;
-            case encryptedKey:
-                this.obj = EnvelopedData.GetInstance(obj, false);
-                break;
-            default:
-                throw new ArgumentException("unknown tag in PopoPrivKey", "obj");
+                Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
+                if (baseObject != null)
+                    return new PopoPrivKey(taggedObject.TagNo, baseObject);
             }
+            return null;
+        }
+
+        private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
+        {
+            if (taggedObject.HasContextTag())
+            {
+                switch (taggedObject.TagNo)
+                {
+                case thisMessage:
+                case dhMAC:
+                    return DerBitString.GetInstance(taggedObject, false);
+                case subsequentMessage:
+                    return SubsequentMessage.ValueOf(DerInteger.GetInstance(taggedObject, false).IntValueExact);
+                case agreeMAC:
+                    return PKMacValue.GetInstance(taggedObject, false);
+                case encryptedKey:
+                    return EnvelopedData.GetInstance(taggedObject, false);
+
+                }
+            }
+            return null;
+        }
+
+        private readonly int m_tagNo;
+        private readonly Asn1Encodable m_obj;
+
+        private PopoPrivKey(int tagNo, Asn1Encodable obj)
+        {
+            m_tagNo = tagNo;
+            m_obj = obj ?? throw new ArgumentNullException(nameof(obj));
         }
 
         public PopoPrivKey(PKMacValue pkMacValue)
+            : this(agreeMAC, pkMacValue)
         {
-            this.tagNo = agreeMAC;
-            this.obj = pkMacValue;
         }
 
         public PopoPrivKey(SubsequentMessage msg)
+            : this(subsequentMessage, msg)
         {
-            this.tagNo = subsequentMessage;
-            this.obj = msg;
         }
 
-        public virtual int Type
-        {
-            get { return tagNo; }
-        }
+        public virtual int Type => m_tagNo;
 
-        public virtual Asn1Encodable Value
-        {
-            get { return obj; }
-        }
+        public virtual Asn1Encodable Value => m_obj;
 
         /**
          * <pre>
@@ -91,9 +106,6 @@ namespace Org.BouncyCastle.Asn1.Crmf
          *        encryptedKey      [4] EnvelopedData }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerTaggedObject(false, tagNo, obj);
-        }
+        public override Asn1Object ToAsn1Object() => new DerTaggedObject(false, m_tagNo, m_obj);
     }
 }

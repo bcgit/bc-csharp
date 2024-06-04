@@ -1,68 +1,61 @@
 ﻿using System;
-using Org.BouncyCastle.Crmf;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class CertRequest
         : Asn1Encodable
     {
-        private readonly DerInteger certReqId;
-        private readonly CertTemplate certTemplate;
-        private readonly Controls controls;
+        public static CertRequest GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CertRequest certRequest)
+                return certRequest;
+            return new CertRequest(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static CertRequest GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new CertRequest(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly DerInteger m_certReqId;
+        private readonly CertTemplate m_certTemplate;
+        private readonly Controls m_controls;
 
         private CertRequest(Asn1Sequence seq)
         {
-            certReqId = DerInteger.GetInstance(seq[0]);
-            certTemplate = CertTemplate.GetInstance(seq[1]);
-            if (seq.Count > 2)
-            {
-                controls = Controls.GetInstance(seq[2]);
-            }
+            int count = seq.Count;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            int pos = 0;
+
+            m_certReqId = DerInteger.GetInstance(seq[pos++]);
+            m_certTemplate = CertTemplate.GetInstance(seq[pos++]);
+            m_controls = Asn1Utilities.ReadOptional(seq, ref pos, Controls.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public static CertRequest GetInstance(object obj)
-        {
-            if (obj is CertRequest)
-                return (CertRequest)obj;
-
-            if (obj != null)
-                return new CertRequest(Asn1Sequence.GetInstance(obj));
-
-            return null;
-        }
-
-        public CertRequest(
-            int certReqId,
-            CertTemplate certTemplate,
-            Controls controls)
+        public CertRequest(int certReqId, CertTemplate certTemplate, Controls controls)
             : this(new DerInteger(certReqId), certTemplate, controls)
         {
         }
 
-        public CertRequest(
-            DerInteger certReqId,
-            CertTemplate certTemplate,
-            Controls controls)
+        public CertRequest(DerInteger certReqId, CertTemplate certTemplate, Controls controls)
         {
-            this.certReqId = certReqId;
-            this.certTemplate = certTemplate;
-            this.controls = controls;
+            m_certReqId = certReqId ?? throw new ArgumentNullException(nameof(certReqId));
+            m_certTemplate = certTemplate ?? throw new ArgumentNullException(nameof(certTemplate));
+            m_controls = controls;
         }
 
-        public virtual DerInteger CertReqID
-        {
-            get { return certReqId; }
-        }
+        public virtual DerInteger CertReqID => m_certReqId;
 
-        public virtual CertTemplate CertTemplate
-        {
-            get { return certTemplate; }
-        }
+        public virtual CertTemplate CertTemplate => m_certTemplate;
 
-        public virtual Controls Controls
-        {
-            get { return controls; }
-        }
+        public virtual Controls Controls => m_controls;
 
         /**
          * <pre>
@@ -75,8 +68,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(certReqId, certTemplate);
-            v.AddOptional(controls);
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(m_certReqId, m_certTemplate);
+            v.AddOptional(m_controls);
             return new DerSequence(v);
         }
     }

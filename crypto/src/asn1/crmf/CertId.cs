@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.X509;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -9,8 +11,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             if (obj == null)
                 return null;
-            if (obj is CertId certID)
-                return certID;
+            if (obj is CertId certId)
+                return certId;
             return new CertId(Asn1Sequence.GetInstance(obj));
         }
 
@@ -24,8 +26,18 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private CertId(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_issuer = GeneralName.GetInstance(seq[0]);
             m_serialNumber = DerInteger.GetInstance(seq[1]);
+        }
+
+        public CertId(GeneralName issuer, DerInteger serialNumber)
+        {
+            m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
+            m_serialNumber = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
         }
 
         public virtual GeneralName Issuer => m_issuer;

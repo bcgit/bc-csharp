@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.X509;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -25,17 +27,18 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private PopoSigningKey(Asn1Sequence seq)
         {
-            int index = 0;
+            int count = seq.Count;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            if (seq[index] is Asn1TaggedObject tagObj)
-            {
-                index++;
+            int pos = 0;
 
-                m_poposkInput = PopoSigningKeyInput.GetInstance(
-                    Asn1Utilities.GetContextBaseUniversal(tagObj, 0, false, Asn1Tags.Sequence));
-            }
-            m_algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[index++]);
-            m_signature = DerBitString.GetInstance(seq[index]);
+            m_poposkInput = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, PopoSigningKeyInput.GetInstance);
+            m_algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_signature = DerBitString.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /**
@@ -49,8 +52,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public PopoSigningKey(PopoSigningKeyInput poposkIn, AlgorithmIdentifier aid, DerBitString signature)
         {
             m_poposkInput = poposkIn;
-            m_algorithmIdentifier = aid;
-            m_signature = signature;
+            m_algorithmIdentifier = aid ?? throw new ArgumentNullException(nameof(aid));
+            m_signature = signature ?? throw new ArgumentNullException(nameof(signature));
         }
 
         public virtual PopoSigningKeyInput PoposkInput => m_poposkInput;

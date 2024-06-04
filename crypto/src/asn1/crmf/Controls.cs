@@ -1,40 +1,50 @@
 ﻿using System;
-using System.Text;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class Controls
         : Asn1Encodable
     {
-        private readonly Asn1Sequence content;
+        public static Controls GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is Controls controls)
+                return controls;
+            return new Controls(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static Controls GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new Controls(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        public static Controls GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+            if (element is Controls controls)
+                return controls;
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new Controls(asn1Sequence);
+            return null;
+        }
+
+        private readonly Asn1Sequence m_content;
 
         private Controls(Asn1Sequence seq)
         {
-            content = seq;
-        }
-
-        public static Controls GetInstance(object obj)
-        {
-            if (obj is Controls)
-                return (Controls)obj;
-
-            if (obj is Asn1Sequence)
-                return new Controls((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+            m_content = seq;
         }
 
         public Controls(params AttributeTypeAndValue[] atvs)
         {
-            content = new DerSequence(atvs);
+            m_content = new DerSequence(atvs);
         }
 
-        public virtual AttributeTypeAndValue[] ToAttributeTypeAndValueArray()
-        {
-            return content.MapElements(AttributeTypeAndValue.GetInstance);
-        }
+        public virtual AttributeTypeAndValue[] ToAttributeTypeAndValueArray() =>
+            m_content.MapElements(AttributeTypeAndValue.GetInstance);
 
         /**
          * <pre>
@@ -42,9 +52,6 @@ namespace Org.BouncyCastle.Asn1.Crmf
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return content;
-        }
+        public override Asn1Object ToAsn1Object() => m_content;
     }
 }

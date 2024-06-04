@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.X509;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -25,6 +27,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private PopoSigningKeyInput(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             Asn1Encodable authInfo = (Asn1Encodable)seq[0];
 
             if (authInfo is Asn1TaggedObject tagObj)
@@ -42,15 +48,15 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /** Creates a new PopoSigningKeyInput with sender name as authInfo. */
         public PopoSigningKeyInput(GeneralName sender, SubjectPublicKeyInfo spki)
         {
-            m_sender = sender;
-            m_publicKey = spki;
+            m_sender = sender ?? throw new ArgumentNullException(nameof(sender));
+            m_publicKey = spki ?? throw new ArgumentNullException(nameof(spki));
         }
 
         /** Creates a new PopoSigningKeyInput using password-based MAC. */
         public PopoSigningKeyInput(PKMacValue pkmac, SubjectPublicKeyInfo spki)
         {
-            m_publicKeyMac = pkmac;
-            m_publicKey = spki;
+            m_publicKeyMac = pkmac ?? throw new ArgumentNullException(nameof(pkmac));
+            m_publicKey = spki ?? throw new ArgumentNullException(nameof(spki));
         }
 
         /** Returns the sender field, or null if authInfo is publicKeyMac */
@@ -83,7 +89,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             if (m_sender != null)
             {
-                v.Add(new DerTaggedObject(false, 0, m_sender));
+                v.Add(new DerTaggedObject(true, 0, m_sender));
             }
             else
             {
