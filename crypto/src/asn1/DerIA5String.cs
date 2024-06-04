@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1
             if (obj is DerIA5String derIA5String)
                 return derIA5String;
 
-            if (obj is IAsn1Convertible asn1Convertible)
+            if (obj is IAsn1Convertible asn1Convertible && !(obj is Asn1Object))
             {
                 Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
                 if (asn1Object is DerIA5String converted)

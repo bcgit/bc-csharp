@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1
             if (obj is Asn1Set asn1Set)
                 return asn1Set;
 
-            if (obj is IAsn1Convertible asn1Convertible)
+            if (obj is IAsn1Convertible asn1Convertible && !(obj is Asn1Object))
             {
                 Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
                 if (asn1Object is Asn1Set converted)

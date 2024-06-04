@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1
             if (obj is DerNumericString derNumericString)
                 return derNumericString;
 
-            if (obj is IAsn1Convertible asn1Convertible)
+            if (obj is IAsn1Convertible asn1Convertible && !(obj is Asn1Object))
             {
                 Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
                 if (asn1Object is DerNumericString converted)
