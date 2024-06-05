@@ -34,8 +34,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private KemBMParameter(Asn1Sequence seq)
         {
-            if (seq.Count != 3)
-                throw new ArgumentException("sequence size should 3", nameof(seq));
+            int count = seq.Count;
+            if (count != 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_kdf = AlgorithmIdentifier.GetInstance(seq[0]);
             m_len = DerInteger.GetInstance(seq[1]);
@@ -44,9 +45,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public KemBMParameter(AlgorithmIdentifier kdf, DerInteger len, AlgorithmIdentifier mac)
         {
-            m_kdf = kdf;
-            m_len = len;
-            m_mac = mac;
+            m_kdf = kdf ?? throw new ArgumentNullException(nameof(kdf));
+            m_len = len ?? throw new ArgumentNullException(nameof(len));
+            m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
         public KemBMParameter(AlgorithmIdentifier kdf, long len, AlgorithmIdentifier mac)

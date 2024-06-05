@@ -62,47 +62,23 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private KemOtherInfo(Asn1Sequence seq)
         {
-            if (seq.Count < 4 || seq.Count > 7)
-                throw new ArgumentException("sequence size should be between 4 and 7 inclusive", nameof(seq));
+            int count = seq.Count, pos = 0;
+            if (count < 4 || count > 7)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            int seqPos = 0;
-
-            m_staticString = PkiFreeText.GetInstance(seq[seqPos]);
+            m_staticString = PkiFreeText.GetInstance(seq[pos++]);
             if (!DEFAULT_staticString.Equals(m_staticString))
                 throw new ArgumentException("staticString field should be " + DEFAULT_staticString);
 
-            Asn1TaggedObject tagged = seq[++seqPos] as Asn1TaggedObject;
+            m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetInstance);
+            m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1OctetString.GetInstance);
+            m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetInstance);
+            m_len = DerInteger.GetInstance(seq[pos++]);
+            m_mac = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_ct = Asn1OctetString.GetInstance(seq[pos++]);
 
-            if (tagged != null &&
-                Asn1Utilities.TryGetContextBaseUniversal(tagged, 0, true, Asn1Tags.OctetString, out var transactionID))
-            {
-                m_transactionID = (Asn1OctetString)transactionID;
-                tagged = seq[++seqPos] as Asn1TaggedObject;
-            }
-
-            if (tagged != null &&
-                Asn1Utilities.TryGetContextBaseUniversal(tagged, 1, true, Asn1Tags.OctetString, out var senderNonce))
-            {
-                m_senderNonce = (Asn1OctetString)senderNonce;
-                tagged = seq[++seqPos] as Asn1TaggedObject;
-            }
-
-            if (tagged != null &&
-                Asn1Utilities.TryGetContextBaseUniversal(tagged, 2, true, Asn1Tags.OctetString, out var recipNonce))
-            {
-                m_recipNonce = (Asn1OctetString)recipNonce;
-                tagged = seq[++seqPos] as Asn1TaggedObject;
-            }
-
-            if (tagged != null)
-                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(tagged));
-
-            m_len = DerInteger.GetInstance(seq[seqPos]);
-            m_mac = AlgorithmIdentifier.GetInstance(seq[++seqPos]);
-            m_ct = Asn1OctetString.GetInstance(seq[++seqPos]);
-
-            if (++seqPos != seq.Count)
-                throw new ArgumentException("unexpected data at end of sequence", nameof(seq));
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public virtual Asn1OctetString TransactionID => m_transactionID;

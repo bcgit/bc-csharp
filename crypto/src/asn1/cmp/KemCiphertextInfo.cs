@@ -32,8 +32,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private KemCiphertextInfo(Asn1Sequence seq)
         {
-            if (seq.Count != 2)
-                throw new ArgumentException("sequence size should 2", nameof(seq));
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_kem = AlgorithmIdentifier.GetInstance(seq[0]);
             m_ct = Asn1OctetString.GetInstance(seq[1]);
@@ -41,8 +42,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public KemCiphertextInfo(AlgorithmIdentifier kem, Asn1OctetString ct)
         {
-            m_kem = kem;
-            m_ct = ct;
+            m_kem = kem ?? throw new ArgumentNullException(nameof(kem));
+            m_ct = ct ?? throw new ArgumentNullException(nameof(ct));
         }
 
         public virtual AlgorithmIdentifier Kem => m_kem;

@@ -23,11 +23,14 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
+
             if (element is Controls controls)
                 return controls;
+
             Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
             if (asn1Sequence != null)
                 return new Controls(asn1Sequence);
+
             return null;
         }
 

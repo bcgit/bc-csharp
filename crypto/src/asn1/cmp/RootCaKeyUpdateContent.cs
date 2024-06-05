@@ -47,30 +47,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private RootCaKeyUpdateContent(Asn1Sequence seq)
         {
-            if (seq.Count < 1 || seq.Count > 3)
-                throw new ArgumentException("expected sequence of 1 to 3 elements only");
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            CmpCertificate newWithNew = CmpCertificate.GetInstance(seq[0]);
-            CmpCertificate newWithOld = null;
-            CmpCertificate oldWithNew = null;
+            m_newWithNew = CmpCertificate.GetInstance(seq[pos++]);
+            m_newWithOld = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetInstance);
+            m_oldWithNew = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, CmpCertificate.GetInstance);
 
-            for (int pos = 1; pos < seq.Count; ++pos)
-            {
-                Asn1TaggedObject ato = Asn1TaggedObject.GetInstance(seq[pos]);
-
-                if (ato.HasContextTag(0))
-                {
-                    newWithOld = CmpCertificate.GetInstance(ato, true);
-                }
-                else if (ato.HasContextTag(1))
-                {
-                    oldWithNew = CmpCertificate.GetInstance(ato, true);
-                }
-            }
-
-            m_newWithNew = newWithNew;
-            m_newWithOld = newWithOld;
-            m_oldWithNew = oldWithNew;
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public virtual CmpCertificate NewWithNew => m_newWithNew;

@@ -32,19 +32,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly AlgorithmIdentifier m_owf;
         private readonly AlgorithmIdentifier m_mac;
 
-        private DhbmParameter(Asn1Sequence sequence)
+        private DhbmParameter(Asn1Sequence seq)
         {
-            if (sequence.Count != 2)
-                throw new ArgumentException("expecting sequence size of 2");
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_owf = AlgorithmIdentifier.GetInstance(sequence[0]);
-            m_mac = AlgorithmIdentifier.GetInstance(sequence[1]);
+            m_owf = AlgorithmIdentifier.GetInstance(seq[0]);
+            m_mac = AlgorithmIdentifier.GetInstance(seq[1]);
         }
 
         public DhbmParameter(AlgorithmIdentifier owf, AlgorithmIdentifier mac)
         {
-            m_owf = owf;
-            m_mac = mac;
+            m_owf = owf ?? throw new ArgumentNullException(nameof(owf));
+            m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
         public virtual AlgorithmIdentifier Owf => m_owf;

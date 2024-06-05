@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 
@@ -37,12 +39,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private RevDetails(Asn1Sequence seq)
 		{
-			m_certDetails = CertTemplate.GetInstance(seq[0]);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            if (seq.Count > 1)
-            {
-                m_crlEntryDetails = X509Extensions.GetInstance(seq[1]);
-            }
+            m_certDetails = CertTemplate.GetInstance(seq[pos++]);
+            m_crlEntryDetails = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public RevDetails(CertTemplate certDetails)
@@ -52,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public RevDetails(CertTemplate certDetails, X509Extensions crlEntryDetails)
 		{
-            m_certDetails = certDetails;
+            m_certDetails = certDetails ?? throw new ArgumentNullException(nameof(certDetails));
             m_crlEntryDetails = crlEntryDetails;
 		}
 
@@ -75,10 +80,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.Add(m_certDetails);
-			v.AddOptional(m_crlEntryDetails);
-			return new DerSequence(v);
+            return m_crlEntryDetails == null
+                ?  new DerSequence(m_certDetails)
+                :  new DerSequence(m_certDetails, m_crlEntryDetails);
 		}
 	}
 }

@@ -22,6 +22,21 @@ namespace Org.BouncyCastle.Asn1.X509
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
+        public static AlgorithmIdentifier GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is AlgorithmIdentifier algorithmIdentifier)
+                return algorithmIdentifier;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new AlgorithmIdentifier(asn1Sequence);
+
+            return null;
+        }
+
         public AlgorithmIdentifier(
             DerObjectIdentifier algorithm)
         {

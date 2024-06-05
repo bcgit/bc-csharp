@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /**
          * Value for a "null" recipient or sender.
          */
-        public static readonly GeneralName NULL_NAME = new GeneralName(X509Name.GetInstance(new DerSequence()));
+        public static readonly GeneralName NULL_NAME = new GeneralName(X509Name.GetInstance(DerSequence.Empty));
 
         public static readonly int CMP_1999 = 1;
         public static readonly int CMP_2000 = 2;
@@ -29,143 +29,77 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiHeader(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private readonly DerInteger pvno;
-        private readonly GeneralName sender;
-        private readonly GeneralName recipient;
-        private readonly Asn1GeneralizedTime messageTime;
-        private readonly AlgorithmIdentifier protectionAlg;
-        private readonly Asn1OctetString senderKID;       // KeyIdentifier
-        private readonly Asn1OctetString recipKID;        // KeyIdentifier
-        private readonly Asn1OctetString transactionID;
-        private readonly Asn1OctetString senderNonce;
-        private readonly Asn1OctetString recipNonce;
-        private readonly PkiFreeText freeText;
-        private readonly Asn1Sequence generalInfo;
+        private readonly DerInteger m_pvno;
+        private readonly GeneralName m_sender;
+        private readonly GeneralName m_recipient;
+        private readonly Asn1GeneralizedTime m_messageTime;
+        private readonly AlgorithmIdentifier m_protectionAlg;
+        private readonly Asn1OctetString m_senderKID;       // KeyIdentifier
+        private readonly Asn1OctetString m_recipKID;        // KeyIdentifier
+        private readonly Asn1OctetString m_transactionID;
+        private readonly Asn1OctetString m_senderNonce;
+        private readonly Asn1OctetString m_recipNonce;
+        private readonly PkiFreeText m_freeText;
+        private readonly Asn1Sequence m_generalInfo;
 
         private PkiHeader(Asn1Sequence seq)
         {
-            pvno = DerInteger.GetInstance(seq[0]);
-            sender = GeneralName.GetInstance(seq[1]);
-            recipient = GeneralName.GetInstance(seq[2]);
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 12)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            for (int pos = 3; pos < seq.Count; ++pos)
-            {
-                Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
-                if (!tObj.HasContextTag())
-                    throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(tObj));
+            m_pvno = DerInteger.GetInstance(seq[pos++]);
+            m_sender = GeneralName.GetInstance(seq[pos++]);
+            m_recipient = GeneralName.GetInstance(seq[pos++]);
+            m_messageTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1GeneralizedTime.GetInstance);
+            m_protectionAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, AlgorithmIdentifier.GetInstance);
+            m_senderKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetInstance);
+            m_recipKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, Asn1OctetString.GetInstance);
+            m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, true, Asn1OctetString.GetInstance);
+            m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, true, Asn1OctetString.GetInstance);
+            m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 6, true, Asn1OctetString.GetInstance);
+            m_freeText = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 7, true, PkiFreeText.GetInstance);
+            m_generalInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 8, true, Asn1Sequence.GetInstance);
 
-                switch (tObj.TagNo)
-                {
-                case 0:
-                    messageTime = Asn1GeneralizedTime.GetInstance(tObj, true);
-                    break;
-                case 1:
-                    protectionAlg = AlgorithmIdentifier.GetInstance(tObj, true);
-                    break;
-                case 2:
-                    senderKID = Asn1OctetString.GetInstance(tObj, true);
-                    break;
-                case 3:
-                    recipKID = Asn1OctetString.GetInstance(tObj, true);
-                    break;
-                case 4:
-                    transactionID = Asn1OctetString.GetInstance(tObj, true);
-                    break;
-                case 5:
-                    senderNonce = Asn1OctetString.GetInstance(tObj, true);
-                    break;
-                case 6:
-                    recipNonce = Asn1OctetString.GetInstance(tObj, true);
-                    break;
-                case 7:
-                    freeText = PkiFreeText.GetInstance(tObj, true);
-                    break;
-                case 8:
-                    generalInfo = Asn1Sequence.GetInstance(tObj, true);
-                    break;
-                default:
-                    throw new ArgumentException("unknown tag number: " + tObj.TagNo);
-                }
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public PkiHeader(
-            int pvno,
-            GeneralName sender,
-            GeneralName recipient)
+        public PkiHeader(int pvno, GeneralName sender, GeneralName recipient)
             : this(new DerInteger(pvno), sender, recipient)
         {
         }
 
-        private PkiHeader(
-            DerInteger pvno,
-            GeneralName sender,
-            GeneralName recipient)
+        private PkiHeader(DerInteger pvno, GeneralName sender, GeneralName recipient)
         {
-            this.pvno = pvno;
-            this.sender = sender;
-            this.recipient = recipient;
+            m_pvno = pvno ?? throw new ArgumentNullException(nameof(pvno));
+            m_sender = sender ?? throw new ArgumentNullException(nameof(sender));
+            m_recipient = recipient ?? throw new ArgumentNullException(nameof(recipient));
         }
 
-        public virtual DerInteger Pvno
-        {
-            get { return pvno; }
-        }
+        public virtual DerInteger Pvno => m_pvno;
 
-        public virtual GeneralName Sender
-        {
-            get { return sender; }
-        }
+        public virtual GeneralName Sender => m_sender;
 
-        public virtual GeneralName Recipient
-        {
-            get { return recipient; }
-        }
+        public virtual GeneralName Recipient => m_recipient;
 
-        public virtual Asn1GeneralizedTime MessageTime
-        {
-            get { return messageTime; }
-        }
+        public virtual Asn1GeneralizedTime MessageTime => m_messageTime;
 
-        public virtual AlgorithmIdentifier ProtectionAlg
-        {
-            get { return protectionAlg; }
-        }
+        public virtual AlgorithmIdentifier ProtectionAlg => m_protectionAlg;
 
-        public virtual Asn1OctetString SenderKID
-        {   
-            get { return senderKID; }
-        }
+        public virtual Asn1OctetString SenderKID => m_senderKID;
 
-        public virtual Asn1OctetString RecipKID
-        {   
-            get { return recipKID; }
-        }
+        public virtual Asn1OctetString RecipKID => m_recipKID;
 
-        public virtual Asn1OctetString TransactionID
-        {   
-            get { return transactionID; }
-        }
+        public virtual Asn1OctetString TransactionID => m_transactionID;
 
-        public virtual Asn1OctetString SenderNonce
-        {   
-            get { return senderNonce; }
-        }
+        public virtual Asn1OctetString SenderNonce => m_senderNonce;
 
-        public virtual Asn1OctetString RecipNonce
-        {   
-            get { return recipNonce; }
-        }
+        public virtual Asn1OctetString RecipNonce => m_recipNonce;
 
-        public virtual PkiFreeText FreeText
-        {
-            get { return freeText; }
-        }
+        public virtual PkiFreeText FreeText => m_freeText;
 
-        public virtual InfoTypeAndValue[] GetGeneralInfo()
-        {
-            return generalInfo?.MapElements(InfoTypeAndValue.GetInstance);
-        }
+        public virtual InfoTypeAndValue[] GetGeneralInfo() => m_generalInfo?.MapElements(InfoTypeAndValue.GetInstance);
 
         /**
          * <pre>
@@ -207,16 +141,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(pvno, sender, recipient);
-            v.AddOptionalTagged(true, 0, messageTime);
-            v.AddOptionalTagged(true, 1, protectionAlg);
-            v.AddOptionalTagged(true, 2, senderKID);
-            v.AddOptionalTagged(true, 3, recipKID);
-            v.AddOptionalTagged(true, 4, transactionID);
-            v.AddOptionalTagged(true, 5, senderNonce);
-            v.AddOptionalTagged(true, 6, recipNonce);
-            v.AddOptionalTagged(true, 7, freeText);
-            v.AddOptionalTagged(true, 8, generalInfo);
+            Asn1EncodableVector v = new Asn1EncodableVector(12);
+            v.Add(m_pvno, m_sender, m_recipient);
+            v.AddOptionalTagged(true, 0, m_messageTime);
+            v.AddOptionalTagged(true, 1, m_protectionAlg);
+            v.AddOptionalTagged(true, 2, m_senderKID);
+            v.AddOptionalTagged(true, 3, m_recipKID);
+            v.AddOptionalTagged(true, 4, m_transactionID);
+            v.AddOptionalTagged(true, 5, m_senderNonce);
+            v.AddOptionalTagged(true, 6, m_recipNonce);
+            v.AddOptionalTagged(true, 7, m_freeText);
+            v.AddOptionalTagged(true, 8, m_generalInfo);
             return new DerSequence(v);
         }
     }

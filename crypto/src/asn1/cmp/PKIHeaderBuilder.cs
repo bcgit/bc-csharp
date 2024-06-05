@@ -6,9 +6,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class PkiHeaderBuilder
 	{
-		private DerInteger pvno;
-		private GeneralName sender;
-		private GeneralName recipient;
+		private readonly DerInteger pvno;
+		private readonly GeneralName sender;
+		private readonly GeneralName recipient;
 		private Asn1GeneralizedTime messageTime;
 		private AlgorithmIdentifier protectionAlg;
 		private Asn1OctetString senderKID;       // KeyIdentifier
@@ -19,22 +19,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		private PkiFreeText     freeText;
 		private Asn1Sequence    generalInfo;
 
-		public PkiHeaderBuilder(
-			int			pvno,
-			GeneralName	sender,
-			GeneralName	recipient)
-			: this(new DerInteger(pvno), sender, recipient)
-		{
-		}
+        public PkiHeaderBuilder(int pvno, GeneralName sender, GeneralName recipient)
+            : this(new DerInteger(pvno), sender, recipient)
+        {
+        }
 
-		private PkiHeaderBuilder(
-			DerInteger	pvno,
-			GeneralName	sender,
-			GeneralName	recipient)
-		{
-			this.pvno = pvno;
-			this.sender = sender;
-			this.recipient = recipient;
+        private PkiHeaderBuilder(DerInteger pvno, GeneralName sender, GeneralName recipient)
+        {
+            this.pvno = pvno ?? throw new ArgumentNullException(nameof(pvno));
+			this.sender = sender ?? throw new ArgumentNullException(nameof(sender));
+			this.recipient = recipient ?? throw new ArgumentNullException(nameof(recipient));
 		}
 
 		public virtual PkiHeaderBuilder SetMessageTime(Asn1GeneralizedTime time)
@@ -133,7 +127,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue[] generalInfos)
 		{
-			return generalInfos == null ? null : new DerSequence(generalInfos);
+			return generalInfos == null ? null : DerSequence.FromElements(generalInfos);
 		}
 
 		/**

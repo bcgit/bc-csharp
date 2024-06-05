@@ -37,14 +37,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
+
             if (element is ProofOfPossession proofOfPossession)
                 return proofOfPossession;
+
             if (element is Asn1TaggedObject taggedObject)
             {
                 Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
                 if (baseObject != null)
                     return new ProofOfPossession(taggedObject.TagNo, baseObject);
             }
+
             return null;
         }
 

@@ -27,6 +27,25 @@ namespace Org.BouncyCastle.Asn1.X509
             return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
+        public static Time GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Time time)
+                return time;
+
+            Asn1UtcTime utcTime = Asn1UtcTime.GetOptional(element);
+            if (utcTime != null)
+                return new Time(utcTime);
+
+            Asn1GeneralizedTime generalizedTime = Asn1GeneralizedTime.GetOptional(element);
+            if (generalizedTime != null)
+                return new Time(generalizedTime);
+
+            return null;
+        }
+
         private readonly Asn1Object m_timeObject;
 
         public Time(Asn1GeneralizedTime generalizedTime)

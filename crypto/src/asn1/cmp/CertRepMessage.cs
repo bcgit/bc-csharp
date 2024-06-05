@@ -24,14 +24,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		
 		private CertRepMessage(Asn1Sequence seq)
 		{
-			int index = 0;
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count > 1)
-			{
-				m_caPubs = Asn1Sequence.GetInstance((Asn1TaggedObject)seq[index++], true);
-			}
+			m_caPubs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetInstance);
+			m_response = Asn1Sequence.GetInstance(seq[pos++]);
 
-			m_response = Asn1Sequence.GetInstance(seq[index]);
+			if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public CertRepMessage(CmpCertificate[] caPubs, CertResponse[] response)

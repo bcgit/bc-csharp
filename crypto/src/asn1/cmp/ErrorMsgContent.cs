@@ -36,20 +36,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private ErrorMsgContent(Asn1Sequence seq)
 		{
-			m_pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			for (int pos = 1; pos < seq.Count; ++pos)
-			{
-				Asn1Encodable ae = seq[pos];
-				if (ae is DerInteger)
-				{
-					m_errorCode = DerInteger.GetInstance(ae);
-				}
-				else
-				{
-					m_errorDetails = PkiFreeText.GetInstance(ae);
-				}
-			}
+			m_pkiStatusInfo = PkiStatusInfo.GetInstance(seq[pos++]);
+			m_errorCode = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
+            m_errorDetails = Asn1Utilities.ReadOptional(seq, ref pos, PkiFreeText.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public ErrorMsgContent(PkiStatusInfo pkiStatusInfo)

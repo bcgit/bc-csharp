@@ -46,7 +46,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
         }
 
-		public CertOrEncCert(EncryptedValue encryptedValue)
+        [Obsolete("Use constructor with EncryptedKey instead")]
+        public CertOrEncCert(EncryptedValue encryptedValue)
 		{
 			m_encryptedCert = new EncryptedKey(
 				encryptedValue ?? throw new ArgumentNullException(nameof(encryptedValue)));

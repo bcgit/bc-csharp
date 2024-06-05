@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class CAKeyUpdAnnContent
@@ -23,7 +25,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private CAKeyUpdAnnContent(Asn1Sequence seq)
 		{
-			m_oldWithNew = CmpCertificate.GetInstance(seq[0]);
+            int count = seq.Count;
+            if (count != 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_oldWithNew = CmpCertificate.GetInstance(seq[0]);
 			m_newWithOld = CmpCertificate.GetInstance(seq[1]);
 			m_newWithNew = CmpCertificate.GetInstance(seq[2]);
 		}

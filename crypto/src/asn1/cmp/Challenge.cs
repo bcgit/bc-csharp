@@ -53,16 +53,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private Challenge(Asn1Sequence seq)
 		{
-			int index = 0;
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count == 3)
-			{
-				m_owf = AlgorithmIdentifier.GetInstance(seq[index++]);
-			}
+            m_owf = Asn1Utilities.ReadOptional(seq, ref pos, AlgorithmIdentifier.GetOptional);
+            m_witness = Asn1OctetString.GetInstance(seq[pos++]);
+            m_challenge = Asn1OctetString.GetInstance(seq[pos++]);
 
-			m_witness = Asn1OctetString.GetInstance(seq[index++]);
-			m_challenge = Asn1OctetString.GetInstance(seq[index]);
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
         public Challenge(byte[] witness, byte[] challenge)
             : this(null, witness, challenge)

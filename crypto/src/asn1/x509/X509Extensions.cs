@@ -220,6 +220,21 @@ namespace Org.BouncyCastle.Asn1.X509
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        public static X509Extensions GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is X509Extensions existing)
+                return existing;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new X509Extensions(asn1Sequence);
+
+            return null;
+        }
+
         /**
          * Constructor from Asn1Sequence.
          *

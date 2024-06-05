@@ -69,9 +69,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private InfoTypeAndValue(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_infoType = DerObjectIdentifier.GetInstance(seq[0]);
 
-            if (seq.Count > 1)
+            if (count > 1)
             {
                 m_infoValue = seq[1];
             }
@@ -103,10 +107,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public override Asn1Object ToAsn1Object()
         {
-            if (m_infoValue == null)
-                return new DerSequence(m_infoType);
-
-            return new DerSequence(m_infoType, m_infoValue);
+            return m_infoValue == null
+                ?  new DerSequence(m_infoType)
+                :  new DerSequence(m_infoType, m_infoValue);
         }
     }
 }
