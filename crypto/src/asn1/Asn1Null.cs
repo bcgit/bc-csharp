@@ -56,6 +56,23 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Null)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1Null GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1Null existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is Asn1Null converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         internal Asn1Null()
         {
         }

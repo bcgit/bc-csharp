@@ -66,6 +66,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerEnumerated)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerEnumerated GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerEnumerated existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerEnumerated converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly byte[] contents;
         private readonly int start;
 

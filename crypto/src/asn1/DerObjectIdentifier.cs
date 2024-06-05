@@ -91,6 +91,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerObjectIdentifier)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerObjectIdentifier GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerObjectIdentifier existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerObjectIdentifier converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         public static bool TryFromID(string identifier, out DerObjectIdentifier oid)
         {
             if (identifier == null)

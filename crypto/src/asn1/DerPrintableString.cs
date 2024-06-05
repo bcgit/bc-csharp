@@ -68,6 +68,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerPrintableString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerPrintableString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerPrintableString existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerPrintableString converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly byte[] m_contents;
 
 		public DerPrintableString(string str)

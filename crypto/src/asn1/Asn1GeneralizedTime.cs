@@ -56,6 +56,23 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1GeneralizedTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1GeneralizedTime GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1GeneralizedTime existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is Asn1GeneralizedTime converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly string m_timeString;
         private readonly bool m_timeStringCanonical;
         private readonly DateTime m_dateTime;

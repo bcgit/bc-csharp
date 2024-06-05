@@ -56,7 +56,24 @@ namespace Org.BouncyCastle.Asn1
             return (DerExternal)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-		internal readonly DerObjectIdentifier directReference;
+        public static DerExternal GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerExternal existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerExternal converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
+        internal readonly DerObjectIdentifier directReference;
         internal readonly DerInteger indirectReference;
         internal readonly Asn1ObjectDescriptor dataValueDescriptor;
         internal readonly int encoding;

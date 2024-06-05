@@ -62,7 +62,24 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1UtcTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-		private readonly string m_timeString;
+        public static Asn1UtcTime GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1UtcTime existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is Asn1UtcTime converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
+        private readonly string m_timeString;
 		private readonly DateTime m_dateTime;
         private readonly bool m_dateTimeLocked;
         private readonly int m_twoDigitYearMax;

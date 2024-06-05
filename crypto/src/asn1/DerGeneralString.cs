@@ -53,6 +53,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerGeneralString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerGeneralString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerGeneralString existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerGeneralString converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly byte[] m_contents;
 
 		public DerGeneralString(string str)

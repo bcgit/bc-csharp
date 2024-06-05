@@ -81,14 +81,13 @@ namespace Org.BouncyCastle.Asn1
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
-            if (element is Asn1Sequence asn1Sequence)
-                return asn1Sequence;
+            if (element is Asn1Sequence existing)
+                return existing;
 
-            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object))
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is Asn1Sequence converted)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1Sequence converted)
-                    return converted;
+                return converted;
             }
 
             return null;

@@ -80,6 +80,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerInteger)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerInteger GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerInteger existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerInteger converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
 		public DerInteger(int value)
         {
             this.bytes = BigInteger.ValueOf(value).ToByteArray();

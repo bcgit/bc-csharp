@@ -75,6 +75,23 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1ObjectDescriptor)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1ObjectDescriptor GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1ObjectDescriptor existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is Asn1ObjectDescriptor converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly DerGraphicString m_baseGraphicString;
 
         public Asn1ObjectDescriptor(DerGraphicString baseGraphicString)

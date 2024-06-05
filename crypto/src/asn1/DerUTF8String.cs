@@ -72,14 +72,16 @@ namespace Org.BouncyCastle.Asn1
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            if (element is DerUtf8String derUtf8String)
-                return derUtf8String;
-            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object))
+
+            if (element is DerUtf8String existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerUtf8String converted)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerUtf8String converted)
-                    return converted;
+                return converted;
             }
+
             return null;
         }
 

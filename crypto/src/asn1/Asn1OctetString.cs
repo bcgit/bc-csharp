@@ -74,6 +74,23 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1OctetString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1OctetString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1OctetString existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is Asn1OctetString converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         internal readonly byte[] contents;
 
         /**

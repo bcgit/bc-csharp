@@ -68,6 +68,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerIA5String)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerIA5String GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerIA5String existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerIA5String converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly byte[] m_contents;
 
 		public DerIA5String(string str)

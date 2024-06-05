@@ -72,6 +72,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerBmpString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerBmpString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerBmpString existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerBmpString converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly string m_str;
 
         internal DerBmpString(byte[] contents)

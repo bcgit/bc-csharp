@@ -68,6 +68,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerVideotexString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static DerVideotexString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerVideotexString existing)
+                return existing;
+
+            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
+                asn1Convertible.ToAsn1Object() is DerVideotexString converted)
+            {
+                return converted;
+            }
+
+            return null;
+        }
+
         private readonly byte[] m_contents;
 
         public DerVideotexString(byte[] contents)
