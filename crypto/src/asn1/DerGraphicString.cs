@@ -35,10 +35,9 @@ namespace Org.BouncyCastle.Asn1
             if (obj is DerGraphicString derGraphicString)
                 return derGraphicString;
 
-            if (obj is IAsn1Convertible asn1Convertible && !(obj is Asn1Object))
+            if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerGraphicString converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is DerGraphicString converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
