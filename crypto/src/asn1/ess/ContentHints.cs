@@ -1,74 +1,54 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Ess
 {
-	public class ContentHints
+    public class ContentHints
 		: Asn1Encodable
 	{
-		private readonly DerUtf8String contentDescription;
-		private readonly DerObjectIdentifier contentType;
+        public static ContentHints GetInstance(object o)
+        {
+            if (o == null)
+                return null;
+            if (o is ContentHints contentHints)
+                return contentHints;
+            return new ContentHints(Asn1Sequence.GetInstance(o));
+        }
 
-		public static ContentHints GetInstance(
-			object o)
-		{
-			if (o == null || o is ContentHints)
-			{
-				return (ContentHints)o;
-			}
+        public static ContentHints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new ContentHints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
 
-			if (o is Asn1Sequence)
-			{
-				return new ContentHints((Asn1Sequence)o);
-			}
+        private readonly DerUtf8String m_contentDescription;
+        private readonly DerObjectIdentifier m_contentType;
 
-			throw new ArgumentException("unknown object in 'ContentHints' factory : "
-                + Platform.GetTypeName(o) + ".");
+        private ContentHints(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_contentDescription = Asn1Utilities.ReadOptional(seq, ref pos, DerUtf8String.GetOptional);
+            m_contentType = DerObjectIdentifier.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		/**
-		 * constructor
-		 */
-		private ContentHints(
-			Asn1Sequence seq)
-		{
-			IAsn1Convertible field = seq[0];
-			if (field.ToAsn1Object() is DerUtf8String)
-			{
-				contentDescription = DerUtf8String.GetInstance(field);
-				contentType = DerObjectIdentifier.GetInstance(seq[1]);
-			}
-			else
-			{
-				contentType = DerObjectIdentifier.GetInstance(seq[0]);
-			}
-		}
+        public ContentHints(DerObjectIdentifier contentType)
+            : this(contentType, null)
+        {
+        }
 
-		public ContentHints(
-			DerObjectIdentifier contentType)
-		{
-			this.contentType = contentType;
-			this.contentDescription = null;
-		}
+        public ContentHints(DerObjectIdentifier contentType, DerUtf8String contentDescription)
+        {
+            m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            m_contentDescription = contentDescription;
+        }
 
-		public ContentHints(
-			DerObjectIdentifier	contentType,
-			DerUtf8String		contentDescription)
-		{
-			this.contentType = contentType;
-			this.contentDescription = contentDescription;
-		}
+        public DerObjectIdentifier ContentType => m_contentType;
 
-		public DerObjectIdentifier ContentType
-		{
-			get { return contentType; }
-		}
-
-		public DerUtf8String ContentDescription
-		{
-			get { return contentDescription; }
-		}
+		public DerUtf8String ContentDescription => m_contentDescription;
 
 		/**
 		 * <pre>
@@ -79,10 +59,9 @@ namespace Org.BouncyCastle.Asn1.Ess
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptional(contentDescription);
-			v.Add(contentType);
-			return new DerSequence(v);
+			return m_contentDescription == null
+				?  new DerSequence(m_contentType)
+                :  new DerSequence(m_contentDescription, m_contentType);
 		}
 	}
 }

@@ -5,72 +5,58 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Ess
 {
-	public class EssCertID
+    public class EssCertID
 		: Asn1Encodable
 	{
-		private Asn1OctetString certHash;
-		private IssuerSerial issuerSerial;
+        public static EssCertID GetInstance(object o)
+        {
+            if (o == null)
+                return null;
+            if (o is EssCertID essCertID)
+                return essCertID;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new EssCertID(Asn1Sequence.GetInstance(o));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-		public static EssCertID GetInstance(
-			object o)
+        public static EssCertID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new EssCertID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly Asn1OctetString m_certHash;
+        private readonly IssuerSerial m_issuerSerial;
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public EssCertID(Asn1Sequence seq)
 		{
-			if (o == null || o is EssCertID)
-			{
-				return (EssCertID) o;
-			}
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (o is Asn1Sequence)
-			{
-				return new EssCertID((Asn1Sequence) o);
-			}
+            m_certHash = Asn1OctetString.GetInstance(seq[pos++]);
+            m_issuerSerial = Asn1Utilities.ReadOptional(seq, ref pos, IssuerSerial.GetOptional);
 
-			throw new ArgumentException(
-				"unknown object in 'EssCertID' factory : "
-                + Platform.GetTypeName(o) + ".");
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		/**
-		 * constructor
-		 */
-		public EssCertID(
-			Asn1Sequence seq)
-		{
-			if (seq.Count < 1 || seq.Count > 2)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
+        public EssCertID(byte[] hash)
+            : this(hash, null)
+        {
+        }
 
-			this.certHash = Asn1OctetString.GetInstance(seq[0]);
+        public EssCertID(byte[] hash, IssuerSerial issuerSerial)
+        {
+            m_certHash = new DerOctetString(hash);
+            m_issuerSerial = issuerSerial;
+        }
 
-			if (seq.Count > 1)
-			{
-				issuerSerial = IssuerSerial.GetInstance(seq[1]);
-			}
-		}
+        public byte[] GetCertHash() => Arrays.Clone(m_certHash.GetOctets());
 
-		public EssCertID(
-			byte[] hash)
-		{
-			certHash = new DerOctetString(hash);
-		}
-
-		public EssCertID(
-			byte[]			hash,
-			IssuerSerial	issuerSerial)
-		{
-			this.certHash = new DerOctetString(hash);
-			this.issuerSerial = issuerSerial;
-		}
-
-		public byte[] GetCertHash()
-		{
-			return certHash.GetOctets();
-		}
-
-		public IssuerSerial IssuerSerial
-		{
-			get { return issuerSerial; }
-		}
+        public IssuerSerial IssuerSerial => m_issuerSerial;
 
 		/**
 		 * <pre>
@@ -81,9 +67,9 @@ namespace Org.BouncyCastle.Asn1.Ess
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(certHash);
-            v.AddOptional(issuerSerial);
-			return new DerSequence(v);
+			return m_issuerSerial == null
+				?  new DerSequence(m_certHash)
+				:  new DerSequence(m_certHash, m_issuerSerial);
 		}
 	}
 }

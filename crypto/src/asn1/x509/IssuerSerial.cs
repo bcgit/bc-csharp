@@ -19,6 +19,21 @@ namespace Org.BouncyCastle.Asn1.X509
             return new IssuerSerial(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
+        public static IssuerSerial GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is IssuerSerial issuerSerial)
+                return issuerSerial;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new IssuerSerial(asn1Sequence);
+
+            return null;
+        }
+
         private readonly GeneralNames issuer;
         private readonly DerInteger serial;
         private readonly DerBitString issuerUid;
