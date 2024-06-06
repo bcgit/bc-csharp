@@ -75,17 +75,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
                 for (int i = 0; i < m_engine.K; i++)
                 {
+                    short[] coeffs = m_vec[i].m_coeffs;
+
                     for (int j = 0; j < KyberEngine.N / 4; j++)
                     {
                         for (int k = 0; k < 4; k++)
                         {
-                            t[k] = (short)
-                                (
-                                    (
-                                        (((uint) m_vec[i].m_coeffs[4 * j + k] << 10)
-                                            + (KyberEngine.Q / 2))
-                                            / KyberEngine.Q)
-                                        & 0x3ff);
+                            int c_k = coeffs[4 * j + k];
+
+                            // KyberSlash: division by Q is not constant time.
+                            //t[k] = (short)((((c_k << 10) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 0x3FF);
+                            t[k] = (short)((((long)((c_k << 3) + (KyberEngine.Q >> 8)) * 165141429) >> 32) & 0x3FF);
                         }
                         r[count + 0] = (byte)(t[0] >> 0);
                         r[count + 1] = (byte)((t[0] >> 8) | (t[1] << 2));
@@ -106,17 +106,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
                 for (int i = 0; i < m_engine.K; i++)
                 {
+                    short[] coeffs = m_vec[i].m_coeffs;
+
                     for (int j = 0; j < KyberEngine.N / 8; j++)
                     {
                         for (int k = 0; k < 8; k++)
                         {
-                            t[k] = (short)
-                                (
-                                    (
-                                        (((uint) m_vec[i].m_coeffs[8 * j + k] << 11)
-                                            + (KyberEngine.Q / 2))
-                                            / KyberEngine.Q)
-                                        & 0x7ff);
+                            int c_k = coeffs[8 * j + k];
+
+                            // KyberSlash: division by Q is not constant time.
+                            //t[k] = (short)((((c_k << 11) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 0x7FF);
+                            t[k] = (short)((((long)((c_k << 4) + (KyberEngine.Q >> 8)) * 165141429) >> 32) & 0x7FF);
                         }
                         r[count + 0] = (byte)((t[0] >> 0));
                         r[count + 1] = (byte)((t[0] >> 8) | (t[1] << 3));

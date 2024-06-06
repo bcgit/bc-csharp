@@ -91,7 +91,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void CompressPoly(byte[] r, int off)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> t = stackalloc byte[8];
+#else
             byte[] t = new byte[8];
+#endif
+
             int count = 0;
             CondSubQ();
 
@@ -101,14 +106,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        t[j] =
-                            (byte)(((((Coeffs[8 * i + j]) << 4)
-                                +
-                                (KyberEngine.Q / 2)
-                            ) / KyberEngine.Q)
-                                & 15);
-                    }
+                        int c_j = m_coeffs[8 * i + j];
 
+                        // KyberSlash: division by Q is not constant time.
+                        //t[j] = (byte)((((c_j << 4) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 15);
+                        t[j] = (byte)((((c_j + (KyberEngine.Q >> 5)) * 315) >> 16) & 0xF);
+                    }
                     r[off + count + 0] = (byte)(t[0] | (t[1] << 4));
                     r[off + count + 1] = (byte)(t[2] | (t[3] << 4));
                     r[off + count + 2] = (byte)(t[4] | (t[5] << 4));
@@ -122,13 +125,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        t[j] =
-                            (byte)((((Coeffs[8 * i + j] << 5)
-                                +
-                                (KyberEngine.Q / 2)
-                            ) / KyberEngine.Q
-                            ) & 31
-                            );
+                        int c_j = m_coeffs[8 * i + j];
+
+                        // KyberSlash: division by Q is not constant time.
+                        //t[j] = (byte)((((c_j << 5) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 31);
+                        t[j] = (byte)((((c_j + (KyberEngine.Q >> 6)) * 630) >> 16) & 0x1F);
                     }
                     r[off + count + 0] = (byte)((t[0] >> 0) | (t[1] << 5));
                     r[off + count + 1] = (byte)((t[1] >> 3) | (t[2] << 2) | (t[3] << 7));
@@ -208,6 +209,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void ToMsg(byte[] msg)
         {
+            const int Lower = KyberEngine.Q >> 2;
+            const int Upper = KyberEngine.Q - Lower;
+
             CondSubQ();
 
             for (int i = 0; i < KyberEngine.N / 8; i++)
@@ -215,16 +219,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 msg[i] = 0;
                 for (int j = 0; j < 8; j++)
                 {
-                    // short t = (short)(((((short)(Coeffs[8 * i + j] << 1) + KyberEngine.Q / 2) / KyberEngine.Q) & 1));
-                    // msg[i] |= (byte)(t << j);
-                    // we've done it like this as there is a chance a division instruction might
-                    // get generated introducing a timing signal on the secret input
-                    int t = Coeffs[8 * i + j] & 0xFFFF;
-                    t <<= 1;
-                    t += 1665;
-                    t *= 80635;
-                    t >>= 28;
-                    t &= 1;
+                    int c_j = Coeffs[8 * i + j];
+
+                    // KyberSlash: division by Q is not constant time.
+                    //int t = (((c_j << 1) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 1;
+                    uint t = (uint)((Lower - c_j) & (c_j - Upper)) >> 31;
+
                     msg[i] |= (byte)(t << j);
                 }
             }
