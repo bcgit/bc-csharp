@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             _random = random;
             PolyVecHPackedBytes = Omega + K;
             CryptoPublicKeyBytes = SeedBytes + K * PolyT1PackedBytes;
-            CryptoSecretKeyBytes = 3 * SeedBytes + L * PolyEtaPackedBytes + K * PolyEtaPackedBytes + K * PolyT0PackedBytes;
+            CryptoSecretKeyBytes = 2 * SeedBytes + TrBytes + L * PolyEtaPackedBytes + K * PolyEtaPackedBytes + K * PolyT0PackedBytes;
             CryptoBytes = CTilde + L * PolyZPackedBytes + PolyVecHPackedBytes;
 
             if (Gamma1 == (1 << 17))
@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             ShakeDigest256.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
             ShakeDigest256.OutputFinal(sig, 0, CTilde);
 
-            cp.Challenge(sig); // use only first SeedBytes of sig
+            cp.Challenge(sig); // use only first CTilde of sig
 
             cp.PolyNtt();
 
