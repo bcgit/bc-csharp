@@ -4,7 +4,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Icao
 {
-	/**
+    /**
 	 * The CscaMasterList object. This object can be wrapped in a
 	 * CMSSignedData to be published in LDAP.
 	 *
@@ -16,68 +16,49 @@ namespace Org.BouncyCastle.Asn1.Icao
 	 * CscaMasterListVersion :: INTEGER {v0(0)}
 	 * </pre>
 	 */
-	public class CscaMasterList 
+    public class CscaMasterList 
 		: Asn1Encodable 
 	{
-		private DerInteger version = new DerInteger(0);
-		private X509CertificateStructure[] certList;
+        public static CscaMasterList GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CscaMasterList cscaMasterList)
+                return cscaMasterList;
+            return new CscaMasterList(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static CscaMasterList GetInstance(
-			object obj)
+        public static CscaMasterList GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new CscaMasterList(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+		private readonly DerInteger m_version;
+        private readonly X509CertificateStructure[] m_certList;
+
+        private CscaMasterList(Asn1Sequence seq)
 		{
-			if (obj is CscaMasterList)
-				return (CscaMasterList)obj;
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj != null)
-				return new CscaMasterList(Asn1Sequence.GetInstance(obj));            
-
-			return null;
+			m_version = DerInteger.GetInstance(seq[0]);
+			m_certList = Asn1Set.GetInstance(seq[1]).MapElements(X509CertificateStructure.GetInstance);
 		}
 
-		private CscaMasterList(
-			Asn1Sequence seq)
+		public CscaMasterList(X509CertificateStructure[] certStructs)
 		{
-			if (seq == null || seq.Count == 0)
-				throw new ArgumentException("null or empty sequence passed.");
-
-			if (seq.Count != 2)
-				throw new ArgumentException("Incorrect sequence size: " + seq.Count);
-
-			this.version = DerInteger.GetInstance(seq[0]);
-
-			Asn1Set certSet = Asn1Set.GetInstance(seq[1]);
-
-			this.certList = new X509CertificateStructure[certSet.Count];
-			for (int i = 0; i < certList.Length; i++)
-			{
-				certList[i] = X509CertificateStructure.GetInstance(certSet[i]);
-			}
+			m_version = new DerInteger(0);
+			m_certList = CopyCertList(certStructs);
 		}
 
-		public CscaMasterList(
-			X509CertificateStructure[] certStructs)
-		{
-			certList = CopyCertList(certStructs);
-		}
+		public virtual int Version => m_version.IntValueExact;
 
-		public virtual int Version
-		{
-            get { return version.IntValueExact; }
-		}
+		public X509CertificateStructure[] GetCertStructs() => CopyCertList(m_certList);
 
-		public X509CertificateStructure[] GetCertStructs()
-		{
-			return CopyCertList(certList);
-		}
+		private static X509CertificateStructure[] CopyCertList(X509CertificateStructure[] orig) =>
+			(X509CertificateStructure[])orig.Clone();
 
-		private static X509CertificateStructure[] CopyCertList(X509CertificateStructure[] orig)
-		{
-			return (X509CertificateStructure[])orig.Clone();
-		}
-
-		public override Asn1Object ToAsn1Object() 
-		{
-			return new DerSequence(version, new DerSet(certList));
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_version, new DerSet(m_certList));
 	}
 }

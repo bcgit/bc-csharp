@@ -5,7 +5,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Icao
 {
-	/**
+    /**
 	 * The LDSSecurityObject object (V1.8).
 	 * <pre>
 	 * LDSSecurityObject ::= SEQUENCE {
@@ -20,117 +20,96 @@ namespace Org.BouncyCastle.Asn1.Icao
 	 * LDSSecurityObjectVersion :: INTEGER {V0(0)}
 	 * </pre>
 	 */
-	public class LdsSecurityObject
+    public class LdsSecurityObject
 		: Asn1Encodable
 	{
 		public const int UBDataGroups = 16;
 
-		private DerInteger version = new DerInteger(0);
-		private AlgorithmIdentifier digestAlgorithmIdentifier;
-		private DataGroupHash[] datagroupHash;
-		private LdsVersionInfo versionInfo;
+        public static LdsSecurityObject GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is LdsSecurityObject ldsSecurityObject)
+                return ldsSecurityObject;
+            return new LdsSecurityObject(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static LdsSecurityObject GetInstance(object obj)
+        public static LdsSecurityObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new LdsSecurityObject(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+		private readonly DerInteger m_version;
+        private readonly AlgorithmIdentifier m_hashAlgorithm;
+        private readonly DataGroupHash[] m_datagroupHashValues;
+        private readonly LdsVersionInfo m_ldsVersionInfo;
+
+        private LdsSecurityObject(Asn1Sequence seq)
 		{
-			if (obj is LdsSecurityObject)
-				return (LdsSecurityObject)obj;
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj != null)
-				return new LdsSecurityObject(Asn1Sequence.GetInstance(obj));
+			m_version = DerInteger.GetInstance(seq[pos++]);
+			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+			m_datagroupHashValues = ConvertDataGroupHash(Asn1Sequence.GetInstance(seq[pos++]));
+			m_ldsVersionInfo = Asn1Utilities.ReadOptional(seq, ref pos, LdsVersionInfo.GetOptional);
 
-			return null;
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+			if (m_ldsVersionInfo != null && !m_version.HasValue(1))
+				throw new ArgumentException("'ldsVersionInfo' is present, but 'version' is NOT 'v1'");
+        }
+
+        public LdsSecurityObject(AlgorithmIdentifier digestAlgorithmIdentifier, DataGroupHash[] datagroupHash)
+        {
+            m_version = new DerInteger(0);
+			m_hashAlgorithm = digestAlgorithmIdentifier ?? throw new ArgumentNullException(nameof(digestAlgorithmIdentifier)); ;
+			m_datagroupHashValues = datagroupHash ?? throw new ArgumentNullException(nameof(datagroupHash));
+            m_ldsVersionInfo = null;
+
+			CheckDatagroupHashCount(m_datagroupHashValues.Length);
 		}
 
-		private LdsSecurityObject(Asn1Sequence seq)
+        public LdsSecurityObject(AlgorithmIdentifier digestAlgorithmIdentifier, DataGroupHash[] datagroupHash,
+            LdsVersionInfo versionInfo)
+        {
+            m_version = new DerInteger(1);
+            m_hashAlgorithm = digestAlgorithmIdentifier ?? throw new ArgumentNullException(nameof(digestAlgorithmIdentifier)); ;
+            m_datagroupHashValues = datagroupHash ?? throw new ArgumentNullException(nameof(datagroupHash));
+            m_ldsVersionInfo = versionInfo;
+
+            CheckDatagroupHashCount(m_datagroupHashValues.Length);
+        }
+
+        public BigInteger Version => m_version.Value;
+
+		public AlgorithmIdentifier DigestAlgorithmIdentifier => m_hashAlgorithm;
+
+		public DataGroupHash[] GetDatagroupHash() => m_datagroupHashValues;
+
+		public LdsVersionInfo VersionInfo => m_ldsVersionInfo;
+
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(4);
+            v.Add(m_version, m_hashAlgorithm, DerSequence.FromElements(m_datagroupHashValues));
+            v.AddOptional(m_ldsVersionInfo);
+            return new DerSequence(v);
+        }
+
+        private static void CheckDatagroupHashCount(int count)
+        {
+            if (count < 2 || count > UBDataGroups)
+                throw new ArgumentException("wrong size in DataGroupHashValues : not in (2.." + UBDataGroups + ")");
+        }
+
+		private static DataGroupHash[] ConvertDataGroupHash(Asn1Sequence seq)
 		{
-			if (seq == null || seq.Count == 0)
-				throw new ArgumentException("null or empty sequence passed.");
+            CheckDatagroupHashCount(seq.Count);
 
-			var e = seq.GetEnumerator();
-
-			// version
-			e.MoveNext();
-			version = DerInteger.GetInstance(e.Current);
-			// digestAlgorithmIdentifier
-			e.MoveNext();
-			digestAlgorithmIdentifier = AlgorithmIdentifier.GetInstance(e.Current);
-
-			e.MoveNext();
-			Asn1Sequence datagroupHashSeq = Asn1Sequence.GetInstance(e.Current);
-
-			if (version.HasValue(1))
-			{
-				e.MoveNext();
-				versionInfo = LdsVersionInfo.GetInstance(e.Current);
-			}
-
-			CheckDatagroupHashSeqSize(datagroupHashSeq.Count);
-
-			datagroupHash = new DataGroupHash[datagroupHashSeq.Count];
-			for (int i= 0; i< datagroupHashSeq.Count; i++)
-			{
-				datagroupHash[i] = DataGroupHash.GetInstance(datagroupHashSeq[i]);
-			}
+			return seq.MapElements(DataGroupHash.GetInstance);
 		}
-
-		public LdsSecurityObject(
-			AlgorithmIdentifier	digestAlgorithmIdentifier,
-			DataGroupHash[]		datagroupHash)
-		{
-			this.version = new DerInteger(0);
-			this.digestAlgorithmIdentifier = digestAlgorithmIdentifier;
-			this.datagroupHash = datagroupHash;
-
-			CheckDatagroupHashSeqSize(datagroupHash.Length);
-		}
-
-
-		public LdsSecurityObject(
-			AlgorithmIdentifier	digestAlgorithmIdentifier,
-			DataGroupHash[]		datagroupHash,
-			LdsVersionInfo		versionInfo)
-		{
-			this.version = new DerInteger(1);
-			this.digestAlgorithmIdentifier = digestAlgorithmIdentifier;
-			this.datagroupHash = datagroupHash;
-			this.versionInfo = versionInfo;
-
-			CheckDatagroupHashSeqSize(datagroupHash.Length);
-		}
-
-		private void CheckDatagroupHashSeqSize(int size)
-		{
-			if (size < 2 || size > UBDataGroups)
-				throw new ArgumentException("wrong size in DataGroupHashValues : not in (2.."+ UBDataGroups +")");
-		}
-
-		public BigInteger Version
-		{
-			get { return version.Value; }
-		}
-
-		public AlgorithmIdentifier DigestAlgorithmIdentifier
-		{
-			get { return digestAlgorithmIdentifier; }
-		}
-
-		public DataGroupHash[] GetDatagroupHash()
-		{
-			return datagroupHash;
-		}
-
-		public LdsVersionInfo VersionInfo
-		{
-			get { return versionInfo; }
-		}
-
-		public override Asn1Object ToAsn1Object()
-		{
-			DerSequence hashSeq = new DerSequence(datagroupHash);
-
-			Asn1EncodableVector v = new Asn1EncodableVector(version, digestAlgorithmIdentifier, hashSeq);
-            v.AddOptional(versionInfo);
-			return new DerSequence(v);
-		}
-	}
+    }
 }
