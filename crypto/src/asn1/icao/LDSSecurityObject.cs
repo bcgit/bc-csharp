@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 
         public LdsSecurityObject(AlgorithmIdentifier digestAlgorithmIdentifier, DataGroupHash[] datagroupHash)
         {
-            m_version = new DerInteger(0);
+            m_version = DerInteger.Zero;
 			m_hashAlgorithm = digestAlgorithmIdentifier ?? throw new ArgumentNullException(nameof(digestAlgorithmIdentifier)); ;
 			m_datagroupHashValues = datagroupHash ?? throw new ArgumentNullException(nameof(datagroupHash));
             m_ldsVersionInfo = null;
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Asn1.Icao
         public LdsSecurityObject(AlgorithmIdentifier digestAlgorithmIdentifier, DataGroupHash[] datagroupHash,
             LdsVersionInfo versionInfo)
         {
-            m_version = new DerInteger(1);
+            m_version = DerInteger.One;
             m_hashAlgorithm = digestAlgorithmIdentifier ?? throw new ArgumentNullException(nameof(digestAlgorithmIdentifier)); ;
             m_datagroupHashValues = datagroupHash ?? throw new ArgumentNullException(nameof(datagroupHash));
             m_ldsVersionInfo = versionInfo;

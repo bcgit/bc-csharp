@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public V2AttributeCertificateInfoGenerator()
         {
-            this.version = new DerInteger(1);
+            this.version = DerInteger.One;
             attributes = new Asn1EncodableVector();
         }
 

@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new ResponseData(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-        private static readonly DerInteger V1 = new DerInteger(0);
+        private static readonly DerInteger V1 = DerInteger.Zero;
 
         private readonly DerInteger m_version;
         private readonly bool m_versionPresent;

@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(new DerInteger(3), contentInfo);
+            Asn1EncodableVector v = new Asn1EncodableVector(DerInteger.Three, contentInfo);
             v.AddOptional(macData);
             return new BerSequence(v);
         }

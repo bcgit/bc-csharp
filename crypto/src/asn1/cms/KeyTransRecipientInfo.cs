@@ -38,11 +38,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             if (rid.ToAsn1Object() is Asn1TaggedObject)
             {
-                this.version = new DerInteger(2);
+                this.version = DerInteger.Two;
             }
             else
             {
-                this.version = new DerInteger(0);
+                this.version = DerInteger.Zero;
             }
 
 			this.rid = rid;

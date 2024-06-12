@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             AlgorithmIdentifier keyEncryptionAlgorithm,
             Asn1OctetString     encryptedKey)
         {
-            this.version = new DerInteger(4);
+            this.version = DerInteger.Four;
             this.kekID = kekID;
             this.keyEncryptionAlgorithm = keyEncryptionAlgorithm;
             this.encryptedKey = encryptedKey;

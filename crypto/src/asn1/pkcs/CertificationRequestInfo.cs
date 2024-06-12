@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class CertificationRequestInfo
         : Asn1Encodable
     {
-        internal DerInteger				version = new DerInteger(0);
+        internal DerInteger				version = DerInteger.Zero;
         internal X509Name				subject;
         internal SubjectPublicKeyInfo	subjectPKInfo;
         internal Asn1Set				attributes;

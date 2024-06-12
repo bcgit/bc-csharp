@@ -201,7 +201,7 @@ namespace Org.BouncyCastle.X509
 				hashAlgId,
 				new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
 				new DerInteger(saltSize),
-				new DerInteger(1));
+				DerInteger.One);
 		}
 
         internal static DerBitString CollectDerBitString(IBlockResult result)

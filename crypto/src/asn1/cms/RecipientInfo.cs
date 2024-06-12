@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 					case 3:
 						return PasswordRecipientInfo.GetInstance(o, false).Version;
 					case 4:
-						return new DerInteger(0);    // no syntax version for OtherRecipientInfo
+						return DerInteger.Zero;    // no syntax version for OtherRecipientInfo
 					default:
 						throw new InvalidOperationException("unknown tag");
 					}

@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             byte[] bytes = BigIntegers.AsUnsignedByteArray((orderBitLength + 7) / 8, key);
 
             Asn1EncodableVector v = new Asn1EncodableVector(
-                new DerInteger(1),
+                DerInteger.One,
                 new DerOctetString(bytes));
 
             v.AddOptionalTagged(true, 0, parameters);

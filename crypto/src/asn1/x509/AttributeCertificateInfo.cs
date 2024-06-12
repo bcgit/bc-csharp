@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             else
             {
-                this.version = new DerInteger(0);
+                this.version = DerInteger.Zero;
                 start = 0;
             }
 

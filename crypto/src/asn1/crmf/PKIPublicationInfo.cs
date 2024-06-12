@@ -19,8 +19,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class PkiPublicationInfo
         : Asn1Encodable
     {
-        public static readonly DerInteger DontPublish = new DerInteger(0);
-        public static readonly DerInteger PleasePublish = new DerInteger(1);
+        public static readonly DerInteger DontPublish = DerInteger.Zero;
+        public static readonly DerInteger PleasePublish = DerInteger.One;
 
         public static PkiPublicationInfo GetInstance(object obj)
         {

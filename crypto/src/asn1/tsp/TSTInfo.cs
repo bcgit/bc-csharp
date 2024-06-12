@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             Asn1GeneralizedTime genTime, Accuracy accuracy, DerBoolean ordering, DerInteger nonce, GeneralName tsa,
             X509Extensions extensions)
         {
-            m_version = new DerInteger(1);
+            m_version = DerInteger.One;
             m_tsaPolicyID = tsaPolicyId;
             m_messageImprint = messageImprint;
             m_serialNumber = serialNumber;

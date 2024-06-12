@@ -218,7 +218,7 @@ namespace Org.BouncyCastle.Pkcs
                 hashAlgId,
                 new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
                 new DerInteger(saltSize),
-                new DerInteger(1));
+                DerInteger.One);
         }
 
         protected Pkcs10CertificationRequest()

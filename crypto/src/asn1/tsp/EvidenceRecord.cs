@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
          */
         public EvidenceRecord(CryptoInfos cryptoInfos, EncryptionInfo encryptionInfo, ArchiveTimeStamp archiveTimeStamp)
         {
-            m_version = new DerInteger(1);
+            m_version = DerInteger.One;
             m_digestAlgorithms = new DerSequence(archiveTimeStamp.GetDigestAlgorithmIdentifier());
             m_cryptoInfos = cryptoInfos;
             m_encryptionInfo = encryptionInfo;
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         public EvidenceRecord(AlgorithmIdentifier[] digestAlgorithms, CryptoInfos cryptoInfos,
             EncryptionInfo encryptionInfo, ArchiveTimeStampSequence archiveTimeStampSequence)
         {
-            m_version = new DerInteger(1);
+            m_version = DerInteger.One;
             m_digestAlgorithms = new DerSequence(digestAlgorithms);
             m_cryptoInfos = cryptoInfos;
             m_encryptionInfo = encryptionInfo;

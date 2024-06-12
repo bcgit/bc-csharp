@@ -23,6 +23,13 @@ namespace Org.BouncyCastle.Asn1
 
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
+        public static readonly DerInteger Zero = new DerInteger(0);
+        public static readonly DerInteger One = new DerInteger(1);
+        public static readonly DerInteger Two = new DerInteger(2);
+        public static readonly DerInteger Three = new DerInteger(3);
+        public static readonly DerInteger Four = new DerInteger(4);
+        public static readonly DerInteger Five = new DerInteger(5);
+
         internal static bool AllowUnsafe()
         {
             string allowUnsafeValue = Platform.GetEnvironmentVariable(AllowUnsafeProperty);

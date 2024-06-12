@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             AlgorithmIdentifier         keyEncryptionAlgorithm,
             Asn1Sequence                recipientEncryptedKeys)
         {
-            this.version = new DerInteger(3);
+            this.version = DerInteger.Three;
             this.originator = originator;
             this.ukm = ukm;
             this.keyEncryptionAlgorithm = keyEncryptionAlgorithm;

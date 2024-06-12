@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new KemRecipientInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private static readonly DerInteger V1 = new DerInteger(0);
+        private static readonly DerInteger V1 = DerInteger.Zero;
 
         private readonly DerInteger m_cmsVersion;
         private readonly RecipientIdentifier m_rid;

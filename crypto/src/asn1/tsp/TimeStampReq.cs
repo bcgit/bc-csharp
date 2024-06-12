@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             DerBoolean certReq, X509Extensions extensions)
         {
             // default
-            m_version = new DerInteger(1);
+            m_version = DerInteger.One;
 
             m_messageImprint = messageImprint;
             m_tsaPolicy = tsaPolicy;

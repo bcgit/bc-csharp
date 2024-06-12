@@ -501,7 +501,7 @@ namespace Org.BouncyCastle.Operators.Utilities
                 hashAlgID,
                 new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgID),
                 new DerInteger(saltSize),
-                new DerInteger(1));
+                DerInteger.One);
         }
 
         protected DefaultSignatureAlgorithmFinder()

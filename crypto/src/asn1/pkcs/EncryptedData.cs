@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		public override Asn1Object ToAsn1Object()
         {
-			return new BerSequence(new DerInteger(0), data);
+			return new BerSequence(DerInteger.Zero, data);
         }
     }
 }

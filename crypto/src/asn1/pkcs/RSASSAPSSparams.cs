@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public readonly static AlgorithmIdentifier DefaultHashAlgorithm = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
 		public readonly static AlgorithmIdentifier DefaultMaskGenFunction = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, DefaultHashAlgorithm);
 		public readonly static DerInteger DefaultSaltLength = new DerInteger(20);
-		public readonly static DerInteger DefaultTrailerField = new DerInteger(1);
+		public readonly static DerInteger DefaultTrailerField = DerInteger.One;
 
 		public static RsassaPssParameters GetInstance(
 			object obj)

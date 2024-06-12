@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 
 		public CscaMasterList(X509CertificateStructure[] certStructs)
 		{
-			m_version = new DerInteger(0);
+			m_version = DerInteger.Zero;
 			m_certList = CopyCertList(certStructs);
 		}
 

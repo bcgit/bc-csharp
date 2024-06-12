@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public override Asn1Object ToAsn1Object()
         {
             return new DerSequence(
-                new DerInteger(0), // version
+                DerInteger.Zero, // version
                 new DerInteger(Modulus),
                 new DerInteger(PublicExponent),
                 new DerInteger(PrivateExponent),

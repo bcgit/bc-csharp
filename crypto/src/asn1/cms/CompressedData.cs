@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             AlgorithmIdentifier	compressionAlgorithm,
             ContentInfo			encapContentInfo)
         {
-            this.version = new DerInteger(0);
+            this.version = DerInteger.Zero;
             this.compressionAlgorithm = compressionAlgorithm;
             this.encapContentInfo = encapContentInfo;
         }

@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			else
 			{
 				seqStart = -1;          // field 0 is missing!
-				version = new DerInteger(0);
+				version = DerInteger.Zero;
 			}
 
             bool isV1 = false;

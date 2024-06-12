@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
                 Asn1EncodableVector vec = new Asn1EncodableVector
                 {
-                    new DerInteger(0),
+                    DerInteger.Zero,
                     new DerInteger(dsaparameters.P),
                     new DerInteger(dsaparameters.Q),
                     new DerInteger(dsaparameters.G)

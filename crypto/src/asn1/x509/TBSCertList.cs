@@ -174,7 +174,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			}
             else
             {
-                version = new DerInteger(0);
+                version = DerInteger.Zero;
             }
 
 			signature = AlgorithmIdentifier.GetInstance(seq[seqPos++]);

@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 		public TimeStampedData(DerIA5String dataUri, MetaData metaData, Asn1OctetString content,
 			Evidence temporalEvidence)
 		{
-			this.version = new DerInteger(1);
+			this.version = DerInteger.One;
 			this.dataUri = dataUri;
 			this.metaData = metaData;
 			this.content = content;

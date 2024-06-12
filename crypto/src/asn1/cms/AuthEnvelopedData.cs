@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			Asn1Set					unauthAttrs)
 		{
 			// "It MUST be set to 0."
-			this.version = new DerInteger(0);
+			this.version = DerInteger.Zero;
 
 			this.originatorInfo = originatorInfo;
 

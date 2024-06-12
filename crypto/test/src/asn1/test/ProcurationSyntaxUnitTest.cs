@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			string country = "AU";
 			DirectoryString typeOfSubstitution = new DirectoryString("substitution");
 			GeneralName thirdPerson = new GeneralName(new X509Name("CN=thirdPerson"));
-			IssuerSerial certRef = new IssuerSerial(new GeneralNames(new GeneralName(new X509Name("CN=test"))), new DerInteger(1));
+			IssuerSerial certRef = new IssuerSerial(new GeneralNames(new GeneralName(new X509Name("CN=test"))), DerInteger.One);
 
 			ProcurationSyntax procuration = new ProcurationSyntax(country, typeOfSubstitution, thirdPerson);
 

@@ -22,10 +22,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new SignedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private static readonly DerInteger Version1 = new DerInteger(1);
-        private static readonly DerInteger Version3 = new DerInteger(3);
-        private static readonly DerInteger Version4 = new DerInteger(4);
-        private static readonly DerInteger Version5 = new DerInteger(5);
+        private static readonly DerInteger Version1 = DerInteger.One;
+        private static readonly DerInteger Version3 = DerInteger.Three;
+        private static readonly DerInteger Version4 = DerInteger.Four;
+        private static readonly DerInteger Version5 = DerInteger.Five;
 
         private readonly DerInteger		version;
         private readonly Asn1Set		digestAlgorithms;

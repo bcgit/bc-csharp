@@ -252,7 +252,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 				hashAlgId,
 				new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
 				new DerInteger(saltSize),
-				new DerInteger(1));
+				DerInteger.One);
 		}
 
 		internal static DerObjectIdentifier GetAlgorithmOid(string algorithmName)
