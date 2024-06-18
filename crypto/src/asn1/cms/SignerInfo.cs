@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -19,124 +21,66 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new SignerInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private DerInteger              version;
-        private SignerIdentifier        sid;
-        private AlgorithmIdentifier     digAlgorithm;
-        private Asn1Set                 authenticatedAttributes;
-        private AlgorithmIdentifier     digEncryptionAlgorithm;
-        private Asn1OctetString         encryptedDigest;
-        private Asn1Set                 unauthenticatedAttributes;
+        private readonly DerInteger m_version;
+        private readonly SignerIdentifier m_sid;
+        private readonly AlgorithmIdentifier m_digAlgorithm;
+        private readonly Asn1Set m_authenticatedAttributes;
+        private readonly AlgorithmIdentifier m_digEncryptionAlgorithm;
+        private readonly Asn1OctetString m_encryptedDigest;
+        private readonly Asn1Set m_unauthenticatedAttributes;
 
-        public SignerInfo(
-            SignerIdentifier        sid,
-            AlgorithmIdentifier     digAlgorithm,
-            Asn1Set                 authenticatedAttributes,
-            AlgorithmIdentifier     digEncryptionAlgorithm,
-            Asn1OctetString         encryptedDigest,
-            Asn1Set                 unauthenticatedAttributes)
+        public SignerInfo(SignerIdentifier sid, AlgorithmIdentifier digAlgorithm, Attributes authenticatedAttributes,
+            AlgorithmIdentifier digEncryptionAlgorithm, Asn1OctetString encryptedDigest,
+            Attributes unauthenticatedAttributes)
+            : this(sid, digAlgorithm, Asn1Set.GetInstance(authenticatedAttributes), digEncryptionAlgorithm,
+                  encryptedDigest, Asn1Set.GetInstance(unauthenticatedAttributes))
         {
-            this.version = new DerInteger(sid.IsTagged ? 3 : 1);
-            this.sid = sid;
-            this.digAlgorithm = digAlgorithm;
-            this.authenticatedAttributes = authenticatedAttributes;
-            this.digEncryptionAlgorithm = digEncryptionAlgorithm;
-            this.encryptedDigest = encryptedDigest;
-            this.unauthenticatedAttributes = unauthenticatedAttributes;
         }
 
-        public SignerInfo(
-            SignerIdentifier        sid,
-            AlgorithmIdentifier     digAlgorithm,
-            Attributes              authenticatedAttributes,
-            AlgorithmIdentifier     digEncryptionAlgorithm,
-            Asn1OctetString         encryptedDigest,
-            Attributes              unauthenticatedAttributes)
+        public SignerInfo(SignerIdentifier sid, AlgorithmIdentifier digAlgorithm, Asn1Set authenticatedAttributes,
+            AlgorithmIdentifier digEncryptionAlgorithm, Asn1OctetString encryptedDigest,
+            Asn1Set unauthenticatedAttributes)
         {
-            this.version = new DerInteger(sid.IsTagged ? 3 : 1);
-            this.sid = sid;
-            this.digAlgorithm = digAlgorithm;
-            this.authenticatedAttributes = Asn1Set.GetInstance(authenticatedAttributes);
-            this.digEncryptionAlgorithm = digEncryptionAlgorithm;
-            this.encryptedDigest = encryptedDigest;
-            this.unauthenticatedAttributes = Asn1Set.GetInstance(unauthenticatedAttributes);
+            m_sid = sid ?? throw new ArgumentNullException(nameof(sid));
+            m_digAlgorithm = digAlgorithm ?? throw new ArgumentNullException(nameof(digAlgorithm));
+            m_authenticatedAttributes = authenticatedAttributes;
+            m_digEncryptionAlgorithm = digEncryptionAlgorithm ?? throw new ArgumentNullException(nameof(digEncryptionAlgorithm));
+            m_encryptedDigest = encryptedDigest ?? throw new ArgumentNullException(nameof(encryptedDigest));
+            m_unauthenticatedAttributes = unauthenticatedAttributes;
+            m_version = sid.IsTagged ? DerInteger.Three : DerInteger.One;
         }
 
         private SignerInfo(Asn1Sequence seq)
         {
-            var e = seq.GetEnumerator();
+            int count = seq.Count, pos = 0;
+            if (count < 5 || count > 7)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            e.MoveNext();
-            version = (DerInteger)e.Current;
+            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_sid = SignerIdentifier.GetInstance(seq[pos++]);
+            m_digAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_authenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
+            m_digEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_encryptedDigest = Asn1OctetString.GetInstance(seq[pos++]);
+            m_unauthenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetInstance);
 
-            e.MoveNext();
-            sid = SignerIdentifier.GetInstance(e.Current.ToAsn1Object());
-
-            e.MoveNext();
-            digAlgorithm = AlgorithmIdentifier.GetInstance(e.Current.ToAsn1Object());
-
-            e.MoveNext();
-            var obj = e.Current.ToAsn1Object();
-
-            if (obj is Asn1TaggedObject tagged)
-            {
-                authenticatedAttributes = Asn1Set.GetInstance(tagged, false);
-
-                e.MoveNext();
-                digEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(e.Current.ToAsn1Object());
-            }
-            else
-            {
-                authenticatedAttributes = null;
-                digEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(obj);
-            }
-
-            e.MoveNext();
-            encryptedDigest = Asn1OctetString.GetInstance(e.Current.ToAsn1Object());
-
-            if (e.MoveNext())
-            {
-                unauthenticatedAttributes = Asn1Set.GetInstance((Asn1TaggedObject)e.Current.ToAsn1Object(), false);
-            }
-            else
-            {
-                unauthenticatedAttributes = null;
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public DerInteger Version
-        {
-            get { return version; }
-        }
+        public DerInteger Version => m_version;
 
-        public SignerIdentifier SignerID
-        {
-            get { return sid; }
-        }
+        public SignerIdentifier SignerID => m_sid;
 
-        public Asn1Set AuthenticatedAttributes
-        {
-            get { return authenticatedAttributes; }
-        }
+        public Asn1Set AuthenticatedAttributes => m_authenticatedAttributes;
 
-        public AlgorithmIdentifier DigestAlgorithm
-        {
-            get { return digAlgorithm; }
-        }
+        public AlgorithmIdentifier DigestAlgorithm => m_digAlgorithm;
 
-        public Asn1OctetString EncryptedDigest
-        {
-            get { return encryptedDigest; }
-        }
+        public Asn1OctetString EncryptedDigest => m_encryptedDigest;
 
-        public AlgorithmIdentifier DigestEncryptionAlgorithm
-        {
-            get { return digEncryptionAlgorithm; }
-        }
+        public AlgorithmIdentifier DigestEncryptionAlgorithm => m_digEncryptionAlgorithm;
 
-        public Asn1Set UnauthenticatedAttributes
-        {
-            get { return unauthenticatedAttributes; }
-        }
+        public Asn1Set UnauthenticatedAttributes => m_unauthenticatedAttributes;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -160,10 +104,11 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(version, sid, digAlgorithm);
-            v.AddOptionalTagged(false, 0, authenticatedAttributes);
-            v.Add(digEncryptionAlgorithm, encryptedDigest);
-            v.AddOptionalTagged(false, 1, unauthenticatedAttributes);
+            Asn1EncodableVector v = new Asn1EncodableVector(7);
+            v.Add(m_version, m_sid, m_digAlgorithm);
+            v.AddOptionalTagged(false, 0, m_authenticatedAttributes);
+            v.Add(m_digEncryptionAlgorithm, m_encryptedDigest);
+            v.AddOptionalTagged(false, 1, m_unauthenticatedAttributes);
             return new DerSequence(v);
         }
     }

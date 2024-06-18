@@ -1,4 +1,6 @@
-﻿namespace Org.BouncyCastle.Asn1.Cms
+﻿using System;
+
+namespace Org.BouncyCastle.Asn1.Cms
 {
     public class ScvpReqRes
         : Asn1Encodable
@@ -17,21 +19,20 @@
             return new ScvpReqRes(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private readonly ContentInfo request;
-        private readonly ContentInfo response;
+        private readonly ContentInfo m_request;
+        private readonly ContentInfo m_response;
 
         private ScvpReqRes(Asn1Sequence seq)
         {
-            if (seq[0] is Asn1TaggedObject taggedObject)
-            {
-                this.request = ContentInfo.GetInstance(taggedObject, true);
-                this.response = ContentInfo.GetInstance(seq[1]);
-            }
-            else
-            {
-                this.request = null;
-                this.response = ContentInfo.GetInstance(seq[0]);
-            }
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_request = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ContentInfo.GetInstance);
+            m_response = ContentInfo.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public ScvpReqRes(ContentInfo response)
@@ -41,19 +42,13 @@
 
         public ScvpReqRes(ContentInfo request, ContentInfo response)
         {
-            this.request = request;
-            this.response = response;
+            m_request = request;
+            m_response = response ?? throw new ArgumentNullException(nameof(response));
         }
 
-        public virtual ContentInfo Request
-        {
-            get { return request; }
-        }
+        public virtual ContentInfo Request => m_request;
 
-        public virtual ContentInfo Response
-        {
-            get { return response; }
-        }
+        public virtual ContentInfo Response => m_response;
 
         /**
          * <pre>
@@ -65,10 +60,10 @@
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptionalTagged(true, 0, request);
-            v.Add(response);
-            return new DerSequence(v);
+            if (m_request == null)
+                return new DerSequence(m_response);
+
+            return new DerSequence(new DerTaggedObject(true, 0, m_request), m_response);
         }
     }
 }

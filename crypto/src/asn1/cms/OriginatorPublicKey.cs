@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -29,12 +31,16 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public OriginatorPublicKey(AlgorithmIdentifier algorithm, DerBitString publicKey)
         {
-            m_algorithm = algorithm;
-            m_publicKey = publicKey;
+            m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
+            m_publicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
         }
 
         private OriginatorPublicKey(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_algorithm = AlgorithmIdentifier.GetInstance(seq[0]);
             m_publicKey = DerBitString.GetInstance(seq[1]);
         }

@@ -1,4 +1,6 @@
-﻿namespace Org.BouncyCastle.Asn1.Cms
+﻿using System;
+
+namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OtherRevocationInfoFormat
         : Asn1Encodable
@@ -17,32 +19,28 @@
             return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj, isExplicit));
         }
 
-        private readonly DerObjectIdentifier otherRevInfoFormat;
-        private readonly Asn1Encodable otherRevInfo;
+        private readonly DerObjectIdentifier m_otherRevInfoFormat;
+        private readonly Asn1Encodable m_otherRevInfo;
 
-        public OtherRevocationInfoFormat(
-            DerObjectIdentifier otherRevInfoFormat,
-            Asn1Encodable otherRevInfo)
+        public OtherRevocationInfoFormat(DerObjectIdentifier otherRevInfoFormat, Asn1Encodable otherRevInfo)
         {
-            this.otherRevInfoFormat = otherRevInfoFormat;
-            this.otherRevInfo = otherRevInfo;
+            m_otherRevInfoFormat = otherRevInfoFormat ?? throw new ArgumentNullException(nameof(otherRevInfoFormat));
+            m_otherRevInfo = otherRevInfo ?? throw new ArgumentNullException(nameof(otherRevInfo));
         }
 
         private OtherRevocationInfoFormat(Asn1Sequence seq)
         {
-            otherRevInfoFormat = DerObjectIdentifier.GetInstance(seq[0]);
-            otherRevInfo = seq[1];
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_otherRevInfoFormat = DerObjectIdentifier.GetInstance(seq[0]);
+            m_otherRevInfo = seq[1];
         }
 
-        public virtual DerObjectIdentifier InfoFormat
-        {
-            get { return otherRevInfoFormat; }
-        }
+        public virtual DerObjectIdentifier InfoFormat => m_otherRevInfoFormat;
 
-        public virtual Asn1Encodable Info
-        {
-            get { return otherRevInfo; }
-        }
+        public virtual Asn1Encodable Info => m_otherRevInfo;
 
         /** 
          * Produce an object suitable for an ASN1OutputStream.
@@ -52,9 +50,6 @@
          *      otherRevInfo ANY DEFINED BY otherRevInfoFormat }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(otherRevInfoFormat, otherRevInfo);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_otherRevInfoFormat, m_otherRevInfo);
     }
 }

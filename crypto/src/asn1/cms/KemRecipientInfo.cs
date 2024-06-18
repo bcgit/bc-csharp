@@ -62,27 +62,25 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private KemRecipientInfo(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 8 || count > 9)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            int index = 0;
+            m_cmsVersion = DerInteger.GetInstance(seq[pos++]);
+            m_rid = RecipientIdentifier.GetInstance(seq[pos++]);
+            m_kem = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_kemct = Asn1OctetString.GetInstance(seq[pos++]);
+            m_kdf = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_kekLength = DerInteger.GetInstance(seq[pos++]);
+            m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetInstance);
+            m_wrap = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_encryptedKey = Asn1OctetString.GetInstance(seq[pos++]);
 
-            m_cmsVersion = DerInteger.GetInstance(seq[index++]);
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
             if (!m_cmsVersion.HasValue(0))
                 throw new ArgumentException("Unsupported version (hex): " + m_cmsVersion.Value.ToString(16));
-
-            m_rid = RecipientIdentifier.GetInstance(seq[index++]);
-            m_kem = AlgorithmIdentifier.GetInstance(seq[index++]);
-            m_kemct = Asn1OctetString.GetInstance(seq[index++]);
-            m_kdf = AlgorithmIdentifier.GetInstance(seq[index++]);
-            m_kekLength = DerInteger.GetInstance(seq[index++]);
-            m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref index, 0, true, Asn1OctetString.GetInstance);
-            m_wrap = AlgorithmIdentifier.GetInstance(seq[index++]);
-            m_encryptedKey = Asn1OctetString.GetInstance(seq[index++]);
-
-            if (index != count)
-                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public RecipientIdentifier RecipientIdentifier => m_rid;

@@ -19,15 +19,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CertificateList
         : Asn1Encodable
     {
-        private readonly TbsCertificateList	tbsCertList;
-        private readonly AlgorithmIdentifier sigAlgID;
-        private readonly DerBitString sig;
-
-        public static CertificateList GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
         public static CertificateList GetInstance(object obj)
         {
             if (obj == null)
@@ -36,6 +27,30 @@ namespace Org.BouncyCastle.Asn1.X509
                 return certificateList;
             return new CertificateList(Asn1Sequence.GetInstance(obj));
         }
+
+        public static CertificateList GetInstance(Asn1TaggedObject obj, bool explicitly)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+        }
+
+        public static CertificateList GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is CertificateList certificateList)
+                return certificateList;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new CertificateList(asn1Sequence);
+
+            return null;
+        }
+
+        private readonly TbsCertificateList tbsCertList;
+        private readonly AlgorithmIdentifier sigAlgID;
+        private readonly DerBitString sig;
 
         private CertificateList(
             Asn1Sequence seq)

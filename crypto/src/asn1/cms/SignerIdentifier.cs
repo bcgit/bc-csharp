@@ -32,39 +32,33 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
         }
 
-        private Asn1Encodable id;
+        private readonly Asn1Encodable m_id;
 
-		public SignerIdentifier(
-            IssuerAndSerialNumber id)
+        public SignerIdentifier(IssuerAndSerialNumber id)
         {
-            this.id = id;
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
-		public SignerIdentifier(
-            Asn1OctetString id)
+		public SignerIdentifier(Asn1OctetString id)
         {
-            this.id = new DerTaggedObject(false, 0, id);
+            m_id = new DerTaggedObject(false, 0, id);
         }
 
-		public SignerIdentifier(
-            Asn1Object id)
+		public SignerIdentifier(Asn1Object id)
         {
-            this.id = id;
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
-		public bool IsTagged
-		{
-			get { return (id is Asn1TaggedObject); }
-		}
+        public bool IsTagged => m_id is Asn1TaggedObject;
 
         public Asn1Encodable ID
         {
             get
             {
-                if (id is Asn1TaggedObject taggedObject)
+                if (m_id is Asn1TaggedObject taggedObject)
                     return Asn1OctetString.GetInstance(taggedObject, false);
 
-                return id;
+                return m_id;
             }
         }
 
@@ -79,9 +73,6 @@ namespace Org.BouncyCastle.Asn1.Cms
          * SubjectKeyIdentifier ::= OCTET STRING
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return id.ToAsn1Object();
-        }
+        public override Asn1Object ToAsn1Object() => m_id.ToAsn1Object();
     }
 }

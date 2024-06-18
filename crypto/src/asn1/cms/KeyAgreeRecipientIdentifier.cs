@@ -35,30 +35,22 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
 		}
 
-		private readonly IssuerAndSerialNumber issuerSerial;
-		private readonly RecipientKeyIdentifier rKeyID;
+		private readonly IssuerAndSerialNumber m_issuerSerial;
+		private readonly RecipientKeyIdentifier m_rKeyID;
 
-		public KeyAgreeRecipientIdentifier(
-			IssuerAndSerialNumber issuerSerial)
-		{
-			this.issuerSerial = issuerSerial;
-		}
+        public KeyAgreeRecipientIdentifier(IssuerAndSerialNumber issuerSerial)
+        {
+            m_issuerSerial = issuerSerial ?? throw new ArgumentNullException(nameof(issuerSerial));
+        }
 
-		public KeyAgreeRecipientIdentifier(
-			RecipientKeyIdentifier rKeyID)
-		{
-			this.rKeyID = rKeyID;
-		}
+        public KeyAgreeRecipientIdentifier(RecipientKeyIdentifier rKeyID)
+        {
+            m_rKeyID = rKeyID ?? throw new ArgumentNullException(nameof(rKeyID));
+        }
 
-		public IssuerAndSerialNumber IssuerAndSerialNumber
-		{
-			get { return issuerSerial; }
-		}
+		public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerSerial;
 
-		public RecipientKeyIdentifier RKeyID
-		{
-			get { return rKeyID; }
-		}
+		public RecipientKeyIdentifier RKeyID => m_rKeyID;
 
 		/** 
 		 * Produce an object suitable for an Asn1OutputStream.
@@ -71,12 +63,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			if (issuerSerial != null)
-			{
-				return issuerSerial.ToAsn1Object();
-			}
+			if (m_issuerSerial != null)
+				return m_issuerSerial.ToAsn1Object();
 
-			return new DerTaggedObject(false, 0, rKeyID);
+			return new DerTaggedObject(false, 0, m_rKeyID);
 		}
 	}
 }

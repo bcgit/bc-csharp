@@ -22,213 +22,56 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new SignedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private static readonly DerInteger Version1 = DerInteger.One;
-        private static readonly DerInteger Version3 = DerInteger.Three;
-        private static readonly DerInteger Version4 = DerInteger.Four;
-        private static readonly DerInteger Version5 = DerInteger.Five;
+        private readonly DerInteger m_version;
+        private readonly Asn1Set m_digestAlgorithms;
+        private readonly ContentInfo m_contentInfo;
+        private readonly Asn1Set m_certificates;
+        private readonly Asn1Set m_crls;
+        private readonly Asn1Set m_signerInfos;
+        private readonly bool m_certsBer;
+        private readonly bool m_crlsBer;
 
-        private readonly DerInteger		version;
-        private readonly Asn1Set		digestAlgorithms;
-        private readonly ContentInfo	contentInfo;
-        private readonly Asn1Set		certificates;
-        private readonly Asn1Set		crls;
-        private readonly Asn1Set		signerInfos;
-        private readonly bool			certsBer;
-        private readonly bool		    crlsBer;
-
-        public SignedData(
-            Asn1Set     digestAlgorithms,
-            ContentInfo contentInfo,
-            Asn1Set     certificates,
-            Asn1Set     crls,
-            Asn1Set     signerInfos)
+        public SignedData(Asn1Set digestAlgorithms, ContentInfo contentInfo, Asn1Set certificates, Asn1Set crls,
+            Asn1Set signerInfos)
         {
-            this.version = CalculateVersion(contentInfo.ContentType, certificates, crls, signerInfos);
-            this.digestAlgorithms = digestAlgorithms;
-            this.contentInfo = contentInfo;
-            this.certificates = certificates;
-            this.crls = crls;
-            this.signerInfos = signerInfos;
-            this.crlsBer = crls is BerSet;
-            this.certsBer = certificates is BerSet;
-        }
-
-        // RFC3852, section 5.1:
-        // IF ((certificates is present) AND
-        //    (any certificates with a type of other are present)) OR
-        //    ((crls is present) AND
-        //    (any crls with a type of other are present))
-        // THEN version MUST be 5
-        // ELSE
-        //    IF (certificates is present) AND
-        //       (any version 2 attribute certificates are present)
-        //    THEN version MUST be 4
-        //    ELSE
-        //       IF ((certificates is present) AND
-        //          (any version 1 attribute certificates are present)) OR
-        //          (any SignerInfo structures are version 3) OR
-        //          (encapContentInfo eContentType is other than id-data)
-        //       THEN version MUST be 3
-        //       ELSE version MUST be 1
-        //
-        private DerInteger CalculateVersion(
-            DerObjectIdentifier	contentOid,
-            Asn1Set				certs,
-            Asn1Set				crls,
-            Asn1Set				signerInfs)
-        {
-            bool otherCert = false;
-            bool otherCrl = false;
-            bool attrCertV1Found = false;
-            bool attrCertV2Found = false;
-
-            if (certs != null)
-            {
-                foreach (object obj in certs)
-                {
-                    if (obj is Asn1TaggedObject tagged)
-                    {
-                        if (tagged.TagNo == 1)
-                        {
-                            attrCertV1Found = true;
-                        }
-                        else if (tagged.TagNo == 2)
-                        {
-                            attrCertV2Found = true;
-                        }
-                        else if (tagged.TagNo == 3)
-                        {
-                            otherCert = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (otherCert)
-            {
-                return Version5;
-            }
-
-            if (crls != null)
-            {
-                foreach (object obj in crls)
-                {
-                    if (obj is Asn1TaggedObject)
-                    {
-                        otherCrl = true;
-                        break;
-                    }
-                }
-            }
-
-            if (otherCrl)
-            {
-                return Version5;
-            }
-
-            if (attrCertV2Found)
-            {
-                return Version4;
-            }
-
-            if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) || CheckForVersion3(signerInfs))
-            {
-                return Version3;
-            }
-
-            return Version1;
-        }
-
-        private bool CheckForVersion3(Asn1Set signerInfs)
-        {
-            foreach (object obj in signerInfs)
-            {
-                SignerInfo s = SignerInfo.GetInstance(obj);
-
-                if (s.Version.HasValue(3))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            m_digestAlgorithms = digestAlgorithms ?? throw new ArgumentNullException(nameof(digestAlgorithms));
+            m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
+            m_certificates = certificates;
+            m_crls = crls;
+            m_signerInfos = signerInfos ?? throw new ArgumentNullException(nameof(signerInfos));
+            m_crlsBer = crls is BerSet;
+            m_certsBer = certificates is BerSet;
+            m_version = CalculateVersionField(contentInfo.ContentType, certificates, crls, signerInfos);
         }
 
         private SignedData(Asn1Sequence seq)
         {
-            var e = seq.GetEnumerator();
+            int count = seq.Count, pos = 0;
+            if (count < 4 || count > 6)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            e.MoveNext();
-            version = (DerInteger)e.Current;
+            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_digestAlgorithms = Asn1Set.GetInstance(seq[pos++]);
+            m_contentInfo = ContentInfo.GetInstance(seq[pos++]);
+            m_certificates = ReadOptionalTaggedSet(seq, ref pos, 0, out m_certsBer);
+            m_crls = ReadOptionalTaggedSet(seq, ref pos, 1, out m_crlsBer);
+            m_signerInfos = Asn1Set.GetInstance(seq[pos++]);
 
-            e.MoveNext();
-            digestAlgorithms = (Asn1Set)e.Current.ToAsn1Object();
-
-            e.MoveNext();
-            contentInfo = ContentInfo.GetInstance(e.Current.ToAsn1Object());
-
-            while (e.MoveNext())
-            {
-                Asn1Object o = e.Current.ToAsn1Object();
-
-                //
-                // an interesting feature of SignedData is that there appear
-                // to be varying implementations...
-                // for the moment we ignore anything which doesn't fit.
-                //
-                if (o is Asn1TaggedObject tagged)
-                {
-                    switch (tagged.TagNo)
-                    {
-                    case 0:
-                        certsBer = tagged is BerTaggedObject;
-                        certificates = Asn1Set.GetInstance(tagged, false);
-                        break;
-                    case 1:
-                        crlsBer = tagged is BerTaggedObject;
-                        crls = Asn1Set.GetInstance(tagged, false);
-                        break;
-                    default:
-                        throw new ArgumentException("unknown tag value " + tagged.TagNo);
-                    }
-                }
-                else
-                {
-                    signerInfos = (Asn1Set) o;
-                }
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public DerInteger Version
-        {
-            get { return version; }
-        }
+        public DerInteger Version => m_version;
 
-        public Asn1Set DigestAlgorithms
-        {
-            get { return digestAlgorithms; }
-        }
+        public Asn1Set DigestAlgorithms => m_digestAlgorithms;
 
-        public ContentInfo EncapContentInfo
-        {
-            get { return contentInfo; }
-        }
+        public ContentInfo EncapContentInfo => m_contentInfo;
 
-        public Asn1Set Certificates
-        {
-            get { return certificates; }
-        }
+        public Asn1Set Certificates => m_certificates;
 
-        public Asn1Set CRLs
-        {
-            get { return crls; }
-        }
+        public Asn1Set CRLs => m_crls;
 
-        public Asn1Set SignerInfos
-        {
-            get { return signerInfos; }
-        }
+        public Asn1Set SignerInfos => m_signerInfos;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -245,36 +88,135 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-                version, digestAlgorithms, contentInfo);
+            Asn1EncodableVector v = new Asn1EncodableVector(6);
+            v.Add(m_version, m_digestAlgorithms, m_contentInfo);
 
-            if (certificates != null)
+            if (m_certificates != null)
             {
-                if (certsBer)
+                if (m_certsBer)
                 {
-                    v.Add(new BerTaggedObject(false, 0, certificates));
+                    v.Add(new BerTaggedObject(false, 0, m_certificates));
                 }
                 else
                 {
-                    v.Add(new DerTaggedObject(false, 0, certificates));
+                    v.Add(new DerTaggedObject(false, 0, m_certificates));
                 }
             }
+
+            if (m_crls != null)
+            {
+                if (m_crlsBer)
+                {
+                    v.Add(new BerTaggedObject(false, 1, m_crls));
+                }
+                else
+                {
+                    v.Add(new DerTaggedObject(false, 1, m_crls));
+                }
+            }
+
+            v.Add(m_signerInfos);
+
+            return new BerSequence(v);
+        }
+
+        private static DerInteger CalculateVersionField(DerObjectIdentifier contentOid, Asn1Set certs, Asn1Set crls,
+            Asn1Set signerInfs)
+        {
+            /*
+             * RFC3852, section 5.1:
+             * IF((certificates is present) AND
+             *    (any certificates with a type of other are present)) OR
+             *    ((crls is present) AND
+             *    (any crls with a type of other are present))
+             * THEN version MUST be 5
+             * ELSE
+             *    IF(certificates is present) AND
+             *       (any version 2 attribute certificates are present)
+             *    THEN version MUST be 4
+             *    ELSE
+             *       IF((certificates is present) AND
+             *          (any version 1 attribute certificates are present)) OR
+             *          (any SignerInfo structures are version 3) OR
+             *          (encapContentInfo eContentType is other than id - data)
+             *       THEN version MUST be 3
+             *       ELSE version MUST be 1
+             */
 
             if (crls != null)
             {
-                if (crlsBer)
+                foreach (var element in crls)
                 {
-                    v.Add(new BerTaggedObject(false, 1, crls));
-                }
-                else
-                {
-                    v.Add(new DerTaggedObject(false, 1, crls));
+                    var tagged = Asn1TaggedObject.GetOptional(element);
+                    if (tagged != null)
+                    {
+                        // RevocationInfoChoice.other
+                        if (tagged.HasContextTag(1))
+                            return DerInteger.Five;
+                    }
                 }
             }
 
-            v.Add(signerInfos);
+            bool anyV1AttrCerts = false;
 
-            return new BerSequence(v);
+            if (certs != null)
+            {
+                bool anyV2AttrCerts = false;
+
+                foreach (var element in certs)
+                {
+                    var tagged = Asn1TaggedObject.GetOptional(element);
+                    if (tagged != null)
+                    {
+                        // CertificateChoices.other
+                        if (tagged.HasContextTag(3))
+                            return DerInteger.Five;
+
+                        // CertificateChoices.v2AttrCert
+                        anyV2AttrCerts = anyV2AttrCerts || tagged.HasContextTag(2);
+
+                        // CertificateChoices.v1AttrCert
+                        anyV1AttrCerts = anyV1AttrCerts || tagged.HasContextTag(1);
+                    }
+                }
+
+                if (anyV2AttrCerts)
+                    return DerInteger.Four;
+            }
+
+            if (anyV1AttrCerts || !CmsObjectIdentifiers.Data.Equals(contentOid) || HasV3SignerInfos(signerInfs))
+                return DerInteger.Three;
+
+            return DerInteger.One;
+        }
+
+        // (any SignerInfo structures are version 3)
+        private static bool HasV3SignerInfos(Asn1Set signerInfs)
+        {
+            foreach (object obj in signerInfs)
+            {
+                var signerInfo = SignerInfo.GetInstance(obj);
+                if (signerInfo.Version.HasValue(3))
+                    return true;
+            }
+            return false;
+        }
+
+        private static Asn1Set ReadOptionalTaggedSet(Asn1Sequence sequence, ref int sequencePosition, int tagNo,
+            out bool isBer)
+        {
+            if (sequencePosition < sequence.Count &&
+                sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
+                taggedObject.HasContextTag(tagNo))
+            {
+                var result = Asn1Set.GetInstance(taggedObject, false);
+                sequencePosition++;
+                isBer = taggedObject is BerTaggedObject;
+                return result;
+            }
+
+            isBer = default;
+            return null;
         }
     }
 }

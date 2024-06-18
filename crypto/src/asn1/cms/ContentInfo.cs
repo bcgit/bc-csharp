@@ -19,64 +19,48 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new ContentInfo(Asn1Sequence.GetInstance(obj, isExplicit));
         }
 
-        private readonly DerObjectIdentifier	contentType;
-        private readonly Asn1Encodable			content;
+        private readonly DerObjectIdentifier m_contentType;
+        private readonly Asn1Encodable m_content;
 
-        private ContentInfo(
-            Asn1Sequence seq)
+        private ContentInfo(Asn1Sequence seq)
         {
-            if (seq.Count < 1 || seq.Count > 2)
-                throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            contentType = (DerObjectIdentifier) seq[0];
+            m_contentType = DerObjectIdentifier.GetInstance(seq[0]);
 
             if (seq.Count > 1)
             {
-                Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific);
-                if (!tagged.IsExplicit() || tagged.TagNo != 0)
-                    throw new ArgumentException("Bad tag for 'content'", "seq");
-
-                content = tagged.GetExplicitBaseObject();
+                m_content = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
             }
         }
 
-        public ContentInfo(
-            DerObjectIdentifier	contentType,
-            Asn1Encodable		content)
+        public ContentInfo(DerObjectIdentifier contentType, Asn1Encodable content)
         {
-            this.contentType = contentType;
-            this.content = content;
+            // TODO[cms] Blocked by CmsSignedDataGenerator.GenerateCounterSigners transient usage of null here
+            //m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            m_contentType = contentType;
+            m_content = content;
         }
 
-        public DerObjectIdentifier ContentType
-        {
-            get { return contentType; }
-        }
+        public DerObjectIdentifier ContentType => m_contentType;
 
-        public Asn1Encodable Content
-        {
-            get { return content; }
-        }
+        public Asn1Encodable Content => m_content;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * ContentInfo ::= Sequence {
          *          contentType ContentType,
-         *          content
-         *          [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+         *          content [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
          * </pre>
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(contentType);
-
-            if (content != null)
-            {
-                v.Add(new BerTaggedObject(0, content));
-            }
-
-            return new BerSequence(v);
+            return m_content == null
+                ?  new BerSequence(m_contentType)
+                :  new BerSequence(m_contentType, new BerTaggedObject(0, m_content));
         }
     }
 }

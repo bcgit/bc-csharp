@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		public RecipientIdentifier(IssuerAndSerialNumber id)
         {
-            m_id = id;
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
 		public RecipientIdentifier(Asn1OctetString id)
@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		public RecipientIdentifier(Asn1Object id)
         {
-            m_id = id;
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
         public bool IsTagged => m_id is Asn1TaggedObject;

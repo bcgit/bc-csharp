@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public OriginatorIdentifierOrKey(IssuerAndSerialNumber id)
         {
-            m_id = id;
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
         public OriginatorIdentifierOrKey(SubjectKeyIdentifier id)

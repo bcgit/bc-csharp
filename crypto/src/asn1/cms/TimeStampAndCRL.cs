@@ -1,3 +1,7 @@
+using System;
+
+using Org.BouncyCastle.Asn1.X509;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class TimeStampAndCrl
@@ -17,32 +21,36 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new TimeStampAndCrl(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-        private ContentInfo timeStamp;
-		private X509.CertificateList crl;
+        private readonly ContentInfo m_timeStamp;
+		private readonly CertificateList m_crl;
 
 		public TimeStampAndCrl(ContentInfo timeStamp)
+			: this(timeStamp, null)
 		{
-			this.timeStamp = timeStamp;
 		}
 
-		private TimeStampAndCrl(Asn1Sequence seq)
+        public TimeStampAndCrl(ContentInfo timeStamp, CertificateList crl)
+        {
+            m_timeStamp = timeStamp ?? throw new ArgumentNullException(nameof(timeStamp));
+            m_crl = crl;
+        }
+
+        private TimeStampAndCrl(Asn1Sequence seq)
 		{
-			this.timeStamp = ContentInfo.GetInstance(seq[0]);
-			if (seq.Count == 2)
-			{
-				this.crl = X509.CertificateList.GetInstance(seq[1]);
-			}
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_timeStamp = ContentInfo.GetInstance(seq[pos++]);
+            m_crl = Asn1Utilities.ReadOptional(seq, ref pos, CertificateList.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		public virtual ContentInfo TimeStampToken
-		{
-			get { return this.timeStamp; }
-		}
+		public virtual ContentInfo TimeStampToken => m_timeStamp;
 
-		public virtual X509.CertificateList Crl
-		{
-			get { return this.crl; }
-		}
+		public virtual CertificateList Crl => m_crl;
 
 		/**
 		 * <pre>
@@ -55,9 +63,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(timeStamp);
-			v.AddOptional(crl);
-			return new DerSequence(v);
+			return m_crl == null
+				?  new DerSequence(m_timeStamp)
+                :  new DerSequence(m_timeStamp, m_crl);
 		}
 	}
 }

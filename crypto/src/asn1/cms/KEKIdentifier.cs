@@ -23,62 +23,37 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private Asn1OctetString		keyIdentifier;
-        private Asn1GeneralizedTime date;
-        private OtherKeyAttribute	other;
+        private readonly Asn1OctetString m_keyIdentifier;
+        private readonly Asn1GeneralizedTime m_date;
+        private readonly OtherKeyAttribute m_other;
 
-		public KekIdentifier(
-            byte[]              keyIdentifier,
-            Asn1GeneralizedTime date,
-            OtherKeyAttribute   other)
+        public KekIdentifier(byte[] keyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
         {
-            this.keyIdentifier = new DerOctetString(keyIdentifier);
-            this.date = date;
-            this.other = other;
+            m_keyIdentifier = new DerOctetString(keyIdentifier);
+            m_date = date;
+            m_other = other;
         }
 
         [Obsolete("Use 'GetInstance' instead")]
         public KekIdentifier(Asn1Sequence seq)
         {
-            keyIdentifier = (Asn1OctetString)seq[0];
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			switch (seq.Count)
-            {
-            case 1:
-				break;
-            case 2:
-				if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
-				{
-					date = asn1GeneralizedTime;
-				}
-				else
-				{
-					other = OtherKeyAttribute.GetInstance(seq[2]);
-				}
-				break;
-            case 3:
-				date = (Asn1GeneralizedTime)seq[1];
-				other = OtherKeyAttribute.GetInstance(seq[2]);
-				break;
-            default:
-				throw new ArgumentException("Invalid KekIdentifier");
-            }
+            m_keyIdentifier = Asn1OctetString.GetInstance(seq[pos++]);
+            m_date = Asn1Utilities.ReadOptional(seq, ref pos, Asn1GeneralizedTime.GetOptional);
+            m_other = Asn1Utilities.ReadOptional(seq, ref pos, OtherKeyAttribute.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public Asn1OctetString KeyIdentifier
-		{
-			get { return keyIdentifier; }
-		}
+        public Asn1OctetString KeyIdentifier => m_keyIdentifier;
 
-		public Asn1GeneralizedTime Date
-		{
-			get { return date; }
-		}
+        public Asn1GeneralizedTime Date => m_date;
 
-		public OtherKeyAttribute Other
-		{
-			get { return other; }
-		}
+        public OtherKeyAttribute Other => m_other;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -92,8 +67,9 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(keyIdentifier);
-			v.AddOptional(date, other);
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(m_keyIdentifier);
+			v.AddOptional(m_date, m_other);
 			return new DerSequence(v);
         }
     }

@@ -652,6 +652,20 @@ namespace Org.BouncyCastle.Asn1
 
         #region Sequence cursor
 
+        public static TResult ReadContextTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
+            int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+        {
+            return ReadTagged(sequence, ref sequencePosition, Asn1Tags.ContextSpecific, tagNo, state, constructor);
+        }
+
+        public static TResult ReadTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition, int tagClass,
+            int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+        {
+            var tagged = Asn1TaggedObject.GetInstance(sequence[sequencePosition++], tagClass, tagNo);
+
+            return constructor(tagged, state);
+        }
+
         public static TResult ReadOptional<TResult>(Asn1Sequence sequence, ref int sequencePosition,
             Func<Asn1Encodable, TResult> constructor)
             where TResult : class

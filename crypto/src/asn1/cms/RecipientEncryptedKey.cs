@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class RecipientEncryptedKey
@@ -17,33 +19,28 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new RecipientEncryptedKey(Asn1Sequence.GetInstance(obj, isExplicit));
         }
 
-        private readonly KeyAgreeRecipientIdentifier identifier;
-		private readonly Asn1OctetString encryptedKey;
+        private readonly KeyAgreeRecipientIdentifier m_identifier;
+		private readonly Asn1OctetString m_encryptedKey;
 
-		private RecipientEncryptedKey(
-			Asn1Sequence seq)
+		private RecipientEncryptedKey(Asn1Sequence seq)
 		{
-			identifier = KeyAgreeRecipientIdentifier.GetInstance(seq[0]);
-			encryptedKey = (Asn1OctetString) seq[1];
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_identifier = KeyAgreeRecipientIdentifier.GetInstance(seq[0]);
+			m_encryptedKey = Asn1OctetString.GetInstance(seq[1]);
 		}
 
-        public RecipientEncryptedKey(
-			KeyAgreeRecipientIdentifier	id,
-			Asn1OctetString				encryptedKey)
-		{
-			this.identifier = id;
-			this.encryptedKey = encryptedKey;
-		}
+        public RecipientEncryptedKey(KeyAgreeRecipientIdentifier id, Asn1OctetString encryptedKey)
+        {
+            m_identifier = id ?? throw new ArgumentNullException(nameof(id));
+            m_encryptedKey = encryptedKey ?? throw new ArgumentNullException(nameof(encryptedKey));
+        }
 
-		public KeyAgreeRecipientIdentifier Identifier
-		{
-			get { return identifier; }
-		}
+        public KeyAgreeRecipientIdentifier Identifier => m_identifier;
 
-		public Asn1OctetString EncryptedKey
-		{
-			get { return encryptedKey; }
-		}
+		public Asn1OctetString EncryptedKey => m_encryptedKey;
 
 		/** 
 		 * Produce an object suitable for an Asn1OutputStream.
@@ -54,9 +51,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 		 * }
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(identifier, encryptedKey);
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_identifier, m_encryptedKey);
 	}
 }

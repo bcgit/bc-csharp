@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 
@@ -25,6 +27,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private IssuerAndSerialNumber(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_name = X509Name.GetInstance(seq[0]);
             m_serialNumber = DerInteger.GetInstance(seq[1]);
         }

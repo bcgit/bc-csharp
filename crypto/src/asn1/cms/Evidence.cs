@@ -31,12 +31,12 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Evidence(TimeStampTokenEvidence tstEvidence)
 		{
-			m_tstEvidence = tstEvidence;
+			m_tstEvidence = tstEvidence ?? throw new ArgumentNullException(nameof(tstEvidence));
 		}
 
         public Evidence(EvidenceRecord ersEvidence)
         {
-            m_ersEvidence = ersEvidence;
+            m_ersEvidence = ersEvidence ?? throw new ArgumentNullException(nameof(ersEvidence));
         }
 
         private Evidence(Asn1TaggedObject tagged)

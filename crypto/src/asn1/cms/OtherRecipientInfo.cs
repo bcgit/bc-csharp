@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OtherRecipientInfo
@@ -17,32 +19,28 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new OtherRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-        private readonly DerObjectIdentifier oriType;
-        private readonly Asn1Encodable oriValue;
+        private readonly DerObjectIdentifier m_oriType;
+        private readonly Asn1Encodable m_oriValue;
 
-        public OtherRecipientInfo(
-            DerObjectIdentifier	oriType,
-            Asn1Encodable		oriValue)
+        public OtherRecipientInfo(DerObjectIdentifier oriType, Asn1Encodable oriValue)
         {
-            this.oriType = oriType;
-            this.oriValue = oriValue;
+            m_oriType = oriType ?? throw new ArgumentNullException(nameof(oriType));
+            m_oriValue = oriValue ?? throw new ArgumentNullException(nameof(oriValue));
         }
 
         private OtherRecipientInfo(Asn1Sequence seq)
         {
-            oriType = DerObjectIdentifier.GetInstance(seq[0]);
-            oriValue = seq[1];
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_oriType = DerObjectIdentifier.GetInstance(seq[0]);
+            m_oriValue = seq[1];
         }
 
-        public virtual DerObjectIdentifier OriType
-        {
-            get { return oriType; }
-        }
+        public virtual DerObjectIdentifier OriType => m_oriType;
 
-        public virtual Asn1Encodable OriValue
-        {
-            get { return oriValue; }
-        }
+        public virtual Asn1Encodable OriValue => m_oriValue;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -52,9 +50,6 @@ namespace Org.BouncyCastle.Asn1.Cms
          *    oriValue ANY DEFINED BY oriType }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(oriType, oriValue);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_oriType, m_oriValue);
     }
 }
