@@ -45,10 +45,9 @@ namespace Org.BouncyCastle.Asn1.Misc
             keyLength = (DerInteger) seq[1];
         }
 
-		public byte[] GetIV()
-        {
-			return Arrays.Clone(iv.GetOctets());
-		}
+        public Asn1OctetString IV => iv;
+
+        public byte[] GetIV() => Arrays.Clone(iv.GetOctets());
 
 		public int KeyLength
 		{

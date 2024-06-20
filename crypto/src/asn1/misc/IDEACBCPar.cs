@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Misc
 {
@@ -40,10 +41,9 @@ namespace Org.BouncyCastle.Asn1.Misc
 			}
         }
 
-		public byte[] GetIV()
-        {
-			return iv == null ? null : iv.GetOctets();
-        }
+        public Asn1OctetString IV => iv;
+
+        public byte[] GetIV() => Arrays.Clone(iv.GetOctets());
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
