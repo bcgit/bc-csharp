@@ -39,6 +39,15 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             Pack.UInt64_To_BE(x1, z, 8);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AsBytes(ulong x0, ulong x1, Span<byte> z)
+        {
+            Pack.UInt64_To_BE(x0, z, 0);
+            Pack.UInt64_To_BE(x1, z, 8);
+        }
+#endif
+
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
@@ -46,6 +55,14 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         {
             AsBytes(x.n0, x.n1, z);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AsBytes(ref FieldElement x, Span<byte> z)
+        {
+            AsBytes(x.n0, x.n1, z);
+        }
+#endif
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -55,6 +72,15 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             z.n0 = Pack.BE_To_UInt64(x, 0);
             z.n1 = Pack.BE_To_UInt64(x, 8);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AsFieldElement(ReadOnlySpan<byte> x, out FieldElement z)
+        {
+            z.n0 = Pack.BE_To_UInt64(x, 0);
+            z.n1 = Pack.BE_To_UInt64(x, 8);
+        }
+#endif
 
         internal static void DivideP(ref FieldElement x, out FieldElement z)
         {
@@ -72,6 +98,15 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             Multiply(ref X, ref Y);
             AsBytes(ref X, x);
         }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Multiply(Span<byte> x, ReadOnlySpan<byte> y)
+        {
+            AsFieldElement(x, out FieldElement X);
+            AsFieldElement(y, out FieldElement Y);
+            Multiply(ref X, ref Y);
+            AsBytes(ref X, x);
+        }
+#endif
 
         internal static void Multiply(ref FieldElement x, ref FieldElement y)
         {
