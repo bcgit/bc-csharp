@@ -42,6 +42,20 @@ namespace Org.BouncyCastle.Crypto.Utilities
             0x3b, 0x05, 0x03, 0x54, 0x60, 0x48, 0x65, 0x18, 0xd2, 0xcd, 0x5f, 0x32, 0x88, 0x0e, 0x35, 0xfd
         };
 
+        private static int GetRC2EffectiveKeyBits(RC2CbcParameter rc2CbcParameter)
+        {
+            var version = rc2CbcParameter.RC2ParameterVersionData;
+            if (version == null)
+                return 32;
+
+            int encoding = version.IntPositiveValueExact;
+            if (encoding >= 256)
+                return encoding;
+
+            // TODO Why an entire table when RFC 8018 B.2.3. says only 160, 120, 58, 256+ are defined?
+            return RC2Ekb[encoding];
+        }
+
         public static object CreateContentCipher(bool forEncryption, ICipherParameters encKey,
             AlgorithmIdentifier encryptionAlgID)
         {
@@ -81,14 +95,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 }
                 else if (encAlg.Equals(PkcsObjectIdentifiers.RC2Cbc))
                 {
-                    RC2CbcParameter cbcParams = RC2CbcParameter.GetInstance(sParams);
+                    var rc2CbcParameter = RC2CbcParameter.GetInstance(sParams);
+                    var rc2Parameters = new RC2Parameters(
+                        ((KeyParameter)encKey).GetKey(),
+                        GetRC2EffectiveKeyBits(rc2CbcParameter));
 
-                    cipher.Init(forEncryption,
-                        new ParametersWithIV(
-                            new RC2Parameters(
-                                ((KeyParameter)encKey).GetKey(),
-                                RC2Ekb[cbcParams.RC2ParameterVersion.IntValue]),
-                        cbcParams.GetIV()));
+                    cipher.Init(forEncryption, new ParametersWithIV(rc2Parameters, rc2CbcParameter.IV.GetOctets()));
                 }
                 else
                 {

@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 
 using NUnit.Framework;
+
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
@@ -364,7 +363,42 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		[Test]
+        [Test]
+        public void TestKeyTransRC2bit40()
+        {
+            byte[] data = Encoding.ASCII.GetBytes("WallaWallaBouncyCastle");
+
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+
+            edGen.AddKeyTransRecipient(ReciCert);
+
+            CmsEnvelopedData ed = edGen.Generate(
+                new CmsProcessableByteArray(data),
+                CmsEnvelopedGenerator.RC2Cbc,
+				keySize: 40);
+
+            RecipientInformationStore recipients = ed.GetRecipientInfos();
+
+            Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.RC2Cbc);
+
+            RC2CbcParameter rc2P = RC2CbcParameter.GetInstance(ed.EncryptionAlgorithmID.Parameters);
+            Assert.AreEqual(160, rc2P.RC2ParameterVersion.IntValueExact);
+
+            var c = recipients.GetRecipients();
+
+            Assert.AreEqual(1, c.Count);
+
+            foreach (RecipientInformation recipient in c)
+            {
+                Assert.True(recipient.RecipientID.Match(ReciCert));
+
+                byte[] recData = recipient.GetContent(ReciKP.Private);
+
+                Assert.IsTrue(Arrays.AreEqual(data, recData));
+            }
+        }
+
+        [Test]
 		public void TestKeyTransRC4()
 		{
 			byte[] data = Encoding.ASCII.GetBytes("WallaWallaBouncyCastle");
