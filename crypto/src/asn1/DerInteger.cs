@@ -209,6 +209,45 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        public bool TryGetIntPositiveValueExact(out int value)
+        {
+            int count = bytes.Length - start;
+            if (count > 4 || (count == 4 && 0 != (bytes[start] & 0x80)))
+            {
+                value = default;
+                return false;
+            }
+
+            value = IntValue(bytes, start, SignExtUnsigned);
+            return true;
+        }
+
+        public bool TryGetIntValueExact(out int value)
+        {
+            int count = bytes.Length - start;
+            if (count > 4)
+            {
+                value = default;
+                return false;
+            }
+
+            value = IntValue(bytes, start, SignExtSigned);
+            return true;
+        }
+
+        public bool TryGetLongValueExact(out long value)
+        {
+            int count = bytes.Length - start;
+            if (count > 8)
+            {
+                value = default;
+                return false;
+            }
+
+            value = LongValue(bytes, start, SignExtSigned);
+            return true;
+        }
+
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Integer, bytes);
