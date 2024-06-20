@@ -7,11 +7,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     {
         public static CertBag GetInstance(object obj)
         {
-            if (obj is CertBag certBag)
-                return certBag;
             if (obj == null)
                 return null;
+            if (obj is CertBag certBag)
+                return certBag;
             return new CertBag(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static CertBag GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new CertBag(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
         private readonly DerObjectIdentifier m_certID;
@@ -19,26 +24,26 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		private CertBag(Asn1Sequence seq)
         {
-			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", nameof(seq));
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            this.m_certID = DerObjectIdentifier.GetInstance(seq[0]);
-            this.m_certValue = Asn1TaggedObject.GetInstance(seq[1]).GetExplicitBaseObject().ToAsn1Object();
+            m_certID = DerObjectIdentifier.GetInstance(seq[0]);
+            m_certValue = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0)
+                .GetExplicitBaseObject().ToAsn1Object();
         }
 
 		public CertBag(DerObjectIdentifier certID, Asn1Object certValue)
         {
-            m_certID = certID;
-            m_certValue = certValue;
+            m_certID = certID ?? throw new ArgumentNullException(nameof(certID));
+            m_certValue = certValue ?? throw new ArgumentNullException(nameof(certValue));
         }
 
         public virtual DerObjectIdentifier CertID => m_certID;
 
+        // TODO[api] Prefer returning Asn1Encodable
         public virtual Asn1Object CertValue => m_certValue;
 
-		public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(m_certID, new DerTaggedObject(0, m_certValue));
-        }
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_certID, new DerTaggedObject(0, m_certValue));
     }
 }

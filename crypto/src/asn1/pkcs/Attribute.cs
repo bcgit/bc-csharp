@@ -1,66 +1,46 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     public class AttributePkcs
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier attrType;
-        private readonly Asn1Set attrValues;
-
-		/**
-         * return an Attribute object from the given object.
-         *
-         * @param o the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static AttributePkcs GetInstance(
-            object obj)
+        public static AttributePkcs GetInstance(object obj)
         {
-            AttributePkcs attr = obj as AttributePkcs;
-            if (obj == null || attr != null)
-            {
-                return attr;
-            }
-
-			Asn1Sequence seq = obj as Asn1Sequence;
-            if (seq != null)
-            {
-                return new AttributePkcs(seq);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is AttributePkcs attributePkcs)
+                return attributePkcs;
+            return new AttributePkcs(Asn1Sequence.GetInstance(obj));
 		}
 
-		private AttributePkcs(
-            Asn1Sequence seq)
+        public static AttributePkcs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", "seq");
-
-			attrType = DerObjectIdentifier.GetInstance(seq[0]);
-            attrValues = Asn1Set.GetInstance(seq[1]);
+            return new AttributePkcs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-		public AttributePkcs(
-            DerObjectIdentifier	attrType,
-            Asn1Set				attrValues)
+        private readonly DerObjectIdentifier m_attrType;
+        private readonly Asn1Set m_attrValues;
+
+        private AttributePkcs(Asn1Sequence seq)
         {
-            this.attrType = attrType;
-            this.attrValues = attrValues;
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_attrType = DerObjectIdentifier.GetInstance(seq[0]);
+            m_attrValues = Asn1Set.GetInstance(seq[1]);
         }
 
-		public DerObjectIdentifier AttrType
-		{
-			get { return attrType; }
-		}
+		public AttributePkcs(DerObjectIdentifier attrType, Asn1Set attrValues)
+        {
+            m_attrType = attrType ?? throw new ArgumentNullException(nameof(attrType));
+            m_attrValues = attrValues ?? throw new ArgumentNullException(nameof(attrValues));
+        }
 
-		public Asn1Set AttrValues
-		{
-			get { return attrValues; }
-		}
+        public DerObjectIdentifier AttrType => m_attrType;
+
+        public Asn1Set AttrValues => m_attrValues;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -71,9 +51,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          * }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(attrType, attrValues);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_attrType, m_attrValues);
     }
 }

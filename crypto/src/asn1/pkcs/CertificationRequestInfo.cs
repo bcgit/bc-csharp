@@ -25,107 +25,83 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class CertificationRequestInfo
         : Asn1Encodable
     {
-        internal DerInteger				version = DerInteger.Zero;
-        internal X509Name				subject;
-        internal SubjectPublicKeyInfo	subjectPKInfo;
-        internal Asn1Set				attributes;
-
 		public static CertificationRequestInfo GetInstance(object obj)
         {
-            if (obj is CertificationRequestInfo)
-                return (CertificationRequestInfo)obj;
-            if (obj != null)
-                return new CertificationRequestInfo(Asn1Sequence.GetInstance(obj));
-            return null;
+            if (obj == null)
+                return null;
+            if (obj is CertificationRequestInfo certificationRequestInfo)
+                return certificationRequestInfo;
+            return new CertificationRequestInfo(Asn1Sequence.GetInstance(obj));
 		}
 
-		public CertificationRequestInfo(
-            X509Name				subject,
-            SubjectPublicKeyInfo	pkInfo,
-            Asn1Set					attributes)
+        public static CertificationRequestInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            this.subject = subject;
-            this.subjectPKInfo = pkInfo;
-            this.attributes = attributes;
-
-            ValidateAttributes(attributes);
-
-            if (subject == null || version == null || subjectPKInfo == null)
-            {
-                throw new ArgumentException(
-					"Not all mandatory fields set in CertificationRequestInfo generator.");
-            }
+            return new CertificationRequestInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-		private CertificationRequestInfo(
-            Asn1Sequence seq)
+        private readonly DerInteger m_version;
+        private readonly X509Name m_subject;
+        private readonly SubjectPublicKeyInfo m_subjectPKInfo;
+        private readonly Asn1Set m_attributes;
+
+        public CertificationRequestInfo(X509Name subject, SubjectPublicKeyInfo pkInfo, Asn1Set attributes)
         {
-            version = (DerInteger) seq[0];
-
-			subject = X509Name.GetInstance(seq[1]);
-            subjectPKInfo = SubjectPublicKeyInfo.GetInstance(seq[2]);
-
-			//
-            // some CertificationRequestInfo objects seem to treat this field
-            // as optional.
-            //
-            if (seq.Count > 3)
-            {
-                Asn1TaggedObject tagobj = (Asn1TaggedObject)seq[3];
-                attributes = Asn1Set.GetInstance(tagobj, false);
-            }
-
-            ValidateAttributes(attributes);
-
-            if (subject == null || version == null || subjectPKInfo == null)
-            {
-                throw new ArgumentException(
-					"Not all mandatory fields set in CertificationRequestInfo generator.");
-            }
+            m_version = DerInteger.Zero;
+            m_subject = subject ?? throw new ArgumentNullException(nameof(subject));
+            m_subjectPKInfo = pkInfo ?? throw new ArgumentNullException(nameof(pkInfo));
+            m_attributes = ValidateAttributes(attributes);
         }
 
-		public DerInteger Version
-		{
-			get { return version; }
-		}
+		private CertificationRequestInfo(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-		public X509Name Subject
-		{
-			get { return subject; }
-		}
+            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_subject = X509Name.GetInstance(seq[pos++]);
+            m_subjectPKInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
 
-		public SubjectPublicKeyInfo SubjectPublicKeyInfo
-		{
-			get { return subjectPKInfo; }
-		}
+            // NOTE: some CertificationRequestInfo objects seem to treat this field as optional.
+            m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
 
-		public Asn1Set Attributes
-		{
-			get { return attributes; }
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            ValidateAttributes(m_attributes);
+        }
+
+        public DerInteger Version => m_version;
+
+        public X509Name Subject => m_subject;
+
+        public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPKInfo;
+
+        public Asn1Set Attributes => m_attributes;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(version, subject, subjectPKInfo);
-            v.AddOptionalTagged(false, 0, attributes);
+            Asn1EncodableVector v = new Asn1EncodableVector(4);
+            v.Add(m_version, m_subject, m_subjectPKInfo);
+            v.AddOptionalTagged(false, 0, m_attributes);
             return new DerSequence(v);
         }
 
-        private static void ValidateAttributes(Asn1Set attributes)
+        private static Asn1Set ValidateAttributes(Asn1Set attributes)
         {
-            if (attributes == null)
-                return;
-
-            foreach (Asn1Encodable ae in attributes)
+            if (attributes != null)
             {
-                Asn1Object obj = ae.ToAsn1Object();
-                AttributePkcs attr = AttributePkcs.GetInstance(obj);
-                if (attr.AttrType.Equals(PkcsObjectIdentifiers.Pkcs9AtChallengePassword))
+                foreach (var element in attributes)
                 {
-                    if (attr.AttrValues.Count != 1)
-                        throw new ArgumentException("challengePassword attribute must have one value");
+                    AttributePkcs attr = AttributePkcs.GetInstance(element);
+                    if (PkcsObjectIdentifiers.Pkcs9AtChallengePassword.Equals(attr.AttrType))
+                    {
+                        if (attr.AttrValues.Count != 1)
+                            throw new ArgumentException("challengePassword attribute must have one value");
+                    }
                 }
             }
+            return attributes;
         }
     }
 }

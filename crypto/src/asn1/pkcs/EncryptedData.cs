@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
@@ -26,78 +25,60 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class EncryptedData
         : Asn1Encodable
     {
-        private readonly Asn1Sequence data;
-//        private readonly DerObjectIdentifier bagId;
-//        private readonly Asn1Object bagValue;
+        private readonly Asn1Sequence m_data;
+        //        private readonly DerObjectIdentifier bagId;
+        //        private readonly Asn1Object bagValue;
 
-		public static EncryptedData GetInstance(
-             object obj)
+        public static EncryptedData GetInstance(object obj)
         {
-			if (obj is EncryptedData)
-			{
-				return (EncryptedData) obj;
-			}
+            if (obj == null)
+                return null;
+            if (obj is EncryptedData encryptedData)
+                return encryptedData;
+            return new EncryptedData(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj is Asn1Sequence)
-			{
-				return new EncryptedData((Asn1Sequence) obj);
-			}
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		private EncryptedData(
-            Asn1Sequence seq)
+        public static EncryptedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", "seq");
+            return new EncryptedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
 
-            DerInteger version = (DerInteger)seq[0];
-			if (!version.HasValue(0))
+        private EncryptedData(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            DerInteger version = DerInteger.GetInstance(seq[0]);
+            if (!version.HasValue(0))
                 throw new ArgumentException("sequence not version 0");
 
-			this.data = (Asn1Sequence) seq[1];
+            m_data = Asn1Sequence.GetInstance(seq[1]);
         }
 
-		public EncryptedData(
-            DerObjectIdentifier	contentType,
-            AlgorithmIdentifier	encryptionAlgorithm,
-            Asn1Encodable		content)
+        public EncryptedData(DerObjectIdentifier contentType, AlgorithmIdentifier encryptionAlgorithm,
+            Asn1Encodable content)
         {
-			data = new BerSequence(
-				contentType,
-				encryptionAlgorithm.ToAsn1Object(),
-				new BerTaggedObject(false, 0, content));
+            m_data = new BerSequence(contentType, encryptionAlgorithm, new BerTaggedObject(false, 0, content));
         }
 
-		public DerObjectIdentifier ContentType
-        {
-            get { return (DerObjectIdentifier) data[0]; }
-        }
+        public DerObjectIdentifier ContentType => DerObjectIdentifier.GetInstance(m_data[0]);
 
-		public AlgorithmIdentifier EncryptionAlgorithm
-        {
-			get { return AlgorithmIdentifier.GetInstance(data[1]); }
-        }
+		public AlgorithmIdentifier EncryptionAlgorithm => AlgorithmIdentifier.GetInstance(m_data[1]);
 
 		public Asn1OctetString Content
         {
 			get
 			{
-				if (data.Count == 3)
-				{
-                    Asn1TaggedObject o = (Asn1TaggedObject)data[2];
+                if (m_data.Count != 3)
+                    return null;
 
-					return Asn1OctetString.GetInstance(o, false);
-				}
+                Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(m_data[2], Asn1Tags.ContextSpecific, 0);
 
-				return null;
+				return Asn1OctetString.GetInstance(tagged, declaredExplicit: false);
 			}
         }
 
-		public override Asn1Object ToAsn1Object()
-        {
-			return new BerSequence(DerInteger.Zero, data);
-        }
+		public override Asn1Object ToAsn1Object() => new BerSequence(DerInteger.Zero, m_data);
     }
 }

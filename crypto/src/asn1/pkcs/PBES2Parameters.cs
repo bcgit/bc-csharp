@@ -1,63 +1,51 @@
 using System;
 
+using Org.BouncyCastle.Asn1.X509;
+
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     public class PbeS2Parameters
         : Asn1Encodable
     {
-        private readonly KeyDerivationFunc func;
-        private readonly EncryptionScheme scheme;
-
         public static PbeS2Parameters GetInstance(object obj)
         {
             if (obj == null)
                 return null;
-            PbeS2Parameters existing = obj as PbeS2Parameters;
-            if (existing != null)
-                return existing;
+            if (obj is PbeS2Parameters pbeS2Parameters)
+                return pbeS2Parameters;
             return new PbeS2Parameters(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static PbeS2Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return new PbeS2Parameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        }
+
+        private readonly KeyDerivationFunc m_func;
+        private readonly EncryptionScheme m_scheme;
+
+        private PbeS2Parameters(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            AlgorithmIdentifier func = AlgorithmIdentifier.GetInstance(seq[0]);
+            m_func = new KeyDerivationFunc(func.Algorithm, func.Parameters);
+
+            m_scheme = EncryptionScheme.GetInstance(seq[1]);
         }
 
         public PbeS2Parameters(KeyDerivationFunc keyDevFunc, EncryptionScheme encScheme)
         {
-            this.func = keyDevFunc;
-            this.scheme = encScheme;
+            m_func = keyDevFunc ?? throw new ArgumentNullException(nameof(keyDevFunc));
+            m_scheme = encScheme ?? throw new ArgumentNullException(nameof(encScheme));
         }
 
-        private PbeS2Parameters(Asn1Sequence seq)
-        {
-            if (seq.Count != 2)
-                throw new ArgumentException("Wrong number of elements in sequence", "seq");
+        public KeyDerivationFunc KeyDerivationFunc => m_func;
 
-            Asn1Sequence funcSeq = (Asn1Sequence)seq[0].ToAsn1Object();
+        public EncryptionScheme EncryptionScheme => m_scheme;
 
-            // TODO Not sure if this special case is really necessary/appropriate
-            if (funcSeq[0].Equals(PkcsObjectIdentifiers.IdPbkdf2))
-            {
-                func = new KeyDerivationFunc(PkcsObjectIdentifiers.IdPbkdf2,
-                    Pbkdf2Params.GetInstance(funcSeq[1]));
-            }
-            else
-            {
-                func = new KeyDerivationFunc(funcSeq);
-            }
-
-            scheme = EncryptionScheme.GetInstance(seq[1]);
-        }
-
-        public KeyDerivationFunc KeyDerivationFunc
-        {
-            get { return func; }
-        }
-
-        public EncryptionScheme EncryptionScheme
-        {
-            get { return scheme; }
-        }
-
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(func, scheme);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_func, m_scheme);
     }
 }

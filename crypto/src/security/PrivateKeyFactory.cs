@@ -67,8 +67,7 @@ namespace Org.BouncyCastle.Security
             //			else if (algOid.Equals(X9ObjectIdentifiers.DHPublicNumber))
             else if (algOid.Equals(PkcsObjectIdentifiers.DhKeyAgreement))
             {
-                DHParameter para = new DHParameter(
-                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+                DHParameter para = DHParameter.GetInstance(algID.Parameters);
                 DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
 
                 BigInteger lVal = para.L;

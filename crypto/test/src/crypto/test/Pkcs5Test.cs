@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 EncryptedPrivateKeyInfo info = null;
                 try
                 {
-                    info = EncryptedPrivateKeyInfo.GetInstance(Asn1Object.FromByteArray(sample));
+                    info = EncryptedPrivateKeyInfo.GetInstance(sample);
                 }
                 catch (System.Exception e)
                 {

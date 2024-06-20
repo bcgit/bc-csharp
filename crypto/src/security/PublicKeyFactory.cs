@@ -317,7 +317,7 @@ namespace Org.BouncyCastle.Security
         private static DHPublicKeyParameters ReadPkcsDHParam(DerObjectIdentifier algOid,
             BigInteger y, Asn1Sequence seq)
         {
-            DHParameter para = new DHParameter(seq);
+            DHParameter para = DHParameter.GetInstance(seq);
 
             BigInteger lVal = para.L;
             int l = lVal == null ? 0 : lVal.IntValue;
