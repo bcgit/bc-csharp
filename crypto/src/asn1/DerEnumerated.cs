@@ -74,12 +74,6 @@ namespace Org.BouncyCastle.Asn1
             if (element is DerEnumerated existing)
                 return existing;
 
-            if (element is IAsn1Convertible asn1Convertible && !(element is Asn1Object) &&
-                asn1Convertible.ToAsn1Object() is DerEnumerated converted)
-            {
-                return converted;
-            }
-
             return null;
         }
 
