@@ -9,6 +9,8 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Encoders;
 
+using Org.BouncyCastle.Utilities.Test;
+
 namespace Org.BouncyCastle.Security.Tests
 {
     [TestFixture]
@@ -176,6 +178,20 @@ namespace Org.BouncyCastle.Security.Tests
             {
                 // Expected
             }
+        }
+
+        [Test]
+        public void TestJksModifiedUtf8Roundtrip()
+        {
+            JksStore ks = new JksStore();
+            Stream fIn = SimpleTest.GetTestDataAsStream("jks.cacerts.jks");
+
+            ks.Load(fIn, "changeit".ToCharArray());
+
+            MemoryStream bOut = new MemoryStream();
+            ks.Save(bOut, "changedit".ToCharArray());
+
+            ks.Load(new MemoryStream(bOut.ToArray()), "changedit".ToCharArray());
         }
     }
 }
