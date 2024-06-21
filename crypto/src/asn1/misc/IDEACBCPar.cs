@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Misc
@@ -8,42 +7,47 @@ namespace Org.BouncyCastle.Asn1.Misc
     public class IdeaCbcPar
         : Asn1Encodable
     {
-        internal Asn1OctetString iv;
-
-		public static IdeaCbcPar GetInstance(
-            object o)
+		public static IdeaCbcPar GetInstance(object o)
         {
-            if (o is IdeaCbcPar)
-            {
-                return (IdeaCbcPar) o;
-            }
-
-			if (o is Asn1Sequence)
-            {
-                return new IdeaCbcPar((Asn1Sequence) o);
-            }
-
-			throw new ArgumentException("unknown object in IDEACBCPar factory");
+            if (o == null)
+                return null;
+            if (o is IdeaCbcPar ideaCbcPar)
+                return ideaCbcPar;
+            return new IdeaCbcPar(Asn1Sequence.GetInstance(o));
         }
 
-		public IdeaCbcPar(
-            byte[] iv)
+        public static IdeaCbcPar GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            this.iv = new DerOctetString(iv);
+            return new IdeaCbcPar(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
-		private IdeaCbcPar(
-            Asn1Sequence seq)
+        private readonly Asn1OctetString m_iv;
+
+        private IdeaCbcPar(Asn1Sequence seq)
         {
-			if (seq.Count == 1)
-			{
-				iv = (Asn1OctetString) seq[0];
-			}
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 1)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_iv = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public Asn1OctetString IV => iv;
+        public IdeaCbcPar()
+            : this(iv: null)
+        {
+        }
 
-        public byte[] GetIV() => Arrays.Clone(iv.GetOctets());
+        public IdeaCbcPar(byte[] iv)
+        {
+            m_iv = iv == null ? null : new DerOctetString(iv);
+        }
+
+        public Asn1OctetString IV => m_iv;
+
+        public byte[] GetIV() => Arrays.Clone(m_iv?.GetOctets());
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -55,9 +59,9 @@ namespace Org.BouncyCastle.Asn1.Misc
          */
         public override Asn1Object ToAsn1Object()
         {
-            return iv != null
-                ?   new DerSequence(iv)
-                :   DerSequence.Empty;
+            return m_iv == null
+                ?  DerSequence.Empty
+                :  new DerSequence(m_iv);
         }
     }
 }
