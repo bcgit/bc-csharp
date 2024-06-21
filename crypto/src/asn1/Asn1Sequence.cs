@@ -93,6 +93,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1Sequence GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1Sequence)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal static Asn1Encodable[] ConcatenateElements(Asn1Sequence[] sequences)
         {
             int count = sequences.Length;

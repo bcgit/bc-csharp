@@ -89,6 +89,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerBmpString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerBmpString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly string m_str;
 
         internal DerBmpString(byte[] contents)

@@ -93,6 +93,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1Set GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1Set)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal readonly Asn1Encodable[] m_elements;
         internal DerEncoding[] m_sortedDerEncodings;
 

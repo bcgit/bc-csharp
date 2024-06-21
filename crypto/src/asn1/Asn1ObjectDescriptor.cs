@@ -92,6 +92,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1ObjectDescriptor GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1ObjectDescriptor)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly DerGraphicString m_baseGraphicString;
 
         public Asn1ObjectDescriptor(DerGraphicString baseGraphicString)

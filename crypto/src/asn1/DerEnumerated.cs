@@ -83,6 +83,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerEnumerated GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerEnumerated)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly byte[] contents;
         private readonly int start;
 

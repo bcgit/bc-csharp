@@ -81,6 +81,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerBitString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerBitString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal readonly byte[] contents;
 
         public DerBitString(byte data, int padBits)

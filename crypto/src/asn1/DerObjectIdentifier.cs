@@ -108,6 +108,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerObjectIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerObjectIdentifier)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         public static bool TryFromID(string identifier, out DerObjectIdentifier oid)
         {
             if (identifier == null)

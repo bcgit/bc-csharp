@@ -104,7 +104,12 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
-		public DerInteger(int value)
+        public static DerInteger GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerInteger)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
+        public DerInteger(int value)
         {
             this.bytes = BigInteger.ValueOf(value).ToByteArray();
             this.start = 0;

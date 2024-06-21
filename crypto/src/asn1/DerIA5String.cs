@@ -85,6 +85,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerIA5String GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerIA5String)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly byte[] m_contents;
 
 		public DerIA5String(string str)

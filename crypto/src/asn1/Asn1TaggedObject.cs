@@ -90,6 +90,9 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1TaggedObject GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            CheckInstance(taggedObject, declaredExplicit).GetExplicitBaseTagged();
+
         private static Asn1TaggedObject CheckInstance(object obj)
         {
             return GetInstance(obj ?? throw new ArgumentNullException(nameof(obj)));

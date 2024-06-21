@@ -85,6 +85,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerVideotexString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerVideotexString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly byte[] m_contents;
 
         public DerVideotexString(byte[] contents)

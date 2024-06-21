@@ -73,6 +73,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1GeneralizedTime GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1GeneralizedTime)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly string m_timeString;
         private readonly bool m_timeStringCanonical;
         private readonly DateTime m_dateTime;

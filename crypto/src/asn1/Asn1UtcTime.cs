@@ -79,6 +79,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1UtcTime GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1UtcTime)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly string m_timeString;
 		private readonly DateTime m_dateTime;
         private readonly bool m_dateTimeLocked;

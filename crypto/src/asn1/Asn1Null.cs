@@ -73,6 +73,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1Null GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1Null)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal Asn1Null()
         {
         }

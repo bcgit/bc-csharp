@@ -91,6 +91,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1RelativeOid GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1RelativeOid)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         public static bool TryFromID(string identifier, out Asn1RelativeOid oid)
         {
             if (identifier == null)

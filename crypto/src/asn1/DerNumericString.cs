@@ -85,6 +85,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerNumericString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerNumericString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         private readonly byte[] m_contents;
 
         public DerNumericString(string str)

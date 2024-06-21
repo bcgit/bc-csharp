@@ -91,6 +91,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1OctetString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1OctetString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal readonly byte[] contents;
 
         /**

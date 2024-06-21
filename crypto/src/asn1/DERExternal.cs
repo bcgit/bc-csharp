@@ -73,6 +73,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static DerExternal GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerExternal)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal readonly DerObjectIdentifier directReference;
         internal readonly DerInteger indirectReference;
         internal readonly Asn1ObjectDescriptor dataValueDescriptor;
