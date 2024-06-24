@@ -82,7 +82,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             BigInteger input = new BigInteger(1, inBuf, inOff, inLen);
 
-            if (input.CompareTo(m_key.Modulus) >= 0)
+            if (input.CompareTo(BigInteger.One) <= 0)
+                throw new DataLengthException("input too small for RSA cipher.");
+
+            if (input.CompareTo(m_key.Modulus.Subtract(BigInteger.One)) >= 0)
                 throw new DataLengthException("input too large for RSA cipher.");
 
             return input;
