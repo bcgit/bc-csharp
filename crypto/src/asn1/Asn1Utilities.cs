@@ -661,6 +661,10 @@ namespace Org.BouncyCastle.Asn1
         public static TResult ReadTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition, int tagClass,
             int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
         {
+            /*
+             * TODO We might want to check the position and throw a better exception, but current ASN.1 types aren't
+             * doing that, so leave it until it can be consistent.
+             */
             var tagged = Asn1TaggedObject.GetInstance(sequence[sequencePosition++], tagClass, tagNo);
 
             return constructor(tagged, state);
