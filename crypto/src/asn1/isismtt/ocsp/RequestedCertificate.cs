@@ -70,10 +70,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
 
-		public static RequestedCertificate GetInstance(Asn1TaggedObject obj, bool isExplicit)
-		{
-			return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
-		}
+		public static RequestedCertificate GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+			Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
+
+        public static RequestedCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
 		private RequestedCertificate(
 			Asn1TaggedObject tagged)

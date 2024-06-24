@@ -23,10 +23,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new OcspListID(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OcspListID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new OcspListID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static OcspListID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OcspListID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OcspListID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OcspListID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_ocspResponses;
 

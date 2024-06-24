@@ -31,9 +31,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_status = PkiStatusInfo.GetInstance(seq[pos++]);
-            m_newSigCert = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetInstance);
-            m_caCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetInstance);
-            m_keyPairHist = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1Sequence.GetInstance);
+            m_newSigCert = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetTagged);
+            m_caCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetTagged);
+            m_keyPairHist = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1Sequence.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

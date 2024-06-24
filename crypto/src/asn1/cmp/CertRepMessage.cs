@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_caPubs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetInstance);
+			m_caPubs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetTagged);
 			m_response = Asn1Sequence.GetInstance(seq[pos++]);
 
 			if (pos != count)

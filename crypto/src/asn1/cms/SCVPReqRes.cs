@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_request = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ContentInfo.GetInstance);
+            m_request = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ContentInfo.GetTagged);
             m_response = ContentInfo.GetInstance(seq[pos++]);
 
             if (pos != count)

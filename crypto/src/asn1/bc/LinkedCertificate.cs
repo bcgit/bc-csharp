@@ -60,8 +60,8 @@ namespace Org.BouncyCastle.Asn1.BC
 
             m_digest = DigestInfo.GetInstance(seq[pos++]);
             m_certLocation = GeneralName.GetInstance(seq[pos++]);
-            m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, X509Name.GetInstance);
-            m_cACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, GeneralNames.GetInstance);
+            m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, X509Name.GetTagged);
+            m_cACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, GeneralNames.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

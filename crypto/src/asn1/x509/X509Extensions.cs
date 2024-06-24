@@ -197,11 +197,6 @@ namespace Org.BouncyCastle.Asn1.X509
         public static Asn1OctetString GetExtensionValue(X509Extensions extensions, DerObjectIdentifier oid) =>
             extensions?.GetExtensionValue(oid);
 
-		public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
-
         public static X509Extensions GetInstance(object obj)
         {
             if (obj == null)
@@ -220,6 +215,9 @@ namespace Org.BouncyCastle.Asn1.X509
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Extensions(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
         public static X509Extensions GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -234,6 +232,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
             return null;
         }
+
+        public static X509Extensions GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Extensions(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         /**
          * Constructor from Asn1Sequence.

@@ -26,10 +26,11 @@ namespace Org.BouncyCastle.Asn1.Esf
 			return new OtherRevRefs(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static OtherRevRefs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new OtherRevRefs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static OtherRevRefs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherRevRefs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OtherRevRefs GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherRevRefs(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_otherRevRefType;
         private readonly Asn1Encodable m_otherRevRefs;

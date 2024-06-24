@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new Signature(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static Signature GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new Signature(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static Signature GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new Signature(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static Signature GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Signature(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_signatureAlgorithm;
         private readonly DerBitString m_signatureValue;
@@ -47,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_signatureValue = DerBitString.GetInstance(seq[pos++]);
-            m_certs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1Sequence.GetInstance);
+            m_certs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1Sequence.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

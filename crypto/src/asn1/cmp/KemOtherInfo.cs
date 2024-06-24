@@ -70,9 +70,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (!DEFAULT_staticString.Equals(m_staticString))
                 throw new ArgumentException("staticString field should be " + DEFAULT_staticString);
 
-            m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetInstance);
-            m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1OctetString.GetInstance);
-            m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetInstance);
+            m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
+            m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1OctetString.GetTagged);
+            m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetTagged);
             m_len = DerInteger.GetInstance(seq[pos++]);
             m_mac = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_ct = Asn1OctetString.GetInstance(seq[pos++]);

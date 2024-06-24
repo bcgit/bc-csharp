@@ -34,10 +34,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o), nameof(o));
         }
 
-        public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(o, explicitly, GetInstance);
-        }
+        public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly) =>
+            Asn1Utilities.GetInstanceChoice(o, explicitly, GetInstance);
+
+        public static OriginatorIdentifierOrKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1Encodable m_id;
 

@@ -14,10 +14,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiFreeText(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static PkiFreeText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PkiFreeText(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PkiFreeText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiFreeText(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
         public static PkiFreeText GetOptional(Asn1Encodable element)
         {
@@ -33,6 +31,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             return null;
         }
+
+        public static PkiFreeText GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiFreeText(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_strings;
 

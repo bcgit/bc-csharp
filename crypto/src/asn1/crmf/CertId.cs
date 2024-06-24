@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new CertId(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertId GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new CertId(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static CertId GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new CertId(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static CertId GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertId(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly GeneralName m_issuer;
         private readonly DerInteger m_serialNumber;

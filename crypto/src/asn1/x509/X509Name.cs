@@ -336,6 +336,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static X509Name GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new X509Name(Asn1Sequence.GetInstance(obj, explicitly));
 
+        public static X509Name GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Name(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private readonly List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
         private readonly X509NameEntryConverter converter;
 

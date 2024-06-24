@@ -41,9 +41,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 
             int pos = 0;
 
-			m_crlids = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CrlListID.GetInstance);
-            m_ocspids = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, OcspListID.GetInstance);
-            m_otherRev = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, OtherRevRefs.GetInstance);
+			m_crlids = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CrlListID.GetTagged);
+            m_ocspids = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, OcspListID.GetTagged);
+            m_otherRev = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, OtherRevRefs.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

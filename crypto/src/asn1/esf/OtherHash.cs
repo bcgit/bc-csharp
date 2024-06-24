@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new OtherHash(OtherHashAlgAndValue.GetInstance(obj));
         }
 
-        public static OtherHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static OtherHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static OtherHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1OctetString m_sha1Hash;
         private readonly OtherHashAlgAndValue m_otherHash;

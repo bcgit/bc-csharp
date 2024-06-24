@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             int pos = 0;
 
             m_responseStatus = new OcspResponseStatus(DerEnumerated.GetInstance(seq[pos++]));
-            m_responseBytes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ResponseBytes.GetInstance);
+            m_responseBytes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ResponseBytes.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

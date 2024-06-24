@@ -28,10 +28,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static ProofOfPossession GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static ProofOfPossession GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
         public static ProofOfPossession GetOptional(Asn1Encodable element)
         {
@@ -50,6 +48,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             return null;
         }
+
+        public static ProofOfPossession GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
         {

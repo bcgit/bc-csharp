@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_subjectPKInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
 
             // NOTE: some CertificationRequestInfo objects seem to treat this field as optional.
-            m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
+            m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

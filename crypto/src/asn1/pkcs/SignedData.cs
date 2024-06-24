@@ -38,8 +38,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_version = DerInteger.GetInstance(seq[pos++]);
             m_digestAlgorithms = Asn1Set.GetInstance(seq[pos++]);
             m_contentInfo = ContentInfo.GetInstance(seq[pos++]);
-            m_certificates = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
-            m_crls = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetInstance);
+            m_certificates = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);
+            m_crls = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
             m_signerInfos = Asn1Set.GetInstance(seq[pos++]);
 
             if (pos != count)

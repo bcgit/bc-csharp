@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             m_revocationTime = Asn1GeneralizedTime.GetInstance(seq[pos++]);
 
             m_revocationReason = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
-                (t, e) => new CrlReason(DerEnumerated.GetInstance(t, e)));
+                (t, e) => new CrlReason(DerEnumerated.GetTagged(t, e)));
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

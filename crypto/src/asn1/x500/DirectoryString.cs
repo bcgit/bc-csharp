@@ -29,12 +29,13 @@ namespace Org.BouncyCastle.Asn1.X500
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
 
-        public static DirectoryString GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
-        }
+        public static DirectoryString GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
 
-		private DirectoryString(
+        public static DirectoryString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        private DirectoryString(
 			DerStringBase str)
 		{
 			this.str = str;

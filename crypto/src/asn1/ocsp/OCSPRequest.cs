@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             int pos = 0;
 
             m_tbsRequest = TbsRequest.GetInstance(seq[pos++]);
-            m_optionalSignature = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Signature.GetInstance);
+            m_optionalSignature = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Signature.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

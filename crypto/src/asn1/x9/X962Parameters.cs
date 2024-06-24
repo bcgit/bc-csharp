@@ -35,12 +35,13 @@ namespace Org.BouncyCastle.Asn1.X9
 			throw new ArgumentException("unknown object in GetInstance()");
 		}
 
-        public static X962Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static X962Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
-		public X962Parameters(
+        public static X962Parameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public X962Parameters(
             X9ECParameters ecParameters)
         {
             this._params = ecParameters.ToAsn1Object();

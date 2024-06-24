@@ -59,10 +59,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_version = DerInteger.GetInstance(seq[pos++]);
             m_sid = SignerIdentifier.GetInstance(seq[pos++]);
             m_digAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_authenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
+            m_authenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);
             m_digEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_encryptedDigest = Asn1OctetString.GetInstance(seq[pos++]);
-            m_unauthenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetInstance);
+            m_unauthenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

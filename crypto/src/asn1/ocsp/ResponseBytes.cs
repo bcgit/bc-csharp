@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new ResponseBytes(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ResponseBytes GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new ResponseBytes(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static ResponseBytes GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new ResponseBytes(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static ResponseBytes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ResponseBytes(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_responseType;
         private readonly Asn1OctetString m_response;

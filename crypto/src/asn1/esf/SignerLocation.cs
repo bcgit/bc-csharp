@@ -45,10 +45,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 
             int pos = 0;
 
-            m_countryName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DirectoryString.GetInstance);
-            m_localityName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DirectoryString.GetInstance);
+            m_countryName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DirectoryString.GetTagged);
+            m_localityName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DirectoryString.GetTagged);
 
-            m_postalAddress = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1Sequence.GetInstance);
+            m_postalAddress = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1Sequence.GetTagged);
             if (m_postalAddress != null)
             {
                 if (m_postalAddress.Count > 6)

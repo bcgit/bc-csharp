@@ -8,27 +8,27 @@ namespace Org.BouncyCastle.Asn1
     // TODO[api] Make static
     public abstract class Asn1Utilities
     {
-        internal static Asn1TaggedObject CheckContextTag(Asn1TaggedObject taggedObject, int tagNo)
+        public static Asn1TaggedObject CheckContextTag(Asn1TaggedObject taggedObject, int tagNo)
         {
             return CheckTag(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
-        internal static Asn1TaggedObjectParser CheckContextTag(Asn1TaggedObjectParser taggedObjectParser, int tagNo)
+        public static Asn1TaggedObjectParser CheckContextTag(Asn1TaggedObjectParser taggedObjectParser, int tagNo)
         {
             return CheckTag(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
         }
 
-        internal static Asn1TaggedObject CheckContextTagClass(Asn1TaggedObject taggedObject)
+        public static Asn1TaggedObject CheckContextTagClass(Asn1TaggedObject taggedObject)
         {
             return CheckTagClass(taggedObject, Asn1Tags.ContextSpecific);
         }
 
-        internal static Asn1TaggedObjectParser CheckContextTagClass(Asn1TaggedObjectParser taggedObjectParser)
+        public static Asn1TaggedObjectParser CheckContextTagClass(Asn1TaggedObjectParser taggedObjectParser)
         {
             return CheckTagClass(taggedObjectParser, Asn1Tags.ContextSpecific);
         }
 
-        internal static Asn1TaggedObject CheckTag(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
+        public static Asn1TaggedObject CheckTag(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
             if (!taggedObject.HasTag(tagClass, tagNo))
             {
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject;
         }
 
-        internal static Asn1TaggedObjectParser CheckTag(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+        public static Asn1TaggedObjectParser CheckTag(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
             int tagNo)
         {
             if (!taggedObjectParser.HasTag(tagClass, tagNo))
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1
             return taggedObjectParser;
         }
 
-        internal static Asn1TaggedObject CheckTagClass(Asn1TaggedObject taggedObject, int tagClass)
+        public static Asn1TaggedObject CheckTagClass(Asn1TaggedObject taggedObject, int tagClass)
         {
             if (!taggedObject.HasTagClass(tagClass))
             {
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject;
         }
 
-        internal static Asn1TaggedObjectParser CheckTagClass(Asn1TaggedObjectParser taggedObjectParser, int tagClass)
+        public static Asn1TaggedObjectParser CheckTagClass(Asn1TaggedObjectParser taggedObjectParser, int tagClass)
         {
             if (taggedObjectParser.TagClass != tagClass)
             {
@@ -73,8 +73,26 @@ namespace Org.BouncyCastle.Asn1
             return taggedObjectParser;
         }
 
-        internal static TChoice GetInstanceFromChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
-            Func<object, TChoice> constructor)
+        public static TChoice GetInstanceChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
+            Func<Asn1Encodable, TChoice> constructor)
+            where TChoice : Asn1Encodable, IAsn1Choice
+        {
+            if (!declaredExplicit)
+            {
+                var message = string.Format(
+                    "Implicit tagging cannot be used with untagged choice type {0} (X.680 30.6, 30.8).",
+                    Platform.GetTypeName(typeof(TChoice)));
+
+                throw new ArgumentException(message, nameof(declaredExplicit));
+            }
+            if (taggedObject == null)
+                throw new ArgumentNullException(nameof(taggedObject));
+
+            return constructor(CheckContextTagClass(taggedObject).GetExplicitBaseObject());
+        }
+
+        public static TChoice GetTaggedChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
+            Func<Asn1Encodable, TChoice> constructor)
             where TChoice : Asn1Encodable, IAsn1Choice
         {
             if (!declaredExplicit)
@@ -121,8 +139,10 @@ namespace Org.BouncyCastle.Asn1
                 return "CONTEXT";
             case Asn1Tags.Private:
                 return "PRIVATE";
-            default:
+            case Asn1Tags.Universal:
                 return "UNIVERSAL";
+            default:
+                return string.Format("UNKNOWN({0})", tagClass);
             }
         }
 
@@ -151,8 +171,10 @@ namespace Org.BouncyCastle.Asn1
                 return string.Format("[CONTEXT {0}]", tagNo);
             case Asn1Tags.Private:
                 return string.Format("[PRIVATE {0}]", tagNo);
-            default:
+            case Asn1Tags.Universal:
                 return string.Format("[UNIVERSAL {0}]", tagNo);
+            default:
+                return string.Format("[UNKNOWN({0}) {1}]", tagClass, tagNo);
             }
         }
 
@@ -649,6 +671,7 @@ namespace Org.BouncyCastle.Asn1
         {
             return TryParseExplicitBaseObject(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, out baseObject);
         }
+
 
         #region Sequence cursor
 

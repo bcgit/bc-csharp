@@ -29,10 +29,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static PopoPrivKey GetInstance(Asn1TaggedObject tagged, bool isExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(tagged, isExplicit, GetInstance);
-        }
+        public static PopoPrivKey GetInstance(Asn1TaggedObject tagged, bool isExplicit) =>
+            Asn1Utilities.GetInstanceChoice(tagged, isExplicit, GetInstance);
 
         public static PopoPrivKey GetOptional(Asn1Encodable element)
         {
@@ -51,6 +49,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             return null;
         }
+
+        public static PopoPrivKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
         {

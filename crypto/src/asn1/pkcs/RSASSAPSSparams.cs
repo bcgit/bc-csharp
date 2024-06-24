@@ -45,16 +45,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (count < 0 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_hashAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetInstance)
+            m_hashAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged)
                 ?? DefaultHashAlgorithm;
 
-            m_maskGenAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, AlgorithmIdentifier.GetInstance)
+            m_maskGenAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, AlgorithmIdentifier.GetTagged)
                 ?? DefaultMaskGenAlgorithm;
 
-            m_saltLength = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, DerInteger.GetInstance)
+            m_saltLength = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, DerInteger.GetTagged)
                 ?? DefaultSaltLength;
 
-            m_trailerField = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, DerInteger.GetInstance)
+            m_trailerField = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, DerInteger.GetTagged)
                 ?? DefaultTrailerField;
 
             if (pos != count)

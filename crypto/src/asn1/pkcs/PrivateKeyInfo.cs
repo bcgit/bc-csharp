@@ -53,10 +53,26 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new PrivateKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PrivateKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
+        public static PrivateKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new PrivateKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static PrivateKeyInfo GetOptional(Asn1Encodable element)
         {
-            return new PrivateKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is PrivateKeyInfo privateKeyInfo)
+                return privateKeyInfo;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new PrivateKeyInfo(asn1Sequence);
+
+            return null;
         }
+
+        public static PrivateKeyInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PrivateKeyInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly AlgorithmIdentifier m_privateKeyAlgorithm;
@@ -73,8 +89,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_version = DerInteger.GetInstance(seq[pos++]);
             m_privateKeyAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_privateKey = Asn1OctetString.GetInstance(seq[pos++]);
-            m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetInstance);
-            m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerBitString.GetInstance);
+            m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);
+            m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerBitString.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

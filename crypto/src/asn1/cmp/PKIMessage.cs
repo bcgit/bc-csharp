@@ -32,8 +32,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             m_header = PkiHeader.GetInstance(seq[pos++]);
             m_body = PkiBody.GetInstance(seq[pos++]);
-            m_protection = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerBitString.GetInstance);
-            m_extraCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetInstance);
+            m_protection = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerBitString.GetTagged);
+            m_extraCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

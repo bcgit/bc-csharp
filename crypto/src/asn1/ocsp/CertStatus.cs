@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new CertStatus(Asn1TaggedObject.GetInstance(obj));
         }
 
-        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static CertStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private static Asn1Encodable GetValue(Asn1TaggedObject choice)
         {

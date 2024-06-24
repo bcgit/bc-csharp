@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             int pos = 0;
 
             m_reqCert = CertID.GetInstance(seq[pos++]);
-            m_singleRequestExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Extensions.GetInstance);
+            m_singleRequestExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Extensions.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             m_version = DerInteger.GetInstance(seq[pos++]);
             m_keyDerivationAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false,
-                AlgorithmIdentifier.GetInstance);
+                AlgorithmIdentifier.GetTagged);
             m_keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_encryptedKey = Asn1OctetString.GetInstance(seq[pos++]);
         }

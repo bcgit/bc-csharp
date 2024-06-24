@@ -23,10 +23,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new ArgumentException("Illegal object in RecipientIdentifier: " + Platform.GetTypeName(o), nameof(o));
         }
 
-        public static RecipientIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static RecipientIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static RecipientIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1Encodable m_id;
 

@@ -26,10 +26,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static PkiArchiveOptions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static PkiArchiveOptions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
         public static PkiArchiveOptions GetOptional(Asn1Encodable element)
         {
@@ -48,6 +46,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             return null;
         }
+
+        public static PkiArchiveOptions GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
         {

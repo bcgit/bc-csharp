@@ -49,8 +49,8 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_version = DerInteger.GetInstance(seq[pos++]);
-            m_originator = Asn1Utilities.ReadContextTagged(seq, ref pos, 0, true, OriginatorIdentifierOrKey.GetInstance);
-            m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1OctetString.GetInstance);
+            m_originator = Asn1Utilities.ReadContextTagged(seq, ref pos, 0, true, OriginatorIdentifierOrKey.GetTagged);
+            m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1OctetString.GetTagged);
             m_keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_recipientEncryptedKeys = Asn1Sequence.GetInstance(seq[pos++]);
 

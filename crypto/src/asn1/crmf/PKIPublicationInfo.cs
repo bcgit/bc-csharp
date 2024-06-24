@@ -31,10 +31,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new PkiPublicationInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PkiPublicationInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PkiPublicationInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PkiPublicationInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiPublicationInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PkiPublicationInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiPublicationInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_action;
         private readonly Asn1Sequence m_pubInfos;

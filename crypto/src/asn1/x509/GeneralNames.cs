@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.X509
             return new GeneralNames(Asn1Sequence.GetInstance(obj));
 		}
 
-		public static GeneralNames GetInstance(Asn1TaggedObject obj, bool explicitly)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-		}
+		public static GeneralNames GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+			new GeneralNames(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static GeneralNames GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new GeneralNames(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public static GeneralNames FromExtensions(X509Extensions extensions, DerObjectIdentifier extOid)
         {

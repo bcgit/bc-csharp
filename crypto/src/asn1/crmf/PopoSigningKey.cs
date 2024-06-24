@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_poposkInput = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, PopoSigningKeyInput.GetInstance);
+            m_poposkInput = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, PopoSigningKeyInput.GetTagged);
             m_algorithmIdentifier = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_signature = DerBitString.GetInstance(seq[pos++]);
 

@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_kemct = Asn1OctetString.GetInstance(seq[pos++]);
             m_kdf = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_kekLength = DerInteger.GetInstance(seq[pos++]);
-            m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetInstance);
+            m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
             m_wrap = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_encryptedKey = Asn1OctetString.GetInstance(seq[pos++]);
 

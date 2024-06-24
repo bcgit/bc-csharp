@@ -26,10 +26,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CrlSource(Asn1TaggedObject.GetInstance(obj));
         }
 
-        public static CrlSource GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static CrlSource GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static CrlSource GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly DistributionPointName m_dpn;
         private readonly GeneralNames m_issuer;

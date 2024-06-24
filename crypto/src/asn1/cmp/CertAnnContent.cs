@@ -23,10 +23,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertAnnContent(X509CertificateStructure.GetInstance(obj));
         }
 
-        public static new CertAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static new CertAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static new CertAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         [Obsolete("Use 'GetInstance' from tagged object instead")]
         public CertAnnContent(int type, Asn1Object otherCert)

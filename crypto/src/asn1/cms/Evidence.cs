@@ -20,10 +20,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static Evidence GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
-        }
+        public static Evidence GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
+
+        public static Evidence GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly TimeStampTokenEvidence m_tstEvidence;
         private readonly EvidenceRecord m_ersEvidence;

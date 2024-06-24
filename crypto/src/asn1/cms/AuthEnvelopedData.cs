@@ -49,12 +49,12 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_version = DerInteger.GetInstance(seq[pos++]);
-            m_originatorInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, OriginatorInfo.GetInstance);
+            m_originatorInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, OriginatorInfo.GetTagged);
             m_recipientInfos = Asn1Set.GetInstance(seq[pos++]);
             m_authEncryptedContentInfo = EncryptedContentInfo.GetInstance(seq[pos++]);
-            m_authAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetInstance);
+            m_authAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
             m_mac = Asn1OctetString.GetInstance(seq[pos++]);
-            m_unauthAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, Asn1Set.GetInstance);
+            m_unauthAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, Asn1Set.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

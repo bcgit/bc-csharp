@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new OptionalValidity(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OptionalValidity GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new OptionalValidity(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static OptionalValidity GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OptionalValidity(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OptionalValidity GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OptionalValidity(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Time m_notBefore;
         private readonly Time m_notAfter;
@@ -34,8 +35,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_notBefore = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Time.GetInstance);
-            m_notAfter = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Time.GetInstance);
+            m_notBefore = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Time.GetTagged);
+            m_notAfter = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Time.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

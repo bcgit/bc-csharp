@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			m_version = DerInteger.GetInstance(seq[pos++]);
 			m_encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[pos++]);
-			m_unprotectedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetInstance);
+			m_unprotectedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

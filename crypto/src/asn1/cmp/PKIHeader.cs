@@ -51,15 +51,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_pvno = DerInteger.GetInstance(seq[pos++]);
             m_sender = GeneralName.GetInstance(seq[pos++]);
             m_recipient = GeneralName.GetInstance(seq[pos++]);
-            m_messageTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1GeneralizedTime.GetInstance);
-            m_protectionAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, AlgorithmIdentifier.GetInstance);
-            m_senderKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetInstance);
-            m_recipKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, Asn1OctetString.GetInstance);
-            m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, true, Asn1OctetString.GetInstance);
-            m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, true, Asn1OctetString.GetInstance);
-            m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 6, true, Asn1OctetString.GetInstance);
-            m_freeText = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 7, true, PkiFreeText.GetInstance);
-            m_generalInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 8, true, Asn1Sequence.GetInstance);
+            m_messageTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1GeneralizedTime.GetTagged);
+            m_protectionAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, AlgorithmIdentifier.GetTagged);
+            m_senderKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetTagged);
+            m_recipKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, Asn1OctetString.GetTagged);
+            m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, true, Asn1OctetString.GetTagged);
+            m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, true, Asn1OctetString.GetTagged);
+            m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 6, true, Asn1OctetString.GetTagged);
+            m_freeText = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 7, true, PkiFreeText.GetTagged);
+            m_generalInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 8, true, Asn1Sequence.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

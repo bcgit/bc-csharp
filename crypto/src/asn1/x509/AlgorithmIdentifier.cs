@@ -17,10 +17,8 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AlgorithmIdentifier(Asn1Sequence.GetInstance(obj));
         }
 
-        public static AlgorithmIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static AlgorithmIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new AlgorithmIdentifier(Asn1Sequence.GetInstance(obj, explicitly));
 
         public static AlgorithmIdentifier GetOptional(Asn1Encodable element)
         {
@@ -36,6 +34,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
             return null;
         }
+
+        public static AlgorithmIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AlgorithmIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public AlgorithmIdentifier(
             DerObjectIdentifier algorithm)

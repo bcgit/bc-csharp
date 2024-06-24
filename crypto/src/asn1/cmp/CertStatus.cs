@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_certHash = Asn1OctetString.GetInstance(seq[pos++]);
             m_certReqID = DerInteger.GetInstance(seq[pos++]);
             m_statusInfo = Asn1Utilities.ReadOptional(seq, ref pos, PkiStatusInfo.GetOptional);
-            m_hashAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetInstance);
+            m_hashAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

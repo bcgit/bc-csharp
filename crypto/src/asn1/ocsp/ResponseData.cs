@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             int pos = 0;
 
             {
-                DerInteger version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerInteger.GetInstance);
+                DerInteger version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerInteger.GetTagged);
 
                 m_version = version ?? V1;
                 m_versionPresent = version != null;
@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             m_responderID = ResponderID.GetInstance(seq[pos++]);
             m_producedAt = Asn1GeneralizedTime.GetInstance(seq[pos++]);
             m_responses = Asn1Sequence.GetInstance(seq[pos++]);
-            m_responseExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, X509Extensions.GetInstance);
+            m_responseExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, X509Extensions.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

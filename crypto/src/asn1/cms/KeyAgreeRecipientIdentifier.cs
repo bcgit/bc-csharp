@@ -30,10 +30,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 			throw new ArgumentException("Invalid KeyAgreeRecipientIdentifier: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static KeyAgreeRecipientIdentifier GetInstance(Asn1TaggedObject obj, bool isExplicit)
-		{
-            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
-		}
+        public static KeyAgreeRecipientIdentifier GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
+
+        public static KeyAgreeRecipientIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
 		private readonly IssuerAndSerialNumber m_issuerSerial;
 		private readonly RecipientKeyIdentifier m_rKeyID;

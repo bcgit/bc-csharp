@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             m_tbsResponseData = ResponseData.GetInstance(seq[pos++]);
             m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_signature = DerBitString.GetInstance(seq[pos++]);
-            m_certs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1Sequence.GetInstance);
+            m_certs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1Sequence.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

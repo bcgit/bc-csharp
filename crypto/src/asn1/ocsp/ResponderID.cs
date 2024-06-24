@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			return new ResponderID(X509Name.GetInstance(obj));
 		}
 
-        public static ResponderID GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
-        }
+        public static ResponderID GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
+
+        public static ResponderID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1Encodable m_id;
 

@@ -52,8 +52,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_newWithNew = CmpCertificate.GetInstance(seq[pos++]);
-            m_newWithOld = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetInstance);
-            m_oldWithNew = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, CmpCertificate.GetInstance);
+            m_newWithOld = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetTagged);
+            m_oldWithNew = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, CmpCertificate.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

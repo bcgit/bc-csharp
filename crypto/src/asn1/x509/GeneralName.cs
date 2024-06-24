@@ -53,10 +53,11 @@ namespace Org.BouncyCastle.Asn1.X509
 			return GetInstanceSelection(Asn1TaggedObject.GetInstance(obj));
 		}
 
-		public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(tagObj, explicitly, GetInstance);
-        }
+		public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly) =>
+            Asn1Utilities.GetInstanceChoice(tagObj, explicitly, GetInstance);
+
+        public static GeneralName GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private static GeneralName GetInstanceSelection(Asn1TaggedObject taggedObject)
 		{

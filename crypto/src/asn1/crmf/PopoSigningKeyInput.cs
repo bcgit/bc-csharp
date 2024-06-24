@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new PopoSigningKeyInput(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PopoSigningKeyInput GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PopoSigningKeyInput(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PopoSigningKeyInput GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PopoSigningKeyInput(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PopoSigningKeyInput GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PopoSigningKeyInput(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly GeneralName m_sender;
         private readonly PKMacValue m_publicKeyMac;

@@ -36,9 +36,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_crlUrl = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerIA5String.GetInstance);
-            m_crlNum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DerInteger.GetInstance);
-            m_crlTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1GeneralizedTime.GetInstance);
+            m_crlUrl = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerIA5String.GetTagged);
+            m_crlNum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DerInteger.GetTagged);
+            m_crlTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1GeneralizedTime.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

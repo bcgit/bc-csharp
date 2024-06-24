@@ -42,16 +42,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, DerInteger.GetInstance);
-            m_serialNumber = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerInteger.GetInstance);
-            m_signingAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, AlgorithmIdentifier.GetInstance);
-            m_issuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, X509Name.GetInstance); // CHOICE Name
-            m_validity = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, OptionalValidity.GetInstance);
-            m_subject = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, true, X509Name.GetInstance); // CHOICE Name
-            m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 6, false, SubjectPublicKeyInfo.GetInstance);
-            m_issuerUID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 7, false, DerBitString.GetInstance);
-            m_subjectUID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 8, false, DerBitString.GetInstance);
-            m_extensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 9, false, X509Extensions.GetInstance);
+            m_version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, DerInteger.GetTagged);
+            m_serialNumber = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerInteger.GetTagged);
+            m_signingAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, AlgorithmIdentifier.GetTagged);
+            m_issuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, X509Name.GetTagged); // CHOICE Name
+            m_validity = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, OptionalValidity.GetTagged);
+            m_subject = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, true, X509Name.GetTagged); // CHOICE Name
+            m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 6, false, SubjectPublicKeyInfo.GetTagged);
+            m_issuerUID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 7, false, DerBitString.GetTagged);
+            m_subjectUID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 8, false, DerBitString.GetTagged);
+            m_extensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 9, false, X509Extensions.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

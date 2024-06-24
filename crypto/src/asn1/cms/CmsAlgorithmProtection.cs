@@ -76,8 +76,8 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_signatureAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, AlgorithmIdentifier.GetInstance);
-            m_macAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, AlgorithmIdentifier.GetInstance);
+            m_signatureAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, AlgorithmIdentifier.GetTagged);
+            m_macAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, AlgorithmIdentifier.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
