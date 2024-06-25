@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 {
@@ -115,24 +114,23 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
     public class AdmissionSyntax
         : Asn1Encodable
     {
-        private readonly GeneralName admissionAuthority;
-        private readonly Asn1Sequence contentsOfAdmissions;
-
-        public static AdmissionSyntax GetInstance(
-            object obj)
+        public static AdmissionSyntax GetInstance(object obj)
         {
-            if (obj == null || obj is AdmissionSyntax)
-            {
-                return (AdmissionSyntax)obj;
-            }
-
-            if (obj is Asn1Sequence)
-            {
-                return new AdmissionSyntax((Asn1Sequence)obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is AdmissionSyntax admissionSyntax)
+                return admissionSyntax;
+            return new AdmissionSyntax(Asn1Sequence.GetInstance(obj));
         }
+
+        public static AdmissionSyntax GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AdmissionSyntax(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static AdmissionSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AdmissionSyntax(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly GeneralName m_admissionAuthority;
+        private readonly Asn1Sequence m_contentsOfAdmissions;
 
         /**
         * Constructor from Asn1Sequence.
@@ -174,18 +172,15 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         */
         private AdmissionSyntax(Asn1Sequence seq)
         {
-            switch (seq.Count)
-            {
-            case 1:
-                this.contentsOfAdmissions = Asn1Sequence.GetInstance(seq[0]);
-                break;
-            case 2:
-                admissionAuthority = GeneralName.GetInstance(seq[0]);
-                contentsOfAdmissions = Asn1Sequence.GetInstance(seq[1]);
-                break;
-            default:
-                throw new ArgumentException("Bad sequence size: " + seq.Count);
-            }
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_admissionAuthority = Asn1Utilities.ReadOptional(seq, ref pos, GeneralName.GetOptional);
+            m_contentsOfAdmissions = Asn1Sequence.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /**
@@ -194,13 +189,16 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         * @param admissionAuthority   The admission authority.
         * @param contentsOfAdmissions The admissions.
         */
-        public AdmissionSyntax(
-            GeneralName admissionAuthority,
-            Asn1Sequence contentsOfAdmissions)
+        public AdmissionSyntax(GeneralName admissionAuthority, Asn1Sequence contentsOfAdmissions)
         {
-            this.admissionAuthority = admissionAuthority;
-            this.contentsOfAdmissions = contentsOfAdmissions;
+            m_admissionAuthority = admissionAuthority;
+            m_contentsOfAdmissions = contentsOfAdmissions ?? throw new ArgumentNullException(nameof(contentsOfAdmissions));
         }
+
+        public virtual GeneralName AdmissionAuthority => m_admissionAuthority;
+
+        public virtual Admissions[] GetContentsOfAdmissions() =>
+            m_contentsOfAdmissions.MapElements(Admissions.GetInstance);
 
         /**
         * Produce an object suitable for an Asn1OutputStream.
@@ -242,26 +240,9 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptional(admissionAuthority);
-            v.Add(contentsOfAdmissions);
-            return new DerSequence(v);
-        }
-
-        /**
-        * @return Returns the admissionAuthority if present, null otherwise.
-        */
-        public virtual GeneralName AdmissionAuthority
-        {
-            get { return admissionAuthority; }
-        }
-
-        /**
-        * @return Returns the contentsOfAdmissions.
-        */
-        public virtual Admissions[] GetContentsOfAdmissions()
-        {
-            return contentsOfAdmissions.MapElements(Admissions.GetInstance);
+            return m_admissionAuthority == null
+                ?  new DerSequence(m_contentsOfAdmissions)
+                :  new DerSequence(m_admissionAuthority, m_contentsOfAdmissions);
         }
     }
 }

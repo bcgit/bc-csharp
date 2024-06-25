@@ -1,11 +1,10 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 {
-	/**
+    /**
 	* An Admissions structure.
 	* <p/>
 	* <pre>
@@ -22,25 +21,29 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 	* @see Org.BouncyCastle.Asn1.IsisMtt.X509.ProfessionInfo
 	* @see Org.BouncyCastle.Asn1.IsisMtt.X509.NamingAuthority
 	*/
-	public class Admissions
+    public class Admissions
 		: Asn1Encodable
 	{
-		private readonly GeneralName		admissionAuthority;
-		private readonly NamingAuthority	namingAuthority;
-		private readonly Asn1Sequence		professionInfos;
-
 		public static Admissions GetInstance(object obj)
 		{
-			if (obj == null || obj is Admissions)
-				return (Admissions)obj;
-
-			if (obj is Asn1Sequence seq)
-				return new Admissions(seq);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+			if (obj == null)
+				return null;
+			if (obj is Admissions admissions)
+				return admissions;
+			return new Admissions(Asn1Sequence.GetInstance(obj));
 		}
 
-		/**
+        public static Admissions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Admissions(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static Admissions GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Admissions(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly GeneralName m_admissionAuthority;
+        private readonly NamingAuthority m_namingAuthority;
+        private readonly Asn1Sequence m_professionInfos;
+
+        /**
 		* Constructor from Asn1Sequence.
 		* <p/>
 		* The sequence is of type ProcurationSyntax:
@@ -56,52 +59,21 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private Admissions(Asn1Sequence seq)
+        private Admissions(Asn1Sequence seq)
 		{
-			if (seq.Count > 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			var e = seq.GetEnumerator();
+			m_admissionAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, GeneralName.GetTagged);
+            m_namingAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, NamingAuthority.GetTagged);
+			m_professionInfos = Asn1Sequence.GetInstance(seq[pos++]);
 
-			e.MoveNext();
-			Asn1Encodable o = e.Current;
-			if (o is Asn1TaggedObject tagged1)
-			{
-				switch (tagged1.TagNo)
-				{
-				case 0:
-					admissionAuthority = GeneralName.GetInstance(tagged1, true);
-					break;
-				case 1:
-					namingAuthority = NamingAuthority.GetInstance(tagged1, true);
-					break;
-				default:
-					throw new ArgumentException("Bad tag number: " + tagged1.TagNo);
-				}
-				e.MoveNext();
-				o = e.Current;
-			}
-			if (o is Asn1TaggedObject tagged2)
-			{
-				switch (tagged2.TagNo)
-				{
-				case 1:
-					namingAuthority = NamingAuthority.GetInstance(tagged2, true);
-					break;
-				default:
-					throw new ArgumentException("Bad tag number: " + tagged2.TagNo);
-				}
-				e.MoveNext();
-				o = e.Current;
-			}
-			professionInfos = Asn1Sequence.GetInstance(o);
-			if (e.MoveNext())
-			{
-                throw new ArgumentException("Bad object encountered: " + Platform.GetTypeName(e.Current));
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		/**
+        /**
 		* Constructor from a given details.
 		* <p/>
 		* Parameter <code>professionInfos</code> is mandatory.
@@ -110,36 +82,19 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		* @param namingAuthority    The naming authority.
 		* @param professionInfos    The profession infos.
 		*/
-		public Admissions(
-			GeneralName			admissionAuthority,
-			NamingAuthority		namingAuthority,
-			ProfessionInfo[]	professionInfos)
-		{
-			this.admissionAuthority = admissionAuthority;
-			this.namingAuthority = namingAuthority;
-			this.professionInfos = new DerSequence(professionInfos);
-		}
+        public Admissions(GeneralName admissionAuthority, NamingAuthority namingAuthority,
+			ProfessionInfo[] professionInfos)
+        {
+            m_admissionAuthority = admissionAuthority;
+            m_namingAuthority = namingAuthority;
+            m_professionInfos = DerSequence.FromElements(professionInfos);
+        }
 
-		public virtual GeneralName AdmissionAuthority
-		{
-			get { return admissionAuthority; }
-		}
+		public virtual GeneralName AdmissionAuthority => m_admissionAuthority;
 
-		public virtual NamingAuthority NamingAuthority
-		{
-			get { return namingAuthority; }
-		}
+		public virtual NamingAuthority NamingAuthority => m_namingAuthority;
 
-		public ProfessionInfo[] GetProfessionInfos()
-		{
-			ProfessionInfo[] infos = new ProfessionInfo[professionInfos.Count];
-			int count = 0;
-			foreach (Asn1Encodable ae in professionInfos)
-			{
-				infos[count++] = ProfessionInfo.GetInstance(ae);
-			}
-			return infos;
-		}
+		public ProfessionInfo[] GetProfessionInfos() => m_professionInfos.MapElements(ProfessionInfo.GetInstance);
 
 		/**
 		* Produce an object suitable for an Asn1OutputStream.
@@ -161,9 +116,9 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.AddOptionalTagged(true, 0, admissionAuthority);
-            v.AddOptionalTagged(true, 1, namingAuthority);
-			v.Add(professionInfos);
+            v.AddOptionalTagged(true, 0, m_admissionAuthority);
+            v.AddOptionalTagged(true, 1, m_namingAuthority);
+			v.Add(m_professionInfos);
 			return new DerSequence(v);
 		}
 	}

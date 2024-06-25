@@ -1,11 +1,8 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X500;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 {
-	/**
+    /**
 	* Some other information of non-restrictive nature regarding the usage of this
 	* certificate.
 	* 
@@ -13,44 +10,44 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 	*    AdditionalInformationSyntax ::= DirectoryString (SIZE(1..2048))
 	* </pre>
 	*/
-	public class AdditionalInformationSyntax
+    public class AdditionalInformationSyntax
 		: Asn1Encodable
 	{
-		private readonly DirectoryString information;
+        public static AdditionalInformationSyntax GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is AdditionalInformationSyntax additionalInformationSyntax)
+                return additionalInformationSyntax;
+            return new AdditionalInformationSyntax(DirectoryString.GetInstance(obj));
+        }
 
-		public static AdditionalInformationSyntax GetInstance(
-			object obj)
+        public static AdditionalInformationSyntax GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AdditionalInformationSyntax(DirectoryString.GetInstance(taggedObject, declaredExplicit));
+
+        public static AdditionalInformationSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AdditionalInformationSyntax(DirectoryString.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DirectoryString m_information;
+
+        private AdditionalInformationSyntax(DirectoryString information)
 		{
-			if (obj is AdditionalInformationSyntax)
-				return (AdditionalInformationSyntax) obj;
-
-			if (obj is IAsn1String)
-				return new AdditionalInformationSyntax(DirectoryString.GetInstance(obj));
-
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		private AdditionalInformationSyntax(
-			DirectoryString information)
-		{
-			this.information = information;
+            // TODO Length constraint?
+            m_information = information;
 		}
 
 		/**
 		* Constructor from a given details.
 		*
-		* @param information The describtion of the information.
+		* @param information The description of the information.
 		*/
-		public AdditionalInformationSyntax(
-			string information)
+		public AdditionalInformationSyntax(string information)
 		{
-			this.information = new DirectoryString(information);
+            // TODO Length constraint?
+            m_information = new DirectoryString(information);
 		}
 
-		public virtual DirectoryString Information
-		{
-			get { return information; }
-		}
+		public virtual DirectoryString Information => m_information;
 
 		/**
 		* Produce an object suitable for an Asn1OutputStream.
@@ -63,9 +60,6 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @return an Asn1Object
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			return information.ToAsn1Object();
-		}
+		public override Asn1Object ToAsn1Object() => m_information.ToAsn1Object();
 	}
 }

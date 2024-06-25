@@ -62,12 +62,12 @@ namespace Org.BouncyCastle.Asn1.X509
         private Target(
 			Asn1TaggedObject tagObj)
 		{
-			switch ((Choice) tagObj.TagNo)
+			switch (tagObj.TagNo)
 			{
-				case Choice.Name:	// GeneralName is already a choice so explicit
+				case (int)Choice.Name:	// GeneralName is already a choice so explicit
 					targetName = GeneralName.GetInstance(tagObj, true);
 					break;
-				case Choice.Group:
+				case (int)Choice.Group:
 					targetGroup = GeneralName.GetInstance(tagObj, true);
 					break;
 				default:

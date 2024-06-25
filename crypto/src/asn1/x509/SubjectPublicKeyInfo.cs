@@ -72,8 +72,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private SubjectPublicKeyInfo(Asn1Sequence seq)
         {
-            if (seq.Count != 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_algorithm = AlgorithmIdentifier.GetInstance(seq[0]);
 			m_publicKey = DerBitString.GetInstance(seq[1]);

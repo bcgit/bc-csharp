@@ -2,11 +2,10 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 {
-	/**
+    /**
 	* ISIS-MTT-Optional: The certificate requested by the client by inserting the
 	* RetrieveIfAllowed extension in the request, will be returned in this
 	* extension.
@@ -39,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 	*            }
 	* </pre>
 	*/
-	public class RequestedCertificate
+    public class RequestedCertificate
 		: Asn1Encodable, IAsn1Choice
 	{
 		public enum Choice
@@ -49,10 +48,6 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 			AttributeCertificate = 1
 		}
 
-		private readonly X509CertificateStructure	cert;
-		private readonly byte[]						publicKeyCert;
-		private readonly byte[]						attributeCert;
-
 		public static RequestedCertificate GetInstance(object obj)
 		{
 			if (obj == null)
@@ -61,13 +56,14 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 			if (obj is RequestedCertificate requestedCertificate)
 				return requestedCertificate;
 
-			if (obj is Asn1Sequence)
-				return new RequestedCertificate(X509CertificateStructure.GetInstance(obj));
+            if (obj is Asn1Encodable element)
+            {
+				var cert = X509CertificateStructure.GetOptional(element);
+				if (cert != null)
+					return new RequestedCertificate(cert);
+            }
 
-            if (obj is Asn1TaggedObject taggedObject)
-                return new RequestedCertificate(taggedObject);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            return new RequestedCertificate(Asn1TaggedObject.GetInstance(obj, Asn1Tags.ContextSpecific));
 		}
 
 		public static RequestedCertificate GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
@@ -76,50 +72,50 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
         public static RequestedCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
-		private RequestedCertificate(
-			Asn1TaggedObject tagged)
+        private readonly X509CertificateStructure m_cert;
+        private readonly Asn1OctetString m_publicKeyCert;
+        private readonly Asn1OctetString m_attributeCert;
+
+        private RequestedCertificate(Asn1TaggedObject tagged)
 		{
-			switch ((Choice) tagged.TagNo)
+			switch (tagged.TagNo)
 			{
-				case Choice.AttributeCertificate:
-					this.attributeCert = Asn1OctetString.GetInstance(tagged, true).GetOctets();
-					break;
-				case Choice.PublicKeyCertificate:
-					this.publicKeyCert = Asn1OctetString.GetInstance(tagged, true).GetOctets();
-					break;
-				default:
-					throw new ArgumentException("unknown tag number: " + tagged.TagNo);
+			case (int)Choice.AttributeCertificate:
+				m_attributeCert = Asn1OctetString.GetInstance(tagged, true);
+				break;
+			case (int)Choice.PublicKeyCertificate:
+				m_publicKeyCert = Asn1OctetString.GetInstance(tagged, true);
+				break;
+			default:
+				throw new ArgumentException("unknown tag number: " + tagged.TagNo);
 			}
 		}
 
-		/**
+        /**
 		* Constructor from a given details.
 		* <p/>
 		* Only one parameter can be given. All other must be <code>null</code>.
 		*
 		* @param certificate Given as Certificate
 		*/
-		public RequestedCertificate(
-			X509CertificateStructure certificate)
-		{
-			this.cert = certificate;
-		}
+        public RequestedCertificate(X509CertificateStructure certificate)
+        {
+            m_cert = certificate;
+        }
 
-		public RequestedCertificate(
-			Choice	type,
-			byte[]	certificateOctets)
-			: this(new DerTaggedObject((int) type, new DerOctetString(certificateOctets)))
-		{
-		}
+        public RequestedCertificate(Choice type, byte[] certificateOctets)
+            : this(new DerTaggedObject((int)type, new DerOctetString(certificateOctets)))
+        {
+        }
 
-		public Choice Type
+        public Choice Type
 		{
 			get
 			{
-				if (cert != null)
+				if (m_cert != null)
 					return Choice.Certificate;
 
-				if (publicKeyCert != null)
+				if (m_publicKeyCert != null)
 					return Choice.PublicKeyCertificate;
 
 				return Choice.AttributeCertificate;
@@ -128,11 +124,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 
 		public byte[] GetCertificateBytes()
 		{
-			if (cert != null)
+			if (m_cert != null)
 			{
 				try
 				{
-					return cert.GetEncoded();
+					return m_cert.GetEncoded();
 				}
 				catch (IOException e)
 				{
@@ -140,12 +136,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 				}
 			}
 
-			if (publicKeyCert != null)
-				return publicKeyCert;
+			if (m_publicKeyCert != null)
+				return m_publicKeyCert.GetOctets();
 
-			return attributeCert;
+			return m_attributeCert.GetOctets();
 		}
-    
 
 		/**
 		* Produce an object suitable for an Asn1OutputStream.
@@ -164,17 +159,13 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			if (publicKeyCert != null)
-			{
-				return new DerTaggedObject(0, new DerOctetString(publicKeyCert));
-			}
+			if (m_publicKeyCert != null)
+				return new DerTaggedObject(0, m_publicKeyCert);
 
-			if (attributeCert != null)
-			{
-				return new DerTaggedObject(1, new DerOctetString(attributeCert));
-			}
+			if (m_attributeCert != null)
+				return new DerTaggedObject(1, m_attributeCert);
 
-			return cert.ToAsn1Object();
+			return m_cert.ToAsn1Object();
 		}
 	}
 }

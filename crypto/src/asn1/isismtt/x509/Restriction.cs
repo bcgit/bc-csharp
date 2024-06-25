@@ -1,34 +1,35 @@
-using System;
-
 using Org.BouncyCastle.Asn1.X500;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 {
-	/**
+    /**
 	* Some other restriction regarding the usage of this certificate.
 	* <p/>
 	* <pre>
 	*  RestrictionSyntax ::= DirectoryString (SIZE(1..1024))
 	* </pre>
 	*/
-	public class Restriction
+    public class Restriction
 		: Asn1Encodable
 	{
-		private readonly DirectoryString restriction;
+        public static Restriction GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is Restriction restriction)
+                return restriction;
+            return new Restriction(DirectoryString.GetInstance(obj));
+        }
 
-		public static Restriction GetInstance(object obj)
-		{
-			if (obj is Restriction)
-				return (Restriction) obj;
+        public static Restriction GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Restriction(DirectoryString.GetInstance(taggedObject, declaredExplicit));
 
-			if (obj is IAsn1String)
-				return new Restriction(DirectoryString.GetInstance(obj));
+        public static Restriction GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Restriction(DirectoryString.GetTagged(taggedObject, declaredExplicit));
 
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
+        private readonly DirectoryString m_restriction;
 
-		/**
+        /**
 		* Constructor from DirectoryString.
 		* <p/>
 		* The DirectoryString is of type RestrictionSyntax:
@@ -39,9 +40,9 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param restriction A IAsn1String.
 		*/
-		private Restriction(DirectoryString restriction)
+        private Restriction(DirectoryString restriction)
 		{
-			this.restriction = restriction;
+			m_restriction = restriction;
 		}
 
 		/**
@@ -51,13 +52,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
 		public Restriction(string restriction)
 		{
-			this.restriction = new DirectoryString(restriction);
+			m_restriction = new DirectoryString(restriction);
 		}
 
-		public virtual DirectoryString RestrictionString
-		{
-			get { return restriction; }
-		}
+		public virtual DirectoryString RestrictionString => m_restriction;
 
 		/**
 		* Produce an object suitable for an Asn1OutputStream.
@@ -71,9 +69,6 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @return an Asn1Object
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			return restriction.ToAsn1Object();
-		}
+		public override Asn1Object ToAsn1Object() => m_restriction.ToAsn1Object();
 	}
 }

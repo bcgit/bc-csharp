@@ -5,7 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 {
-	/**
+    /**
 	* ISIS-MTT PROFILE: The responder may include this extension in a response to
 	* send the hash of the requested certificate to the responder. This hash is
 	* cryptographically bound to the certificate and serves as evidence that the
@@ -25,29 +25,28 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 	*     }
 	* </pre>
 	*/
-	public class CertHash
+    public class CertHash
 		: Asn1Encodable
 	{
-		private readonly AlgorithmIdentifier	hashAlgorithm;
-		private readonly byte[]					certificateHash;
+        public static CertHash GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CertHash certHash)
+                return certHash;
+            return new CertHash(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static CertHash GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is CertHash)
-			{
-				return (CertHash) obj;
-			}
+        public static CertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-			if (obj is Asn1Sequence)
-			{
-				return new CertHash((Asn1Sequence) obj);
-			}
+        public static CertHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertHash(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        private readonly AlgorithmIdentifier m_hashAlgorithm;
+        private readonly Asn1OctetString m_certificateHash;
 
-		/**
+        /**
 		* Constructor from Asn1Sequence.
 		* <p/>
 		* The sequence is of type CertHash:
@@ -61,44 +60,31 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private CertHash(
-			Asn1Sequence seq)
-		{
-			if (seq.Count != 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
+        private CertHash(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			this.hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
-			this.certificateHash = Asn1OctetString.GetInstance(seq[1]).GetOctets();
-		}
+            m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
+            m_certificateHash = Asn1OctetString.GetInstance(seq[1]);
+        }
 
-		/**
+        /**
 		* Constructor from a given details.
 		*
 		* @param hashAlgorithm   The hash algorithm identifier.
 		* @param certificateHash The hash of the whole DER encoding of the certificate.
 		*/
-		public CertHash(
-			AlgorithmIdentifier	hashAlgorithm,
-			byte[]				certificateHash)
-		{
-			if (hashAlgorithm == null)
-				throw new ArgumentNullException("hashAlgorithm");
-			if (certificateHash == null)
-				throw new ArgumentNullException("certificateHash");
-
-			this.hashAlgorithm = hashAlgorithm;
-			this.certificateHash = (byte[]) certificateHash.Clone();
+        public CertHash(AlgorithmIdentifier hashAlgorithm, byte[] certificateHash)
+        {
+			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+			m_certificateHash = new DerOctetString(certificateHash);
 		}
 
-		public AlgorithmIdentifier HashAlgorithm
-		{
-			get { return hashAlgorithm; }
-		}
+		public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
-		public byte[] CertificateHash
-		{
-			get { return (byte[]) certificateHash.Clone(); }
-		}
+		public byte[] CertificateHash => Arrays.Clone(m_certificateHash.GetOctets());
 
 		/**
 		* Produce an object suitable for an Asn1OutputStream.
@@ -114,9 +100,6 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 		*
 		* @return an Asn1Object
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(hashAlgorithm, new DerOctetString(certificateHash));
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_hashAlgorithm, m_certificateHash);
 	}
 }
