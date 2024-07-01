@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                     if (sequence[3] is Asn1TaggedObject && sequence[2] is Asn1TaggedObject)
                     {
                         ECPrivateKeyStructure ecPrivateKey = ECPrivateKeyStructure.GetInstance(sequence);
-                        DerObjectIdentifier curveOID = DerObjectIdentifier.GetInstance(ecPrivateKey.GetParameters());
+                        DerObjectIdentifier curveOID = DerObjectIdentifier.GetInstance(ecPrivateKey.Parameters);
                         X9ECParameters x9Params = ECNamedCurveTable.GetByOid(curveOID);
                         result = new ECPrivateKeyParameters(
                             ecPrivateKey.GetKey(),
