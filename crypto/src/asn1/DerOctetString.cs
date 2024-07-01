@@ -5,7 +5,9 @@ namespace Org.BouncyCastle.Asn1
     public class DerOctetString
         : Asn1OctetString
     {
-		/// <param name="contents">The octets making up the octet string.</param>
+        public static readonly DerOctetString Empty = new DerOctetString(EmptyOctets);
+
+        /// <param name="contents">The octets making up the octet string.</param>
         public DerOctetString(byte[] contents)
 			: base(contents)
         {
