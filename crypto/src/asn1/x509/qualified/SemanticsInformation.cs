@@ -25,18 +25,29 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
                 return null;
             if (obj is SemanticsInformation semanticsInformation)
                 return semanticsInformation;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new SemanticsInformation(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public static SemanticsInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            new SemanticsInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        public static SemanticsInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new SemanticsInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-        public static SemanticsInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            new SemanticsInformation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+        public static SemanticsInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new SemanticsInformation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
         private readonly DerObjectIdentifier m_semanticsIdentifier;
         private readonly GeneralName[] m_nameRegistrationAuthorities;
 
+        [Obsolete("Use 'GetInstance' instead")]
         public SemanticsInformation(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
