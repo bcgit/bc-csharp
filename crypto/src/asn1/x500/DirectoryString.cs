@@ -4,11 +4,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X500
 {
-	public class DirectoryString
+    public class DirectoryString
 		: Asn1Encodable, IAsn1Choice, IAsn1String
 	{
-		private readonly DerStringBase str;
-
 		public static DirectoryString GetInstance(object obj)
 		{
             if (obj == null)
@@ -55,22 +53,19 @@ namespace Org.BouncyCastle.Asn1.X500
 				?? (DerStringBase)null;
         }
 
-        private DirectoryString(
-			DerStringBase str)
+        private readonly DerStringBase m_str;
+
+        private DirectoryString(DerStringBase str)
 		{
-			this.str = str;
+			m_str = str;
 		}
 
-		public DirectoryString(
-			string str)
+		public DirectoryString(string str)
 		{
-			this.str = new DerUtf8String(str);
+			m_str = new DerUtf8String(str);
 		}
 
-		public string GetString()
-		{
-			return str.GetString();
-		}
+		public string GetString() => m_str.GetString();
 
 		/**
 		 * <pre>
@@ -82,9 +77,6 @@ namespace Org.BouncyCastle.Asn1.X500
 		 *    bmpString                   BMPString (SIZE (1..MAX))  }
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return str.ToAsn1Object();
-		}
+		public override Asn1Object ToAsn1Object() => m_str.ToAsn1Object();
 	}
 }
