@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
@@ -46,10 +45,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new EvidenceRecord(Asn1Sequence.GetInstance(obj));
         }
 
-        public static EvidenceRecord GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new EvidenceRecord(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static EvidenceRecord GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EvidenceRecord(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static EvidenceRecord GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EvidenceRecord(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly Asn1Sequence m_digestAlgorithms;
@@ -129,46 +129,33 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_archiveTimeStampSequence = archiveTimeStampSequence;
         }
 
-        private EvidenceRecord(Asn1Sequence sequence)
+        private EvidenceRecord(Asn1Sequence seq)
         {
-            if (sequence.Count < 3 && sequence.Count > 5)
-                throw new ArgumentException("wrong sequence size in constructor: " + sequence.Count, nameof(sequence));
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 5)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            DerInteger versionNumber = DerInteger.GetInstance(sequence[0]);
-            if (!versionNumber.HasValue(1))
+            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_digestAlgorithms = Asn1Sequence.GetInstance(seq[pos++]);
+            m_cryptoInfos = Asn1Utilities.ReadContextTagged(seq, ref pos, 0, false, CryptoInfos.GetTagged);
+            m_encryptionInfo = Asn1Utilities.ReadContextTagged(seq, ref pos, 1, false, EncryptionInfo.GetTagged);
+            m_archiveTimeStampSequence = ArchiveTimeStampSequence.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            if (!m_version.HasValue(1))
                 throw new ArgumentException("incompatible version");
-
-            m_version = versionNumber;
-
-            m_digestAlgorithms = Asn1Sequence.GetInstance(sequence[1]);
-            for (int i = 2; i != sequence.Count - 1; i++)
-            {
-                Asn1Encodable element = sequence[i];
-
-                if (element is Asn1TaggedObject asn1TaggedObject)
-                {
-                    switch (asn1TaggedObject.TagNo)
-                    {
-                    case 0:
-                        m_cryptoInfos = CryptoInfos.GetInstance(asn1TaggedObject, false);
-                        break;
-                    case 1:
-                        m_encryptionInfo = EncryptionInfo.GetInstance(asn1TaggedObject, false);
-                        break;
-                    default:
-                        throw new ArgumentException("unknown tag in GetInstance: " + asn1TaggedObject.TagNo);
-                    }
-                }
-                else
-                {
-                    throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(element));
-                }
-            }
-            m_archiveTimeStampSequence = ArchiveTimeStampSequence.GetInstance(sequence[sequence.Count - 1]);
         }
+
+        public virtual DerInteger Version => m_version;
 
         public virtual AlgorithmIdentifier[] GetDigestAlgorithms() =>
             m_digestAlgorithms.MapElements(AlgorithmIdentifier.GetInstance);
+
+        public virtual CryptoInfos CryptoInfos => m_cryptoInfos;
+
+        public virtual EncryptionInfo EncryptionInfo => m_encryptionInfo;
 
         public virtual ArchiveTimeStampSequence ArchiveTimeStampSequence => m_archiveTimeStampSequence;
 
@@ -206,8 +193,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector vector = new Asn1EncodableVector(5);
-            vector.Add(m_version);
-            vector.Add(m_digestAlgorithms);
+            vector.Add(m_version, m_digestAlgorithms);
             vector.AddOptionalTagged(false, 0, m_cryptoInfos);
             vector.AddOptionalTagged(false, 1, m_encryptionInfo);
             vector.Add(m_archiveTimeStampSequence);

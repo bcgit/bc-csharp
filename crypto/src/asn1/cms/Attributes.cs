@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new Attributes(Asn1Set.GetInstance(obj));
         }
 
-        public static Attributes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new Attributes(Asn1Set.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static Attributes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Attributes(Asn1Set.GetInstance(taggedObject, declaredExplicit));
+
+        public static Attributes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Attributes(Asn1Set.GetTagged(taggedObject, declaredExplicit));
 
         public static Attributes GetOptional(Asn1Encodable element)
         {

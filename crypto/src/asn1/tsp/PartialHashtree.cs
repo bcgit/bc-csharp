@@ -31,10 +31,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new PartialHashtree(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PartialHashtree GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PartialHashtree(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PartialHashtree GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PartialHashtree(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PartialHashtree GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PartialHashtree(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         /**
          * Hash values that constitute the hash tree, as ASN.1 Octet Strings.
