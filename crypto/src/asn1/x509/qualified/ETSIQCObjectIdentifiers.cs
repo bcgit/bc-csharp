@@ -4,7 +4,8 @@ using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.X509.Qualified
 {
-	public abstract class EtsiQCObjectIdentifiers
+    // TODO[api] Make static
+    public abstract class EtsiQCObjectIdentifiers
 	{
 		//
 		// base id
