@@ -5,76 +5,63 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
     public class Gost3410PublicKeyAlgParameters
         : Asn1Encodable
     {
-        private DerObjectIdentifier	publicKeyParamSet;
-        private DerObjectIdentifier	digestParamSet;
-        private DerObjectIdentifier	encryptionParamSet;
-
-		public static Gost3410PublicKeyAlgParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static Gost3410PublicKeyAlgParameters GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
-
-		public static Gost3410PublicKeyAlgParameters GetInstance(object obj)
-        {
-            if (obj == null || obj is Gost3410PublicKeyAlgParameters)
-                return (Gost3410PublicKeyAlgParameters)obj;
-
+            if (obj == null)
+                return null;
+            if (obj is Gost3410PublicKeyAlgParameters gost3410PublicKeyAlgParameters)
+                return gost3410PublicKeyAlgParameters;
             return new Gost3410PublicKeyAlgParameters(Asn1Sequence.GetInstance(obj));
         }
 
-		public Gost3410PublicKeyAlgParameters(
-            DerObjectIdentifier	publicKeyParamSet,
-            DerObjectIdentifier	digestParamSet)
-			: this (publicKeyParamSet, digestParamSet, null)
-        {
-        }
+        public static Gost3410PublicKeyAlgParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Gost3410PublicKeyAlgParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-		public Gost3410PublicKeyAlgParameters(
-            DerObjectIdentifier  publicKeyParamSet,
-            DerObjectIdentifier  digestParamSet,
-            DerObjectIdentifier  encryptionParamSet)
-        {
-			if (publicKeyParamSet == null)
-				throw new ArgumentNullException("publicKeyParamSet");
-			if (digestParamSet == null)
-				throw new ArgumentNullException("digestParamSet");
+        public static Gost3410PublicKeyAlgParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Gost3410PublicKeyAlgParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-			this.publicKeyParamSet = publicKeyParamSet;
-            this.digestParamSet = digestParamSet;
-            this.encryptionParamSet = encryptionParamSet;
-        }
+        private readonly DerObjectIdentifier m_publicKeyParamSet;
+        private readonly DerObjectIdentifier m_digestParamSet;
+        private readonly DerObjectIdentifier m_encryptionParamSet;
 
         private Gost3410PublicKeyAlgParameters(Asn1Sequence seq)
         {
-            this.publicKeyParamSet = (DerObjectIdentifier) seq[0];
-            this.digestParamSet = (DerObjectIdentifier) seq[1];
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count > 2)
-            {
-                this.encryptionParamSet = (DerObjectIdentifier) seq[2];
-            }
+            m_publicKeyParamSet = DerObjectIdentifier.GetInstance(seq[pos++]);
+            m_digestParamSet = DerObjectIdentifier.GetInstance(seq[pos++]);
+            m_encryptionParamSet = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public DerObjectIdentifier PublicKeyParamSet
-		{
-			get { return publicKeyParamSet; }
-		}
+        public Gost3410PublicKeyAlgParameters(DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet)
+            : this(publicKeyParamSet, digestParamSet, null)
+        {
+        }
 
-		public DerObjectIdentifier DigestParamSet
-		{
-			get { return digestParamSet; }
-		}
+        public Gost3410PublicKeyAlgParameters(DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet,
+            DerObjectIdentifier encryptionParamSet)
+        {
+            m_publicKeyParamSet = publicKeyParamSet ?? throw new ArgumentNullException(nameof(publicKeyParamSet));
+            m_digestParamSet = digestParamSet ?? throw new ArgumentNullException(nameof(digestParamSet));
+            m_encryptionParamSet = encryptionParamSet;
+        }
 
-		public DerObjectIdentifier EncryptionParamSet
-		{
-			get { return encryptionParamSet; }
-		}
+        public DerObjectIdentifier PublicKeyParamSet => m_publicKeyParamSet;
+
+		public DerObjectIdentifier DigestParamSet => m_digestParamSet;
+
+		public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
 
 		public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(publicKeyParamSet, digestParamSet);
-            v.AddOptional(encryptionParamSet);
-			return new DerSequence(v);
+            return m_encryptionParamSet == null
+                ?  new DerSequence(m_publicKeyParamSet, m_digestParamSet)
+                :  new DerSequence(m_publicKeyParamSet, m_digestParamSet, m_encryptionParamSet);
         }
     }
 }
