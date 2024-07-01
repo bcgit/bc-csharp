@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         {
             m_namingAuthority = namingAuthority;
 			m_professionItems = DerSequence.FromElements(professionItems);
-			m_professionOids = professionOids == null ? null : DerSequence.FromElements(professionOids);
+			m_professionOids = DerSequence.FromElementsOptional(professionOids);
 			m_registrationNumber = registrationNumber == null ? null : new DerPrintableString(registrationNumber, true);
 			m_addProfessionInfo = addProfessionInfo;
 		}

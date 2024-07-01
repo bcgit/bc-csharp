@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         private ArchiveTimeStampChain(Asn1Sequence seq)
         {
-            m_archiveTimeStamps = DerSequence.FromElements(seq.MapElements(ArchiveTimeStamp.GetInstance));
+            m_archiveTimeStamps = DerSequence.Map(seq, ArchiveTimeStamp.GetInstance);
         }
 
         public ArchiveTimeStampChain(ArchiveTimeStamp archiveTimeStamp)

@@ -36,9 +36,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public CompleteCertificateRefs(params OtherCertID[] otherCertIDs)
 		{
-			if (otherCertIDs == null)
-				throw new ArgumentNullException(nameof(otherCertIDs));
-
 			m_otherCertIDs = DerSequence.FromElements(otherCertIDs);
 		}
 

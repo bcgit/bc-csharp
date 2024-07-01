@@ -43,9 +43,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public OcspListID(params OcspResponsesID[] ocspResponses)
 		{
-			if (ocspResponses == null)
-				throw new ArgumentNullException(nameof(ocspResponses));
-
 			m_ocspResponses = DerSequence.FromElements(ocspResponses);
 		}
 

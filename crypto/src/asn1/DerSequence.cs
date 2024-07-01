@@ -19,13 +19,24 @@ namespace Org.BouncyCastle.Asn1
             case 1:
                 return FromSequence(sequences[0]);
             default:
-                return FromElements(ConcatenateElements(sequences));
+                return WithElements(ConcatenateElements(sequences));
             }
         }
 
-        internal static DerSequence FromElements(Asn1Encodable[] elements)
+        public static DerSequence FromElements(Asn1Encodable[] elements)
         {
-            return elements.Length < 1 ? Empty : new DerSequence(elements, clone: false);
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
+            return elements.Length < 1 ? Empty : new DerSequence(elements);
+        }
+
+        public static DerSequence FromElementsOptional(Asn1Encodable[] elements)
+        {
+            if (elements == null)
+                return null;
+
+            return elements.Length < 1 ? Empty : new DerSequence(elements);
         }
 
         public static DerSequence FromSequence(Asn1Sequence sequence)
@@ -33,13 +44,23 @@ namespace Org.BouncyCastle.Asn1
             if (sequence is DerSequence derSequence)
                 return derSequence;
 
-            return FromElements(sequence.m_elements);
+            return WithElements(sequence.m_elements);
         }
 
 		public static DerSequence FromVector(Asn1EncodableVector elementVector)
 		{
             return elementVector.Count < 1 ? Empty : new DerSequence(elementVector);
 		}
+
+        public static DerSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
+        {
+            return sequence.Count < 1 ? Empty : new DerSequence(sequence.MapElements(func), clone: false);
+        }
+
+        internal static DerSequence WithElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new DerSequence(elements, clone: false);
+        }
 
         /**
 		 * create an empty sequence

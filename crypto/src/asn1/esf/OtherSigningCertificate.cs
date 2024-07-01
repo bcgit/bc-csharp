@@ -54,15 +54,8 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public OtherSigningCertificate(OtherCertID[] certs, params PolicyInformation[] policies)
 		{
-			if (certs == null)
-                throw new ArgumentNullException(nameof(certs));
-
             m_certs = DerSequence.FromElements(certs);
-
-			if (policies != null)
-			{
-				m_policies = DerSequence.FromElements(policies);
-			}
+            m_policies = DerSequence.FromElementsOptional(policies);
 		}
 
 		public OtherSigningCertificate(IEnumerable<OtherCertID> certs)

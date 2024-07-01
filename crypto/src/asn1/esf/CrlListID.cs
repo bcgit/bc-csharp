@@ -44,9 +44,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public CrlListID(params CrlValidatedID[] crls)
 		{
-			if (crls == null)
-				throw new ArgumentNullException(nameof(crls));
-
 			m_crls = DerSequence.FromElements(crls);
 		}
 

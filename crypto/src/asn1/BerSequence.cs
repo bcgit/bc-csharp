@@ -19,13 +19,24 @@ namespace Org.BouncyCastle.Asn1
             case 1:
                 return FromSequence(sequences[0]);
             default:
-                return FromElements(ConcatenateElements(sequences));
+                return WithElements(ConcatenateElements(sequences));
             }
         }
 
-        internal static new BerSequence FromElements(Asn1Encodable[] elements)
+        public static new BerSequence FromElements(Asn1Encodable[] elements)
         {
-            return elements.Length < 1 ? Empty : new BerSequence(elements, clone: false);
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
+            return elements.Length < 1 ? Empty : new BerSequence(elements);
+        }
+
+        public static new BerSequence FromElementsOptional(Asn1Encodable[] elements)
+        {
+            if (elements == null)
+                return null;
+
+            return elements.Length < 1 ? Empty : new BerSequence(elements);
         }
 
         public static new BerSequence FromSequence(Asn1Sequence sequence)
@@ -33,7 +44,7 @@ namespace Org.BouncyCastle.Asn1
             if (sequence is BerSequence berSequence)
                 return berSequence;
 
-            return FromElements(sequence.m_elements);
+            return WithElements(sequence.m_elements);
         }
 
 		public static new BerSequence FromVector(Asn1EncodableVector elementVector)
@@ -41,10 +52,20 @@ namespace Org.BouncyCastle.Asn1
             return elementVector.Count < 1 ? Empty : new BerSequence(elementVector);
 		}
 
-		/**
+        public static new BerSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
+        {
+            return sequence.Count < 1 ? Empty : new BerSequence(sequence.MapElements(func), clone: false);
+        }
+
+        internal static new BerSequence WithElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new BerSequence(elements, clone: false);
+        }
+
+        /**
 		 * create an empty sequence
 		 */
-		public BerSequence()
+        public BerSequence()
             : base()
 		{
 		}

@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_header = header ?? throw new ArgumentNullException(nameof(header));
             m_body = body ?? throw new ArgumentNullException(nameof(body));
             m_protection = protection;
-            m_extraCerts = extraCerts == null ? null : DerSequence.FromElements(extraCerts);
+            m_extraCerts = DerSequence.FromElementsOptional(extraCerts);
         }
 
         public PkiMessage(PkiHeader header, PkiBody body, DerBitString protection)

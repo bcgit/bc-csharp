@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1.Ess
         public SigningCertificateV2(EssCertIDv2[] certs, PolicyInformation[] policies)
         {
             m_certs = new DerSequence(certs);
-            m_policies = policies == null ? null : DerSequence.FromElements(policies);
+            m_policies = DerSequence.FromElementsOptional(policies);
         }
 
         public EssCertIDv2[] GetCerts() => m_certs.MapElements(EssCertIDv2.GetInstance);

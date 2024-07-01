@@ -59,16 +59,8 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public RevocationValues(CertificateList[] crlVals, BasicOcspResponse[] ocspVals, OtherRevVals otherRevVals)
 		{
-			if (crlVals != null)
-			{
-				m_crlVals = DerSequence.FromElements(crlVals);
-			}
-
-			if (ocspVals != null)
-			{
-				m_ocspVals = DerSequence.FromElements(ocspVals);
-			}
-
+            m_crlVals = DerSequence.FromElementsOptional(crlVals);
+            m_ocspVals = DerSequence.FromElementsOptional(ocspVals);
 			m_otherRevVals = otherRevVals;
 		}
 

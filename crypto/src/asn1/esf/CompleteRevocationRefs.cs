@@ -36,9 +36,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public CompleteRevocationRefs(params CrlOcspRef[] crlOcspRefs)
 		{
-			if (crlOcspRefs == null)
-				throw new ArgumentNullException(nameof(crlOcspRefs));
-
 			m_crlOcspRefs = DerSequence.FromElements(crlOcspRefs);
 		}
 

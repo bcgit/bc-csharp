@@ -38,9 +38,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public CertificateValues(params X509CertificateStructure[] certificates)
 		{
-			if (certificates == null)
-				throw new ArgumentNullException(nameof(certificates));
-
 			m_certificates = DerSequence.FromElements(certificates);
 		}
 

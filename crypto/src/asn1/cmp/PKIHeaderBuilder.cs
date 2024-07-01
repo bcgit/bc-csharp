@@ -120,15 +120,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			return this;
 		}
 
-		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue generalInfo)
-		{
-			return new DerSequence(generalInfo);
-		}
+		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue generalInfo) => new DerSequence(generalInfo);
 
-		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue[] generalInfos)
-		{
-			return generalInfos == null ? null : DerSequence.FromElements(generalInfos);
-		}
+		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue[] generalInfos) =>
+			DerSequence.FromElementsOptional(generalInfos);
 
 		/**
 		 * <pre>
