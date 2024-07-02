@@ -153,12 +153,31 @@ namespace Org.BouncyCastle.Asn1
         {
             Asn1RelativeOid.CheckIdentifier(branchID);
 
-            byte[] branchContents = Asn1RelativeOid.ParseIdentifier(branchID);
-            CheckContentsLength(m_contents.Length + branchContents.Length);
+            byte[] contents;
+            if (branchID.Length <= 2)
+            {
+                CheckContentsLength(m_contents.Length + 1);
+                int subID = branchID[0] - '0';
+                if (branchID.Length == 2)
+                {
+                    subID *= 10;
+                    subID += branchID[1] - '0';
+                }
 
-            return new DerObjectIdentifier(
-                contents: Arrays.Concatenate(m_contents, branchContents),
-                identifier: GetID() + "." + branchID);
+                contents = Arrays.Append(m_contents, (byte)subID);
+            }
+            else
+            {
+                byte[] branchContents = Asn1RelativeOid.ParseIdentifier(branchID);
+                CheckContentsLength(m_contents.Length + branchContents.Length);
+
+                contents = Arrays.Concatenate(m_contents, branchContents);
+            }
+
+            string rootID = GetID();
+            string identifier = string.Concat(rootID, ".", branchID);
+
+            return new DerObjectIdentifier(contents, identifier);
         }
 
         public string GetID()
