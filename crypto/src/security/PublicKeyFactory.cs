@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Security
                 }
                 else
                 {
-                    x9 = new X9ECParameters((Asn1Sequence)para.Parameters);
+                    x9 = X9ECParameters.GetInstance(para.Parameters);
                 }
 
                 Asn1OctetString key = new DerOctetString(keyInfo.PublicKey.GetBytes());

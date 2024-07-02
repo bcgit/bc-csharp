@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Security
                 }
                 else
                 {
-                    x9 = new X9ECParameters((Asn1Sequence)para.Parameters);
+                    x9 = X9ECParameters.GetInstance(para.Parameters);
                 }
 
                 ECPrivateKeyStructure ec = ECPrivateKeyStructure.GetInstance(keyInfo.ParsePrivateKey());

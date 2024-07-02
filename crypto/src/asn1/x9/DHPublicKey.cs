@@ -1,46 +1,34 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X9
 {
-	public class DHPublicKey
+    public class DHPublicKey
 		: Asn1Encodable
 	{
-		private readonly DerInteger y;
+        public static DHPublicKey GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is DHPublicKey dhPublicKey)
+                return dhPublicKey;
+            return new DHPublicKey(DerInteger.GetInstance(obj));
+        }
 
-		public static DHPublicKey GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        public static DHPublicKey GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new DHPublicKey(DerInteger.GetInstance(obj, isExplicit));
+
+        public static DHPublicKey GetTagged(Asn1TaggedObject obj, bool isExplicit) =>
+            new DHPublicKey(DerInteger.GetTagged(obj, isExplicit));
+
+        private readonly DerInteger m_y;
+
+        public DHPublicKey(DerInteger y)
 		{
-			return GetInstance(DerInteger.GetInstance(obj, isExplicit));
-		}
+			m_y = y ?? throw new ArgumentNullException(nameof(y));
+        }
 
-		public static DHPublicKey GetInstance(object obj)
-		{
-			if (obj == null || obj is DHPublicKey)
-				return (DHPublicKey)obj;
+        public DerInteger Y => m_y;
 
-			if (obj is DerInteger)
-				return new DHPublicKey((DerInteger)obj);
-
-			throw new ArgumentException("Invalid DHPublicKey: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public DHPublicKey(DerInteger y)
-		{
-			if (y == null)
-				throw new ArgumentNullException("y");
-
-			this.y = y;
-		}
-
-		public DerInteger Y
-		{
-			get { return this.y; }
-		}
-
-		public override Asn1Object ToAsn1Object()
-		{
-			return this.y;
-		}
+        public override Asn1Object ToAsn1Object() => m_y;
 	}
 }
