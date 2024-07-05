@@ -4,7 +4,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	 * Class for containing a restriction object subtrees in NameConstraints. See
 	 * RFC 3280.
 	 *
@@ -21,62 +21,49 @@ namespace Org.BouncyCastle.Asn1.X509
 	 * @see org.bouncycastle.asn1.x509.NameConstraints
 	 *
 	 */
-	public class GeneralSubtree
+    public class GeneralSubtree
 		: Asn1Encodable
 	{
-		private readonly GeneralName	baseName;
-		private readonly DerInteger		minimum;
-		private readonly DerInteger		maximum;
+        public static GeneralSubtree GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is GeneralSubtree generalSubtree)
+                return generalSubtree;
+            return new GeneralSubtree(Asn1Sequence.GetInstance(obj));
+        }
 
-		private GeneralSubtree(
-			Asn1Sequence seq)
+        public static GeneralSubtree GetInstance(Asn1TaggedObject o, bool isExplicit) =>
+            new GeneralSubtree(Asn1Sequence.GetInstance(o, isExplicit));
+
+        public static GeneralSubtree GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new GeneralSubtree(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly GeneralName m_baseName;
+        private readonly DerInteger m_minimum;
+        private readonly DerInteger m_maximum;
+
+        private GeneralSubtree(Asn1Sequence seq)
 		{
-			baseName = GeneralName.GetInstance(seq[0]);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			switch (seq.Count)
-			{
-				case 1:
-					break;
-				case 2:
-				{
-					Asn1TaggedObject o = Asn1TaggedObject.GetInstance(seq[1]);
-					switch (o.TagNo)
-					{
-						case 0:
-							minimum = DerInteger.GetInstance(o, false);
-							break;
-						case 1:
-							maximum = DerInteger.GetInstance(o, false);
-							break;
-						default:
-							throw new ArgumentException("Bad tag number: " + o.TagNo);
-					}
-					break;
-				}
-				case 3:
-				{
-					{
-						Asn1TaggedObject oMin = Asn1TaggedObject.GetInstance(seq[1]);
-						if (oMin.TagNo != 0)
-							throw new ArgumentException("Bad tag number for 'minimum': " + oMin.TagNo);
-						minimum = DerInteger.GetInstance(oMin, false);
-					}
+            m_baseName = GeneralName.GetInstance(seq[pos++]);
+			m_minimum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, DerInteger.GetTagged)
+				?? DerInteger.Zero;
+			m_maximum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerInteger.GetTagged);
 
-					{
-						Asn1TaggedObject oMax = Asn1TaggedObject.GetInstance(seq[2]);
-						if (oMax.TagNo != 1)
-							throw new ArgumentException("Bad tag number for 'maximum': " + oMax.TagNo);
-						maximum = DerInteger.GetInstance(oMax, false);
-					}
-
-					break;
-				}
-				default:
-					throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		/**
+        public GeneralSubtree(GeneralName baseName)
+            : this(baseName, null, null)
+        {
+        }
+
+        /**
 		 * Constructor from a given details.
 		 *
 		 * According RFC 3280, the minimum and maximum fields are not used with any
@@ -93,65 +80,18 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param maximum
 		 *            Maximum
 		 */
-		public GeneralSubtree(
-			GeneralName	baseName,
-			BigInteger	minimum,
-			BigInteger	maximum)
-		{
-			this.baseName = baseName;
-			if (minimum != null)
-			{
-				this.minimum = new DerInteger(minimum);
-			}
-			if (maximum != null)
-			{
-				this.maximum = new DerInteger(maximum);
-			}
-		}
+        public GeneralSubtree(GeneralName baseName, BigInteger minimum, BigInteger maximum)
+        {
+            m_baseName = baseName ?? throw new ArgumentNullException(nameof(baseName));
+			m_minimum = minimum == null ? DerInteger.Zero : new DerInteger(minimum);
+			m_maximum = maximum == null ? null : new DerInteger(maximum);
+        }
 
-		public GeneralSubtree(
-			GeneralName baseName)
-			: this(baseName, null, null)
-		{
-		}
+		public GeneralName Base => m_baseName;
 
-		public static GeneralSubtree GetInstance(
-			Asn1TaggedObject	o,
-			bool				isExplicit)
-		{
-			return new GeneralSubtree(Asn1Sequence.GetInstance(o, isExplicit));
-		}
+		public BigInteger Minimum => m_minimum.Value;
 
-		public static GeneralSubtree GetInstance(
-			object obj)
-		{
-			if (obj == null)
-			{
-				return null;
-			}
-
-			if (obj is GeneralSubtree)
-			{
-				return (GeneralSubtree) obj;
-			}
-
-			return new GeneralSubtree(Asn1Sequence.GetInstance(obj));
-		}
-
-		public GeneralName Base
-		{
-			get { return baseName; }
-		}
-
-		public BigInteger Minimum
-		{
-			get { return minimum == null ? BigInteger.Zero : minimum.Value; }
-		}
-
-		public BigInteger Maximum
-		{
-			get { return maximum == null ? null : maximum.Value; }
-		}
+		public BigInteger Maximum => m_maximum?.Value;
 
 		/**
 		 * Produce an object suitable for an Asn1OutputStream.
@@ -171,14 +111,15 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(baseName);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_baseName);
 
-			if (minimum != null && !minimum.HasValue(0))
+			if (!m_minimum.HasValue(0))
 			{
-				v.Add(new DerTaggedObject(false, 0, minimum));
+				v.Add(new DerTaggedObject(false, 0, m_minimum));
 			}
 
-            v.AddOptionalTagged(false, 1, maximum);
+            v.AddOptionalTagged(false, 1, m_maximum);
 			return new DerSequence(v);
 		}
 	}

@@ -48,7 +48,42 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public const int DisplayTextMaximumSize = 200;
 
-		internal readonly int contentType;
+        public static DisplayText GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+
+            if (obj is Asn1Encodable element)
+            {
+                var result = GetOptional(element);
+                if (result != null)
+                    return result;
+            }
+
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+        }
+
+        public static DisplayText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static DisplayText GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DisplayText displayText)
+                return displayText;
+
+            if (element is IAsn1String asn1String)
+                return new DisplayText(asn1String);
+
+            return null;
+        }
+
+        public static DisplayText GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        internal readonly int contentType;
 		internal readonly IAsn1String contents;
 
 		/**
@@ -139,23 +174,6 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			this.contents = contents;
 		}
-
-		public static DisplayText GetInstance(object obj)
-		{
-			if (obj is IAsn1String asn1String)
-				return new DisplayText(asn1String);
-
-			if (obj is DisplayText displayText)
-				return displayText;
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public static DisplayText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
-
-        public static DisplayText GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         public override Asn1Object ToAsn1Object()
 		{

@@ -24,21 +24,9 @@ namespace Org.BouncyCastle.Asn1.X509
      * Note: issuerUniqueID and subjectUniqueID are both deprecated by the IETF. This class
      * will parse them, but you really shouldn't be creating new ones.</p>
      */
-	public class TbsCertificateStructure
+    public class TbsCertificateStructure
 		: Asn1Encodable
 	{
-		internal Asn1Sequence            seq;
-		internal DerInteger              version;
-		internal DerInteger              serialNumber;
-		internal AlgorithmIdentifier     signature;
-		internal X509Name                issuer;
-		internal Time                    startDate, endDate;
-		internal X509Name                subject;
-		internal SubjectPublicKeyInfo    subjectPublicKeyInfo;
-		internal DerBitString            issuerUniqueID;
-		internal DerBitString            subjectUniqueID;
-		internal X509Extensions          extensions;
-
         public static TbsCertificateStructure GetInstance(object obj)
         {
             if (obj == null)
@@ -48,201 +36,131 @@ namespace Org.BouncyCastle.Asn1.X509
             return new TbsCertificateStructure(Asn1Sequence.GetInstance(obj));
         }
 
-        public static TbsCertificateStructure GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static TbsCertificateStructure GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new TbsCertificateStructure(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static TbsCertificateStructure GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TbsCertificateStructure(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1Sequence m_seq;
+
+        private readonly DerInteger m_version;
+        private readonly DerInteger m_serialNumber;
+        private readonly AlgorithmIdentifier m_signature;
+        private readonly X509Name m_issuer;
+        private readonly Time m_startDate, m_endDate;
+        private readonly X509Name m_subject;
+        private readonly SubjectPublicKeyInfo m_subjectPublicKeyInfo;
+        private readonly DerBitString m_issuerUniqueID;
+        private readonly DerBitString m_subjectUniqueID;
+        private readonly X509Extensions m_extensions;
 
         private TbsCertificateStructure(Asn1Sequence seq)
 		{
-			int seqStart = 0;
+            int count = seq.Count, pos = 0;
+            if (count < 6 || count > 10)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			this.seq = seq;
+            m_version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerInteger.GetTagged)
+                ?? DerInteger.Zero;
 
-			//
-			// some certificates don't include a version number - we assume v1
-			//
-			if (seq[0] is Asn1TaggedObject taggedObject)
-			{
-				version = DerInteger.GetInstance(taggedObject, true);
-			}
-			else
-			{
-				seqStart = -1;          // field 0 is missing!
-				version = DerInteger.Zero;
-			}
-
-            bool isV1 = false;
-            bool isV2 = false;
-
-            if (version.HasValue(0))
+            bool isV1 = false, isV2 = false;
+            if (m_version.HasValue(0))
             {
                 isV1 = true;
             }
-            else if (version.HasValue(1))
+            else if (m_version.HasValue(1))
             {
                 isV2 = true;
             }
-            else if (!version.HasValue(2))
+            else if (!m_version.HasValue(2))
             {
                 throw new ArgumentException("version number not recognised");
             }
 
-			serialNumber = DerInteger.GetInstance(seq[seqStart + 1]);
+            m_serialNumber = DerInteger.GetInstance(seq[pos++]);
+            m_signature = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_issuer = X509Name.GetInstance(seq[pos++]);
 
-			signature = AlgorithmIdentifier.GetInstance(seq[seqStart + 2]);
-			issuer = X509Name.GetInstance(seq[seqStart + 3]);
+            // TODO New ASN.1 type
+            var validity = Asn1Sequence.GetInstance(seq[pos++]);
+            m_startDate = Time.GetInstance(validity[0]);
+            m_endDate = Time.GetInstance(validity[1]);
 
-			//
-			// before and after dates
-			//
-			Asn1Sequence  dates = (Asn1Sequence)seq[seqStart + 4];
+            m_subject = X509Name.GetInstance(seq[pos++]);
+            m_subjectPublicKeyInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
 
-			startDate = Time.GetInstance(dates[0]);
-			endDate = Time.GetInstance(dates[1]);
+            if (!isV1)
+            {
+                m_issuerUniqueID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerBitString.GetTagged);
+                m_subjectUniqueID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, DerBitString.GetTagged);
 
-			subject = X509Name.GetInstance(seq[seqStart + 5]);
-
-			//
-			// public key info.
-			//
-			subjectPublicKeyInfo = SubjectPublicKeyInfo.GetInstance(seq[seqStart + 6]);
-
-            int extras = seq.Count - (seqStart + 6) - 1;
-            if (extras != 0 && isV1)
-                throw new ArgumentException("version 1 certificate contains extra data");
-
-            while (extras > 0)
-			{
-                Asn1TaggedObject extra = Asn1TaggedObject.GetInstance(seq[seqStart + 6 + extras]);
-				switch (extra.TagNo)
-				{
-				case 1:
+                if (!isV2)
                 {
-					issuerUniqueID = DerBitString.GetInstance(extra, false);
-					break;
+                    m_extensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, X509Extensions.GetTagged);
                 }
-                case 2:
-                {
-                    subjectUniqueID = DerBitString.GetInstance(extra, false);
-                    break;
-                }
-				case 3:
-                {
-                    if (isV2)
-                        throw new ArgumentException("version 2 certificate cannot contain extensions");
+            }
 
-                    extensions = X509Extensions.GetInstance(Asn1Sequence.GetInstance(extra, true));
-					break;
-                }
-                default:
-                {
-                    throw new ArgumentException("Unknown tag encountered in structure: " + extra.TagNo);
-                }
-                }
-                extras--;
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+			m_seq = seq;
 		}
 
-		public int Version
-		{
-            get { return version.IntValueExact + 1; }
-		}
+		public int Version => m_version.IntValueExact + 1;
 
-		public DerInteger VersionNumber
-		{
-			get { return version; }
-		}
+		public DerInteger VersionNumber => m_version;
 
-		public DerInteger SerialNumber
-		{
-			get { return serialNumber; }
-		}
+		public DerInteger SerialNumber => m_serialNumber;
 
-		public AlgorithmIdentifier Signature
-		{
-			get { return signature; }
-		}
+        public AlgorithmIdentifier Signature => m_signature;
 
-		public X509Name Issuer
-		{
-			get { return issuer; }
-		}
+        public X509Name Issuer => m_issuer;
 
-		public Time StartDate
-		{
-			get { return startDate; }
-		}
+        public Time StartDate => m_startDate;
 
-		public Time EndDate
-		{
-			get { return endDate; }
-		}
+        public Time EndDate => m_endDate;
 
-		public X509Name Subject
-		{
-			get { return subject; }
-		}
+        public X509Name Subject => m_subject;
 
-		public SubjectPublicKeyInfo SubjectPublicKeyInfo
-		{
-			get { return subjectPublicKeyInfo; }
-		}
+        public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPublicKeyInfo;
 
-		public DerBitString IssuerUniqueID
-		{
-			get { return issuerUniqueID; }
-        }
+        public DerBitString IssuerUniqueID => m_issuerUniqueID;
 
-		public DerBitString SubjectUniqueID
-        {
-			get { return subjectUniqueID; }
-        }
+        public DerBitString SubjectUniqueID => m_subjectUniqueID;
 
-		public X509Extensions Extensions
-        {
-			get { return extensions; }
-        }
+        public X509Extensions Extensions => m_extensions;
 
 		public override Asn1Object ToAsn1Object()
         {
             string property = Platform.GetEnvironmentVariable("Org.BouncyCastle.X509.Allow_Non-DER_TBSCert");
             if (null == property || Platform.EqualsIgnoreCase("true", property))
-                return seq;
+                return m_seq;
 
-            Asn1EncodableVector v = new Asn1EncodableVector(8);
+            Asn1EncodableVector v = new Asn1EncodableVector(10);
 
             // DEFAULT Zero
-            if (!version.HasValue(0))
+            if (!m_version.HasValue(0))
             {
-                v.Add(new DerTaggedObject(true, 0, version));
+                v.Add(new DerTaggedObject(true, 0, m_version));
             }
 
-            v.Add(serialNumber, signature, issuer);
+            v.Add(m_serialNumber, m_signature, m_issuer);
 
 			//
 			// before and after dates
 			//
-			v.Add(new DerSequence(startDate, endDate));
+			v.Add(new DerSequence(m_startDate, m_endDate));
 
-            if (subject != null)
-            {
-                v.Add(subject);
-            }
-            else
-            {
-                v.Add(DerSequence.Empty);
-            }
-
-            v.Add(subjectPublicKeyInfo);
+            v.Add(m_subject, m_subjectPublicKeyInfo);
 
             // Note: implicit tag
-			v.AddOptionalTagged(false, 1, issuerUniqueID);
+			v.AddOptionalTagged(false, 1, m_issuerUniqueID);
 
 			// Note: implicit tag
-			v.AddOptionalTagged(false, 2, subjectUniqueID);
+			v.AddOptionalTagged(false, 2, m_subjectUniqueID);
 
-			v.AddOptionalTagged(true, 3, extensions);
+			v.AddOptionalTagged(true, 3, m_extensions);
 
             return new DerSequence(v);
         }

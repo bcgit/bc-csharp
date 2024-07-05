@@ -23,33 +23,56 @@ namespace Org.BouncyCastle.Asn1.X509
     public class NoticeReference
         : Asn1Encodable
     {
-        private readonly DisplayText organization;
-        private readonly Asn1Sequence noticeNumbers;
-
-        private static Asn1EncodableVector ConvertVector(IList<object> numbers)
+        public static NoticeReference GetInstance(object obj)
         {
-            Asn1EncodableVector av = new Asn1EncodableVector(numbers.Count);
+            if (obj == null)
+                return null;
+            if (obj is NoticeReference noticeReference)
+                return noticeReference;
+            return new NoticeReference(Asn1Sequence.GetInstance(obj));
+        }
 
-            foreach (object o in numbers)
-            {
-                DerInteger di;
+        public static NoticeReference GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new NoticeReference(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-                if (o is BigInteger)
-                {
-                    di = new DerInteger((BigInteger)o);
-                }
-                else if (o is int)
-                {
-                    di = new DerInteger((int)o);
-                }
-                else
-                {
-                    throw new ArgumentException();
-                }
+        public static NoticeReference GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
 
-                av.Add(di);
-            }
-            return av;
+            if (element is NoticeReference noticeReference)
+                return noticeReference;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new NoticeReference(asn1Sequence);
+
+            return null;
+        }
+
+        public static NoticeReference GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new NoticeReference(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DisplayText m_organization;
+        private readonly Asn1Sequence m_noticeNumbers;
+
+        /**
+         * Creates a new <code>NoticeReference</code> instance.
+         * <p>Useful for reconstructing a <code>NoticeReference</code>
+         * instance from its encodable/encoded form.</p>
+         *
+         * @param as an <code>Asn1Sequence</code> value obtained from either
+         * calling @{link ToAsn1Object()} for a <code>NoticeReference</code>
+         * instance or from parsing it from a Der-encoded stream.
+         */
+        private NoticeReference(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_organization = DisplayText.GetInstance(seq[0]);
+            m_noticeNumbers = Asn1Sequence.GetInstance(seq[1]);
         }
 
         /**
@@ -82,55 +105,43 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public NoticeReference(DisplayText organization, Asn1EncodableVector noticeNumbers)
         {
-            this.organization = organization;
-            this.noticeNumbers = new DerSequence(noticeNumbers);
+            m_organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            m_noticeNumbers = new DerSequence(noticeNumbers);
         }
 
-        /**
-         * Creates a new <code>NoticeReference</code> instance.
-         * <p>Useful for reconstructing a <code>NoticeReference</code>
-         * instance from its encodable/encoded form.</p>
-         *
-         * @param as an <code>Asn1Sequence</code> value obtained from either
-         * calling @{link ToAsn1Object()} for a <code>NoticeReference</code>
-         * instance or from parsing it from a Der-encoded stream.
-         */
-        private NoticeReference(Asn1Sequence seq)
-        {
-            if (seq.Count != 2)
-                throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+        public virtual DisplayText Organization => m_organization;
 
-            organization = DisplayText.GetInstance(seq[0]);
-            noticeNumbers = Asn1Sequence.GetInstance(seq[1]);
-        }
-
-        public static NoticeReference GetInstance(object obj)
-        {
-            if (obj is NoticeReference)
-                return (NoticeReference)obj;
-            if (obj == null)
-                return null;
-            return new NoticeReference(Asn1Sequence.GetInstance(obj));
-        }
-
-        public virtual DisplayText Organization
-        {
-            get { return organization; }
-        }
-
-        public virtual DerInteger[] GetNoticeNumbers()
-        {
-            return noticeNumbers.MapElements(DerInteger.GetInstance);
-        }
+        public virtual DerInteger[] GetNoticeNumbers() => m_noticeNumbers.MapElements(DerInteger.GetInstance);
 
         /**
          * Describe <code>ToAsn1Object</code> method here.
          *
          * @return a <code>Asn1Object</code> value
          */
-        public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_organization, m_noticeNumbers);
+
+        private static Asn1EncodableVector ConvertVector(IList<object> numbers)
         {
-            return new DerSequence(organization, noticeNumbers);
+            Asn1EncodableVector av = new Asn1EncodableVector(numbers.Count);
+            foreach (object o in numbers)
+            {
+                DerInteger di;
+                if (o is BigInteger big)
+                {
+                    di = new DerInteger(big);
+                }
+                else if (o is int i)
+                {
+                    di = new DerInteger(i);
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+
+                av.Add(di);
+            }
+            return av;
         }
     }
 }

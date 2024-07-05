@@ -249,6 +249,8 @@ namespace Org.BouncyCastle.Asn1.X509
 
 			foreach (Asn1Encodable ae in seq)
 			{
+                // TODO Move this block to an X509Extension.GetInstance method
+
 				Asn1Sequence s = Asn1Sequence.GetInstance(ae);
 
 				if (s.Count < 2 || s.Count > 3)

@@ -1,133 +1,74 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class AttributeCertificateInfo
         : Asn1Encodable
     {
-        internal readonly DerInteger			version;
-        internal readonly Holder				holder;
-        internal readonly AttCertIssuer			issuer;
-        internal readonly AlgorithmIdentifier	signature;
-        internal readonly DerInteger			serialNumber;
-        internal readonly AttCertValidityPeriod	attrCertValidityPeriod;
-        internal readonly Asn1Sequence			attributes;
-        internal readonly DerBitString			issuerUniqueID;
-        internal readonly X509Extensions		extensions;
-
-		public static AttributeCertificateInfo GetInstance(
-            Asn1TaggedObject	obj,
-            bool				isExplicit)
+        public static AttributeCertificateInfo GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+            if (obj == null)
+                return null;
+            if (obj is AttributeCertificateInfo attributeCertificateInfo)
+                return attributeCertificateInfo;
+            return new AttributeCertificateInfo(Asn1Sequence.GetInstance(obj));
         }
 
-		public static AttributeCertificateInfo GetInstance(
-            object obj)
+        public static AttributeCertificateInfo GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new AttributeCertificateInfo(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static AttributeCertificateInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AttributeCertificateInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerInteger m_version;
+        private readonly Holder m_holder;
+        private readonly AttCertIssuer m_issuer;
+        private readonly AlgorithmIdentifier m_signature;
+        private readonly DerInteger m_serialNumber;
+        private readonly AttCertValidityPeriod m_attrCertValidityPeriod;
+        private readonly Asn1Sequence m_attributes;
+        private readonly DerBitString m_issuerUniqueID;
+        private readonly X509Extensions m_extensions;
+
+        private AttributeCertificateInfo(Asn1Sequence seq)
         {
-            if (obj is AttributeCertificateInfo)
-            {
-                return (AttributeCertificateInfo) obj;
-            }
+            int count = seq.Count, pos = 0;
+            if (count < 6 || count > 9)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj is Asn1Sequence)
-            {
-                return new AttributeCertificateInfo((Asn1Sequence) obj);
-            }
+            m_version = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional) ?? DerInteger.Zero;
+            m_holder = Holder.GetInstance(seq[pos++]);
+            m_issuer = AttCertIssuer.GetInstance(seq[pos++]);
+            m_signature = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_serialNumber = DerInteger.GetInstance(seq[pos++]);
+            m_attrCertValidityPeriod = AttCertValidityPeriod.GetInstance(seq[pos++]);
+            m_attributes = Asn1Sequence.GetInstance(seq[pos++]);
+            m_issuerUniqueID = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
+            m_extensions = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		private AttributeCertificateInfo(
-            Asn1Sequence seq)
-        {
-			if (seq.Count < 6 || seq.Count > 9)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
-
-            int start;
-            if (seq[0] is DerInteger)   // in version 1 certs version is DEFAULT  v1(0)
-            {
-                this.version = DerInteger.GetInstance(seq[0]);
-                start = 1;
-            }
-            else
-            {
-                this.version = DerInteger.Zero;
-                start = 0;
-            }
-
-            this.holder = Holder.GetInstance(seq[start]);
-            this.issuer = AttCertIssuer.GetInstance(seq[start + 1]);
-            this.signature = AlgorithmIdentifier.GetInstance(seq[start + 2]);
-            this.serialNumber = DerInteger.GetInstance(seq[start + 3]);
-            this.attrCertValidityPeriod = AttCertValidityPeriod.GetInstance(seq[start + 4]);
-            this.attributes = Asn1Sequence.GetInstance(seq[start + 5]);
-
-			for (int i = start + 6; i < seq.Count; i++)
-            {
-                Asn1Encodable obj = seq[i];
-
-				if (obj is DerBitString bitString)
-                {
-                    this.issuerUniqueID = bitString;
-                }
-                else if (obj is Asn1Sequence || obj is X509Extensions)
-                {
-                    this.extensions = X509Extensions.GetInstance(seq[i]);
-                }
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public DerInteger Version
-		{
-			get { return version; }
-		}
+        public DerInteger Version => m_version;
 
-		public Holder Holder
-		{
-			get { return holder; }
-		}
+        public Holder Holder => m_holder;
 
-		public AttCertIssuer Issuer
-		{
-			get { return issuer; }
-		}
+        public AttCertIssuer Issuer => m_issuer;
 
-		public AlgorithmIdentifier Signature
-		{
-			get { return signature; }
-		}
+        public AlgorithmIdentifier Signature => m_signature;
 
-		public DerInteger SerialNumber
-		{
-			get { return serialNumber; }
-		}
+        public DerInteger SerialNumber => m_serialNumber;
 
-		public AttCertValidityPeriod AttrCertValidityPeriod
-		{
-			get { return attrCertValidityPeriod; }
-		}
+        public AttCertValidityPeriod AttrCertValidityPeriod => m_attrCertValidityPeriod;
 
-		public Asn1Sequence Attributes
-		{
-			get { return attributes; }
-		}
+        public Asn1Sequence Attributes => m_attributes;
 
-		public DerBitString IssuerUniqueID
-		{
-			get { return issuerUniqueID; }
-		}
+        public DerBitString IssuerUniqueID => m_issuerUniqueID;
 
-		public X509Extensions Extensions
-		{
-			get { return extensions; }
-		}
+        public X509Extensions Extensions => m_extensions;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  AttributeCertificateInfo ::= Sequence {
@@ -148,15 +89,12 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(9);
-
-            if (!version.HasValue(0))
+            if (!m_version.HasValue(0))
             {
-                v.Add(version);
+                v.Add(m_version);
             }
-
-            v.Add(holder, issuer, signature, serialNumber, attrCertValidityPeriod, attributes);
-            v.AddOptional(issuerUniqueID, extensions);
-
+            v.Add(m_holder, m_issuer, m_signature, m_serialNumber, m_attrCertValidityPeriod, m_attributes);
+            v.AddOptional(m_issuerUniqueID, m_extensions);
             return new DerSequence(v);
         }
     }

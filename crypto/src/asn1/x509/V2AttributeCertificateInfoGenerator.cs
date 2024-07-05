@@ -122,16 +122,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 			// Attributes
             v.Add(new DerSequence(attributes));
-
-			if (issuerUniqueID != null)
-            {
-                v.Add(issuerUniqueID);
-            }
-
-			if (extensions != null)
-            {
-                v.Add(extensions);
-            }
+            v.AddOptional(issuerUniqueID, extensions);
 
 			return AttributeCertificateInfo.GetInstance(new DerSequence(v));
         }

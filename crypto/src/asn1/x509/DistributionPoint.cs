@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -24,10 +25,11 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DistributionPoint(Asn1Sequence.GetInstance(obj));
         }
 
-        public static DistributionPoint GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static DistributionPoint GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new DistributionPoint(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static DistributionPoint GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DistributionPoint(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DistributionPointName m_distributionPoint;
         private readonly ReasonFlags m_reasons;
@@ -35,27 +37,21 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private DistributionPoint(Asn1Sequence seq)
         {
-            for (int i = 0; i != seq.Count; i++)
-            {
-				Asn1TaggedObject t = Asn1TaggedObject.GetInstance(seq[i]);
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-				switch (t.TagNo)
-                {
-                case 0:
-                    // CHOICE so explicit
-                    m_distributionPoint = DistributionPointName.GetInstance(t, true);
-                    break;
-                case 1:
-                    m_reasons = new ReasonFlags(DerBitString.GetInstance(t, false));
-                    break;
-                case 2:
-                    m_crlIssuer = GeneralNames.GetInstance(t, false);
-                    break;
-                }
-            }
+            m_distributionPoint = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
+                DistributionPointName.GetTagged); // CHOICE
+            m_reasons = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false,
+                (t, e) => new ReasonFlags(DerBitString.GetInstance(t, e)));
+            m_crlIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, GeneralNames.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public DistributionPoint(DistributionPointName distributionPointName, ReasonFlags reasons,
+        public DistributionPoint(DistributionPointName distributionPointName, ReasonFlags reasons,
             GeneralNames crlIssuer)
         {
             m_distributionPoint = distributionPointName;
@@ -72,10 +68,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
-
-            // As this is a CHOICE it must be explicitly tagged
-            v.AddOptionalTagged(true, 0, m_distributionPoint);
-
+            v.AddOptionalTagged(true, 0, m_distributionPoint); // CHOICE
             v.AddOptionalTagged(false, 1, m_reasons);
             v.AddOptionalTagged(false, 2, m_crlIssuer);
             return new DerSequence(v);

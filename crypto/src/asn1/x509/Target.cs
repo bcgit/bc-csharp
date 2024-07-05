@@ -4,7 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	 * Target structure used in target information extension for attribute
 	 * certificates from RFC 3281.
 	 * 
@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.X509
 	 * The targetCert field is currently not supported and must not be used
 	 * according to RFC 3281.</p>
 	 */
-	public class Target
+    public class Target
 		: Asn1Encodable, IAsn1Choice
 	{
 		public enum Choice

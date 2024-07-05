@@ -1,7 +1,9 @@
 using System;
 
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -15,42 +17,38 @@ namespace Org.BouncyCastle.Asn1.X509
     public class SubjectKeyIdentifier
         : Asn1Encodable
     {
-		public static SubjectKeyIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1OctetString.GetInstance(obj, explicitly));
-        }
-
 		public static SubjectKeyIdentifier GetInstance(object obj)
         {
-            if (obj is SubjectKeyIdentifier)
-                return (SubjectKeyIdentifier)obj;
-            if (obj is SubjectPublicKeyInfo)
-                return new SubjectKeyIdentifier((SubjectPublicKeyInfo)obj);
-            if (obj is X509Extension)
-                return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
             if (obj == null)
                 return null;
+            if (obj is SubjectKeyIdentifier subjectKeyIdentifier)
+                return subjectKeyIdentifier;
+            if (obj is SubjectPublicKeyInfo subjectPublicKeyInfo)
+                return new SubjectKeyIdentifier(subjectPublicKeyInfo);
+            if (obj is X509Extension x509Extension)
+                return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
             return new SubjectKeyIdentifier(Asn1OctetString.GetInstance(obj));
         }
+
+        public static SubjectKeyIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new SubjectKeyIdentifier(Asn1OctetString.GetInstance(obj, explicitly));
+
+        public static SubjectKeyIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SubjectKeyIdentifier(Asn1OctetString.GetTagged(taggedObject, declaredExplicit));
 
         public static SubjectKeyIdentifier FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.SubjectKeyIdentifier));
         }
 
-        private readonly byte[] keyIdentifier;
+        private readonly byte[] m_keyIdentifier;
 
-        public SubjectKeyIdentifier(
-            byte[] keyID)
+        public SubjectKeyIdentifier(byte[] keyID)
         {
-			if (keyID == null)
-				throw new ArgumentNullException("keyID");
-
-			this.keyIdentifier = Arrays.Clone(keyID);
+			m_keyIdentifier = Arrays.Clone(keyID ?? throw new ArgumentNullException(nameof(keyID)));
         }
 
-		public SubjectKeyIdentifier(
-            Asn1OctetString keyID)
+		public SubjectKeyIdentifier(Asn1OctetString keyID)
             : this(keyID.GetOctets())
         {
         }
@@ -61,21 +59,14 @@ namespace Org.BouncyCastle.Asn1.X509
 		 *
 		 * @param spki the subject public key info.
 		 */
-		public SubjectKeyIdentifier(
-			SubjectPublicKeyInfo spki)
+		public SubjectKeyIdentifier(SubjectPublicKeyInfo spki)
 		{
-			this.keyIdentifier = GetDigest(spki);
+			m_keyIdentifier = GetDigest(spki);
 		}
 
-		public byte[] GetKeyIdentifier()
-		{
-            return Arrays.Clone(keyIdentifier);
-		}
+		public byte[] GetKeyIdentifier() => Arrays.Clone(m_keyIdentifier);
 
-        public override Asn1Object ToAsn1Object()
-		{
-			return new DerOctetString(GetKeyIdentifier());
-		}
+        public override Asn1Object ToAsn1Object() => new DerOctetString(GetKeyIdentifier());
 
 		/**
 		 * Return a RFC 3280 type 1 key identifier. As in:
@@ -87,11 +78,8 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param keyInfo the key info object containing the subjectPublicKey field.
 		 * @return the key identifier.
 		 */
-		public static SubjectKeyIdentifier CreateSha1KeyIdentifier(
-			SubjectPublicKeyInfo keyInfo)
-		{
-			return new SubjectKeyIdentifier(keyInfo);
-		}
+		public static SubjectKeyIdentifier CreateSha1KeyIdentifier(SubjectPublicKeyInfo keyInfo) =>
+			new SubjectKeyIdentifier(keyInfo);
 
 		/**
 		 * Return a RFC 3280 type 2 key identifier. As in:
@@ -103,8 +91,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param keyInfo the key info object containing the subjectPublicKey field.
 		 * @return the key identifier.
 		 */
-		public static SubjectKeyIdentifier CreateTruncatedSha1KeyIdentifier(
-			SubjectPublicKeyInfo keyInfo)
+		public static SubjectKeyIdentifier CreateTruncatedSha1KeyIdentifier(SubjectPublicKeyInfo keyInfo)
 		{
 			byte[] dig = GetDigest(keyInfo);
 			byte[] id = new byte[8];
@@ -117,16 +104,10 @@ namespace Org.BouncyCastle.Asn1.X509
 			return new SubjectKeyIdentifier(id);
 		}
 
-		private static byte[] GetDigest(
-			SubjectPublicKeyInfo spki)
+		private static byte[] GetDigest(SubjectPublicKeyInfo spki)
 		{
-            IDigest digest = new Sha1Digest();
-            byte[] resBuf = new byte[digest.GetDigestSize()];
-
-			byte[] bytes = spki.PublicKey.GetBytes();
-            digest.BlockUpdate(bytes, 0, bytes.Length);
-            digest.DoFinal(resBuf, 0);
-            return resBuf;
+			// TODO[api] This ASN.1 class is the wrong place for this calculation
+			return DigestUtilities.CalculateDigest(OiwObjectIdentifiers.IdSha1, spki.PublicKey.GetBytes());
 		}
 	}
 }

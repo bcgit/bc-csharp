@@ -1,44 +1,44 @@
 using System;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class RsaPublicKeyStructure
         : Asn1Encodable
     {
-        private BigInteger modulus;
-        private BigInteger publicExponent;
-
-		public static RsaPublicKeyStructure GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static RsaPublicKeyStructure GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+            if (obj == null)
+                return null;
+            if (obj is RsaPublicKeyStructure rsaPublicKeyStructure)
+                return rsaPublicKeyStructure;
+            return new RsaPublicKeyStructure(Asn1Sequence.GetInstance(obj));
         }
 
-		public static RsaPublicKeyStructure GetInstance(
-            object obj)
+        public static RsaPublicKeyStructure GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new RsaPublicKeyStructure(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static RsaPublicKeyStructure GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RsaPublicKeyStructure(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly BigInteger m_modulus;
+        private readonly BigInteger m_publicExponent;
+
+        private RsaPublicKeyStructure(Asn1Sequence seq)
         {
-            if (obj == null || obj is RsaPublicKeyStructure)
-            {
-                return (RsaPublicKeyStructure) obj;
-            }
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj is Asn1Sequence)
-            {
-                return new RsaPublicKeyStructure((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("Invalid RsaPublicKeyStructure: " + Platform.GetTypeName(obj));
+            // Note: we are accepting technically incorrect (i.e. negative) values here
+            m_modulus = DerInteger.GetInstance(seq[0]).PositiveValue;
+            m_publicExponent = DerInteger.GetInstance(seq[1]).PositiveValue;
         }
 
-		public RsaPublicKeyStructure(
-            BigInteger	modulus,
-            BigInteger	publicExponent)
+        public RsaPublicKeyStructure(BigInteger modulus, BigInteger publicExponent)
         {
-			if (modulus == null)
+            if (modulus == null)
 				throw new ArgumentNullException("modulus");
 			if (publicExponent == null)
 				throw new ArgumentNullException("publicExponent");
@@ -47,30 +47,13 @@ namespace Org.BouncyCastle.Asn1.X509
 			if (publicExponent.SignValue <= 0)
 				throw new ArgumentException("Not a valid RSA public exponent", "publicExponent");
 
-            this.modulus = modulus;
-            this.publicExponent = publicExponent;
+            m_modulus = modulus;
+            m_publicExponent = publicExponent;
         }
 
-		private RsaPublicKeyStructure(
-            Asn1Sequence seq)
-        {
-			if (seq.Count != 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
+        public BigInteger Modulus => m_modulus;
 
-			// Note: we are accepting technically incorrect (i.e. negative) values here
-			modulus = DerInteger.GetInstance(seq[0]).PositiveValue;
-			publicExponent = DerInteger.GetInstance(seq[1]).PositiveValue;
-		}
-
-		public BigInteger Modulus
-        {
-            get { return modulus; }
-        }
-
-		public BigInteger PublicExponent
-        {
-            get { return publicExponent; }
-        }
+        public BigInteger PublicExponent => m_publicExponent;
 
 		/**
          * This outputs the key in Pkcs1v2 format.
@@ -81,11 +64,7 @@ namespace Org.BouncyCastle.Asn1.X509
          *                      }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(
-				new DerInteger(Modulus),
-				new DerInteger(PublicExponent));
-        }
+        public override Asn1Object ToAsn1Object() =>
+            new DerSequence(new DerInteger(m_modulus), new DerInteger(m_publicExponent));
     }
 }

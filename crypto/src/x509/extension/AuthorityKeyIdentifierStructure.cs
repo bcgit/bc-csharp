@@ -21,9 +21,11 @@ namespace Org.BouncyCastle.X509.Extension
 		// TODO Add a functional constructor from byte[]?
 		public AuthorityKeyIdentifierStructure(
 			Asn1OctetString encodedValue)
-			: base((Asn1Sequence) X509ExtensionUtilities.FromExtensionValue(encodedValue))
-		{
-		}
+#pragma warning disable CS0618 // Type or member is obsolete
+            : base((Asn1Sequence)X509ExtensionUtilities.FromExtensionValue(encodedValue))
+#pragma warning restore CS0618 // Type or member is obsolete
+        {
+        }
 
 		private static Asn1Sequence FromCertificate(X509Certificate certificate)
 		{
@@ -80,9 +82,11 @@ namespace Org.BouncyCastle.X509.Extension
 		 */
 		public AuthorityKeyIdentifierStructure(
 			X509Certificate certificate)
-			: base(FromCertificate(certificate))
-		{
-		}
+#pragma warning disable CS0618 // Type or member is obsolete
+            : base(FromCertificate(certificate))
+#pragma warning restore CS0618 // Type or member is obsolete
+        {
+        }
 
 		/**
 		 * Create an AuthorityKeyIdentifier using just the hash of the
@@ -93,8 +97,10 @@ namespace Org.BouncyCastle.X509.Extension
 		 */
 		public AuthorityKeyIdentifierStructure(
 			AsymmetricKeyParameter pubKey)
-			: base(FromKey(pubKey))
-		{
-		}
+#pragma warning disable CS0618 // Type or member is obsolete
+            : base(FromKey(pubKey))
+#pragma warning restore CS0618 // Type or member is obsolete
+        {
+        }
 	}
 }

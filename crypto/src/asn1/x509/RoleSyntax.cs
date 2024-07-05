@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	* Implementation of the RoleSyntax object as specified by the RFC3281.
 	*
 	* <pre>
@@ -13,13 +13,10 @@ namespace Org.BouncyCastle.Asn1.X509
 	*           }
 	* </pre>
 	*/
-	public class RoleSyntax
+    public class RoleSyntax
 		: Asn1Encodable
 	{
-		private readonly GeneralNames	roleAuthority;
-		private readonly GeneralName	roleName;
-
-		/**
+        /**
 		 * RoleSyntax factory method.
 		 * @param obj the object used to construct an instance of <code>
 		 * RoleSyntax</code>. It must be an instance of <code>RoleSyntax
@@ -30,37 +27,63 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * to the factory is not an instance of <code>RoleSyntax</code> or
 		 * <code>Asn1Sequence</code>.
 		 */
-		public static RoleSyntax GetInstance(
-			object obj)
-		{
-			if (obj is RoleSyntax)
-				return (RoleSyntax)obj;
+        public static RoleSyntax GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is RoleSyntax roleSyntax)
+                return roleSyntax;
+            return new RoleSyntax(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj != null)
-				return new RoleSyntax(Asn1Sequence.GetInstance(obj));
+        public static RoleSyntax GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RoleSyntax(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-			return null;
-		}
+        public static RoleSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RoleSyntax(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-		/**
+        private readonly GeneralNames m_roleAuthority;
+        private readonly GeneralName m_roleName;
+
+        /**
+		* Constructor that builds an instance of <code>RoleSyntax</code> by
+		* extracting the encoded elements from the <code>Asn1Sequence</code>
+		* object supplied.
+		* @param seq    an instance of <code>Asn1Sequence</code> that holds
+		* the encoded elements used to build this <code>RoleSyntax</code>.
+		*/
+        private RoleSyntax(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_roleAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, GeneralNames.GetTagged);
+			m_roleName = Asn1Utilities.ReadContextTagged(seq, ref pos, 1, true, GeneralName.GetTagged); // CHOICE
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+			// TODO Check role name and URI option as below
+        }
+
+        /**
 		* Constructor.
 		* @param roleAuthority the role authority of this RoleSyntax.
 		* @param roleName    the role name of this RoleSyntax.
 		*/
-		public RoleSyntax(
-			GeneralNames	roleAuthority,
-			GeneralName		roleName)
-		{
-			if (roleName == null
+        public RoleSyntax(GeneralNames roleAuthority, GeneralName roleName)
+        {
+            if (roleName == null
 				|| roleName.TagNo != GeneralName.UniformResourceIdentifier
-				|| ((IAsn1String) roleName.Name).GetString().Equals(""))
+				|| ((IAsn1String)roleName.Name).GetString().Equals(""))
 			{
 				throw new ArgumentException("the role name MUST be non empty and MUST " +
 					"use the URI option of GeneralName");
 			}
 
-			this.roleAuthority = roleAuthority;
-			this.roleName = roleName;
+			m_roleAuthority = roleAuthority;
+			m_roleName = roleName;
 		}
 
 		/**
@@ -68,8 +91,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		* <code>new RoleSyntax(null, roleName)</code>.
 		* @param roleName    the role name of this RoleSyntax.
 		*/
-		public RoleSyntax(
-			GeneralName roleName)
+		public RoleSyntax(GeneralName roleName)
 			: this(null, roleName)
 		{
 		}
@@ -80,43 +102,9 @@ namespace Org.BouncyCastle.Asn1.X509
 		* and calls the constructor that takes a <code>GeneralName</code>.
 		* @param roleName
 		*/
-		public RoleSyntax(
-			string roleName)
-			: this(new GeneralName(GeneralName.UniformResourceIdentifier,
-				(roleName == null)? "": roleName))
+		public RoleSyntax(string roleName)
+			: this(new GeneralName(GeneralName.UniformResourceIdentifier, roleName == null ? "" : roleName))
 		{
-		}
-
-		/**
-		* Constructor that builds an instance of <code>RoleSyntax</code> by
-		* extracting the encoded elements from the <code>Asn1Sequence</code>
-		* object supplied.
-		* @param seq    an instance of <code>Asn1Sequence</code> that holds
-		* the encoded elements used to build this <code>RoleSyntax</code>.
-		*/
-		private RoleSyntax(
-			Asn1Sequence seq)
-		{
-			if (seq.Count < 1 || seq.Count > 2)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
-
-			for (int i = 0; i != seq.Count; i++)
-			{
-				Asn1TaggedObject taggedObject = Asn1TaggedObject.GetInstance(seq[i]);
-				switch (taggedObject.TagNo)
-				{
-					case 0:
-						roleAuthority = GeneralNames.GetInstance(taggedObject, false);
-						break;
-					case 1:
-						roleName = GeneralName.GetInstance(taggedObject, true);
-						break;
-					default:
-						throw new ArgumentException("Unknown tag in RoleSyntax");
-				}
-			}
 		}
 
 		/**
@@ -124,30 +112,21 @@ namespace Org.BouncyCastle.Asn1.X509
 		* @return    an instance of <code>GeneralNames</code> holding the
 		* role authority of this RoleSyntax.
 		*/
-		public GeneralNames RoleAuthority
-		{
-			get { return this.roleAuthority; }
-		}
+		public GeneralNames RoleAuthority => m_roleAuthority;
 
 		/**
 		* Gets the role name of this RoleSyntax.
 		* @return    an instance of <code>GeneralName</code> holding the
 		* role name of this RoleSyntax.
 		*/
-		public GeneralName RoleName
-		{
-			get { return this.roleName; }
-		}
+		public GeneralName RoleName => m_roleName;
 
 		/**
 		* Gets the role name as a <code>java.lang.string</code> object.
 		* @return    the role name of this RoleSyntax represented as a
 		* <code>string</code> object.
 		*/
-		public string GetRoleNameAsString()
-		{
-			return ((IAsn1String) this.roleName.Name).GetString();
-		}
+		public string GetRoleNameAsString() => ((IAsn1String)m_roleName.Name).GetString();
 
 		/**
 		* Gets the role authority as a <code>string[]</code> object.
@@ -156,26 +135,23 @@ namespace Org.BouncyCastle.Asn1.X509
 		*/
 		public string[] GetRoleAuthorityAsString()
 		{
-			if (roleAuthority == null)
-			{
-				return new string[0];
-			}
+            if (m_roleAuthority == null || m_roleAuthority.Count == 0)
+                return new string[0];
 
-			GeneralName[] names = roleAuthority.GetNames();
+			GeneralName[] names = m_roleAuthority.GetNames();
 			string[] namesString = new string[names.Length];
 			for(int i = 0; i < names.Length; i++)
 			{
 				Asn1Encodable asn1Value = names[i].Name;
-				if (asn1Value is IAsn1String)
+				if (asn1Value is IAsn1String asn1String)
 				{
-					namesString[i] = ((IAsn1String) asn1Value).GetString();
+					namesString[i] = asn1String.GetString();
 				}
 				else
 				{
 					namesString[i] = asn1Value.ToString();
 				}
 			}
-
 			return namesString;
 		}
 
@@ -193,8 +169,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptionalTagged(false, 0, roleAuthority);
-            v.Add(new DerTaggedObject(true, 1, roleName));
+            v.AddOptionalTagged(false, 0, m_roleAuthority);
+            v.Add(new DerTaggedObject(true, 1, m_roleName));
             return new DerSequence(v);
         }
 
@@ -203,7 +179,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			StringBuilder buff = new StringBuilder("Name: " + this.GetRoleNameAsString() +
 				" - Auth: ");
 
-			if (this.roleAuthority == null || roleAuthority.GetNames().Length == 0)
+			if (m_roleAuthority == null || m_roleAuthority.Count == 0)
 			{
 				buff.Append("N/A");
 			}
