@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public static readonly AlgorithmIdentifier DefaultMaskGenAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, DefaultHashAlgorithm);
         [Obsolete("Use 'DefaultMaskGenAlgorithm' instead")]
         public static readonly AlgorithmIdentifier DefaultMaskGenFunction = DefaultMaskGenAlgorithm;
-        public static readonly AlgorithmIdentifier DefaultPSourceAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPSpecified, new DerOctetString(new byte[0]));
+        public static readonly AlgorithmIdentifier DefaultPSourceAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPSpecified, DerOctetString.Empty);
 
         public static RsaesOaepParameters GetInstance(object obj)
         {

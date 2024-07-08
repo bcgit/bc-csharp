@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public KekIdentifier(byte[] keyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
         {
-            m_keyIdentifier = new DerOctetString(keyIdentifier);
+            m_keyIdentifier = DerOctetString.FromContents(keyIdentifier);
             m_date = date;
             m_other = other;
         }

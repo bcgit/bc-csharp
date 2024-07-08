@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetSenderKID(byte[] kid)
 		{
-            return SetSenderKID(kid == null ? null : new DerOctetString(kid));
+            return SetSenderKID(DerOctetString.FromContentsOptional(kid));
 		}
 
 		public virtual PkiHeaderBuilder SetSenderKID(Asn1OctetString kid)
@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetRecipKID(byte[] kid)
 		{
-            return SetRecipKID(kid == null ? null : new DerOctetString(kid));
+            return SetRecipKID(DerOctetString.FromContentsOptional(kid));
 		}
 
 		public virtual PkiHeaderBuilder SetRecipKID(Asn1OctetString kid)
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetTransactionID(byte[] tid)
 		{
-			return SetTransactionID(tid == null ? null : new DerOctetString(tid));
+			return SetTransactionID(DerOctetString.FromContentsOptional(tid));
 		}
 
 		public virtual PkiHeaderBuilder SetTransactionID(Asn1OctetString tid)
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		
 		public virtual PkiHeaderBuilder SetSenderNonce(byte[] nonce)
 		{
-            return SetSenderNonce(nonce == null ? null : new DerOctetString(nonce));
+            return SetSenderNonce(DerOctetString.FromContentsOptional(nonce));
 		}
 
 		public virtual PkiHeaderBuilder SetSenderNonce(Asn1OctetString nonce)
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetRecipNonce(byte[] nonce)
 		{
-            return SetRecipNonce(nonce == null ? null : new DerOctetString(nonce));
+            return SetRecipNonce(DerOctetString.FromContentsOptional(nonce));
 		}
 
 		public virtual PkiHeaderBuilder SetRecipNonce(Asn1OctetString nonce)

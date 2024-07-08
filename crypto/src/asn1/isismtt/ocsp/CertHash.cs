@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
         public CertHash(AlgorithmIdentifier hashAlgorithm, byte[] certificateHash)
         {
 			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
-			m_certificateHash = new DerOctetString(certificateHash);
+			m_certificateHash = DerOctetString.FromContents(certificateHash);
 		}
 
 		public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;

@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         public EssCertID(byte[] hash, IssuerSerial issuerSerial)
         {
-            m_certHash = new DerOctetString(hash);
+            m_certHash = DerOctetString.FromContents(hash);
             m_issuerSerial = issuerSerial;
         }
 

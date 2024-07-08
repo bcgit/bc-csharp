@@ -74,8 +74,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public Challenge(AlgorithmIdentifier owf, byte[] witness, byte[] challenge)
         {
             m_owf = owf;
-            m_witness = new DerOctetString(witness);
-            m_challenge = new DerOctetString(challenge);
+            m_witness = DerOctetString.FromContents(witness);
+            m_challenge = DerOctetString.FromContents(challenge);
         }
 
         public virtual AlgorithmIdentifier Owf => m_owf;

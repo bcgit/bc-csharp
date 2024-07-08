@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		public MessageImprint(AlgorithmIdentifier hashAlgorithm, byte[] hashedMessage)
 		{
 			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
-			m_hashedMessage = new DerOctetString(hashedMessage);
+			m_hashedMessage = DerOctetString.FromContents(hashedMessage);
 		}
 
 		public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;

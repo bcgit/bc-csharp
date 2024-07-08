@@ -204,7 +204,7 @@ namespace Org.BouncyCastle.X509
 			bool	critical,
 			byte[]	extensionValue)
 		{
-			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, new DerOctetString(extensionValue));
+			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, DerOctetString.FromContents(extensionValue));
 		}
 
 		/// <summary>
@@ -218,7 +218,7 @@ namespace Org.BouncyCastle.X509
 			bool				critical,
 			byte[]				extensionValue)
         {
-			extGenerator.AddExtension(oid, critical, new DerOctetString(extensionValue));
+			extGenerator.AddExtension(oid, critical, DerOctetString.FromContents(extensionValue));
         }
 
 		/// <summary>

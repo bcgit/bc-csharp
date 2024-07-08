@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
         public AuthorityKeyIdentifier(byte[] keyIdentifier, GeneralNames name, BigInteger serialNumber)
         {
-            m_keyIdentifier = keyIdentifier == null ? null : new DerOctetString(keyIdentifier);
+            m_keyIdentifier = DerOctetString.FromContentsOptional(keyIdentifier);
             m_authorityCertIssuer = name;
             m_authorityCertSerialNumber = serialNumber == null ? null : new DerInteger(serialNumber);
         }

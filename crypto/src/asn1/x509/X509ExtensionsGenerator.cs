@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1.X509
             if (!m_extensions.TryGetValue(oid, out X509Extension existingExtension))
             {
                 m_ordering.Add(oid);
-                m_extensions.Add(oid, new X509Extension(critical, new DerOctetString(extValue)));
+                m_extensions.Add(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
                 return;
             }
 

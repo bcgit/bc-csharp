@@ -200,13 +200,8 @@ namespace Org.BouncyCastle.X509
                 if (_key.PublicKeyParamSet == null)
                     throw new NotImplementedException("Not a CryptoPro parameter set");
 
-                byte[] keyEnc = _key.Y.ToByteArrayUnsigned();
-                byte[] keyBytes = new byte[keyEnc.Length];
-
-                for (int i = 0; i != keyBytes.Length; i++)
-                {
-                    keyBytes[i] = keyEnc[keyEnc.Length - 1 - i]; // must be little endian
-                }
+                // must be little endian
+                byte[] keyEnc = Arrays.ReverseInPlace(_key.Y.ToByteArrayUnsigned());
 
                 Gost3410PublicKeyAlgParameters algParams = new Gost3410PublicKeyAlgParameters(
                     _key.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
@@ -215,7 +210,7 @@ namespace Org.BouncyCastle.X509
                     CryptoProObjectIdentifiers.GostR3410x94,
                     algParams.ToAsn1Object());
 
-                return new SubjectPublicKeyInfo(algID, new DerOctetString(keyBytes));
+                return new SubjectPublicKeyInfo(algID, new DerOctetString(keyEnc));
             }
 
             if (publicKey is X448PublicKeyParameters)

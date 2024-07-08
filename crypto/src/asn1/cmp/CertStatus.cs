@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public CertStatus(byte[] certHash, DerInteger certReqID)
 		{
-			m_certHash = new DerOctetString(certHash);
+			m_certHash = DerOctetString.FromContents(certHash);
 			m_certReqID = certReqID;
             m_statusInfo = null;
             m_hashAlg = null;
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo)
 		{
-            m_certHash = new DerOctetString(certHash);
+            m_certHash = DerOctetString.FromContents(certHash);
             m_certReqID = new DerInteger(certReqID);
             m_statusInfo = statusInfo;
             m_hashAlg = null;
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo, AlgorithmIdentifier hashAlg)
         {
-            m_certHash = new DerOctetString(certHash);
+            m_certHash = DerOctetString.FromContents(certHash);
             m_certReqID = new DerInteger(certReqID);
             m_statusInfo = statusInfo;
             m_hashAlg = hashAlg;

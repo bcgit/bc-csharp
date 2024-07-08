@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Nist
         public KMacWithShake128Params(int outputLength, byte[] customizationString)
         {
             m_outputLength = new DerInteger(outputLength);
-            m_customizationString = new DerOctetString(customizationString);
+            m_customizationString = DerOctetString.FromContents(customizationString);
         }
 
         public int OutputLength => m_outputLength.IntValueExact;

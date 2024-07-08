@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public Pkcs12PbeParams(byte[] salt, int iterations)
         {
-            m_iv = new DerOctetString(salt);
+            m_iv = DerOctetString.FromContents(salt);
             m_iterations = new DerInteger(iterations);
         }
 

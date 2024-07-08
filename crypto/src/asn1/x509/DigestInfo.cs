@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public DigestInfo(AlgorithmIdentifier algID, byte[] digest)
         {
             m_digestAlgorithm = algID ?? throw new ArgumentNullException(nameof(algID));
-            m_digest = new DerOctetString(digest);
+            m_digest = DerOctetString.FromContents(digest);
         }
 
         public AlgorithmIdentifier AlgorithmID => m_digestAlgorithm;

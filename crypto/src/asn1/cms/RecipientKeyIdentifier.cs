@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		public RecipientKeyIdentifier(byte[] subjectKeyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
 		{
-			m_subjectKeyIdentifier = new DerOctetString(subjectKeyIdentifier);
+			m_subjectKeyIdentifier = DerOctetString.FromContents(subjectKeyIdentifier);
 			m_date = date;
 			m_other = other;
 		}

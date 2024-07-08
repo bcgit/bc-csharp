@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public GcmParameters(byte[] nonce, int icvLen)
         {
-            m_nonce = new DerOctetString(nonce);
+            m_nonce = DerOctetString.FromContents(nonce);
             m_icvLen = icvLen;
         }
 

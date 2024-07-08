@@ -42,13 +42,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public RC2CbcParameter(byte[] iv)
         {
             m_version = null;
-            m_iv = new DerOctetString(iv);
+            m_iv = DerOctetString.FromContents(iv);
         }
 
 		public RC2CbcParameter(int parameterVersion, byte[] iv)
         {
             m_version = new DerInteger(parameterVersion);
-            m_iv = new DerOctetString(iv);
+            m_iv = DerOctetString.FromContents(iv);
         }
 
         public BigInteger RC2ParameterVersion => m_version?.Value;

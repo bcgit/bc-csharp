@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Misc
 
         public IdeaCbcPar(byte[] iv)
         {
-            m_iv = iv == null ? null : new DerOctetString(iv);
+            m_iv = DerOctetString.FromContentsOptional(iv);
         }
 
         public Asn1OctetString IV => m_iv;

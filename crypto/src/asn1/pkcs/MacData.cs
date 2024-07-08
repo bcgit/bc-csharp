@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public MacData(DigestInfo digInfo, byte[] salt, int iterationCount)
         {
             m_digInfo = digInfo ?? throw new ArgumentNullException(nameof(digInfo));
-            m_salt = new DerOctetString(salt);
+            m_salt = DerOctetString.FromContents(salt);
             m_iterationCount = new DerInteger(iterationCount);
         }
 

@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
             for (int i = 0; i != values.Length; i++)
             {
-                v.Add(new DerOctetString(Arrays.Clone(values[i])));
+                v.Add(DerOctetString.FromContents(values[i]));
             }
 
             m_values = new DerSequence(v);

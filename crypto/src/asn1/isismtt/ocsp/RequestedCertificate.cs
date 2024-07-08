@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
         }
 
         public RequestedCertificate(Choice type, byte[] certificateOctets)
-            : this(new DerTaggedObject((int)type, new DerOctetString(certificateOctets)))
+            : this(new DerTaggedObject((int)type, DerOctetString.FromContents(certificateOctets)))
         {
         }
 

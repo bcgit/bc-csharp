@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public EncryptedPrivateKeyInfo(AlgorithmIdentifier algId, byte[] encoding)
         {
             m_encryptionAlgorithm = algId ?? throw new ArgumentNullException(nameof(algId));
-            m_encryptedData = new DerOctetString(encoding);
+            m_encryptedData = DerOctetString.FromContents(encoding);
         }
 
         public AlgorithmIdentifier EncryptionAlgorithm => m_encryptionAlgorithm;

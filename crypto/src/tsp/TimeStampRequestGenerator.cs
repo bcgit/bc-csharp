@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Tsp
 		 */
 		public virtual void AddExtension(DerObjectIdentifier oid, bool critical, byte[] extValue)
 		{
-			m_extensions.Add(oid, new X509Extension(critical, new DerOctetString(extValue)));
+			m_extensions.Add(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
 			m_ordering.Add(oid);
 		}
 

@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.Ess
         public EssCertIDv2(AlgorithmIdentifier algId, byte[] certHash, IssuerSerial issuerSerial)
         {
             m_hashAlgorithm = algId ?? DefaultAlgID;
-            m_certHash = new DerOctetString(certHash);
+            m_certHash = DerOctetString.FromContents(certHash);
             m_issuerSerial = issuerSerial;
         }
 

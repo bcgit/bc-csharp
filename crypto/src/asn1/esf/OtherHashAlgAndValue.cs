@@ -50,13 +50,8 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public OtherHashAlgAndValue(AlgorithmIdentifier	hashAlgorithm, byte[] hashValue)
 		{
-			if (hashAlgorithm == null)
-				throw new ArgumentNullException(nameof(hashAlgorithm));
-			if (hashValue == null)
-				throw new ArgumentNullException(nameof(hashValue));
-
-			m_hashAlgorithm = hashAlgorithm;
-			m_hashValue = new DerOctetString(hashValue);
+			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+			m_hashValue = DerOctetString.FromContents(hashValue);
 		}
 
         public OtherHashAlgAndValue(AlgorithmIdentifier hashAlgorithm, Asn1OctetString hashValue)

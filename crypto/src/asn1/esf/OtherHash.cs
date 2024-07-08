@@ -40,10 +40,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public OtherHash(byte[] sha1Hash)
 		{
-			if (sha1Hash == null)
-				throw new ArgumentNullException(nameof(sha1Hash));
-
-			m_sha1Hash = new DerOctetString(sha1Hash);
+			m_sha1Hash = DerOctetString.FromContents(sha1Hash);
 		}
 
 		public OtherHash(Asn1OctetString sha1Hash)

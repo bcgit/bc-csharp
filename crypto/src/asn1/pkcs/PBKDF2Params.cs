@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public Pbkdf2Params(byte[] salt, int iterationCount, AlgorithmIdentifier prf)
         {
-            m_octStr = new DerOctetString(salt);
+            m_octStr = DerOctetString.FromContents(salt);
             m_iterationCount = new DerInteger(iterationCount);
             m_keyLength = null;
             m_prf = prf ?? DefaultPrf;
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public Pbkdf2Params(byte[] salt, int iterationCount, int keyLength, AlgorithmIdentifier prf)
         {
-            m_octStr = new DerOctetString(salt);
+            m_octStr = DerOctetString.FromContents(salt);
             m_iterationCount = new DerInteger(iterationCount);
             m_keyLength = new DerInteger(keyLength);
             m_prf = prf ?? DefaultPrf;

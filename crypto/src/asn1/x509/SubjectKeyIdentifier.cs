@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public byte[] GetKeyIdentifier() => Arrays.Clone(m_keyIdentifier);
 
-        public override Asn1Object ToAsn1Object() => new DerOctetString(GetKeyIdentifier());
+		public override Asn1Object ToAsn1Object() => DerOctetString.FromContents(m_keyIdentifier);
 
 		/**
 		 * Return a RFC 3280 type 1 key identifier. As in:

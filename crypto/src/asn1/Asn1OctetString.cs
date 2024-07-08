@@ -97,10 +97,7 @@ namespace Org.BouncyCastle.Asn1
          */
         internal Asn1OctetString(byte[] contents)
         {
-			if (null == contents)
-				throw new ArgumentNullException("contents");
-
-			this.contents = contents;
+			this.contents = contents ?? throw new ArgumentNullException(nameof(contents));
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

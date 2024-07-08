@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 		 * Create from byte array representing the identifier.
 		 */
         public ContentIdentifier(byte[] value)
-			: this(new DerOctetString(value))
+			: this(DerOctetString.FromContents(value))
 		{
 		}
 
