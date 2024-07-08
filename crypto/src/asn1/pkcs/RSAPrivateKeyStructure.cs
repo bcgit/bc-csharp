@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new RsaPrivateKeyStructure(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RsaPrivateKeyStructure GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new RsaPrivateKeyStructure(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static RsaPrivateKeyStructure GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new RsaPrivateKeyStructure(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static RsaPrivateKeyStructure GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RsaPrivateKeyStructure(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly BigInteger m_modulus;
         private readonly BigInteger m_publicExponent;

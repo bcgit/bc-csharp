@@ -28,10 +28,11 @@ namespace Org.BouncyCastle.Asn1.Esf
 			return new OcspIdentifier(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static OcspIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new OcspIdentifier(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static OcspIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OcspIdentifier(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OcspIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OcspIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly ResponderID m_ocspResponderID;
         private readonly Asn1GeneralizedTime m_producedAt;

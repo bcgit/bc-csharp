@@ -20,10 +20,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new PKMacValue(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PKMacValue GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new PKMacValue(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static PKMacValue GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new PKMacValue(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static PKMacValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PKMacValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_algID;
         private readonly DerBitString m_macValue;

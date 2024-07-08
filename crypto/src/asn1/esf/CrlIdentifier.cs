@@ -28,10 +28,11 @@ namespace Org.BouncyCastle.Asn1.Esf
 			return new CrlIdentifier(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static CrlIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlIdentifier(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly X509Name m_crlIssuer;
         private readonly Asn1UtcTime m_crlIssuedTime;

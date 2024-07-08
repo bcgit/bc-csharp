@@ -24,10 +24,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CrlOcspRef(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CrlOcspRef GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CrlOcspRef(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlOcspRef GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlOcspRef(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlOcspRef GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlOcspRef(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CrlListID m_crlids;
         private readonly OcspListID m_ocspids;

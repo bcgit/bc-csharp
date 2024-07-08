@@ -14,10 +14,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new MetaData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static MetaData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new MetaData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static MetaData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MetaData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
         public static MetaData GetOptional(Asn1Encodable element)
         {
@@ -33,6 +31,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             return null;
         }
+
+        public static MetaData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MetaData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerBoolean m_hashProtected;
         private readonly DerUtf8String m_fileName;

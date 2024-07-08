@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Ess
             return new ContentIdentifier(Asn1OctetString.GetInstance(o));
         }
 
-        public static ContentIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new ContentIdentifier(Asn1OctetString.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static ContentIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ContentIdentifier(Asn1OctetString.GetInstance(taggedObject, declaredExplicit));
+
+        public static ContentIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ContentIdentifier(Asn1OctetString.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_value;
 

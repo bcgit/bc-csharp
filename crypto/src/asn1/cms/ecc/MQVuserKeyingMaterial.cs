@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
             return new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj));
         }
 
-        public static MQVuserKeyingMaterial GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static MQVuserKeyingMaterial GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static MQVuserKeyingMaterial GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MQVuserKeyingMaterial(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
 
         private readonly OriginatorPublicKey m_ephemeralPublicKey;

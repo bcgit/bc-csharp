@@ -28,10 +28,11 @@ namespace Org.BouncyCastle.Asn1.Icao
             return new CscaMasterList(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CscaMasterList GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CscaMasterList(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CscaMasterList GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CscaMasterList(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CscaMasterList GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CscaMasterList(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
 		private readonly DerInteger m_version;
         private readonly X509CertificateStructure[] m_certList;

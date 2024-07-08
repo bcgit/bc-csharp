@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Ess
             return new ContentHints(Asn1Sequence.GetInstance(o));
         }
 
-        public static ContentHints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new ContentHints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static ContentHints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ContentHints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static ContentHints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ContentHints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerUtf8String m_contentDescription;
         private readonly DerObjectIdentifier m_contentType;

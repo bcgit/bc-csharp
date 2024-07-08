@@ -32,10 +32,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CmsAlgorithmProtection GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CmsAlgorithmProtection GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CmsAlgorithmProtection(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CmsAlgorithmProtection GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CmsAlgorithmProtection(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public static readonly int Signature = 1;
         public static readonly int Mac = 2;

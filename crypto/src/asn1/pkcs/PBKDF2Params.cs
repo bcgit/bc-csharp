@@ -29,6 +29,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static Pbkdf2Params GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new Pbkdf2Params(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly Asn1OctetString m_octStr;
         private readonly DerInteger m_iterationCount, m_keyLength;
         private readonly AlgorithmIdentifier m_prf;

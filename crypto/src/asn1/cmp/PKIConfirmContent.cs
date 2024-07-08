@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			return new PkiConfirmContent(Asn1Null.GetInstance(obj));
 		}
 
-        public static PkiConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PkiConfirmContent(Asn1Null.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PkiConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiConfirmContent(Asn1Null.GetInstance(taggedObject, declaredExplicit));
+
+        public static PkiConfirmContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiConfirmContent(Asn1Null.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Null m_val;
 

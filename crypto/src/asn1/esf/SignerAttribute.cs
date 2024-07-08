@@ -16,6 +16,12 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new SignerAttribute(Asn1Sequence.GetInstance(obj), dummy: true);
         }
 
+        public static SignerAttribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SignerAttribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SignerAttribute GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SignerAttribute(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private readonly Asn1Sequence m_claimedAttributes;
         private readonly AttributeCertificate m_certifiedAttributes;
 

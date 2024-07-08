@@ -41,10 +41,11 @@ namespace Org.BouncyCastle.Asn1.Icao
             return new DataGroupHash(Asn1Sequence.GetInstance(obj));
         }
 
-        public static DataGroupHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new DataGroupHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static DataGroupHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DataGroupHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static DataGroupHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DataGroupHash(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_dataGroupNumber;
         private readonly Asn1OctetString m_dataGroupHashValue;

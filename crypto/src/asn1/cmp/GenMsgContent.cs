@@ -15,10 +15,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new GenMsgContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static GenMsgContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new GenMsgContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static GenMsgContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new GenMsgContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static GenMsgContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new GenMsgContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

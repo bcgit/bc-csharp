@@ -28,6 +28,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static new NestedMessageContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new NestedMessageContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         public NestedMessageContent(PkiMessage msg)
             : base(msg)
         {

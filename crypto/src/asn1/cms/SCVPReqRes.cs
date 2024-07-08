@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new ScvpReqRes(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ScvpReqRes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new ScvpReqRes(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static ScvpReqRes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ScvpReqRes(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static ScvpReqRes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ScvpReqRes(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly ContentInfo m_request;
         private readonly ContentInfo m_response;

@@ -12,10 +12,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new AuthenticatedSafe(Asn1Sequence.GetInstance(obj));
         }
 
-        public static AuthenticatedSafe GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new AuthenticatedSafe(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static AuthenticatedSafe GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AuthenticatedSafe(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static AuthenticatedSafe GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AuthenticatedSafe(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly ContentInfo[] m_info;
         private readonly bool m_isBer;

@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new RevokedInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RevokedInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new RevokedInfo(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static RevokedInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new RevokedInfo(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static RevokedInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevokedInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1GeneralizedTime m_revocationTime;
         private readonly CrlReason m_revocationReason;

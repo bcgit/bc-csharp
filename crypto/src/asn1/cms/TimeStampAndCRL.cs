@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new TimeStampAndCrl(Asn1Sequence.GetInstance(obj));
         }
 
-        public static TimeStampAndCrl GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new TimeStampAndCrl(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static TimeStampAndCrl GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampAndCrl(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static TimeStampAndCrl GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampAndCrl(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly ContentInfo m_timeStamp;
 		private readonly CertificateList m_crl;

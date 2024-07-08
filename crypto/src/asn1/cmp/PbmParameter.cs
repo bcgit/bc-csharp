@@ -33,10 +33,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PbmParameter(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PbmParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbmParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_salt;
         private readonly AlgorithmIdentifier m_owf;

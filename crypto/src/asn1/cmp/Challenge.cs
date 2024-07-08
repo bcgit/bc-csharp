@@ -42,10 +42,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new Challenge(Asn1Sequence.GetInstance(obj));
         }
 
-        public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new Challenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Challenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static Challenge GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Challenge(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_owf;
 		private readonly Asn1OctetString m_witness;

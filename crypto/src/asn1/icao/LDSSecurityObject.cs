@@ -34,10 +34,11 @@ namespace Org.BouncyCastle.Asn1.Icao
             return new LdsSecurityObject(Asn1Sequence.GetInstance(obj));
         }
 
-        public static LdsSecurityObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new LdsSecurityObject(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static LdsSecurityObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LdsSecurityObject(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static LdsSecurityObject GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LdsSecurityObject(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
 		private readonly DerInteger m_version;
         private readonly AlgorithmIdentifier m_hashAlgorithm;

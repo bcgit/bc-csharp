@@ -27,10 +27,11 @@ namespace Org.BouncyCastle.Asn1.BC
             return new LinkedCertificate(Asn1Sequence.GetInstance(obj));
         }
 
-        public static LinkedCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new LinkedCertificate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static LinkedCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LinkedCertificate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static LinkedCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LinkedCertificate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DigestInfo m_digest;
         private readonly GeneralName m_certLocation;

@@ -28,10 +28,11 @@ namespace Org.BouncyCastle.Asn1.Esf
 			return new RevocationValues(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static RevocationValues GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new RevocationValues(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static RevocationValues GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new RevocationValues(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static RevocationValues GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevocationValues(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_crlVals;
         private readonly Asn1Sequence m_ocspVals;

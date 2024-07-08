@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static IssuerAndSerialNumber GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IssuerAndSerialNumber(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly X509Name m_name;
         private readonly DerInteger m_certSerialNumber;

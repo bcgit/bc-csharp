@@ -14,10 +14,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new Controls(Asn1Sequence.GetInstance(obj));
         }
 
-        public static Controls GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new Controls(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static Controls GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Controls(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
         public static Controls GetOptional(Asn1Encodable element)
         {
@@ -33,6 +31,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             return null;
         }
+
+        public static Controls GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Controls(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

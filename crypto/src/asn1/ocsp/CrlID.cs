@@ -23,6 +23,13 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static CrlID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CrlID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly DerIA5String m_crlUrl;
         private readonly DerInteger m_crlNum;
         private readonly Asn1GeneralizedTime m_crlTime;

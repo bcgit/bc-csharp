@@ -59,10 +59,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new InfoTypeAndValue(Asn1Sequence.GetInstance(obj));
         }
 
-        public static InfoTypeAndValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new InfoTypeAndValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static InfoTypeAndValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new InfoTypeAndValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static InfoTypeAndValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new InfoTypeAndValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_infoType;
         private readonly Asn1Encodable m_infoValue;

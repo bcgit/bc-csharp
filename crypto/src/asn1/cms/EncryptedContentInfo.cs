@@ -25,6 +25,13 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static EncryptedContentInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new EncryptedContentInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private DerObjectIdentifier m_contentType;
         private AlgorithmIdentifier m_contentEncryptionAlgorithm;
         private Asn1OctetString m_encryptedContent;

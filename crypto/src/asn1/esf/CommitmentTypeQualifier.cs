@@ -32,6 +32,13 @@ namespace Org.BouncyCastle.Asn1.Esf
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static CommitmentTypeQualifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CommitmentTypeQualifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly DerObjectIdentifier m_commitmentTypeIdentifier;
         private readonly Asn1Encodable m_qualifier;
 

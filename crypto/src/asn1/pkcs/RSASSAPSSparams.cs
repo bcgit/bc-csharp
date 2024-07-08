@@ -33,6 +33,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static RsassaPssParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new RsassaPssParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly AlgorithmIdentifier m_hashAlgorithm;
         private readonly AlgorithmIdentifier m_maskGenAlgorithm;
         private readonly DerInteger m_saltLength;

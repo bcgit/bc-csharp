@@ -25,6 +25,13 @@ namespace Org.BouncyCastle.Asn1.Ess
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static SigningCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new SigningCertificate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly Asn1Sequence m_certs;
         private readonly Asn1Sequence m_policies;
 

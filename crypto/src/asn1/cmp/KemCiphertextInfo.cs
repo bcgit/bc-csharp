@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public static KemCiphertextInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemCiphertextInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static KemCiphertextInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KemCiphertextInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private readonly AlgorithmIdentifier m_kem;
         private readonly Asn1OctetString m_ct;
 

@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiMessage(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PkiMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PkiMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PkiMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PkiMessage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiMessage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiHeader m_header;
         private readonly PkiBody m_body;

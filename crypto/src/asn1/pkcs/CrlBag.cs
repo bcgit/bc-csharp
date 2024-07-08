@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CrlBag(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CrlBag GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CrlBag(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlBag GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlBag(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlBag GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlBag(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_crlID;
         private readonly Asn1Encodable m_crlValue;

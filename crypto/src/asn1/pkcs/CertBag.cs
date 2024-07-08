@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CertBag(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertBag GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertBag(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertBag GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertBag(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertBag GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertBag(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_certID;
         private readonly Asn1Object m_certValue;

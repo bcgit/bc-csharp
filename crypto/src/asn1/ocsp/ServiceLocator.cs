@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new ServiceLocator(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static ServiceLocator GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new ServiceLocator(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static ServiceLocator GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new ServiceLocator(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static ServiceLocator GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ServiceLocator(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly X509Name m_issuer;
         private readonly Asn1Object m_locator;

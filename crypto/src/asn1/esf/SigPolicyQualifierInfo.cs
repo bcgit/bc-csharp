@@ -26,10 +26,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static SigPolicyQualifierInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static SigPolicyQualifierInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SigPolicyQualifierInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SigPolicyQualifierInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_sigPolicyQualifierId;
         private readonly Asn1Encodable m_sigQualifier;

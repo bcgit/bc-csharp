@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new RecipientEncryptedKey(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RecipientEncryptedKey GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new RecipientEncryptedKey(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static RecipientEncryptedKey GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new RecipientEncryptedKey(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static RecipientEncryptedKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RecipientEncryptedKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly KeyAgreeRecipientIdentifier m_identifier;
 		private readonly Asn1OctetString m_encryptedKey;

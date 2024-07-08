@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new MacData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static MacData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new MacData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static MacData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MacData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static MacData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MacData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DigestInfo m_digInfo;
         private readonly Asn1OctetString m_salt;

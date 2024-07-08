@@ -24,10 +24,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiHeader(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PkiHeader GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PkiHeader(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PkiHeader GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiHeader(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PkiHeader GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiHeader(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_pvno;
         private readonly GeneralName m_sender;

@@ -14,10 +14,8 @@ namespace Org.BouncyCastle.Asn1.Icao
             return new LdsVersionInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static LdsVersionInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new LdsVersionInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static LdsVersionInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LdsVersionInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
         public static LdsVersionInfo GetOptional(Asn1Encodable element)
         {
@@ -33,6 +31,9 @@ namespace Org.BouncyCastle.Asn1.Icao
 
             return null;
         }
+
+        public static LdsVersionInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LdsVersionInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private DerPrintableString m_ldsVersion;
         private DerPrintableString m_unicodeVersion;

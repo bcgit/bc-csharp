@@ -28,6 +28,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public static KemBMParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemBMParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static KemBMParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KemBMParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private readonly AlgorithmIdentifier m_kdf;
         private readonly DerInteger m_len;
         private readonly AlgorithmIdentifier m_mac;

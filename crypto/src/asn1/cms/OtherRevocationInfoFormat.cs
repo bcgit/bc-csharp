@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OtherRevocationInfoFormat GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static OtherRevocationInfoFormat GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new OtherRevocationInfoFormat(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static OtherRevocationInfoFormat GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherRevocationInfoFormat(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_otherRevInfoFormat;
         private readonly Asn1Encodable m_otherRevInfo;

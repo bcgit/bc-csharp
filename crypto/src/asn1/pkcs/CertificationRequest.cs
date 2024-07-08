@@ -27,10 +27,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CertificationRequest(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static CertificationRequest GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertificationRequest(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertificationRequest GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificationRequest(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertificationRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificationRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         protected CertificationRequestInfo reqInfo;
         protected AlgorithmIdentifier sigAlgId;

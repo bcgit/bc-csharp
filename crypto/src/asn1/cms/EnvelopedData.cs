@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new EnvelopedData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static EnvelopedData GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new EnvelopedData(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static EnvelopedData GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new EnvelopedData(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static EnvelopedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EnvelopedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly OriginatorInfo m_originatorInfo;

@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new OriginatorPublicKey(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OriginatorPublicKey GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new OriginatorPublicKey(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static OriginatorPublicKey GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new OriginatorPublicKey(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static OriginatorPublicKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OriginatorPublicKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_algorithm;
         private readonly DerBitString m_publicKey;

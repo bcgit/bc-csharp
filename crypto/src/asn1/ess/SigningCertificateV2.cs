@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ess
             return new SigningCertificateV2(Asn1Sequence.GetInstance(o));
         }
 
-        public static SigningCertificateV2 GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new SigningCertificateV2(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static SigningCertificateV2 GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SigningCertificateV2(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SigningCertificateV2 GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SigningCertificateV2(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_certs;
         private readonly Asn1Sequence m_policies;

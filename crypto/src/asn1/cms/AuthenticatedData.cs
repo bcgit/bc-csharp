@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new AuthenticatedData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static AuthenticatedData GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new AuthenticatedData(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static AuthenticatedData GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new AuthenticatedData(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static AuthenticatedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AuthenticatedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly OriginatorInfo m_originatorInfo;

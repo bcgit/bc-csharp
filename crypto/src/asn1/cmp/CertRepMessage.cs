@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertRepMessage(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertRepMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertRepMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertRepMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertRepMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertRepMessage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertRepMessage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_caPubs;
 		private readonly Asn1Sequence m_response;

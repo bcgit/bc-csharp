@@ -31,10 +31,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevRepContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new RevRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RevRepContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevRepContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_status;
 		private readonly Asn1Sequence m_revCerts;

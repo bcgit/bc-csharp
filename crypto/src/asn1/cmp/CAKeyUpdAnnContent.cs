@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CAKeyUpdAnnContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CAKeyUpdAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CAKeyUpdAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CAKeyUpdAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CAKeyUpdAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CAKeyUpdAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CAKeyUpdAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CmpCertificate m_oldWithNew;
 		private readonly CmpCertificate m_newWithOld;

@@ -17,6 +17,12 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new RC2CbcParameter(Asn1Sequence.GetInstance(obj));
 		}
 
+        public static RC2CbcParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RC2CbcParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RC2CbcParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RC2CbcParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private readonly DerInteger m_version;
         private readonly Asn1OctetString m_iv;
 

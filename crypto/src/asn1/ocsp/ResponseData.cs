@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			return new ResponseData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ResponseData GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new ResponseData(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static ResponseData GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new ResponseData(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static ResponseData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ResponseData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private static readonly DerInteger V1 = DerInteger.Zero;
 

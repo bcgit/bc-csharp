@@ -21,10 +21,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CrlStatus(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CrlStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CrlStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CrlSource m_source;
         private readonly Time m_thisUpdate;

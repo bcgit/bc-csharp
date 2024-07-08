@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new OobCertHash(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new OobCertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OobCertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OobCertHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OobCertHash(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_hashAlg;
 		private readonly CertId m_certId;

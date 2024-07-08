@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new OtherRecipientInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OtherRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new OtherRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static OtherRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new OtherRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static OtherRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherRecipientInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_oriType;
         private readonly Asn1Encodable m_oriValue;

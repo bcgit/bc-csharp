@@ -18,10 +18,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new GcmParameters(Asn1Sequence.GetInstance(obj));
         }
 
-        public static GcmParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new GcmParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static GcmParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new GcmParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static GcmParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new GcmParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_nonce;
         private readonly int m_icvLen;

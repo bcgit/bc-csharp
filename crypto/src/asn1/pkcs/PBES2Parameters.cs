@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new PbeS2Parameters(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PbeS2Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PbeS2Parameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PbeS2Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbeS2Parameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PbeS2Parameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbeS2Parameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly KeyDerivationFunc m_func;
         private readonly EncryptionScheme m_scheme;

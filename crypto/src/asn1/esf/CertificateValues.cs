@@ -23,10 +23,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CertificateValues(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static CertificateValues GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertificateValues(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertificateValues GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificateValues(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertificateValues GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificateValues(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_certificates;
 

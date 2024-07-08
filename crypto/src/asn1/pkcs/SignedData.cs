@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new SignedData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static SignedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new SignedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static SignedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SignedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SignedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SignedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly Asn1Set m_digestAlgorithms;

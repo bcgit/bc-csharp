@@ -24,10 +24,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new DhbmParameter(Asn1Sequence.GetInstance(obj));
         }
 
-        public static DhbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new DhbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static DhbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DhbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static DhbmParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DhbmParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_owf;
         private readonly AlgorithmIdentifier m_mac;

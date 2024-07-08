@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new TimeStampTokenEvidence(Asn1Sequence.GetInstance(obj));
         }
 
-        public static TimeStampTokenEvidence GetInstance(Asn1TaggedObject tagged, bool isExplicit)
-        {
-            return new TimeStampTokenEvidence(Asn1Sequence.GetInstance(tagged, isExplicit));
-        }
+        public static TimeStampTokenEvidence GetInstance(Asn1TaggedObject tagged, bool isExplicit) =>
+            new TimeStampTokenEvidence(Asn1Sequence.GetInstance(tagged, isExplicit));
+
+        public static TimeStampTokenEvidence GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampTokenEvidence(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly TimeStampAndCrl[] m_timeStampAndCrls;
 

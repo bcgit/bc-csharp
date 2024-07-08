@@ -28,10 +28,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new KemRecipientInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static KemRecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new KemRecipientInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static KemRecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KemRecipientInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static KemRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KemRecipientInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private static readonly DerInteger V1 = DerInteger.Zero;
 

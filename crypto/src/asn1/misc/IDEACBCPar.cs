@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Misc
             return new IdeaCbcPar(Asn1Sequence.GetInstance(o));
         }
 
-        public static IdeaCbcPar GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new IdeaCbcPar(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static IdeaCbcPar GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IdeaCbcPar(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static IdeaCbcPar GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IdeaCbcPar(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_iv;
 

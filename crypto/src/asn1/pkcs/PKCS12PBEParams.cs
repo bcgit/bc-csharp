@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new Pkcs12PbeParams(Asn1Sequence.GetInstance(obj));
         }
 
-        public static Pkcs12PbeParams GetInstance(Asn1TaggedObject tagged, bool declaredExplicit)
-        {
-            return new Pkcs12PbeParams(Asn1Sequence.GetInstance(tagged, declaredExplicit));
-        }
+        public static Pkcs12PbeParams GetInstance(Asn1TaggedObject tagged, bool declaredExplicit) =>
+            new Pkcs12PbeParams(Asn1Sequence.GetInstance(tagged, declaredExplicit));
+
+        public static Pkcs12PbeParams GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Pkcs12PbeParams(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_iv;
         private readonly DerInteger m_iterations;

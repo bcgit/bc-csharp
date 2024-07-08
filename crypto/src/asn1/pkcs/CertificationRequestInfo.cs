@@ -34,10 +34,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CertificationRequestInfo(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static CertificationRequestInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertificationRequestInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertificationRequestInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificationRequestInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertificationRequestInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificationRequestInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly X509Name m_subject;

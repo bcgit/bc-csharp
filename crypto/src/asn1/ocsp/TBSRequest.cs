@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new TbsRequest(Asn1Sequence.GetInstance(obj));
         }
 
-        public static TbsRequest GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new TbsRequest(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static TbsRequest GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new TbsRequest(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static TbsRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TbsRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private static readonly DerInteger V1 = DerInteger.Zero;
 

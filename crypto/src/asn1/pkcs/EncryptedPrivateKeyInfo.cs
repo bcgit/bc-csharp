@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new EncryptedPrivateKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static EncryptedPrivateKeyInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new EncryptedPrivateKeyInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static EncryptedPrivateKeyInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncryptedPrivateKeyInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static EncryptedPrivateKeyInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncryptedPrivateKeyInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_encryptionAlgorithm;
         private readonly Asn1OctetString m_encryptedData;

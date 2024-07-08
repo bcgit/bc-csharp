@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new EncKeyWithID(Asn1Sequence.GetInstance(obj));
         }
 
-        public static EncKeyWithID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new EncKeyWithID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static EncKeyWithID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncKeyWithID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static EncKeyWithID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncKeyWithID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private static Asn1Encodable GetOptionalChoice(Asn1Encodable element)
         {

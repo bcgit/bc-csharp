@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new CertTemplate(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertTemplate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertTemplate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertTemplate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertTemplate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertTemplate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertTemplate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_seq;
 

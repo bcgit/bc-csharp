@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RootCaKeyUpdateContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RootCaKeyUpdateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new RootCaKeyUpdateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static RootCaKeyUpdateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RootCaKeyUpdateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RootCaKeyUpdateContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RootCaKeyUpdateContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CmpCertificate m_newWithNew;
         private readonly CmpCertificate m_newWithOld;

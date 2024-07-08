@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new Pfx(Asn1Sequence.GetInstance(obj));
         }
 
-        public static Pfx GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new Pfx(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static Pfx GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Pfx(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static Pfx GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Pfx(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly ContentInfo m_contentInfo;
         private readonly MacData m_macData;

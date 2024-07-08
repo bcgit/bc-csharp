@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new BasicOcspResponse(Asn1Sequence.GetInstance(obj));
         }
 
-        public static BasicOcspResponse GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new BasicOcspResponse(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static BasicOcspResponse GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new BasicOcspResponse(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static BasicOcspResponse GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new BasicOcspResponse(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly ResponseData m_tbsResponseData;
         private readonly AlgorithmIdentifier m_signatureAlgorithm;

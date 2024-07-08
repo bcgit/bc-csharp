@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new KeyRecRepContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static KeyRecRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new KeyRecRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static KeyRecRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KeyRecRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static KeyRecRepContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KeyRecRepContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiStatusInfo m_status;
 		private readonly CmpCertificate m_newSigCert;

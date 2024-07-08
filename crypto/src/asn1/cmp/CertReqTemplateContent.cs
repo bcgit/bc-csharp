@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertReqTemplateContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertReqTemplateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertReqTemplateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertReqTemplateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertReqTemplateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertReqTemplateContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertReqTemplateContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CertTemplate m_certTemplate;
         private readonly Controls m_keySpec;

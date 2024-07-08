@@ -21,10 +21,11 @@ namespace Org.BouncyCastle.Asn1.Ess
             return new EssCertIDv2(Asn1Sequence.GetInstance(obj));
         }
 
-        public static EssCertIDv2 GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new EssCertIDv2(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static EssCertIDv2 GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EssCertIDv2(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static EssCertIDv2 GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EssCertIDv2(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_hashAlgorithm;
         private readonly Asn1OctetString m_certHash;

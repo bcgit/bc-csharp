@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new AttributePkcs(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static AttributePkcs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new AttributePkcs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static AttributePkcs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AttributePkcs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static AttributePkcs GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AttributePkcs(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_attrType;
         private readonly Asn1Set m_attrValues;

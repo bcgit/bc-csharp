@@ -25,6 +25,13 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static SingleResponse GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new SingleResponse(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly CertID m_certID;
         private readonly CertStatus m_certStatus;
         private readonly Asn1GeneralizedTime m_thisUpdate;

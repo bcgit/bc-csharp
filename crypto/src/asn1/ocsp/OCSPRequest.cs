@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			return new OcspRequest(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static OcspRequest GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new OcspRequest(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static OcspRequest GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new OcspRequest(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static OcspRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OcspRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly TbsRequest m_tbsRequest;
         private readonly Signature m_optionalSignature;

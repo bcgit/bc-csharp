@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertStatus(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_certHash;
 		private readonly DerInteger m_certReqID;

@@ -22,10 +22,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CrlValidatedID(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CrlValidatedID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CrlValidatedID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlValidatedID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlValidatedID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlValidatedID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlValidatedID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly OtherHash m_crlHash;
         private readonly CrlIdentifier m_crlIdentifier;

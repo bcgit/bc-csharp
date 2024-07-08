@@ -40,6 +40,13 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        public static OtherKeyAttribute GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new OtherKeyAttribute(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly DerObjectIdentifier m_keyAttrId;
         private readonly Asn1Encodable m_keyAttr;
 

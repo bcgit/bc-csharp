@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new TimeStampedData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static TimeStampedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new TimeStampedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static TimeStampedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static TimeStampedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
         private readonly DerIA5String m_dataUri;

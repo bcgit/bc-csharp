@@ -16,10 +16,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertifiedKeyPair(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertifiedKeyPair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertifiedKeyPair(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertifiedKeyPair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertifiedKeyPair(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
         public static CertifiedKeyPair GetOptional(Asn1Encodable element)
         {
@@ -35,6 +33,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             return null;
         }
+
+        public static CertifiedKeyPair GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertifiedKeyPair(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CertOrEncCert m_certOrEncCert;
 		private readonly EncryptedKey m_privateKey;

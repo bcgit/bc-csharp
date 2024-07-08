@@ -25,6 +25,13 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static KekRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new KekRecipientInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly DerInteger m_version;
         private readonly KekIdentifier m_kekID;
         private readonly AlgorithmIdentifier m_keyEncryptionAlgorithm;

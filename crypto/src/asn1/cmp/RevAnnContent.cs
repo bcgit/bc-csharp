@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevAnnContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new RevAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RevAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiStatusEncodable m_status;
 		private readonly CertId m_certID;

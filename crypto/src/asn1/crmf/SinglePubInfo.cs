@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new SinglePubInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static SinglePubInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new SinglePubInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static SinglePubInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SinglePubInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SinglePubInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SinglePubInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_pubMethod;
         private readonly GeneralName m_pubLocation;

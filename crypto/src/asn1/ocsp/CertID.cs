@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			return new CertID(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static CertID GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return new CertID(Asn1Sequence.GetInstance(obj, explicitly));
-        }
+        public static CertID GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new CertID(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static CertID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_hashAlgorithm;
         private readonly Asn1OctetString m_issuerNameHash;

@@ -25,6 +25,13 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static KeyAgreeRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new KeyAgreeRecipientInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly DerInteger m_version;
         private readonly OriginatorIdentifierOrKey m_originator;
         private readonly Asn1OctetString m_ukm;

@@ -32,6 +32,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public static KemOtherInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemOtherInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static KemOtherInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KemOtherInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private static readonly PkiFreeText DEFAULT_staticString = new PkiFreeText("CMP-KEM");
 
         private readonly PkiFreeText m_staticString;

@@ -28,6 +28,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static SignerInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new SignerInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly DerInteger m_version;
         private readonly IssuerAndSerialNumber m_issuerAndSerialNumber;
         private readonly AlgorithmIdentifier m_digAlgorithm;

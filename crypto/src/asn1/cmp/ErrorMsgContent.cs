@@ -25,10 +25,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new ErrorMsgContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ErrorMsgContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new ErrorMsgContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static ErrorMsgContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ErrorMsgContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static ErrorMsgContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ErrorMsgContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiStatusInfo m_pkiStatusInfo;
 		private readonly DerInteger m_errorCode;

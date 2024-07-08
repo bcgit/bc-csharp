@@ -24,10 +24,11 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new OtherCertID(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static OtherCertID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-		{
-			return new OtherCertID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-		}
+        public static OtherCertID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+			new OtherCertID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OtherCertID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherCertID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly OtherHash m_otherCertHash;
         private readonly IssuerSerial m_issuerSerial;
