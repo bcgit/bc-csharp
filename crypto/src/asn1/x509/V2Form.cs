@@ -5,24 +5,37 @@ namespace Org.BouncyCastle.Asn1.X509
     public class V2Form
         : Asn1Encodable
     {
-        internal GeneralNames        issuerName;
-        internal IssuerSerial        baseCertificateID;
-        internal ObjectDigestInfo    objectDigestInfo;
-
-        public static V2Form GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
         public static V2Form GetInstance(object obj)
         {
-            if (obj is V2Form)
-                return (V2Form)obj;
-            if (obj != null)
-                return new V2Form(Asn1Sequence.GetInstance(obj));
-            return null;
+            if (obj == null)
+                return null;
+            if (obj is V2Form v2Form)
+                return v2Form;
+            return new V2Form(Asn1Sequence.GetInstance(obj));
+        }
+
+        public static V2Form GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new V2Form(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static V2Form GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new V2Form(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly GeneralNames m_issuerName;
+        private readonly IssuerSerial m_baseCertificateID;
+        private readonly ObjectDigestInfo m_objectDigestInfo;
+
+        private V2Form(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_issuerName = Asn1Utilities.ReadOptional(seq, ref pos, GeneralNames.GetOptional);
+            m_baseCertificateID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, IssuerSerial.GetTagged);
+            m_objectDigestInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, ObjectDigestInfo.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public V2Form(GeneralNames issuerName)
@@ -40,64 +53,18 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-        public V2Form(
-            GeneralNames issuerName,
-            IssuerSerial baseCertificateID,
-            ObjectDigestInfo objectDigestInfo)
+        public V2Form(GeneralNames issuerName, IssuerSerial baseCertificateID, ObjectDigestInfo objectDigestInfo)
         {
-            this.issuerName = issuerName;
-            this.baseCertificateID = baseCertificateID;
-            this.objectDigestInfo = objectDigestInfo;
+            m_issuerName = issuerName;
+            m_baseCertificateID = baseCertificateID;
+            m_objectDigestInfo = objectDigestInfo;
         }
 
-        private V2Form(
-            Asn1Sequence seq)
-        {
-            if (seq.Count > 3)
-            {
-                throw new ArgumentException("Bad sequence size: " + seq.Count);
-            }
+        public GeneralNames IssuerName => m_issuerName;
 
-            int index = 0;
+        public IssuerSerial BaseCertificateID => m_baseCertificateID;
 
-            if (!(seq[0] is Asn1TaggedObject))
-            {
-                index++;
-                this.issuerName = GeneralNames.GetInstance(seq[0]);
-            }
-
-            for (int i = index; i != seq.Count; i++)
-            {
-                Asn1TaggedObject o = Asn1TaggedObject.GetInstance(seq[i]);
-                if (o.TagNo == 0)
-                {
-                    baseCertificateID = IssuerSerial.GetInstance(o, false);
-                }
-                else if (o.TagNo == 1)
-                {
-                    objectDigestInfo = ObjectDigestInfo.GetInstance(o, false);
-                }
-                else
-                {
-                    throw new ArgumentException("Bad tag number: " + o.TagNo);
-                }
-            }
-        }
-
-        public GeneralNames IssuerName
-        {
-            get { return issuerName; }
-        }
-
-        public IssuerSerial BaseCertificateID
-        {
-            get { return baseCertificateID; }
-        }
-
-        public ObjectDigestInfo ObjectDigestInfo
-        {
-            get { return objectDigestInfo; }
-        }
+        public ObjectDigestInfo ObjectDigestInfo => m_objectDigestInfo;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -115,9 +82,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.AddOptional(issuerName);
-            v.AddOptionalTagged(false, 0, baseCertificateID);
-            v.AddOptionalTagged(false, 1, objectDigestInfo);
+            v.AddOptional(m_issuerName);
+            v.AddOptionalTagged(false, 0, m_baseCertificateID);
+            v.AddOptionalTagged(false, 1, m_objectDigestInfo);
             return new DerSequence(v);
         }
     }

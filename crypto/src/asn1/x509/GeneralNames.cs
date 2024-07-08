@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
@@ -20,6 +19,21 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public static GeneralNames GetInstance(Asn1TaggedObject obj, bool explicitly) =>
 			new GeneralNames(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static GeneralNames GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is GeneralNames generalNames)
+                return generalNames;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new GeneralNames(asn1Sequence);
+
+            return null;
+        }
 
         public static GeneralNames GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new GeneralNames(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
