@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -73,6 +74,33 @@ namespace Org.BouncyCastle.Asn1.X509
             Asn1EncodableVector v = new Asn1EncodableVector(policyIdentifier);
             v.AddOptional(policyQualifiers);
             return new DerSequence(v);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("Policy information: ");
+            sb.Append(policyIdentifier);
+
+            if (policyQualifiers != null)
+            {
+                StringBuilder p = new StringBuilder();
+                for (int i = 0; i < policyQualifiers.Count; i++)
+                {
+                    if (p.Length != 0)
+                    {
+                        p.Append(", ");
+                    }
+                    p.Append(PolicyQualifierInfo.GetInstance(policyQualifiers[i]));
+                }
+
+                sb.Append("[");
+                sb.Append(p);
+                sb.Append("]");
+            }
+
+            return sb.ToString();
         }
     }
 }
