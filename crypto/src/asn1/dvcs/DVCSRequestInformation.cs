@@ -44,6 +44,54 @@ namespace Org.BouncyCastle.asn1.dvcs
         private X509Extensions extensions;
 
 
+        public ServiceType Service
+        {
+            get { return service; }
+        }
+
+        public int Version
+        {
+            get
+            {
+                return version;
+            }
+        }
+
+        public BigInteger Nonce
+        {
+            get { return nonce; }
+        }
+
+        public DVCSTime RequestTime
+        {
+            get { return requestTime; }
+        }
+
+        public GeneralNames Requester
+        {
+            get { return requester; }
+        }
+
+        public PolicyInformation RequestPolicy
+        {
+            get { return requestPolicy; }
+        }
+
+        public GeneralNames DVCS
+        {
+            get { return dvcs; }
+        }
+
+        public GeneralNames DataLocations
+        {
+            get { return dataLocations; }
+        }
+
+        public X509Extensions Extensions
+        {
+            get { return extensions; }
+        }
+
         private DVCSRequestInformation(Asn1Sequence seq)
         {
             int i = 0;
@@ -227,12 +275,12 @@ namespace Org.BouncyCastle.asn1.dvcs
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return ToASN1Primitive().GetEncodingImplicit(encoding, tagClass, tagNo); 
+            return ToASN1Primitive().GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         internal override DerEncoding GetEncodingDer()
         {
-            return ToASN1Primitive().GetEncodingDer(); 
+            return ToASN1Primitive().GetEncodingDer();
         }
 
         internal override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
@@ -242,7 +290,7 @@ namespace Org.BouncyCastle.asn1.dvcs
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            return ToASN1Primitive().CallAsn1Equals(asn1Object); 
+            return ToASN1Primitive().CallAsn1Equals(asn1Object);
         }
 
         protected override int Asn1GetHashCode()
@@ -251,50 +299,6 @@ namespace Org.BouncyCastle.asn1.dvcs
         }
 
 
-        public int GetVersion()
-        {
-            return version;
-        }
-
-        public ServiceType GetService()
-        {
-            return service;
-        }
-
-        public BigInteger GetNonce()
-        {
-            return nonce;
-        }
-
-        public DVCSTime GetRequestTime()
-        {
-            return requestTime;
-        }
-
-        public GeneralNames GetRequester()
-        {
-            return requester;
-        }
-
-        public PolicyInformation GetRequestPolicy()
-        {
-            return requestPolicy;
-        }
-
-        public GeneralNames GetDVCS()
-        {
-            return dvcs;
-        }
-
-        public GeneralNames GetDataLocations()
-        {
-            return dataLocations;
-        }
-
-        public X509Extensions GetExtensions()
-        {
-            return extensions;
-        }
 
     }
 }

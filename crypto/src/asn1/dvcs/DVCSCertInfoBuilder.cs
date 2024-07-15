@@ -45,7 +45,119 @@ namespace Org.BouncyCastle.asn1.dvcs
         private Asn1Sequence certs;
         private X509Extensions extensions;
 
-       //TODO  Complete 
+
+        public int Version
+        {
+            get { return version; }
+            set { version = value; }
+        }
+
+        public DVCSRequestInformation DVReqInfo
+        {
+            get { return dvReqInfo; }
+            set { dvReqInfo = value; }
+        }
+
+
+        public DigestInfo MessageImprint
+        {
+            get { return messageImprint;  }
+            set { messageImprint = value; }
+        }
+
+        public DerInteger SerialNumber
+        {
+            get { return serialNumber; }
+            set { serialNumber = value; }
+        }
+
+        public DVCSTime ResponseTime
+        {
+            get { return responseTime; }
+            set { responseTime = value; }
+        }
+
+        public PkiStatusInfo DvStatus
+        {
+            get { return dvStatus; }
+            set { dvStatus = value; }
+        }
+
+        public PolicyInformation Policy
+        {
+            get { return policy; }
+            set { policy = value; }
+        }
+
+        public Asn1Set RequestSignature
+        {
+            get { return reqSignature; }
+            set { reqSignature = value; }
+        }
+
+
+        public Asn1Sequence Certs
+        {
+            get { return certs; }
+            set { certs = value; }
+        }
+
+        public X509Extensions Extensions
+        {
+            get { return extensions; }
+            set { extensions = value; }
+        }
+
+        public DVCSCertInfoBuilder(
+            DVCSRequestInformation dvReqInfo,
+            DigestInfo messageImprint,
+            DerInteger serialNumber,
+            DVCSTime responseTime)
+        {
+            this.dvReqInfo = dvReqInfo;
+            this.messageImprint = messageImprint;
+            this.serialNumber = serialNumber;
+            this.responseTime = responseTime;
+        }
+
+
+        public DVCSCertInfo Build()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(10);
+
+            if (version != DEFAULT_VERSION)
+            {
+                v.Add(new DerInteger(version));
+            }
+            v.Add(dvReqInfo);
+            v.Add(messageImprint);
+            v.Add(serialNumber);
+            v.Add(responseTime);
+            if (dvStatus != null)
+            {
+                v.Add(new DerTaggedObject(false, TAG_DV_STATUS, dvStatus));
+            }
+            if (policy != null)
+            {
+                v.Add(new DerTaggedObject(false, TAG_POLICY, policy));
+            }
+            if (reqSignature != null)
+            {
+                v.Add(new DerTaggedObject(false, TAG_REQ_SIGNATURE, reqSignature));
+            }
+            if (certs != null)
+            {
+                v.Add(new DerTaggedObject(false, TAG_CERTS, certs));
+            }
+            if (extensions != null)
+            {
+                v.Add(extensions);
+            }
+
+            return DVCSCertInfo.GetInstance(new DerSequence(v));
+        }
+
+
 
     }
 }
