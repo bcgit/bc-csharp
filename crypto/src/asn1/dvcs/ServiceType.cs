@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.asn1.dvcs
 {
@@ -34,6 +35,9 @@ namespace Org.BouncyCastle.asn1.dvcs
 
 
         private DerEnumerated value;
+
+
+        public BigInteger Value => value.Value;
 
         public ServiceType(int value)
         {
