@@ -247,9 +247,19 @@ namespace Org.BouncyCastle.asn1.dvcs
             this.dvcs = new GeneralNames(dvcs); 
         }
 
+        public void SetDvcs(GeneralNames dvcs)
+        {
+            this.dvcs = dvcs; 
+        }
+
         public void SetDataLocations(GeneralName dataLocations)
         {
             this .dataLocations = new GeneralNames(dataLocations);
+        }
+
+        public void SetDataLocations(GeneralNames dataLocations)
+        {
+            this.dataLocations =dataLocations;
         }
     }
 }
