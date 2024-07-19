@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.dvcs
         }
 
 
-        public DVCSRequest build(CmsSignedData document)
+        public DVCSRequest Build(CmsSignedData document)
         {
             try
             {

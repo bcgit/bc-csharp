@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.dvcs
 {
@@ -26,18 +27,20 @@ namespace Org.BouncyCastle.dvcs
         {
             try
             {
-                //Stream dOut = digestCalculator.get;
+                var digestoid = DigestUtilities.GetObjectIdentifier(digestCalculator.AlgorithmName);
+               
+                digestCalculator.BlockUpdate(message, 0, message.Length);
+                byte[] result = new byte[digestCalculator.GetDigestSize()];
 
-                //dOut.Write(message);
-
-                //dOut.Close();
-
-                //return new MessageImprint(new DigestInfo(digestCalculator., digestCalculator.getDigest()));
+                digestCalculator.DoFinal(result, 0);
+                return new MessageImprint(new DigestInfo(new AlgorithmIdentifier(digestoid), result));
             }
             catch (Exception e)
             {
-                throw new DVCSException("unable to build MessageImprint: " + e.getMessage(), e);
+                throw new DVCSException("unable to build MessageImprint: " + e.Message, e);
             }
+
+            return null;
         }
     }
 }
