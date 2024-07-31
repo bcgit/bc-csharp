@@ -8,61 +8,49 @@ namespace Org.BouncyCastle.Asn1.X509
     public class BasicConstraints
         : Asn1Encodable
     {
-		public static BasicConstraints GetInstance(Asn1TaggedObject obj, bool explicitly)
+        public static BasicConstraints GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-		public static BasicConstraints GetInstance(object obj)
-        {
-            if (obj is BasicConstraints)
-                return (BasicConstraints)obj;
-            if (obj is X509Extension)
-                return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
             if (obj == null)
                 return null;
+            if (obj is BasicConstraints basicConstraints)
+                return basicConstraints;
+            // TODO[api] Remove this case
+            if (obj is X509Extension x509Extension)
+                return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
             return new BasicConstraints(Asn1Sequence.GetInstance(obj));
-		}
+        }
+
+        public static BasicConstraints GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new BasicConstraints(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static BasicConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new BasicConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public static BasicConstraints FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.BasicConstraints));
         }
 
-        private readonly DerBoolean cA;
-        private readonly DerInteger pathLenConstraint;
+        private readonly DerBoolean m_cA;
+        private readonly DerInteger m_pathLenConstraint;
 
-        private BasicConstraints(
-            Asn1Sequence seq)
+        private BasicConstraints(Asn1Sequence seq)
         {
-			if (seq.Count > 0)
-			{
-				if (seq[0] is DerBoolean derBoolean)
-				{
-					this.cA = derBoolean;
-				}
-				else
-				{
-					this.pathLenConstraint = DerInteger.GetInstance(seq[0]);
-				}
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-				if (seq.Count > 1)
-				{
-					if (this.cA == null)
-						throw new ArgumentException("wrong sequence in constructor", "seq");
+            m_cA = Asn1Utilities.ReadOptional(seq, ref pos, DerBoolean.GetOptional) ?? DerBoolean.False;
+            m_pathLenConstraint = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
 
-					this.pathLenConstraint = DerInteger.GetInstance(seq[1]);
-				}
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public BasicConstraints(
-            bool cA)
+		public BasicConstraints(bool cA)
         {
-			if (cA)
-			{
-				this.cA = DerBoolean.True;
-			}
+            m_cA = cA ? DerBoolean.True : DerBoolean.False;
+            m_pathLenConstraint = null;
         }
 
 		/**
@@ -70,21 +58,17 @@ namespace Org.BouncyCastle.Asn1.X509
          *
          * @param pathLenConstraint
          */
-        public BasicConstraints(
-            int pathLenConstraint)
+        public BasicConstraints(int pathLenConstraint)
         {
-            this.cA = DerBoolean.True;
-            this.pathLenConstraint = new DerInteger(pathLenConstraint);
+            m_cA = DerBoolean.True;
+            m_pathLenConstraint = new DerInteger(pathLenConstraint);
         }
 
-		public bool IsCA()
-        {
-            return cA != null && cA.IsTrue;
-        }
+        public bool IsCA() => m_cA.IsTrue;
 
-        public BigInteger PathLenConstraint => pathLenConstraint?.Value;
+        public BigInteger PathLenConstraint => m_pathLenConstraint?.Value;
 
-        public DerInteger PathLenConstraintInteger => pathLenConstraint;
+        public DerInteger PathLenConstraintInteger => m_pathLenConstraint;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -98,19 +82,20 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptional(cA,
-                pathLenConstraint); // yes some people actually do this when cA is false...
+            if (m_cA.IsTrue)
+            {
+                v.Add(m_cA);
+            }
+            v.AddOptional(m_pathLenConstraint); // yes some people actually do this when cA is false...
             return new DerSequence(v);
         }
 
 		public override string ToString()
         {
-            if (pathLenConstraint == null)
-            {
-				return "BasicConstraints: isCa(" + this.IsCA() + ")";
-            }
+            if (m_pathLenConstraint == null)
+				return "BasicConstraints: isCa(" + IsCA() + ")";
 
-			return "BasicConstraints: isCa(" + this.IsCA() + "), pathLenConstraint = " + pathLenConstraint.Value;
+			return "BasicConstraints: isCa(" + IsCA() + "), pathLenConstraint = " + m_pathLenConstraint.Value;
         }
     }
 }

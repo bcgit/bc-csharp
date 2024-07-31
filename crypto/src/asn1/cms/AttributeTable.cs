@@ -14,56 +14,18 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public AttributeTable(Asn1EncodableVector v)
         {
-            m_attributes = new Dictionary<DerObjectIdentifier, object>(v.Count);
-
-            foreach (Asn1Encodable e in v)
-            {
-				AddAttribute(Attribute.GetInstance(e));
-            }
+            m_attributes = BuildAttributes(v);
         }
 
         public AttributeTable(Asn1Set s)
         {
-            m_attributes = new Dictionary<DerObjectIdentifier, object>(s.Count);
-
-            foreach (Asn1Encodable e in s)
-            {
-                AddAttribute(Attribute.GetInstance(e));
-            }
+            m_attributes = BuildAttributes(s);
         }
 
 		public AttributeTable(Attributes attrs)
 			: this(Asn1Set.GetInstance(attrs.ToAsn1Object()))
 		{
 		}
-
-		private void AddAttribute(Attribute a)
-        {
-			DerObjectIdentifier oid = a.AttrType;
-
-            if (!m_attributes.TryGetValue(oid, out object existingValue))
-            {
-                m_attributes[oid] = a;
-                return;
-            }
-
-            if (existingValue is IList<Attribute> existingList)
-            {
-                existingList.Add(a);
-                return;
-            }
-
-            if (existingValue is Attribute existingAttr)
-            {
-                var newList = new List<Attribute>();
-                newList.Add(existingAttr);
-                newList.Add(a);
-                m_attributes[oid] = newList;
-                return;
-            }
-
-            throw new InvalidOperationException();
-        }
 
 		/// <summary>Return the first attribute matching the given OBJECT IDENTIFIER</summary>
 		public Attribute this[DerObjectIdentifier oid]
@@ -73,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                 if (!m_attributes.TryGetValue(oid, out object existingValue))
                     return null;
 
-                if (existingValue is IList<Attribute> existingList)
+                if (existingValue is List<Attribute> existingList)
                     return existingList[0];
 
                 if (existingValue is Attribute existingAttr)
@@ -96,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (m_attributes.TryGetValue(oid, out object existingValue))
             {
-                if (existingValue is IList<Attribute> existingList)
+                if (existingValue is List<Attribute> existingList)
                 {
                     foreach (var attr in existingList)
                     {
@@ -124,7 +86,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
                 foreach (object existingValue in m_attributes.Values)
                 {
-                    if (existingValue is IList<Attribute> existingList)
+                    if (existingValue is List<Attribute> existingList)
                     {
                         total += existingList.Count;
                     }
@@ -153,7 +115,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             foreach (object existingValue in m_attributes.Values)
             {
-                if (existingValue is IList<Attribute> existingList)
+                if (existingValue is List<Attribute> existingList)
                 {
                     foreach (Attribute existingAttr in existingList)
                     {
@@ -183,13 +145,12 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (attributes == null || attributes.Length < 1)
                 return this;
 
-            var newTable = new AttributeTable(m_attributes);
+            var result = new AttributeTable(m_attributes);
             foreach (Attribute attribute in attributes)
             {
-                newTable.AddAttribute(attribute);
+                AddAttribute(result.m_attributes, attribute);
             }
-
-            return newTable;
+            return result;
         }
 
         /**
@@ -201,20 +162,57 @@ namespace Org.BouncyCastle.Asn1.Cms
 		 */
         public AttributeTable Add(DerObjectIdentifier attrType, Asn1Encodable attrValue)
 		{
-			AttributeTable newTable = new AttributeTable(m_attributes);
-
-			newTable.AddAttribute(new Attribute(attrType, new DerSet(attrValue)));
-
-			return newTable;
+			AttributeTable result = new AttributeTable(m_attributes);
+            AddAttribute(result.m_attributes, new Attribute(attrType, new DerSet(attrValue)));
+			return result;
 		}
 
 		public AttributeTable Remove(DerObjectIdentifier attrType)
 		{
-			AttributeTable newTable = new AttributeTable(m_attributes);
+            if (!m_attributes.ContainsKey(attrType))
+                return this;
 
-			newTable.m_attributes.Remove(attrType);
-
-			return newTable;
+            AttributeTable result = new AttributeTable(m_attributes);
+			result.m_attributes.Remove(attrType);
+			return result;
 		}
+
+        private static void AddAttribute(Dictionary<DerObjectIdentifier, object> attributes, Attribute a)
+        {
+            DerObjectIdentifier oid = a.AttrType;
+
+            if (!attributes.TryGetValue(oid, out object existingValue))
+            {
+                attributes[oid] = a;
+                return;
+            }
+
+            if (existingValue is List<Attribute> existingList)
+            {
+                existingList.Add(a);
+                return;
+            }
+
+            if (existingValue is Attribute existingAttr)
+            {
+                var newList = new List<Attribute>();
+                newList.Add(existingAttr);
+                newList.Add(a);
+                attributes[oid] = newList;
+                return;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        private static Dictionary<DerObjectIdentifier, object> BuildAttributes(IEnumerable<Asn1Encodable> e)
+        {
+            var result = new Dictionary<DerObjectIdentifier, object>();
+            foreach (Asn1Encodable element in e)
+            {
+                AddAttribute(result, Attribute.GetInstance(element));
+            }
+            return result;
+        }
     }
 }

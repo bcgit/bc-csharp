@@ -726,20 +726,81 @@ namespace Org.BouncyCastle.Security
 
         private static string ReadUtf(BinaryReader br)
         {
-            byte[] utfBytes = ReadBufferWithInt16Length(br);
+            byte[] mUtfBytes = ReadBufferWithInt16Length(br);
 
-            /*
-             * FIXME JKS actually uses a "modified UTF-8" format. For the moment we will just support single-byte
-             * encodings that aren't null bytes.
-             */
-            for (int i = 0; i < utfBytes.Length; ++i)
+            int i = 0;
+            MemoryStream utfBytes = new MemoryStream(mUtfBytes.Length);
+
+            while (i < mUtfBytes.Length)
             {
-                byte utfByte = utfBytes[i];
-                if (utfByte == 0 || (utfByte & 0x80) != 0)
-                    throw new NotSupportedException("Currently missing support for modified UTF-8 encoding in JKS");
+                // Modified UTF-8 differs from regular UTF-8 in the following
+                // ways:
+                //
+                // 1. NULL bytes never occur in the stream and are always
+                //    two-byte encoded.
+                // 2. There are no four-byte values and are instead always
+                //    encoded using surrogate pairs.
+                //
+                // See also: https://docs.oracle.com/en/java/javase/16/docs/api/java.base/java/io/DataInput.html#modified-utf-8
+                byte mUtfByte = mUtfBytes[i];
+                if (mUtfByte == 0)
+                    throw new NotSupportedException("Unexpected NULL byte in modified UTF-8 encoding in JKS");
+
+                if ((mUtfByte & 0x80) == 0)
+                {
+                    // No transformation is applied to non-NULL ASCII bytes.
+                    utfBytes.WriteByte(mUtfByte);
+                    i += 1;
+                }
+                else if ((mUtfByte & 0xE0) == 0xC0)
+                {
+                    // Validate we have another byte.
+                    if ((i + 1) >= mUtfBytes.Length)
+                        throw new NotSupportedException("Two-byte sentinel found at end of input stream");
+
+                    byte mUtfByteSecond = mUtfBytes[i+1];
+                    if ((mUtfByteSecond & 0xC0) != 0x80)
+                        throw new NotSupportedException("Second byte in two-byte modified UTF-8 encoding malformed");
+
+                    // We might have encoded the NULL byte as two bytes.
+                    if (mUtfByte == 0xC0 && mUtfByteSecond == 0x80)
+                    {
+                        utfBytes.WriteByte(0x00);
+                    } else {
+                        utfBytes.WriteByte(mUtfByte);
+                        utfBytes.WriteByte(mUtfByteSecond);
+                    }
+
+                    i += 2;
+                }
+                else if ((mUtfByte & 0xF0) == 0xE0)
+                {
+                    // Validate we have enough bytes.
+                    if ((i + 2) >= mUtfBytes.Length)
+                        throw new NotSupportedException("Three-byte sentinel found at end of input stream");
+
+                    byte mUtfByteSecond = mUtfBytes[i+1];
+                    if ((mUtfByteSecond & 0xC0) != 0x80)
+                        throw new NotSupportedException("Second byte in two-byte modified UTF-8 encoding malformed");
+
+                    byte mUtfByteThird = mUtfBytes[i+2];
+                    if ((mUtfByteThird & 0xC0) != 0x80)
+                        throw new NotSupportedException("Third byte in two-byte modified UTF-8 encoding malformed");
+
+                    utfBytes.WriteByte(mUtfByte);
+                    utfBytes.WriteByte(mUtfByteSecond);
+                    utfBytes.WriteByte(mUtfByteThird);
+
+                    i += 3;
+                }
+                else
+                {
+                    // Reachable when we have a non-standard four-byte sentinel mask.
+                    throw new NotSupportedException("Malformed modified UTF-8 encoding at index " + i);
+                }
             }
 
-            return Encoding.UTF8.GetString(utfBytes);
+            return Encoding.UTF8.GetString(utfBytes.ToArray());
         }
 
         private static void WriteBufferWithInt16Length(BinaryWriter bw, byte[] buffer)
@@ -770,18 +831,63 @@ namespace Org.BouncyCastle.Security
         {
             byte[] utfBytes = Encoding.UTF8.GetBytes(s);
 
-            /*
-             * FIXME JKS actually uses a "modified UTF-8" format. For the moment we will just support single-byte
-             * encodings that aren't null bytes.
-             */
-            for (int i = 0; i < utfBytes.Length; ++i)
+            int i = 0;
+            MemoryStream mUtfBytes = new MemoryStream();
+            while (i < utfBytes.Length)
             {
                 byte utfByte = utfBytes[i];
-                if (utfByte == 0 || (utfByte & 0x80) != 0)
-                    throw new NotSupportedException("Currently missing support for modified UTF-8 encoding in JKS");
+                if (utfByte == 0)
+                {
+                    // The NULL byte is encoded in two byte format.
+                    mUtfBytes.WriteByte(0xC0);
+                    mUtfBytes.WriteByte(0x80);
+                    i += 1;
+                }
+                else if ((utfByte & 0x80) == 0)
+                {
+                    // One byte UTF-8 bytes are written directly.
+                    mUtfBytes.WriteByte(utfByte);
+                    i += 1;
+                }
+                else if ((utfByte & 0xE0) == 0xC0)
+                {
+                    // Two byte UTF-8 values are preserved as-is.
+                    if ((i + 1) >= utfBytes.Length)
+                        throw new NotSupportedException("Malformed UTF-8: trailing two-byte character at end of string");
+
+                    if ((utfBytes[i+1] & 0xC0) != 0x80)
+                        throw new NotSupportedException("Malformed UTF-8: second byte has invalid prefix");
+
+                    mUtfBytes.WriteByte(utfByte);
+                    mUtfBytes.WriteByte(utfBytes[i+1]);
+                    i += 2;
+                }
+                else if ((utfByte & 0xF0) == 0xE0)
+                {
+                    // Three byte UTF-8 values are preserved as-is.
+                    if ((i + 2) >= utfBytes.Length)
+                        throw new NotSupportedException("Malformed UTF-8: trailing three-byte character at end of string");
+
+                    if ((utfBytes[i+1] & 0xC0) != 0x80)
+                        throw new NotSupportedException("Malformed UTF-8: second byte has invalid prefix");
+
+                    if ((utfBytes[i+2] & 0xC0) != 0x80)
+                        throw new NotSupportedException("Malformed UTF-8: third byte has invalid prefix");
+
+                    mUtfBytes.WriteByte(utfByte);
+                    mUtfBytes.WriteByte(utfBytes[i+1]);
+                    mUtfBytes.WriteByte(utfBytes[i+2]);
+                    i += 3;
+
+                }
+                else
+                {
+                    // Reachable when we have a non-standard four-byte sentinel mask.
+                    throw new NotSupportedException("Malformed modified UTF-8 encoding at index " + i);
+                }
             }
 
-            WriteBufferWithInt16Length(bw, utfBytes);
+            WriteBufferWithInt16Length(bw, mUtfBytes.ToArray());
         }
 
         /**

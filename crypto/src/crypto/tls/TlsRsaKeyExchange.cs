@@ -125,11 +125,15 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private static BigInteger ConvertInput(BigInteger modulus, byte[] buf, int off, int len)
         {
-            BigInteger result = BigIntegers.FromUnsignedByteArray(buf, off, len);
-            if (result.CompareTo(modulus) < 0)
-                return result;
+            BigInteger input = BigIntegers.FromUnsignedByteArray(buf, off, len);
 
-            throw new DataLengthException("input too large for RSA cipher.");
+            if (input.CompareTo(BigInteger.One) <= 0)
+                throw new DataLengthException("input too small for RSA cipher.");
+
+            if (input.CompareTo(modulus.Subtract(BigInteger.One)) >= 0)
+                throw new DataLengthException("input too large for RSA cipher.");
+
+            return input;
         }
 
         private static BigInteger Rsa(RsaKeyParameters privateKey, BigInteger input)

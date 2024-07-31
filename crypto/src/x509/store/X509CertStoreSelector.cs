@@ -60,6 +60,9 @@ namespace Org.BouncyCastle.X509.Store
 			return new X509CertStoreSelector(this);
 		}
 
+        /// <remarks>
+		/// A DER encoding of an ASN.1 AuthorityKeyIdentifier value.
+        /// </remarks>
 		public byte[] AuthorityKeyIdentifier
 		{
 			get { return Arrays.Clone(authorityKeyIdentifier); }
@@ -141,7 +144,10 @@ namespace Org.BouncyCastle.X509.Store
 			set { subject = value; }
 		}
 
-		public byte[] SubjectKeyIdentifier
+        /// <remarks>
+		/// A DER encoding of an ASN.1 SubjectKeyIdentifier (OCTET STRING) value.
+        /// </remarks>
+        public byte[] SubjectKeyIdentifier
 		{
 			get { return Arrays.Clone(subjectKeyIdentifier); }
 			set { subjectKeyIdentifier = Arrays.Clone(value); }

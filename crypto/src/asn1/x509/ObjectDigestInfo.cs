@@ -42,35 +42,42 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public const int OtherObjectDigest = 2;
 
-		internal readonly DerEnumerated			digestedObjectType;
-        internal readonly DerObjectIdentifier	otherObjectTypeID;
-        internal readonly AlgorithmIdentifier	digestAlgorithm;
-        internal readonly DerBitString			objectDigest;
-
-		public static ObjectDigestInfo GetInstance(
-            object obj)
+        public static ObjectDigestInfo GetInstance(object obj)
         {
-            if (obj == null || obj is ObjectDigestInfo)
-            {
-                return (ObjectDigestInfo) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new ObjectDigestInfo((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public static ObjectDigestInfo GetInstance(
-            Asn1TaggedObject	obj,
-            bool				isExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+            if (obj == null)
+                return null;
+            if (obj is ObjectDigestInfo objectDigestInfo)
+                return objectDigestInfo;
+            return new ObjectDigestInfo(Asn1Sequence.GetInstance(obj));
         }
 
-		/**
+        public static ObjectDigestInfo GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new ObjectDigestInfo(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static ObjectDigestInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ObjectDigestInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerEnumerated m_digestedObjectType;
+        private readonly DerObjectIdentifier m_otherObjectTypeID;
+        private readonly AlgorithmIdentifier m_digestAlgorithm;
+        private readonly DerBitString m_objectDigest;
+
+        private ObjectDigestInfo(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_digestedObjectType = DerEnumerated.GetInstance(seq[pos++]);
+			m_otherObjectTypeID = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
+			m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+			m_objectDigest = DerBitString.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
+
+        /**
 		 * Constructor from given details.
 		 * <p>
 		 * If <code>digestedObjectType</code> is not {@link #publicKeyCert} or
@@ -83,65 +90,27 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param digestAlgorithm The algorithm identifier for the hash.
 		 * @param objectDigest The hash value.
 		 */
-		public ObjectDigestInfo(
-			int					digestedObjectType,
-			string				otherObjectTypeID,
-			AlgorithmIdentifier	digestAlgorithm,
-			byte[]				objectDigest)
-		{
-			this.digestedObjectType = new DerEnumerated(digestedObjectType);
+        public ObjectDigestInfo(int digestedObjectType, string otherObjectTypeID,
+			AlgorithmIdentifier digestAlgorithm, byte[] objectDigest)
+        {
+            m_digestedObjectType = new DerEnumerated(digestedObjectType);
 
 			if (digestedObjectType == OtherObjectDigest)
 			{
-				this.otherObjectTypeID = new DerObjectIdentifier(otherObjectTypeID);
+				m_otherObjectTypeID = new DerObjectIdentifier(otherObjectTypeID);
 			}
 
-			this.digestAlgorithm = digestAlgorithm; 
-
-			this.objectDigest = new DerBitString(objectDigest);
+			m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
+			m_objectDigest = new DerBitString(objectDigest);
 		}
 
-		private ObjectDigestInfo(
-			Asn1Sequence seq)
-        {
-			if (seq.Count > 4 || seq.Count < 3)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
+		public DerEnumerated DigestedObjectType => m_digestedObjectType;
 
-			digestedObjectType = DerEnumerated.GetInstance(seq[0]);
+		public DerObjectIdentifier OtherObjectTypeID => m_otherObjectTypeID;
 
-			int offset = 0;
+		public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
-			if (seq.Count == 4)
-            {
-                otherObjectTypeID = DerObjectIdentifier.GetInstance(seq[1]);
-                offset++;
-            }
-
-			digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[1 + offset]);
-			objectDigest = DerBitString.GetInstance(seq[2 + offset]);
-		}
-
-		public DerEnumerated DigestedObjectType
-		{
-			get { return digestedObjectType; }
-		}
-
-		public DerObjectIdentifier OtherObjectTypeID
-		{
-			get { return otherObjectTypeID; }
-		}
-
-		public AlgorithmIdentifier DigestAlgorithm
-		{
-			get { return digestAlgorithm; }
-		}
-
-		public DerBitString ObjectDigest
-		{
-			get { return objectDigest; }
-		}
+		public DerBitString ObjectDigest => m_objectDigest;
 
 		/**
 		 * Produce an object suitable for an Asn1OutputStream.
@@ -164,10 +133,9 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(digestedObjectType);
-            v.AddOptional(otherObjectTypeID);
-            v.Add(digestAlgorithm, objectDigest);
-            return new DerSequence(v);
+			return m_otherObjectTypeID == null
+				?  new DerSequence(m_digestedObjectType, m_digestAlgorithm, m_objectDigest)
+				:  new DerSequence(m_digestedObjectType, m_otherObjectTypeID, m_digestAlgorithm, m_objectDigest);
         }
     }
 }

@@ -1,11 +1,31 @@
 using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class DerOctetString
         : Asn1OctetString
     {
-		/// <param name="contents">The octets making up the octet string.</param>
+        public static readonly DerOctetString Empty = new DerOctetString(EmptyOctets);
+
+        public static DerOctetString FromContents(byte[] contents)
+        {
+            if (contents == null)
+                throw new ArgumentNullException(nameof(contents));
+
+            return contents.Length < 1 ? Empty : new DerOctetString(Arrays.Clone(contents));
+        }
+
+        public static DerOctetString FromContentsOptional(byte[] contents)
+        {
+            if (contents == null)
+                return null;
+
+            return contents.Length < 1 ? Empty : new DerOctetString(Arrays.Clone(contents));
+        }
+
+        /// <param name="contents">The octets making up the octet string.</param>
         public DerOctetString(byte[] contents)
 			: base(contents)
         {

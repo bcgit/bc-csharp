@@ -191,7 +191,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 MacData mData = bag.MacData;
                 DigestInfo dInfo = mData.Mac;
-                AlgorithmIdentifier algId = dInfo.AlgorithmID;
+                AlgorithmIdentifier algId = dInfo.DigestAlgorithm;
                 byte[] salt = mData.GetSalt();
                 int itCount = mData.IterationCount.IntValue;
 

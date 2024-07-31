@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.X509.Qualified
 {
+    // TODO[api] Make static
     public sealed class Rfc3739QCObjectIdentifiers
     {
 		private Rfc3739QCObjectIdentifiers()

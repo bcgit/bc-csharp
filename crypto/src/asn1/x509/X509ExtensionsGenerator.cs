@@ -56,29 +56,24 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <param name="extValue">The byte array to be wrapped.</param>
         public void AddExtension(DerObjectIdentifier oid, bool critical, byte[] extValue)
         {
-            if (m_extensions.TryGetValue(oid, out X509Extension existingExtension))
-            {
-                if (!m_dupsAllowed.Contains(oid))
-                    throw new ArgumentException("extension " + oid + " already added");
-
-                Asn1Sequence seq1 = Asn1Sequence.GetInstance(
-                    Asn1OctetString.GetInstance(existingExtension.Value).GetOctets());
-                Asn1EncodableVector items = Asn1EncodableVector.FromEnumerable(seq1);
-                Asn1Sequence seq2 = Asn1Sequence.GetInstance(extValue);
-
-                foreach (Asn1Encodable enc in seq2)
-                {
-                    items.Add(enc);
-                }
-
-                m_extensions[oid] = new X509Extension(existingExtension.IsCritical,
-                    new DerOctetString(new DerSequence(items).GetEncoded()));
-            }
-            else
+            if (!m_extensions.TryGetValue(oid, out X509Extension existingExtension))
             {
                 m_ordering.Add(oid);
-                m_extensions.Add(oid, new X509Extension(critical, new DerOctetString(extValue)));
+                m_extensions.Add(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
+                return;
             }
+
+            if (!m_dupsAllowed.Contains(oid))
+                throw new ArgumentException("extension " + oid + " already added");
+
+            Asn1Sequence seq1 = Asn1Sequence.GetInstance(existingExtension.Value.GetOctets());
+            Asn1Sequence seq2 = Asn1Sequence.GetInstance(extValue);
+
+            var concat = DerSequence.Concatenate(seq1, seq2);
+
+            m_extensions[oid] = new X509Extension(
+                existingExtension.IsCritical | critical,
+                new DerOctetString(concat.GetEncoded(Asn1Encodable.Der)));
         }
 
         public void AddExtensions(X509Extensions extensions)

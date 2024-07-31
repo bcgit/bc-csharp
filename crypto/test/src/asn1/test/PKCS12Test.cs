@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			ContentInfo         info = bag.AuthSafe;
 			MacData             mData = bag.MacData;
 			DigestInfo          dInfo = mData.Mac;
-			AlgorithmIdentifier algId = dInfo.AlgorithmID;
+			AlgorithmIdentifier algId = dInfo.DigestAlgorithm;
 			byte[]              salt = mData.GetSalt();
 			int                 itCount = mData.IterationCount.IntValue;
 

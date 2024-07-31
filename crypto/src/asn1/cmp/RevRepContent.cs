@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 
@@ -29,10 +31,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevRepContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new RevRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RevRepContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevRepContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_status;
 		private readonly Asn1Sequence m_revCerts;
@@ -40,24 +43,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private RevRepContent(Asn1Sequence seq)
 		{
-			m_status = Asn1Sequence.GetInstance(seq[0]);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			for (int pos = 1; pos < seq.Count; ++pos)
-			{
-				Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos]);
+            m_status = Asn1Sequence.GetInstance(seq[pos++]);
+			m_revCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1Sequence.GetTagged);
+            m_crls = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetTagged);
 
-				if (tObj.HasContextTag(0))
-				{
-					m_revCerts = Asn1Sequence.GetInstance(tObj, true);
-				}
-				else if (tObj.HasContextTag(1))
-				{
-					m_crls = Asn1Sequence.GetInstance(tObj, true);
-				}
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		public virtual PkiStatusInfo[] GetStatus() => m_status.MapElements(PkiStatusInfo.GetInstance);
+        public virtual PkiStatusInfo[] GetStatus() => m_status.MapElements(PkiStatusInfo.GetInstance);
 
 		public virtual CertId[] GetRevCerts() => m_revCerts?.MapElements(CertId.GetInstance);
 

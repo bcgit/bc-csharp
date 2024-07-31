@@ -16,10 +16,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertOrEncCert(Asn1TaggedObject.GetInstance(obj, Asn1Tags.ContextSpecific));
         }
 
-        public static CertOrEncCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static CertOrEncCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static CertOrEncCert GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly CmpCertificate m_certificate;
 		private readonly EncryptedKey m_encryptedCert;
@@ -46,7 +47,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
         }
 
-		public CertOrEncCert(EncryptedValue encryptedValue)
+        [Obsolete("Use constructor with EncryptedKey instead")]
+        public CertOrEncCert(EncryptedValue encryptedValue)
 		{
 			m_encryptedCert = new EncryptedKey(
 				encryptedValue ?? throw new ArgumentNullException(nameof(encryptedValue)));

@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.X9
 {
     /**
@@ -7,36 +9,54 @@ namespace Org.BouncyCastle.Asn1.X9
     public class KeySpecificInfo
         : Asn1Encodable
     {
-        private DerObjectIdentifier	algorithm;
-        private Asn1OctetString		counter;
-
-		public KeySpecificInfo(
-            DerObjectIdentifier	algorithm,
-            Asn1OctetString		counter)
+        public static KeySpecificInfo GetInstance(object obj)
         {
-            this.algorithm = algorithm;
-            this.counter = counter;
+            if (obj == null)
+                return null;
+            if (obj is KeySpecificInfo keySpecificInfo)
+                return keySpecificInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new KeySpecificInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public KeySpecificInfo(Asn1Sequence seq)
+        public static KeySpecificInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            var e = seq.GetEnumerator();
-
-			e.MoveNext();
-            algorithm = (DerObjectIdentifier)e.Current;
-            e.MoveNext();
-            counter = (Asn1OctetString)e.Current;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new KeySpecificInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public DerObjectIdentifier Algorithm
+        public static KeySpecificInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            get { return algorithm; }
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new KeySpecificInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public Asn1OctetString Counter
+        private readonly DerObjectIdentifier m_algorithm;
+        private readonly Asn1OctetString m_counter;
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public KeySpecificInfo(Asn1Sequence seq)
         {
-            get { return counter; }
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_algorithm = DerObjectIdentifier.GetInstance(seq[0]);
+            m_counter = Asn1OctetString.GetInstance(seq[1]);
         }
+
+        public KeySpecificInfo(DerObjectIdentifier algorithm, Asn1OctetString counter)
+        {
+            m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
+            m_counter = counter ?? throw new ArgumentNullException(nameof(counter));
+        }
+
+        public DerObjectIdentifier Algorithm => m_algorithm;
+
+        public Asn1OctetString Counter => m_counter;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -47,9 +67,6 @@ namespace Org.BouncyCastle.Asn1.X9
          *  }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(algorithm, counter);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_algorithm, m_counter);
     }
 }

@@ -5,84 +5,59 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// <code>
-	/// OtherHash ::= CHOICE {
-	///		sha1Hash	OtherHashValue, -- This contains a SHA-1 hash
-	/// 	otherHash	OtherHashAlgAndValue
-	///	}
-	///	
-	///	OtherHashValue ::= OCTET STRING
-	/// </code>
-	/// </remarks>
-	public class OtherHash
+    /// <remarks>
+    /// <code>
+    /// OtherHash ::= CHOICE {
+    ///		sha1Hash	OtherHashValue, -- This contains a SHA-1 hash
+    /// 	otherHash	OtherHashAlgAndValue
+    ///	}
+    ///	
+    ///	OtherHashValue ::= OCTET STRING
+    /// </code>
+    /// </remarks>
+    public class OtherHash
 		: Asn1Encodable, IAsn1Choice
 	{
-		private readonly Asn1OctetString		sha1Hash;
-		private readonly OtherHashAlgAndValue	otherHash;
+        public static OtherHash GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OtherHash otherHash)
+                return otherHash;
+            if (obj is Asn1OctetString asn1OctetString)
+                return new OtherHash(asn1OctetString);
+            return new OtherHash(OtherHashAlgAndValue.GetInstance(obj));
+        }
 
-		public static OtherHash GetInstance(
-			object obj)
+        public static OtherHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static OtherHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        private readonly Asn1OctetString m_sha1Hash;
+        private readonly OtherHashAlgAndValue m_otherHash;
+
+        public OtherHash(byte[] sha1Hash)
 		{
-			if (obj == null || obj is OtherHash)
-				return (OtherHash) obj;
-
-			if (obj is Asn1OctetString)
-				return new OtherHash((Asn1OctetString) obj);
-
-			return new OtherHash(
-				OtherHashAlgAndValue.GetInstance(obj));
+			m_sha1Hash = DerOctetString.FromContents(sha1Hash);
 		}
 
-		public OtherHash(
-			byte[] sha1Hash)
+		public OtherHash(Asn1OctetString sha1Hash)
 		{
-			if (sha1Hash == null)
-				throw new ArgumentNullException("sha1Hash");
-
-			this.sha1Hash = new DerOctetString(sha1Hash);
+			m_sha1Hash = sha1Hash ?? throw new ArgumentNullException(nameof(sha1Hash));
 		}
 
-		public OtherHash(
-			Asn1OctetString sha1Hash)
+		public OtherHash(OtherHashAlgAndValue otherHash)
 		{
-			if (sha1Hash == null)
-				throw new ArgumentNullException("sha1Hash");
+			m_otherHash = otherHash ?? throw new ArgumentNullException(nameof(otherHash));
+        }
 
-			this.sha1Hash = sha1Hash;
-		}
+		public AlgorithmIdentifier HashAlgorithm =>
+			m_otherHash?.HashAlgorithm ?? new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 
-		public OtherHash(
-			OtherHashAlgAndValue otherHash)
-		{
-			if (otherHash == null)
-				throw new ArgumentNullException("otherHash");
+		public byte[] GetHashValue() => m_otherHash?.GetHashValue() ?? m_sha1Hash.GetOctets();
 
-			this.otherHash = otherHash;
-		}
-
-		public AlgorithmIdentifier HashAlgorithm
-		{
-			get
-			{
-				return otherHash == null
-					?	new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1)
-					:	otherHash.HashAlgorithm;
-			}
-		}
-
-		public byte[] GetHashValue()
-		{
-			return otherHash == null
-				?	sha1Hash.GetOctets()
-				:	otherHash.GetHashValue();
-		}
-
-		public override Asn1Object ToAsn1Object()
-		{
-			return otherHash == null
-				?	sha1Hash
-				:	otherHash.ToAsn1Object();
-		}
+		public override Asn1Object ToAsn1Object() => m_otherHash?.ToAsn1Object() ?? m_sha1Hash;
 	}
 }

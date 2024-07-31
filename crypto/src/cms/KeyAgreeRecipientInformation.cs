@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Cms
 
                         // Note: 'date' and 'other' fields of RecipientKeyIdentifier appear to be only informational 
 
-                        rid.SubjectKeyIdentifier = rKeyID.SubjectKeyIdentifier.GetOctets();
+                        rid.SubjectKeyIdentifier = rKeyID.SubjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
                     }
 
                     infos.Add(new KeyAgreeRecipientInformation(info, rid, id.EncryptedKey,
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Cms
             {
                 SubjectKeyIdentifier ski = originator.SubjectKeyIdentifier;
 
-                origID.SubjectKeyIdentifier = ski.GetKeyIdentifier();
+                origID.SubjectKeyIdentifier = ski.GetEncoded(Asn1Encodable.Der);
             }
 
             return GetPublicKeyFromOriginatorID(origID);

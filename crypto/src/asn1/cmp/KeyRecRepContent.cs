@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new KeyRecRepContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static KeyRecRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new KeyRecRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static KeyRecRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KeyRecRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static KeyRecRepContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KeyRecRepContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiStatusInfo m_status;
 		private readonly CmpCertificate m_newSigCert;
@@ -26,28 +27,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private KeyRecRepContent(Asn1Sequence seq)
 		{
-			m_status = PkiStatusInfo.GetInstance(seq[0]);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			for (int pos = 1; pos < seq.Count; ++pos)
-			{
-				Asn1TaggedObject tObj = Asn1TaggedObject.GetInstance(seq[pos], Asn1Tags.ContextSpecific);
+            m_status = PkiStatusInfo.GetInstance(seq[pos++]);
+            m_newSigCert = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetTagged);
+            m_caCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetTagged);
+            m_keyPairHist = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1Sequence.GetTagged);
 
-				switch (tObj.TagNo)
-				{
-				case 0:
-					m_newSigCert = CmpCertificate.GetInstance(tObj.GetExplicitBaseObject());
-					break;
-				case 1:
-					m_caCerts = Asn1Sequence.GetInstance(tObj.GetExplicitBaseObject());
-					break;
-				case 2:
-					m_keyPairHist = Asn1Sequence.GetInstance(tObj.GetExplicitBaseObject());
-					break;
-				default:
-					throw new ArgumentException("unknown tag number: " + tObj.TagNo);
-				}
-			}
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
 		public virtual PkiStatusInfo Status => m_status;
 

@@ -30,35 +30,28 @@ namespace Org.BouncyCastle.Asn1.Cms
 			throw new ArgumentException("Invalid KeyAgreeRecipientIdentifier: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static KeyAgreeRecipientIdentifier GetInstance(Asn1TaggedObject obj, bool isExplicit)
-		{
-            return Asn1Utilities.GetInstanceFromChoice(obj, isExplicit, GetInstance);
-		}
+        public static KeyAgreeRecipientIdentifier GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
 
-		private readonly IssuerAndSerialNumber issuerSerial;
-		private readonly RecipientKeyIdentifier rKeyID;
+        public static KeyAgreeRecipientIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
-		public KeyAgreeRecipientIdentifier(
-			IssuerAndSerialNumber issuerSerial)
-		{
-			this.issuerSerial = issuerSerial;
-		}
+		private readonly IssuerAndSerialNumber m_issuerSerial;
+		private readonly RecipientKeyIdentifier m_rKeyID;
 
-		public KeyAgreeRecipientIdentifier(
-			RecipientKeyIdentifier rKeyID)
-		{
-			this.rKeyID = rKeyID;
-		}
+        public KeyAgreeRecipientIdentifier(IssuerAndSerialNumber issuerSerial)
+        {
+            m_issuerSerial = issuerSerial ?? throw new ArgumentNullException(nameof(issuerSerial));
+        }
 
-		public IssuerAndSerialNumber IssuerAndSerialNumber
-		{
-			get { return issuerSerial; }
-		}
+        public KeyAgreeRecipientIdentifier(RecipientKeyIdentifier rKeyID)
+        {
+            m_rKeyID = rKeyID ?? throw new ArgumentNullException(nameof(rKeyID));
+        }
 
-		public RecipientKeyIdentifier RKeyID
-		{
-			get { return rKeyID; }
-		}
+		public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerSerial;
+
+		public RecipientKeyIdentifier RKeyID => m_rKeyID;
 
 		/** 
 		 * Produce an object suitable for an Asn1OutputStream.
@@ -71,12 +64,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			if (issuerSerial != null)
-			{
-				return issuerSerial.ToAsn1Object();
-			}
+			if (m_issuerSerial != null)
+				return m_issuerSerial.ToAsn1Object();
 
-			return new DerTaggedObject(false, 0, rKeyID);
+			return new DerTaggedObject(false, 0, m_rKeyID);
 		}
 	}
 }

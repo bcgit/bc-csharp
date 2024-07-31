@@ -6,14 +6,14 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Pqc.Asn1
 {
     /**
-     *    Crystal Kyber Public Key Format.
-     *    See https://www.ietf.org/archive/id/draft-uni-qsckeys-kyber-00.html for details.
-     *    <pre>
-     *        KyberPublicKey ::= SEQUENCE {
-     *         t           OCTET STRING,
-     *         rho         OCTET STRING
-     *     }
-     *    </pre>
+     *  Crystal Kyber Public Key Format.
+     *  See https://www.ietf.org/archive/id/draft-uni-qsckeys-kyber-01.html for details.
+     *  <pre>
+     *      KyberPublicKey ::= SEQUENCE {
+     *      t           OCTET STRING,
+     *      rho         OCTET STRING
+     *  }
+     *  </pre>
      */
     [Obsolete("Will be removed as this draft proposal was rejected")]
     public sealed class KyberPublicKey
@@ -28,33 +28,50 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return new KyberPublicKey(Asn1Sequence.GetInstance(obj));
         }
 
-        public static KyberPublicKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static KyberPublicKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KyberPublicKey(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static KyberPublicKey GetOptional(Asn1Encodable element)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is KyberPublicKey kyberPublicKey)
+                return kyberPublicKey;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new KyberPublicKey(asn1Sequence);
+
+            return null;
         }
 
-        private readonly byte[] m_t;
-        private readonly byte[] m_rho;
+        public static KyberPublicKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new KyberPublicKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1OctetString m_t;
+        private readonly Asn1OctetString m_rho;
 
         public KyberPublicKey(byte[] t, byte[] rho)
         {
-            m_t = t;
-            m_rho = rho;
+            m_t = DerOctetString.FromContents(t);
+            m_t = DerOctetString.FromContents(rho);
         }
 
         private KyberPublicKey(Asn1Sequence seq)
         {
-            m_t = Arrays.Clone(Asn1OctetString.GetInstance(seq[0]).GetOctets());
-            m_rho = Arrays.Clone(Asn1OctetString.GetInstance(seq[1]).GetOctets());
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_t = Asn1OctetString.GetInstance(seq[0]);
+            m_rho = Asn1OctetString.GetInstance(seq[1]);
         }
 
-        public byte[] T => Arrays.Clone(m_t);
+        public byte[] T => Arrays.Clone(m_t.GetOctets());
 
-        public byte[] Rho => Arrays.Clone(m_rho);
+        public byte[] Rho => Arrays.Clone(m_rho.GetOctets());
 
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(new DerOctetString(m_t), new DerOctetString(m_rho));
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_t, m_rho);
     }
 }

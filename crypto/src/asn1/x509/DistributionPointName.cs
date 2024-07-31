@@ -27,10 +27,11 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DistributionPointName(Asn1TaggedObject.GetInstance(obj));
 		}
 
-		public static DistributionPointName GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(obj, explicitly, GetInstance);
-        }
+		public static DistributionPointName GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            Asn1Utilities.GetInstanceChoice(obj, explicitly, GetInstance);
+
+        public static DistributionPointName GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly int m_type;
         private readonly Asn1Encodable m_name;

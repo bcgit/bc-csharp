@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -22,9 +23,29 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static Time GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static Time GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static Time GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static Time GetOptional(Asn1Encodable element)
         {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Time time)
+                return time;
+
+            Asn1UtcTime utcTime = Asn1UtcTime.GetOptional(element);
+            if (utcTime != null)
+                return new Time(utcTime);
+
+            Asn1GeneralizedTime generalizedTime = Asn1GeneralizedTime.GetOptional(element);
+            if (generalizedTime != null)
+                return new Time(generalizedTime);
+
+            return null;
         }
 
         private readonly Asn1Object m_timeObject;
@@ -56,11 +77,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			if (utc.Year < 1950 || utc.Year > 2049)
             {
-                m_timeObject = new DerGeneralizedTime(utc);
+                m_timeObject = Rfc5280Asn1Utilities.CreateGeneralizedTime(utc);
             }
             else
             {
-                m_timeObject = new DerUtcTime(utc, 2049);
+                m_timeObject = Rfc5280Asn1Utilities.CreateUtcTime(utc);
             }
         }
 

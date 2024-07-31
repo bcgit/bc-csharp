@@ -2,51 +2,49 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// <code>
-	/// OtherSigningCertificate ::= SEQUENCE {
-	/// 	certs		SEQUENCE OF OtherCertID,
-	/// 	policies	SEQUENCE OF PolicyInformation OPTIONAL
-	/// }
-	/// </code>
-	/// </remarks>
-	public class OtherSigningCertificate
+    /// <remarks>
+    /// <code>
+    /// OtherSigningCertificate ::= SEQUENCE {
+    /// 	certs		SEQUENCE OF OtherCertID,
+    /// 	policies	SEQUENCE OF PolicyInformation OPTIONAL
+    /// }
+    /// </code>
+    /// </remarks>
+    public class OtherSigningCertificate
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence m_certs;
-		private readonly Asn1Sequence m_policies;
-
 		public static OtherSigningCertificate GetInstance(object obj)
 		{
 			if (obj == null)
 				return null;
-
 			if (obj is OtherSigningCertificate otherSigningCertificate)
 				return otherSigningCertificate;
-
-			if (obj is Asn1Sequence asn1Sequence)
-				return new OtherSigningCertificate(asn1Sequence);
-
-			throw new ArgumentException("Unknown object in 'OtherSigningCertificate' factory: " + Platform.GetTypeName(obj),
-				nameof(obj));
+			return new OtherSigningCertificate(Asn1Sequence.GetInstance(obj));
 		}
 
-		private OtherSigningCertificate(Asn1Sequence seq)
+        public static OtherSigningCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherSigningCertificate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OtherSigningCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherSigningCertificate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1Sequence m_certs;
+        private readonly Asn1Sequence m_policies;
+
+        private OtherSigningCertificate(Asn1Sequence seq)
 		{
-			if (seq == null)
-				throw new ArgumentNullException(nameof(seq));
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, nameof(seq));
+			int count = seq.Count;
+			if (count < 1 || count > 2)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_certs = Asn1Sequence.GetInstance(seq[0].ToAsn1Object());
+			m_certs = Asn1Sequence.GetInstance(seq[0]);
 
-			if (seq.Count > 1)
+			if (count > 1)
 			{
-				m_policies = Asn1Sequence.GetInstance(seq[1].ToAsn1Object());
+				m_policies = Asn1Sequence.GetInstance(seq[1]);
 			}
 		}
 
@@ -57,15 +55,8 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public OtherSigningCertificate(OtherCertID[] certs, params PolicyInformation[] policies)
 		{
-			if (certs == null)
-                throw new ArgumentNullException(nameof(certs));
-
-            m_certs = new DerSequence(certs);
-
-			if (policies != null)
-			{
-				m_policies = new DerSequence(policies);
-			}
+            m_certs = DerSequence.FromElements(certs);
+            m_policies = DerSequence.FromElementsOptional(policies);
 		}
 
 		public OtherSigningCertificate(IEnumerable<OtherCertID> certs)
@@ -78,27 +69,22 @@ namespace Org.BouncyCastle.Asn1.Esf
 			if (certs == null)
                 throw new ArgumentNullException(nameof(certs));
 
-            m_certs = new DerSequence(Asn1EncodableVector.FromEnumerable(certs));
+            m_certs = DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(certs));
 
 			if (policies != null)
 			{
-				m_policies = new DerSequence(Asn1EncodableVector.FromEnumerable(policies));
+				m_policies = DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(policies));
 			}
 		}
 
-		public OtherCertID[] GetCerts()
-		{
-			return m_certs.MapElements(element => OtherCertID.GetInstance(element.ToAsn1Object()));
-		}
+		public OtherCertID[] GetCerts() => m_certs.MapElements(OtherCertID.GetInstance);
 
-		public PolicyInformation[] GetPolicies()
-		{
-            return m_policies?.MapElements(element => PolicyInformation.GetInstance(element.ToAsn1Object()));
-		}
+		public PolicyInformation[] GetPolicies() => m_policies?.MapElements(PolicyInformation.GetInstance);
 
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(m_certs);
+			Asn1EncodableVector v = new Asn1EncodableVector(2);
+			v.Add(m_certs);
             v.AddOptional(m_policies);
 			return new DerSequence(v);
 		}

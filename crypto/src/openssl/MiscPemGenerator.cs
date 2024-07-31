@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.OpenSsl
                 BigInteger y = p.G.ModPow(x, p.P);
 
                 var sequence = new DerSequence(
-                    new DerInteger(0),
+                    DerInteger.Zero,
                     new DerInteger(p.P),
                     new DerInteger(p.Q),
                     new DerInteger(p.G),

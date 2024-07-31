@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             if (privateKey is FalconPrivateKeyParameters falconPrivateKeyParameters)
             {
                 Asn1EncodableVector v = new Asn1EncodableVector(4);
-                v.Add(new DerInteger(1));
+                v.Add(DerInteger.One);
                 v.Add(new DerOctetString(falconPrivateKeyParameters.GetSpolyLittleF()));
                 v.Add(new DerOctetString(falconPrivateKeyParameters.GetG()));
                 v.Add(new DerOctetString(falconPrivateKeyParameters.GetSpolyBigF()));

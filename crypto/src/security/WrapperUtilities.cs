@@ -88,10 +88,8 @@ namespace Org.BouncyCastle.Security
         {
             string mechanism = CollectionUtilities.GetValueOrKey(Algorithms, algorithm).ToUpperInvariant();
 
-            try
+            if (Enums.TryGetEnumValue<WrapAlgorithm>(mechanism, out var wrapAlgorithm))
             {
-                WrapAlgorithm wrapAlgorithm = Enums.GetEnumValue<WrapAlgorithm>(mechanism);
-
                 switch (wrapAlgorithm)
                 {
                 case WrapAlgorithm.AESRFC3211WRAP:
@@ -120,10 +118,9 @@ namespace Org.BouncyCastle.Security
                     return new RC2WrapEngine();
                 case WrapAlgorithm.SEEDWRAP:
                     return new SeedWrapEngine();
+                default:
+                    throw new NotImplementedException();
                 }
-            }
-            catch (ArgumentException)
-            {
             }
 
             // Create an IBufferedCipher and use it as IWrapper (via BufferedCipherWrapper)

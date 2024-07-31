@@ -90,9 +90,8 @@ namespace Org.BouncyCastle.Tests
 			bool	compress)
 		{
 //			string keyStorePass = "myPass";
-			Asn1Sequence seq = (Asn1Sequence) Asn1Object.FromByteArray(ecParameterEncoded);
-			X9ECParameters x9 = new X9ECParameters(seq);
-			AsymmetricCipherKeyPair kp = null;
+            X9ECParameters x9 = X9ECParameters.GetInstance(ecParameterEncoded);
+            AsymmetricCipherKeyPair kp = null;
 			bool success = false;
 			while (!success)
 			{

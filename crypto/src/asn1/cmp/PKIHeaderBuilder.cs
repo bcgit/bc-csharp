@@ -6,9 +6,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class PkiHeaderBuilder
 	{
-		private DerInteger pvno;
-		private GeneralName sender;
-		private GeneralName recipient;
+		private readonly DerInteger pvno;
+		private readonly GeneralName sender;
+		private readonly GeneralName recipient;
 		private Asn1GeneralizedTime messageTime;
 		private AlgorithmIdentifier protectionAlg;
 		private Asn1OctetString senderKID;       // KeyIdentifier
@@ -19,22 +19,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		private PkiFreeText     freeText;
 		private Asn1Sequence    generalInfo;
 
-		public PkiHeaderBuilder(
-			int			pvno,
-			GeneralName	sender,
-			GeneralName	recipient)
-			: this(new DerInteger(pvno), sender, recipient)
-		{
-		}
+        public PkiHeaderBuilder(int pvno, GeneralName sender, GeneralName recipient)
+            : this(new DerInteger(pvno), sender, recipient)
+        {
+        }
 
-		private PkiHeaderBuilder(
-			DerInteger	pvno,
-			GeneralName	sender,
-			GeneralName	recipient)
-		{
-			this.pvno = pvno;
-			this.sender = sender;
-			this.recipient = recipient;
+        private PkiHeaderBuilder(DerInteger pvno, GeneralName sender, GeneralName recipient)
+        {
+            this.pvno = pvno ?? throw new ArgumentNullException(nameof(pvno));
+			this.sender = sender ?? throw new ArgumentNullException(nameof(sender));
+			this.recipient = recipient ?? throw new ArgumentNullException(nameof(recipient));
 		}
 
 		public virtual PkiHeaderBuilder SetMessageTime(Asn1GeneralizedTime time)
@@ -51,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetSenderKID(byte[] kid)
 		{
-            return SetSenderKID(kid == null ? null : new DerOctetString(kid));
+            return SetSenderKID(DerOctetString.FromContentsOptional(kid));
 		}
 
 		public virtual PkiHeaderBuilder SetSenderKID(Asn1OctetString kid)
@@ -62,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetRecipKID(byte[] kid)
 		{
-            return SetRecipKID(kid == null ? null : new DerOctetString(kid));
+            return SetRecipKID(DerOctetString.FromContentsOptional(kid));
 		}
 
 		public virtual PkiHeaderBuilder SetRecipKID(Asn1OctetString kid)
@@ -73,7 +67,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetTransactionID(byte[] tid)
 		{
-			return SetTransactionID(tid == null ? null : new DerOctetString(tid));
+			return SetTransactionID(DerOctetString.FromContentsOptional(tid));
 		}
 
 		public virtual PkiHeaderBuilder SetTransactionID(Asn1OctetString tid)
@@ -84,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		
 		public virtual PkiHeaderBuilder SetSenderNonce(byte[] nonce)
 		{
-            return SetSenderNonce(nonce == null ? null : new DerOctetString(nonce));
+            return SetSenderNonce(DerOctetString.FromContentsOptional(nonce));
 		}
 
 		public virtual PkiHeaderBuilder SetSenderNonce(Asn1OctetString nonce)
@@ -95,7 +89,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public virtual PkiHeaderBuilder SetRecipNonce(byte[] nonce)
 		{
-            return SetRecipNonce(nonce == null ? null : new DerOctetString(nonce));
+            return SetRecipNonce(DerOctetString.FromContentsOptional(nonce));
 		}
 
 		public virtual PkiHeaderBuilder SetRecipNonce(Asn1OctetString nonce)
@@ -126,15 +120,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			return this;
 		}
 
-		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue generalInfo)
-		{
-			return new DerSequence(generalInfo);
-		}
+		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue generalInfo) => new DerSequence(generalInfo);
 
-		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue[] generalInfos)
-		{
-			return generalInfos == null ? null : new DerSequence(generalInfos);
-		}
+		private static Asn1Sequence MakeGeneralInfoSeq(InfoTypeAndValue[] generalInfos) =>
+			DerSequence.FromElementsOptional(generalInfos);
 
 		/**
 		 * <pre>

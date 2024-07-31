@@ -2,6 +2,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
+    // TODO[api] This is not supposed to be a separate type; remove and use AlgorithmIdentifier
     public class EncryptionScheme
         : AlgorithmIdentifier
     {
@@ -14,10 +15,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new EncryptionScheme(Asn1Sequence.GetInstance(obj));
         }
 
-        public new static EncryptionScheme GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public new static EncryptionScheme GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncryptionScheme(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public new static EncryptionScheme GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncryptionScheme(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public EncryptionScheme(
             DerObjectIdentifier	objectID)

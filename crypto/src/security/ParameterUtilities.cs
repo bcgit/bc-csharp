@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Security
             if (canonical == null)
                 throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
 
-            byte[] iv = null;
+            Asn1OctetString iv = null;
 
             try
             {
@@ -302,19 +302,19 @@ namespace Org.BouncyCastle.Security
                 if (basicIVKeySize != -1
                     || canonical == "RIJNDAEL" || canonical == "SKIPJACK" || canonical == "TWOFISH")
                 {
-                    iv = ((Asn1OctetString) asn1Params).GetOctets();
+                    iv = Asn1OctetString.GetInstance(asn1Params);
                 }
                 else if (canonical == "CAST5")
                 {
-                    iv = Cast5CbcParameters.GetInstance(asn1Params).GetIV();
+                    iv = Cast5CbcParameters.GetInstance(asn1Params).IV;
                 }
                 else if (canonical == "IDEA")
                 {
-                    iv = IdeaCbcPar.GetInstance(asn1Params).GetIV();
+                    iv = IdeaCbcPar.GetInstance(asn1Params).IV;
                 }
                 else if (canonical == "RC2")
                 {
-                    iv = RC2CbcParameter.GetInstance(asn1Params).GetIV();
+                    iv = RC2CbcParameter.GetInstance(asn1Params).IV;
                 }
             }
             catch (Exception e)
@@ -324,7 +324,7 @@ namespace Org.BouncyCastle.Security
 
             if (iv != null)
             {
-                return new ParametersWithIV(key, iv);
+                return new ParametersWithIV(key, iv.GetOctets());
             }
 
             throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");

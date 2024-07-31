@@ -1,78 +1,75 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class IssuerSerial
         : Asn1Encodable
     {
-        internal readonly GeneralNames	issuer;
-        internal readonly DerInteger	serial;
-        internal readonly DerBitString	issuerUid;
-
-		public static IssuerSerial GetInstance(
-            object obj)
+		public static IssuerSerial GetInstance(object obj)
         {
-            if (obj == null || obj is IssuerSerial)
-            {
-                return (IssuerSerial) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new IssuerSerial((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is IssuerSerial issuerSerial)
+                return issuerSerial;
+            return new IssuerSerial(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static IssuerSerial GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static IssuerSerial GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new IssuerSerial(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static IssuerSerial GetOptional(Asn1Encodable element)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is IssuerSerial issuerSerial)
+                return issuerSerial;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new IssuerSerial(asn1Sequence);
+
+            return null;
         }
 
-		private IssuerSerial(
-            Asn1Sequence seq)
+        public static IssuerSerial GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IssuerSerial(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly GeneralNames m_issuer;
+        private readonly DerInteger m_serial;
+        private readonly DerBitString m_issuerUid;
+
+        private IssuerSerial(Asn1Sequence seq)
         {
-			if (seq.Count != 2 && seq.Count != 3)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			issuer = GeneralNames.GetInstance(seq[0]);
-			serial = DerInteger.GetInstance(seq[1]);
+            m_issuer = GeneralNames.GetInstance(seq[pos++]);
+            m_serial = DerInteger.GetInstance(seq[pos++]);
+            m_issuerUid = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
 
-			if (seq.Count == 3)
-            {
-				issuerUid = DerBitString.GetInstance(seq[2]);
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public IssuerSerial(
-			GeneralNames	issuer,
-			DerInteger		serial)
-		{
-			this.issuer = issuer;
-			this.serial = serial;
-		}
+        public IssuerSerial(GeneralNames issuer, DerInteger serial)
+            : this(issuer, serial, null)
+        {
+        }
 
-		public GeneralNames Issuer
-		{
-			get { return issuer; }
-		}
+        public IssuerSerial(GeneralNames issuer, DerInteger serial, DerBitString issuerUid)
+        {
+            m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
+            m_serial = serial ?? throw new ArgumentNullException(nameof(serial));
+            m_issuerUid = issuerUid;
+        }
 
-		public DerInteger Serial
-		{
-			get { return serial; }
-		}
+        public GeneralNames Issuer => m_issuer;
 
-		public DerBitString IssuerUid
-		{
-			get { return issuerUid; }
-		}
+        public DerInteger Serial => m_serial;
+
+        public DerBitString IssuerUid => m_issuerUid;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -86,9 +83,9 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(issuer, serial);
-            v.AddOptional(issuerUid);
-            return new DerSequence(v);
+            return m_issuerUid == null
+                ?  new DerSequence(m_issuer, m_serial)
+                :  new DerSequence(m_issuer, m_serial, m_issuerUid);
         }
 	}
 }

@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.X509
 			DateTime	invalidityDate)
 		{
 			tbsGen.AddCrlEntry(new DerInteger(userCertificate), new Time(revocationDate), reason,
-				new Asn1GeneralizedTime(invalidityDate));
+				Rfc5280Asn1Utilities.CreateGeneralizedTime(invalidityDate));
 		}
 
 		/**
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.X509
 			bool	critical,
 			byte[]	extensionValue)
 		{
-			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, new DerOctetString(extensionValue));
+			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, DerOctetString.FromContents(extensionValue));
 		}
 
 		/**
@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.X509
 			bool				critical,
 			byte[]				extensionValue)
 		{
-			extGenerator.AddExtension(oid, critical, new DerOctetString(extensionValue));
+			extGenerator.AddExtension(oid, critical, DerOctetString.FromContents(extensionValue));
 		}
 
 		/// <summary>

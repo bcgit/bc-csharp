@@ -36,8 +36,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerEnumerated converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is DerEnumerated converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -65,6 +64,22 @@ namespace Org.BouncyCastle.Asn1
         public static DerEnumerated GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerEnumerated)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+        }
+
+        public static DerEnumerated GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerEnumerated existing)
+                return existing;
+
+            return null;
+        }
+
+        public static DerEnumerated GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerEnumerated)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
         private readonly byte[] contents;

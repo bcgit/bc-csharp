@@ -336,6 +336,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static X509Name GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new X509Name(Asn1Sequence.GetInstance(obj, explicitly));
 
+        public static X509Name GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Name(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         private readonly List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
         private readonly X509NameEntryConverter converter;
 
@@ -360,7 +363,7 @@ namespace Org.BouncyCastle.Asn1.X509
             foreach (Asn1Encodable asn1Obj in seq)
             {
                 // RelativeDistinguishedName ::= SET SIZE(1..MAX) OF AttributeTypeAndValue
-                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj.ToAsn1Object());
+                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj);
 
                 // TODO Apply this check? (Currently "breaks" CertificateTest.CheckDudCertificate)
                 //if (rdn.Count < 1)
@@ -368,7 +371,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
                 for (int i = 0; i < rdn.Count; ++i)
                 {
-                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i].ToAsn1Object());
+                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i]);
                     if (attributeTypeAndValue.Count != 2)
                         throw new ArgumentException("badly sized AttributeTypeAndValue");
 

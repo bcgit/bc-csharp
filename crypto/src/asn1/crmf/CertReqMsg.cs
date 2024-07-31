@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new CertReqMsg(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertReqMsg GetInstance(Asn1TaggedObject obj, bool isExplicit)
-        {
-            return new CertReqMsg(Asn1Sequence.GetInstance(obj, isExplicit));
-        }
+        public static CertReqMsg GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new CertReqMsg(Asn1Sequence.GetInstance(obj, isExplicit));
+
+        public static CertReqMsg GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertReqMsg(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CertRequest m_certReq;
         private readonly ProofOfPossession m_pop;
@@ -25,21 +26,18 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private CertReqMsg(Asn1Sequence seq)
         {
-            m_certReq = CertRequest.GetInstance(seq[0]);
+            int count = seq.Count;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            for (int pos = 1; pos < seq.Count; ++pos)
-            {
-                object o = seq[pos];
+            int pos = 0;
 
-                if (o is Asn1TaggedObject || o is ProofOfPossession)
-                {
-                    m_pop = ProofOfPossession.GetInstance(o);
-                }
-                else
-                {
-                    m_regInfo = Asn1Sequence.GetInstance(o);
-                }
-            }
+            m_certReq = CertRequest.GetInstance(seq[pos++]);
+            m_pop = Asn1Utilities.ReadOptional(seq, ref pos, ProofOfPossession.GetOptional);
+            m_regInfo = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /**
@@ -50,13 +48,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public CertReqMsg(CertRequest certReq, ProofOfPossession popo, AttributeTypeAndValue[] regInfo)
         {
-            this.m_certReq = certReq ?? throw new ArgumentNullException(nameof(certReq));
-            this.m_pop = popo;
-
-            if (regInfo != null)
-            {
-                this.m_regInfo = new DerSequence(regInfo);
-            }
+            m_certReq = certReq ?? throw new ArgumentNullException(nameof(certReq));
+            m_pop = popo;
+            m_regInfo = regInfo == null ? null : new DerSequence(regInfo);
         }
 
         public virtual CertRequest CertReq => m_certReq;
@@ -81,7 +75,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.Add(m_certReq);
             v.AddOptional(m_pop, m_regInfo);
             return new DerSequence(v);

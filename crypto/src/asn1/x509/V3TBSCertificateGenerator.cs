@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V3TbsCertificateGenerator
     {
-        internal DerTaggedObject         version = new DerTaggedObject(0, new DerInteger(2));
+        internal DerTaggedObject         version = new DerTaggedObject(0, DerInteger.Two);
         internal DerInteger              serialNumber;
         internal AlgorithmIdentifier     signature;
         internal X509Name                issuer;

@@ -412,15 +412,8 @@ namespace Org.BouncyCastle.Security
 
             string algorithmName = CollectionUtilities.GetValueOrKey(AlgorithmMap, parts[0]).ToUpperInvariant();
 
-            CipherAlgorithm cipherAlgorithm;
-            try
-            {
-                cipherAlgorithm = Enums.GetEnumValue<CipherAlgorithm>(algorithmName);
-            }
-            catch (ArgumentException)
-            {
+            if (!Enums.TryGetEnumValue<CipherAlgorithm>(algorithmName, out var cipherAlgorithm))
                 return null;
-            }
 
             switch (cipherAlgorithm)
             {
@@ -573,9 +566,6 @@ namespace Org.BouncyCastle.Security
 
             if (parts.Length > 2)
             {
-                if (streamCipher != null)
-                    throw new ArgumentException("Paddings not used for stream ciphers");
-
                 string paddingName = parts[2];
 
                 CipherPadding cipherPadding;
@@ -587,16 +577,9 @@ namespace Org.BouncyCastle.Security
                 {
                     cipherPadding = CipherPadding.X923PADDING;
                 }
-                else
+                else if (!Enums.TryGetEnumValue<CipherPadding>(paddingName, out cipherPadding))
                 {
-                    try
-                    {
-                        cipherPadding = Enums.GetEnumValue<CipherPadding>(paddingName);
-                    }
-                    catch (ArgumentException)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
 
                 switch (cipherPadding)
@@ -688,76 +671,76 @@ namespace Org.BouncyCastle.Security
                 int di = GetDigitIndex(mode);
                 string modeName = di >= 0 ? mode.Substring(0, di) : mode;
 
-                try
+                CipherMode cipherMode;
+                if (modeName == "")
                 {
-                    CipherMode cipherMode = modeName == ""
-                        ? CipherMode.NONE
-                        : Enums.GetEnumValue<CipherMode>(modeName);
-
-                    switch (cipherMode)
-                    {
-                    case CipherMode.ECB:
-                    case CipherMode.NONE:
-                        break;
-                    case CipherMode.CBC:
-                        blockCipherMode = new CbcBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.CCM:
-                        aeadBlockCipher = new CcmBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.CFB:
-                    {
-                        int bits = (di < 0)
-                            ?	8 * blockCipher.GetBlockSize()
-                            :	int.Parse(mode.Substring(di));
-    
-                        blockCipherMode = new CfbBlockCipher(blockCipher, bits);
-                        break;
-                    }
-                    case CipherMode.CTR:
-                        blockCipherMode = new SicBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.CTS:
-                        cts = true;
-                        blockCipherMode = new CbcBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.EAX:
-                        aeadBlockCipher = new EaxBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.GCM:
-                        aeadBlockCipher = new GcmBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.GOFB:
-                        blockCipherMode = new GOfbBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.OCB:
-                        aeadBlockCipher = new OcbBlockCipher(blockCipher, CreateBlockCipher(cipherAlgorithm));
-                        break;
-                    case CipherMode.OFB:
-                    {
-                        int bits = (di < 0)
-                            ?	8 * blockCipher.GetBlockSize()
-                            :	int.Parse(mode.Substring(di));
-    
-                        blockCipherMode = new OfbBlockCipher(blockCipher, bits);
-                        break;
-                    }
-                    case CipherMode.OPENPGPCFB:
-                        blockCipherMode = new OpenPgpCfbBlockCipher(blockCipher);
-                        break;
-                    case CipherMode.SIC:
-                        if (blockCipher.GetBlockSize() < 16)
-                        {
-                            throw new ArgumentException("Warning: SIC-Mode can become a twotime-pad if the blocksize of the cipher is too small. Use a cipher with a block size of at least 128 bits (e.g. AES)");
-                        }
-                        blockCipherMode = new SicBlockCipher(blockCipher);
-                        break;
-                    default:
-                        return null;
-                    }
+                    cipherMode = CipherMode.NONE;
                 }
-                catch (ArgumentException)
+                else if (!Enums.TryGetEnumValue<CipherMode>(modeName, out cipherMode))
                 {
+                    return null;
+                }
+
+                switch (cipherMode)
+                {
+                case CipherMode.ECB:
+                case CipherMode.NONE:
+                    break;
+                case CipherMode.CBC:
+                    blockCipherMode = new CbcBlockCipher(blockCipher);
+                    break;
+                case CipherMode.CCM:
+                    aeadBlockCipher = new CcmBlockCipher(blockCipher);
+                    break;
+                case CipherMode.CFB:
+                {
+                    int bits = (di < 0)
+                        ?	8 * blockCipher.GetBlockSize()
+                        :	int.Parse(mode.Substring(di));
+    
+                    blockCipherMode = new CfbBlockCipher(blockCipher, bits);
+                    break;
+                }
+                case CipherMode.CTR:
+                    blockCipherMode = new SicBlockCipher(blockCipher);
+                    break;
+                case CipherMode.CTS:
+                    cts = true;
+                    blockCipherMode = new CbcBlockCipher(blockCipher);
+                    break;
+                case CipherMode.EAX:
+                    aeadBlockCipher = new EaxBlockCipher(blockCipher);
+                    break;
+                case CipherMode.GCM:
+                    aeadBlockCipher = new GcmBlockCipher(blockCipher);
+                    break;
+                case CipherMode.GOFB:
+                    blockCipherMode = new GOfbBlockCipher(blockCipher);
+                    break;
+                case CipherMode.OCB:
+                    aeadBlockCipher = new OcbBlockCipher(blockCipher, CreateBlockCipher(cipherAlgorithm));
+                    break;
+                case CipherMode.OFB:
+                {
+                    int bits = (di < 0)
+                        ?	8 * blockCipher.GetBlockSize()
+                        :	int.Parse(mode.Substring(di));
+    
+                    blockCipherMode = new OfbBlockCipher(blockCipher, bits);
+                    break;
+                }
+                case CipherMode.OPENPGPCFB:
+                    blockCipherMode = new OpenPgpCfbBlockCipher(blockCipher);
+                    break;
+                case CipherMode.SIC:
+                {
+                    if (blockCipher.GetBlockSize() < 16)
+                        return null;
+
+                    blockCipherMode = new SicBlockCipher(blockCipher);
+                    break;
+                }
+                default:
                     return null;
                 }
             }
@@ -780,27 +763,19 @@ namespace Org.BouncyCastle.Security
                 }
 
                 if (cts)
-                {
                     return new CtsBlockCipher(blockCipherMode);
-                }
 
                 if (padding != null)
-                {
                     return new PaddedBufferedBlockCipher(blockCipherMode, padding);
-                }
 
                 if (!padded || blockCipherMode.IsPartialBlockOkay)
-                {
                     return new BufferedBlockCipher(blockCipherMode);
-                }
 
                 return new PaddedBufferedBlockCipher(blockCipherMode);
             }
 
             if (asymBlockCipher != null)
-            {
                 return new BufferedAsymmetricBlockCipher(asymBlockCipher);
-            }
 
             return null;
         }

@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class Attributes
@@ -12,9 +14,25 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new Attributes(Asn1Set.GetInstance(obj));
         }
 
-        public static Attributes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static Attributes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Attributes(Asn1Set.GetInstance(taggedObject, declaredExplicit));
+
+        public static Attributes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Attributes(Asn1Set.GetTagged(taggedObject, declaredExplicit));
+
+        public static Attributes GetOptional(Asn1Encodable element)
         {
-            return new Attributes(Asn1Set.GetInstance(taggedObject, declaredExplicit));
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Attributes attributes)
+                return attributes;
+
+            Asn1Set asn1Set = Asn1Set.GetOptional(element);
+            if (asn1Set != null)
+                return new Attributes(asn1Set);
+
+            return null;
         }
 
         private readonly Asn1Set m_attributes;

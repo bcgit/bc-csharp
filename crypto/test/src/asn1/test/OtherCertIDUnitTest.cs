@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			AlgorithmIdentifier algId = new AlgorithmIdentifier(new DerObjectIdentifier("1.2.2.3"));
 			byte[] digest = new byte[20];
 			OtherHash otherHash = new OtherHash(new OtherHashAlgAndValue(algId, digest));
-			IssuerSerial issuerSerial = new IssuerSerial(new GeneralNames(new GeneralName(new X509Name("CN=test"))), new DerInteger(1));
+			IssuerSerial issuerSerial = new IssuerSerial(new GeneralNames(new GeneralName(new X509Name("CN=test"))), DerInteger.One);
 
 			OtherCertID certID = new OtherCertID(otherHash);
 

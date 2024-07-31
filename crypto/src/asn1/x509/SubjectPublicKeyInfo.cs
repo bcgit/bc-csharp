@@ -20,10 +20,26 @@ namespace Org.BouncyCastle.Asn1.X509
             return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static SubjectPublicKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
+        public static SubjectPublicKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static SubjectPublicKeyInfo GetOptional(Asn1Encodable element)
         {
-            return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is SubjectPublicKeyInfo subjectPublicKeyInfo)
+                return subjectPublicKeyInfo;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new SubjectPublicKeyInfo(asn1Sequence);
+
+            return null;
         }
+
+        public static SubjectPublicKeyInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SubjectPublicKeyInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_algorithm;
         private readonly DerBitString m_publicKey;
@@ -56,8 +72,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private SubjectPublicKeyInfo(Asn1Sequence seq)
         {
-            if (seq.Count != 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_algorithm = AlgorithmIdentifier.GetInstance(seq[0]);
 			m_publicKey = DerBitString.GetInstance(seq[1]);

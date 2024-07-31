@@ -29,8 +29,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AltSignatureValue
         : Asn1Encodable
     {
-        private readonly DerBitString m_signature;
-
         public static AltSignatureValue GetInstance(object obj)
         {
             if (obj == null)
@@ -40,19 +38,22 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AltSignatureValue(DerBitString.GetInstance(obj));
         }
 
-        public static AltSignatureValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(DerBitString.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static AltSignatureValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AltSignatureValue(DerBitString.GetInstance(taggedObject, declaredExplicit));
+
+        public static AltSignatureValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AltSignatureValue(DerBitString.GetTagged(taggedObject, declaredExplicit));
 
         public static AltSignatureValue FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AltSignatureValue));
         }
 
-        private AltSignatureValue(DerBitString signature)
+        private readonly DerBitString m_signature;
+
+        public AltSignatureValue(DerBitString signature)
         {
-            m_signature = signature;
+            m_signature = signature ?? throw new ArgumentNullException(nameof(signature));
         }
 
         public AltSignatureValue(byte[] signature)

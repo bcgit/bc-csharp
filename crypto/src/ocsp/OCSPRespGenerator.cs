@@ -27,11 +27,9 @@ namespace Org.BouncyCastle.Ocsp
 			{
 				return new OcspResp(new OcspResponse(new OcspResponseStatus(status),null));
 			}
-			if (response is BasicOcspResp)
+			if (response is BasicOcspResp r)
 			{
-				BasicOcspResp r = (BasicOcspResp)response;
 				Asn1OctetString octs;
-
 				try
 				{
 					octs = new DerOctetString(r.GetEncoded());

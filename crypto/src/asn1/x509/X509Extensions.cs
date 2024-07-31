@@ -197,11 +197,6 @@ namespace Org.BouncyCastle.Asn1.X509
         public static Asn1OctetString GetExtensionValue(X509Extensions extensions, DerObjectIdentifier oid) =>
             extensions?.GetExtensionValue(oid);
 
-		public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
-
         public static X509Extensions GetInstance(object obj)
         {
             if (obj == null)
@@ -220,6 +215,27 @@ namespace Org.BouncyCastle.Asn1.X509
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Extensions(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static X509Extensions GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is X509Extensions existing)
+                return existing;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new X509Extensions(asn1Sequence);
+
+            return null;
+        }
+
+        public static X509Extensions GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Extensions(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         /**
          * Constructor from Asn1Sequence.
          *
@@ -233,17 +249,18 @@ namespace Org.BouncyCastle.Asn1.X509
 
 			foreach (Asn1Encodable ae in seq)
 			{
-				Asn1Sequence s = Asn1Sequence.GetInstance(ae.ToAsn1Object());
+                // TODO Move this block to an X509Extension.GetInstance method
+
+				Asn1Sequence s = Asn1Sequence.GetInstance(ae);
 
 				if (s.Count < 2 || s.Count > 3)
 					throw new ArgumentException("Bad sequence size: " + s.Count);
 
-				DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(s[0].ToAsn1Object());
+				DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(s[0]);
 
-				bool isCritical = s.Count == 3
-					&& DerBoolean.GetInstance(s[1].ToAsn1Object()).IsTrue;
+				bool isCritical = s.Count == 3 && DerBoolean.GetInstance(s[1]).IsTrue;
 
-				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1].ToAsn1Object());
+				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1]);
 
                 if (m_extensions.ContainsKey(oid))
                     throw new ArgumentException("repeated extension found: " + oid);

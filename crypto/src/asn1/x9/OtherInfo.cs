@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.X9
 {
     /**
@@ -7,56 +9,62 @@ namespace Org.BouncyCastle.Asn1.X9
     public class OtherInfo
         : Asn1Encodable
     {
-        private KeySpecificInfo	keyInfo;
-        private Asn1OctetString	partyAInfo;
-        private Asn1OctetString	suppPubInfo;
-
-		public OtherInfo(
-            KeySpecificInfo	keyInfo,
-            Asn1OctetString	partyAInfo,
-            Asn1OctetString	suppPubInfo)
+        public static OtherInfo GetInstance(object obj)
         {
-            this.keyInfo = keyInfo;
-            this.partyAInfo = partyAInfo;
-            this.suppPubInfo = suppPubInfo;
+            if (obj == null)
+                return null;
+            if (obj is OtherInfo otherInfo)
+                return otherInfo;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new OtherInfo(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public OtherInfo(Asn1Sequence seq)
+        public static OtherInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            var e = seq.GetEnumerator();
-
-			e.MoveNext();
-            keyInfo = new KeySpecificInfo((Asn1Sequence)e.Current);
-
-			while (e.MoveNext())
-            {
-                Asn1TaggedObject o = (Asn1TaggedObject)e.Current;
-
-				if (o.HasContextTag(0))
-                {
-                    partyAInfo = (Asn1OctetString)o.GetExplicitBaseObject();
-                }
-                else if (o.HasContextTag(2))
-                {
-                    suppPubInfo = (Asn1OctetString)o.GetExplicitBaseObject();
-                }
-            }
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new OtherInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public KeySpecificInfo KeyInfo
+        public static OtherInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			get { return keyInfo; }
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new OtherInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public Asn1OctetString PartyAInfo
+        private readonly KeySpecificInfo m_keyInfo;
+        private readonly Asn1OctetString m_partyAInfo;
+        private readonly Asn1OctetString m_suppPubInfo;
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public OtherInfo(Asn1Sequence seq)
         {
-			get { return partyAInfo; }
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_keyInfo = KeySpecificInfo.GetInstance(seq[pos++]);
+            m_partyAInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
+            m_suppPubInfo = Asn1Utilities.ReadContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public Asn1OctetString SuppPubInfo
+        public OtherInfo(KeySpecificInfo keyInfo, Asn1OctetString partyAInfo, Asn1OctetString suppPubInfo)
         {
-            get { return suppPubInfo; }
+            m_keyInfo = keyInfo ?? throw new ArgumentNullException(nameof(keyInfo));
+            m_partyAInfo = partyAInfo;
+            m_suppPubInfo = suppPubInfo ?? throw new ArgumentNullException(nameof(suppPubInfo));
         }
+
+        public KeySpecificInfo KeyInfo => m_keyInfo;
+
+        public Asn1OctetString PartyAInfo => m_partyAInfo;
+
+        public Asn1OctetString SuppPubInfo => m_suppPubInfo;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -70,9 +78,10 @@ namespace Org.BouncyCastle.Asn1.X9
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(keyInfo);
-            v.AddOptionalTagged(true, 0, partyAInfo);
-            v.Add(new DerTaggedObject(2, suppPubInfo));
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(m_keyInfo);
+            v.AddOptionalTagged(true, 0, m_partyAInfo);
+            v.Add(new DerTaggedObject(2, m_suppPubInfo));
             return new DerSequence(v);
         }
     }

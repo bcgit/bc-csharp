@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new OobCertHash(Asn1Sequence.GetInstance(obj));
         }
 
-        public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new OobCertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OobCertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OobCertHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OobCertHash(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_hashAlg;
 		private readonly CertId m_certId;
@@ -40,28 +41,24 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private OobCertHash(Asn1Sequence seq)
 		{
-			int index = seq.Count - 1;
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_hashVal = DerBitString.GetInstance(seq[index--]);
+			m_hashAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged);
+            m_certId = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, CertId.GetTagged);
+			m_hashVal = DerBitString.GetInstance(seq[pos++]);
 
-			for (int i = index; i >= 0; i--)
-			{
-				Asn1TaggedObject tObj = (Asn1TaggedObject)seq[i];
-
-				if (tObj.HasContextTag(0))
-				{
-					m_hashAlg = AlgorithmIdentifier.GetInstance(tObj, true);
-				}
-				else if (tObj.HasContextTag(1))
-				{
-					m_certId = CertId.GetInstance(tObj, true);
-				}
-				else
-				{
-                    throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(tObj));
-                }
-            }
+			if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
+
+        public OobCertHash(AlgorithmIdentifier hashAlg, CertId certId, DerBitString hashVal)
+        {
+            m_hashAlg = hashAlg;
+            m_certId = certId;
+            m_hashVal = hashVal ?? throw new ArgumentNullException(nameof(hashVal));
+        }
 
 		public virtual CertId CertID => m_certId;
 

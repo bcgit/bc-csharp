@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Cms
 				{
 					Asn1OctetString octs = Asn1OctetString.GetInstance(s.ID);
 
-					sid.SubjectKeyIdentifier = octs.GetEncoded();
+					sid.SubjectKeyIdentifier = octs.GetEncoded(Asn1Encodable.Der);
 				}
 				else
 				{
@@ -575,12 +575,12 @@ namespace Org.BouncyCastle.Cms
 
 					DigestInfo digInfo = DerDecode(decrypt);
 
-                    if (!digInfo.AlgorithmID.Algorithm.Equals(digestAlgorithm.Algorithm))
+                    if (!digInfo.DigestAlgorithm.Algorithm.Equals(digestAlgorithm.Algorithm))
 					{
 						return false;
 					}
 
-					if (!IsNull(digInfo.AlgorithmID.Parameters))
+					if (!IsNull(digInfo.DigestAlgorithm.Parameters))
 					{
 						return false;
 					}

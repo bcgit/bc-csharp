@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInfoGenerator Build(ISignatureFactory signerFactory, byte[] subjectKeyIdentifier)
         {
-            SignerIdentifier sigId = new SignerIdentifier(new DerOctetString(subjectKeyIdentifier));
+            SignerIdentifier sigId = new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
 
             return CreateGenerator(signerFactory, sigId);
         }

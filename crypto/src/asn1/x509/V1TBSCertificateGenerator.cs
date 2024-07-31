@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V1TbsCertificateGenerator
     {
-        internal DerTaggedObject		version = new DerTaggedObject(0, new DerInteger(0));
+        internal DerTaggedObject		version = new DerTaggedObject(0, DerInteger.Zero);
         internal DerInteger				serialNumber;
         internal AlgorithmIdentifier	signature;
         internal X509Name				issuer;

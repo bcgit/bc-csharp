@@ -1,11 +1,10 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
-	public class MessageImprint
+    public class MessageImprint
 		: Asn1Encodable
 	{
         public static MessageImprint GetInstance(object obj)
@@ -17,32 +16,36 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new MessageImprint(Asn1Sequence.GetInstance(obj));
         }
 
-		public static MessageImprint GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-		{
-            return new MessageImprint(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+		public static MessageImprint GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MessageImprint(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static MessageImprint GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MessageImprint(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_hashAlgorithm;
-        private readonly byte[] m_hashedMessage;
+        private readonly Asn1OctetString m_hashedMessage;
 
         private MessageImprint(Asn1Sequence seq)
 		{
-			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", nameof(seq));
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
 			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
-			m_hashedMessage = Asn1OctetString.GetInstance(seq[1]).GetOctets();
+			m_hashedMessage = Asn1OctetString.GetInstance(seq[1]);
 		}
 
 		public MessageImprint(AlgorithmIdentifier hashAlgorithm, byte[] hashedMessage)
 		{
-			m_hashAlgorithm = hashAlgorithm;
-			m_hashedMessage = hashedMessage;
+			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+			m_hashedMessage = DerOctetString.FromContents(hashedMessage);
 		}
 
 		public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
-		public byte[] GetHashedMessage() => m_hashedMessage;
+		public Asn1OctetString HashedMessage => m_hashedMessage;
+
+		public byte[] GetHashedMessage() => m_hashedMessage.GetOctets();
 
 		/**
 		 * <pre>
@@ -51,9 +54,6 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		 *       hashedMessage                OCTET STRING  }
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(m_hashAlgorithm, new DerOctetString(m_hashedMessage));
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_hashAlgorithm, m_hashedMessage);
 	}
 }

@@ -29,36 +29,40 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertReqTemplateContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertReqTemplateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertReqTemplateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertReqTemplateContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertReqTemplateContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertReqTemplateContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertReqTemplateContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CertTemplate m_certTemplate;
-        private readonly Asn1Sequence m_keySpec;
+        private readonly Controls m_keySpec;
 
         private CertReqTemplateContent(Asn1Sequence seq)
         {
-            if (seq.Count != 1 && seq.Count != 2)
-                throw new ArgumentException("expected sequence size of 1 or 2");
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_certTemplate = CertTemplate.GetInstance(seq[0]);
+            m_certTemplate = CertTemplate.GetInstance(seq[pos++]);
+            m_keySpec = Asn1Utilities.ReadOptional(seq, ref pos, Controls.GetOptional);
 
-            if (seq.Count > 1)
-            {
-                m_keySpec = Asn1Sequence.GetInstance(seq[1]);
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public CertReqTemplateContent(CertTemplate certTemplate, Asn1Sequence keySpec)
         {
-            m_certTemplate = certTemplate;
-            m_keySpec = keySpec;
+            m_certTemplate = certTemplate ?? throw new ArgumentNullException(nameof(certTemplate));
+            m_keySpec = Controls.GetInstance(keySpec);
         }
 
         public virtual CertTemplate CertTemplate => m_certTemplate;
 
-        public virtual Asn1Sequence KeySpec => m_keySpec;
+        [Obsolete("Use 'KeySpecControls' property instead")]
+        public virtual Asn1Sequence KeySpec => Asn1Sequence.GetInstance(m_keySpec?.ToAsn1Object());
+
+        public virtual Controls KeySpecControls => m_keySpec;
 
         public override Asn1Object ToAsn1Object()
         {

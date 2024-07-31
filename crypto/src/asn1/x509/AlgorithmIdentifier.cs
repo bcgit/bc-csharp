@@ -5,9 +5,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AlgorithmIdentifier
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	algorithm;
-        private readonly Asn1Encodable			parameters;
-
         public static AlgorithmIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -17,50 +14,60 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AlgorithmIdentifier(Asn1Sequence.GetInstance(obj));
         }
 
-        public static AlgorithmIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
+        public static AlgorithmIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new AlgorithmIdentifier(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static AlgorithmIdentifier GetOptional(Asn1Encodable element)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is AlgorithmIdentifier algorithmIdentifier)
+                return algorithmIdentifier;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new AlgorithmIdentifier(asn1Sequence);
+
+            return null;
         }
 
-        public AlgorithmIdentifier(
-            DerObjectIdentifier algorithm)
+        public static AlgorithmIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AlgorithmIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerObjectIdentifier m_algorithm;
+        private readonly Asn1Encodable m_parameters;
+
+        internal AlgorithmIdentifier(Asn1Sequence seq)
         {
-            this.algorithm = algorithm;
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_algorithm = DerObjectIdentifier.GetInstance(seq[0]);
+            m_parameters = count < 2 ? null : seq[1];
         }
 
-        public AlgorithmIdentifier(
-            DerObjectIdentifier algorithm,
-            Asn1Encodable		parameters)
+        public AlgorithmIdentifier(DerObjectIdentifier algorithm)
+            : this(algorithm, null)
         {
-            this.algorithm = algorithm;
-            this.parameters = parameters;
         }
 
-        internal AlgorithmIdentifier(
-            Asn1Sequence seq)
+        public AlgorithmIdentifier(DerObjectIdentifier algorithm, Asn1Encodable parameters)
         {
-            if (seq.Count < 1 || seq.Count > 2)
-                throw new ArgumentException("Bad sequence size: " + seq.Count);
-
-            this.algorithm = DerObjectIdentifier.GetInstance(seq[0]);
-            this.parameters = seq.Count < 2 ? null : seq[1];
+            m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
+            m_parameters = parameters;
         }
 
         /// <summary>
         /// Return the OID in the Algorithm entry of this identifier.
         /// </summary>
-		public virtual DerObjectIdentifier Algorithm
-		{
-			get { return algorithm; }
-		}
+		public virtual DerObjectIdentifier Algorithm => m_algorithm;
 
         /// <summary>
         /// Return the parameters structure in the Parameters entry of this identifier.
         /// </summary>
-        public virtual Asn1Encodable Parameters
-        {
-            get { return parameters; }
-        }
+        public virtual Asn1Encodable Parameters => m_parameters;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -72,9 +79,9 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(algorithm);
-            v.AddOptional(parameters);
-            return new DerSequence(v);
+            return m_parameters == null
+                ?  new DerSequence(m_algorithm)
+                :  new DerSequence(m_algorithm, m_parameters);
         }
     }
 }

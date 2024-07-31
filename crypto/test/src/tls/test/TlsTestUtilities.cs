@@ -362,8 +362,7 @@ namespace Org.BouncyCastle.Tls.Tests
             if (pem.Type.Equals("EC PRIVATE KEY"))
             {
                 ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(pem.Content);
-                AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey,
-                    pKey.GetParameters());
+                AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, pKey.Parameters);
                 PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey);
                 return PrivateKeyFactory.CreateKey(privInfo);
             }

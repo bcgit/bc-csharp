@@ -1,72 +1,54 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
     public class Request
         : Asn1Encodable
     {
-        private readonly CertID			reqCert;
-        private readonly X509Extensions	singleRequestExtensions;
-
-		public static Request GetInstance(
-			Asn1TaggedObject	obj,
-			bool				explicitly)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-		}
-
-		public static Request GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is Request)
-			{
-				return (Request)obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new Request((Asn1Sequence)obj);
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public Request(
-            CertID			reqCert,
-            X509Extensions	singleRequestExtensions)
+        public static Request GetInstance(object obj)
         {
-			if (reqCert == null)
-				throw new ArgumentNullException("reqCert");
-
-			this.reqCert = reqCert;
-            this.singleRequestExtensions = singleRequestExtensions;
+            if (obj == null)
+                return null;
+            if (obj is Request request)
+                return request;
+            return new Request(Asn1Sequence.GetInstance(obj));
         }
 
-		private Request(
-			Asn1Sequence seq)
-        {
-			reqCert = CertID.GetInstance(seq[0]);
+        public static Request GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new Request(Asn1Sequence.GetInstance(obj, explicitly));
 
-			if (seq.Count == 2)
-            {
-                singleRequestExtensions = X509Extensions.GetInstance(
-					(Asn1TaggedObject)seq[1], true);
-            }
+        public static Request GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Request(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly CertID m_reqCert;
+        private readonly X509Extensions m_singleRequestExtensions;
+
+        public Request(CertID reqCert, X509Extensions singleRequestExtensions)
+        {
+			m_reqCert = reqCert ?? throw new ArgumentNullException(nameof(reqCert));
+            m_singleRequestExtensions = singleRequestExtensions;
         }
 
-		public CertID ReqCert
-		{
-			get { return reqCert; }
-		}
+		private Request(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-		public X509Extensions SingleRequestExtensions
-		{
-			get { return singleRequestExtensions; }
-		}
+            int pos = 0;
+
+            m_reqCert = CertID.GetInstance(seq[pos++]);
+            m_singleRequestExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Extensions.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
+
+        public CertID ReqCert => m_reqCert;
+
+        public X509Extensions SingleRequestExtensions => m_singleRequestExtensions;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -78,8 +60,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(reqCert);
-            v.AddOptionalTagged(true, 0, singleRequestExtensions);
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.Add(m_reqCert);
+            v.AddOptionalTagged(true, 0, m_singleRequestExtensions);
             return new DerSequence(v);
         }
     }

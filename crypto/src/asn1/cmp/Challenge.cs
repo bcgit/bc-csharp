@@ -42,10 +42,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new Challenge(Asn1Sequence.GetInstance(obj));
         }
 
-        public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new Challenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Challenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static Challenge GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Challenge(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_owf;
 		private readonly Asn1OctetString m_witness;
@@ -53,16 +54,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private Challenge(Asn1Sequence seq)
 		{
-			int index = 0;
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count == 3)
-			{
-				m_owf = AlgorithmIdentifier.GetInstance(seq[index++]);
-			}
+            m_owf = Asn1Utilities.ReadOptional(seq, ref pos, AlgorithmIdentifier.GetOptional);
+            m_witness = Asn1OctetString.GetInstance(seq[pos++]);
+            m_challenge = Asn1OctetString.GetInstance(seq[pos++]);
 
-			m_witness = Asn1OctetString.GetInstance(seq[index++]);
-			m_challenge = Asn1OctetString.GetInstance(seq[index]);
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
         public Challenge(byte[] witness, byte[] challenge)
             : this(null, witness, challenge)
@@ -72,8 +74,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public Challenge(AlgorithmIdentifier owf, byte[] witness, byte[] challenge)
         {
             m_owf = owf;
-            m_witness = new DerOctetString(witness);
-            m_challenge = new DerOctetString(challenge);
+            m_witness = DerOctetString.FromContents(witness);
+            m_challenge = DerOctetString.FromContents(challenge);
         }
 
         public virtual AlgorithmIdentifier Owf => m_owf;

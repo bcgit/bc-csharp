@@ -17,57 +17,47 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class SigPolicyQualifierInfo
 		: Asn1Encodable
 	{
-		private readonly DerObjectIdentifier	sigPolicyQualifierId;
-		private readonly Asn1Object				sigQualifier;
+        public static SigPolicyQualifierInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is SigPolicyQualifierInfo sigPolicyQualifierInfo)
+                return sigPolicyQualifierInfo;
+            return new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static SigPolicyQualifierInfo GetInstance(
-			object obj)
+        public static SigPolicyQualifierInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SigPolicyQualifierInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SigPolicyQualifierInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerObjectIdentifier m_sigPolicyQualifierId;
+        private readonly Asn1Encodable m_sigQualifier;
+
+        private SigPolicyQualifierInfo(Asn1Sequence seq)
 		{
-			if (obj == null || obj is SigPolicyQualifierInfo)
-				return (SigPolicyQualifierInfo) obj;
+			int count = seq.Count;
+			if (count != 2)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj is Asn1Sequence)
-				return new SigPolicyQualifierInfo((Asn1Sequence) obj);
-
-			throw new ArgumentException(
-				"Unknown object in 'SigPolicyQualifierInfo' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
+			m_sigPolicyQualifierId = DerObjectIdentifier.GetInstance(seq[0]);
+			m_sigQualifier = seq[1];
 		}
 
-		private SigPolicyQualifierInfo(
-			Asn1Sequence seq)
-		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count != 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
-
-			this.sigPolicyQualifierId = (DerObjectIdentifier) seq[0].ToAsn1Object();
-			this.sigQualifier = seq[1].ToAsn1Object();
+        public SigPolicyQualifierInfo(DerObjectIdentifier sigPolicyQualifierId, Asn1Encodable sigQualifier)
+        {
+            m_sigPolicyQualifierId = sigPolicyQualifierId ?? throw new ArgumentNullException(nameof(sigPolicyQualifierId));
+			m_sigQualifier = sigQualifier ?? throw new ArgumentNullException(nameof(sigQualifier));
 		}
 
-		public SigPolicyQualifierInfo(
-			DerObjectIdentifier	sigPolicyQualifierId,
-			Asn1Encodable		sigQualifier)
-		{
-			this.sigPolicyQualifierId = sigPolicyQualifierId;
-			this.sigQualifier = sigQualifier.ToAsn1Object();
-		}
+		public DerObjectIdentifier SigPolicyQualifierId => m_sigPolicyQualifierId;
 
-		public DerObjectIdentifier SigPolicyQualifierId
-		{
-			get { return sigPolicyQualifierId; }
-		}
+        public Asn1Encodable SigQualifierData => m_sigQualifier;
 
-		public Asn1Object SigQualifier
-		{
-			get { return sigQualifier; }
-		}
+		[Obsolete("Use 'SigQualifierData' instead")]
+        public Asn1Object SigQualifier => m_sigQualifier.ToAsn1Object();
 
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(sigPolicyQualifierId, sigQualifier);
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_sigPolicyQualifierId, m_sigQualifier);
 	}
 }

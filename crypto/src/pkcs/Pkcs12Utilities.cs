@@ -56,10 +56,10 @@ namespace Org.BouncyCastle.Pkcs
 				int itCount = mData.IterationCount.IntValue;
 				byte[] data = Asn1OctetString.GetInstance(info.Content).GetOctets();
 				byte[] res = Pkcs12Store.CalculatePbeMac(
-                    mData.Mac.AlgorithmID.Algorithm, mData.GetSalt(), itCount, passwd, false, data);
+                    mData.Mac.DigestAlgorithm.Algorithm, mData.GetSalt(), itCount, passwd, false, data);
 
 				AlgorithmIdentifier algId = new AlgorithmIdentifier(
-                    mData.Mac.AlgorithmID.Algorithm, DerNull.Instance);
+                    mData.Mac.DigestAlgorithm.Algorithm, DerNull.Instance);
 				DigestInfo dInfo = new DigestInfo(algId, res);
 
 				mData = new MacData(dInfo, mData.GetSalt(), itCount);

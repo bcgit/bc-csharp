@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
             {
-                new SemanticsInformation(DerSequence.Empty);
+                SemanticsInformation.GetInstance(DerSequence.Empty);
 
 				Fail("constructor failed to detect empty sequence.");
             }

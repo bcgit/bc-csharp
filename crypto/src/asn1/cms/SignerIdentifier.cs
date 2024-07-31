@@ -27,44 +27,39 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new ArgumentException("Illegal object in SignerIdentifier: " + Platform.GetTypeName(o), nameof(o));
         }
 
-        public static SignerIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static SignerIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static SignerIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        private readonly Asn1Encodable m_id;
+
+        public SignerIdentifier(IssuerAndSerialNumber id)
         {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
-        private Asn1Encodable id;
-
-		public SignerIdentifier(
-            IssuerAndSerialNumber id)
+		public SignerIdentifier(Asn1OctetString id)
         {
-            this.id = id;
+            m_id = new DerTaggedObject(false, 0, id);
         }
 
-		public SignerIdentifier(
-            Asn1OctetString id)
+		public SignerIdentifier(Asn1Object id)
         {
-            this.id = new DerTaggedObject(false, 0, id);
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
-		public SignerIdentifier(
-            Asn1Object id)
-        {
-            this.id = id;
-        }
-
-		public bool IsTagged
-		{
-			get { return (id is Asn1TaggedObject); }
-		}
+        public bool IsTagged => m_id is Asn1TaggedObject;
 
         public Asn1Encodable ID
         {
             get
             {
-                if (id is Asn1TaggedObject taggedObject)
+                if (m_id is Asn1TaggedObject taggedObject)
                     return Asn1OctetString.GetInstance(taggedObject, false);
 
-                return id;
+                return m_id;
             }
         }
 
@@ -79,9 +74,6 @@ namespace Org.BouncyCastle.Asn1.Cms
          * SubjectKeyIdentifier ::= OCTET STRING
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return id.ToAsn1Object();
-        }
+        public override Asn1Object ToAsn1Object() => m_id.ToAsn1Object();
     }
 }

@@ -23,6 +23,13 @@ namespace Org.BouncyCastle.Asn1
 
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
+        public static readonly DerInteger Zero = new DerInteger(0);
+        public static readonly DerInteger One = new DerInteger(1);
+        public static readonly DerInteger Two = new DerInteger(2);
+        public static readonly DerInteger Three = new DerInteger(3);
+        public static readonly DerInteger Four = new DerInteger(4);
+        public static readonly DerInteger Five = new DerInteger(5);
+
         internal static bool AllowUnsafe()
         {
             string allowUnsafeValue = Platform.GetEnvironmentVariable(AllowUnsafeProperty);
@@ -50,8 +57,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerInteger converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is DerInteger converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -81,7 +87,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerInteger)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-		public DerInteger(int value)
+        public static DerInteger GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerInteger existing)
+                return existing;
+
+            return null;
+        }
+
+        public static DerInteger GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerInteger)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
+        public DerInteger(int value)
         {
             this.bytes = BigInteger.ValueOf(value).ToByteArray();
             this.start = 0;
@@ -184,6 +206,45 @@ namespace Org.BouncyCastle.Asn1
 
                 return LongValue(bytes, start, SignExtSigned);
             }
+        }
+
+        public bool TryGetIntPositiveValueExact(out int value)
+        {
+            int count = bytes.Length - start;
+            if (count > 4 || (count == 4 && 0 != (bytes[start] & 0x80)))
+            {
+                value = default;
+                return false;
+            }
+
+            value = IntValue(bytes, start, SignExtUnsigned);
+            return true;
+        }
+
+        public bool TryGetIntValueExact(out int value)
+        {
+            int count = bytes.Length - start;
+            if (count > 4)
+            {
+                value = default;
+                return false;
+            }
+
+            value = IntValue(bytes, start, SignExtSigned);
+            return true;
+        }
+
+        public bool TryGetLongValueExact(out long value)
+        {
+            int count = bytes.Length - start;
+            if (count > 8)
+            {
+                value = default;
+                return false;
+            }
+
+            value = LongValue(bytes, start, SignExtSigned);
+            return true;
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)

@@ -10,10 +10,10 @@ namespace Org.BouncyCastle.Tsp.Tests
 	[TestFixture]
 	public class GenTimeAccuracyUnitTest
 	{
-		private static readonly DerInteger ZERO_VALUE = new DerInteger(0);
-		private static readonly DerInteger ONE_VALUE = new DerInteger(1);
-		private static readonly DerInteger TWO_VALUE = new DerInteger(2);
-		private static readonly DerInteger THREE_VALUE = new DerInteger(3);
+		private static readonly DerInteger ZERO_VALUE = DerInteger.Zero;
+		private static readonly DerInteger ONE_VALUE = DerInteger.One;
+		private static readonly DerInteger TWO_VALUE = DerInteger.Two;
+		private static readonly DerInteger THREE_VALUE = DerInteger.Three;
 
 		[Test]
 		public void TestOneTwoThree()

@@ -592,7 +592,7 @@ namespace Org.BouncyCastle.Security
 
             int saltLen = DigestUtilities.GetDigest(digestName).GetDigestSize();
             return new RsassaPssParameters(hashAlgorithm, maskGenAlgorithm,
-                new DerInteger(saltLen), new DerInteger(1));
+                new DerInteger(saltLen), DerInteger.One);
         }
 
         // TODO[api] Change parameter name to 'oid'

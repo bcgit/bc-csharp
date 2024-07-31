@@ -34,10 +34,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CmpCertificate(X509CertificateStructure.GetInstance(asn1Object ?? obj));
         }
 
-        public static CmpCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static CmpCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static CmpCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly X509CertificateStructure m_x509v3PKCert;
 

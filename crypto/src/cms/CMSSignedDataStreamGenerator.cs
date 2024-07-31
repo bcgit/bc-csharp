@@ -653,7 +653,7 @@ namespace Org.BouncyCastle.Cms
 
 			if (otherCert)
 			{
-				return new DerInteger(5);
+				return DerInteger.Five;
 			}
 
 			if (_crls != null)
@@ -670,20 +670,20 @@ namespace Org.BouncyCastle.Cms
 
 			if (otherCrl)
 			{
-				return new DerInteger(5);
+				return DerInteger.Five;
 			}
 
 			if (attrCertV2Found)
 			{
-				return new DerInteger(4);
+				return DerInteger.Four;
 			}
 
             if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) || CheckForVersion3(_signers))
             {
-                return new DerInteger(3);
+                return DerInteger.Three;
             }
 
-            return new DerInteger(1);
+            return DerInteger.One;
         }
 
 		private bool CheckForVersion3(IList<SignerInformation> signerInfos)

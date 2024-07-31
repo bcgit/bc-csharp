@@ -1,10 +1,8 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	* This class helps to support crossCerfificatePairs in a LDAP directory
 	* according RFC 2587
 	*
@@ -37,28 +35,27 @@ namespace Org.BouncyCastle.Asn1.X509
 	*         -- at least one of the pair shall be present -- }
 	* </pre>
 	*/
-	public class CertificatePair
+    public class CertificatePair
 		: Asn1Encodable
 	{
-		private X509CertificateStructure forward, reverse;
+        public static CertificatePair GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CertificatePair certificatePair)
+                return certificatePair;
+            return new CertificatePair(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static CertificatePair GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is CertificatePair)
-			{
-				return (CertificatePair) obj;
-			}
+        public static CertificatePair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificatePair(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-			if (obj is Asn1Sequence)
-			{
-				return new CertificatePair((Asn1Sequence) obj);
-			}
+        public static CertificatePair GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificatePair(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        private X509CertificateStructure m_forward, m_reverse;
 
-		/**
+        /**
 		* Constructor from Asn1Sequence.
 		* <p/>
 		* The sequence is of type CertificatePair:
@@ -72,44 +69,33 @@ namespace Org.BouncyCastle.Asn1.X509
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private CertificatePair(
-			Asn1Sequence seq)
-		{
-			if (seq.Count != 1 && seq.Count != 2)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
-			}
+        private CertificatePair(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			foreach (object obj in seq)
-			{
-				Asn1TaggedObject o = Asn1TaggedObject.GetInstance(obj);
-				if (o.TagNo == 0)
-				{
-					forward = X509CertificateStructure.GetInstance(o, true);
-				}
-				else if (o.TagNo == 1)
-				{
-					reverse = X509CertificateStructure.GetInstance(o, true);
-				}
-				else
-				{
-					throw new ArgumentException("Bad tag number: " + o.TagNo);
-				}
-			}
-		}
+			m_forward = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509CertificateStructure.GetTagged);
+            m_reverse = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, X509CertificateStructure.GetTagged);
 
-		/**
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            Validate();
+        }
+
+        /**
 		* Constructor from a given details.
 		*
 		* @param forward Certificates issued to this CA.
 		* @param reverse Certificates issued by this CA to other CAs.
 		*/
-		public CertificatePair(
-			X509CertificateStructure	forward,
-			X509CertificateStructure	reverse)
-		{
-			this.forward = forward;
-			this.reverse = reverse;
+        public CertificatePair(X509CertificateStructure forward, X509CertificateStructure reverse)
+        {
+            m_forward = forward;
+			m_reverse = reverse;
+
+			Validate();
 		}
 
 		/**
@@ -129,25 +115,25 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptionalTagged(true, 0, forward);
-            v.AddOptionalTagged(true, 1, reverse);
+            v.AddOptionalTagged(true, 0, m_forward);
+            v.AddOptionalTagged(true, 1, m_reverse);
             return new DerSequence(v);
         }
 
 		/**
 		* @return Returns the forward.
 		*/
-		public X509CertificateStructure Forward
-		{
-			get { return forward; }
-		}
+		public X509CertificateStructure Forward => m_forward;
 
 		/**
 		* @return Returns the reverse.
 		*/
-		public X509CertificateStructure Reverse
+		public X509CertificateStructure Reverse => m_reverse;
+
+        private void Validate()
 		{
-			get { return reverse; }
+			if (m_forward == null && m_reverse == null)
+				throw new ArgumentException("At least one of the pair shall be present");
 		}
-	}
+    }
 }

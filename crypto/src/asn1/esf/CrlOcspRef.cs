@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Esf
 {
 	/// <remarks>
@@ -17,95 +15,61 @@ namespace Org.BouncyCastle.Asn1.Esf
 	public class CrlOcspRef
 		: Asn1Encodable
 	{
-		private readonly CrlListID		crlids;
-		private readonly OcspListID		ocspids;
-		private readonly OtherRevRefs	otherRev;
+        public static CrlOcspRef GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CrlOcspRef crlOcspRef)
+                return crlOcspRef;
+            return new CrlOcspRef(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static CrlOcspRef GetInstance(
-			object obj)
+        public static CrlOcspRef GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlOcspRef(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlOcspRef GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlOcspRef(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly CrlListID m_crlids;
+        private readonly OcspListID m_ocspids;
+        private readonly OtherRevRefs m_otherRev;
+
+        private CrlOcspRef(Asn1Sequence seq)
 		{
-			if (obj == null || obj is CrlOcspRef)
-				return (CrlOcspRef) obj;
+            int count = seq.Count;
+            if (count < 0 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj is Asn1Sequence)
-				return new CrlOcspRef((Asn1Sequence) obj);
+            int pos = 0;
 
-			throw new ArgumentException(
-				"Unknown object in 'CrlOcspRef' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
+			m_crlids = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CrlListID.GetTagged);
+            m_ocspids = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, OcspListID.GetTagged);
+            m_otherRev = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, OtherRevRefs.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		private CrlOcspRef(Asn1Sequence seq)
-		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-
-			foreach (var element in seq)
-			{
-				var o = Asn1TaggedObject.GetInstance(element, Asn1Tags.ContextSpecific);
-				switch (o.TagNo)
-				{
-				case 0:
-					this.crlids = CrlListID.GetInstance(o.GetExplicitBaseObject());
-					break;
-				case 1:
-					this.ocspids = OcspListID.GetInstance(o.GetExplicitBaseObject());
-					break;
-				case 2:
-					this.otherRev = OtherRevRefs.GetInstance(o.GetExplicitBaseObject());
-					break;
-				default:
-					throw new ArgumentException("Illegal tag in CrlOcspRef", "seq");
-				}
-			}
+        public CrlOcspRef(CrlListID crlids, OcspListID ocspids, OtherRevRefs otherRev)
+        {
+            m_crlids = crlids;
+			m_ocspids = ocspids;
+			m_otherRev = otherRev;
 		}
 
-		public CrlOcspRef(
-			CrlListID		crlids,
-			OcspListID		ocspids,
-			OtherRevRefs	otherRev)
-		{
-			this.crlids = crlids;
-			this.ocspids = ocspids;
-			this.otherRev = otherRev;
-		}
+		public CrlListID CrlIDs => m_crlids;
 
-		public CrlListID CrlIDs
-		{
-			get { return crlids; }
-		}
+		public OcspListID OcspIDs => m_ocspids;
 
-		public OcspListID OcspIDs
-		{
-			get { return ocspids; }
-		}
-
-		public OtherRevRefs OtherRev
-		{
-			get { return otherRev; }
-		}
+		public OtherRevRefs OtherRev => m_otherRev;
 
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(3);
-
-			if (crlids != null)
-			{
-				v.Add(new DerTaggedObject(true, 0, crlids.ToAsn1Object()));
-			}
-
-			if (ocspids != null)
-			{
-				v.Add(new DerTaggedObject(true, 1, ocspids.ToAsn1Object()));
-			}
-
-			if (otherRev != null)
-			{
-				v.Add(new DerTaggedObject(true, 2, otherRev.ToAsn1Object()));
-			}
-
-			return new DerSequence(v);
+			v.AddOptionalTagged(true, 0, m_crlids);
+            v.AddOptionalTagged(true, 1, m_ocspids);
+            v.AddOptionalTagged(true, 2, m_otherRev);
+			return DerSequence.FromVector(v);
 		}
 	}
 }

@@ -590,7 +590,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             byte[] buf = new byte[Symmetric.Stream256BlockBytes];
 
             ShakeDigest ShakeDigest256 = new ShakeDigest(256);
-            ShakeDigest256.BlockUpdate(seed, 0, DilithiumEngine.SeedBytes);
+            ShakeDigest256.BlockUpdate(seed, 0, Engine.CTilde);
             ShakeDigest256.Output(buf, 0, Symmetric.Stream256BlockBytes);
 
             signs = 0;

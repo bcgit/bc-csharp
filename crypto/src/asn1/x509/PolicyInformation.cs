@@ -5,59 +5,48 @@ namespace Org.BouncyCastle.Asn1.X509
     public class PolicyInformation
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	policyIdentifier;
-        private readonly Asn1Sequence			policyQualifiers;
-
-		private PolicyInformation(
-            Asn1Sequence seq)
+        public static PolicyInformation GetInstance(object obj)
         {
-			if (seq.Count < 1 || seq.Count > 2)
-			{
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
-			}
-
-			policyIdentifier = DerObjectIdentifier.GetInstance(seq[0]);
-
-			if (seq.Count > 1)
-			{
-				policyQualifiers = Asn1Sequence.GetInstance(seq[1]);
-			}
+            if (obj == null)
+                return null;
+            if (obj is PolicyInformation policyInformation)
+                return policyInformation;
+            return new PolicyInformation(Asn1Sequence.GetInstance(obj));
         }
 
-		public PolicyInformation(
-            DerObjectIdentifier policyIdentifier)
+        public static PolicyInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PolicyInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PolicyInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PolicyInformation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerObjectIdentifier m_policyIdentifier;
+        private readonly Asn1Sequence m_policyQualifiers;
+
+        private PolicyInformation(Asn1Sequence seq)
         {
-            this.policyIdentifier = policyIdentifier;
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_policyIdentifier = DerObjectIdentifier.GetInstance(seq[0]);
+            m_policyQualifiers = count < 2 ? null : Asn1Sequence.GetInstance(seq[1]);
         }
 
-		public PolicyInformation(
-            DerObjectIdentifier	policyIdentifier,
-            Asn1Sequence		policyQualifiers)
+        public PolicyInformation(DerObjectIdentifier policyIdentifier)
+            : this(policyIdentifier, null)
         {
-            this.policyIdentifier = policyIdentifier;
-            this.policyQualifiers = policyQualifiers;
         }
 
-		public static PolicyInformation GetInstance(
-            object obj)
+        public PolicyInformation(DerObjectIdentifier policyIdentifier, Asn1Sequence policyQualifiers)
         {
-            if (obj == null || obj is PolicyInformation)
-            {
-                return (PolicyInformation) obj;
-            }
-
-			return new PolicyInformation(Asn1Sequence.GetInstance(obj));
+            m_policyIdentifier = policyIdentifier ?? throw new ArgumentNullException(nameof(policyIdentifier));
+            m_policyQualifiers = policyQualifiers;
         }
 
-		public DerObjectIdentifier PolicyIdentifier
-		{
-			get { return policyIdentifier; }
-		}
+        public DerObjectIdentifier PolicyIdentifier => m_policyIdentifier;
 
-		public Asn1Sequence PolicyQualifiers
-		{
-			get { return policyQualifiers; }
-		}
+        public Asn1Sequence PolicyQualifiers => m_policyQualifiers;
 
 		/*
          * PolicyInformation ::= Sequence {
@@ -67,9 +56,9 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(policyIdentifier);
-            v.AddOptional(policyQualifiers);
-            return new DerSequence(v);
+            return m_policyQualifiers == null
+                ?  new DerSequence(m_policyIdentifier)
+                :  new DerSequence(m_policyIdentifier, m_policyQualifiers);
         }
     }
 }

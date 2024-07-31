@@ -11,69 +11,56 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is KekIdentifier kekIdentifier)
                 return kekIdentifier;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KekIdentifier(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static KekIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new KekIdentifier(Asn1Sequence.GetInstance(obj, explicitly));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private Asn1OctetString		keyIdentifier;
-        private Asn1GeneralizedTime date;
-        private OtherKeyAttribute	other;
-
-		public KekIdentifier(
-            byte[]              keyIdentifier,
-            Asn1GeneralizedTime date,
-            OtherKeyAttribute   other)
+        public static KekIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            this.keyIdentifier = new DerOctetString(keyIdentifier);
-            this.date = date;
-            this.other = other;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new KekIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public KekIdentifier(Asn1Sequence seq)
+        private readonly Asn1OctetString m_keyIdentifier;
+        private readonly Asn1GeneralizedTime m_date;
+        private readonly OtherKeyAttribute m_other;
+
+        public KekIdentifier(byte[] keyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
         {
-            keyIdentifier = (Asn1OctetString)seq[0];
-
-			switch (seq.Count)
-            {
-            case 1:
-				break;
-            case 2:
-				if (seq[1] is Asn1GeneralizedTime asn1GeneralizedTime)
-				{
-					date = asn1GeneralizedTime;
-				}
-				else
-				{
-					other = OtherKeyAttribute.GetInstance(seq[2]);
-				}
-				break;
-            case 3:
-				date = (Asn1GeneralizedTime)seq[1];
-				other = OtherKeyAttribute.GetInstance(seq[2]);
-				break;
-            default:
-				throw new ArgumentException("Invalid KekIdentifier");
-            }
+            m_keyIdentifier = DerOctetString.FromContents(keyIdentifier);
+            m_date = date;
+            m_other = other;
         }
 
-        public Asn1OctetString KeyIdentifier
-		{
-			get { return keyIdentifier; }
-		}
+        [Obsolete("Use 'GetInstance' instead")]
+        public KekIdentifier(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-		public Asn1GeneralizedTime Date
-		{
-			get { return date; }
-		}
+            m_keyIdentifier = Asn1OctetString.GetInstance(seq[pos++]);
+            m_date = Asn1Utilities.ReadOptional(seq, ref pos, Asn1GeneralizedTime.GetOptional);
+            m_other = Asn1Utilities.ReadOptional(seq, ref pos, OtherKeyAttribute.GetOptional);
 
-		public OtherKeyAttribute Other
-		{
-			get { return other; }
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
+
+        public Asn1OctetString KeyIdentifier => m_keyIdentifier;
+
+        public Asn1GeneralizedTime Date => m_date;
+
+        public OtherKeyAttribute Other => m_other;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -87,8 +74,9 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(keyIdentifier);
-			v.AddOptional(date, other);
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(m_keyIdentifier);
+			v.AddOptional(m_date, m_other);
 			return new DerSequence(v);
         }
     }

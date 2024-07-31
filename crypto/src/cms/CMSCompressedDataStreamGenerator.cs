@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Cms
 				sGen.GetRawOutputStream(), 0, true);
 
 			// CMSVersion
-			cGen.AddObject(new DerInteger(0));
+			cGen.AddObject(DerInteger.Zero);
 
 			// CompressionAlgorithmIdentifier
 			cGen.AddObject(new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress));

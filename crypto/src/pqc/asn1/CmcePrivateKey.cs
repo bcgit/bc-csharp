@@ -32,86 +32,72 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return new CmcePrivateKey(Asn1Sequence.GetInstance(o));
         }
 
-        public static CmcePrivateKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CmcePrivateKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CmcePrivateKey(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-        private int version;
-        private byte[] delta;
-        private byte[] c;
-        private byte[] g;
-        private byte[] alpha;
-        private byte[] s;
-        private CmcePublicKey publicKey;
-        
+        public static CmcePrivateKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CmcePrivateKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1OctetString m_delta;
+        private readonly Asn1OctetString m_c;
+        private readonly Asn1OctetString m_g;
+        private readonly Asn1OctetString m_alpha;
+        private readonly Asn1OctetString m_s;
+        private readonly CmcePublicKey m_publicKey;
+
         public CmcePrivateKey(int version, byte[] delta, byte[] c, byte[] g, byte[] alpha, byte[] s, CmcePublicKey pubKey = null)
         {
             if (version != 0)
                 throw new Exception("unrecognized version");
 
-            this.version = version;
-            this.delta = Arrays.Clone(delta);
-            this.c = Arrays.Clone(c);
-            this.g = Arrays.Clone(g);
-            this.alpha = Arrays.Clone(alpha);
-            this.s = Arrays.Clone(s);
-            this.publicKey = pubKey;
+            m_delta = DerOctetString.FromContents(delta);
+            m_c = DerOctetString.FromContents(c);
+            m_g = DerOctetString.FromContents(g);
+            m_alpha = DerOctetString.FromContents(alpha);
+            m_s = DerOctetString.FromContents(s);
+            m_publicKey = pubKey;
         }
 
         private CmcePrivateKey(Asn1Sequence seq)
         {
-            version = DerInteger.GetInstance(seq[0]).IntValueExact;
-            if (version != 0)
-                 throw new Exception("unrecognized version");
+            int count = seq.Count, pos = 0;
+            if (count < 6 || count > 7)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            delta = Arrays.Clone(Asn1OctetString.GetInstance(seq[1]).GetOctets());
+            var version = DerInteger.GetInstance(seq[pos++]);
+            m_delta = Asn1OctetString.GetInstance(seq[pos++]);
+            m_c = Asn1OctetString.GetInstance(seq[pos++]);
+            m_g = Asn1OctetString.GetInstance(seq[pos++]);
+            m_alpha = Asn1OctetString.GetInstance(seq[pos++]);
+            m_s = Asn1OctetString.GetInstance(seq[pos++]);
+            m_publicKey = Asn1Utilities.ReadOptional(seq, ref pos, CmcePublicKey.GetOptional);
 
-            c = Arrays.Clone(Asn1OctetString.GetInstance(seq[2]).GetOctets());
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-            g = Arrays.Clone(Asn1OctetString.GetInstance(seq[3]).GetOctets());
-
-            alpha = Arrays.Clone(Asn1OctetString.GetInstance(seq[4]).GetOctets());
-
-            s = Arrays.Clone(Asn1OctetString.GetInstance(seq[5]).GetOctets());
-
-            if (seq.Count == 7)
-            {
-                publicKey = CmcePublicKey.GetInstance(seq[6]);
-            }
+            if (!version.HasValue(0))
+                throw new Exception("unrecognized version");
         }
 
-        public int Version => version;
+        public int Version => 0;
 
-        public byte[] Delta => Arrays.Clone(delta);
+        public byte[] Delta => Arrays.Clone(m_delta.GetOctets());
 
-        public byte[] C => Arrays.Clone(c);
+        public byte[] C => Arrays.Clone(m_c.GetOctets());
 
-        public byte[] G => Arrays.Clone(g);
+        public byte[] G => Arrays.Clone(m_g.GetOctets());
 
-        public byte[] Alpha => Arrays.Clone(alpha);
+        public byte[] Alpha => Arrays.Clone(m_alpha.GetOctets());
 
-        public byte[] S => Arrays.Clone(s);
+        public byte[] S => Arrays.Clone(m_s.GetOctets());
 
-        public CmcePublicKey PublicKey => publicKey;
+        public CmcePublicKey PublicKey => m_publicKey;
 
         public Asn1Object ToAsn1Primitive()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(7);
-
-            v.Add(new DerInteger(version));
-            v.Add(new DerOctetString(delta));
-            v.Add(new DerOctetString(c));
-            v.Add(new DerOctetString(g));
-            v.Add(new DerOctetString(alpha));
-            v.Add(new DerOctetString(s));
-
-            // todo optional publickey
-            if (publicKey != null)
-            {
-                v.Add(new CmcePublicKey(publicKey.T));
-            }
-
+            v.Add(DerInteger.Zero, m_delta, m_c, m_g, m_alpha, m_s);
+            v.AddOptional(m_publicKey);
             return new DerSequence(v);
         }
 

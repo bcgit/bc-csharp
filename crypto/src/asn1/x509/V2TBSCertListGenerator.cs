@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V2TbsCertListGenerator
     {
-        private DerInteger			version = new DerInteger(1);
+        private DerInteger			version = DerInteger.One;
         private AlgorithmIdentifier	signature;
         private X509Name			issuer;
         private Time				thisUpdate, nextUpdate;

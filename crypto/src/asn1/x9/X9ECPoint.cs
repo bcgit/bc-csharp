@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.X9
         public X9ECPoint(ECCurve c, byte[] encoding)
         {
             this.c = c;
-            this.encoding = new DerOctetString(Arrays.Clone(encoding));
+            this.encoding = DerOctetString.FromContents(encoding);
         }
 
         public X9ECPoint(ECCurve c, Asn1OctetString s)

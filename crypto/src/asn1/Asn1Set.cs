@@ -39,8 +39,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1Set converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is Asn1Set converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -75,6 +74,22 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1Set GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1Set)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+        }
+
+        public static Asn1Set GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1Set existing)
+                return existing;
+
+            return null;
+        }
+
+        public static Asn1Set GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1Set)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
         internal readonly Asn1Encodable[] m_elements;

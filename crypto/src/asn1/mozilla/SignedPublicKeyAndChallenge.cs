@@ -29,10 +29,11 @@ namespace Org.BouncyCastle.Asn1.Mozilla
             return new SignedPublicKeyAndChallenge(Asn1Sequence.GetInstance(obj));
         }
 
-        public static SignedPublicKeyAndChallenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new SignedPublicKeyAndChallenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static SignedPublicKeyAndChallenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SignedPublicKeyAndChallenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static SignedPublicKeyAndChallenge GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new SignedPublicKeyAndChallenge(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PublicKeyAndChallenge m_publicKeyAndChallenge;
         private readonly AlgorithmIdentifier m_signatureAlgorithm;

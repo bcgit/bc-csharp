@@ -19,15 +19,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CertificateList
         : Asn1Encodable
     {
-        private readonly TbsCertificateList	tbsCertList;
-        private readonly AlgorithmIdentifier sigAlgID;
-        private readonly DerBitString sig;
-
-        public static CertificateList GetInstance(Asn1TaggedObject obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
         public static CertificateList GetInstance(object obj)
         {
             if (obj == null)
@@ -37,70 +28,63 @@ namespace Org.BouncyCastle.Asn1.X509
             return new CertificateList(Asn1Sequence.GetInstance(obj));
         }
 
-        private CertificateList(
-            Asn1Sequence seq)
-        {
-			if (seq.Count != 3)
-				throw new ArgumentException("sequence wrong size for CertificateList", "seq");
+        public static CertificateList GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new CertificateList(Asn1Sequence.GetInstance(obj, explicitly));
 
-			tbsCertList = TbsCertificateList.GetInstance(seq[0]);
-			sigAlgID = AlgorithmIdentifier.GetInstance(seq[1]);
-			sig = DerBitString.GetInstance(seq[2]);
+        public static CertificateList GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is CertificateList certificateList)
+                return certificateList;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new CertificateList(asn1Sequence);
+
+            return null;
         }
 
-		public TbsCertificateList TbsCertList
-		{
-			get { return tbsCertList; }
-		}
+        public static CertificateList GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificateList(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-		public CrlEntry[] GetRevokedCertificates()
+        private readonly TbsCertificateList m_tbsCertList;
+        private readonly AlgorithmIdentifier m_signatureAlgorithm;
+        private readonly DerBitString m_signatureValue;
+
+        private CertificateList(Asn1Sequence seq)
         {
-            return tbsCertList.GetRevokedCertificates();
+            int count = seq.Count;
+            if (count != 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_tbsCertList = TbsCertificateList.GetInstance(seq[0]);
+			m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[1]);
+			m_signatureValue = DerBitString.GetInstance(seq[2]);
         }
 
-		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
-		{
-			return tbsCertList.GetRevokedCertificateEnumeration();
-		}
+        public TbsCertificateList TbsCertList => m_tbsCertList;
 
-		public AlgorithmIdentifier SignatureAlgorithm
-		{
-			get { return sigAlgID; }
-		}
+		public CrlEntry[] GetRevokedCertificates() => m_tbsCertList.GetRevokedCertificates();
 
-		public DerBitString Signature
-		{
-			get { return sig; }
-		}
+		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration() =>
+            m_tbsCertList.GetRevokedCertificateEnumeration();
 
-        public byte[] GetSignatureOctets()
-        {
-            return sig.GetOctets();
-        }
+		public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
-        public int Version
-		{
-			get { return tbsCertList.Version; }
-		}
+        public DerBitString Signature => m_signatureValue;
 
-		public X509Name Issuer
-		{
-			get { return tbsCertList.Issuer; }
-		}
+        public byte[] GetSignatureOctets() => m_signatureValue.GetOctets();
 
-		public Time ThisUpdate
-		{
-			get { return tbsCertList.ThisUpdate; }
-		}
+        public int Version => m_tbsCertList.Version;
 
-		public Time NextUpdate
-		{
-			get { return tbsCertList.NextUpdate; }
-		}
+		public X509Name Issuer => m_tbsCertList.Issuer;
 
-		public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(tbsCertList, sigAlgID, sig);
-        }
+		public Time ThisUpdate => m_tbsCertList.ThisUpdate;
+
+		public Time NextUpdate => m_tbsCertList.NextUpdate;
+
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_tbsCertList, m_signatureAlgorithm, m_signatureValue);
     }
 }

@@ -29,8 +29,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1TaggedObject converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is Asn1TaggedObject converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -73,6 +72,20 @@ namespace Org.BouncyCastle.Asn1
         {
             return Asn1Utilities.GetExplicitBaseTagged(CheckInstance(taggedObject, declaredExplicit), tagClass, tagNo);
         }
+
+        public static Asn1TaggedObject GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1TaggedObject existing)
+                return existing;
+
+            return null;
+        }
+
+        public static Asn1TaggedObject GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            CheckInstance(taggedObject, declaredExplicit).GetExplicitBaseTagged();
 
         private static Asn1TaggedObject CheckInstance(object obj)
         {

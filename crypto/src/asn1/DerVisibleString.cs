@@ -38,8 +38,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerVisibleString converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is DerVisibleString converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -67,6 +66,22 @@ namespace Org.BouncyCastle.Asn1
         public static DerVisibleString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerVisibleString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+        }
+
+        public static DerVisibleString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerVisibleString existing)
+                return existing;
+
+            return null;
+        }
+
+        public static DerVisibleString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerVisibleString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
         private readonly byte[] m_contents;

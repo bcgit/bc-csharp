@@ -1,95 +1,69 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <summary>
-	/// Summary description for OtherHashAlgAndValue.
-	/// </summary>
-	/// <remarks>
-	/// <code>
-	/// OtherHashAlgAndValue ::= SEQUENCE {
-	///		hashAlgorithm	AlgorithmIdentifier,
-	/// 	hashValue		OtherHashValue
-	/// }
-	/// 
-	/// OtherHashValue ::= OCTET STRING
-	/// </code>
-	/// </remarks>
-	public class OtherHashAlgAndValue
+    /// <summary>
+    /// Summary description for OtherHashAlgAndValue.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// OtherHashAlgAndValue ::= SEQUENCE {
+    ///		hashAlgorithm	AlgorithmIdentifier,
+    /// 	hashValue		OtherHashValue
+    /// }
+    /// 
+    /// OtherHashValue ::= OCTET STRING
+    /// </code>
+    /// </remarks>
+    public class OtherHashAlgAndValue
 		: Asn1Encodable
 	{
-		private readonly AlgorithmIdentifier	hashAlgorithm;
-		private readonly Asn1OctetString		hashValue;
+        public static OtherHashAlgAndValue GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OtherHashAlgAndValue otherHashAlgAndValue)
+                return otherHashAlgAndValue;
+            return new OtherHashAlgAndValue(Asn1Sequence.GetInstance(obj));
+        }
 
-		public static OtherHashAlgAndValue GetInstance(
-			object obj)
+        public static OtherHashAlgAndValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherHashAlgAndValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static OtherHashAlgAndValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new OtherHashAlgAndValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly AlgorithmIdentifier m_hashAlgorithm;
+        private readonly Asn1OctetString m_hashValue;
+
+        private OtherHashAlgAndValue(Asn1Sequence seq)
 		{
-			if (obj == null || obj is OtherHashAlgAndValue)
-				return (OtherHashAlgAndValue) obj;
+			int count = seq.Count;
+			if (count != 2)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (obj is Asn1Sequence)
-				return new OtherHashAlgAndValue((Asn1Sequence) obj);
-
-			throw new ArgumentException(
-				"Unknown object in 'OtherHashAlgAndValue' factory: "
-                    + Platform.GetTypeName(obj),
-				"obj");
+			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
+			m_hashValue = Asn1OctetString.GetInstance(seq[1]);
 		}
 
-		private OtherHashAlgAndValue(
-			Asn1Sequence seq)
+		public OtherHashAlgAndValue(AlgorithmIdentifier	hashAlgorithm, byte[] hashValue)
 		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count != 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
-
-			this.hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0].ToAsn1Object());
-			this.hashValue = (Asn1OctetString) seq[1].ToAsn1Object();
+			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+			m_hashValue = DerOctetString.FromContents(hashValue);
 		}
 
-		public OtherHashAlgAndValue(
-			AlgorithmIdentifier	hashAlgorithm,
-			byte[]				hashValue)
-		{
-			if (hashAlgorithm == null)
-				throw new ArgumentNullException("hashAlgorithm");
-			if (hashValue == null)
-				throw new ArgumentNullException("hashValue");
-
-			this.hashAlgorithm = hashAlgorithm;
-			this.hashValue = new DerOctetString(hashValue);
+        public OtherHashAlgAndValue(AlgorithmIdentifier hashAlgorithm, Asn1OctetString hashValue)
+        {
+			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+            m_hashValue = hashValue ?? throw new ArgumentNullException(nameof(hashValue));
 		}
 
-		public OtherHashAlgAndValue(
-			AlgorithmIdentifier	hashAlgorithm,
-			Asn1OctetString		hashValue)
-		{
-			if (hashAlgorithm == null)
-				throw new ArgumentNullException("hashAlgorithm");
-			if (hashValue == null)
-				throw new ArgumentNullException("hashValue");
+		public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
-			this.hashAlgorithm = hashAlgorithm;
-			this.hashValue = hashValue;
-		}
+		public byte[] GetHashValue() => m_hashValue.GetOctets();
 
-		public AlgorithmIdentifier HashAlgorithm
-		{
-			get { return hashAlgorithm; }
-		}
-
-		public byte[] GetHashValue()
-		{
-			return hashValue.GetOctets();
-		}
-
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(hashAlgorithm, hashValue);
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_hashAlgorithm, m_hashValue);
 	}
 }

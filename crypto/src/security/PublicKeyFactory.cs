@@ -102,8 +102,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
             {
-                ElGamalParameter para = new ElGamalParameter(
-                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+                ElGamalParameter para = ElGamalParameter.GetInstance(algID.Parameters);
                 DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
 
                 return new ElGamalPublicKeyParameters(
@@ -136,7 +135,7 @@ namespace Org.BouncyCastle.Security
                 }
                 else
                 {
-                    x9 = new X9ECParameters((Asn1Sequence)para.Parameters);
+                    x9 = X9ECParameters.GetInstance(para.Parameters);
                 }
 
                 Asn1OctetString key = new DerOctetString(keyInfo.PublicKey.GetBytes());
@@ -317,7 +316,7 @@ namespace Org.BouncyCastle.Security
         private static DHPublicKeyParameters ReadPkcsDHParam(DerObjectIdentifier algOid,
             BigInteger y, Asn1Sequence seq)
         {
-            DHParameter para = new DHParameter(seq);
+            DHParameter para = DHParameter.GetInstance(seq);
 
             BigInteger lVal = para.L;
             int l = lVal == null ? 0 : lVal.IntValue;

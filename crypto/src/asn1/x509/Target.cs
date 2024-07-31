@@ -4,7 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	 * Target structure used in target information extension for attribute
 	 * certificates from RFC 3281.
 	 * 
@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.X509
 	 * The targetCert field is currently not supported and must not be used
 	 * according to RFC 3281.</p>
 	 */
-	public class Target
+    public class Target
 		: Asn1Encodable, IAsn1Choice
 	{
 		public enum Choice
@@ -28,9 +28,6 @@ namespace Org.BouncyCastle.Asn1.X509
 			Name = 0,
 			Group = 1
 		};
-
-		private readonly GeneralName targetName;
-		private readonly GeneralName targetGroup;
 
         /**
 		* Creates an instance of a Target from the given object.
@@ -53,21 +50,29 @@ namespace Org.BouncyCastle.Asn1.X509
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
+		public static Target GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+			Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static Target GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        private readonly GeneralName targetName;
+        private readonly GeneralName targetGroup;
+
         /**
 		 * Constructor from Asn1TaggedObject.
 		 * 
 		 * @param tagObj The tagged object.
 		 * @throws ArgumentException if the encoding is wrong.
 		 */
-        private Target(
-			Asn1TaggedObject tagObj)
-		{
-			switch ((Choice) tagObj.TagNo)
+        private Target(Asn1TaggedObject tagObj)
+        {
+            switch (tagObj.TagNo)
 			{
-				case Choice.Name:	// GeneralName is already a choice so explicit
+				case (int)Choice.Name:	// GeneralName is already a choice so explicit
 					targetName = GeneralName.GetInstance(tagObj, true);
 					break;
-				case Choice.Group:
+				case (int)Choice.Group:
 					targetGroup = GeneralName.GetInstance(tagObj, true);
 					break;
 				default:

@@ -16,6 +16,12 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new EncryptedKey(EncryptedValue.GetInstance(obj));
         }
 
+        public static EncryptedKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static EncryptedKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
         private readonly EnvelopedData m_envelopedData;
         private readonly EncryptedValue m_encryptedValue;
 

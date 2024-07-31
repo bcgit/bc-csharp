@@ -20,32 +20,28 @@ namespace Org.BouncyCastle.OpenSsl
             Enums.GetArbitraryValue<PemMode>().ToString();
 		}
 
-		private static void ParseDekAlgName(
-			string			dekAlgName,
-			out PemBaseAlg	baseAlg,
-			out PemMode		mode)
-		{
-			try
-			{
-				mode = PemMode.ECB;
-
-				if (dekAlgName == "DES-EDE" || dekAlgName == "DES-EDE3")
+        private static void ParseDekAlgName(string dekAlgName, out PemBaseAlg baseAlg, out PemMode mode)
+        {
+            if (dekAlgName == "DES-EDE" || dekAlgName == "DES-EDE3")
+            {
+				if (Enums.TryGetEnumValue<PemBaseAlg>(dekAlgName, out baseAlg))
 				{
-					baseAlg = Enums.GetEnumValue<PemBaseAlg>(dekAlgName);
-					return;
-				}
-
-				int pos = dekAlgName.LastIndexOf('-');
-				if (pos >= 0)
-				{
-					baseAlg = Enums.GetEnumValue<PemBaseAlg>(dekAlgName.Substring(0, pos));
-                    mode = Enums.GetEnumValue<PemMode>(dekAlgName.Substring(pos + 1));
+                    mode = PemMode.ECB;
                     return;
-				}
-			}
-			catch (ArgumentException)
+                }
+            }
+			else
 			{
-			}
+                int pos = dekAlgName.LastIndexOf('-');
+                if (pos >= 0)
+                {
+                    if (Enums.TryGetEnumValue<PemBaseAlg>(dekAlgName.Substring(0, pos), out baseAlg) &&
+						Enums.TryGetEnumValue<PemMode>(dekAlgName.Substring(pos + 1), out mode))
+					{
+						return;
+					}
+                }
+            }
 
 			throw new EncryptionException("Unknown DEK algorithm: " + dekAlgName);
 		}
