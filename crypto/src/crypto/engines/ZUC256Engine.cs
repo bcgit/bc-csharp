@@ -19,11 +19,11 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class ZUC128Engine : IStreamCipher
+    public class ZUC256Engine : IStreamCipher
     {
-        public string AlgorithmName => "ZUC128";
-        public int IVSize => 16;
-        public int KeySize => 16;
+        public string AlgorithmName => "ZUC256";
+        public int IVSize => 25;
+        public int KeySize => 32;
 
         internal uint[] LFSR = new uint[16];
         internal uint R1;
@@ -74,6 +74,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x64,0xbe,0x85,0x9b,0x2f,0x59,0x8a,0xd7,0xb0,0x25,0xac,0xaf,0x12,0x03,0xe2,0xf2,
         };
 
+        private byte[][] ZUC256_D = {
+            new byte[]{ 0x22,0x2F,0x24,0x2A,0x6D,0x40,0x40,0x40,
+             0x40,0x40,0x40,0x40,0x40,0x52,0x10,0x30},
+            new byte[]{0x22,0x2F,0x25,0x2A,0x6D,0x40,0x40,0x40,
+             0x40,0x40,0x40,0x40,0x40,0x52,0x10,0x30 },
+            new byte[]{0x23,0x2F,0x24,0x2A,0x6D,0x40,0x40,0x40,
+             0x40,0x40,0x40,0x40,0x40,0x52,0x10,0x30 },
+            new byte[]{0x23,0x2F,0x25,0x2A,0x6D,0x40,0x40,0x40,
+             0x40,0x40,0x40,0x40,0x40,0x52,0x10,0x30 },
+        };
+
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             ParametersWithIV ivParams = parameters as ParametersWithIV;
@@ -81,8 +92,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException(AlgorithmName + " Init requires an IV", "parameters");
 
             byte[] iv = ivParams.GetIV();
-            if (iv == null || iv.Length != IVSize)
-                throw new ArgumentException(AlgorithmName + " requires exactly " + IVSize + " bytes of IV");
+            // 兼容GmSSL的iv
+            if (iv == null || (iv.Length != 23 && iv.Length != 25))
+                throw new ArgumentException(AlgorithmName + " requires exactly 23 or 25 bytes of IV");
 
             ICipherParameters keyParam = ivParams.Parameters;
             byte[] key = ((KeyParameter)keyParam).GetKey();
@@ -95,20 +107,68 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 throw new ArgumentException(AlgorithmName + " Init parameters must contain a KeyParameter (or null for re-init)");
             }
-            SetKey(key, iv);
+            SetKey(key, iv, 0);
         }
 
-        private void SetKey(byte[] key, byte[] iv)
+        private void SetKey(byte[] K, byte[] IV, int macbits)
         {
             uint r1 = 0, r2 = 0;
-            uint x0 = 0, x1 = 0, x2 = 0, x3 = 0;
+            uint x0 = 0, x1 = 0, x2 = 0;
             uint w = 0, u = 0, v = 0;
-            int i;
-            for (i = 0; i < 16; i++)
+			byte[] D;
+			int i;
+
+			byte IV17 = 0;
+			byte IV18 = 0;
+			byte IV19 = 0;
+			byte IV20 = 0;
+			byte IV21 = 0;
+			byte IV22 = 0;
+			byte IV23 = 0;
+            byte IV24 = 0;
+
+            if (IV.Length == 23)
             {
-                LFSR[i] = MAKEU31(key[i], KD[i], iv[i]);
+				IV17 = (byte)(IV[17] >> 2);
+				IV18 = (byte)(((IV[17] & 0x3) << 4) | (IV[18] >> 4));
+				IV19 = (byte)(((IV[18] & 0xf) << 2) | (IV[19] >> 6));
+				IV20 = (byte)(IV[19] & 0x3f);
+				IV21 = (byte)(IV[20] >> 2);
+				IV22 = (byte)(((IV[20] & 0x3) << 4) | (IV[21] >> 4));
+				IV23 = (byte)(((IV[21] & 0xf) << 2) | (IV[22] >> 6));
+				IV24 = (byte)(IV[22] & 0x3f);
             }
-            r1 = 0;
+            else
+            {
+				IV17 = IV[17];
+				IV18 = IV[18];
+				IV19 = IV[19];
+				IV20 = IV[20];
+				IV21 = IV[21];
+				IV22 = IV[22];
+				IV23 = IV[23];
+                IV24 = IV[24];
+			}
+
+			D = macbits / 32 < 3 ? ZUC256_D[macbits / 32] : ZUC256_D[3];
+			LFSR[0] = ZUC256_MAKEU31(K[0], D[0], K[21], K[16]);
+			LFSR[1] = ZUC256_MAKEU31(K[1], D[1], K[22], K[17]);
+			LFSR[2] = ZUC256_MAKEU31(K[2], D[2], K[23], K[18]);
+			LFSR[3] = ZUC256_MAKEU31(K[3], D[3], K[24], K[19]);
+			LFSR[4] = ZUC256_MAKEU31(K[4], D[4], K[25], K[20]);
+			LFSR[5] = ZUC256_MAKEU31(IV[0], (uint)(D[5] | IV17), K[5], K[26]);
+			LFSR[6] = ZUC256_MAKEU31(IV[1], (uint)(D[6] | IV18), K[6], K[27]);
+			LFSR[7] = ZUC256_MAKEU31(IV[10], (uint)(D[7] | IV19), K[7], IV[2]);
+			LFSR[8] = ZUC256_MAKEU31(K[8], (uint)(D[8] | IV20), IV[3], IV[11]);
+			LFSR[9] = ZUC256_MAKEU31(K[9], (uint)(D[9] | IV21), IV[12], IV[4]);
+			LFSR[10] = ZUC256_MAKEU31(IV[5], (uint)(D[10] | IV22), K[10], K[28]);
+			LFSR[11] = ZUC256_MAKEU31(K[11], (uint)(D[11] | IV23), IV[6], IV[13]);
+			LFSR[12] = ZUC256_MAKEU31(K[12], (uint)(D[12] | IV24), IV[7], IV[14]);
+			LFSR[13] = ZUC256_MAKEU31(K[13], D[13], IV[15], IV[8]);
+			LFSR[14] = ZUC256_MAKEU31(K[14], (uint)(D[14] | (K[31] >> 4)), IV[16], IV[9]);
+			LFSR[15] = ZUC256_MAKEU31(K[15], (uint)(D[15] | (K[31] & 0x0F)), K[30], K[29]);
+
+			r1 = 0;
             r2 = 0;
             for (i = 0; i < 32; i++)
             {
@@ -192,6 +252,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             GenerateKeyStream((uint)count);
             int grou_count = count / 4;
             int i = 0;
+
             for (i = 0; i < grou_count; i++)
             {
                 PUTU32(ref block, keyStream[i]);
@@ -393,6 +454,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             uint t = (x0 ^ r1) + r2;
             F_(ref r1, ref r2, ref u, ref v, x1, x2);
             return t;
-        }
-    }
+		}
+
+		private uint ZUC256_MAKEU31(uint a, uint b, uint c, uint d)
+		{
+			return (a << 23) | (b << 16) | (c << 8) | d;
+		}
+	}
 }
