@@ -763,37 +763,53 @@ namespace Org.BouncyCastle.Utilities
 
         public static void Fill(byte[] buf, byte b)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(buf, b);
+#else
             int i = buf.Length;
             while (i > 0)
             {
                 buf[--i] = b;
             }
+#endif
         }
 
         [CLSCompliant(false)]
         public static void Fill(ulong[] buf, ulong b)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(buf, b);
+#else
             int i = buf.Length;
             while (i > 0)
             {
                 buf[--i] = b;
             }
+#endif
         }
 
         public static void Fill(byte[] buf, int from, int to, byte b)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(buf, b, from, count: to - from);
+#else
             for (int i = from; i < to; ++i)
             {
                 buf[i] = b;
             }
+#endif
         }
 
         public static void Fill<T>(T[] ts, T t)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(ts, t);
+#else
             for (int i = 0; i < ts.Length; ++i)
             {
                 ts[i] = t;
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
