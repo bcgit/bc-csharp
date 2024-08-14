@@ -330,7 +330,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private short[] Encode(byte[] k)
         {
             int l, byte_index = 0;
-            byte mask = 1;
+            int bit = 0;
             short[] K = new short[mbar * nbar];
             int temp;
             // 1. for i = 0; i < mbar; i += 1
@@ -343,18 +343,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                     temp = 0;
                     for (l = 0; l < B; l++)
                     {
-                        //mask
-                        if ((k[byte_index] & mask) == mask)
-                        {
-                            temp += (1 << l);
-                        }
+                        temp += ((k[byte_index] >> bit) & 1) << l;
 
-                        mask <<= 1;
-                        if (mask == 0)
-                        {
-                            mask = 1;
-                            byte_index++;
-                        }
+                        ++bit;
+                        byte_index += bit >> 3;
+                        bit &= 7;
                     }
 
                     // 4. K[i][j] = ec(tmp) = tmp * q/2^B
