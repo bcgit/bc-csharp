@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Bcpg
         ModificationDetectionCode = 19,		        // Reserved (formerly Modification Detection Code Packet)
         ReservedAeadEncryptedData = 20,             // Reserved (defined as AEAD Encrypted Data Packet in retired draft [draft-koch-openpgp-rfc4880bis])
 
-        Padding = 21,                               // Padding Packet [https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#padding-packet]
+        Padding = 21,                               // Padding Packet (https://www.rfc-editor.org/rfc/rfc9580#padding-packet)
 
         Experimental1 = 60,							// Private or Experimental Values
         Experimental2 = 61,

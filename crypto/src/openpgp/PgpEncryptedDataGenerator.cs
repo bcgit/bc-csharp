@@ -655,7 +655,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             if (pkeskVersion == PublicKeyEncSessionPacket.Version6
                 && (key.Algorithm == PublicKeyAlgorithmTag.ElGamalEncrypt || key.Algorithm == PublicKeyAlgorithmTag.ElGamalGeneral))
             {
-                throw new PgpException("cannot generate ElGamal v6 PKESK (see https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-fo)");
+                throw new PgpException("cannot generate ElGamal v6 PKESK (see https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-fo)");
             }
 
             methods.Add(new PubMethod(key, sessionKeyObfuscation, pkeskVersion));

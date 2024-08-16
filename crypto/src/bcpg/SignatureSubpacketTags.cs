@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Bcpg
         SignatureTarget = 31,                   // signature target
         EmbeddedSignature = 32,					// embedded signature
         IssuerFingerprint = 33,                 // issuer key fingerprint
-        //PreferredAeadAlgorithms = 34,         // RESERVED since crypto-refresh-05
+        //PreferredAeadAlgorithms = 34,         // RESERVED since RFC 9580
         IntendedRecipientFingerprint = 35,      // intended recipient fingerprint
         AttestedCertifications = 37,            // attested certifications (RESERVED)
         KeyBlock = 38,                          // Key Block (RESERVED)

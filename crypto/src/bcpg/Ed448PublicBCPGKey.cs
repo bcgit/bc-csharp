@@ -3,7 +3,7 @@
     public sealed class Ed448PublicBcpgKey
         : OctetArrayBcpgKey
     {
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-part-for-ed4
+        // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-part-for-ed4
         public const int length = 57;
 
         public Ed448PublicBcpgKey(BcpgInputStream bcpgIn)

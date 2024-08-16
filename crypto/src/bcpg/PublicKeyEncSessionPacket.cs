@@ -22,13 +22,13 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>
         /// Version 3 PKESK packet.
         /// </summary>
-        /// <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-3-public-key-encryp"/>
+        /// <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-version-3-public-key-encryp"/>
         public const int Version3 = 3;
 
         /// <summary>
         /// Version 6 PKESK packet.
         /// </summary>
-		/// <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-6-public-key-encryp"/>
+		/// <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-version-6-public-key-encryp"/>
         public const int Version6 = 6;
 
         internal PublicKeyEncSessionPacket(
@@ -103,8 +103,8 @@ namespace Org.BouncyCastle.Bcpg
                     break;
                 case PublicKeyAlgorithmTag.X25519:
                 case PublicKeyAlgorithmTag.X448:
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-x
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-x
 
                     // 32 (for X25519) or 56 (for X448) octets representing an ephemeral public key.
                     int keylen = algorithm == PublicKeyAlgorithmTag.X25519 ? 32 : 56;

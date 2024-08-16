@@ -225,7 +225,7 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <summary>
         /// Parameters for Argon2 S2K
-        /// <see href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#s2k-argon2">Sect. 3.7.1.4 of crypto-refresh</see>see>
+        /// <see href="https://www.rfc-editor.org/rfc/rfc9580#s2k-argon2">Sect. 3.7.1.4 of RFC 9580</see>
         /// </summary>
         public class Argon2Parameters
         {
@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.Bcpg
 
                 // log_2(p) = log_e(p) / log_e(2)
                 double log2_p = System.Math.Log(parallelism) / System.Math.Log(2);
-                // see https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-argon2
+                // see https://www.rfc-editor.org/rfc/rfc9580#name-argon2
                 if (memSizeExp < (3 + System.Math.Ceiling(log2_p)) || memSizeExp > 31)
                 {
                     throw new ArgumentException("Memory size exponent MUST be between 3+ceil(log_2(parallelism)) and 31");

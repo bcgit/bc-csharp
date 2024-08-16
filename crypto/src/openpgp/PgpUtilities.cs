@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>
         /// Returns the V6 signature salt size for a hash algorithm.
-        /// https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-hash-algorithms
+        /// https://www.rfc-editor.org/rfc/rfc9580#name-hash-algorithms
         /// </summary>
         public static int GetSaltSize(HashAlgorithmTag hashAlgorithm)
         {

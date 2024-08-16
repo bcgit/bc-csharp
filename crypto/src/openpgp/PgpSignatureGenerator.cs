@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Sig;
@@ -52,14 +53,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Initialise the generator for signing.</summary>
         public void InitSign(int sigType, PgpPrivateKey privKey, SecureRandom random)
 		{
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-signature-packet-type-id-2
+            // https://www.rfc-editor.org/rfc/rfc9580#name-signature-packet-type-id-2
             // An implementation MUST generate a version 6 signature when signing with a version 6 key.
-			// An implementation MUST generate a version 4 signature when signing with a version 4 key. 
+            // An implementation MUST generate a version 4 signature when signing with a version 4 key. 
             this.version = privKey.Version;
 			this.privKey = privKey;
 			this.signatureType = sigType;
 
-			AsymmetricKeyParameter key = privKey.Key;
+            // https://www.rfc-editor.org/rfc/rfc9580#name-hash-algorithms
+            // avoid V6 signatures with weak hash algorithms
+            if (this.version > SignaturePacket.Version4 && (hashAlgorithm == HashAlgorithmTag.MD5 || hashAlgorithm == HashAlgorithmTag.Sha1 || hashAlgorithm == HashAlgorithmTag.RipeMD160))
+			{
+				throw new PgpException("avoid V6 signatures with weak hash algorithms");
+			}
+
+            AsymmetricKeyParameter key = privKey.Key;
 
             this.sig = PgpUtilities.CreateSigner(keyAlgorithm, hashAlgorithm, key);
 
@@ -216,7 +224,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			OnePassSignaturePacket opsPkt;
 
             // the versions of the Signature and the One-Pass Signature must be aligned as specified in
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#signed-message-versions
+            // https://www.rfc-editor.org/rfc/rfc9580#signed-message-versions
             if (version == SignaturePacket.Version6)
 			{
 				opsPkt = new OnePassSignaturePacket(
@@ -242,8 +250,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				hPkts = InsertSubpacket(hPkts, new SignatureCreationTime(false, DateTime.UtcNow));
 			}
 
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-issuer-key-id
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#issuer-fingerprint-subpacket
+            // https://www.rfc-editor.org/rfc/rfc9580#name-issuer-key-id
+            // https://www.rfc-editor.org/rfc/rfc9580#issuer-fingerprint-subpacket
             bool containsIssuerKeyId = IsPacketPresent(hashed, SignatureSubpacketTag.IssuerKeyId) || IsPacketPresent(unhashed, SignatureSubpacketTag.IssuerKeyId);
             bool containsIssuerKeyFpr = IsPacketPresent(hashed, SignatureSubpacketTag.IssuerFingerprint) || IsPacketPresent(unhashed, SignatureSubpacketTag.IssuerFingerprint);
             switch (version)

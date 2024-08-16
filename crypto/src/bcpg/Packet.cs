@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Bcpg
         ///    * Packets with tags less or equal to 39 are critical.
         ///    * Tags 40 to 59 are reserved for unassigned, non-critical packets.
         ///    * Tags 60 to 63 are non-critical private or experimental packets.
-        /// <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-packet-criticality"/>
+        /// <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-packet-criticality"/>
         /// </summary>
         public bool IsCritical => (int)Tag <= 39;
     }

@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             switch (keyData.Version)
             {
                 case SymmetricKeyEncSessionPacket.Version4:
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-4-symmetric-key-enc
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-version-4-symmetric-key-enc
                     // A version 4 SKESK packet precedes a version 1 SEIPD packet. In historic data, it is sometimes found
                     // preceding a deprecated SED packet. A v4 SKESK packet MUST NOT precede a v2 SEIPD packet.
                     if (encData is SymmetricEncDataPacket)
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     break;
 
                 case SymmetricKeyEncSessionPacket.Version6:
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-6-symmetric-key-enc
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-version-6-symmetric-key-enc
                     // A version 6 SKESK packet precedes a version 2 SEIPD packet. A v6 SKESK packet MUST NOT precede a v1 SEIPD
                     // packet or a deprecated Symmetrically Encrypted Data.
                     if (encData is SymmetricEncDataPacket)

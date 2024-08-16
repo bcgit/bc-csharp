@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             switch (keyData.Version)
             {
                 case PublicKeyEncSessionPacket.Version3:
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-3-public-key-encryp
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-version-3-public-key-encryp
                     // A version 3 PKESK packet precedes a version 1 SEIPD packet. In historic data, it is sometimes
                     // found preceding a deprecated SED packet.
                     // A V3 PKESK packet MUST NOT precede a V2 SEIPD packet.
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     break;
 
                 case PublicKeyEncSessionPacket.Version6:
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-6-public-key-encryp
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-version-6-public-key-encryp
                     //A version 6 PKESK packet precedes a version 2 SEIPD packet.
                     //A V6 PKESK packet MUST NOT precede a V1 SEIPD packet or a deprecated SED packet.
                     if (encData is SymmetricEncDataPacket)
@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             if (keyData.Version == PublicKeyEncSessionPacket.Version3)
             {
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-
+                // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-
                 // In V3 PKESK, the symmetric algorithm Id
                 //     * with X25519 and X448 is not encrypted, it's prepended in plaintext
                 //       to the encrypted session key.
@@ -348,10 +348,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             if (keyData.Algorithm == PublicKeyAlgorithmTag.X25519 || keyData.Algorithm == PublicKeyAlgorithmTag.X448)
             {
-                // See sect. 5.1.6. and 5.1.7 of crypto-refresh for the description of
+                // See sect. 5.1.6. and 5.1.7 of RFC 9580 for the description of
                 // the key derivation algorithm for X25519 and X448 
-                //     https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-
-                //     https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-x
+                //     https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-
+                //     https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-x
                 byte[] eph = secKeyData[0];
                 byte[] esk = secKeyData[1];
 

@@ -17,17 +17,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     public class PgpCryptoRefreshTest
         : SimpleTest
     {
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-key
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-4-ed25519leg
         private readonly byte[] v4Ed25519LegacyPubkeySample = Base64.Decode(
             "xjMEU/NfCxYJKwYBBAHaRw8BAQdAPwmJlL3ZFu1AUxl5NOSofIBzOhKA1i+AEJku" +
             "Q+47JAY=");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-sig
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-4-ed25519lega
         private readonly byte[] v4Ed25519LegacySignatureSample = Base64.Decode(
             "iF4EABYIAAYFAlX5X5UACgkQjP3hIZeWWpr2IgD/VvkMypjiECY3vZg/2xbBMd/S" +
             "ftgr9N3lYG4NdWrtM2YBANCcT6EVJ/A44PV/IgHYLy6iyQMyZfps60iehUuuYbQE");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-certificat
         private readonly byte[] v6Certificate = Base64.Decode(
             "xioGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laPCsQYf" +
             "GwoAAABCBYJjh3/jAwsJBwUVCg4IDAIWAAKbAwIeCSIhBssYbE8GCaaX5NUt+mxy" +
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "j+VjFM21J0hqWlEg+bdiojWnKfA5AQpWUWtnNwDEM0g12vYxoWM8Y81W+bHBw805" +
             "I8kWVkXU6vFOi+HWvv/ira7ofJu16NnoUkhclkUrk0mXubZvyl4GBg==");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-secret-key-transf
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-secret-key
         private readonly byte[] v6UnlockedSecretKey = Base64.Decode(
             "xUsGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laMAGXKB" +
             "exK+cH6NX1hs5hNhIB00TrJmosgv3mg1ditlsLfCsQYfGwoAAABCBYJjh3/jAwsJ" +
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "M0g12vYxoWM8Y81W+bHBw805I8kWVkXU6vFOi+HWvv/ira7ofJu16NnoUkhclkUr" +
             "k0mXubZvyl4GBg==");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-locked-v6-secret-key
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-locked-version-6-sec
         private readonly byte[] v6LockedSecretKey = Base64.Decode(
             "xYIGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laP9JgkC" +
             "FARdb9ccngltHraRe25uHuyuAQQVtKipJ0+r5jL4dacGWSAheCWPpITYiyfyIOPS" +
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "Nacp8DkBClZRa2c3AMQzSDXa9jGhYzxjzVb5scHDzTkjyRZWRdTq8U6L4da+/+Kt" +
             "ruh8m7Xo2ehSSFyWRSuTSZe5tm/KXgYG");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-cleartext-signed-mes
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-cleartext-signed-mes
         private readonly string v6SampleCleartextSignedMessage = "What we need from the grocery store:\r\n\r\n- tofu\r\n- vegetables\r\n- noodles\r\n";
         private readonly byte[] v6SampleCleartextSignedMessageSignature = Base64.Decode(
             "wpgGARsKAAAAKQWCY5ijYyIhBssYbE8GCaaX5NUt+mxyKwwfHifBilZwj2Ul7Ce6" +
@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "/FvLFuGWMbKAdA+epq7V4HOtAPlBWmU8QOd6aud+aSunHQaaEJ+iTFjP2OMW0KBr" +
             "NK2ay45cX1IVAQ==");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-inline-signed-messag
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-inline-signed-messag
         private readonly byte[] v6SampleInlineSignedMessage = Base64.Decode(
             "xEYGAQobIHZJX1AhiJD39eLuPBgiUU9wUA9VHYblySHkBONKU/usyxhsTwYJppfk" +
             "1S36bHIrDB8eJ8GKVnCPZSXsJ7rZrMkBy0p1AAAAAABXaGF0IHdlIG5lZWQgZnJv" +
@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "FtCgazStmsuOXF9SFQE=");
 
         // Sample AEAD encryption and decryption - V6 SKESK + V2 SEIPD
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-eax-encryption-
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-aead-eax-encryption-
         // encrypts the cleartext string Hello, world! with the passphrase password, S2K type iterated+salted,
         // using AES-128 with AEAD-EAX encryption.
         private readonly byte[] v6skesk_aes128_eax = Base64.Decode(
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "pJ8EwuZ0F11KPSJu1q/LnKmsEiwUcOEcY9TAqyQcapOK1Iv5mlqZuQu6gyXeYQR1" +
             "QCWKt5Wala0FHdqW6xVDHf719eIlXKeCYVRuM5o=");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-ocb-encryption-
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-aead-ocb-encryption-
         // encrypts the cleartext string Hello, world! with the passphrase password, S2K type iterated+salted,
         // using AES-128 with AEAD-OCB encryption.
         private readonly byte[] v6skesk_aes128_ocb = Base64.Decode(
@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "WRDQns3WQf+f04VidYA1vEl1TOG/P/+n2tCjuBBPUTPPQqQQCoPu9MobSAGohGv0" +
             "K82nyM6dZeIS8wHLzZj9yt5pSod61CRzI/boVw==");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-aead-gcm-encryption-
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-aead-gcm-encryption-
         // encrypts the cleartext string Hello, world! with the passphrase password, S2K type iterated+salted,
         // using AES-128 with AEAD-GCM encryption.
         private readonly byte[] v6skesk_aes128_gcm = Base64.Decode(
@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "Ae0Pn/xvxtZbv9JNzQeQlm5tHoWjAFN4TLHYtqBpnvEhVaeyrWJYUxtXZR/Xd3kS" +
             "+pXjXZtAIW9ppMJI2yj/QzHxYykHOZ5v+Q==");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-messages-encrypted-u
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-messages-encrypted-u
         // V4 SKESK + V1 SEIPD using Argon2 (t=1, p=4, m=21) with AES-128/192/256,
         // cleartext string "Hello, world!", passphrase "password"
         private readonly byte[] v4skesk_argon2_aes128 = Base64.Decode(
@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "Zjd4SG7Tv4RJHeycolKmqSHDoK5XlOsA7vlw50nKuRjDyRfsPOFDfHz8hR/z7D1i" +
             "HST68tjRCRmwqeqVgusCmBlXrXzYTkPXGtmZl2+EYazSACQFVg==");
 
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-x25519-aead-ocb-encr
+        // https://www.rfc-editor.org/rfc/rfc9580#name-sample-x25519-aead-ocb-encr
         // encrypts the cleartext string "Hello, world!" for the sample certificate v6Certificate
         // V6 PKESK + V2 SEIPD X25519 AES-128 OCB
         private readonly byte[] v6pkesk_v2seipd_aes128_ocb = Base64.Decode(
@@ -390,7 +390,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void Version4Ed25519LegacyPubkeySampleTest()
         {
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-key
+            // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-4-ed25519leg
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v4Ed25519LegacyPubkeySample);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
@@ -406,7 +406,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public void Version4Ed25519LegacyCreateTest()
         {
             // create a v4 EdDsa_Legacy Pubkey with the same key material and creation datetime as the test vector
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-key
+            // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-4-ed25519leg
             // then check KeyId/Fingerprint
             var key = new Ed25519PublicKeyParameters(Hex.Decode("3f098994bdd916ed4053197934e4a87c80733a1280d62f8010992e43ee3b2406"));
             var pubKey = new PgpPublicKey(PublicKeyAlgorithmTag.EdDsa_Legacy, key, DateTime.Parse("2014-08-19 14:28:27Z"));
@@ -421,7 +421,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void Version4Ed25519LegacySignatureSampleTest()
         {
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v4-ed25519legacy-sig
+            // https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-4-ed25519lega
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v4Ed25519LegacyPubkeySample);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
@@ -446,7 +446,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public void Version6CertificateParsingTest()
         {
             /*
-             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
+             * https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-certificat
              * A Transferable Public Key consisting of:
              *     A v6 Ed25519 Public-Key packet
              *     A v6 direct key self-signature
@@ -504,7 +504,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             /* 
              * Create a v6 Ed25519 pubkey with the same key material and creation datetime as the test vector
-             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
+             * https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-certificat
              * then check the fingerprint and verify a signature
             */
             byte[] keyMaterial = Hex.Decode("f94da7bb48d60a61e567706a6587d0331999bb9d891a08242ead84543df895a3");
@@ -533,7 +533,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public void Version6UnlockedSecretKeyParsingTest()
         {
             /*
-             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-secret-key-transf
+             * https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-certificat
              * A Transferable Secret Key consisting of:
              *     A v6 Ed25519 Secret-Key packet
              *     A v6 direct key self-signature
@@ -612,8 +612,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             /* 
              * Create a v6 Ed25519 keypair with the same key material and creation datetime as the test vector
-             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-v6-certificate-trans
-             * then check the fingerprint and verify a signature
+             * https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-certificat
+             * then check the fingerprint and perform encode-decode, sign-verify, encrypt-decrypt roundtrips
              */
             byte[] keyMaterial = Hex.Decode("1972817b12be707e8d5f586ce61361201d344eb266a2c82fde6835762b65b0b7");
             Ed25519PrivateKeyParameters seckey = new Ed25519PrivateKeyParameters(keyMaterial);
@@ -718,13 +718,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 false,
                 subKey.PublicKey,
                 subKey.ExtractPrivateKey(emptyPassphrase));
+
+            PgpPublicKeyRing pubring = keyRingGen.GeneratePublicKeyRing();
+            PgpPublicKey[] keys = pubring.GetPublicKeys().ToArray();
+            IsEquals(keys[0].Version, PublicKeyPacket.Version6);
+            IsEquals(keys[0].Algorithm, PublicKeyAlgorithmTag.Ed25519);
+            IsTrue("wrong master key fingerprint", AreEqual(keys[0].GetFingerprint(), expectedFingerprint));
+            IsEquals(keys[1].Version, PublicKeyPacket.Version6);
+            IsEquals(keys[1].Algorithm, PublicKeyAlgorithmTag.X25519);
         }
 
         [Test]
         public void Version6Ed448KeyPairCreationTest()
         {
             /* 
-             * Create a v6 Ed448 keypair, then perform encode-decode and sign-verify roundtrips
+             * Create a v6 Ed448 keypair, then perform encode-decode, sign-verify, encrypt-decrypt roundtrips
              */
             SecureRandom rand = new SecureRandom();
             DateTime now = DateTime.UtcNow;
@@ -804,13 +812,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 false,
                 subKey.PublicKey,
                 subKey.ExtractPrivateKey(emptyPassphrase));
+
+            PgpPublicKeyRing pubring = keyRingGen.GeneratePublicKeyRing();
+            PgpPublicKey[] keys = pubring.GetPublicKeys().ToArray();
+            IsEquals(keys[0].Version, PublicKeyPacket.Version6);
+            IsEquals(keys[0].Algorithm, PublicKeyAlgorithmTag.Ed448);
+            IsTrue("wrong master key fingerprint", AreEqual(keys[0].GetFingerprint(), fpr));
+            IsEquals(keys[1].Version, PublicKeyPacket.Version6);
+            IsEquals(keys[1].Algorithm, PublicKeyAlgorithmTag.X448);
+
+            using (var ms = new MemoryStream())
+            {
+                using (var arms = new ArmoredOutputStream(ms))
+                {
+                    decodedsecring.Encode(arms);
+                }
+                string armored = Encoding.ASCII.GetString(ms.ToArray());
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                using (var arms = new ArmoredOutputStream(ms))
+                {
+                    pubring.Encode(arms);
+                }
+                string armored = Encoding.ASCII.GetString(ms.ToArray());
+            }
         }
 
         [Test]
         public void Version6LockedSecretKeyParsingTest()
         {
             /*
-             * https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-locked-v6-secret-key
+             * https://www.rfc-editor.org/rfc/rfc9580#name-sample-version-6-certificat
              * The same secret key as in Version6UnlockedSecretKeyParsingTest, but the secret key
              * material is locked with a passphrase using AEAD and Argon2.
              */
@@ -870,7 +904,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void Version6SampleCleartextSignedMessageVerifySignatureTest()
         {
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-cleartext-signed-mes
+            // https://www.rfc-editor.org/rfc/rfc9580#name-sample-cleartext-signed-mes
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v6Certificate);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
@@ -889,7 +923,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void Version6SampleInlineSignedMessageVerifySignatureTest()
         {
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-sample-inline-signed-messag
+            // https://www.rfc-editor.org/rfc/rfc9580#name-sample-inline-signed-messag
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(v6Certificate);
             PgpPublicKey pubKey = pubRing.GetPublicKey();
 
@@ -945,9 +979,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             // S2K type iterated+salted, using AES-128 with AEAD encryption.
             byte[][] messages = new byte[][]
             {
-                v6skesk_aes128_eax,   // from crypto-refresh A.9
-                v6skesk_aes128_ocb,   // from crypto-refresh A.10
-                v6skesk_aes128_gcm    // from crypto-refresh A.11
+                v6skesk_aes128_eax,   // from RFC 9580 A.9
+                v6skesk_aes128_ocb,   // from RFC 9580 A.10
+                v6skesk_aes128_gcm    // from RFC 9580 A.11
             };
 
             byte[] plaintext = Encoding.UTF8.GetBytes("Hello, world!");
@@ -1098,9 +1132,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             byte[][] messages = new byte[][]
             {
-                v4skesk_argon2_aes128,    // from crypto-refresh A.12.1
-                v4skesk_argon2_aes192,    // from crypto-refresh A.12.2
-                v4skesk_argon2_aes256,    // from crypto-refresh A.12.3
+                v4skesk_argon2_aes128,    // from RFC 9580 A.12.1
+                v4skesk_argon2_aes192,    // from RFC 9580 A.12.2
+                v4skesk_argon2_aes256,    // from RFC 9580 A.12.3
                 v6skesk_argon2_aes256_ocb // generated with gosop 2.0.0-alpha
             };
 
@@ -1201,7 +1235,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
              *  V6 PKESK + V2 SEIPD AEAD encrypted message that spans over 4 chunks
              *  (chunk size 512 octets)
              *  2000 octets of /dev/zero encrypted with sample V6 certificate from
-             *  crypto-refresh Appendix A.3 and AES-256 in OCB mode.
+             *  RFC 9580 Appendix A.3 and AES-256 in OCB mode.
              *  Generated with gosop 2.0.0-alpha
              *  Session key CFB73D46CF7C13B7535227BEDB5B2D8B4023C5B58289D19CF2C33B0DB388B0B6
              */

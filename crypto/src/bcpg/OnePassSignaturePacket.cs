@@ -29,9 +29,9 @@ namespace Org.BouncyCastle.Bcpg
 
             if (version == Version6 && salt.Length != expectedSaltSize)
             {
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-one-pass-signature-packet-t
+                // https://www.rfc-editor.org/rfc/rfc9580#name-one-pass-signature-packet-t
                 // The salt size MUST match the value defined for the hash algorithm as specified in Table 23
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#hash-algorithms-registry
+                // https://www.rfc-editor.org/rfc/rfc9580#hash-algorithms-registry
                 throw new IOException($"invalid salt size for v6 signature: expected {expectedSaltSize} got {salt.Length}");
             }
         }

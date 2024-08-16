@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     s2kUsage = SecretKeyPacket.UsageNone;
                 }
 
-                // RFC 4880 § 5.5.3 + "RFC 4880bis" § 5.5.3 + Crypto-refresh § 5.5.3. 
+                // RFC 4880 § 5.5.3 + "RFC 4880bis" § 5.5.3 + RFC 9580 § 5.5.3. 
                 // v6       keys with UsageNone:    No checksum
                 // v5 v6    keys with MalleableCFB: Not allowed
                 // v3 v4 v5 keys with UsageNone:    two-octet checksum
@@ -277,7 +277,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector unhashedPackets,
             SecureRandom rand)
         {
-            return CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, HashAlgorithmTag.Sha1, rand);
+            return CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets,
+                keyPair.PublicKey.Version > PublicKeyPacket.Version4 ? HashAlgorithmTag.Sha256 : HashAlgorithmTag.Sha1, rand);
         }
 
 

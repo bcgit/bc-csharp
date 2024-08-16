@@ -272,7 +272,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			PgpSignatureSubpacketVector	hashedPackets,
 			PgpSignatureSubpacketVector	unhashedPackets)
 		{
-            AddSubKey(keyPair, hashedPackets, unhashedPackets, HashAlgorithmTag.Sha1);
+            AddSubKey(keyPair, hashedPackets, unhashedPackets,
+                keyPair.PublicKey.Version > PublicKeyPacket.Version4 ? HashAlgorithmTag.Sha256 : HashAlgorithmTag.Sha1);
         }
 
         /// <summary>
@@ -397,7 +398,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 pgpSecretKey = enumerator.Current;
 
 				PgpPublicKey k = new PgpPublicKey(pgpSecretKey.PublicKey);
-				k.publicPk = new PublicSubkeyPacket(k.Algorithm, k.CreationTime, k.publicPk.Key);
+				k.publicPk = new PublicSubkeyPacket(k.Version, k.Algorithm, k.CreationTime, k.publicPk.Key);
 
 				pubKeys.Add(k);
 			}

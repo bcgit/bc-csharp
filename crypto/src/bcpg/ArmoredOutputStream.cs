@@ -263,7 +263,7 @@ namespace Org.BouncyCastle.Bcpg
         /// This header is deprecated and SHOULD NOT be emitted unless:
         ///    * The cleartext signed message contains a v4 signature made using a SHA2-based digest(SHA224, SHA256, SHA384, or SHA512), and
         ///    * The cleartext signed message might be verified by a legacy OpenPGP implementation that requires this header.
-        ///    <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-hash-armor-header"/>
+        ///    <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-hash-armor-header"/>
         /// </summary>
         /// <param name="hashAlgorithm"></param>
         /// <exception cref="IOException"></exception>
@@ -373,7 +373,7 @@ namespace Org.BouncyCastle.Bcpg
 
                 DoWrite(headerStart + type + headerTail + NewLine);
 
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-armor-header
+                // https://www.rfc-editor.org/rfc/rfc9580#name-version-armor-header
                 // To minimize metadata, implementations SHOULD NOT emit this key and its corresponding value except
                 // for debugging purposes with explicit user consent.
                 if (showVersion && m_headers.TryGetValue(HeaderVersion, out var versionHeaders))

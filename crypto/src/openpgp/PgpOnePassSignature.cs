@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public bool Verify(PgpSignature pgpSig, byte[] additionalMetadata)
         {
             // the versions of the Signature and the One-Pass Signature must be aligned as specified in
-            // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#signed-message-versions
+            // https://www.rfc-editor.org/rfc/rfc9580#signed-message-versions
             if (pgpSig.Version == SignaturePacket.Version6 && sigPack.Version != OnePassSignaturePacket.Version6)
             {
                 return false;

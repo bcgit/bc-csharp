@@ -3,7 +3,7 @@
     public sealed class X25519PublicBcpgKey
         : OctetArrayBcpgKey
     {
-        // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-part-for-x
+        // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-part-for-x
         public const int length = 32;
 
         public X25519PublicBcpgKey(BcpgInputStream bcpgIn)

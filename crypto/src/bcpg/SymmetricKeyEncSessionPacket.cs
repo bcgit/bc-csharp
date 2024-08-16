@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Bcpg
 
                 case Version5:
                 case Version6:
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-6-symmetric-key-enc
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-version-6-symmetric-key-enc
                     // SymmAlgo + AEADAlgo + S2KCount + S2K + IV
                     int next5Fields5Count = bcpgIn.ReadByte();
                     encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.ReadByte();

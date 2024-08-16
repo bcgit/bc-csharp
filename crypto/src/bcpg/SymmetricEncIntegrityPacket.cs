@@ -10,12 +10,12 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>
         /// Version 3 SEIPD packet.
         /// </summary>
-        /// <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-symmetrically-encrypted-int"/>
+        /// <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-symmetrically-encrypted-dat"/>
         public const int Version1 = 1;
         /// <summary>
         /// Version 2 SEIPD packet.
         /// </summary>
-		/// <seealso href="https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-symmetrically-encrypted-int"/>
+		/// <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-symmetrically-encrypted-dat"/>
         public const int Version2 = 2;
 
         private readonly int version;                               // V1, V2

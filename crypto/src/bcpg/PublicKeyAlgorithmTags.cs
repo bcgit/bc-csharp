@@ -21,11 +21,11 @@ namespace Org.BouncyCastle.Bcpg
         EdDsa = 22,             // EdDSA - (internet draft, but appearing in use)
         EdDsa_Legacy = 22,      // new name for old EdDSA tag.
 
-        // defined as Reserved by crypto-refresh draft
+        // defined as Reserved by RFC 9580
         AEDH = 23,
         AEDSA = 24,
 
-        // https://datatracker.ietf.org/doc/draft-ietf-openpgp-crypto-refresh/
+        // https://www.rfc-editor.org/rfc/rfc9580
         X25519 = 25,
         X448 = 26,
         Ed25519 = 27,

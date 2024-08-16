@@ -59,8 +59,8 @@ namespace Org.BouncyCastle.Bcpg
 
             else if (p is IssuerKeyId issuerKeyId && !keyIdAlreadySet)
             {
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-issuer-key-id
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#issuer-fingerprint-subpacket
+                // https://www.rfc-editor.org/rfc/rfc9580#name-issuer-key-id
+                // https://www.rfc-editor.org/rfc/rfc9580#issuer-fingerprint-subpacket
                 // V6 signatures MUST NOT include an IssuerKeyId subpacket and SHOULD include an IssuerFingerprint subpacket
                 if (version == Version6)
                 {
@@ -197,9 +197,9 @@ namespace Org.BouncyCastle.Bcpg
 
                 if (saltSize != PgpUtilities.GetSaltSize(hashAlgorithm))
                 {
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-version-4-and-6-signature-p
+                    // https://www.rfc-editor.org/rfc/rfc9580#name-versions-4-and-6-signature-
                     // The salt size MUST match the value defined for the hash algorithm as specified in Table 23
-                    // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#hash-algorithms-registry
+                    // https://www.rfc-editor.org/rfc/rfc9580#hash-algorithms-registry
 
                     throw new IOException($"invalid salt size for v6 signature: expected {PgpUtilities.GetSaltSize(hashAlgorithm)} got {saltSize}");
                 }
@@ -235,13 +235,13 @@ namespace Org.BouncyCastle.Bcpg
                 break;
 
             case PublicKeyAlgorithmTag.Ed25519:
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-ed2
+                // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-ed2
                 signature = null;
                 signatureEncoding = new byte[64];
                 bcpgIn.ReadFully(signatureEncoding);
                 break;
             case PublicKeyAlgorithmTag.Ed448:
-                // https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-13.html#name-algorithm-specific-fields-for-ed4
+                // https://www.rfc-editor.org/rfc/rfc9580#name-algorithm-specific-fields-for-ed4
                 signature = null;
                 signatureEncoding = new byte[114];
                 bcpgIn.ReadFully(signatureEncoding);
