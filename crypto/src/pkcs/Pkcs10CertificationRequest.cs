@@ -286,12 +286,41 @@ namespace Org.BouncyCastle.Pkcs
             Init(signatureFactory, subject, publicKey, attributes);
         }
 
+        /// <summary>
+        /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
+        /// </summary>
+        ///<param name="signatureFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
+        /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
+        /// <param name="pubInfo">SubjectPublicKeyInfo to be included in cert reqest.</param>
+        /// <param name="attributes">ASN1Set of Attributes.</param>
+        public Pkcs10CertificationRequest(
+            ISignatureFactory signatureFactory,
+            X509Name subject,
+            SubjectPublicKeyInfo pubInfo,
+            Asn1Set attributes)
+        {
+            if (signatureFactory == null)
+                throw new ArgumentNullException("signatureFactory");
+            if (subject == null)
+                throw new ArgumentNullException("subject");
+            if (pubInfo == null)
+                throw new ArgumentNullException("pubInfo");
+
+            Init(signatureFactory, subject, pubInfo, attributes);
+        }
+
         private void Init(ISignatureFactory signatureFactory, X509Name subject, AsymmetricKeyParameter publicKey,
             Asn1Set attributes)
         {
-            this.sigAlgId = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
-
             SubjectPublicKeyInfo pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
+
+            Init(signatureFactory, subject, pubInfo, attributes);
+        }
+
+        private void Init(ISignatureFactory signatureFactory, X509Name subject, SubjectPublicKeyInfo pubInfo,
+            Asn1Set attributes)
+        {
+            this.sigAlgId = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
 
             this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
 
