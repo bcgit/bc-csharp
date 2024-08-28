@@ -248,9 +248,9 @@ namespace Org.BouncyCastle.Pkcs
         /// </summary>
         ///<param name="signatureAlgorithm">Name of Sig Alg.</param>
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
-        /// <param name="publicKey">Public Key to be included in cert reqest.</param>
-        /// <param name="attributes">ASN1Set of Attributes.</param>
-        /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
+        /// <param name="publicKey">Public key to be included in cert request.</param>
+        /// <param name="attributes">Asn1Set of Attributes.</param>
+        /// <param name="signingKey">Matching private key for nominated (above) public key to be used to sign the request.</param>
         public Pkcs10CertificationRequest(
             string signatureAlgorithm,
             X509Name subject,
@@ -264,10 +264,28 @@ namespace Org.BouncyCastle.Pkcs
         /// <summary>
         /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
         /// </summary>
+        ///<param name="signatureAlgorithm">Name of Sig Alg.</param>
+        /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
+        /// <param name="pubInfo">SubjectPublicKeyInfo to be included in cert request.</param>
+        /// <param name="attributes">Asn1Set of Attributes.</param>
+        /// <param name="signingKey">Matching private key for nominated (above) public key to be used to sign the request.</param>
+        public Pkcs10CertificationRequest(
+            string signatureAlgorithm,
+            X509Name subject,
+            SubjectPublicKeyInfo pubInfo,
+            Asn1Set attributes,
+            AsymmetricKeyParameter signingKey)
+            : this(new Asn1SignatureFactory(signatureAlgorithm, signingKey), subject, pubInfo, attributes)
+        {
+        }
+
+        /// <summary>
+        /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
+        /// </summary>
         ///<param name="signatureFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
-        /// <param name="publicKey">Public Key to be included in cert reqest.</param>
-        /// <param name="attributes">ASN1Set of Attributes.</param>
+        /// <param name="publicKey">Public key to be included in cert request.</param>
+        /// <param name="attributes">Asn1Set of Attributes.</param>
         public Pkcs10CertificationRequest(
             ISignatureFactory signatureFactory,
             X509Name subject,
@@ -291,8 +309,8 @@ namespace Org.BouncyCastle.Pkcs
         /// </summary>
         ///<param name="signatureFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
-        /// <param name="pubInfo">SubjectPublicKeyInfo to be included in cert reqest.</param>
-        /// <param name="attributes">ASN1Set of Attributes.</param>
+        /// <param name="pubInfo">SubjectPublicKeyInfo to be included in cert request.</param>
+        /// <param name="attributes">Asn1Set of Attributes.</param>
         public Pkcs10CertificationRequest(
             ISignatureFactory signatureFactory,
             X509Name subject,
