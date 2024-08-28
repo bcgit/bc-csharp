@@ -133,5 +133,29 @@ namespace Org.BouncyCastle.Utilities.Test
             if (expectedValue != value)
                 throw new ArgumentException("bit value " + bitNo + " wrong");
         }
+
+        internal static Stream FindTestResource(string homeDir, string fileName)
+        {
+            string wrkDirName = Directory.GetCurrentDirectory();
+            string separator = Path.DirectorySeparatorChar.ToString();
+            DirectoryInfo wrkDir = new DirectoryInfo(wrkDirName);
+            DirectoryInfo dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, "bc-test-data"));
+
+            while (!dataDir.Exists && wrkDirName.Length > 1)
+            {
+                wrkDirName = wrkDirName.Substring(0, wrkDirName.LastIndexOf(separator));
+                wrkDir = new DirectoryInfo(wrkDirName);
+                dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, "bc-test-data"));
+            }
+
+            if (!dataDir.Exists)
+            {
+                throw new FileNotFoundException("Test data directory " + homeDir + " not found." + "Test data available from: https://github.com/bcgit/bc-test-data.git");
+
+            }
+
+            return new FileStream(Path.Combine(dataDir.FullName, homeDir + separator + fileName), FileMode.Open);
+
+        }
     }
 }

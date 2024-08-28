@@ -5,7 +5,7 @@ using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -36,8 +37,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<DerObjectIdentifier, SikeParameters> sikeParams = new Dictionary<DerObjectIdentifier, SikeParameters>();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        private readonly static Dictionary<KyberParameters, DerObjectIdentifier> kyberOids = new Dictionary<KyberParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, KyberParameters> kyberParams = new Dictionary<DerObjectIdentifier, KyberParameters>();
+        private readonly static Dictionary<MLKemParameters, DerObjectIdentifier> mlKemOids = new Dictionary<MLKemParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, MLKemParameters> mlKemParams = new Dictionary<DerObjectIdentifier, MLKemParameters>();
 
         private readonly static Dictionary<DilithiumParameters, DerObjectIdentifier> dilithiumOids = new Dictionary<DilithiumParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, DilithiumParameters> dilithiumParams = new Dictionary<DerObjectIdentifier, DilithiumParameters>();
@@ -177,13 +178,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sikeOids[SikeParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
-            kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
-            kyberOids[KyberParameters.kyber1024] = BCObjectIdentifiers.kyber1024;
+            mlKemOids[MLKemParameters.ML_KEM_512] = NistObjectIdentifiers.IdAlgMLKem512;
+            mlKemOids[MLKemParameters.ML_KEM_768] = NistObjectIdentifiers.IdAlgMLKem768;
+            mlKemOids[MLKemParameters.ML_KEM_1024] = NistObjectIdentifiers.IdAlgMLKem1024;
             
-            kyberParams[BCObjectIdentifiers.kyber512] = KyberParameters.kyber512;
-            kyberParams[BCObjectIdentifiers.kyber768] = KyberParameters.kyber768;
-            kyberParams[BCObjectIdentifiers.kyber1024] = KyberParameters.kyber1024;
+            mlKemParams[NistObjectIdentifiers.IdAlgMLKem512] = MLKemParameters.ML_KEM_512;
+            mlKemParams[NistObjectIdentifiers.IdAlgMLKem768] = MLKemParameters.ML_KEM_768;
+            mlKemParams[NistObjectIdentifiers.IdAlgMLKem1024] = MLKemParameters.ML_KEM_1024;
             
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
@@ -325,14 +326,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(saberParams, oid);
         }
 
-        internal static KyberParameters KyberParamsLookup(DerObjectIdentifier oid)
+        internal static MLKemParameters MLKemParamsLookup(DerObjectIdentifier oid)
         {
-            return CollectionUtilities.GetValueOrNull(kyberParams, oid);
+            return CollectionUtilities.GetValueOrNull(mlKemParams, oid);
         }
 
-        internal static DerObjectIdentifier KyberOidLookup(KyberParameters parameters)
+        internal static DerObjectIdentifier MLKemOidLookup(MLKemParameters parameters)
         {
-            return CollectionUtilities.GetValueOrNull(kyberOids, parameters);
+            return CollectionUtilities.GetValueOrNull(mlKemOids, parameters);
         }
 
         internal static FalconParameters FalconParamsLookup(DerObjectIdentifier oid)

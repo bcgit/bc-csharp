@@ -4,27 +4,40 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
-    public sealed class KyberKemGenerator
+    public sealed class MLKemGenerator
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
-        private SecureRandom m_random;
+        private readonly SecureRandom m_random;
 
-        public KyberKemGenerator(SecureRandom random)
+        public MLKemGenerator(SecureRandom random)
         {
             m_random = random;
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            KyberPublicKeyParameters key = (KyberPublicKeyParameters) recipientKey;
-            KyberEngine engine = key.Parameters.Engine;
+            MLKemPublicKeyParameters key = (MLKemPublicKeyParameters) recipientKey;
+            MLKemEngine engine = key.Parameters.Engine;
             engine.Init(m_random);
             byte[] cipherText = new byte[engine.CryptoCipherTextBytes];
             byte[] sessionKey = new byte[engine.CryptoBytes];
-            engine.KemEncrypt(cipherText, sessionKey, key.GetEncoded());
+            byte[] randBytes = new byte[32];
+            engine.RandomBytes(randBytes, randBytes.Length);
+            engine.KemEncrypt(cipherText, sessionKey, key.GetEncoded(), randBytes);
+            return new SecretWithEncapsulationImpl(sessionKey, cipherText);
+        }
+
+        public ISecretWithEncapsulation InternalGenerateEncapsulated(AsymmetricKeyParameter recipientKey, byte[] randBytes)
+        {
+            MLKemPublicKeyParameters key = (MLKemPublicKeyParameters)recipientKey;
+            MLKemEngine engine = key.Parameters.Engine;
+            engine.Init(m_random);
+            byte[] cipherText = new byte[engine.CryptoCipherTextBytes];
+            byte[] sessionKey = new byte[engine.CryptoBytes];
+            engine.KemEncryptInternal(cipherText, sessionKey, key.GetEncoded(), randBytes);
             return new SecretWithEncapsulationImpl(sessionKey, cipherText);
         }
 

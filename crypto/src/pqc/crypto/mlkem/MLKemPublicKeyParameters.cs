@@ -1,27 +1,27 @@
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
-    public sealed class KyberPublicKeyParameters
-        : KyberKeyParameters
+    public sealed class MLKemPublicKeyParameters
+        : MLKemKeyParameters
     {
         internal static byte[] GetEncoded(byte[] t, byte[] rho) => Arrays.Concatenate(t, rho);
 
         private readonly byte[] m_t;
         private readonly byte[] m_rho;
 
-        public KyberPublicKeyParameters(KyberParameters parameters, byte[] t, byte[] rho)
+        public MLKemPublicKeyParameters(MLKemParameters parameters, byte[] t, byte[] rho)
             : base(false, parameters)
         {
             m_t = Arrays.Clone(t);
             m_rho = Arrays.Clone(rho);
         }
 
-        public KyberPublicKeyParameters(KyberParameters parameters, byte[] encoding)
+        public MLKemPublicKeyParameters(MLKemParameters parameters, byte[] encoding)
             : base(false, parameters)
         {
-            m_t = Arrays.CopyOfRange(encoding, 0, encoding.Length - KyberEngine.SymBytes);
-            m_rho = Arrays.CopyOfRange(encoding, encoding.Length - KyberEngine.SymBytes, encoding.Length);
+            m_t = Arrays.CopyOfRange(encoding, 0, encoding.Length - MLKemEngine.SymBytes);
+            m_rho = Arrays.CopyOfRange(encoding, encoding.Length - MLKemEngine.SymBytes, encoding.Length);
         }
 
         public byte[] GetEncoded() => GetEncoded(m_t, m_rho);

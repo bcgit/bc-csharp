@@ -8,7 +8,7 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
@@ -121,12 +121,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.FalconOidLookup(falconPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
-            if (publicKey is KyberPublicKeyParameters kyberPublicKeyParameters)
+            if (publicKey is MLKemPublicKeyParameters mlKemKey)
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.KyberOidLookup(kyberPublicKeyParameters.Parameters));
+                    PqcUtilities.MLKemOidLookup(mlKemKey.Parameters));
 
-                return new SubjectPublicKeyInfo(algorithmIdentifier, kyberPublicKeyParameters.GetEncoded());
+                return new SubjectPublicKeyInfo(algorithmIdentifier, mlKemKey.GetEncoded());
             }
             if (publicKey is DilithiumPublicKeyParameters dilithiumPublicKeyParameters)
             {

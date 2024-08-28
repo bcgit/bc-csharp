@@ -4,7 +4,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Security;
 
@@ -58,14 +58,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] partyVInfo, SecureRandom random)
                 : base(algorithmID, partyUInfo, partyVInfo, random)
             {
-                if (kemParams is KyberParameters kyberParameters)
+                if (kemParams is MLKemParameters mlKemParameters)
                 {
-                    KyberKeyPairGenerator kpg = new KyberKeyPairGenerator();
-                    kpg.Init(new KyberKeyGenerationParameters(random, kyberParameters));
+                    MLKemKeyPairGenerator kpg = new MLKemKeyPairGenerator();
+                    kpg.Init(new MLKemKeyGenerationParameters(random, mlKemParameters));
 
                     m_aKp = kpg.GenerateKeyPair();
 
-                    m_encSE = new KyberKemExtractor((KyberPrivateKeyParameters)m_aKp.Private);
+                    m_encSE = new MLKemExtractor((MLKemPrivateKeyParameters)m_aKp.Private);
                 }
                 else if (kemParams is NtruParameters ntruParameters)
                 {
@@ -128,9 +128,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] partyVInfo, SecureRandom random)
                 : base(algorithmID, partyUInfo, partyVInfo, random)
             {
-                if (kemParams is KyberParameters)
+                if (kemParams is MLKemParameters)
                 {
-                    m_encSG = new KyberKemGenerator(random);
+                    m_encSG = new MLKemGenerator(random);
                 }
                 else if (kemParams is NtruParameters)
                 {
