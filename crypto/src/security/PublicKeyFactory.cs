@@ -11,6 +11,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.crypto.parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -272,6 +273,10 @@ namespace Org.BouncyCastle.Security
                 ECPoint q = ecDomainParameters.Curve.DecodePoint(x9Encoding);
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
+            }
+            else if (HybridKeyParameters.HybridNameToOid.ContainsValue(algOid.Id))
+            {
+                // FIXME(bence)
             }
             else
             {

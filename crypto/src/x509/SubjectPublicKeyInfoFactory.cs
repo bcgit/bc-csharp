@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.crypto.parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -247,6 +248,11 @@ namespace Org.BouncyCastle.X509
                 Ed25519PublicKeyParameters key = (Ed25519PublicKeyParameters)publicKey;
 
                 return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), key.GetEncoded());
+            }
+
+            if (publicKey is HybridKeyParameters)
+            {
+                // FIXME(bence)
             }
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));

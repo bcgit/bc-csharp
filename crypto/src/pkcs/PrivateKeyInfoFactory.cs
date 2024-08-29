@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.crypto.parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -243,6 +244,11 @@ namespace Org.BouncyCastle.Pkcs
 
                 return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
                     new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
+            }
+
+            if (privateKey is HybridKeyParameters)
+            {
+                // FIXME(bence)
             }
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
