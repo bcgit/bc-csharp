@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -343,6 +344,23 @@ namespace Org.BouncyCastle.Security
                         gostParams.DigestParamSet,
                         gostParams.EncryptionParamSet));
 
+            }
+            else if (NistObjectIdentifiers.IdMLDsa44.Equals(algOid)
+                ||   NistObjectIdentifiers.IdMLDsa65.Equals(algOid)
+                ||   NistObjectIdentifiers.IdMLDsa87.Equals(algOid))
+            {
+                var parameters = MLDsaParameters.FromOid(algOid);
+                var encoding = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
+
+                // TODO Add support?
+                //DerBitString publicKeyData = keyInfo.PublicKey;
+                //MLDsaPublicKeyParameters pubKey = null;
+                //if (publicKeyData != null)
+                //{
+                //    pubKey = PublicKeyFactory.GetMLDsaPublicKey(parameters, publicKeyData);
+                //}
+
+                return new MLDsaPrivateKeyParameters(parameters, encoding.GetOctets());
             }
             else
             {

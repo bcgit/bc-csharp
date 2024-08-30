@@ -245,6 +245,17 @@ namespace Org.BouncyCastle.Pkcs
                     new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
             }
 
+            if (privateKey is MLDsaPrivateKeyParameters mlDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
+
+                // TODO Add support?
+                //byte[] publicKey = mlDsaKey.GetPublicKey();
+                byte[] publicKey = null;
+
+                return new PrivateKeyInfo(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
+            }
+
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }
 

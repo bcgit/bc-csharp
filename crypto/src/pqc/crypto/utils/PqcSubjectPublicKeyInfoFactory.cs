@@ -128,6 +128,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new SubjectPublicKeyInfo(algorithmIdentifier, mlKemKey.GetEncoded());
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (publicKey is DilithiumPublicKeyParameters dilithiumPublicKeyParameters)
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
@@ -135,6 +136,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new SubjectPublicKeyInfo(algorithmIdentifier, dilithiumPublicKeyParameters.GetEncoded());
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (publicKey is BikePublicKeyParameters bikePublicKeyParameters)
             { 
                 byte[] encoding = bikePublicKeyParameters.GetEncoded();

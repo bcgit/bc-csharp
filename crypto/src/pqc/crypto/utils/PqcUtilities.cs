@@ -40,8 +40,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<MLKemParameters, DerObjectIdentifier> mlKemOids = new Dictionary<MLKemParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, MLKemParameters> mlKemParams = new Dictionary<DerObjectIdentifier, MLKemParameters>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly static Dictionary<DilithiumParameters, DerObjectIdentifier> dilithiumOids = new Dictionary<DilithiumParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, DilithiumParameters> dilithiumParams = new Dictionary<DerObjectIdentifier, DilithiumParameters>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private readonly static Dictionary<FalconParameters, DerObjectIdentifier> falconOids = new Dictionary<FalconParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, FalconParameters> falconParams = new Dictionary<DerObjectIdentifier, FalconParameters>();
@@ -191,7 +193,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             
             falconParams[BCObjectIdentifiers.falcon_512] = FalconParameters.falcon_512;
             falconParams[BCObjectIdentifiers.falcon_1024] = FalconParameters.falcon_1024;
-            
+
+#pragma warning disable CS0618 // Type or member is obsolete
             dilithiumOids[DilithiumParameters.Dilithium2] = BCObjectIdentifiers.dilithium2;
             dilithiumOids[DilithiumParameters.Dilithium3] = BCObjectIdentifiers.dilithium3;
             dilithiumOids[DilithiumParameters.Dilithium5] = BCObjectIdentifiers.dilithium5;
@@ -199,6 +202,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             dilithiumParams[BCObjectIdentifiers.dilithium2] = DilithiumParameters.Dilithium2;
             dilithiumParams[BCObjectIdentifiers.dilithium3] = DilithiumParameters.Dilithium3;
             dilithiumParams[BCObjectIdentifiers.dilithium5] = DilithiumParameters.Dilithium5;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             bikeParams[BCObjectIdentifiers.bike128] = BikeParameters.bike128;
             bikeParams[BCObjectIdentifiers.bike192] = BikeParameters.bike192;
@@ -346,6 +350,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(falconOids, parameters);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DilithiumParameters DilithiumParamsLookup(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(dilithiumParams, oid);
@@ -355,6 +360,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CollectionUtilities.GetValueOrNull(dilithiumOids, parameters);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         internal static DerObjectIdentifier PicnicOidLookup(PicnicParameters parameters)
         {

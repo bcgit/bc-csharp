@@ -250,6 +250,13 @@ namespace Org.BouncyCastle.X509
                 return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), key.GetEncoded());
             }
 
+            if (publicKey is MLDsaPublicKeyParameters mlDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
+
+                return new SubjectPublicKeyInfo(algID, mlDsaKey.GetEncoded());
+            }
+
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }
 

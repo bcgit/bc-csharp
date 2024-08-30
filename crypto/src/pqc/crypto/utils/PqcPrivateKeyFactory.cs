@@ -157,6 +157,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new MLKemPrivateKeyParameters(parameters, privateKey.GetOctets());
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.dilithium2) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium3) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium5))
@@ -174,6 +175,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new DilithiumPrivateKeyParameters(spParams, encoding: keyEnc.GetOctets(), pubKey);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.falcon_512) ||
                 algOid.Equals(BCObjectIdentifiers.falcon_1024))
             {

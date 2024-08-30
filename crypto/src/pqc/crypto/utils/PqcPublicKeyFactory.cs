@@ -207,6 +207,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return converter(keyInfo, defaultParams);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DilithiumPublicKeyParameters GetDilithiumPublicKey(DilithiumParameters dilithiumParameters,
             DerBitString publicKeyData)
         {
@@ -233,6 +234,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new DilithiumPublicKeyParameters(dilithiumParameters, publicKeyOctets);
             }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private static AsymmetricKeyParameter LmsConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {

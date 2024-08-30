@@ -1,7 +1,10 @@
+using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
+    [Obsolete("Use ML-DSA instead")]
     public sealed class DilithiumPublicKeyParameters
         : DilithiumKeyParameters
     {

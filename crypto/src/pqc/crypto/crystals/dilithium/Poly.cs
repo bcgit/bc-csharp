@@ -1,5 +1,6 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
-using System;
+﻿using System;
+
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
@@ -326,30 +327,34 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        public byte[] PolyT1Pack()
+        public void PolyT1Pack(byte[] buf, int bufOff)
         {
-            byte[] output = new byte[DilithiumEngine.PolyT1PackedBytes];
             for (int i = 0; i < N / 4; ++i)
             {
-                output[5 * i + 0] = (byte)(Coeffs[4 * i + 0] >> 0);
-                output[5 * i + 1] = (byte)((Coeffs[4 * i + 0] >> 8) | (Coeffs[4 * i + 1] << 2));
-                output[5 * i + 2] = (byte)((Coeffs[4 * i + 1] >> 6) | (Coeffs[4 * i + 2] << 4));
-                output[5 * i + 3] = (byte)((Coeffs[4 * i + 2] >> 4) | (Coeffs[4 * i + 3] << 6));
-                output[5 * i + 4] = (byte)(Coeffs[4 * i + 3] >> 2);
+                buf[bufOff + 0] = (byte)(Coeffs[4 * i + 0] >> 0);
+                buf[bufOff + 1] = (byte)((Coeffs[4 * i + 0] >> 8) | (Coeffs[4 * i + 1] << 2));
+                buf[bufOff + 2] = (byte)((Coeffs[4 * i + 1] >> 6) | (Coeffs[4 * i + 2] << 4));
+                buf[bufOff + 3] = (byte)((Coeffs[4 * i + 2] >> 4) | (Coeffs[4 * i + 3] << 6));
+                buf[bufOff + 4] = (byte)(Coeffs[4 * i + 3] >> 2);
+                bufOff += 5;
             }
-            return output;
         }
 
-        public void PolyT1Unpack(byte[] a)
+        public void PolyT1Unpack(byte[] a, int aOff)
         {
-            int i;
-
-            for (i = 0; i < N / 4; ++i)
+            for (int i = 0; i < N / 4; ++i)
             {
-                Coeffs[4 * i + 0] = (((a[5 * i + 0] & 0xFF) >> 0) | ((int)(a[5 * i + 1] & 0xFF) << 8)) & 0x3FF;
-                Coeffs[4 * i + 1] = (((a[5 * i + 1] & 0xFF) >> 2) | ((int)(a[5 * i + 2] & 0xFF) << 6)) & 0x3FF;
-                Coeffs[4 * i + 2] = (((a[5 * i + 2] & 0xFF) >> 4) | ((int)(a[5 * i + 3] & 0xFF) << 4)) & 0x3FF;
-                Coeffs[4 * i + 3] = (((a[5 * i + 3] & 0xFF) >> 6) | ((int)(a[5 * i + 4] & 0xFF) << 2)) & 0x3FF;
+                int a0 = a[aOff + 0];
+                int a1 = a[aOff + 1];
+                int a2 = a[aOff + 2];
+                int a3 = a[aOff + 3];
+                int a4 = a[aOff + 4];
+                aOff += 5;
+
+                Coeffs[4 * i + 0] = ((a0 >> 0) | (a1 << 8)) & 0x3FF;
+                Coeffs[4 * i + 1] = ((a1 >> 2) | (a2 << 6)) & 0x3FF;
+                Coeffs[4 * i + 2] = ((a2 >> 4) | (a3 << 4)) & 0x3FF;
+                Coeffs[4 * i + 3] = ((a3 >> 6) | (a4 << 2));
             }
         }
 

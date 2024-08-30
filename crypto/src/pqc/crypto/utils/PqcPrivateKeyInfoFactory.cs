@@ -132,6 +132,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(mlKemKey.GetEncoded()), attributes);
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (privateKey is DilithiumPrivateKeyParameters dilithiumPrivateKeyParameters)
             {
                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
@@ -141,6 +142,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(dilithiumPrivateKeyParameters.GetEncoded()), attributes, pubParams.GetEncoded());
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is BikePrivateKeyParameters bikePrivateKeyParameters)
             {
                 byte[] encoding = bikePrivateKeyParameters.GetEncoded();
