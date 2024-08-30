@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Pqc.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -44,6 +45,30 @@ namespace Org.BouncyCastle.crypto.generators
             if (parameters.ClassicalParameters is ECKeyGenerationParameters)
             {
                 var generator = new ECKeyPairGenerator("ECDSA");
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is X25519KeyGenerationParameters)
+            {
+                var generator = new X25519KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is Ed25519KeyGenerationParameters)
+            {
+                var generator = new Ed25519KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is X448KeyGenerationParameters)
+            {
+                var generator = new X448KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is Ed448KeyGenerationParameters)
+            {
+                var generator = new Ed448KeyPairGenerator();
                 generator.Init(parameters.ClassicalParameters);
                 classicalKeypair = generator.GenerateKeyPair();
             }
@@ -94,12 +119,26 @@ namespace Org.BouncyCastle.crypto.generators
             var hybridPrivKey = privKey as HybridKeyParameters;
 
             byte[] classicalSignature = null;
-            if (hybridPrivKey.Classical is ECPrivateKeyParameters)
+            if (hybridPrivKey.Classical is ECPrivateKeyParameters ecPrivKey)
             {
                 var signer = new ECDsaSigner();
-                signer.Init(true, hybridPrivKey.Classical);
-                Math.BigInteger[] signature = signer.GenerateSignature(message);
+                signer.Init(true, ecPrivKey);
+                var signature = signer.GenerateSignature(message);
                 classicalSignature = Arrays.Concatenate(signature[0].ToByteArrayUnsigned(), signature[1].ToByteArrayUnsigned());
+            }
+            else if (hybridPrivKey.Classical is Ed25519PrivateKeyParameters ed25519PrivKey)
+            {
+                var signer = new Ed25519Signer();
+                signer.Init(true, ed25519PrivKey);
+                signer.BlockUpdate(message, 0, message.Length);
+                classicalSignature = signer.GenerateSignature();
+            }
+            else if (hybridPrivKey.Classical is Ed448PrivateKeyParameters ed448PrivKey)
+            {
+                var signer = new Ed448Signer(message);
+                signer.Init(true, ed448PrivKey);
+                signer.BlockUpdate(message, 0, message.Length);
+                classicalSignature = signer.GenerateSignature();
             }
             else if (hybridPrivKey.Classical is RsaKeyParameters)
             {
@@ -144,9 +183,9 @@ namespace Org.BouncyCastle.crypto.generators
             var hybridPubKey = pubKey as HybridKeyParameters;
 
             bool classicalVerified = false;
-            if (hybridPubKey.Classical is ECPublicKeyParameters)
+            if (hybridPubKey.Classical is ECPublicKeyParameters ecPublicKey)
             {
-                var domainParameters = (hybridPubKey.Classical as ECPublicKeyParameters).Parameters;
+                var domainParameters = ecPublicKey.Parameters;
                 var classicalSignatureLength = (domainParameters.N.BitLength / 8) * 2;
 
                 if (signature.Length <= classicalSignatureLength)
@@ -161,6 +200,53 @@ namespace Org.BouncyCastle.crypto.generators
                 var verifier = new ECDsaSigner();
                 verifier.Init(false, hybridPubKey.Classical);
                 if(!verifier.VerifySignature(message, r, s))
+                {
+                    throw new VerificationException("Signature verification failed");
+                }
+
+                // take away classical signature
+                signature = signature.Skip(classicalSignatureLength).ToArray();
+
+                classicalVerified = true;
+            }
+            else if (hybridPubKey.Classical is Ed25519PublicKeyParameters ed25519PublicKey)
+            {
+                var classicalSignatureLength = Ed25519.SignatureSize;
+
+                if (signature.Length <= classicalSignatureLength)
+                {
+                    throw new Exception("Wrong size signature");
+                }
+
+                var classicalSignatureBytes = signature.Take(classicalSignatureLength).ToArray();
+
+                var verifier = new Ed25519Signer();
+                verifier.Init(true, ed25519PublicKey);
+                verifier.BlockUpdate(message, 0, message.Length);
+                if(!verifier.VerifySignature(signature))
+                {
+                    throw new VerificationException("Signature verification failed");
+                }
+
+                // take away classical signature
+                signature = signature.Skip(classicalSignatureLength).ToArray();
+
+                classicalVerified = true;
+            }
+            else if (hybridPubKey.Classical is Ed448PublicKeyParameters ed448PublicKey)
+            {
+                var classicalSignatureLength = Ed448.SignatureSize;
+
+                if (signature.Length <= classicalSignatureLength)
+                {
+                    throw new Exception("Wrong size signature");
+                }
+
+                var classicalSignatureBytes = signature.Take(classicalSignatureLength).ToArray();
+
+                var verifier = new Ed448Signer(message);
+                verifier.Init(true, ed448PublicKey);
+                if(!verifier.VerifySignature(signature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }

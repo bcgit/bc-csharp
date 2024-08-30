@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Linq;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -18,6 +18,10 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
@@ -345,9 +349,118 @@ namespace Org.BouncyCastle.Security
                         gostParams.EncryptionParamSet));
 
             }
-            else if (HybridKeyParameters.HybridNameToOid.ContainsValue(algOid.Id))
+            else if (HybridKeyParameters.HybridOidToName.ContainsKey(algOid.Id))
             {
-                // FIXME(bence)
+                var hybridName = HybridKeyParameters.HybridOidToName[algOid.Id];
+                var names = hybridName.Split(Convert.ToChar("_"));
+                var classicalName = names[0];
+                var postQuantumName = names[1];
+
+                var keyParameters = new HybridKeyGenerationParameters(new SecureRandom(), classicalName, postQuantumName);
+
+                int classicalKeySize = 0;
+                if (keyParameters.ClassicalParameters is ECKeyGenerationParameters ecKeyParameters)
+                {
+                    classicalKeySize = ecKeyParameters.DomainParameters.Curve.FieldElementEncodingLength;
+                }
+                else if (keyParameters.ClassicalParameters is X25519KeyGenerationParameters)
+                {
+                    classicalKeySize = X25519PrivateKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is Ed25519KeyGenerationParameters)
+                {
+                    classicalKeySize = Ed25519PrivateKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is X448KeyGenerationParameters)
+                {
+                    classicalKeySize = X448PrivateKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is Ed448KeyGenerationParameters)
+                {
+                    classicalKeySize = Ed448PrivateKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is RsaKeyGenerationParameters)
+                {
+                    // TODO
+                    throw new Exception("Rsa hybrid keys not supported");
+                }
+
+                if (classicalKeySize == 0)
+                {
+                    throw new Exception("Classical keytype not supported");
+                }
+
+                int postQuantumKeySize = 0;
+                if (keyParameters.PostQuantumParameters is KyberKeyGenerationParameters kyberParameters)
+                {
+                    switch (kyberParameters.Parameters.Name)
+                    {
+                        case "kyber512":
+                            postQuantumKeySize = 1632;
+                            break;
+                        case "kyber768":
+                            postQuantumKeySize = 2400;
+                            break;
+                        case "kyber1024":
+                            postQuantumKeySize = 3168;
+                            break;
+                    }
+                }
+                else if (keyParameters.PostQuantumParameters is DilithiumKeyGenerationParameters dilithiumParameters)
+                {
+                    switch (dilithiumParameters.Parameters.Name)
+                    {
+                        case "dilithium2":
+                            postQuantumKeySize = 2560;
+                            break;
+                        case "dilithium3":
+                            postQuantumKeySize = 4032;
+                            break;
+                        case "dilithium5":
+                            postQuantumKeySize = 4896;
+                            break;
+                    }
+                }
+                else if (keyParameters.PostQuantumParameters is SphincsPlusKeyGenerationParameters sphincsParameters)
+                {
+                    switch (sphincsParameters.Parameters.Name)
+                    {
+                        case "sha2-128f-simple":
+                            postQuantumKeySize = 64;
+                            break;
+                        case "sha2-192f-simple":
+                            postQuantumKeySize = 96;
+                            break;
+                        case "sha2-256f-simple":
+                            postQuantumKeySize = 128;
+                            break;
+                    }
+                }
+
+                if (postQuantumKeySize == 0)
+                {
+                    throw new Exception("Post-quantum keytype not supported");
+                }
+
+                // expected format:
+                // first 4 bytes are length of the classical private key
+                // then comes the classical private key
+                // finally the post-quantum private key
+                var hybridBytes = keyInfo.PrivateKey.GetOctets();
+
+                // deliberately ignoring classical keysize encoding
+                if (hybridBytes.Length != 4 + classicalKeySize + postQuantumKeySize)
+                {
+                    throw new Exception("Encoded hybrid private key has wrong size");
+                }
+
+                var classicalBytes = hybridBytes.Skip(4).Take(classicalKeySize).ToArray();
+                var postQuantumBytes = hybridBytes.Skip(4).Skip(classicalKeySize).ToArray();
+
+                var classicalKeyParameter = PrivateKeyFactory.CreateKey(classicalBytes);
+                var postQuantumKeyParameter = PqcPrivateKeyFactory.CreateKey(postQuantumBytes);
+
+                return new HybridKeyParameters(classicalKeyParameter, postQuantumKeyParameter);
             }
             else
             {

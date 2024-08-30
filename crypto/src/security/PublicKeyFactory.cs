@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Linq;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -17,6 +17,10 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
@@ -274,9 +278,119 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
             }
-            else if (HybridKeyParameters.HybridNameToOid.ContainsValue(algOid.Id))
+            else if (HybridKeyParameters.HybridOidToName.ContainsKey(algOid.Id))
             {
-                // FIXME(bence)
+                var hybridName = HybridKeyParameters.HybridOidToName[algOid.Id];
+                var names = hybridName.Split(Convert.ToChar("_"));
+                var classicalName = names[0];
+                var postQuantumName = names[1];
+
+                var keyParameters = new HybridKeyGenerationParameters(new SecureRandom(), classicalName, postQuantumName);
+
+                int classicalKeySize = 0;
+                if (keyParameters.ClassicalParameters is ECKeyGenerationParameters ecKeyParameters)
+                {
+                    // public key is uncompressed ec point
+                    classicalKeySize = (ecKeyParameters.DomainParameters.Curve.FieldElementEncodingLength * 2) + 1;
+                }
+                else if (keyParameters.ClassicalParameters is X25519KeyGenerationParameters)
+                {
+                    classicalKeySize = X25519PublicKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is Ed25519KeyGenerationParameters)
+                {
+                    classicalKeySize = Ed25519PublicKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is X448KeyGenerationParameters)
+                {
+                    classicalKeySize = X448PublicKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is Ed448KeyGenerationParameters)
+                {
+                    classicalKeySize = Ed448PublicKeyParameters.KeySize;
+                }
+                else if (keyParameters.ClassicalParameters is RsaKeyGenerationParameters)
+                {
+                    // TODO
+                    throw new Exception("Rsa hybrid keys not supported");
+                }
+
+                if (classicalKeySize == 0)
+                {
+                    throw new Exception("Classical keytype not supported");
+                }
+
+                int postQuantumKeySize = 0;
+                if (keyParameters.PostQuantumParameters is KyberKeyGenerationParameters kyberParameters)
+                {
+                    switch (kyberParameters.Parameters.Name)
+                    {
+                        case "kyber512":
+                            postQuantumKeySize = 800;
+                            break;
+                        case "kyber768":
+                            postQuantumKeySize = 1184;
+                            break;
+                        case "kyber1024":
+                            postQuantumKeySize = 1568;
+                            break;
+                    }
+                }
+                else if (keyParameters.PostQuantumParameters is DilithiumKeyGenerationParameters dilithiumParameters)
+                {
+                    switch (dilithiumParameters.Parameters.Name)
+                    {
+                        case "dilithium2":
+                            postQuantumKeySize = 1312;
+                            break;
+                        case "dilithium3":
+                            postQuantumKeySize = 1952;
+                            break;
+                        case "dilithium5":
+                            postQuantumKeySize = 2592;
+                            break;
+                    }
+                }
+                else if (keyParameters.PostQuantumParameters is SphincsPlusKeyGenerationParameters sphincsParameters)
+                {
+                    switch (sphincsParameters.Parameters.Name)
+                    {
+                        case "sha2-128f-simple":
+                            postQuantumKeySize = 32;
+                            break;
+                        case "sha2-192f-simple":
+                            postQuantumKeySize = 48;
+                            break;
+                        case "sha2-256f-simple":
+                            postQuantumKeySize = 64;
+                            break;
+                    }
+                }
+
+                if (postQuantumKeySize == 0)
+                {
+                    throw new Exception("Post-quantum keytype not supported");
+                }
+
+                // expected format:
+                // first 4 bytes are length of the classical public key
+                // then comes the classical public key
+                // finally the post-quantum public key
+                var hybridBytes = keyInfo.PublicKey.GetBytes();
+
+                // deliberately ignoring classical keysize encoding
+                if (hybridBytes.Length != 4 + classicalKeySize + postQuantumKeySize)
+                {
+                    throw new Exception("Encoded hybrid public key has wrong size");
+                }
+
+                var classicalBytes = hybridBytes.Skip(4).Take(classicalKeySize).ToArray();
+                var postQuantumBytes = hybridBytes.Skip(4).Skip(classicalKeySize).ToArray();
+
+                var classicalKeyParameter = PublicKeyFactory.CreateKey(classicalBytes);
+                var postQuantumKeyParameter = PqcPublicKeyFactory.CreateKey(postQuantumBytes);
+
+                return new HybridKeyParameters(classicalKeyParameter, postQuantumKeyParameter);
             }
             else
             {

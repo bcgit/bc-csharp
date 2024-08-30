@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.crypto.parameters
             //{
                 //classicalCanonicalName = string.Concat("rsa", (Classical as RsaKeyParameters).Modulus.BitLength);
             //}
-            else if (Classical is ECKeyParameters)
+            if (Classical is ECKeyParameters)
             {
                 var curve = (Classical as ECKeyParameters).Parameters.Curve;
 

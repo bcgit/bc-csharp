@@ -48,6 +48,30 @@ namespace Org.BouncyCastle.crypto.generators
                 generator.Init(parameters.ClassicalParameters);
                 classicalKeypair = generator.GenerateKeyPair();
             }
+            else if (parameters.ClassicalParameters is X25519KeyGenerationParameters)
+            {
+                var generator = new X25519KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is Ed25519KeyGenerationParameters)
+            {
+                var generator = new Ed25519KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is X448KeyGenerationParameters)
+            {
+                var generator = new X448KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
+            else if (parameters.ClassicalParameters is Ed448KeyGenerationParameters)
+            {
+                var generator = new Ed448KeyPairGenerator();
+                generator.Init(parameters.ClassicalParameters);
+                classicalKeypair = generator.GenerateKeyPair();
+            }
             else if (parameters.ClassicalParameters is RsaKeyGenerationParameters)
             {
                 // TODO
@@ -86,19 +110,49 @@ namespace Org.BouncyCastle.crypto.generators
 
             byte[] classicalCiphertext = null;
             byte[] classicalSharedSecret = null;
-            if (hybridPubKey.Classical is ECPublicKeyParameters)
+            if (hybridPubKey.Classical is ECPublicKeyParameters ecPublicKey)
             {
                 var generator = new ECKeyPairGenerator("ECDH");
-                var pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(hybridPubKey.Classical);
+                var pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ecPublicKey);
                 var parameters = new ECKeyGenerationParameters(pubInfo.Algorithm.Algorithm, new SecureRandom());
                 generator.Init(parameters);
                 var ephemeralKeypair = generator.GenerateKeyPair();
 
                 classicalCiphertext = (ephemeralKeypair.Public as ECPublicKeyParameters).Q.GetEncoded();
 
-                var ecdhAgreement = new ECDHBasicAgreement();
-                ecdhAgreement.Init(ephemeralKeypair.Private);
-                classicalSharedSecret = ecdhAgreement.CalculateAgreement(hybridPubKey.Classical).ToByteArrayUnsigned();
+                var agreement = new ECDHBasicAgreement();
+                agreement.Init(ephemeralKeypair.Private);
+                classicalSharedSecret = agreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
+            }
+            else if (hybridPubKey.Classical is X25519PublicKeyParameters x25519PublicKey)
+            {
+                var generator = new X25519KeyPairGenerator();
+                var pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(x25519PublicKey);
+                var parameters = new X25519KeyGenerationParameters(new SecureRandom());
+                generator.Init(parameters);
+                var ephemeralKeypair = generator.GenerateKeyPair();
+
+                classicalCiphertext = (ephemeralKeypair.Public as X25519PublicKeyParameters).GetEncoded();
+
+                var agreement = new X25519Agreement();
+                agreement.Init(ephemeralKeypair.Private);
+                classicalSharedSecret = new byte[agreement.AgreementSize];
+                agreement.CalculateAgreement(x25519PublicKey, classicalSharedSecret, 0);
+            }
+            else if (hybridPubKey.Classical is X448PublicKeyParameters x448PublicKey)
+            {
+                var generator = new X448KeyPairGenerator();
+                var pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(x448PublicKey);
+                var parameters = new X448KeyGenerationParameters(new SecureRandom());
+                generator.Init(parameters);
+                var ephemeralKeypair = generator.GenerateKeyPair();
+
+                classicalCiphertext = (ephemeralKeypair.Public as X448PublicKeyParameters).GetEncoded();
+
+                var agreement = new X448Agreement();
+                agreement.Init(ephemeralKeypair.Private);
+                classicalSharedSecret = new byte[agreement.AgreementSize];
+                agreement.CalculateAgreement(x448PublicKey, classicalSharedSecret, 0);
             }
             else if (hybridPubKey.Classical is RsaKeyParameters)
             {
@@ -142,12 +196,10 @@ namespace Org.BouncyCastle.crypto.generators
             var hybridPrivKey = privKey as HybridKeyParameters;
 
             byte[] classicalSharedSecret = null;
-            if (hybridPrivKey.Classical is ECPrivateKeyParameters)
+            if (hybridPrivKey.Classical is ECPrivateKeyParameters ecPrivateKey)
             {
-                var classical = hybridPrivKey.Classical as ECPrivateKeyParameters;
-
                 // public key is uncompressed ec point
-                var publicKeySize = (classical.Parameters.Curve.FieldElementEncodingLength * 2) + 1;
+                var publicKeySize = (ecPrivateKey.Parameters.Curve.FieldElementEncodingLength * 2) + 1;
 
                 if (ciphertext.Length <= publicKeySize)
                 {
@@ -155,13 +207,51 @@ namespace Org.BouncyCastle.crypto.generators
                 }
 
                 var publicKeyBytes = ciphertext.Take(publicKeySize).ToArray();
-                var otherPublicKey = new ECPublicKeyParameters(classical.Parameters.Curve.DecodePoint(publicKeyBytes), classical.Parameters);
+                var otherPublicKey = new ECPublicKeyParameters(ecPrivateKey.Parameters.Curve.DecodePoint(publicKeyBytes), ecPrivateKey.Parameters);
 
-                var ecdhAgreement = new ECDHBasicAgreement();
-                ecdhAgreement.Init(classical);
-                classicalSharedSecret = ecdhAgreement.CalculateAgreement(otherPublicKey).ToByteArrayUnsigned();
+                var agreement = new ECDHBasicAgreement();
+                agreement.Init(ecPrivateKey);
+                classicalSharedSecret = agreement.CalculateAgreement(otherPublicKey).ToByteArrayUnsigned();
 
                 // take away classical ciphertext
+                ciphertext = ciphertext.Skip(publicKeySize).ToArray();
+            }
+            else if (hybridPrivKey.Classical is X25519PrivateKeyParameters x25519PrivateKey)
+            {
+                var publicKeySize = X25519PrivateKeyParameters.KeySize;
+
+                if (ciphertext.Length <= publicKeySize)
+                {
+                    throw new Exception("Wrong size classical ciphertext");
+                }
+
+                var publicKeyBytes = ciphertext.Take(publicKeySize).ToArray();
+                var otherPublicKey = new X25519PublicKeyParameters(publicKeyBytes);
+
+                var agreement = new X25519Agreement();
+                agreement.Init(x25519PrivateKey);
+                classicalSharedSecret = new byte[agreement.AgreementSize];
+                agreement.CalculateAgreement(otherPublicKey, classicalSharedSecret, 0);
+
+                ciphertext = ciphertext.Skip(publicKeySize).ToArray();
+            }
+            else if (hybridPrivKey.Classical is X448PrivateKeyParameters x448PrivateKey)
+            {
+                var publicKeySize = X448PrivateKeyParameters.KeySize;
+
+                if (ciphertext.Length <= publicKeySize)
+                {
+                    throw new Exception("Wrong size classical ciphertext");
+                }
+
+                var publicKeyBytes = ciphertext.Take(publicKeySize).ToArray();
+                var otherPublicKey = new X448PublicKeyParameters(publicKeyBytes);
+
+                var agreement = new X448Agreement();
+                agreement.Init(x448PrivateKey);
+                classicalSharedSecret = new byte[agreement.AgreementSize];
+                agreement.CalculateAgreement(otherPublicKey, classicalSharedSecret, 0);
+
                 ciphertext = ciphertext.Skip(publicKeySize).ToArray();
             }
             else if (hybridPrivKey.Classical is RsaKeyParameters)
@@ -176,14 +266,14 @@ namespace Org.BouncyCastle.crypto.generators
             }
 
             byte[] postQuantumSharedSecret = null;
-            if (hybridPrivKey.PostQuantum is KyberPrivateKeyParameters)
+            if (hybridPrivKey.PostQuantum is KyberPrivateKeyParameters postQuantum)
             {
-                var extractor = new KyberKemExtractor(hybridPrivKey.PostQuantum as KyberPrivateKeyParameters);
+                var extractor = new KyberKemExtractor(postQuantum);
                 if (ciphertext.Length != extractor.EncapsulationLength)
                 {
                     throw new Exception("Wrong size post-quantum ciphertext");
                 }
-                postQuantumSharedSecret = new KyberKemExtractor(hybridPrivKey.PostQuantum as KyberPrivateKeyParameters).ExtractSecret(ciphertext);
+                postQuantumSharedSecret = new KyberKemExtractor(postQuantum).ExtractSecret(ciphertext);
             }
 
             if (postQuantumSharedSecret == null)
