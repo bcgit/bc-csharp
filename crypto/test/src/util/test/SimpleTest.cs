@@ -10,6 +10,8 @@ namespace Org.BouncyCastle.Utilities.Test
     public abstract class SimpleTest
         : ITest
     {
+        private static readonly string DataDirName = "bc-test-data";
+
         internal static readonly string NewLine = Environment.NewLine;
 
         public abstract string Name { get; }
@@ -139,23 +141,20 @@ namespace Org.BouncyCastle.Utilities.Test
             string wrkDirName = Directory.GetCurrentDirectory();
             string separator = Path.DirectorySeparatorChar.ToString();
             DirectoryInfo wrkDir = new DirectoryInfo(wrkDirName);
-            DirectoryInfo dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, "bc-test-data"));
+            DirectoryInfo dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, DataDirName));
 
             while (!dataDir.Exists && wrkDirName.Length > 1)
             {
                 wrkDirName = wrkDirName.Substring(0, wrkDirName.LastIndexOf(separator));
                 wrkDir = new DirectoryInfo(wrkDirName);
-                dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, "bc-test-data"));
+                dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, DataDirName));
             }
 
             if (!dataDir.Exists)
-            {
-                throw new FileNotFoundException("Test data directory " + homeDir + " not found." + "Test data available from: https://github.com/bcgit/bc-test-data.git");
+                throw new FileNotFoundException("Test data directory " + DataDirName + " not found." + NewLine +
+                    "Test data available from: https://github.com/bcgit/bc-test-data.git");
 
-            }
-
-            return new FileStream(Path.Combine(dataDir.FullName, homeDir + separator + fileName), FileMode.Open);
-
+            return File.OpenRead(Path.Combine(dataDir.FullName, homeDir + separator + fileName));
         }
     }
 }
