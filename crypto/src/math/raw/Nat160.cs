@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Math.Raw
     {
         private const ulong M = 0xFFFFFFFFUL;
 
-        public static uint Add(uint[] x, uint[] y, uint[] z)
+        public static uint Add(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
             ulong c = 0;
             c += (ulong)x[0] + y[0];
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
-        public static uint AddBothTo(uint[] x, uint[] y, uint[] z)
+        public static uint AddBothTo(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
             ulong c = 0;
             c += (ulong)x[0] + y[0] + z[0];
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
-        public static uint AddTo(uint[] x, uint[] z)
+        public static uint AddTo(ReadOnlySpan<uint> x, Span<uint> z)
         {
             ulong c = 0;
             c += (ulong)x[0] + z[0];
@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
-        public static void Copy(uint[] x, uint[] z)
+        public static void Copy(ReadOnlySpan<uint> x, Span<uint> z)
         {
             z[0] = x[0];
             z[1] = x[1];
@@ -131,11 +131,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static void Copy(uint[] x, int xOff, uint[] z, int zOff)
         {
-            z[zOff + 0] = x[xOff + 0];
-            z[zOff + 1] = x[xOff + 1];
-            z[zOff + 2] = x[xOff + 2];
-            z[zOff + 3] = x[xOff + 3];
-            z[zOff + 4] = x[xOff + 4];
+            Copy(x.AsSpan(xOff), z.AsSpan(zOff));
         }
 
         public static uint[] Create()
@@ -148,16 +144,16 @@ namespace Org.BouncyCastle.Math.Raw
             return new uint[10];
         }
 
-        public static bool Diff(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        public static bool Diff(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
-            bool pos = Gte(x, xOff, y, yOff);
+            bool pos = Gte(x, y);
             if (pos)
             {
-                Sub(x, xOff, y, yOff, z, zOff);
+                Sub(x, y, z);
             }
             else
             {
-                Sub(y, yOff, x, xOff, z, zOff);
+                Sub(y, x, z);
             }
             return pos;
         }
@@ -187,24 +183,11 @@ namespace Org.BouncyCastle.Math.Raw
             return (x[w] >> b) & 1;
         }
 
-        public static bool Gte(uint[] x, uint[] y)
+        public static bool Gte(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
         {
             for (int i = 4; i >= 0; --i)
             {
                 uint x_i = x[i], y_i = y[i];
-                if (x_i < y_i)
-                    return false;
-                if (x_i > y_i)
-                    return true;
-            }
-            return true;
-        }
-
-        public static bool Gte(uint[] x, int xOff, uint[] y, int yOff)
-        {
-            for (int i = 4; i >= 0; --i)
-            {
-                uint x_i = x[xOff + i], y_i = y[yOff + i];
                 if (x_i < y_i)
                     return false;
                 if (x_i > y_i)
@@ -241,7 +224,7 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
-        public static void Mul(uint[] x, uint[] y, uint[] zz)
+        public static void Mul(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> zz)
         {
             ulong y_0 = y[0];
             ulong y_1 = y[1];
@@ -291,58 +274,7 @@ namespace Org.BouncyCastle.Math.Raw
             }
         }
 
-        public static void Mul(uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
-        {
-            ulong y_0 = y[yOff + 0];
-            ulong y_1 = y[yOff + 1];
-            ulong y_2 = y[yOff + 2];
-            ulong y_3 = y[yOff + 3];
-            ulong y_4 = y[yOff + 4];
-
-            {
-                ulong c = 0, x_0 = x[xOff + 0];
-                c += x_0 * y_0;
-                zz[zzOff + 0] = (uint)c;
-                c >>= 32;
-                c += x_0 * y_1;
-                zz[zzOff + 1] = (uint)c;
-                c >>= 32;
-                c += x_0 * y_2;
-                zz[zzOff + 2] = (uint)c;
-                c >>= 32;
-                c += x_0 * y_3;
-                zz[zzOff + 3] = (uint)c;
-                c >>= 32;
-                c += x_0 * y_4;
-                zz[zzOff + 4] = (uint)c;
-                c >>= 32;
-                zz[zzOff + 5] = (uint)c;
-            }
-
-            for (int i = 1; i < 5; ++i)
-            {
-                ++zzOff;
-                ulong c = 0, x_i = x[xOff + i];
-                c += x_i * y_0 + zz[zzOff + 0];
-                zz[zzOff + 0] = (uint)c;
-                c >>= 32;
-                c += x_i * y_1 + zz[zzOff + 1];
-                zz[zzOff + 1] = (uint)c;
-                c >>= 32;
-                c += x_i * y_2 + zz[zzOff + 2];
-                zz[zzOff + 2] = (uint)c;
-                c >>= 32;
-                c += x_i * y_3 + zz[zzOff + 3];
-                zz[zzOff + 3] = (uint)c;
-                c >>= 32;
-                c += x_i * y_4 + zz[zzOff + 4];
-                zz[zzOff + 4] = (uint)c;
-                c >>= 32;
-                zz[zzOff + 5] = (uint)c;
-            }
-        }
-
-        public static uint MulAddTo(uint[] x, uint[] y, uint[] zz)
+        public static uint MulAddTo(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> zz)
         {
             ulong y_0 = y[0];
             ulong y_1 = y[1];
@@ -373,42 +305,6 @@ namespace Org.BouncyCastle.Math.Raw
                 zc += c + zz[i + 5];
                 zz[i + 5] = (uint)zc;
                 zc >>= 32;
-            }
-            return (uint)zc;
-        }
-
-        public static uint MulAddTo(uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
-        {
-            ulong y_0 = y[yOff + 0];
-            ulong y_1 = y[yOff + 1];
-            ulong y_2 = y[yOff + 2];
-            ulong y_3 = y[yOff + 3];
-            ulong y_4 = y[yOff + 4];
-
-            ulong zc = 0;
-            for (int i = 0; i < 5; ++i)
-            {
-                ulong c = 0, x_i = x[xOff + i];
-                c += x_i * y_0 + zz[zzOff + 0];
-                zz[zzOff + 0] = (uint)c;
-                c >>= 32;
-                c += x_i * y_1 + zz[zzOff + 1];
-                zz[zzOff + 1] = (uint)c;
-                c >>= 32;
-                c += x_i * y_2 + zz[zzOff + 2];
-                zz[zzOff + 2] = (uint)c;
-                c >>= 32;
-                c += x_i * y_3 + zz[zzOff + 3];
-                zz[zzOff + 3] = (uint)c;
-                c >>= 32;
-                c += x_i * y_4 + zz[zzOff + 4];
-                zz[zzOff + 4] = (uint)c;
-                c >>= 32;
-
-                zc += c + zz[zzOff + 5];
-                zz[zzOff + 5] = (uint)zc;
-                zc >>= 32;
-                ++zzOff;
             }
             return (uint)zc;
         }
@@ -485,7 +381,7 @@ namespace Org.BouncyCastle.Math.Raw
             c += z[zOff + 3];
             z[zOff + 3] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 4);
+            return c == 0 ? 0 : Nat.IncAt(5, z.AsSpan(zOff), 4);
         }
 
         public static uint Mul33WordAdd(uint x, uint y, uint[] z, int zOff)
@@ -502,7 +398,7 @@ namespace Org.BouncyCastle.Math.Raw
             c += z[zOff + 2];
             z[zOff + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 3);
+            return c == 0 ? 0 : Nat.IncAt(5, z.AsSpan(zOff), 3);
         }
 
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)
@@ -518,7 +414,7 @@ namespace Org.BouncyCastle.Math.Raw
             c += z[zOff + 2];
             z[zOff + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 3);
+            return c == 0 ? 0 : Nat.IncAt(5, z.AsSpan(zOff), 3);
         }
 
         public static uint MulWordsAdd(uint x, uint y, uint[] z, int zOff)
@@ -532,7 +428,7 @@ namespace Org.BouncyCastle.Math.Raw
             c += z[zOff + 1];
             z[zOff + 1] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 2);
+            return c == 0 ? 0 : Nat.IncAt(5, z.AsSpan(zOff), 2);
         }
 
         public static uint MulWord(uint x, uint[] y, uint[] z, int zOff)
@@ -549,7 +445,7 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
-        public static void Square(uint[] x, uint[] zz)
+        public static void Square(ReadOnlySpan<uint> x, Span<uint> zz)
         {
             ulong x_0 = x[0];
             ulong zz_1;
@@ -644,102 +540,7 @@ namespace Org.BouncyCastle.Math.Raw
             zz[9] = (w << 1) | c;
         }
 
-        public static void Square(uint[] x, int xOff, uint[] zz, int zzOff)
-        {
-            ulong x_0 = x[xOff + 0];
-            ulong zz_1;
-
-            uint c = 0, w;
-            {
-                int i = 4, j = 10;
-                do
-                {
-                    ulong xVal = x[xOff + i--];
-                    ulong p = xVal * xVal;
-                    zz[zzOff + --j] = (c << 31) | (uint)(p >> 33);
-                    zz[zzOff + --j] = (uint)(p >> 1);
-                    c = (uint)p;
-                }
-                while (i > 0);
-
-                {
-                    ulong p = x_0 * x_0;
-                    zz_1 = (ulong)(c << 31) | (p >> 33);
-                    zz[zzOff + 0] = (uint)p;
-                    c = (uint)(p >> 32) & 1;
-                }
-            }
-
-            ulong x_1 = x[xOff + 1];
-            ulong zz_2 = zz[zzOff + 2];
-
-            {
-                zz_1 += x_1 * x_0;
-                w = (uint)zz_1;
-                zz[zzOff + 1] = (w << 1) | c;
-                c = w >> 31;
-                zz_2 += zz_1 >> 32;
-            }
-
-            ulong x_2 = x[xOff + 2];
-            ulong zz_3 = zz[zzOff + 3];
-            ulong zz_4 = zz[zzOff + 4];
-            {
-                zz_2 += x_2 * x_0;
-                w = (uint)zz_2;
-                zz[zzOff + 2] = (w << 1) | c;
-                c = w >> 31;
-                zz_3 += (zz_2 >> 32) + x_2 * x_1;
-                zz_4 += zz_3 >> 32;
-                zz_3 &= M;
-            }
-
-            ulong x_3 = x[xOff + 3];
-            ulong zz_5 = zz[zzOff + 5] + (zz_4 >> 32); zz_4 &= M;
-            ulong zz_6 = zz[zzOff + 6] + (zz_5 >> 32); zz_5 &= M;
-            {
-                zz_3 += x_3 * x_0;
-                w = (uint)zz_3;
-                zz[zzOff + 3] = (w << 1) | c;
-                c = w >> 31;
-                zz_4 += (zz_3 >> 32) + x_3 * x_1;
-                zz_5 += (zz_4 >> 32) + x_3 * x_2;
-                zz_4 &= M;
-                zz_6 += zz_5 >> 32;
-                zz_5 &= M;
-            }
-
-            ulong x_4 = x[xOff + 4];
-            ulong zz_7 = zz[zzOff + 7] + (zz_6 >> 32); zz_6 &= M;
-            ulong zz_8 = zz[zzOff + 8] + (zz_7 >> 32); zz_7 &= M;
-            {
-                zz_4 += x_4 * x_0;
-                w = (uint)zz_4;
-                zz[zzOff + 4] = (w << 1) | c;
-                c = w >> 31;
-                zz_5 += (zz_4 >> 32) + x_4 * x_1;
-                zz_6 += (zz_5 >> 32) + x_4 * x_2;
-                zz_7 += (zz_6 >> 32) + x_4 * x_3;
-                zz_8 += zz_7 >> 32;
-            }
-
-            w = (uint)zz_5;
-            zz[zzOff + 5] = (w << 1) | c;
-            c = w >> 31;
-            w = (uint)zz_6;
-            zz[zzOff + 6] = (w << 1) | c;
-            c = w >> 31;
-            w = (uint)zz_7;
-            zz[zzOff + 7] = (w << 1) | c;
-            c = w >> 31;
-            w = (uint)zz_8;
-            zz[zzOff + 8] = (w << 1) | c;
-            c = w >> 31;
-            w = zz[zzOff + 9] + (uint)(zz_8 >> 32);
-            zz[zzOff + 9] = (w << 1) | c;
-        }
-
-        public static int Sub(uint[] x, uint[] y, uint[] z)
+        public static int Sub(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
             long c = 0;
             c += (long)x[0] - y[0];
@@ -760,28 +561,7 @@ namespace Org.BouncyCastle.Math.Raw
             return (int)c;
         }
 
-        public static int Sub(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
-        {
-            long c = 0;
-            c += (long)x[xOff + 0] - y[yOff + 0];
-            z[zOff + 0] = (uint)c;
-            c >>= 32;
-            c += (long)x[xOff + 1] - y[yOff + 1];
-            z[zOff + 1] = (uint)c;
-            c >>= 32;
-            c += (long)x[xOff + 2] - y[yOff + 2];
-            z[zOff + 2] = (uint)c;
-            c >>= 32;
-            c += (long)x[xOff + 3] - y[yOff + 3];
-            z[zOff + 3] = (uint)c;
-            c >>= 32;
-            c += (long)x[xOff + 4] - y[yOff + 4];
-            z[zOff + 4] = (uint)c;
-            c >>= 32;
-            return (int)c;
-        }
-
-        public static int SubBothFrom(uint[] x, uint[] y, uint[] z)
+        public static int SubBothFrom(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
             long c = 0;
             c += (long)z[0] - x[0] - y[0];
@@ -802,7 +582,7 @@ namespace Org.BouncyCastle.Math.Raw
             return (int)c;
         }
 
-        public static int SubFrom(uint[] x, uint[] z)
+        public static int SubFrom(ReadOnlySpan<uint> x, Span<uint> z)
         {
             long c = 0;
             c += (long)z[0] - x[0];
@@ -819,27 +599,6 @@ namespace Org.BouncyCastle.Math.Raw
             c >>= 32;
             c += (long)z[4] - x[4];
             z[4] = (uint)c;
-            c >>= 32;
-            return (int)c;
-        }
-
-        public static int SubFrom(uint[] x, int xOff, uint[] z, int zOff)
-        {
-            long c = 0;
-            c += (long)z[zOff + 0] - x[xOff + 0];
-            z[zOff + 0] = (uint)c;
-            c >>= 32;
-            c += (long)z[zOff + 1] - x[xOff + 1];
-            z[zOff + 1] = (uint)c;
-            c >>= 32;
-            c += (long)z[zOff + 2] - x[xOff + 2];
-            z[zOff + 2] = (uint)c;
-            c >>= 32;
-            c += (long)z[zOff + 3] - x[xOff + 3];
-            z[zOff + 3] = (uint)c;
-            c >>= 32;
-            c += (long)z[zOff + 4] - x[xOff + 4];
-            z[zOff + 4] = (uint)c;
             c >>= 32;
             return (int)c;
         }
