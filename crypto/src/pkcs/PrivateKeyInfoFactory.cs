@@ -1,5 +1,4 @@
 using System;
-
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
@@ -13,7 +12,14 @@ using Org.BouncyCastle.crypto.parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
+using Org.BouncyCastle.Pqc.Asn1;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -248,7 +254,94 @@ namespace Org.BouncyCastle.Pkcs
 
             if (privateKey is HybridKeyParameters)
             {
-                // FIXME(bence)
+                HybridKeyParameters key = (HybridKeyParameters)privateKey;
+                var names = key.CanonicalName.Split(Convert.ToChar("_"));
+                var classicalName = names[0];
+                var postQuantumName = names[1];
+
+                byte[] classicalBytes = null;
+                switch (classicalName)
+                {
+                    case "p256":
+                    case "p384":
+                    case "p521":
+                        var ecPrivKey = key.Classical as ECPrivateKeyParameters;
+                        ECPoint Q = new FixedPointCombMultiplier().Multiply(ecPrivKey.Parameters.G, ecPrivKey.D);
+                        ECPublicKeyParameters ecPubKey = (ecPrivKey.PublicKeyParamSet == null) ? new ECPublicKeyParameters(ecPrivKey.AlgorithmName, Q, ecPrivKey.Parameters) : new ECPublicKeyParameters(ecPrivKey.AlgorithmName, Q, ecPrivKey.PublicKeyParamSet);
+                        DerObjectIdentifier oid = null;
+                        switch (classicalName)
+                        {
+                            case "p256":
+                                oid = SecObjectIdentifiers.SecP256r1;
+                                break;
+                            case "p384":
+                                oid = SecObjectIdentifiers.SecP384r1;
+                                break;
+                            case "p521":
+                                oid = SecObjectIdentifiers.SecP521r1;
+                                break;
+                        }
+                        var pubKeyDer = new DerBitString(ecPubKey.Q.GetEncoded());
+                        classicalBytes = new ECPrivateKeyStructure(SecNamedCurves.GetByOid(oid).N.BitLength, ecPrivKey.D, pubKeyDer, oid).GetDerEncoded();
+                        break;
+                    case "x25519":
+                        classicalBytes = (key.Classical as X25519PrivateKeyParameters).GetEncoded();
+                        break;
+                    case "x448":
+                        classicalBytes = (key.Classical as X448PrivateKeyParameters).GetEncoded();
+                        break;
+                    case "ed25519":
+                        classicalBytes = (key.Classical as Ed25519PrivateKeyParameters).GetEncoded();
+                        break;
+                    case "ed448":
+                        classicalBytes = (key.Classical as Ed448PrivateKeyParameters).GetEncoded();
+                        break;
+                }
+
+                if (classicalBytes == null)
+                {
+                    throw new Exception("Classical algorithm not supported");
+                }
+
+                byte[] postQuantumBytes = null;
+                switch (postQuantumName)
+                {
+                    case "mlkem512":
+                    case "mlkem768":
+                    case "mlkem1024":
+                        postQuantumBytes = (key.PostQuantum as KyberPrivateKeyParameters).GetEncoded();
+                        break;
+                    case "mldsa44":
+                    case "mldsa65":
+                    case "mldsa87":
+                        postQuantumBytes = (key.PostQuantum as DilithiumPrivateKeyParameters).GetEncoded();
+                        break;
+                    case "slh_dsa_sha2_128f":
+                    case "slh_dsa_sha2_192f":
+                    case "slh_dsa_sha2_256f":
+                    case "slh_dsa_sha2_128s":
+                    case "slh_dsa_sha2_192s":
+                    case "slh_dsa_sha2_256s":
+                    case "slh_dsa_shake_128f":
+                    case "slh_dsa_shake_192f":
+                    case "slh_dsa_shake_256f":
+                    case "slh_dsa_shake_128s":
+                    case "slh_dsa_shake_192s":
+                    case "slh_dsa_shake_256s":
+                        postQuantumBytes = (key.PostQuantum as SphincsPlusPrivateKeyParameters).GetEncoded();
+                        break;
+                }
+
+                if (postQuantumBytes == null)
+                {
+                    throw new Exception("Post-quantum algorithm not supported");
+                }
+
+                byte[] combinedBytes = new byte[4 + classicalBytes.Length + postQuantumBytes.Length];
+                Pack.UInt32_To_BE((uint)classicalBytes.Length, combinedBytes);
+                Array.Copy(classicalBytes, 0, combinedBytes, 4, classicalBytes.Length);
+                Array.Copy(postQuantumBytes, 0, combinedBytes, 4 + classicalBytes.Length, postQuantumBytes.Length);
+                return new PrivateKeyInfo(new AlgorithmIdentifier(key.AlgorithmOid), new DerOctetString(combinedBytes));
             }
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));

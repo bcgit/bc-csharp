@@ -192,7 +192,7 @@ namespace Org.BouncyCastle.crypto.parameters
             }
             else if (PostQuantum is DilithiumKeyParameters)
             {
-                postQuantumCanonicalName = string.Concat("dilithium", (PostQuantum as DilithiumKeyParameters).Parameters.GetEngine(null).Mode.ToString());
+                postQuantumCanonicalName = string.Concat("mldsa", (PostQuantum as DilithiumKeyParameters).Parameters.GetEngine(null).Mode.ToString());
             }
             else if (PostQuantum is SphincsPlusKeyParameters)
             {

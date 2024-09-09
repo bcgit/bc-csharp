@@ -11,8 +11,12 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.crypto.parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
@@ -252,7 +256,77 @@ namespace Org.BouncyCastle.X509
 
             if (publicKey is HybridKeyParameters)
             {
-                // FIXME(bence)
+                HybridKeyParameters key = (HybridKeyParameters)publicKey;
+                var names = key.CanonicalName.Split(Convert.ToChar("_"));
+                var classicalName = names[0];
+                var postQuantumName = names[1];
+
+                byte[] classicalBytes = null;
+                switch (classicalName)
+                {
+                    case "p256":
+                    case "p384":
+                    case "p521":
+                        classicalBytes = (key.Classical as ECPublicKeyParameters).Q.GetEncoded();
+                        break;
+                    case "x25519":
+                        classicalBytes = (key.Classical as X25519PublicKeyParameters).GetEncoded();
+                        break;
+                    case "x448":
+                        classicalBytes = (key.Classical as X448PublicKeyParameters).GetEncoded();
+                        break;
+                    case "ed25519":
+                        classicalBytes = (key.Classical as Ed25519PublicKeyParameters).GetEncoded();
+                        break;
+                    case "ed448":
+                        classicalBytes = (key.Classical as Ed448PublicKeyParameters).GetEncoded();
+                        break;
+                }
+
+                if (classicalBytes == null)
+                {
+                    throw new Exception("Classical algorithm not supported");
+                }
+
+                byte[] postQuantumBytes = null;
+                switch (postQuantumName)
+                {
+                    case "mlkem512":
+                    case "mlkem768":
+                    case "mlkem1024":
+                        postQuantumBytes = (key.PostQuantum as KyberPublicKeyParameters).GetEncoded();
+                        break;
+                    case "mldsa44":
+                    case "mldsa65":
+                    case "mldsa87":
+                        postQuantumBytes = (key.PostQuantum as DilithiumPublicKeyParameters).GetEncoded();
+                        break;
+                    case "slh_dsa_sha2_128f":
+                    case "slh_dsa_sha2_192f":
+                    case "slh_dsa_sha2_256f":
+                    case "slh_dsa_sha2_128s":
+                    case "slh_dsa_sha2_192s":
+                    case "slh_dsa_sha2_256s":
+                    case "slh_dsa_shake_128f":
+                    case "slh_dsa_shake_192f":
+                    case "slh_dsa_shake_256f":
+                    case "slh_dsa_shake_128s":
+                    case "slh_dsa_shake_192s":
+                    case "slh_dsa_shake_256s":
+                        postQuantumBytes = (key.PostQuantum as SphincsPlusPublicKeyParameters).GetEncoded();
+                        break;
+                }
+
+                if (postQuantumBytes == null)
+                {
+                    throw new Exception("Post-quantum algorithm not supported");
+                }
+
+                byte[] combinedBytes = new byte[4 + classicalBytes.Length + postQuantumBytes.Length];
+                Pack.UInt32_To_BE((uint)classicalBytes.Length, combinedBytes);
+                Array.Copy(classicalBytes, 0, combinedBytes, 4, classicalBytes.Length);
+                Array.Copy(postQuantumBytes, 0, combinedBytes, 4 + classicalBytes.Length, postQuantumBytes.Length);
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(key.AlgorithmOid), combinedBytes);
             }
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));

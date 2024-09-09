@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto;
@@ -44,40 +45,46 @@ namespace Org.BouncyCastle.crypto.parameters
 
         public Dictionary<string, DerObjectIdentifier> postQuantumNameToOid = new Dictionary<string, DerObjectIdentifier>()
         {
-            { "kyber512", BCObjectIdentifiers.kyber512 },
-            { "kyber768", BCObjectIdentifiers.kyber768 },
-            { "kyber1024", BCObjectIdentifiers.kyber1024 },
-            { "mlkem512", BCObjectIdentifiers.kyber512 },
-            { "mlkem768", BCObjectIdentifiers.kyber768 },
-            { "mlkem1024", BCObjectIdentifiers.kyber1024 },
-            { "dilithium2", BCObjectIdentifiers.dilithium2 },
-            { "dilithium3", BCObjectIdentifiers.dilithium3 },
-            { "dilithium5", BCObjectIdentifiers.dilithium5 },
-            { "mldsa44", BCObjectIdentifiers.dilithium2 },
-            { "mldsa65", BCObjectIdentifiers.dilithium3 },
-            { "mldsa87", BCObjectIdentifiers.dilithium5 },
-            { "sphincssha2128fsimple", BCObjectIdentifiers.sphincsPlus_sha2_128f },
-            { "sphincssha2192fsimple", BCObjectIdentifiers.sphincsPlus_sha2_192f },
-            { "sphincssha2256fsimple", BCObjectIdentifiers.sphincsPlus_sha2_256f },
+            { "mlkem512", NistObjectIdentifiers.IdAlgMLKem512 },
+            { "mlkem768", NistObjectIdentifiers.IdAlgMLKem768 },
+            { "mlkem1024", NistObjectIdentifiers.IdAlgMLKem1024 },
+            { "mldsa44", NistObjectIdentifiers.IdHashMLDsa44WithSha512 },
+            { "mldsa65", NistObjectIdentifiers.IdHashMLDsa65WithSha512 },
+            { "mldsa87", NistObjectIdentifiers.IdHashMLDsa87WithSha512 },
+            { "slh_dsa_sha2_128f", NistObjectIdentifiers.IdHashSlhDsasha2_128fWithSha256 },
+            { "slh_dsa_sha2_192f", NistObjectIdentifiers.IdHashSlhDsasha2_192fWithSha512 },
+            { "slh_dsa_sha2_256f", NistObjectIdentifiers.IdHashSlhDsasha2_256fWithSha512 },
+            { "slh_dsa_sha2_128s", NistObjectIdentifiers.IdHashSlhDsaSha2_128sWithSha256 },
+            { "slh_dsa_sha2_192s", NistObjectIdentifiers.IdHashSlhDsasha2_192sWithSha512 },
+            { "slh_dsa_sha2_256s", NistObjectIdentifiers.IdHashSlhDsasha2_256sWithSha512 },
+            { "slh_dsa_shake_128f", NistObjectIdentifiers.IdHashSlhDsashake_128fWithShake128 },
+            { "slh_dsa_shake_192f", NistObjectIdentifiers.IdHashSlhDsashake_192fWithShake256 },
+            { "slh_dsa_shake_256f", NistObjectIdentifiers.IdHashSlhDsashake_256fWithShake256 },
+            { "slh_dsa_shake_128s", NistObjectIdentifiers.IdHashSlhDsashake_128sWithShake128 },
+            { "slh_dsa_shake_192s", NistObjectIdentifiers.IdHashSlhDsashake_192sWithShake256 },
+            { "slh_dsa_shake_256s", NistObjectIdentifiers.IdHashSlhDsashake_256sWithShake256 },
         };
 
         public Dictionary<DerObjectIdentifier, string> postQuantumOidToName = new Dictionary<DerObjectIdentifier, string>()
         {
-            { BCObjectIdentifiers.kyber512, "kyber512" },
-            { BCObjectIdentifiers.kyber768, "kyber768" },
-            { BCObjectIdentifiers.kyber1024, "kyber1024" },
-            { BCObjectIdentifiers.kyber512, "mlkem512" },
-            { BCObjectIdentifiers.kyber768, "mlkem768" },
-            { BCObjectIdentifiers.kyber1024, "mlkem1024" },
-            { BCObjectIdentifiers.dilithium2, "dilithium2" },
-            { BCObjectIdentifiers.dilithium3, "dilithium3" },
-            { BCObjectIdentifiers.dilithium5, "dilithium5" },
-            { BCObjectIdentifiers.dilithium2, "mldsa44" },
-            { BCObjectIdentifiers.dilithium3, "mldsa65" },
-            { BCObjectIdentifiers.dilithium5, "mldsa87" },
-            { BCObjectIdentifiers.sphincsPlus_sha2_128f, "sphincssha2128fsimple" },
-            { BCObjectIdentifiers.sphincsPlus_sha2_192f, "sphincssha2192fsimple" },
-            { BCObjectIdentifiers.sphincsPlus_sha2_256f, "sphincssha2256fsimple" },
+            { NistObjectIdentifiers.IdAlgMLKem512, "mlkem512" },
+            { NistObjectIdentifiers.IdAlgMLKem768 , "mlkem768" },
+            { NistObjectIdentifiers.IdAlgMLKem1024 , "mlkem1024" },
+            { NistObjectIdentifiers.IdHashMLDsa44WithSha512 , "mldsa44" },
+            { NistObjectIdentifiers.IdHashMLDsa65WithSha512 , "mldsa65" },
+            { NistObjectIdentifiers.IdHashMLDsa87WithSha512 , "mldsa87" },
+            { NistObjectIdentifiers.IdHashSlhDsasha2_128fWithSha256 , "slh_dsa_sha2_128f" },
+            { NistObjectIdentifiers.IdHashSlhDsasha2_192fWithSha512 , "slh_dsa_sha2_192f" },
+            { NistObjectIdentifiers.IdHashSlhDsasha2_256fWithSha512 , "slh_dsa_sha2_256f" },
+            { NistObjectIdentifiers.IdHashSlhDsaSha2_128sWithSha256 , "slh_dsa_sha2_128s" },
+            { NistObjectIdentifiers.IdHashSlhDsasha2_192sWithSha512 , "slh_dsa_sha2_192s" },
+            { NistObjectIdentifiers.IdHashSlhDsasha2_256sWithSha512 , "slh_dsa_sha2_256s" },
+            { NistObjectIdentifiers.IdHashSlhDsashake_128fWithShake128 , "slh_dsa_shake_128f" },
+            { NistObjectIdentifiers.IdHashSlhDsashake_192fWithShake256 , "slh_dsa_shake_192f" },
+            { NistObjectIdentifiers.IdHashSlhDsashake_256fWithShake256 , "slh_dsa_shake_256f" },
+            { NistObjectIdentifiers.IdHashSlhDsashake_128sWithShake128 , "slh_dsa_shake_128s" },
+            { NistObjectIdentifiers.IdHashSlhDsashake_192sWithShake256 , "slh_dsa_shake_192s" },
+            { NistObjectIdentifiers.IdHashSlhDsashake_256sWithShake256 , "slh_dsa_shake_256s" },
         };
 
         public DerObjectIdentifier ClassicalAlgorithm {  get; set; }
@@ -214,19 +221,12 @@ namespace Org.BouncyCastle.crypto.parameters
                 case "ed448":
                     ClassicalParameters = new ECKeyGenerationParameters(ClassicalAlgorithm, new Security.SecureRandom());
                     break;
+                default:
+                    throw new Exception("Classical algorithm not supported");
             }
 
             switch (PostQuantumName)
             {
-                case "kyber512":
-                    PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber512);
-                    break;
-                case "kyber768":
-                    PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber768);
-                    break;
-                case "kyber1024":
-                    PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber1024);
-                    break;
                 case "mlkem512":
                     PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber512);
                     break;
@@ -235,15 +235,6 @@ namespace Org.BouncyCastle.crypto.parameters
                     break;
                 case "mlkem1024":
                     PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber1024);
-                    break;
-                case "dilithium2":
-                    PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium2);
-                    break;
-                case "dilithium3":
-                    PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium3);
-                    break;
-                case "dilithium5":
-                    PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium5);
                     break;
                 case "mldsa44":
                     PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium2);
@@ -254,15 +245,44 @@ namespace Org.BouncyCastle.crypto.parameters
                 case "mldsa87":
                     PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium5);
                     break;
-                case "sphincssha2128fsimple":
+                case "slh_dsa_sha2_128f":
                     PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_128f_simple);
                     break;
-                case "sphincssha2192fsimple":
+                case "slh_dsa_sha2_192f":
                     PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_192f_simple);
                     break;
-                case "sphincssha2256fsimple":
+                case "slh_dsa_sha2_256f":
                     PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_256f_simple);
                     break;
+                case "slh_dsa_sha2_128s":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_128s_simple);
+                    break;
+                case "slh_dsa_sha2_192s":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_192s_simple);
+                    break;
+                case "slh_dsa_sha2_256s":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_256s_simple);
+                    break;
+                case "slh_dsa_shake_128f":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.shake_128f_simple);
+                    break;
+                case "slh_dsa_shake_192f":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.shake_192f_simple);
+                    break;
+                case "slh_dsa_shake_256f":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.shake_256f_simple);
+                    break;
+                case "slh_dsa_shake_128s":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.shake_128s_simple);
+                    break;
+                case "slh_dsa_shake_192s":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.shake_192s_simple);
+                    break;
+                case "slh_dsa_shake_256s":
+                    PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.shake_256s_simple);
+                    break;
+                default:
+                    throw new Exception("Post-quantum algorithm not supported");
             }
         }
     }
