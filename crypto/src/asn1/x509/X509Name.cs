@@ -80,6 +80,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier Generation = new DerObjectIdentifier("2.5.4.44");
         public static readonly DerObjectIdentifier UniqueIdentifier = new DerObjectIdentifier("2.5.4.45");
 
+        public static readonly DerObjectIdentifier Description = new DerObjectIdentifier("2.5.4.13");
+
         /**
          * businessCategory - DirectoryString(SIZE(1..128)
          */
@@ -99,6 +101,8 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 3039 Pseudonym - DirectoryString(SIZE(1..64)
          */
         public static readonly DerObjectIdentifier Pseudonym = new DerObjectIdentifier("2.5.4.65");
+
+        public static readonly DerObjectIdentifier Role = new DerObjectIdentifier("2.5.4.72");
 
         /**
          * RFC 3039 DateOfBirth - GeneralizedTime - YYYYMMDD000000Z
@@ -183,7 +187,23 @@ namespace Org.BouncyCastle.Asn1.X509
         /**
         * LDAP User id.
         */
+        // TODO[api] Change to 'Uid'
         public static readonly DerObjectIdentifier UID = new DerObjectIdentifier("0.9.2342.19200300.100.1.1");
+
+        /**
+         * CA/Browser Forum https://cabforum.org/uploads/CA-Browser-Forum-BR-v2.0.0.pdf, Table 78
+         */
+        public static readonly DerObjectIdentifier JurisdictionC = new DerObjectIdentifier("1.3.6.1.4.1.311.60.2.1.3");
+
+        /**
+         * CA/Browser Forum https://cabforum.org/uploads/CA-Browser-Forum-BR-v2.0.0.pdf, Table 78
+         */
+        public static readonly DerObjectIdentifier JurisdictionST = new DerObjectIdentifier("1.3.6.1.4.1.311.60.2.1.2");
+
+        /**
+         * CA/Browser Forum https://cabforum.org/uploads/CA-Browser-Forum-BR-v2.0.0.pdf, Table 78
+         */
+        public static readonly DerObjectIdentifier JurisdictionL = new DerObjectIdentifier("1.3.6.1.4.1.311.60.2.1.1");
 
         /**
         * determines whether or not strings should be processed and printed
@@ -195,6 +215,7 @@ namespace Org.BouncyCastle.Asn1.X509
             set { Interlocked.Exchange(ref defaultReverse, Convert.ToInt64(value)); }
         }
 
+        // TODO[api] Replace this global switch
         private static long defaultReverse = 0;
 
         /**
@@ -249,6 +270,8 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultSymbolsInternal.Add(GivenName, "GIVENNAME");
             DefaultSymbolsInternal.Add(Initials, "INITIALS");
             DefaultSymbolsInternal.Add(Generation, "GENERATION");
+            DefaultSymbolsInternal.Add(Description, "DESCRIPTION");
+            DefaultSymbolsInternal.Add(Role, "ROLE");
             DefaultSymbolsInternal.Add(UnstructuredAddress, "unstructuredAddress");
             DefaultSymbolsInternal.Add(UnstructuredName, "unstructuredName");
             DefaultSymbolsInternal.Add(UniqueIdentifier, "UniqueIdentifier");
@@ -264,6 +287,11 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultSymbolsInternal.Add(PostalCode, "PostalCode");
             DefaultSymbolsInternal.Add(BusinessCategory, "BusinessCategory");
             DefaultSymbolsInternal.Add(TelephoneNumber, "TelephoneNumber");
+            DefaultSymbolsInternal.Add(Name, "Name");
+            DefaultSymbolsInternal.Add(OrganizationIdentifier, "organizationIdentifier");
+            DefaultSymbolsInternal.Add(JurisdictionC, "jurisdictionCountry");
+            DefaultSymbolsInternal.Add(JurisdictionST, "jurisdictionState");
+            DefaultSymbolsInternal.Add(JurisdictionL, "jurisdictionLocality");
 
             RFC2253SymbolsInternal.Add(C, "C");
             RFC2253SymbolsInternal.Add(O, "O");
@@ -290,6 +318,7 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("cn", CN);
             DefaultLookupInternal.Add("l", L);
             DefaultLookupInternal.Add("st", ST);
+            DefaultLookupInternal.Add("sn", Surname);
             DefaultLookupInternal.Add("serialnumber", SerialNumber);
             DefaultLookupInternal.Add("street", Street);
             DefaultLookupInternal.Add("emailaddress", E);
@@ -300,6 +329,8 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("givenname", GivenName);
             DefaultLookupInternal.Add("initials", Initials);
             DefaultLookupInternal.Add("generation", Generation);
+            DefaultLookupInternal.Add("description", Description);
+            DefaultLookupInternal.Add("role", Role);
             DefaultLookupInternal.Add("unstructuredaddress", UnstructuredAddress);
             DefaultLookupInternal.Add("unstructuredname", UnstructuredName);
             DefaultLookupInternal.Add("uniqueidentifier", UniqueIdentifier);
@@ -315,6 +346,11 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("postalcode", PostalCode);
             DefaultLookupInternal.Add("businesscategory", BusinessCategory);
             DefaultLookupInternal.Add("telephonenumber", TelephoneNumber);
+            DefaultLookupInternal.Add("name", Name);
+            DefaultLookupInternal.Add("organizationidentifier", OrganizationIdentifier);
+            DefaultLookupInternal.Add("jurisdictioncountry", JurisdictionC);
+            DefaultLookupInternal.Add("jurisdictionstate", JurisdictionST);
+            DefaultLookupInternal.Add("jurisdictionlocality", JurisdictionL);
         }
 
         public static X509Name GetInstance(object obj)
