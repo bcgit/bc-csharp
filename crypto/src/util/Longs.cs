@@ -78,6 +78,22 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        public static int PopCount(long i)
+        {
+            return PopCount((ulong)i);
+        }
+
+        [CLSCompliant(false)]
+        public static int PopCount(ulong u)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return BitOperations.PopCount(u);
+#else
+            return Integers.PopCount((uint)u)
+                +  Integers.PopCount((uint)(u >> 32));
+#endif
+        }
+
         public static long Reverse(long i)
         {
             return (long)Reverse((ulong)i);
