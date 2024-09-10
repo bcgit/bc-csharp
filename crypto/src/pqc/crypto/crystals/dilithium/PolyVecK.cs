@@ -2,36 +2,28 @@
 {
     internal class PolyVecK
     {
-        public readonly Poly[] Vec;
-        private readonly DilithiumEngine Engine;
-        //private readonly int Mode;
+        internal readonly Poly[] Vec;
         private readonly int K;
-        //private readonly int L;
 
-        public PolyVecK(DilithiumEngine Engine)
+        internal PolyVecK(DilithiumEngine engine)
         {
-            this.Engine = Engine;
-            //Mode = Engine.Mode;
-            K = Engine.K;
-            //L = Engine.L;
+            K = engine.K;
             Vec = new Poly[K];
-
             for (int i = 0; i < K; i++)
             {
-                Vec[i] = new Poly(Engine);
+                Vec[i] = new Poly(engine);
             }
         }
 
-        public void UniformEta(byte[] seed, ushort nonce)
+        internal void UniformEta(byte[] seed, ushort nonce)
         {
-            ushort n = nonce;
             for (int i = 0; i < K; i++)
             {
-                Vec[i].UniformEta(seed, n++);
+                Vec[i].UniformEta(seed, nonce++);
             }
         }
 
-        public void Reduce()
+        internal void Reduce()
         {
             for (int i = 0; i < K; i++)
             {
@@ -39,7 +31,7 @@
             }
         }
 
-        public void Ntt()
+        internal void Ntt()
         {
             for (int i= 0; i < K; ++i)
             {
@@ -47,15 +39,15 @@
             }
         }
 
-        public void InverseNttToMont()
+        internal void InverseNttToMont()
         {
             for (int i = 0; i < K; ++i)
             {
                 Vec[i].InverseNttToMont();
             }
         }
-        
-        public void AddPolyVecK(PolyVecK b)
+
+        internal void AddPolyVecK(PolyVecK b)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -63,7 +55,7 @@
             }
         }
 
-        public void Subtract(PolyVecK v)
+        internal void Subtract(PolyVecK v)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -71,7 +63,7 @@
             }
         }
 
-        public void ConditionalAddQ()
+        internal void ConditionalAddQ()
         {
             for (int i = 0; i < K; ++i)
             {
@@ -79,7 +71,7 @@
             }
         }
 
-        public void Power2Round(PolyVecK v)
+        internal void Power2Round(PolyVecK v)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -87,7 +79,7 @@
             }
         }
 
-        public void Decompose(PolyVecK v)
+        internal void Decompose(PolyVecK v)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -95,15 +87,15 @@
             }
         }
 
-        public void PackW1(byte[] r)
+        internal void PackW1(DilithiumEngine engine, byte[] r)
         {
             for (int i = 0; i < K; i++)
             {
-                Vec[i].PackW1(r, i * Engine.PolyW1PackedBytes);
+                Vec[i].PackW1(r, i * engine.PolyW1PackedBytes);
             }
         }
 
-        public void PointwisePolyMontgomery(Poly a, PolyVecK v)
+        internal void PointwisePolyMontgomery(Poly a, PolyVecK v)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -111,7 +103,7 @@
             }
         }
 
-        public bool CheckNorm(int bound)
+        internal bool CheckNorm(int bound)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -121,7 +113,7 @@
             return false;
         }
 
-        public int MakeHint(PolyVecK v0, PolyVecK v1)
+        internal int MakeHint(PolyVecK v0, PolyVecK v1)
         {
             int s = 0;
             for (int i = 0; i < K; ++i)
@@ -131,7 +123,7 @@
             return s;
         }
 
-        public void UseHint(PolyVecK a, PolyVecK h)
+        internal void UseHint(PolyVecK a, PolyVecK h)
         {
             for (int i = 0; i < K; ++i)
             {
@@ -139,7 +131,7 @@
             }
         }
 
-        public void ShiftLeft()
+        internal void ShiftLeft()
         {
             for (int i = 0; i < K; ++i)
             {

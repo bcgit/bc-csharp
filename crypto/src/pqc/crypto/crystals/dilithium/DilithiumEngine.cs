@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
@@ -22,7 +23,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         internal const int PolyT0PackedBytes = 416;
 
         internal int Mode { get; private set; }
-        internal bool IsPreHash { get; private set; }
         internal SecureRandom Random { get; private set; }
 
         internal int K { get; private set; }
@@ -128,15 +128,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        internal void GenerateKeyPair(out byte[] rho, out byte[] key, out byte[] tr, out byte[] s1_, out byte[] s2_,
-            out byte[] t0_, out byte[] encT1, bool legacy = false)
+        internal void GenerateKeyPair(out byte[] rho, out byte[] k, out byte[] tr, out byte[] s1, out byte[] s2,
+            out byte[] t0, out byte[] encT1, bool legacy = false)
         {
             var seed = SecureRandom.GetNextBytes(Random, SeedBytes);
 
-            GenerateKeyPairInternal(seed, out rho, out key, out tr, out s1_, out s2_, out t0_, out encT1, legacy);
+            GenerateKeyPairInternal(seed, out rho, out k, out tr, out s1, out s2, out t0, out encT1, legacy);
         }
 
-        private void GenerateKeyPairInternal(byte[] seed, out byte[] rho, out byte[] key, out byte[] tr, out byte[] s1_,
+        private void GenerateKeyPairInternal(byte[] seed, out byte[] rho, out byte[] k, out byte[] tr, out byte[] s1_,
             out byte[] s2_, out byte[] t0_, out byte[] encT1, bool legacy)
         {
             byte[] buf = new byte[2 * SeedBytes + CrhBytes];
@@ -144,13 +144,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             tr = new byte[TrBytes];
             rho = new byte[SeedBytes];
-            key = new byte[SeedBytes];
+            k = new byte[SeedBytes];
             s1_ = new byte[L * PolyEtaPackedBytes];
             s2_ = new byte[K * PolyEtaPackedBytes];
             t0_ = new byte[K * PolyT0PackedBytes];
             PolyVecMatrix matrix = new PolyVecMatrix(this);
 
-            PolyVecL s1 = new PolyVecL(this), s1Hat;
+            PolyVecL s1 = new PolyVecL(this);
             PolyVecK s2 = new PolyVecK(this), t1 = new PolyVecK(this), t0 = new PolyVecK(this);
 
             ShakeDigest shake256Digest = new ShakeDigest(256);
@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             rho = Arrays.CopyOfRange(buf, 0, SeedBytes);
             rhoPrime = Arrays.CopyOfRange(buf, SeedBytes, SeedBytes + CrhBytes);
-            key = Arrays.CopyOfRange(buf, SeedBytes + CrhBytes, 2 * SeedBytes + CrhBytes);
+            k = Arrays.CopyOfRange(buf, SeedBytes + CrhBytes, 2 * SeedBytes + CrhBytes);
 
             matrix.ExpandMatrix(rho);
 
@@ -172,12 +172,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             s2.UniformEta(rhoPrime, (ushort)L);
 
-            s1Hat = new PolyVecL(this);
+            {
+                PolyVecL s1Hat = new PolyVecL(this);
+                s1.CopyPolyVecL(s1Hat);
+                s1Hat.Ntt();
 
-            s1.CopyPolyVecL(s1Hat);
-            s1Hat.Ntt();
-
-            matrix.PointwiseMontgomery(t1, s1Hat);
+                matrix.PointwiseMontgomery(t1, s1Hat);
+            }
 
             t1.Reduce();
             t1.InverseNttToMont();
@@ -195,8 +196,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             Packing.PackSecretKey(t0_, s1_, s2_, t0, s1, s2, this);
         }
 
-        internal void Sign(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] key,
-            byte[] tr, byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, bool legacy = false)
+        internal void Sign(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] k, byte[] tr,
+            byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, bool legacy = false)
         {
             var rnd = new byte[RndBytes];
 
@@ -206,14 +207,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 random.NextBytes(rnd);
             }
 
-            SignInternal(sig, siglen, msg, msgOff, msgLen, rho, key, tr, t0Enc, s1Enc, s2Enc, rnd, legacy);
+            SignInternal(sig, siglen, msg, msgOff, msgLen, rho, k, tr, t0Enc, s1Enc, s2Enc, rnd, legacy);
         }
 
-        internal void SignInternal(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] key,
+        internal void SignInternal(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] k,
             byte[] tr, byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, byte[] rnd, bool legacy)
         {
+            byte[] mu = new byte[CrhBytes];
+
+            ShakeDigest shakeDigest256 = new ShakeDigest(256);
+            shakeDigest256.BlockUpdate(tr, 0, TrBytes);
+            shakeDigest256.BlockUpdate(msg, msgOff, msgLen);
+            shakeDigest256.OutputFinal(mu, 0, CrhBytes);
+
             byte[] seedBuf = new byte[3 * SeedBytes + 2 * CrhBytes];
-            byte[] mu = new byte[CrhBytes], rhoPrime = new byte[CrhBytes];
+            byte[] rhoPrime = new byte[CrhBytes];
             PolyVecMatrix matrix = new PolyVecMatrix(this);
             PolyVecL s1 = new PolyVecL(this), y = new PolyVecL(this), z = new PolyVecL(this);
             PolyVecK t0 = new PolyVecK(this), s2 = new PolyVecK(this), w1 = new PolyVecK(this), w0 = new PolyVecK(this), h = new PolyVecK(this);
@@ -221,15 +229,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             Packing.UnpackSecretKey(t0, s1, s2, t0Enc, s1Enc, s2Enc, this);
 
-            ShakeDigest shakeDigest256 = new ShakeDigest(256);
-            shakeDigest256.BlockUpdate(tr, 0, TrBytes);
-            shakeDigest256.BlockUpdate(msg, msgOff, msgLen);
-            shakeDigest256.OutputFinal(mu, 0, CrhBytes);
-
-            byte[] keyMu = Arrays.CopyOf(key, SeedBytes + RndBytes + CrhBytes);
-            Array.Copy(rnd, 0, keyMu, SeedBytes, RndBytes);
-            Array.Copy(mu, 0, keyMu, SeedBytes + RndBytes, CrhBytes);
-            shakeDigest256.BlockUpdate(keyMu, 0, SeedBytes + RndBytes + CrhBytes);
+            shakeDigest256.BlockUpdate(k, 0, SeedBytes);
+            shakeDigest256.BlockUpdate(rnd, 0, RndBytes);
+            shakeDigest256.BlockUpdate(mu, 0, CrhBytes);
             shakeDigest256.OutputFinal(rhoPrime, 0, CrhBytes);
 
             matrix.ExpandMatrix(rho);
@@ -257,7 +259,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 w1.ConditionalAddQ();
                 w1.Decompose(w0);
 
-                w1.PackW1(sig);
+                w1.PackW1(this, sig);
 
                 shakeDigest256.BlockUpdate(mu, 0, CrhBytes);
                 shakeDigest256.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
@@ -303,25 +305,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         internal bool Verify(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] encT1)
         {
-            byte[] buf = new byte[K * PolyW1PackedBytes], mu = new byte[CrhBytes];
-            Poly cp = new Poly(this);
-            PolyVecMatrix matrix = new PolyVecMatrix(this);
-            PolyVecL z = new PolyVecL(this);
-            PolyVecK t1 = new PolyVecK(this), w1 = new PolyVecK(this), h = new PolyVecK(this);
-
             if (siglen != CryptoBytes)
                 return false;
 
-            Packing.UnpackPublicKey(t1, encT1, this);
+            PolyVecK h = new PolyVecK(this);
+            PolyVecL z = new PolyVecL(this);
 
             if (!Packing.UnpackSignature(z, h, sig, this))
                 return false;
 
-            byte[] c = Arrays.CopyOfRange(sig, 0, CTilde);
-            byte[] c2 = new byte[CTilde];
-
             if (z.CheckNorm(Gamma1 - Beta))
                 return false;
+
+            Debug.Assert(CrhBytes >= TrBytes);
+            byte[] mu = new byte[CrhBytes];
 
             ShakeDigest shake256Digest = new ShakeDigest(256);
             shake256Digest.BlockUpdate(rho, 0, rho.Length);
@@ -331,6 +328,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             shake256Digest.BlockUpdate(mu, 0, TrBytes);
             shake256Digest.BlockUpdate(msg, msgOff, msgLen);
             shake256Digest.DoFinal(mu, 0);
+
+            byte[] buf = new byte[K * PolyW1PackedBytes];
+            Poly cp = new Poly(this);
+            PolyVecMatrix matrix = new PolyVecMatrix(this);
+            PolyVecK t1 = new PolyVecK(this), w1 = new PolyVecK(this);
+
+            Packing.UnpackPublicKey(t1, encT1, this);
+
+            byte[] c = Arrays.CopyOfRange(sig, 0, CTilde);
+            byte[] c2 = new byte[CTilde];
 
             cp.Challenge(c);
 
@@ -352,7 +359,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             w1.ConditionalAddQ();
             w1.UseHint(w1, h);
 
-            w1.PackW1(buf);
+            w1.PackW1(this, buf);
 
             shake256Digest.BlockUpdate(mu, 0, CrhBytes);
             shake256Digest.BlockUpdate(buf, 0, K * PolyW1PackedBytes);
@@ -361,9 +368,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             for (int i = 0; i < CTilde; ++i)
             {
                 if (c[i] != c2[i])
-                {
                     return false;
-                }
             }
             return true;
         }

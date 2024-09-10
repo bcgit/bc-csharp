@@ -2,26 +2,20 @@
 {
     internal class PolyVecL
     {
-        public readonly Poly[] Vec;
-        //private DilithiumEngine Engine;
-        //private int Mode;
+        internal readonly Poly[] Vec;
         private readonly int L;
-        private readonly int K;
 
-        public PolyVecL(DilithiumEngine Engine)
+        internal PolyVecL(DilithiumEngine engine)
         {
-            //this.Engine = Engine;
-            //Mode = Engine.Mode;
-            L = Engine.L;
-            K = Engine.K;
+            L = engine.L;
             Vec = new Poly[L];
             for (int i = 0; i < L; i++)
             {
-                Vec[i] = new Poly(Engine);
+                Vec[i] = new Poly(engine);
             }
         }
 
-        public void UniformEta(byte[] seed, ushort nonce)
+        internal void UniformEta(byte[] seed, ushort nonce)
         {
             for (int i = 0; i < L; i++)
             {
@@ -29,7 +23,7 @@
             }
         }
 
-        public void CopyPolyVecL(PolyVecL OutPoly)
+        internal void CopyPolyVecL(PolyVecL OutPoly)
         {
             for (int i = 0; i < L; i++)
             {
@@ -40,7 +34,7 @@
             }
         }
 
-        public void InverseNttToMont()
+        internal void InverseNttToMont()
         {
             for (int i = 0; i < L; i++)
             {
@@ -48,15 +42,15 @@
             }
         }
 
-        public void Ntt()
+        internal void Ntt()
         {
             for (int i = 0; i < L; i++)
             {
                 Vec[i].PolyNtt();
             }
         }
-        
-        public void UniformGamma1(byte[] seed, ushort nonce)
+
+        internal void UniformGamma1(byte[] seed, ushort nonce)
         {
             for (int i = 0; i < L; i++)
             {
@@ -64,7 +58,7 @@
             }
         }
 
-        public void PointwisePolyMontgomery(Poly a, PolyVecL v)
+        internal void PointwisePolyMontgomery(Poly a, PolyVecL v)
         {
             for (int i = 0; i < L; ++i)
             {
@@ -72,7 +66,7 @@
             }
         }
 
-        public void AddPolyVecL(PolyVecL b)
+        internal void AddPolyVecL(PolyVecL b)
         {
             for (int i = 0; i < L; i++)
             {
@@ -80,7 +74,7 @@
             }
         }
 
-        public void Reduce()
+        internal void Reduce()
         {
             for (int i = 0; i < L; i++)
             {
@@ -88,14 +82,12 @@
             }
         }
 
-        public bool CheckNorm(int bound)
+        internal bool CheckNorm(int bound)
         {
             for (int i = 0; i < L; ++i)
             {
                 if (Vec[i].CheckNorm(bound))
-                {
                     return true;
-                }
             }
             return false;
         }

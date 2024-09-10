@@ -32,14 +32,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_t0 = Arrays.CopyOfRange(encoding, index, index + delta);
         }
 
-        internal MLDsaPrivateKeyParameters(MLDsaParameters parameters, byte[] rho, byte[] K, byte[] tr, byte[] s1,
+        internal MLDsaPrivateKeyParameters(MLDsaParameters parameters, byte[] rho, byte[] k, byte[] tr, byte[] s1,
             byte[] s2, byte[] t0, byte[] t1)
             : base(true, parameters)
         {
             // TODO Validation
 
             m_rho = Arrays.Clone(rho);
-            m_k = Arrays.Clone(K);
+            m_k = Arrays.Clone(k);
             m_tr = Arrays.Clone(tr);
             m_s1 = Arrays.Clone(s1);
             m_s2 = Arrays.Clone(s2);

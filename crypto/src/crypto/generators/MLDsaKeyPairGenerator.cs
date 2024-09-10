@@ -19,12 +19,12 @@ namespace Org.BouncyCastle.Crypto.Generators
         {
             var engine = m_parameters.GetEngine(m_random);
 
-            byte[] rho, key, tr, s1, s2, t0, encT1;
-            engine.GenerateKeyPair(out rho, out key, out tr, out s1, out s2, out t0, out encT1);
+            byte[] rho, k, tr, s1, s2, t0, encT1;
+            engine.GenerateKeyPair(out rho, out k, out tr, out s1, out s2, out t0, out encT1);
 
             return new AsymmetricCipherKeyPair(
                 new MLDsaPublicKeyParameters(m_parameters, rho, encT1),
-                new MLDsaPrivateKeyParameters(m_parameters, rho, key, tr, s1, s2, t0, encT1));
+                new MLDsaPrivateKeyParameters(m_parameters, rho, k, tr, s1, s2, t0, encT1));
         }
     }
 }
