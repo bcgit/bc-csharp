@@ -14,10 +14,10 @@ using Org.BouncyCastle.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.crypto.generators
 {
@@ -124,7 +124,8 @@ namespace Org.BouncyCastle.crypto.generators
                 var signer = new ECDsaSigner();
                 signer.Init(true, ecPrivKey);
                 var signature = signer.GenerateSignature(message);
-                classicalSignature = Arrays.Concatenate(signature[0].ToByteArrayUnsigned(), signature[1].ToByteArrayUnsigned());
+                var encoding = new PlainDsaEncoding();
+                classicalSignature = encoding.Encode(ecPrivKey.Parameters.N, signature[0], signature[1]);
             }
             else if (hybridPrivKey.Classical is Ed25519PrivateKeyParameters ed25519PrivKey)
             {
@@ -186,20 +187,19 @@ namespace Org.BouncyCastle.crypto.generators
             if (hybridPubKey.Classical is ECPublicKeyParameters ecPublicKey)
             {
                 var domainParameters = ecPublicKey.Parameters;
-                var classicalSignatureLength = (domainParameters.N.BitLength / 8) * 2;
+                var classicalSignatureLength = BigIntegers.GetUnsignedByteLength(domainParameters.N) * 2;
 
                 if (signature.Length <= classicalSignatureLength)
                 {
                     throw new Exception("Wrong size signature");
                 }
 
-                var classicalSignatureBytes = signature.Take(classicalSignatureLength).ToArray();
-                var r = new Math.BigInteger(classicalSignatureBytes.Take(classicalSignatureLength / 2).ToArray());
-                var s = new Math.BigInteger(classicalSignatureBytes.Skip(classicalSignatureLength / 2).ToArray());
+                var encoding = new PlainDsaEncoding();
+                var classicalSignature = encoding.Decode(domainParameters.N, signature.Take(classicalSignatureLength).ToArray());
 
                 var verifier = new ECDsaSigner();
                 verifier.Init(false, hybridPubKey.Classical);
-                if(!verifier.VerifySignature(message, r, s))
+                if(!verifier.VerifySignature(message, classicalSignature[0], classicalSignature[1]))
                 {
                     throw new VerificationException("Signature verification failed");
                 }

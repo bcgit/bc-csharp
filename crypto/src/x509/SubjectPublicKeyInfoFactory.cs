@@ -301,18 +301,18 @@ namespace Org.BouncyCastle.X509
                     case "mldsa87":
                         postQuantumBytes = (key.PostQuantum as DilithiumPublicKeyParameters).GetEncoded();
                         break;
-                    case "slh_dsa_sha2_128f":
-                    case "slh_dsa_sha2_192f":
-                    case "slh_dsa_sha2_256f":
-                    case "slh_dsa_sha2_128s":
-                    case "slh_dsa_sha2_192s":
-                    case "slh_dsa_sha2_256s":
-                    case "slh_dsa_shake_128f":
-                    case "slh_dsa_shake_192f":
-                    case "slh_dsa_shake_256f":
-                    case "slh_dsa_shake_128s":
-                    case "slh_dsa_shake_192s":
-                    case "slh_dsa_shake_256s":
+                    case "slhdsasha2128f":
+                    case "slhdsasha2192f":
+                    case "slhdsasha2256f":
+                    case "slhdsasha2128s":
+                    case "slhdsasha2192s":
+                    case "slhdsasha2256s":
+                    case "slhdsashake128f":
+                    case "slhdsashake192f":
+                    case "slhdsashake256f":
+                    case "slhdsashake128s":
+                    case "slhdsashake192s":
+                    case "slhdsashake256s":
                         postQuantumBytes = (key.PostQuantum as SphincsPlusPublicKeyParameters).GetEncoded();
                         break;
                 }

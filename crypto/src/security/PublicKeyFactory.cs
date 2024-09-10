@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.crypto.parameters;
@@ -285,29 +286,62 @@ namespace Org.BouncyCastle.Security
                 var classicalName = names[0];
                 var postQuantumName = names[1];
 
+                var hybridBytes = keyInfo.PublicKey.GetBytes();
+
                 var keyParameters = new HybridKeyGenerationParameters(new SecureRandom(), classicalName, postQuantumName);
 
+                AsymmetricKeyParameter classicalKey = null;
                 int classicalKeySize = 0;
                 if (keyParameters.ClassicalParameters is ECKeyGenerationParameters ecKeyParameters)
                 {
                     // public key is uncompressed ec point
                     classicalKeySize = (ecKeyParameters.DomainParameters.Curve.FieldElementEncodingLength * 2) + 1;
+                    if (hybridBytes.Length <= 4 + classicalKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    classicalKey = new ECPublicKeyParameters(new X9ECPoint(ecKeyParameters.DomainParameters.Curve, new DerOctetString(hybridBytes.Skip(4).Take(classicalKeySize).ToArray())).Point, ecKeyParameters.DomainParameters);
                 }
                 else if (keyParameters.ClassicalParameters is X25519KeyGenerationParameters)
                 {
                     classicalKeySize = X25519PublicKeyParameters.KeySize;
+                    if (hybridBytes.Length <= 4 + classicalKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    classicalKey = new X25519PublicKeyParameters(hybridBytes.Skip(4).Take(classicalKeySize).ToArray());
                 }
                 else if (keyParameters.ClassicalParameters is Ed25519KeyGenerationParameters)
                 {
                     classicalKeySize = Ed25519PublicKeyParameters.KeySize;
+                    if (hybridBytes.Length <= 4 + classicalKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    classicalKey = new Ed25519PublicKeyParameters(hybridBytes.Skip(4).Take(classicalKeySize).ToArray());
                 }
                 else if (keyParameters.ClassicalParameters is X448KeyGenerationParameters)
                 {
                     classicalKeySize = X448PublicKeyParameters.KeySize;
+                    if (hybridBytes.Length <= 4 + classicalKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    classicalKey = new X448PublicKeyParameters(hybridBytes.Skip(4).Take(classicalKeySize).ToArray());
                 }
                 else if (keyParameters.ClassicalParameters is Ed448KeyGenerationParameters)
                 {
                     classicalKeySize = Ed448PublicKeyParameters.KeySize;
+                    if (hybridBytes.Length <= 4 + classicalKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    classicalKey = new Ed448PublicKeyParameters(hybridBytes.Skip(4).Take(classicalKeySize).ToArray());
                 }
                 else if (keyParameters.ClassicalParameters is RsaKeyGenerationParameters)
                 {
@@ -315,82 +349,144 @@ namespace Org.BouncyCastle.Security
                     throw new Exception("Rsa hybrid keys not supported");
                 }
 
-                if (classicalKeySize == 0)
+                if (classicalKey == null)
                 {
                     throw new Exception("Classical keytype not supported");
                 }
 
-                int postQuantumKeySize = 0;
+                hybridBytes = hybridBytes.Skip(4 + classicalKeySize).ToArray();
+
+                AsymmetricKeyParameter postQuantumKey = null;
                 if (keyParameters.PostQuantumParameters is KyberKeyGenerationParameters kyberParameters)
                 {
+                    int postQuantumKeySize = 0;
+                    KyberParameters parameters;
                     switch (kyberParameters.Parameters.Name)
                     {
                         case "kyber512":
                             postQuantumKeySize = 800;
+                            parameters = KyberParameters.kyber512;
                             break;
                         case "kyber768":
                             postQuantumKeySize = 1184;
+                            parameters = KyberParameters.kyber768;
                             break;
                         case "kyber1024":
                             postQuantumKeySize = 1568;
+                            parameters = KyberParameters.kyber1024;
                             break;
+                        default:
+                            throw new Exception("Post-quantum keytype not supported");
                     }
+
+                    if (hybridBytes.Length != postQuantumKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    postQuantumKey = new KyberPublicKeyParameters(parameters, hybridBytes);
                 }
                 else if (keyParameters.PostQuantumParameters is DilithiumKeyGenerationParameters dilithiumParameters)
                 {
+                    int postQuantumKeySize = 0;
+                    DilithiumParameters parameters;
                     switch (dilithiumParameters.Parameters.Name)
                     {
                         case "dilithium2":
                             postQuantumKeySize = 1312;
+                            parameters = DilithiumParameters.Dilithium2;
                             break;
                         case "dilithium3":
                             postQuantumKeySize = 1952;
+                            parameters = DilithiumParameters.Dilithium3;
                             break;
                         case "dilithium5":
                             postQuantumKeySize = 2592;
+                            parameters = DilithiumParameters.Dilithium5;
                             break;
+                        default:
+                            throw new Exception("Post-quantum keytype not supported");
                     }
+
+                    if (hybridBytes.Length != postQuantumKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    postQuantumKey = new DilithiumPublicKeyParameters(parameters, hybridBytes);
                 }
                 else if (keyParameters.PostQuantumParameters is SphincsPlusKeyGenerationParameters sphincsParameters)
                 {
+                    int postQuantumKeySize = 0;
+                    SphincsPlusParameters parameters;
                     switch (sphincsParameters.Parameters.Name)
                     {
                         case "sha2-128f-simple":
                             postQuantumKeySize = 32;
+                            parameters = SphincsPlusParameters.sha2_128f_simple;
+                            break;
+                        case "sha2-128s-simple":
+                            postQuantumKeySize = 32;
+                            parameters = SphincsPlusParameters.sha2_128s_simple;
                             break;
                         case "sha2-192f-simple":
                             postQuantumKeySize = 48;
+                            parameters = SphincsPlusParameters.sha2_192f_simple;
+                            break;
+                        case "sha2-192s-simple":
+                            postQuantumKeySize = 48;
+                            parameters = SphincsPlusParameters.sha2_192s_simple;
                             break;
                         case "sha2-256f-simple":
                             postQuantumKeySize = 64;
+                            parameters = SphincsPlusParameters.sha2_256f_simple;
                             break;
+                        case "sha2-256s-simple":
+                            postQuantumKeySize = 64;
+                            parameters = SphincsPlusParameters.sha2_256s_simple;
+                            break;
+                        case "shake-128f-simple":
+                            postQuantumKeySize = 32;
+                            parameters = SphincsPlusParameters.shake_128f_simple;
+                            break;
+                        case "shake-128s-simple":
+                            postQuantumKeySize = 32;
+                            parameters = SphincsPlusParameters.shake_128s_simple;
+                            break;
+                        case "shake-192f-simple":
+                            postQuantumKeySize = 48;
+                            parameters = SphincsPlusParameters.shake_192f_simple;
+                            break;
+                        case "shake-192s-simple":
+                            postQuantumKeySize = 48;
+                            parameters = SphincsPlusParameters.shake_192s_simple;
+                            break;
+                        case "shake-256f-simple":
+                            postQuantumKeySize = 64;
+                            parameters = SphincsPlusParameters.shake_256f_simple;
+                            break;
+                        case "shake-256s-simple":
+                            postQuantumKeySize = 64;
+                            parameters = SphincsPlusParameters.shake_256s_simple;
+                            break;
+                        default:
+                            throw new Exception("Post-quantum keytype not supported");
                     }
+
+                    if (hybridBytes.Length != postQuantumKeySize)
+                    {
+                        throw new Exception("Encoded hybrid public key has wrong size");
+                    }
+
+                    postQuantumKey = new SphincsPlusPublicKeyParameters(parameters, hybridBytes);
                 }
 
-                if (postQuantumKeySize == 0)
+                if (postQuantumKey == null)
                 {
                     throw new Exception("Post-quantum keytype not supported");
                 }
 
-                // expected format:
-                // first 4 bytes are length of the classical public key
-                // then comes the classical public key
-                // finally the post-quantum public key
-                var hybridBytes = keyInfo.PublicKey.GetBytes();
-
-                // deliberately ignoring classical keysize encoding
-                if (hybridBytes.Length != 4 + classicalKeySize + postQuantumKeySize)
-                {
-                    throw new Exception("Encoded hybrid public key has wrong size");
-                }
-
-                var classicalBytes = hybridBytes.Skip(4).Take(classicalKeySize).ToArray();
-                var postQuantumBytes = hybridBytes.Skip(4).Skip(classicalKeySize).ToArray();
-
-                var classicalKeyParameter = PublicKeyFactory.CreateKey(classicalBytes);
-                var postQuantumKeyParameter = PqcPublicKeyFactory.CreateKey(postQuantumBytes);
-
-                return new HybridKeyParameters(classicalKeyParameter, postQuantumKeyParameter);
+                return new HybridKeyParameters(classicalKey, postQuantumKey);
             }
             else
             {

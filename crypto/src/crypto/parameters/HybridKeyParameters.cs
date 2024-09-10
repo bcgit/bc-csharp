@@ -38,7 +38,6 @@ namespace Org.BouncyCastle.crypto.parameters
             //{ "rsa3072_dilithium2" , "1.3.9999.2.7.2" },
             { "p384_dilithium3" , "1.3.9999.2.7.3" },
             { "p521_dilithium5" , "1.3.9999.2.7.4" },
-            { "p256_mldsa44" , "1.3.9999.7.1" },
             //{ "rsa3072_mldsa44" , "1.3.9999.7.2" },
             //{ "mldsa44_rsa2048" , "2.16.840.1.114027.80.8.1.2" },
             { "ed25519_mldsa44" , "2.16.840.1.114027.80.8.1.3" },
@@ -50,22 +49,22 @@ namespace Org.BouncyCastle.crypto.parameters
             { "p521_mldsa87" , "1.3.9999.7.4" },
             { "p384_mldsa87" , "2.16.840.1.114027.80.8.1.11" },
             { "ed448_mldsa87" , "2.16.840.1.114027.80.8.1.13" },
-            { "p256_sphincssha2128fsimple" , "1.3.9999.6.4.14" },
-            //{ "rsa3072_sphincssha2128fsimple" , "1.3.9999.6.4.15" },
-            { "p256_sphincssha2128ssimple" , "1.3.9999.6.4.17" },
-            //{ "rsa3072_sphincssha2128ssimple" , "1.3.9999.6.4.18" },
-            { "p384_sphincssha2192fsimple" , "1.3.9999.6.5.11" },
-            { "p384_sphincssha2192ssimple" , "1.3.9999.6.5.13" },
-            { "p521_sphincssha2256fsimple" , "1.3.9999.6.6.11" },
-            { "p521_sphincssha2256ssimple" , "1.3.9999.6.6.13" },
-            { "p256_sphincsshake128fsimple" , "1.3.9999.6.7.14" },
-            //{ "rsa3072_sphincsshake128fsimple" , "1.3.9999.6.7.15" },
-            { "p256_sphincsshake128ssimple" , "1.3.9999.6.7.17" },
-            //{ "rsa3072_sphincsshake128ssimple" , "1.3.9999.6.7.18" },
-            { "p384_sphincsshake192fsimple" , "1.3.9999.6.8.11" },
-            { "p384_sphincsshake192ssimple" , "1.3.9999.6.8.13" },
-            { "p521_sphincsshake256fsimple" , "1.3.9999.6.9.11" },
-            { "p521_sphincsshake256ssimple" , "1.3.9999.6.9.13" },
+            { "p256_slhdsasha2128f" , "1.3.9999.6.4.14" },
+            //{ "rsa3072_slhdsasha2128f" , "1.3.9999.6.4.15" },
+            { "p256_slhdsasha2128s" , "1.3.9999.6.4.17" },
+            //{ "rsa3072_slhdsasha2128s" , "1.3.9999.6.4.18" },
+            { "p384_slhdsasha2192f" , "1.3.9999.6.5.11" },
+            { "p384_slhdsasha2192s" , "1.3.9999.6.5.13" },
+            { "p521_slhdsasha2256f" , "1.3.9999.6.6.11" },
+            { "p521_slhdsasha2256s" , "1.3.9999.6.6.13" },
+            { "p256_slhdsashake128f" , "1.3.9999.6.7.14" },
+            //{ "rsa3072_slhdsashake128f" , "1.3.9999.6.7.15" },
+            { "p256_slhdsashake128s" , "1.3.9999.6.7.17" },
+            //{ "rsa3072_slhdsashake128s" , "1.3.9999.6.7.18" },
+            { "p384_slhdsashake192f" , "1.3.9999.6.8.11" },
+            { "p384_slhdsashake192s" , "1.3.9999.6.8.13" },
+            { "p521_slhdsashake256f" , "1.3.9999.6.9.11" },
+            { "p521_slhdsashake256s" , "1.3.9999.6.9.13" },
         };
 
         public static readonly Dictionary<string, string> HybridOidToName = new Dictionary<string, string>()
@@ -89,7 +88,6 @@ namespace Org.BouncyCastle.crypto.parameters
             //{ "1.3.9999.2.7.2" , "rsa3072_dilithium2" },
             { "1.3.9999.2.7.3" , "p384_dilithium3" },
             { "1.3.9999.2.7.4" , "p521_dilithium5" },
-            { "1.3.9999.7.1" , "p256_mldsa44" },
             //{ "1.3.9999.7.2" , "rsa3072_mldsa44" },
             //{ "2.16.840.1.114027.80.8.1.2" , "mldsa44_rsa2048" },
             { "2.16.840.1.114027.80.8.1.3" , "ed25519_mldsa44" },
@@ -101,22 +99,22 @@ namespace Org.BouncyCastle.crypto.parameters
             { "1.3.9999.7.4" , "p521_mldsa87" },
             { "2.16.840.1.114027.80.8.1.11" , "p384_mldsa87" },
             { "2.16.840.1.114027.80.8.1.13" , "ed448_mldsa87" },
-            { "1.3.9999.6.4.14" , "p256_sphincssha2128fsimple" },
-            //{ "1.3.9999.6.4.15" , "rsa3072_sphincssha2128fsimple" },
-            { "1.3.9999.6.4.17" , "p256_sphincssha2128ssimple" },
-            //{ "1.3.9999.6.4.18" , "rsa3072_sphincssha2128ssimple" },
-            { "1.3.9999.6.5.11" , "p384_sphincssha2192fsimple" },
-            { "1.3.9999.6.5.13" , "p384_sphincssha2192ssimple" },
-            { "1.3.9999.6.6.11" , "p521_sphincssha2256fsimple" },
-            { "1.3.9999.6.6.13" , "p521_sphincssha2256ssimple" },
-            { "1.3.9999.6.7.14" , "p256_sphincsshake128fsimple" },
-            //{ "1.3.9999.6.7.15" , "rsa3072_sphincsshake128fsimple" },
-            { "1.3.9999.6.7.17" , "p256_sphincsshake128ssimple" },
-            //{ "1.3.9999.6.7.18" , "rsa3072_sphincsshake128ssimple" },
-            { "1.3.9999.6.8.11" , "p384_sphincsshake192fsimple" },
-            { "1.3.9999.6.8.13" , "p384_sphincsshake192ssimple" },
-            { "1.3.9999.6.9.11" , "p521_sphincsshake256fsimple" },
-            { "1.3.9999.6.9.13" , "p521_sphincsshake256ssimple" },
+            { "1.3.9999.6.4.14" , "p256_slhdsasha2128f" },
+            //{ "1.3.9999.6.4.15" , "rsa3072_slhdsasha2128f" },
+            { "1.3.9999.6.4.17" , "p256_slhdsasha2128s" },
+            //{ "1.3.9999.6.4.18" , "rsa3072_slhdsasha2128s" },
+            { "1.3.9999.6.5.11" , "p384_slhdsasha2192f" },
+            { "1.3.9999.6.5.13" , "p384_slhdsasha2192s" },
+            { "1.3.9999.6.6.11" , "p521_slhdsasha2256f" },
+            { "1.3.9999.6.6.13" , "p521_slhdsasha2256s" },
+            { "1.3.9999.6.7.14" , "p256_slhdsashake128f" },
+            //{ "1.3.9999.6.7.15" , "rsa3072_slhdsashake128f" },
+            { "1.3.9999.6.7.17" , "p256_slhdsashake128s" },
+            //{ "1.3.9999.6.7.18" , "rsa3072_slhdsashake128s" },
+            { "1.3.9999.6.8.11" , "p384_slhdsashake192f" },
+            { "1.3.9999.6.8.13" , "p384_slhdsashake192s" },
+            { "1.3.9999.6.9.11" , "p521_slhdsashake256f" },
+            { "1.3.9999.6.9.13" , "p521_slhdsashake256s" },
         };
 
         public readonly DerObjectIdentifier AlgorithmOid;
@@ -188,15 +186,26 @@ namespace Org.BouncyCastle.crypto.parameters
 
             if (PostQuantum is KyberKeyParameters)
             {
-                postQuantumCanonicalName = (PostQuantum as KyberKeyParameters).Parameters.Name;
+                postQuantumCanonicalName = (PostQuantum as KyberKeyParameters).Parameters.Name.Replace("kyber", "mlkem");
             }
             else if (PostQuantum is DilithiumKeyParameters)
             {
-                postQuantumCanonicalName = string.Concat("mldsa", (PostQuantum as DilithiumKeyParameters).Parameters.GetEngine(null).Mode.ToString());
+                switch ((PostQuantum as DilithiumKeyParameters).Parameters.GetEngine(null).Mode)
+                {
+                    case 2:
+                        postQuantumCanonicalName = string.Concat("mldsa", $"{44}");
+                        break;
+                    case 3:
+                        postQuantumCanonicalName = string.Concat("mldsa", $"{65}");
+                        break;
+                    case 5:
+                        postQuantumCanonicalName = string.Concat("mldsa", $"{87}");
+                        break;
+                }
             }
             else if (PostQuantum is SphincsPlusKeyParameters)
             {
-                postQuantumCanonicalName = (PostQuantum as SphincsPlusKeyParameters).Parameters.Name.Replace("-", "");
+                postQuantumCanonicalName = String.Concat("slhdsa", (PostQuantum as SphincsPlusKeyParameters).Parameters.Name.Replace("-", "").Replace("simple", ""));
             }
 
             if (postQuantumCanonicalName != null && classicalCanonicalName != null)
@@ -213,7 +222,7 @@ namespace Org.BouncyCastle.crypto.parameters
             {
                 if(!HybridNameToOid.TryGetValue(CanonicalName, out objectId))
                 {
-                    throw new Exception("Object identifier for hybrid combination not found");
+                    throw new Exception($"Object identifier for {CanonicalName} not found");
                 }
             }
 

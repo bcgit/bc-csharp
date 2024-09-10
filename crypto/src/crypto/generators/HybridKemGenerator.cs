@@ -114,7 +114,8 @@ namespace Org.BouncyCastle.crypto.generators
             {
                 var generator = new ECKeyPairGenerator("ECDH");
                 var pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ecPublicKey);
-                var parameters = new ECKeyGenerationParameters(pubInfo.Algorithm.Algorithm, new SecureRandom());
+                var domainParameters = new ECDomainParameters(ecPublicKey.Parameters.Curve, ecPublicKey.Parameters.G, ecPublicKey.Parameters.N);
+                var parameters = new ECKeyGenerationParameters(domainParameters, new SecureRandom());
                 generator.Init(parameters);
                 var ephemeralKeypair = generator.GenerateKeyPair();
 
