@@ -2,19 +2,18 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -31,11 +30,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private readonly static Dictionary<PicnicParameters, DerObjectIdentifier> picnicOids = new Dictionary<PicnicParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, PicnicParameters> picnicParams = new Dictionary<DerObjectIdentifier, PicnicParameters>();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        private readonly static Dictionary<SikeParameters, DerObjectIdentifier> sikeOids = new Dictionary<SikeParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, SikeParameters> sikeParams = new Dictionary<DerObjectIdentifier, SikeParameters>();
-#pragma warning restore CS0618 // Type or member is obsolete
 
         private readonly static Dictionary<MLKemParameters, DerObjectIdentifier> mlKemOids = new Dictionary<MLKemParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, MLKemParameters> mlKemParams = new Dictionary<DerObjectIdentifier, MLKemParameters>();
@@ -159,26 +153,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl1full] = PicnicParameters.picnicl1full;
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            sikeParams[BCObjectIdentifiers.sikep434] = SikeParameters.sikep434;
-            sikeParams[BCObjectIdentifiers.sikep503] = SikeParameters.sikep503;
-            sikeParams[BCObjectIdentifiers.sikep610] = SikeParameters.sikep610;
-            sikeParams[BCObjectIdentifiers.sikep751] = SikeParameters.sikep751;
-            sikeParams[BCObjectIdentifiers.sikep434_compressed] = SikeParameters.sikep434_compressed;
-            sikeParams[BCObjectIdentifiers.sikep503_compressed] = SikeParameters.sikep503_compressed;
-            sikeParams[BCObjectIdentifiers.sikep610_compressed] = SikeParameters.sikep610_compressed;
-            sikeParams[BCObjectIdentifiers.sikep751_compressed] = SikeParameters.sikep751_compressed;
-
-            sikeOids[SikeParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SikeParameters.sikep503] = BCObjectIdentifiers.sikep503;
-            sikeOids[SikeParameters.sikep610] = BCObjectIdentifiers.sikep610;
-            sikeOids[SikeParameters.sikep751] = BCObjectIdentifiers.sikep751;
-            sikeOids[SikeParameters.sikep434_compressed] = BCObjectIdentifiers.sikep434_compressed;
-            sikeOids[SikeParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
-            sikeOids[SikeParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
-            sikeOids[SikeParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             mlKemOids[MLKemParameters.ML_KEM_512] = NistObjectIdentifiers.IdAlgMLKem512;
             mlKemOids[MLKemParameters.ML_KEM_768] = NistObjectIdentifiers.IdAlgMLKem768;
@@ -371,18 +345,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CollectionUtilities.GetValueOrNull(picnicParams, oid);
         }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal static DerObjectIdentifier SikeOidLookup(SikeParameters parameters)
-        {
-            return CollectionUtilities.GetValueOrNull(sikeOids, parameters);
-        }
-
-        internal static SikeParameters SikeParamsLookup(DerObjectIdentifier oid)
-        {
-            return CollectionUtilities.GetValueOrNull(sikeParams, oid);
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         internal static DerObjectIdentifier BikeOidLookup(BikeParameters parameters)
         {

@@ -336,20 +336,6 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier ufiresaberkem90sr3 = pqc_kem_saber.Branch("18");
 
         /**
-         * SIKE
-         */
-        public static readonly DerObjectIdentifier pqc_kem_sike = bc_kem.Branch("4");
-
-        public static readonly DerObjectIdentifier sikep434 = pqc_kem_sike.Branch("1");
-        public static readonly DerObjectIdentifier sikep503 = pqc_kem_sike.Branch("2");
-        public static readonly DerObjectIdentifier sikep610 = pqc_kem_sike.Branch("3");
-        public static readonly DerObjectIdentifier sikep751 = pqc_kem_sike.Branch("4");
-        public static readonly DerObjectIdentifier sikep434_compressed = pqc_kem_sike.Branch("5");
-        public static readonly DerObjectIdentifier sikep503_compressed = pqc_kem_sike.Branch("6");
-        public static readonly DerObjectIdentifier sikep610_compressed = pqc_kem_sike.Branch("7");
-        public static readonly DerObjectIdentifier sikep751_compressed = pqc_kem_sike.Branch("8");
-
-        /**
          * NTRU
          */
         public static readonly DerObjectIdentifier pqc_kem_ntru = bc_kem.Branch("5");

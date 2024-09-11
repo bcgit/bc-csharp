@@ -19,7 +19,6 @@ using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Asn1.Nist;
@@ -87,17 +86,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.picnicl1full] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl3full] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl5full] = PicnicConverter;
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            Converters[BCObjectIdentifiers.sikep434] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep503] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep610] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep751] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep434_compressed] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep503_compressed] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep610_compressed] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep751_compressed] = SikeConverter;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             Converters[BCObjectIdentifiers.dilithium2] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium3] = DilithiumConverter;
@@ -310,16 +298,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             PicnicParameters picnicParams = PqcUtilities.PicnicParamsLookup(keyInfo.Algorithm.Algorithm);
 
             return new PicnicPublicKeyParameters(picnicParams, keyEnc);
-        }
-
-        [Obsolete("Will be removed")]
-        private static AsymmetricKeyParameter SikeConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
-        {
-            byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
-
-            SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.Algorithm.Algorithm);
-
-            return new SikePublicKeyParameters(sikeParams, keyEnc);
         }
 
         private static AsymmetricKeyParameter DilithiumConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

@@ -18,7 +18,6 @@ using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Asn1.Nist;
@@ -121,15 +120,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PicnicPrivateKeyParameters(picnicParams, keyEnc);
             }
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (algOid.On(BCObjectIdentifiers.pqc_kem_sike))
-            {
-                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
-                SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(algOid);
-
-                return new SikePrivateKeyParameters(sikeParams, keyEnc);
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.On(BCObjectIdentifiers.pqc_kem_bike))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
