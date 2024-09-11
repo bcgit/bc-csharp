@@ -12,7 +12,7 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
@@ -22,6 +22,7 @@ using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -107,13 +108,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             
             Converters[BCObjectIdentifiers.falcon_512] = FalconConverter;
             Converters[BCObjectIdentifiers.falcon_1024] = FalconConverter;
-            
-            Converters[BCObjectIdentifiers.kyber512] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber512_aes] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber768] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber768_aes] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber1024] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber1024_aes] = KyberConverter;
+
+
+            Converters[NistObjectIdentifiers.IdAlgMLKem512] = MLKemConverter;
+            Converters[NistObjectIdentifiers.IdAlgMLKem768] = MLKemConverter;
+            Converters[NistObjectIdentifiers.IdAlgMLKem1024] = MLKemConverter;
 
             Converters[BCObjectIdentifiers.bike128] = BikeConverter;
             Converters[BCObjectIdentifiers.bike192] = BikeConverter;
@@ -208,6 +207,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return converter(keyInfo, defaultParams);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DilithiumPublicKeyParameters GetDilithiumPublicKey(DilithiumParameters dilithiumParameters,
             DerBitString publicKeyData)
         {
@@ -234,6 +234,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new DilithiumPublicKeyParameters(dilithiumParameters, publicKeyOctets);
             }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private static AsymmetricKeyParameter LmsConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
@@ -328,24 +329,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return GetDilithiumPublicKey(dilithiumParameters, publicKeyData: keyInfo.PublicKey);
         }
 
-        private static AsymmetricKeyParameter KyberConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
+        private static AsymmetricKeyParameter MLKemConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.Algorithm.Algorithm);
+            MLKemParameters parameters = PqcUtilities.MLKemParamsLookup(keyInfo.Algorithm.Algorithm);
 
-            try
-            {
-                Asn1Object obj = keyInfo.ParsePublicKey();
-#pragma warning disable CS0618 // Type or member is obsolete
-                KyberPublicKey kyberKey = KyberPublicKey.GetInstance(obj);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                return new KyberPublicKeyParameters(kyberParameters, kyberKey.T, kyberKey.Rho);
-            }
-            catch (Exception)
-            {
-                // we're a raw encoding
-                return new KyberPublicKeyParameters(kyberParameters, keyInfo.PublicKey.GetOctets());
-            }
+            return new MLKemPublicKeyParameters(parameters, keyInfo.PublicKey.GetOctets());
         }
 
         private static AsymmetricKeyParameter FalconConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

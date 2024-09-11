@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -22,7 +23,6 @@ using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
@@ -279,6 +279,12 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
             }
+            else if (NistObjectIdentifiers.IdMLDsa44.Equals(algOid)
+                ||   NistObjectIdentifiers.IdMLDsa65.Equals(algOid)
+                ||   NistObjectIdentifiers.IdMLDsa87.Equals(algOid))
+            {
+                return GetMLDsaPublicKey(MLDsaParameters.FromOid(algOid), keyInfo.PublicKey);
+            }
             else if (HybridKeyParameters.HybridOidToName.ContainsKey(algOid.Id))
             {
                 var hybridName = HybridKeyParameters.HybridOidToName[algOid.Id];
@@ -491,6 +497,34 @@ namespace Org.BouncyCastle.Security
             else
             {
                 throw new SecurityUtilityException("algorithm identifier in public key not recognised: " + algOid);
+            }
+        }
+
+        internal static MLDsaPublicKeyParameters GetMLDsaPublicKey(MLDsaParameters parameters, DerBitString publicKey)
+        {
+            var publicKeyOctets = publicKey.GetOctets();
+
+            try
+            {
+                Asn1Object obj = Asn1Object.FromByteArray(publicKeyOctets);
+                if (obj is Asn1Sequence keySeq)
+                {
+                    return new MLDsaPublicKeyParameters(
+                        parameters,
+                        Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
+                        Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
+                }
+                else
+                {
+                    byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
+
+                    return new MLDsaPublicKeyParameters(parameters, encKey);
+                }
+            }
+            catch (Exception)
+            {
+                // we're a raw encoding
+                return new MLDsaPublicKeyParameters(parameters, publicKeyOctets);
             }
         }
 

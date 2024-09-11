@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 	/// <seealso cref="Org.BouncyCastle.Crypto.Digests.SkeinEngine"/>
 	/// <seealso cref="Org.BouncyCastle.Crypto.Digests.SkeinDigest"/>
 	/// <seealso cref="Org.BouncyCastle.Crypto.Macs.SkeinMac"/>
+    // TODO[api] Don't implement ICipherParameters
 	public class SkeinParameters
 		: ICipherParameters
 	{

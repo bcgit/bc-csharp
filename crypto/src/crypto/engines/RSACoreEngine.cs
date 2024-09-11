@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             // m = h * q + mQ
             BigInteger m = h.Multiply(q).Add(mQ);
 
-            // defence against Arjen Lenstra’s CRT attack
+            // defence against Arjen Lenstraï¿½s CRT attack
             BigInteger check = m.ModPow(crt.PublicExponent, crt.Modulus);
             if (!check.Equals(input))
                 throw new InvalidOperationException("RSA engine faulty decryption/signing detected");

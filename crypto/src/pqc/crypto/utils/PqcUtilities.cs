@@ -5,7 +5,7 @@ using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
@@ -14,6 +14,7 @@ using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -36,11 +37,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<DerObjectIdentifier, SikeParameters> sikeParams = new Dictionary<DerObjectIdentifier, SikeParameters>();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        private readonly static Dictionary<KyberParameters, DerObjectIdentifier> kyberOids = new Dictionary<KyberParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, KyberParameters> kyberParams = new Dictionary<DerObjectIdentifier, KyberParameters>();
+        private readonly static Dictionary<MLKemParameters, DerObjectIdentifier> mlKemOids = new Dictionary<MLKemParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, MLKemParameters> mlKemParams = new Dictionary<DerObjectIdentifier, MLKemParameters>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly static Dictionary<DilithiumParameters, DerObjectIdentifier> dilithiumOids = new Dictionary<DilithiumParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, DilithiumParameters> dilithiumParams = new Dictionary<DerObjectIdentifier, DilithiumParameters>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private readonly static Dictionary<FalconParameters, DerObjectIdentifier> falconOids = new Dictionary<FalconParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, FalconParameters> falconParams = new Dictionary<DerObjectIdentifier, FalconParameters>();
@@ -177,20 +180,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sikeOids[SikeParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
-            kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
-            kyberOids[KyberParameters.kyber1024] = BCObjectIdentifiers.kyber1024;
+            mlKemOids[MLKemParameters.ML_KEM_512] = NistObjectIdentifiers.IdAlgMLKem512;
+            mlKemOids[MLKemParameters.ML_KEM_768] = NistObjectIdentifiers.IdAlgMLKem768;
+            mlKemOids[MLKemParameters.ML_KEM_1024] = NistObjectIdentifiers.IdAlgMLKem1024;
             
-            kyberParams[BCObjectIdentifiers.kyber512] = KyberParameters.kyber512;
-            kyberParams[BCObjectIdentifiers.kyber768] = KyberParameters.kyber768;
-            kyberParams[BCObjectIdentifiers.kyber1024] = KyberParameters.kyber1024;
+            mlKemParams[NistObjectIdentifiers.IdAlgMLKem512] = MLKemParameters.ML_KEM_512;
+            mlKemParams[NistObjectIdentifiers.IdAlgMLKem768] = MLKemParameters.ML_KEM_768;
+            mlKemParams[NistObjectIdentifiers.IdAlgMLKem1024] = MLKemParameters.ML_KEM_1024;
             
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
             
             falconParams[BCObjectIdentifiers.falcon_512] = FalconParameters.falcon_512;
             falconParams[BCObjectIdentifiers.falcon_1024] = FalconParameters.falcon_1024;
-            
+
+#pragma warning disable CS0618 // Type or member is obsolete
             dilithiumOids[DilithiumParameters.Dilithium2] = BCObjectIdentifiers.dilithium2;
             dilithiumOids[DilithiumParameters.Dilithium3] = BCObjectIdentifiers.dilithium3;
             dilithiumOids[DilithiumParameters.Dilithium5] = BCObjectIdentifiers.dilithium5;
@@ -198,6 +202,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             dilithiumParams[BCObjectIdentifiers.dilithium2] = DilithiumParameters.Dilithium2;
             dilithiumParams[BCObjectIdentifiers.dilithium3] = DilithiumParameters.Dilithium3;
             dilithiumParams[BCObjectIdentifiers.dilithium5] = DilithiumParameters.Dilithium5;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             bikeParams[BCObjectIdentifiers.bike128] = BikeParameters.bike128;
             bikeParams[BCObjectIdentifiers.bike192] = BikeParameters.bike192;
@@ -325,14 +330,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(saberParams, oid);
         }
 
-        internal static KyberParameters KyberParamsLookup(DerObjectIdentifier oid)
+        internal static MLKemParameters MLKemParamsLookup(DerObjectIdentifier oid)
         {
-            return CollectionUtilities.GetValueOrNull(kyberParams, oid);
+            return CollectionUtilities.GetValueOrNull(mlKemParams, oid);
         }
 
-        internal static DerObjectIdentifier KyberOidLookup(KyberParameters parameters)
+        internal static DerObjectIdentifier MLKemOidLookup(MLKemParameters parameters)
         {
-            return CollectionUtilities.GetValueOrNull(kyberOids, parameters);
+            return CollectionUtilities.GetValueOrNull(mlKemOids, parameters);
         }
 
         internal static FalconParameters FalconParamsLookup(DerObjectIdentifier oid)
@@ -345,6 +350,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(falconOids, parameters);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DilithiumParameters DilithiumParamsLookup(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(dilithiumParams, oid);
@@ -354,6 +360,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CollectionUtilities.GetValueOrNull(dilithiumOids, parameters);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         internal static DerObjectIdentifier PicnicOidLookup(PicnicParameters parameters)
         {

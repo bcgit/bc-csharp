@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    // TODO[api] Don't implement ICipherParameters
     public class DHParameters
 		: ICipherParameters
     {

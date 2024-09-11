@@ -1,5 +1,4 @@
-﻿
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+﻿namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
     internal static class Ntt
     {
@@ -36,7 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal static void NTT(short[] r)
         {
-            int j = 0, k = 1;
+            int j, k = 1;
             for (int len = 128; len >= 2; len >>= 1)
             {
                 for (int start = 0; start < 256; start = j + len)

@@ -8,7 +8,7 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
@@ -125,13 +125,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes,
                     falconPrivateKeyParameters.GetPublicKey());
             }
-            if (privateKey is KyberPrivateKeyParameters kyberPrivateKeyParameters)
+            if (privateKey is MLKemPrivateKeyParameters mlKemKey)
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.KyberOidLookup(kyberPrivateKeyParameters.Parameters));
+                    PqcUtilities.MLKemOidLookup(mlKemKey.Parameters));
                 
-                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(kyberPrivateKeyParameters.GetEncoded()), attributes);
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(mlKemKey.GetEncoded()), attributes);
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (privateKey is DilithiumPrivateKeyParameters dilithiumPrivateKeyParameters)
             {
                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
@@ -141,6 +142,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(dilithiumPrivateKeyParameters.GetEncoded()), attributes, pubParams.GetEncoded());
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is BikePrivateKeyParameters bikePrivateKeyParameters)
             {
                 byte[] encoding = bikePrivateKeyParameters.GetEncoded();

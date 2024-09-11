@@ -1,16 +1,14 @@
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
-    public sealed class KyberKemExtractor
+    public sealed class MLKemExtractor
         : IEncapsulatedSecretExtractor
     {
-        private readonly KyberKeyParameters m_key;
-        private readonly KyberEngine m_engine;
+        private readonly MLKemKeyParameters m_key;
+        private readonly MLKemEngine m_engine;
 
-
-        public KyberKemExtractor(KyberKeyParameters privParams)
+        public MLKemExtractor(MLKemKeyParameters privParams)
         {
             m_key = privParams;
             m_engine = m_key.Parameters.Engine;
@@ -19,7 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] sharedSecret = new byte[m_engine.CryptoBytes];
-            m_engine.KemDecrypt(sharedSecret, encapsulation, ((KyberPrivateKeyParameters)m_key).GetEncoded());
+            m_engine.KemDecrypt(sharedSecret, encapsulation, ((MLKemPrivateKeyParameters)m_key).GetEncoded());
             return sharedSecret;
         }
 

@@ -1,13 +1,14 @@
 ﻿using System;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
-    internal class PolyVec
+    internal sealed class PolyVec
     {
-        private KyberEngine m_engine;
-        internal Poly[] m_vec;
+        private readonly MLKemEngine m_engine;
 
-        internal PolyVec(KyberEngine engine)
+        internal readonly Poly[] m_vec;
+
+        internal PolyVec(MLKemEngine engine)
         {
             m_engine = engine;
             m_vec = new Poly[engine.K];
@@ -33,7 +34,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
         }
 
-        internal static void PointwiseAccountMontgomery(Poly r, PolyVec a, PolyVec b, KyberEngine engine)
+        internal static void PointwiseAccountMontgomery(Poly r, PolyVec a, PolyVec b, MLKemEngine engine)
         {
             Poly t = new Poly(engine);
             Poly.BaseMultMontgomery(r, a.m_vec[0], b.m_vec[0]);
@@ -77,15 +78,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 {
                     short[] coeffs = m_vec[i].m_coeffs;
 
-                    for (int j = 0; j < KyberEngine.N / 4; j++)
+                    for (int j = 0; j < MLKemEngine.N / 4; j++)
                     {
                         for (int k = 0; k < 4; k++)
                         {
                             int c_k = coeffs[4 * j + k];
 
-                            // KyberSlash: division by Q is not constant time.
-                            //t[k] = (short)((((c_k << 10) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 0x3FF);
-                            t[k] = (short)((((long)((c_k << 3) + (KyberEngine.Q >> 8)) * 165141429) >> 32) & 0x3FF);
+                            // Avoid non-constant-time division by Q.
+                            //t[k] = (short)((((c_k << 10) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 0x3FF);
+                            t[k] = (short)((((long)((c_k << 3) + (MLKemEngine.Q >> 8)) * 165141429) >> 32) & 0x3FF);
                         }
                         r[count + 0] = (byte)(t[0] >> 0);
                         r[count + 1] = (byte)((t[0] >> 8) | (t[1] << 2));
@@ -108,15 +109,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 {
                     short[] coeffs = m_vec[i].m_coeffs;
 
-                    for (int j = 0; j < KyberEngine.N / 8; j++)
+                    for (int j = 0; j < MLKemEngine.N / 8; j++)
                     {
                         for (int k = 0; k < 8; k++)
                         {
                             int c_k = coeffs[8 * j + k];
 
-                            // KyberSlash: division by Q is not constant time.
-                            //t[k] = (short)((((c_k << 11) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 0x7FF);
-                            t[k] = (short)((((long)((c_k << 4) + (KyberEngine.Q >> 8)) * 165141429) >> 32) & 0x7FF);
+                            // Avoid non-constant-time division by Q.
+                            //t[k] = (short)((((c_k << 11) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 0x7FF);
+                            t[k] = (short)((((long)((c_k << 4) + (MLKemEngine.Q >> 8)) * 165141429) >> 32) & 0x7FF);
                         }
                         r[count + 0] = (byte)((t[0] >> 0));
                         r[count + 1] = (byte)((t[0] >> 8) | (t[1] << 3));
@@ -135,7 +136,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
             else
             {
-                throw new ArgumentException("Kyber PolyVecCompressedBytes neither 320 * KyberK or 352 * KyberK!");
+                throw new ArgumentException("ML-KEM PolyVecCompressedBytes neither 320 * K or 352 * K!");
             }
         }
 
@@ -153,7 +154,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
                 for (int i = 0; i < m_engine.K; i++)
                 {
-                    for (int j = 0; j < KyberEngine.N / 4; j++)
+                    for (int j = 0; j < MLKemEngine.N / 4; j++)
                     {
                         t[0] = (short)(((compressedCipherText[count] & 0xFF) >> 0) | ((ushort)(compressedCipherText[count + 1] & 0xFF) << 8));
                         t[1] = (short)(((compressedCipherText[count + 1] & 0xFF) >> 2) | ((ushort)(compressedCipherText[count + 2] & 0xFF) << 6));
@@ -162,7 +163,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                         count += 5;
                         for (int k = 0; k < 4; k++)
                         {
-                            m_vec[i].m_coeffs[4 * j + k] = (short)(((t[k] & 0x3FF) * KyberEngine.Q + 512) >> 10);
+                            m_vec[i].m_coeffs[4 * j + k] = (short)(((t[k] & 0x3FF) * MLKemEngine.Q + 512) >> 10);
                         }
                     }
                 }
@@ -177,7 +178,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
                 for (int i = 0; i < m_engine.K; i++)
                 {
-                    for (int j = 0; j < KyberEngine.N / 8; j++)
+                    for (int j = 0; j < MLKemEngine.N / 8; j++)
                     {
                         t[0] = (short)(((compressedCipherText[count] & 0xFF) >> 0) | ((ushort)(compressedCipherText[count + 1] & 0xFF) << 8));
                         t[1] = (short)(((compressedCipherText[count + 1] & 0xFF) >> 3) | ((ushort)(compressedCipherText[count + 2] & 0xFF) << 5));
@@ -190,14 +191,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                         count += 11;
                         for (int k = 0; k < 8; k++)
                         {
-                            m_vec[i].m_coeffs[8 * j + k] = (short)(((t[k] & 0x7FF) * KyberEngine.Q + 1024) >> 11);
+                            m_vec[i].m_coeffs[8 * j + k] = (short)(((t[k] & 0x7FF) * MLKemEngine.Q + 1024) >> 11);
                         }
                     }
                 }
             }
             else
             {
-                throw new ArgumentException("Kyber PolyVecCompressedBytes neither 320 * KyberK or 352 * KyberK!");
+                throw new ArgumentException("ML-KEM PolyVecCompressedBytes neither 320 * K or 352 * K!");
             }
         }
 
@@ -205,7 +206,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         {
             for (int i = 0; i < m_engine.K; i++)
             {
-                m_vec[i].ToBytes(r, i * KyberEngine.PolyBytes);
+                m_vec[i].ToBytes(r, i * MLKemEngine.PolyBytes);
             }
         }
 
@@ -213,7 +214,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         {
             for (int i = 0; i < m_engine.K; i++)
             {
-                m_vec[i].FromBytes(pk, i * KyberEngine.PolyBytes);
+                m_vec[i].FromBytes(pk, i * MLKemEngine.PolyBytes);
             }
         }
 

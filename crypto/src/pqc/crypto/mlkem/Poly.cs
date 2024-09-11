@@ -1,33 +1,34 @@
-﻿
-using System;
+﻿using System;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
-    internal class Poly
+    internal sealed class Poly
     {
-        private KyberEngine m_engine;
-        public short[] m_coeffs = new short[KyberEngine.N];
-        private Symmetric m_symmetric;
-        public Poly(KyberEngine mEngine)
+        private readonly MLKemEngine m_engine;
+        private readonly Symmetric m_symmetric;
+
+        internal readonly short[] m_coeffs = new short[MLKemEngine.N];
+
+        internal Poly(MLKemEngine mEngine)
         {
             m_engine = mEngine;
             m_symmetric = mEngine.Symmetric;
         }
-        
+
         internal short[] Coeffs => m_coeffs;
 
         internal void GetNoiseEta1(byte[] seed, byte nonce)
         {
-            byte[] buf = new byte[m_engine.Eta1 * KyberEngine.N / 4];
+            byte[] buf = new byte[m_engine.Eta1 * MLKemEngine.N / 4];
             m_symmetric.Prf(buf, seed, nonce);
             Cbd.Eta(this, buf, m_engine.Eta1);
         }
 
         internal void GetNoiseEta2(byte[] seed, byte nonce)
         {
-            byte[] buf = new byte[KyberEngine.Eta2 * KyberEngine.N / 4];
+            byte[] buf = new byte[MLKemEngine.Eta2 * MLKemEngine.N / 4];
             m_symmetric.Prf(buf, seed, nonce);
-            Cbd.Eta(this, buf, KyberEngine.Eta2);
+            Cbd.Eta(this, buf, MLKemEngine.Eta2);
         }
 
         internal void PolyNtt()
@@ -43,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal static void BaseMultMontgomery(Poly r, Poly a, Poly b)
         {
-            for (int i = 0; i < KyberEngine.N/4; i++)
+            for (int i = 0; i < MLKemEngine.N/4; i++)
             {
                 Ntt.BaseMult(r.Coeffs, 4 * i,
                     a.Coeffs[4 * i], a.Coeffs[4 * i + 1],
@@ -58,8 +59,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void ToMont()
         {
-            const short f = (short) ((1UL << 32) % KyberEngine.Q);
-            for (int i = 0; i < KyberEngine.N; i++)
+            const short f = (short) ((1UL << 32) % MLKemEngine.Q);
+            for (int i = 0; i < MLKemEngine.N; i++)
             {
                 Coeffs[i] = Reduce.MontgomeryReduce(Coeffs[i] * f);
             }
@@ -67,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void Add(Poly a)
         {
-            for (int i = 0; i < KyberEngine.N; i++)
+            for (int i = 0; i < MLKemEngine.N; i++)
             {
                 Coeffs[i] += a.Coeffs[i];
             }
@@ -75,7 +76,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void Subtract(Poly a)
         {
-            for (int i = 0; i < KyberEngine.N; i++)
+            for (int i = 0; i < MLKemEngine.N; i++)
             {
                 Coeffs[i] = (short) (a.Coeffs[i] - Coeffs[i]);
             }
@@ -83,7 +84,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void PolyReduce()
         {
-            for (int i = 0; i < KyberEngine.N; i++)
+            for (int i = 0; i < MLKemEngine.N; i++)
             {
                 Coeffs[i] = Reduce.BarrettReduce(Coeffs[i]);
             }
@@ -102,15 +103,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
             if (m_engine.PolyCompressedBytes == 128)
             {
-                for (int i = 0; i < KyberEngine.N / 8; i++)
+                for (int i = 0; i < MLKemEngine.N / 8; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
                         int c_j = m_coeffs[8 * i + j];
 
-                        // KyberSlash: division by Q is not constant time.
-                        //t[j] = (byte)((((c_j << 4) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 15);
-                        t[j] = (byte)((((c_j + (KyberEngine.Q >> 5)) * 315) >> 16) & 0xF);
+                        // Avoid non-constant-time division by Q.
+                        //t[j] = (byte)((((c_j << 4) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 15);
+                        t[j] = (byte)((((c_j + (MLKemEngine.Q >> 5)) * 315) >> 16) & 0xF);
                     }
                     r[off + count + 0] = (byte)(t[0] | (t[1] << 4));
                     r[off + count + 1] = (byte)(t[2] | (t[3] << 4));
@@ -121,15 +122,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
             else if (m_engine.PolyCompressedBytes == 160)
             {
-                for (int i = 0; i < KyberEngine.N / 8; i++)
+                for (int i = 0; i < MLKemEngine.N / 8; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
                         int c_j = m_coeffs[8 * i + j];
 
-                        // KyberSlash: division by Q is not constant time.
-                        //t[j] = (byte)((((c_j << 5) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 31);
-                        t[j] = (byte)((((c_j + (KyberEngine.Q >> 6)) * 630) >> 16) & 0x1F);
+                        // Avoid non-constant-time division by Q.
+                        //t[j] = (byte)((((c_j << 5) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 31);
+                        t[j] = (byte)((((c_j + (MLKemEngine.Q >> 6)) * 630) >> 16) & 0x1F);
                     }
                     r[off + count + 0] = (byte)((t[0] >> 0) | (t[1] << 5));
                     r[off + count + 1] = (byte)((t[1] >> 3) | (t[2] << 2) | (t[3] << 7));
@@ -151,17 +152,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
             if (m_engine.PolyCompressedBytes == 128)
             {
-                for (int i = 0; i < KyberEngine.N / 2; i++)
+                for (int i = 0; i < MLKemEngine.N / 2; i++)
                 {
-                    Coeffs[2 * i + 0]  = (short)((((short)((CompressedCipherText[count] & 0xFF) & 15) * KyberEngine.Q) + 8) >> 4);
-                    Coeffs[2 * i + 1] = (short)((((short)((CompressedCipherText[count] & 0xFF) >> 4) * KyberEngine.Q) + 8) >> 4);
+                    Coeffs[2 * i + 0]  = (short)((((short)((CompressedCipherText[count] & 0xFF) & 15) * MLKemEngine.Q) + 8) >> 4);
+                    Coeffs[2 * i + 1] = (short)((((short)((CompressedCipherText[count] & 0xFF) >> 4) * MLKemEngine.Q) + 8) >> 4);
                     count += 1;
                 }
             }
             else if (m_engine.PolyCompressedBytes == 160)
             {
                 byte[] t = new byte[8];
-                for (int i = 0; i < KyberEngine.N / 8; i++)
+                for (int i = 0; i < MLKemEngine.N / 8; i++)
                 {
                     t[0] = (byte)((CompressedCipherText[count + 0] & 0xFF) >> 0);
                     t[1] = (byte)(((CompressedCipherText[count + 0] & 0xFF) >> 5) | ((CompressedCipherText[count + 1] & 0xFF) << 3));
@@ -174,7 +175,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                     count += 5;
                     for (int j = 0; j < 8; j++)
                     {
-                        Coeffs[8 * i + j] = (short)(((t[j] & 31) * KyberEngine.Q + 16) >> 5);
+                        Coeffs[8 * i + j] = (short)(((t[j] & 31) * MLKemEngine.Q + 16) >> 5);
                     }
                 }
             }
@@ -183,12 +184,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 throw new ArgumentException("PolyCompressedBytes is neither 128 or 160!");
             }
         }
-        
+
         internal void ToBytes(byte[] r, int off)
         {
             CondSubQ();
 
-            for (int i = 0; i < KyberEngine.N/2; i++)
+            for (int i = 0; i < MLKemEngine.N/2; i++)
             {
                 ushort t0 = (ushort) Coeffs[2 * i];
                 ushort t1 = (ushort) Coeffs[2 * i + 1];
@@ -200,7 +201,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void FromBytes(byte[] a, int off)
         {
-            for (int i = 0; i < KyberEngine.N / 2; i++)
+            for (int i = 0; i < MLKemEngine.N / 2; i++)
             {
                 Coeffs[2 * i] = (short) ((((a[off + 3 * i + 0] & 0xFF) >> 0) | (ushort)((a[off + 3 * i + 1] & 0xFF) << 8)) & 0xFFF);
                 Coeffs[2 * i + 1] = (short) ((((a[off + 3 * i + 1] & 0xFF) >> 4) | (ushort)((a[off + 3 * i + 2] & 0xFF) << 4)) & 0xFFF);
@@ -209,20 +210,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void ToMsg(byte[] msg)
         {
-            const int Lower = KyberEngine.Q >> 2;
-            const int Upper = KyberEngine.Q - Lower;
+            const int Lower = MLKemEngine.Q >> 2;
+            const int Upper = MLKemEngine.Q - Lower;
 
             CondSubQ();
 
-            for (int i = 0; i < KyberEngine.N / 8; i++)
+            for (int i = 0; i < MLKemEngine.N / 8; i++)
             {
                 msg[i] = 0;
                 for (int j = 0; j < 8; j++)
                 {
                     int c_j = Coeffs[8 * i + j];
 
-                    // KyberSlash: division by Q is not constant time.
-                    //int t = (((c_j << 1) + (KyberEngine.Q / 2)) / KyberEngine.Q) & 1;
+                    // Avoid non-constant-time division by Q.
+                    //int t = (((c_j << 1) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 1;
                     uint t = (uint)((Lower - c_j) & (c_j - Upper)) >> 31;
 
                     msg[i] |= (byte)(t << j);
@@ -232,23 +233,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void FromMsg(byte[] m)
         {
-            if (m.Length != KyberEngine.N / 8)
-            {
-                throw new ArgumentException("KYBER_INDCPA_MSGBYTES must be equal to KYBER_N/8 bytes!");
-            }
-            for (int i = 0; i < KyberEngine.N / 8; i++)
+            if (m.Length != MLKemEngine.N / 8)
+                throw new ArgumentException("ML_KEM_INDCPA_MSGBYTES must be equal to ML_KEM_N/8 bytes!");
+
+            for (int i = 0; i < MLKemEngine.N / 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
                     short mask = (short)((-1) * (short)(((m[i] & 0xFF) >> j) & 1));
-                    Coeffs[8 * i + j] = (short)(mask & ((KyberEngine.Q + 1) / 2));
+                    Coeffs[8 * i + j] = (short)(mask & ((MLKemEngine.Q + 1) / 2));
                 }
             }
         }
 
         internal void CondSubQ()
         {
-            for (int i = 0; i < KyberEngine.N; i++)
+            for (int i = 0; i < MLKemEngine.N; i++)
             {
                 Coeffs[i] = Reduce.CondSubQ(Coeffs[i]);
             }

@@ -109,7 +109,6 @@
     </PropertyGroup>
   </Target>
   <Target Name="SignAssemblies" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Publish'">
-    <Exec Command="call &quot;$(ProjectDir)..\..\signfile.bat&quot; &quot;$(TargetPath)&quot;"
-          IgnoreStandardErrorWarningFormat="true" />
+    <Exec Command="call &quot;$(ProjectDir)..\..\signfile.bat&quot; &quot;$(TargetPath)&quot;" IgnoreStandardErrorWarningFormat="true" />
   </Target>
 </Project>

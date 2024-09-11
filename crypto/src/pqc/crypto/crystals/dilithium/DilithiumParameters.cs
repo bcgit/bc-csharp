@@ -1,9 +1,11 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
+    [Obsolete("Use ML-DSA instead")]
     public sealed class DilithiumParameters
         : ICipherParameters
     {
@@ -20,20 +22,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         public static DilithiumParameters Dilithium5Aes = new DilithiumParameters("dilithium5aes", 5, true);
 
         private string name;
-        private int k;
-        private bool usingAes;
+        private readonly int m_mode;
+        private readonly bool m_usingAes;
 
-        private DilithiumParameters(string name, int param, bool usingAes)
+        private DilithiumParameters(string name, int mode, bool usingAes)
         {
             this.name = name;
-            k = param;
-            this.usingAes = usingAes;
+            m_mode = mode;
+            m_usingAes = usingAes;
         }
 
-        internal DilithiumEngine GetEngine(SecureRandom Random)
-        {
-            return new DilithiumEngine(k, Random, usingAes);
-        }
+        internal DilithiumEngine GetEngine(SecureRandom Random) => new DilithiumEngine(m_mode, Random, m_usingAes);
 
         public string Name => name;
     }

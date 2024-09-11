@@ -1,8 +1,11 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
+    [Obsolete("Use ML-DSA instead")]
     public class DilithiumKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
 
@@ -20,8 +23,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             DilithiumEngine engine = parameters.GetEngine(random);
             byte[] rho, key, tr, s1, s2, t0, encT1;
-            engine.GenerateKeyPair(out rho, out key, out tr, out s1, out s2, out t0, out encT1);
-            
+            engine.GenerateKeyPair(out rho, out key, out tr, out s1, out s2, out t0, out encT1, legacy: true);
+
             //unpack sk
 
             DilithiumPublicKeyParameters pubKey = new DilithiumPublicKeyParameters(parameters, rho, encT1);

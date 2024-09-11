@@ -11,7 +11,7 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
@@ -21,6 +21,7 @@ using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -147,13 +148,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new HqcPrivateKeyParameters(hqcParams, keyEnc);
             }
-            if (algOid.On(BCObjectIdentifiers.pqc_kem_kyber))
+            if (NistObjectIdentifiers.IdAlgMLKem512.Equals(algOid) ||
+                NistObjectIdentifiers.IdAlgMLKem768.Equals(algOid) ||
+                NistObjectIdentifiers.IdAlgMLKem1024.Equals(algOid))
             {
-                Asn1OctetString kyberKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
-                KyberParameters kyberParams = PqcUtilities.KyberParamsLookup(algOid);
-     
-                return new KyberPrivateKeyParameters(kyberParams, kyberKey.GetOctets());
+                Asn1OctetString privateKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
+                MLKemParameters parameters = PqcUtilities.MLKemParamsLookup(algOid);
+
+                return new MLKemPrivateKeyParameters(parameters, privateKey.GetOctets());
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.dilithium2) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium3) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium5))
@@ -171,6 +175,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new DilithiumPrivateKeyParameters(spParams, encoding: keyEnc.GetOctets(), pubKey);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.falcon_512) ||
                 algOid.Equals(BCObjectIdentifiers.falcon_1024))
             {

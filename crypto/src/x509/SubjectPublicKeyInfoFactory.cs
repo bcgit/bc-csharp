@@ -14,6 +14,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -252,6 +253,13 @@ namespace Org.BouncyCastle.X509
                 Ed25519PublicKeyParameters key = (Ed25519PublicKeyParameters)publicKey;
 
                 return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), key.GetEncoded());
+            }
+
+            if (publicKey is MLDsaPublicKeyParameters mlDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
+
+                return new SubjectPublicKeyInfo(algID, mlDsaKey.GetEncoded());
             }
 
             if (publicKey is HybridKeyParameters)

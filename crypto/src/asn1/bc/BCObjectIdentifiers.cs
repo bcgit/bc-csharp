@@ -360,18 +360,6 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier ntruhrss701 = pqc_kem_ntru.Branch("4");
 
         /**
-         * Kyber
-         */
-        public static readonly DerObjectIdentifier pqc_kem_kyber = bc_kem.Branch("6");
-
-        public static readonly DerObjectIdentifier kyber512 = pqc_kem_kyber.Branch("1");
-        public static readonly DerObjectIdentifier kyber768 = pqc_kem_kyber.Branch("2");
-        public static readonly DerObjectIdentifier kyber1024 = pqc_kem_kyber.Branch("3");
-        public static readonly DerObjectIdentifier kyber512_aes = pqc_kem_kyber.Branch("4");
-        public static readonly DerObjectIdentifier kyber768_aes = pqc_kem_kyber.Branch("5");
-        public static readonly DerObjectIdentifier kyber1024_aes = pqc_kem_kyber.Branch("6");
-
-        /**
          * NTRUPrime
          */
         public static readonly DerObjectIdentifier pqc_kem_ntruprime = bc_kem.Branch("7");

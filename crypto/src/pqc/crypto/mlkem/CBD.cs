@@ -2,7 +2,7 @@
 
 using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
+namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 {
     internal static class Cbd
     {
@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             {
             case 2:
             {
-                for (int i = 0; i < KyberEngine.N / 8; i++)
+                for (int i = 0; i < MLKemEngine.N / 8; i++)
                 {
                     uint t = Pack.LE_To_UInt32(bytes, 4 * i);
                     uint d = t & 0x55555555;
@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             }
             case 3:
             {
-                for (int i = 0; i < KyberEngine.N / 4; i++)
+                for (int i = 0; i < MLKemEngine.N / 4; i++)
                 {
                     uint t = Pack.LE_To_UInt24(bytes, 3 * i);
                     uint d = t & 0x00249249;
