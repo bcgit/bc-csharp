@@ -98,9 +98,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.falcon_1024] = FalconConverter;
 
 
-            Converters[NistObjectIdentifiers.IdAlgMLKem512] = MLKemConverter;
-            Converters[NistObjectIdentifiers.IdAlgMLKem768] = MLKemConverter;
-            Converters[NistObjectIdentifiers.IdAlgMLKem1024] = MLKemConverter;
+            Converters[NistObjectIdentifiers.id_alg_ml_kem_512] = MLKemConverter;
+            Converters[NistObjectIdentifiers.id_alg_ml_kem_768] = MLKemConverter;
+            Converters[NistObjectIdentifiers.id_alg_ml_kem_1024] = MLKemConverter;
 
             Converters[BCObjectIdentifiers.bike128] = BikeConverter;
             Converters[BCObjectIdentifiers.bike192] = BikeConverter;

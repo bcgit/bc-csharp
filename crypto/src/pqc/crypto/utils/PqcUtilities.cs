@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             saberParams[BCObjectIdentifiers.ulightsaberkem90sr3] = SaberParameters.ulightsaberkem90sr3;
             saberParams[BCObjectIdentifiers.usaberkem90sr3] = SaberParameters.usaberkem90sr3;
             saberParams[BCObjectIdentifiers.ufiresaberkem90sr3] = SaberParameters.ufiresaberkem90sr3;
-            
+
             picnicOids[PicnicParameters.picnicl1fs] = BCObjectIdentifiers.picnicl1fs;
             picnicOids[PicnicParameters.picnicl1ur] = BCObjectIdentifiers.picnicl1ur;
             picnicOids[PicnicParameters.picnicl3fs] = BCObjectIdentifiers.picnicl3fs;
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicOids[PicnicParameters.picnicl1full] = BCObjectIdentifiers.picnicl1full;
             picnicOids[PicnicParameters.picnicl3full] = BCObjectIdentifiers.picnicl3full;
             picnicOids[PicnicParameters.picnicl5full] = BCObjectIdentifiers.picnicl5full;
-    
+
             picnicParams[BCObjectIdentifiers.picnicl1fs] = PicnicParameters.picnicl1fs;
             picnicParams[BCObjectIdentifiers.picnicl1ur] = PicnicParameters.picnicl1ur;
             picnicParams[BCObjectIdentifiers.picnicl3fs] = PicnicParameters.picnicl3fs;
@@ -154,17 +154,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
 
-            mlKemOids[MLKemParameters.ML_KEM_512] = NistObjectIdentifiers.IdAlgMLKem512;
-            mlKemOids[MLKemParameters.ML_KEM_768] = NistObjectIdentifiers.IdAlgMLKem768;
-            mlKemOids[MLKemParameters.ML_KEM_1024] = NistObjectIdentifiers.IdAlgMLKem1024;
-            
-            mlKemParams[NistObjectIdentifiers.IdAlgMLKem512] = MLKemParameters.ML_KEM_512;
-            mlKemParams[NistObjectIdentifiers.IdAlgMLKem768] = MLKemParameters.ML_KEM_768;
-            mlKemParams[NistObjectIdentifiers.IdAlgMLKem1024] = MLKemParameters.ML_KEM_1024;
-            
+            mlKemOids[MLKemParameters.ML_KEM_512] = NistObjectIdentifiers.id_alg_ml_kem_512;
+            mlKemOids[MLKemParameters.ML_KEM_768] = NistObjectIdentifiers.id_alg_ml_kem_768;
+            mlKemOids[MLKemParameters.ML_KEM_1024] = NistObjectIdentifiers.id_alg_ml_kem_1024;
+
+            mlKemParams[NistObjectIdentifiers.id_alg_ml_kem_512] = MLKemParameters.ML_KEM_512;
+            mlKemParams[NistObjectIdentifiers.id_alg_ml_kem_768] = MLKemParameters.ML_KEM_768;
+            mlKemParams[NistObjectIdentifiers.id_alg_ml_kem_1024] = MLKemParameters.ML_KEM_1024;
+
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
-            
+
             falconParams[BCObjectIdentifiers.falcon_512] = FalconParameters.falcon_512;
             falconParams[BCObjectIdentifiers.falcon_1024] = FalconParameters.falcon_1024;
 
@@ -172,7 +172,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             dilithiumOids[DilithiumParameters.Dilithium2] = BCObjectIdentifiers.dilithium2;
             dilithiumOids[DilithiumParameters.Dilithium3] = BCObjectIdentifiers.dilithium3;
             dilithiumOids[DilithiumParameters.Dilithium5] = BCObjectIdentifiers.dilithium5;
-            
+
             dilithiumParams[BCObjectIdentifiers.dilithium2] = DilithiumParameters.Dilithium2;
             dilithiumParams[BCObjectIdentifiers.dilithium3] = DilithiumParameters.Dilithium3;
             dilithiumParams[BCObjectIdentifiers.dilithium5] = DilithiumParameters.Dilithium5;
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusOids[SphincsPlusParameters.haraka_192s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_192s_r3_simple;
             sphincsPlusOids[SphincsPlusParameters.haraka_256f_simple] = BCObjectIdentifiers.sphincsPlus_haraka_256f_r3_simple;
             sphincsPlusOids[SphincsPlusParameters.haraka_256s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_256s_r3_simple;
-            
+
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_128f_r3_simple] = SphincsPlusParameters.haraka_128f_simple;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_128s_r3_simple] = SphincsPlusParameters.haraka_128s_simple;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_192f_r3_simple] = SphincsPlusParameters.haraka_192f_simple;

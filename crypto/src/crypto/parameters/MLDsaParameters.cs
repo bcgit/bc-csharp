@@ -12,11 +12,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public sealed class MLDsaParameters
     {
         public static readonly MLDsaParameters ML_DSA_44 = new MLDsaParameters("ML-DSA-44", 2,
-            NistObjectIdentifiers.IdMLDsa44);
+            NistObjectIdentifiers.id_ml_dsa_44);
         public static readonly MLDsaParameters ML_DSA_65 = new MLDsaParameters("ML-DSA-65", 3,
-            NistObjectIdentifiers.IdMLDsa65);
+            NistObjectIdentifiers.id_ml_dsa_65);
         public static readonly MLDsaParameters ML_DSA_87 = new MLDsaParameters("ML-DSA-87", 5,
-            NistObjectIdentifiers.IdMLDsa87);
+            NistObjectIdentifiers.id_ml_dsa_87);
 
         private static readonly Dictionary<string, MLDsaParameters> ByName =
             new Dictionary<string, MLDsaParameters>()

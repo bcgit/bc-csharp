@@ -138,9 +138,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new HqcPrivateKeyParameters(hqcParams, keyEnc);
             }
-            if (NistObjectIdentifiers.IdAlgMLKem512.Equals(algOid) ||
-                NistObjectIdentifiers.IdAlgMLKem768.Equals(algOid) ||
-                NistObjectIdentifiers.IdAlgMLKem1024.Equals(algOid))
+            if (NistObjectIdentifiers.id_alg_ml_kem_512.Equals(algOid) ||
+                NistObjectIdentifiers.id_alg_ml_kem_768.Equals(algOid) ||
+                NistObjectIdentifiers.id_alg_ml_kem_1024.Equals(algOid))
             {
                 Asn1OctetString privateKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
                 MLKemParameters parameters = PqcUtilities.MLKemParamsLookup(algOid);

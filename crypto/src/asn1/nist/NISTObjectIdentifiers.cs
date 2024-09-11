@@ -168,82 +168,87 @@ namespace Org.BouncyCastle.Asn1.Nist
         public static readonly DerObjectIdentifier IdRsassaPkcs1V15WithSha3_512 = SigAlgs.Branch("16");
 
         // "pure" ML-DSA
-        /// <summary> 2.16.840.1.101.3.4.3.17 </summary>
-        public static readonly DerObjectIdentifier IdMLDsa44 = SigAlgs.Branch("17");
-        /// <summary> 2.16.840.1.101.3.4.3.18 </summary>
-        public static readonly DerObjectIdentifier IdMLDsa65 = SigAlgs.Branch("18");
-        /// <summary> 2.16.840.1.101.3.4.3.19 </summary>
-        public static readonly DerObjectIdentifier IdMLDsa87 = SigAlgs.Branch("19");
+        /** 2.16.840.1.101.3.4.3.17 */
+        public static readonly DerObjectIdentifier id_ml_dsa_44 = SigAlgs.Branch("17");
+        /** 2.16.840.1.101.3.4.3.18 */
+        public static readonly DerObjectIdentifier id_ml_dsa_65 = SigAlgs.Branch("18");
+        /** 2.16.840.1.101.3.4.3.19 */
+        public static readonly DerObjectIdentifier id_ml_dsa_87 = SigAlgs.Branch("19");
+
         // "pre-hash" ML-DSA
-        /// <summary> 2.16.840.1.101.3.4.3.32 /// </summary>
-        public static readonly DerObjectIdentifier IdHashMLDsa44WithSha512 = SigAlgs.Branch("32");
-        /// <summary> 2.16.840.1.101.3.4.3.33 /// </summary>
-        public static readonly DerObjectIdentifier IdHashMLDsa65WithSha512 = SigAlgs.Branch("33");
-        /// <summary> 2.16.840.1.101.3.4.3.34 /// </summary>
-        public static readonly DerObjectIdentifier IdHashMLDsa87WithSha512 = SigAlgs.Branch("34");
+        /** 2.16.840.1.101.3.4.3.32 */
+        public static readonly DerObjectIdentifier id_hash_ml_dsa_44_with_sha512 = SigAlgs.Branch("32");
+        /** 2.16.840.1.101.3.4.3.33 */
+        public static readonly DerObjectIdentifier id_hash_ml_dsa_65_with_sha512 = SigAlgs.Branch("33");
+        /** 2.16.840.1.101.3.4.3.34 */
+        public static readonly DerObjectIdentifier id_hash_ml_dsa_87_with_sha512 = SigAlgs.Branch("34");
+
         // "pure" SLH-DSA
-        /// <summary> 2.16.840.1.101.3.4.3.20 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaSha2_128s = SigAlgs.Branch("20");
-        /// <summary> 2.16.840.1.101.3.4.3.21 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaSha2_128f = SigAlgs.Branch("21");
-        /// <summary> 2.16.840.1.101.3.4.3.22 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaSha2_192s = SigAlgs.Branch("22");
-        /// <summary> 2.16.840.1.101.3.4.3.23 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaSha2_192f = SigAlgs.Branch("23");
-        /// <summary> 2.16.840.1.101.3.4.3.24 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaSha2_256s = SigAlgs.Branch("24");
-        /// <summary> 2.16.840.1.101.3.4.3.25 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaSha2_256f = SigAlgs.Branch("25");
-        /// <summary> 2.16.840.1.101.3.4.3.26 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaShake128s = SigAlgs.Branch("26");
-        /// <summary> 2.16.840.1.101.3.4.3.27 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaShake128f = SigAlgs.Branch("27");
-        /// <summary> 2.16.840.1.101.3.4.3.28 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaShake192s = SigAlgs.Branch("28");
-        /// <summary> 2.16.840.1.101.3.4.3.29 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaShake192f = SigAlgs.Branch("29");
-        /// <summary> 2.16.840.1.101.3.4.3.30 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaShake256s = SigAlgs.Branch("30");
-        /// <summary> 2.16.840.1.101.3.4.3.31 </summary>
-        public static readonly DerObjectIdentifier IdSlhDsaShake256f = SigAlgs.Branch("31");
+        /** 2.16.840.1.101.3.4.3.20 */
+        public static readonly DerObjectIdentifier id_slh_dsa_sha2_128s = SigAlgs.Branch("20");
+        /** 2.16.840.1.101.3.4.3.21 */
+        public static readonly DerObjectIdentifier id_slh_dsa_sha2_128f = SigAlgs.Branch("21");
+        /** 2.16.840.1.101.3.4.3.22 */
+        public static readonly DerObjectIdentifier id_slh_dsa_sha2_192s = SigAlgs.Branch("22");
+        /** 2.16.840.1.101.3.4.3.23 */
+        public static readonly DerObjectIdentifier id_slh_dsa_sha2_192f = SigAlgs.Branch("23");
+        /** 2.16.840.1.101.3.4.3.24 */
+        public static readonly DerObjectIdentifier id_slh_dsa_sha2_256s = SigAlgs.Branch("24");
+        /** 2.16.840.1.101.3.4.3.25 */
+        public static readonly DerObjectIdentifier id_slh_dsa_sha2_256f = SigAlgs.Branch("25");
+        /** 2.16.840.1.101.3.4.3.26 */
+        public static readonly DerObjectIdentifier id_slh_dsa_shake_128s = SigAlgs.Branch("26");
+        /** 2.16.840.1.101.3.4.3.27 */
+        public static readonly DerObjectIdentifier id_slh_dsa_shake_128f = SigAlgs.Branch("27");
+        /** 2.16.840.1.101.3.4.3.28 */
+        public static readonly DerObjectIdentifier id_slh_dsa_shake_192s = SigAlgs.Branch("28");
+        /** 2.16.840.1.101.3.4.3.29 */
+        public static readonly DerObjectIdentifier id_slh_dsa_shake_192f = SigAlgs.Branch("29");
+        /** 2.16.840.1.101.3.4.3.30 */
+        public static readonly DerObjectIdentifier id_slh_dsa_shake_256s = SigAlgs.Branch("30");
+        /** 2.16.840.1.101.3.4.3.31 */
+        public static readonly DerObjectIdentifier id_slh_dsa_shake_256f = SigAlgs.Branch("31");
 
         // "pre-hash" SLH-DSA
-        /// <summary> 2.16.840.1.101.3.4.3.35 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsaSha2_128sWithSha256 = SigAlgs.Branch("35");
-        /// <summary> 2.16.840.1.101.3.4.3.36 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsasha2_128fWithSha256 = SigAlgs.Branch("36");
-        /// <summary> 2.16.840.1.101.3.4.3.37 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsasha2_192sWithSha512 = SigAlgs.Branch("37");
-        /// <summary> 2.16.840.1.101.3.4.3.38 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsasha2_192fWithSha512 = SigAlgs.Branch("38");
-        /// <summary> 2.16.840.1.101.3.4.3.39 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsasha2_256sWithSha512 = SigAlgs.Branch("39");
-        /// <summary> 2.16.840.1.101.3.4.3.40 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsasha2_256fWithSha512 = SigAlgs.Branch("40");
-        /// <summary> 2.16.840.1.101.3.4.3.41 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsashake_128sWithShake128 = SigAlgs.Branch("41");
-        /// <summary> 2.16.840.1.101.3.4.3.42 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsashake_128fWithShake128 = SigAlgs.Branch("42");
-        /// <summary> 2.16.840.1.101.3.4.3.43 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsashake_192sWithShake256 = SigAlgs.Branch("43");
-        /// <summary> 2.16.840.1.101.3.4.3.44 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsashake_192fWithShake256 = SigAlgs.Branch("44");
-        /// <summary> 2.16.840.1.101.3.4.3.45 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsashake_256sWithShake256 = SigAlgs.Branch("45");
-        /// <summary> 2.16.840.1.101.3.4.3.46 /// </summary>
-        public static readonly DerObjectIdentifier IdHashSlhDsashake_256fWithShake256 = SigAlgs.Branch("46");
+        /** 2.16.840.1.101.3.4.3.35 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_sha2_128s_with_sha256 = SigAlgs.Branch("35");
+        /** 2.16.840.1.101.3.4.3.36 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_sha2_128f_with_sha256 = SigAlgs.Branch("36");
+        /** 2.16.840.1.101.3.4.3.37 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_sha2_192s_with_sha512 = SigAlgs.Branch("37");
+        /** 2.16.840.1.101.3.4.3.38 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_sha2_192f_with_sha512 = SigAlgs.Branch("38");
+        /** 2.16.840.1.101.3.4.3.39 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_sha2_256s_with_sha512 = SigAlgs.Branch("39");
+        /** 2.16.840.1.101.3.4.3.40 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_sha2_256f_with_sha512 = SigAlgs.Branch("40");
+        /** 2.16.840.1.101.3.4.3.41 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_shake_128s_with_shake128 = SigAlgs.Branch("41");
+        /** 2.16.840.1.101.3.4.3.42 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_shake_128f_with_shake128 = SigAlgs.Branch("42");
+        /** 2.16.840.1.101.3.4.3.43 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_shake_192s_with_shake256 = SigAlgs.Branch("43");
+        /** 2.16.840.1.101.3.4.3.44 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_shake_192f_with_shake256 = SigAlgs.Branch("44");
+        /** 2.16.840.1.101.3.4.3.45 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_shake_256s_with_shake256 = SigAlgs.Branch("45");
+        /** 2.16.840.1.101.3.4.3.46 */
+        public static readonly DerObjectIdentifier id_hash_slh_dsa_shake_256f_with_shake256 = SigAlgs.Branch("46");
 
         //
         // KEMs - Key-Establishment Mechanisms
         //
-        /// <summary> 2.16.840.1.101.3.4.4</summary>
+        /**
+         * 2.16.840.1.101.3.4.4
+         */
         public static readonly DerObjectIdentifier kems = NistAlgorithm.Branch("4");
-        // Ml-Kem
-        /// <summary> 2.16.840.1.101.3.4.4.1 </summary>
-        public static readonly DerObjectIdentifier IdAlgMLKem512 = kems.Branch("1");
-        /// <summary> 2.16.840.1.101.3.4.4.2 </summary>
-        public static readonly DerObjectIdentifier IdAlgMLKem768 = kems.Branch("2");
-        /// <summary> 2.16.840.1.101.3.4.4.3 </summary>
-        public static readonly DerObjectIdentifier IdAlgMLKem1024 = kems.Branch("3");
+
+        // ML-KEM
+        /** 2.16.840.1.101.3.4.4.1 */
+        public static readonly DerObjectIdentifier id_alg_ml_kem_512 = kems.Branch("1");
+        /** 2.16.840.1.101.3.4.4.2 */
+        public static readonly DerObjectIdentifier id_alg_ml_kem_768 = kems.Branch("2");
+        /** 2.16.840.1.101.3.4.4.3 */
+        public static readonly DerObjectIdentifier id_alg_ml_kem_1024 = kems.Branch("3");
     }
 }
