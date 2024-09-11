@@ -7,7 +7,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using System;
@@ -236,13 +236,13 @@ namespace Org.BouncyCastle.crypto.parameters
             switch (PostQuantumName)
             {
                 case "mlkem512":
-                    PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber512);
+                    PostQuantumParameters = new MLKemKeyGenerationParameters(new Security.SecureRandom(), MLKemParameters.ML_KEM_512);
                     break;
                 case "mlkem768":
-                    PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber768);
+                    PostQuantumParameters = new MLKemKeyGenerationParameters(new Security.SecureRandom(), MLKemParameters.ML_KEM_768);
                     break;
                 case "mlkem1024":
-                    PostQuantumParameters = new KyberKeyGenerationParameters(new Security.SecureRandom(), KyberParameters.kyber1024);
+                    PostQuantumParameters = new MLKemKeyGenerationParameters(new Security.SecureRandom(), MLKemParameters.ML_KEM_1024);
                     break;
                 case "mldsa44":
                     PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium2);

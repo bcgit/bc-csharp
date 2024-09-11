@@ -7,7 +7,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -84,9 +84,9 @@ namespace Org.BouncyCastle.crypto.generators
             }
 
             AsymmetricCipherKeyPair postQuantumKeypair = null;
-            if (parameters.PostQuantumParameters is KyberKeyGenerationParameters)
+            if (parameters.PostQuantumParameters is MLKemKeyGenerationParameters)
             {
-                var generator = new KyberKeyPairGenerator();
+                var generator = new MLKemKeyPairGenerator();
                 generator.Init(parameters.PostQuantumParameters);
                 postQuantumKeypair = generator.GenerateKeyPair();
             }
@@ -168,9 +168,9 @@ namespace Org.BouncyCastle.crypto.generators
 
             byte[] postQuantumCiphertext = null;
             byte[] postQuantumSharedSecret = null;
-            if (hybridPubKey.PostQuantum is KyberPublicKeyParameters)
+            if (hybridPubKey.PostQuantum is MLKemPublicKeyParameters)
             {
-                var encapsulation = new KyberKemGenerator(new SecureRandom()).GenerateEncapsulated(hybridPubKey.PostQuantum);
+                var encapsulation = new MLKemGenerator(new SecureRandom()).GenerateEncapsulated(hybridPubKey.PostQuantum);
                 postQuantumCiphertext = encapsulation.GetEncapsulation();
                 postQuantumSharedSecret = encapsulation.GetSecret();
             }
@@ -267,14 +267,14 @@ namespace Org.BouncyCastle.crypto.generators
             }
 
             byte[] postQuantumSharedSecret = null;
-            if (hybridPrivKey.PostQuantum is KyberPrivateKeyParameters postQuantum)
+            if (hybridPrivKey.PostQuantum is MLKemPrivateKeyParameters postQuantum)
             {
-                var extractor = new KyberKemExtractor(postQuantum);
+                var extractor = new MLKemExtractor(postQuantum);
                 if (ciphertext.Length != extractor.EncapsulationLength)
                 {
                     throw new Exception("Wrong size post-quantum ciphertext");
                 }
-                postQuantumSharedSecret = new KyberKemExtractor(postQuantum).ExtractSecret(ciphertext);
+                postQuantumSharedSecret = extractor.ExtractSecret(ciphertext);
             }
 
             if (postQuantumSharedSecret == null)

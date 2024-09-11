@@ -18,7 +18,7 @@ using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -320,7 +320,7 @@ namespace Org.BouncyCastle.Pkcs
                     case "mlkem512":
                     case "mlkem768":
                     case "mlkem1024":
-                        postQuantumBytes = (key.PostQuantum as KyberPrivateKeyParameters).GetEncoded();
+                        postQuantumBytes = (key.PostQuantum as MLKemPrivateKeyParameters).GetEncoded();
                         break;
                     case "mldsa44":
                     case "mldsa65":

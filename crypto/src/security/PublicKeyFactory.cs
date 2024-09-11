@@ -20,7 +20,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 
@@ -363,23 +363,23 @@ namespace Org.BouncyCastle.Security
                 hybridBytes = hybridBytes.Skip(4 + classicalKeySize).ToArray();
 
                 AsymmetricKeyParameter postQuantumKey = null;
-                if (keyParameters.PostQuantumParameters is KyberKeyGenerationParameters kyberParameters)
+                if (keyParameters.PostQuantumParameters is MLKemKeyGenerationParameters mlkemParameters)
                 {
                     int postQuantumKeySize = 0;
-                    KyberParameters parameters;
-                    switch (kyberParameters.Parameters.Name)
+                    MLKemParameters parameters;
+                    switch (mlkemParameters.Parameters.Name)
                     {
-                        case "kyber512":
+                        case "ML-KEM-512":
                             postQuantumKeySize = 800;
-                            parameters = KyberParameters.kyber512;
+                            parameters = MLKemParameters.ML_KEM_512;
                             break;
-                        case "kyber768":
+                        case "ML-KEM-768":
                             postQuantumKeySize = 1184;
-                            parameters = KyberParameters.kyber768;
+                            parameters = MLKemParameters.ML_KEM_768;
                             break;
-                        case "kyber1024":
+                        case "ML-KEM-1024":
                             postQuantumKeySize = 1568;
-                            parameters = KyberParameters.kyber1024;
+                            parameters = MLKemParameters.ML_KEM_1024;
                             break;
                         default:
                             throw new Exception("Post-quantum keytype not supported");
@@ -390,7 +390,7 @@ namespace Org.BouncyCastle.Security
                         throw new Exception("Encoded hybrid public key has wrong size");
                     }
 
-                    postQuantumKey = new KyberPublicKeyParameters(parameters, hybridBytes);
+                    postQuantumKey = new MLKemPublicKeyParameters(parameters, hybridBytes);
                 }
                 else if (keyParameters.PostQuantumParameters is DilithiumKeyGenerationParameters dilithiumParameters)
                 {

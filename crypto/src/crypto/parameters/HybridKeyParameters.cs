@@ -4,7 +4,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Custom.Sec;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using System;
 using System.Collections.Generic;
@@ -19,13 +19,6 @@ namespace Org.BouncyCastle.crypto.parameters
     {
         public static readonly Dictionary<string, string> HybridNameToOid = new Dictionary<string, string>()
         {
-            { "p256_kyber512" , "1.3.9999.99.72" },
-            { "x25519_kyber512" , "1.3.9999.99.49" },
-            { "p384_kyber768" , "1.3.9999.99.73" },
-            { "x448_kyber768" , "1.3.9999.99.50" },
-            { "x25519_kyber768" , "1.3.9999.99.51" },
-            { "p256_kyber768" , "1.3.9999.99.52" },
-            { "p521_kyber1024" , "1.3.9999.99.74" },
             { "p256_mlkem512" , "1.3.6.1.4.1.22554.5.7.1" },
             { "x25519_mlkem512" , "1.3.6.1.4.1.22554.5.8.1" },
             { "p384_mlkem768" , "1.3.9999.99.75" },
@@ -69,13 +62,6 @@ namespace Org.BouncyCastle.crypto.parameters
 
         public static readonly Dictionary<string, string> HybridOidToName = new Dictionary<string, string>()
         {
-            { "1.3.9999.99.72" , "p256_kyber512" },
-            { "1.3.9999.99.49" , "x25519_kyber512" },
-            { "1.3.9999.99.73" , "p384_kyber768" },
-            { "1.3.9999.99.50" , "x448_kyber768" },
-            { "1.3.9999.99.51" , "x25519_kyber768" },
-            { "1.3.9999.99.52" , "p256_kyber768" },
-            { "1.3.9999.99.74" , "p521_kyber1024" },
             { "1.3.6.1.4.1.22554.5.7.1" , "p256_mlkem512" },
             { "1.3.6.1.4.1.22554.5.8.1" , "x25519_mlkem512" },
             { "1.3.9999.99.75" , "p384_mlkem768" },
@@ -184,9 +170,21 @@ namespace Org.BouncyCastle.crypto.parameters
 
             string postQuantumCanonicalName = null;
 
-            if (PostQuantum is KyberKeyParameters)
+            if (PostQuantum is MLKemKeyParameters)
             {
-                postQuantumCanonicalName = (PostQuantum as KyberKeyParameters).Parameters.Name.Replace("kyber", "mlkem");
+                var name = (PostQuantum as MLKemKeyParameters).Parameters.Name;
+                switch (name)
+                {
+                    case "ML-KEM-512":
+                        postQuantumCanonicalName = "mlkem512";
+                        break;
+                    case "ML-KEM-768":
+                        postQuantumCanonicalName = "mlkem768";
+                        break;
+                    case "ML-KEM-1024":
+                        postQuantumCanonicalName = "mlkem1024";
+                        break;
+                }
             }
             else if (PostQuantum is DilithiumKeyParameters)
             {
