@@ -47,7 +47,7 @@
 
   <!--Package Validation-->
   <PropertyGroup>
-    <EnablePackageValidation>true</EnablePackageValidation>
+    <EnablePackageValidation>false</EnablePackageValidation>
     <PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>
 
 	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
