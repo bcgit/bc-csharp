@@ -285,9 +285,9 @@ namespace Org.BouncyCastle.Security
             {
                 return GetMLDsaPublicKey(MLDsaParameters.FromOid(algOid), keyInfo.PublicKey);
             }
-            else if (HybridKeyParameters.HybridOidToName.ContainsKey(algOid.Id))
+            else if (HybridParameters.HybridOidToName.ContainsKey(algOid.Id))
             {
-                var hybridName = HybridKeyParameters.HybridOidToName[algOid.Id];
+                var hybridName = HybridParameters.HybridOidToName[algOid.Id];
                 var names = hybridName.Split(Convert.ToChar("_"));
                 var classicalName = names[0];
                 var postQuantumName = names[1];

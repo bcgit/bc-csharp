@@ -17,92 +17,6 @@ namespace Org.BouncyCastle.crypto.parameters
     public class HybridKeyParameters
         : AsymmetricKeyParameter
     {
-        public static readonly Dictionary<string, string> HybridNameToOid = new Dictionary<string, string>()
-        {
-            { "p256_mlkem512" , "1.3.6.1.4.1.22554.5.7.1" },
-            { "x25519_mlkem512" , "1.3.6.1.4.1.22554.5.8.1" },
-            { "p384_mlkem768" , "1.3.9999.99.75" },
-            { "x448_mlkem768" , "1.3.9999.99.53" },
-            { "x25519_mlkem768" , "1.3.9999.99.54" },
-            { "p256_mlkem768" , "1.3.9999.99.55" },
-            { "p521_mlkem1024" , "1.3.9999.99.76" },
-            { "p384_mlkem1024" , "1.3.6.1.4.1.42235.6" },
-            { "p256_dilithium2" , "1.3.9999.2.7.1" },
-            //{ "rsa3072_dilithium2" , "1.3.9999.2.7.2" },
-            { "p384_dilithium3" , "1.3.9999.2.7.3" },
-            { "p521_dilithium5" , "1.3.9999.2.7.4" },
-            //{ "rsa3072_mldsa44" , "1.3.9999.7.2" },
-            //{ "mldsa44_rsa2048" , "2.16.840.1.114027.80.8.1.2" },
-            { "ed25519_mldsa44" , "2.16.840.1.114027.80.8.1.3" },
-            { "p256_mldsa44" , "2.16.840.1.114027.80.8.1.4" },
-            { "p384_mldsa65" , "1.3.9999.7.3" },
-            //{ "mldsa65_rsa3072" , "2.16.840.1.114027.80.8.1.7" },
-            { "p256_mldsa65" , "2.16.840.1.114027.80.8.1.8" },
-            { "ed25519_mldsa65" , "2.16.840.1.114027.80.8.1.10" },
-            { "p521_mldsa87" , "1.3.9999.7.4" },
-            { "p384_mldsa87" , "2.16.840.1.114027.80.8.1.11" },
-            { "ed448_mldsa87" , "2.16.840.1.114027.80.8.1.13" },
-            { "p256_slhdsasha2128f" , "1.3.9999.6.4.14" },
-            //{ "rsa3072_slhdsasha2128f" , "1.3.9999.6.4.15" },
-            { "p256_slhdsasha2128s" , "1.3.9999.6.4.17" },
-            //{ "rsa3072_slhdsasha2128s" , "1.3.9999.6.4.18" },
-            { "p384_slhdsasha2192f" , "1.3.9999.6.5.11" },
-            { "p384_slhdsasha2192s" , "1.3.9999.6.5.13" },
-            { "p521_slhdsasha2256f" , "1.3.9999.6.6.11" },
-            { "p521_slhdsasha2256s" , "1.3.9999.6.6.13" },
-            { "p256_slhdsashake128f" , "1.3.9999.6.7.14" },
-            //{ "rsa3072_slhdsashake128f" , "1.3.9999.6.7.15" },
-            { "p256_slhdsashake128s" , "1.3.9999.6.7.17" },
-            //{ "rsa3072_slhdsashake128s" , "1.3.9999.6.7.18" },
-            { "p384_slhdsashake192f" , "1.3.9999.6.8.11" },
-            { "p384_slhdsashake192s" , "1.3.9999.6.8.13" },
-            { "p521_slhdsashake256f" , "1.3.9999.6.9.11" },
-            { "p521_slhdsashake256s" , "1.3.9999.6.9.13" },
-        };
-
-        public static readonly Dictionary<string, string> HybridOidToName = new Dictionary<string, string>()
-        {
-            { "1.3.6.1.4.1.22554.5.7.1" , "p256_mlkem512" },
-            { "1.3.6.1.4.1.22554.5.8.1" , "x25519_mlkem512" },
-            { "1.3.9999.99.75" , "p384_mlkem768" },
-            { "1.3.9999.99.53" , "x448_mlkem768" },
-            { "1.3.9999.99.54" , "x25519_mlkem768" },
-            { "1.3.9999.99.55" , "p256_mlkem768" },
-            { "1.3.9999.99.76" , "p521_mlkem1024" },
-            { "1.3.6.1.4.1.42235.6" , "p384_mlkem1024" },
-            { "1.3.9999.2.7.1" , "p256_dilithium2" },
-            //{ "1.3.9999.2.7.2" , "rsa3072_dilithium2" },
-            { "1.3.9999.2.7.3" , "p384_dilithium3" },
-            { "1.3.9999.2.7.4" , "p521_dilithium5" },
-            //{ "1.3.9999.7.2" , "rsa3072_mldsa44" },
-            //{ "2.16.840.1.114027.80.8.1.2" , "mldsa44_rsa2048" },
-            { "2.16.840.1.114027.80.8.1.3" , "ed25519_mldsa44" },
-            { "2.16.840.1.114027.80.8.1.4" , "p256_mldsa44" },
-            { "1.3.9999.7.3" , "p384_mldsa65" },
-            //{ "2.16.840.1.114027.80.8.1.7" , "mldsa65_rsa3072" },
-            { "2.16.840.1.114027.80.8.1.8" , "p256_mldsa65" },
-            { "2.16.840.1.114027.80.8.1.10" , "ed25519_mldsa65" },
-            { "1.3.9999.7.4" , "p521_mldsa87" },
-            { "2.16.840.1.114027.80.8.1.11" , "p384_mldsa87" },
-            { "2.16.840.1.114027.80.8.1.13" , "ed448_mldsa87" },
-            { "1.3.9999.6.4.14" , "p256_slhdsasha2128f" },
-            //{ "1.3.9999.6.4.15" , "rsa3072_slhdsasha2128f" },
-            { "1.3.9999.6.4.17" , "p256_slhdsasha2128s" },
-            //{ "1.3.9999.6.4.18" , "rsa3072_slhdsasha2128s" },
-            { "1.3.9999.6.5.11" , "p384_slhdsasha2192f" },
-            { "1.3.9999.6.5.13" , "p384_slhdsasha2192s" },
-            { "1.3.9999.6.6.11" , "p521_slhdsasha2256f" },
-            { "1.3.9999.6.6.13" , "p521_slhdsasha2256s" },
-            { "1.3.9999.6.7.14" , "p256_slhdsashake128f" },
-            //{ "1.3.9999.6.7.15" , "rsa3072_slhdsashake128f" },
-            { "1.3.9999.6.7.17" , "p256_slhdsashake128s" },
-            //{ "1.3.9999.6.7.18" , "rsa3072_slhdsashake128s" },
-            { "1.3.9999.6.8.11" , "p384_slhdsashake192f" },
-            { "1.3.9999.6.8.13" , "p384_slhdsashake192s" },
-            { "1.3.9999.6.9.11" , "p521_slhdsashake256f" },
-            { "1.3.9999.6.9.13" , "p521_slhdsashake256s" },
-        };
-
         public readonly DerObjectIdentifier AlgorithmOid;
 
         public AsymmetricKeyParameter Classical {  get; private set; }
@@ -218,7 +132,7 @@ namespace Org.BouncyCastle.crypto.parameters
             string objectId = null;
             if (CanonicalName != null)
             {
-                if(!HybridNameToOid.TryGetValue(CanonicalName, out objectId))
+                if(!HybridParameters.HybridNameToOid.TryGetValue(CanonicalName, out objectId))
                 {
                     throw new Exception($"Object identifier for {CanonicalName} not found");
                 }

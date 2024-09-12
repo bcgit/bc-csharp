@@ -3,12 +3,16 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.crypto.generators;
 using Org.BouncyCastle.crypto.parameters;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -131,6 +135,21 @@ namespace Org.BouncyCastle.src.crypto.test
             }
         }
 
+        [Test]
+        public void TestInterop()
+        {
+            var otherLibraries = new List<string>()
+            {
+                "oqsprovider",
+            };
+
+            foreach (var lib in otherLibraries)
+            {
+                Console.WriteLine($"testing interop with: {lib}");
+                TestKemInteropWith(lib);
+            }
+        }
+
         private static AsymmetricCipherKeyPair GenerateKeypair(string hybridName, bool isKem)
         {
             HybridKeyGenerationParameters hybridParameters;
@@ -180,6 +199,69 @@ namespace Org.BouncyCastle.src.crypto.test
             var privKey2 = PrivateKeyFactory.CreateKey(privKeyInfoBytes);
 
             return privKey2;
+        }
+
+        private static void TestKemInteropWith(string libraryName)
+        {
+            foreach (var postQuantum in postQuantumKems)
+            {
+                foreach (var classical in classicalEcdh)
+                {
+                    var hybridName = $"{classical}_{postQuantum}";
+
+                    AsymmetricKeyParameter privKey = null;
+                    AsymmetricKeyParameter pubKey = null;
+                    byte[] ciphertext = null;
+                    byte[] sharedSecret = null;
+
+                    var directoryName = "hybrid." + libraryName + ".kem." + hybridName;
+
+                    if (!SimpleTest.TestDataDirectoryExists(directoryName))
+                        continue;
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".privkey.pem"))))
+                    {
+                        var reader = new PemReader(sr);
+                        privKey = (HybridKeyParameters)reader.ReadObject();
+                    }
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".pubkey.pem"))))
+                    {
+                        var reader = new PemReader(sr);
+                        pubKey = (HybridKeyParameters)reader.ReadObject();
+                    }
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".ciphertext.base64.txt").Skip(3).ToArray())))
+                    {
+                        ciphertext = Convert.FromBase64String(sr.ReadToEnd());
+                    }
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".shared_secret.base64.txt").Skip(3).ToArray())))
+                    {
+                        sharedSecret = Convert.FromBase64String(sr.ReadToEnd());
+                    }
+
+                    var pubKey2 = PublicTryEnDecode(pubKey);
+
+                    var privKey2 = PrivateTryEnDecode(privKey);
+
+                    // decapsulate serialized ciphertext
+                    var sharedSecret2 = HybridKemGenerator.Decapsulate(privKey, ciphertext);
+                    Assert.AreEqual(sharedSecret, sharedSecret2);
+
+                    var sharedSecret3 = HybridKemGenerator.Decapsulate(privKey2, ciphertext);
+                    Assert.AreEqual(sharedSecret, sharedSecret3);
+
+                    // encapsulate
+                    var newEncapsulation = HybridKemGenerator.Encapsulate(pubKey);
+
+                    // decapsulate
+                    var newSharedSecret = HybridKemGenerator.Decapsulate(privKey, newEncapsulation.GetEncapsulation());
+                    Assert.AreEqual(newEncapsulation.GetSecret(), newSharedSecret);
+
+                    Console.WriteLine($"success: {hybridName}");
+                }
+            }
         }
     }
 }

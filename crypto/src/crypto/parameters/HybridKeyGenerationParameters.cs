@@ -155,12 +155,12 @@ namespace Org.BouncyCastle.crypto.parameters
         public HybridKeyGenerationParameters(SecureRandom random, DerObjectIdentifier hybridAlgorithm)
             : base(random, 256)
         {
-            if (!HybridKeyParameters.HybridOidToName.ContainsKey(hybridAlgorithm.Id))
+            if (!HybridParameters.HybridOidToName.ContainsKey(hybridAlgorithm.Id))
             {
                 throw new ArgumentException("Unsupported hybrid combination");
             }
 
-            HybridName = HybridKeyParameters.HybridOidToName[hybridAlgorithm.Id];
+            HybridName = HybridParameters.HybridOidToName[hybridAlgorithm.Id];
             HybridAlgorithm = hybridAlgorithm;
 
             SetClassicals();
@@ -173,13 +173,13 @@ namespace Org.BouncyCastle.crypto.parameters
         {
             hybridAlgorithm = hybridAlgorithm.ToLowerInvariant();
 
-            if (!HybridKeyParameters.HybridNameToOid.ContainsKey(hybridAlgorithm))
+            if (!HybridParameters.HybridNameToOid.ContainsKey(hybridAlgorithm))
             {
                 throw new ArgumentException("Unsupported hybrid combination");
             }
 
             HybridName = hybridAlgorithm;
-            HybridAlgorithm = new DerObjectIdentifier(HybridKeyParameters.HybridNameToOid[hybridAlgorithm]);
+            HybridAlgorithm = new DerObjectIdentifier(HybridParameters.HybridNameToOid[hybridAlgorithm]);
 
             SetClassicals();
 
@@ -200,12 +200,12 @@ namespace Org.BouncyCastle.crypto.parameters
         {
             HybridName = string.Concat(ClassicalName, "_", PostQuantumName);
 
-            if (!HybridKeyParameters.HybridNameToOid.ContainsKey(HybridName))
+            if (!HybridParameters.HybridNameToOid.ContainsKey(HybridName))
             {
                 throw new Exception("Unsupported hybrid combination");
             }
 
-            HybridAlgorithm = new DerObjectIdentifier(HybridKeyParameters.HybridNameToOid[HybridName]);
+            HybridAlgorithm = new DerObjectIdentifier(HybridParameters.HybridNameToOid[HybridName]);
         }
 
         private void InitializeParameters()
