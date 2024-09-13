@@ -138,23 +138,21 @@ namespace Org.BouncyCastle.Utilities.Test
 
         internal static Stream FindTestResource(string homeDir, string fileName)
         {
-            string wrkDirName = Directory.GetCurrentDirectory();
-            string separator = Path.DirectorySeparatorChar.ToString();
-            DirectoryInfo wrkDir = new DirectoryInfo(wrkDirName);
-            DirectoryInfo dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, DataDirName));
+            string wrkDirPath = Directory.GetCurrentDirectory();
+            string dataDirPath;
 
-            while (!dataDir.Exists && wrkDirName.Length > 1)
+            while (!Directory.Exists(dataDirPath = Path.Combine(wrkDirPath, DataDirName)))
             {
-                wrkDirName = wrkDirName.Substring(0, wrkDirName.LastIndexOf(separator));
-                wrkDir = new DirectoryInfo(wrkDirName);
-                dataDir = new DirectoryInfo(Path.Combine(wrkDir.FullName, DataDirName));
+                wrkDirPath = Path.GetDirectoryName(wrkDirPath);
+
+                if (wrkDirPath is null)
+                {
+                    throw new DirectoryNotFoundException("Test data directory " + DataDirName + " not found." + NewLine +
+                        "Test data available from: https://github.com/bcgit/bc-test-data.git");
+                }
             }
 
-            if (!dataDir.Exists)
-                throw new FileNotFoundException("Test data directory " + DataDirName + " not found." + NewLine +
-                    "Test data available from: https://github.com/bcgit/bc-test-data.git");
-
-            return File.OpenRead(Path.Combine(dataDir.FullName, homeDir + separator + fileName));
+            return File.OpenRead(Path.Combine(dataDirPath, homeDir, fileName));
         }
     }
 }

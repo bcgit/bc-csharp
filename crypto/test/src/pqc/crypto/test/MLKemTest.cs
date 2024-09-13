@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             {
                 string name = files[fileIndex];
                 // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
+                using var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
 
                 string line = null;
                 Dictionary<string, string> buf = new Dictionary<string, string>();
@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             {
                 string name = files[fileIndex];
                 // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
+                using var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
                 string line = null;
                 Dictionary<string, string> buf = new Dictionary<string, string>();
                 while ((line = src.ReadLine()) != null)
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             {
                 string name = files[fileIndex];
                 // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
+                using var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
                 string line = null;
                 Dictionary<string, string> buf = new Dictionary<string, string>();
                 while ((line = src.ReadLine()) != null)
@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             {
                 string name = files[fileIndex];
                 // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/modulus", name));
+                using var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/modulus", name));
                 string line = null;
                 while ((line = src.ReadLine()) != null)
                 {

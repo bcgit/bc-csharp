@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 </Project>
