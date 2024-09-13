@@ -15,7 +15,6 @@ using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -101,16 +100,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.PicnicOidLookup(picnicPrivateKeyParameters.Parameters));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (privateKey is SikePrivateKeyParameters sikePrivateKeyParameters)
-            {
-                byte[] encoding = sikePrivateKeyParameters.GetEncoded();
-
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.SikeOidLookup(sikePrivateKeyParameters.Parameters));
-                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is FalconPrivateKeyParameters falconPrivateKeyParameters)
             {
                 Asn1EncodableVector v = new Asn1EncodableVector(4);

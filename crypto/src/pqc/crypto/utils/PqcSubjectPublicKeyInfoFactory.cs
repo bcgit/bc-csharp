@@ -8,14 +8,13 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -99,16 +98,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.PicnicOidLookup(picnicPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (publicKey is SikePublicKeyParameters sikePublicKeyParameters)
-            {
-                byte[] encoding = sikePublicKeyParameters.GetEncoded();
-
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.SikeOidLookup(sikePublicKeyParameters.Parameters));
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
             if (publicKey is FalconPublicKeyParameters falconPublicKeyParameters)
             {
                 byte[] keyEnc = falconPublicKeyParameters.GetEncoded();

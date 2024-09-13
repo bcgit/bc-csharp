@@ -348,11 +348,10 @@ namespace Org.BouncyCastle.Security
                         gostParams.PublicKeyParamSet,
                         gostParams.DigestParamSet,
                         gostParams.EncryptionParamSet));
-
             }
-            else if (NistObjectIdentifiers.IdMLDsa44.Equals(algOid)
-                ||   NistObjectIdentifiers.IdMLDsa65.Equals(algOid)
-                ||   NistObjectIdentifiers.IdMLDsa87.Equals(algOid))
+            else if (NistObjectIdentifiers.id_ml_dsa_44.Equals(algOid) ||
+                     NistObjectIdentifiers.id_ml_dsa_65.Equals(algOid) ||
+                     NistObjectIdentifiers.id_ml_dsa_87.Equals(algOid))
             {
                 var parameters = MLDsaParameters.FromOid(algOid);
                 var encoding = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());

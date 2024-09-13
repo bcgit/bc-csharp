@@ -278,9 +278,9 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
             }
-            else if (NistObjectIdentifiers.IdMLDsa44.Equals(algOid)
-                ||   NistObjectIdentifiers.IdMLDsa65.Equals(algOid)
-                ||   NistObjectIdentifiers.IdMLDsa87.Equals(algOid))
+            else if (NistObjectIdentifiers.id_ml_dsa_44.Equals(algOid) ||
+                     NistObjectIdentifiers.id_ml_dsa_65.Equals(algOid) ||
+                     NistObjectIdentifiers.id_ml_dsa_87.Equals(algOid))
             {
                 return GetMLDsaPublicKey(MLDsaParameters.FromOid(algOid), keyInfo.PublicKey);
             }

@@ -150,8 +150,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             t0_ = new byte[K * PolyT0PackedBytes];
             PolyVecMatrix matrix = new PolyVecMatrix(this);
 
-            PolyVecL s1 = new PolyVecL(this);
-            PolyVecK s2 = new PolyVecK(this), t1 = new PolyVecK(this), t0 = new PolyVecK(this);
+            PolyVec s1 = new PolyVec(this, L);
+            PolyVec s2 = new PolyVec(this, K), t1 = new PolyVec(this, K), t0 = new PolyVec(this, K);
 
             ShakeDigest shake256Digest = new ShakeDigest(256);
             shake256Digest.BlockUpdate(seed, 0, SeedBytes);
@@ -173,8 +173,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             s2.UniformEta(rhoPrime, (ushort)L);
 
             {
-                PolyVecL s1Hat = new PolyVecL(this);
-                s1.CopyPolyVecL(s1Hat);
+                PolyVec s1Hat = new PolyVec(this, L);
+                s1.CopyTo(s1Hat);
                 s1Hat.Ntt();
 
                 matrix.PointwiseMontgomery(t1, s1Hat);
@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             t1.Reduce();
             t1.InverseNttToMont();
 
-            t1.AddPolyVecK(s2);
+            t1.Add(s2);
             t1.ConditionalAddQ();
             t1.Power2Round(t0);
 
@@ -223,8 +223,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             byte[] seedBuf = new byte[3 * SeedBytes + 2 * CrhBytes];
             byte[] rhoPrime = new byte[CrhBytes];
             PolyVecMatrix matrix = new PolyVecMatrix(this);
-            PolyVecL s1 = new PolyVecL(this), y = new PolyVecL(this), z = new PolyVecL(this);
-            PolyVecK t0 = new PolyVecK(this), s2 = new PolyVecK(this), w1 = new PolyVecK(this), w0 = new PolyVecK(this), h = new PolyVecK(this);
+            PolyVec s1 = new PolyVec(this, L), y = new PolyVec(this, L), z = new PolyVec(this, L);
+            PolyVec t0 = new PolyVec(this, K), s2 = new PolyVec(this, K), w1 = new PolyVec(this, K),
+                w0 = new PolyVec(this, K), h = new PolyVec(this, K);
             Poly cp = new Poly(this);
 
             Packing.UnpackSecretKey(t0, s1, s2, t0Enc, s1Enc, s2Enc, this);
@@ -247,7 +248,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             {
                 // Sample intermediate vector
                 y.UniformGamma1(rhoPrime, nonce++);
-                y.CopyPolyVecL(z);
+                y.CopyTo(z);
                 z.Ntt();
 
                 // Matrix-vector multiplication
@@ -271,7 +272,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 // Compute z, reject if it reveals secret
                 z.PointwisePolyMontgomery(cp, s1);
                 z.InverseNttToMont();
-                z.AddPolyVecL(y);
+                z.Add(y);
                 z.Reduce();
                 if (z.CheckNorm(Gamma1 - Beta))
                     continue;
@@ -289,7 +290,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 if (h.CheckNorm(Gamma2))
                     continue;
 
-                w0.AddPolyVecK(h);
+                w0.Add(h);
                 w0.ConditionalAddQ();
                 int n = h.MakeHint(w0, w1);
                 if (n > Omega)
@@ -308,8 +309,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             if (siglen != CryptoBytes)
                 return false;
 
-            PolyVecK h = new PolyVecK(this);
-            PolyVecL z = new PolyVecL(this);
+            PolyVec h = new PolyVec(this, K);
+            PolyVec z = new PolyVec(this, L);
 
             if (!Packing.UnpackSignature(z, h, sig, this))
                 return false;
@@ -332,7 +333,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             byte[] buf = new byte[K * PolyW1PackedBytes];
             Poly cp = new Poly(this);
             PolyVecMatrix matrix = new PolyVecMatrix(this);
-            PolyVecK t1 = new PolyVecK(this), w1 = new PolyVecK(this);
+            PolyVec t1 = new PolyVec(this, K), w1 = new PolyVec(this, K);
 
             Packing.UnpackPublicKey(t1, encT1, this);
 

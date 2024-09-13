@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics;
 
 using Org.BouncyCastle.Utilities;
 
@@ -6,8 +6,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class Packing
     {
-        internal static byte[] PackPublicKey(PolyVecK t1, DilithiumEngine engine)
+        internal static byte[] PackPublicKey(PolyVec t1, DilithiumEngine engine)
         {
+            Debug.Assert(t1.Vec.Length == engine.K);
             byte[] output = new byte[engine.CryptoPublicKeyBytes - DilithiumEngine.SeedBytes];
             for (int i = 0; i < engine.K; i++)
             {
@@ -16,38 +17,44 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             return output;
         }
 
-        internal static void UnpackPublicKey(PolyVecK t1, byte[] pk, DilithiumEngine engine)
+        internal static void UnpackPublicKey(PolyVec t1, byte[] pk, DilithiumEngine engine)
         {
+            Debug.Assert(t1.Vec.Length == engine.K);
             for (int i = 0; i < engine.K; ++i)
             {
                 t1.Vec[i].PolyT1Unpack(pk, i * DilithiumEngine.PolyT1PackedBytes);
             }
         }
 
-        internal static void PackSecretKey(byte[] t0_, byte[] s1_, byte[] s2_, PolyVecK t0, PolyVecL s1, PolyVecK s2,
+        internal static void PackSecretKey(byte[] t0_, byte[] s1_, byte[] s2_, PolyVec t0, PolyVec s1, PolyVec s2,
             DilithiumEngine engine)
         {
-            int i;
+            Debug.Assert(t0.Vec.Length == engine.K);
+            Debug.Assert(s1.Vec.Length == engine.L);
+            Debug.Assert(s2.Vec.Length == engine.K);
 
+            int i;
             for (i = 0; i < engine.L; ++i)
             {
                 s1.Vec[i].PolyEtaPack(s1_, i * engine.PolyEtaPackedBytes);
             }
-
             for (i = 0; i < engine.K; ++i)
             {
                 s2.Vec[i].PolyEtaPack(s2_, i * engine.PolyEtaPackedBytes);
             }
-
             for (i = 0; i < engine.K; ++i)
             {
                 t0.Vec[i].PolyT0Pack(t0_, i * DilithiumEngine.PolyT0PackedBytes);
             }
         }
 
-        internal static void UnpackSecretKey(PolyVecK t0, PolyVecL s1, PolyVecK s2, byte[] t0Enc, byte[] s1Enc,
+        internal static void UnpackSecretKey(PolyVec t0, PolyVec s1, PolyVec s2, byte[] t0Enc, byte[] s1Enc,
             byte[] s2Enc, DilithiumEngine engine)
         {
+            Debug.Assert(t0.Vec.Length == engine.K);
+            Debug.Assert(s1.Vec.Length == engine.L);
+            Debug.Assert(s2.Vec.Length == engine.K);
+
             int i;
             for (i = 0; i < engine.L; ++i)
             {
@@ -64,8 +71,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         }
 
         internal static void PackSignature(byte[] sig, //byte[] c,
-            PolyVecL z, PolyVecK h, DilithiumEngine engine)
+            PolyVec z, PolyVec h, DilithiumEngine engine)
         {
+            Debug.Assert(z.Vec.Length == engine.L);
+            Debug.Assert(h.Vec.Length == engine.K);
+
             int i, j;
 
             //Array.Copy(c, 0, sig, 0, engine.CTilde);
@@ -96,8 +106,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        internal static bool UnpackSignature(PolyVecL z, PolyVecK h, byte[] sig, DilithiumEngine engine)
+        internal static bool UnpackSignature(PolyVec z, PolyVec h, byte[] sig, DilithiumEngine engine)
         {
+            Debug.Assert(z.Vec.Length == engine.L);
+            Debug.Assert(h.Vec.Length == engine.K);
+
             int i, j;
 
             int end = engine.CTilde;
