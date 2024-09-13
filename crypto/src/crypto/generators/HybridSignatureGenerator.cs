@@ -18,6 +18,7 @@ using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace Org.BouncyCastle.crypto.generators
 {
@@ -121,11 +122,10 @@ namespace Org.BouncyCastle.crypto.generators
             byte[] classicalSignature = null;
             if (hybridPrivKey.Classical is ECPrivateKeyParameters ecPrivKey)
             {
-                var signer = new ECDsaSigner();
+                var signer = new DsaDigestSigner(new ECDsaSigner(), new Sha512Digest());
                 signer.Init(true, ecPrivKey);
-                var signature = signer.GenerateSignature(message);
-                var encoding = new PlainDsaEncoding();
-                classicalSignature = encoding.Encode(ecPrivKey.Parameters.N, signature[0], signature[1]);
+                signer.BlockUpdate(message, 0, message.Length);
+                classicalSignature = signer.GenerateSignature();
             }
             else if (hybridPrivKey.Classical is Ed25519PrivateKeyParameters ed25519PrivKey)
             {
@@ -183,76 +183,102 @@ namespace Org.BouncyCastle.crypto.generators
 
             var hybridPubKey = pubKey as HybridKeyParameters;
 
+            var postQuantumSignatureSize = 0;
+            if (hybridPubKey.PostQuantum is DilithiumPublicKeyParameters mldsaKey)
+            {
+                switch (mldsaKey.Parameters.Name)
+                {
+                    case "dilithium2":
+                        postQuantumSignatureSize = 2420;
+                        break;
+                    case "dilithium3":
+                        postQuantumSignatureSize = 3309;
+                        break;
+                    case "dilithium5":
+                        postQuantumSignatureSize = 4627;
+                        break;
+                }
+            }
+            else if (hybridPubKey.PostQuantum is SphincsPlusPublicKeyParameters slhdsaKey)
+            {
+                switch (slhdsaKey.Parameters.Name)
+                {
+                    case "sha2-128f-simple":
+                    case "shake-128f-simple":
+                        postQuantumSignatureSize = 17088;
+                        break;
+                    case "sha2-128s-simple":
+                    case "shake-128s-simple":
+                        postQuantumSignatureSize = 7856;
+                        break;
+                    case "sha2-192f-simple":
+                    case "shake-192f-simple":
+                        postQuantumSignatureSize = 35664;
+                        break;
+                    case "sha2-192s-simple":
+                    case "shake-192s-simple":
+                        postQuantumSignatureSize = 16224;
+                        break;
+                    case "sha2-256f-simple":
+                    case "shake-256f-simple":
+                        postQuantumSignatureSize = 49856;
+                        break;
+                    case "sha2-256s-simple":
+                    case "shake-256s-simple":
+                        postQuantumSignatureSize = 29792;
+                        break;
+                }
+            }
+
+            if (postQuantumSignatureSize == 0)
+            {
+                throw new Exception("Post-quantum keytype not supported");
+            }
+
+            if (signature.Length <= postQuantumSignatureSize)
+            {
+                throw new Exception("Signature has wrong size");
+            }
+
+            var classicalSignature = signature.Take(signature.Length - postQuantumSignatureSize).ToArray();
+            var postQuantumSignature = signature.Skip(signature.Length - postQuantumSignatureSize).ToArray();
+
             bool classicalVerified = false;
             if (hybridPubKey.Classical is ECPublicKeyParameters ecPublicKey)
             {
                 var domainParameters = ecPublicKey.Parameters;
                 var classicalSignatureLength = BigIntegers.GetUnsignedByteLength(domainParameters.N) * 2;
 
-                if (signature.Length <= classicalSignatureLength)
-                {
-                    throw new Exception("Wrong size signature");
-                }
-
-                var encoding = new PlainDsaEncoding();
-                var classicalSignature = encoding.Decode(domainParameters.N, signature.Take(classicalSignatureLength).ToArray());
-
-                var verifier = new ECDsaSigner();
+                var verifier = new DsaDigestSigner(new ECDsaSigner(), new Sha512Digest());
                 verifier.Init(false, hybridPubKey.Classical);
-                if(!verifier.VerifySignature(message, classicalSignature[0], classicalSignature[1]))
+                verifier.BlockUpdate(message, 0, message.Length);
+
+                if(!verifier.VerifySignature(classicalSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
-
-                // take away classical signature
-                signature = signature.Skip(classicalSignatureLength).ToArray();
 
                 classicalVerified = true;
             }
             else if (hybridPubKey.Classical is Ed25519PublicKeyParameters ed25519PublicKey)
             {
-                var classicalSignatureLength = Ed25519.SignatureSize;
-
-                if (signature.Length <= classicalSignatureLength)
-                {
-                    throw new Exception("Wrong size signature");
-                }
-
-                var classicalSignatureBytes = signature.Take(classicalSignatureLength).ToArray();
-
                 var verifier = new Ed25519Signer();
                 verifier.Init(true, ed25519PublicKey);
                 verifier.BlockUpdate(message, 0, message.Length);
-                if(!verifier.VerifySignature(signature))
+                if(!verifier.VerifySignature(classicalSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
-
-                // take away classical signature
-                signature = signature.Skip(classicalSignatureLength).ToArray();
-
                 classicalVerified = true;
             }
             else if (hybridPubKey.Classical is Ed448PublicKeyParameters ed448PublicKey)
             {
-                var classicalSignatureLength = Ed448.SignatureSize;
-
-                if (signature.Length <= classicalSignatureLength)
-                {
-                    throw new Exception("Wrong size signature");
-                }
-
-                var classicalSignatureBytes = signature.Take(classicalSignatureLength).ToArray();
-
                 var verifier = new Ed448Signer(message);
                 verifier.Init(true, ed448PublicKey);
-                if(!verifier.VerifySignature(signature))
+                if(!verifier.VerifySignature(classicalSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
-
-                // take away classical signature
-                signature = signature.Skip(classicalSignatureLength).ToArray();
 
                 classicalVerified = true;
             }
@@ -272,7 +298,7 @@ namespace Org.BouncyCastle.crypto.generators
             {
                 var verifier = new DilithiumSigner();
                 verifier.Init(false, hybridPubKey.PostQuantum);
-                if (!verifier.VerifySignature(message, signature))
+                if (!verifier.VerifySignature(message, postQuantumSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
@@ -283,7 +309,7 @@ namespace Org.BouncyCastle.crypto.generators
             {
                 var verifier = new SphincsPlusSigner();
                 verifier.Init(false, hybridPubKey.PostQuantum);
-                if (!verifier.VerifySignature(message, signature))
+                if (!verifier.VerifySignature(message, postQuantumSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }

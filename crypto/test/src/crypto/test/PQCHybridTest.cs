@@ -263,5 +263,68 @@ namespace Org.BouncyCastle.src.crypto.test
                 }
             }
         }
+
+        private static void TestSignatureInteropWith(string libraryName)
+        {
+            foreach (var postQuantum in postQuantumSignatures)
+            {
+                foreach (var classical in classicalSignatures)
+                {
+                    var hybridName = $"{classical}_{postQuantum}";
+
+                    AsymmetricKeyParameter privKey = null;
+                    AsymmetricKeyParameter pubKey = null;
+                    byte[] message = null;
+                    byte[] signature = null;
+
+                    var directoryName = "hybrid." + libraryName + ".signature." + hybridName;
+
+                    if (!SimpleTest.TestDataDirectoryExists(directoryName))
+                        continue;
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".privkey.pem"))))
+                    {
+                        var reader = new PemReader(sr);
+                        privKey = (HybridKeyParameters)reader.ReadObject();
+                    }
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".pubkey.pem"))))
+                    {
+                        var reader = new PemReader(sr);
+                        pubKey = (HybridKeyParameters)reader.ReadObject();
+                    }
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".message.base64.txt").Skip(3).ToArray())))
+                    {
+                        message = Convert.FromBase64String(sr.ReadToEnd());
+                    }
+
+                    using (var sr = new StringReader(System.Text.Encoding.ASCII.GetString(SimpleTest.GetTestData(directoryName + ".signature.base64.txt").Skip(3).ToArray())))
+                    {
+                        signature = Convert.FromBase64String(sr.ReadToEnd());
+                    }
+
+                    var pubKey2 = PublicTryEnDecode(pubKey);
+
+                    var privKey2 = PrivateTryEnDecode(privKey);
+
+                    // verify deserialized signature
+                    Assert.IsTrue(HybridSignatureGenerator.VerifySignature(pubKey, message, signature));
+                    Assert.IsTrue(HybridSignatureGenerator.VerifySignature(pubKey2, message, signature));
+
+                    // sign with deserialized private key
+                    var message2 = new byte[64];
+                    Random.NextBytes(message2);
+                    var signature2 = HybridSignatureGenerator.GenerateSignature(privKey, message2);
+                    var signature3 = HybridSignatureGenerator.GenerateSignature(privKey2, message2);
+
+                    // verify with deserialized public key
+                    Assert.IsTrue(HybridSignatureGenerator.VerifySignature(pubKey, message2, signature2));
+                    Assert.IsTrue(HybridSignatureGenerator.VerifySignature(pubKey, message2, signature3));
+
+                    Console.WriteLine($"success: {hybridName}");
+                }
+            }
+        }
     }
 }
