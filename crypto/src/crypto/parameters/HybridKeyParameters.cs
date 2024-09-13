@@ -3,7 +3,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Custom.Sec;
 using Org.BouncyCastle.Math.EC.Rfc7748;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using System;
@@ -100,9 +99,9 @@ namespace Org.BouncyCastle.crypto.parameters
                         break;
                 }
             }
-            else if (PostQuantum is DilithiumKeyParameters)
+            else if (PostQuantum is MLDsaKeyParameters)
             {
-                switch ((PostQuantum as DilithiumKeyParameters).Parameters.GetEngine(null).Mode)
+                switch ((PostQuantum as MLDsaKeyParameters).Parameters.GetEngine(null).Mode)
                 {
                     case 2:
                         postQuantumCanonicalName = string.Concat("mldsa", $"{44}");

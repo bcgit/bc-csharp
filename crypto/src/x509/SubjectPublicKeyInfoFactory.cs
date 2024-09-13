@@ -15,7 +15,6 @@ using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -306,7 +305,7 @@ namespace Org.BouncyCastle.X509
                     case "mldsa44":
                     case "mldsa65":
                     case "mldsa87":
-                        postQuantumBytes = (key.PostQuantum as DilithiumPublicKeyParameters).GetEncoded();
+                        postQuantumBytes = (key.PostQuantum as MLDsaPublicKeyParameters).GetEncoded();
                         break;
                     case "slhdsasha2128f":
                     case "slhdsasha2192f":

@@ -20,7 +20,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
@@ -489,23 +488,23 @@ namespace Org.BouncyCastle.Security
 
                     postQuantumKey = new MLKemPrivateKeyParameters(parameters, hybridBytes);
                 }
-                else if (keyParameters.PostQuantumParameters is DilithiumKeyGenerationParameters dilithiumParameters)
+                else if (keyParameters.PostQuantumParameters is MLDsaKeyGenerationParameters mldsaParameters)
                 {
                     int postQuantumKeySize = 0;
-                    DilithiumParameters parameters;
-                    switch (dilithiumParameters.Parameters.Name)
+                    MLDsaParameters parameters;
+                    switch (mldsaParameters.Parameters.Name)
                     {
-                        case "dilithium2":
+                        case "ML-DSA-44":
                             postQuantumKeySize = 2560;
-                            parameters = DilithiumParameters.Dilithium2;
+                            parameters = MLDsaParameters.ML_DSA_44;
                             break;
-                        case "dilithium3":
+                        case "ML-DSA-65":
                             postQuantumKeySize = 4032;
-                            parameters = DilithiumParameters.Dilithium3;
+                            parameters = MLDsaParameters.ML_DSA_65;
                             break;
-                        case "dilithium5":
+                        case "ML-DSA-87":
                             postQuantumKeySize = 4896;
-                            parameters = DilithiumParameters.Dilithium5;
+                            parameters = MLDsaParameters.ML_DSA_87;
                             break;
                         default:
                             throw new Exception("Post-quantum keytype not supported");
@@ -516,9 +515,7 @@ namespace Org.BouncyCastle.Security
                         throw new Exception("Encoded hybrid private key has wrong size");
                     }
 
-                    var publicParams = new DilithiumPublicKeyParameters(parameters, hybridBytes);
-
-                    postQuantumKey = new DilithiumPrivateKeyParameters(parameters, hybridBytes, publicParams);
+                    postQuantumKey = new MLDsaPrivateKeyParameters(parameters, hybridBytes);
                 }
                 else if (keyParameters.PostQuantumParameters is SphincsPlusKeyGenerationParameters sphincsParameters)
                 {

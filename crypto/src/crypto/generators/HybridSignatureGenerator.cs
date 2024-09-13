@@ -6,7 +6,6 @@ using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Pqc.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
@@ -85,9 +84,9 @@ namespace Org.BouncyCastle.crypto.generators
             }
 
             AsymmetricCipherKeyPair postQuantumKeypair = null;
-            if (parameters.PostQuantumParameters is DilithiumKeyGenerationParameters)
+            if (parameters.PostQuantumParameters is MLDsaKeyGenerationParameters)
             {
-                var generator = new DilithiumKeyPairGenerator();
+                var generator = new MLDsaKeyPairGenerator();
                 generator.Init(parameters.PostQuantumParameters);
                 postQuantumKeypair = generator.GenerateKeyPair();
             }
@@ -153,11 +152,12 @@ namespace Org.BouncyCastle.crypto.generators
             }
 
             byte[] postQuantumSignature = null;
-            if (hybridPrivKey.PostQuantum is DilithiumKeyParameters)
+            if (hybridPrivKey.PostQuantum is MLDsaKeyParameters)
             {
-                var signer = new DilithiumSigner();
+                var signer = new MLDsaSigner();
                 signer.Init(true, hybridPrivKey.PostQuantum);
-                postQuantumSignature = signer.GenerateSignature(message);
+                signer.BlockUpdate(message, 0, message.Length);
+                postQuantumSignature = signer.GenerateSignature();
             }
             else if (hybridPrivKey.PostQuantum is SphincsPlusKeyParameters)
             {
@@ -184,17 +184,17 @@ namespace Org.BouncyCastle.crypto.generators
             var hybridPubKey = pubKey as HybridKeyParameters;
 
             var postQuantumSignatureSize = 0;
-            if (hybridPubKey.PostQuantum is DilithiumPublicKeyParameters mldsaKey)
+            if (hybridPubKey.PostQuantum is MLDsaKeyParameters mldsaKey)
             {
                 switch (mldsaKey.Parameters.Name)
                 {
-                    case "dilithium2":
+                    case "ML-DSA-44":
                         postQuantumSignatureSize = 2420;
                         break;
-                    case "dilithium3":
+                    case "ML-DSA-65":
                         postQuantumSignatureSize = 3309;
                         break;
-                    case "dilithium5":
+                    case "ML-DSA-87":
                         postQuantumSignatureSize = 4627;
                         break;
                 }
@@ -294,11 +294,12 @@ namespace Org.BouncyCastle.crypto.generators
             }
 
             bool postQuantumVerified = false;
-            if (hybridPubKey.PostQuantum is DilithiumPublicKeyParameters)
+            if (hybridPubKey.PostQuantum is MLDsaKeyParameters)
             {
-                var verifier = new DilithiumSigner();
+                var verifier = new MLDsaSigner();
                 verifier.Init(false, hybridPubKey.PostQuantum);
-                if (!verifier.VerifySignature(message, postQuantumSignature))
+                verifier.BlockUpdate(message, 0, message.Length);
+                if (!verifier.VerifySignature(postQuantumSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }

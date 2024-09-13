@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
@@ -245,13 +244,13 @@ namespace Org.BouncyCastle.crypto.parameters
                     PostQuantumParameters = new MLKemKeyGenerationParameters(new Security.SecureRandom(), MLKemParameters.ML_KEM_1024);
                     break;
                 case "mldsa44":
-                    PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium2);
+                    PostQuantumParameters = new MLDsaKeyGenerationParameters(new Security.SecureRandom(), MLDsaParameters.ML_DSA_44);
                     break;
                 case "mldsa65":
-                    PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium3);
+                    PostQuantumParameters = new MLDsaKeyGenerationParameters(new Security.SecureRandom(), MLDsaParameters.ML_DSA_65);
                     break;
                 case "mldsa87":
-                    PostQuantumParameters = new DilithiumKeyGenerationParameters(new Security.SecureRandom(), DilithiumParameters.Dilithium5);
+                    PostQuantumParameters = new MLDsaKeyGenerationParameters(new Security.SecureRandom(), MLDsaParameters.ML_DSA_87);
                     break;
                 case "slhdsasha2128f":
                     PostQuantumParameters = new SphincsPlusKeyGenerationParameters(new Security.SecureRandom(), SphincsPlusParameters.sha2_128f_simple);
