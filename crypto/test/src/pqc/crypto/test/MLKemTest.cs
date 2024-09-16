@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         };
 
         [TestCaseSource(nameof(DecapFiles))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void Decap(string fileName)
         {
             RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         [TestCaseSource(nameof(EncapFiles))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void Encap(string fileName)
         {
             RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         [TestCaseSource(nameof(KeyGenFiles))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void KeyGen(string fileName)
         {
             RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         [TestCaseSource(nameof(ModulusFiles))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void Modulus(string fileName)
         {
             using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/modulus", fileName)))

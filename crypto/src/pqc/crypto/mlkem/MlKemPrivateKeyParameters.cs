@@ -14,11 +14,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
         public MLKemPrivateKeyParameters(MLKemParameters parameters, byte[] encoding)
             : base(true, parameters)
         {
-            MLKemEngine eng = parameters.Engine;
+            var engine = parameters.GetEngine();
 
             int index = 0;
-            m_s = Arrays.CopyOfRange(encoding, 0, eng.IndCpaSecretKeyBytes); index += eng.IndCpaSecretKeyBytes;
-            m_t = Arrays.CopyOfRange(encoding, index, index + eng.IndCpaPublicKeyBytes - MLKemEngine.SymBytes); index += eng.IndCpaPublicKeyBytes - MLKemEngine.SymBytes;
+            m_s = Arrays.CopyOfRange(encoding, 0, engine.IndCpaSecretKeyBytes); index += engine.IndCpaSecretKeyBytes;
+            m_t = Arrays.CopyOfRange(encoding, index, index + engine.IndCpaPublicKeyBytes - MLKemEngine.SymBytes); index += engine.IndCpaPublicKeyBytes - MLKemEngine.SymBytes;
             m_rho = Arrays.CopyOfRange(encoding, index, index + 32); index += 32;
             m_hpk = Arrays.CopyOfRange(encoding, index, index + 32); index += 32;
             m_nonce = Arrays.CopyOfRange(encoding, index, index + MLKemEngine.SymBytes);       

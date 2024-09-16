@@ -19,8 +19,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            MLKemPublicKeyParameters key = (MLKemPublicKeyParameters) recipientKey;
-            MLKemEngine engine = key.Parameters.Engine;
+            MLKemPublicKeyParameters key = (MLKemPublicKeyParameters)recipientKey;
+            MLKemEngine engine = key.Parameters.GetEngine();
             engine.Init(m_random);
             byte[] cipherText = new byte[engine.CryptoCipherTextBytes];
             byte[] sessionKey = new byte[engine.CryptoBytes];
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
         public ISecretWithEncapsulation InternalGenerateEncapsulated(AsymmetricKeyParameter recipientKey, byte[] randBytes)
         {
             MLKemPublicKeyParameters key = (MLKemPublicKeyParameters)recipientKey;
-            MLKemEngine engine = key.Parameters.Engine;
+            MLKemEngine engine = key.Parameters.GetEngine();
             engine.Init(m_random);
             byte[] cipherText = new byte[engine.CryptoCipherTextBytes];
             byte[] sessionKey = new byte[engine.CryptoBytes];
