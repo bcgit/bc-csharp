@@ -143,13 +143,9 @@ namespace Org.BouncyCastle.Utilities.Test
 
             while (!Directory.Exists(dataDirPath = Path.Combine(wrkDirPath, DataDirName)))
             {
-                wrkDirPath = Path.GetDirectoryName(wrkDirPath);
-
-                if (wrkDirPath is null)
-                {
+                wrkDirPath = Path.GetDirectoryName(wrkDirPath) ??
                     throw new DirectoryNotFoundException("Test data directory " + DataDirName + " not found." + NewLine +
                         "Test data available from: https://github.com/bcgit/bc-test-data.git");
-                }
             }
 
             return File.OpenRead(Path.Combine(dataDirPath, homeDir, fileName));

@@ -259,7 +259,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                         int a = line.IndexOf('=');
                         if (a >= 0)
                         {
-                            data[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
+                            data.Add(line.Substring(0, a).Trim(), line.Substring(a + 1).Trim());
                         }
                         continue;
                     }

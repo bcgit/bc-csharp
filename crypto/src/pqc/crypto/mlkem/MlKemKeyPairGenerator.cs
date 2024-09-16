@@ -7,17 +7,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
         : IAsymmetricCipherKeyPairGenerator
     {
         private MLKemParameters mlkemParams;
-        
+
         private SecureRandom random;
 
-        private void Initialize(
-            KeyGenerationParameters param)
+        public void Init(KeyGenerationParameters param)
         {
-            this.mlkemParams = ((MLKemKeyGenerationParameters)param).Parameters;;
-            this.random = param.Random; 
+            this.mlkemParams = ((MLKemKeyGenerationParameters)param).Parameters;
+            this.random = param.Random;
         }
 
-        private AsymmetricCipherKeyPair GenKeyPair()
+        public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             MLKemEngine engine = mlkemParams.Engine;
             engine.Init(random);
@@ -28,16 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
-        public void Init(KeyGenerationParameters param)
-        {
-            this.Initialize(param);
-        }
-
-        public AsymmetricCipherKeyPair GenerateKeyPair()
-        {
-            return GenKeyPair();
-        }
-
+        // FIXME Avoid needing this in the public API
         public AsymmetricCipherKeyPair InternalGenerateKeyPair(byte[] d, byte[] z)
         {
             byte[][] keyPair = mlkemParams.Engine.GenerateKemKeyPairInternal(d, z);
