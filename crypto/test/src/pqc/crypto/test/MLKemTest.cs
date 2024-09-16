@@ -20,243 +20,165 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class MLKemTest
     {
-        [Test]
-        public void TestKeyGen()
+        private delegate void RunTestVector(string name, Dictionary<string, string> data);
+
+        private static readonly Dictionary<string, MLKemParameters> FileParameters =
+            new Dictionary<string, MLKemParameters>()
         {
-            MLKemParameters[] parameters = new MLKemParameters[]{
-                MLKemParameters.ML_KEM_512,
-                MLKemParameters.ML_KEM_768,
-                MLKemParameters.ML_KEM_1024,
-            };
+            { "encapDecap_decapsulation_ML-KEM-512.txt", MLKemParameters.ML_KEM_512 },
+            { "encapDecap_decapsulation_ML-KEM-768.txt", MLKemParameters.ML_KEM_768 },
+            { "encapDecap_decapsulation_ML-KEM-1024.txt", MLKemParameters.ML_KEM_1024 },
+            { "encapDecap_encapsulation_ML-KEM-512.txt", MLKemParameters.ML_KEM_512 },
+            { "encapDecap_encapsulation_ML-KEM-768.txt", MLKemParameters.ML_KEM_768 },
+            { "encapDecap_encapsulation_ML-KEM-1024.txt", MLKemParameters.ML_KEM_1024 },
+            { "keyGen_ML-KEM-512.txt", MLKemParameters.ML_KEM_512 },
+            { "keyGen_ML-KEM-768.txt", MLKemParameters.ML_KEM_768 },
+            { "keyGen_ML-KEM-1024.txt", MLKemParameters.ML_KEM_1024 },
+            { "ML-KEM-512.txt", MLKemParameters.ML_KEM_512 },
+            { "ML-KEM-768.txt", MLKemParameters.ML_KEM_768 },
+            { "ML-KEM-1024.txt", MLKemParameters.ML_KEM_1024 },
+        };
 
-            string[] files = new string[]{
-                "keyGen_ML-KEM-512.txt",
-                "keyGen_ML-KEM-768.txt",
-                "keyGen_ML-KEM-1024.txt",
-            };
+        private static readonly string[] DecapFiles =
+        {
+            "encapDecap_decapsulation_ML-KEM-512.txt",
+            "encapDecap_decapsulation_ML-KEM-768.txt",
+            "encapDecap_decapsulation_ML-KEM-1024.txt",
+        };
 
-            for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
+        private static readonly string[] EncapFiles =
+        {
+            "encapDecap_encapsulation_ML-KEM-512.txt",
+            "encapDecap_encapsulation_ML-KEM-768.txt",
+            "encapDecap_encapsulation_ML-KEM-1024.txt",
+        };
+
+        private static readonly string[] KeyGenFiles =
+        {
+            "keyGen_ML-KEM-512.txt",
+            "keyGen_ML-KEM-768.txt",
+            "keyGen_ML-KEM-1024.txt",
+        };
+
+        private static readonly string[] ModulusFiles =
+        {
+            "ML-KEM-512.txt",
+            "ML-KEM-768.txt",
+            "ML-KEM-1024.txt",
+        };
+
+        [TestCaseSource(nameof(DecapFiles))]
+        //[Parallelizable(ParallelScope.All)]
+        public void Decap(string fileName)
+        {
+            RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
             {
-                string name = files[fileIndex];
-                // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
+                byte[] c = Hex.Decode(data["c"]);
+                byte[] k = Hex.Decode(data["k"]);
+                //string reason = data["reason"];
+                //byte[] ek = Hex.Decode(data["ek"]);
+                byte[] dk = Hex.Decode(data["dk"]);
 
-                string line = null;
-                Dictionary<string, string> buf = new Dictionary<string, string>();
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                    {
-                        continue;
-                    }
-                    if (line.Length == 0)
-                    {
-                        if (buf.Count > 0)
-                        {
-                            byte[] z = Hex.Decode(buf["z"]);
-                            byte[] d = Hex.Decode(buf["d"]);
-                            byte[] ek = Hex.Decode(buf["ek"]);
-                            byte[] dk = Hex.Decode(buf["dk"]);
-                            MLKemParameters mlkemparameters = parameters[fileIndex];
-                            MLKemKeyPairGenerator kpGen = new MLKemKeyPairGenerator();
-                            MLKemKeyGenerationParameters genParam = new MLKemKeyGenerationParameters(new SecureRandom(), mlkemparameters);
-                            //
-                            // Generate keys and test.
-                            //
-                            kpGen.Init(genParam);
-                            AsymmetricCipherKeyPair kp = kpGen.InternalGenerateKeyPair(d, z);
-                            MLKemPublicKeyParameters pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((MLKemPublicKeyParameters)kp.Public));
-                            MLKemPrivateKeyParameters privParams = (MLKemPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
-                                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((MLKemPrivateKeyParameters)kp.Private));
+                var parameters = FileParameters[name];
 
-                            Assert.True(/*name + ": public key",*/ Arrays.AreEqual(ek, pubParams.GetEncoded()));
-                            Assert.True(/*name + ": secret key",*/ Arrays.AreEqual(dk, privParams.GetEncoded()));
-                        }
-                        buf.Clear();
-                        continue;
-                    }
-                    int a = line.IndexOf("=");
-                    if (a > -1)
-                    {
-                        buf.Add(line.Substring(0, a).Trim(), line.Substring(a + 1).Trim());
-                    }
-                }
-                // System.Out.WriteLine("testing successful!");
-            }
+                //var publicKey = new MLKemPublicKeyParameters(parameters, ek);
+                var privateKey = new MLKemPrivateKeyParameters(parameters, dk);
+
+                var extractor = new MLKemExtractor(privateKey);
+                byte[] dec_key = extractor.ExtractSecret(c);
+
+                Assert.True(Arrays.AreEqual(dec_key, k), name + ": k");
+            });
         }
 
-        [Test]
-        public void TestEncapDecap_encapsulation()
+        [TestCaseSource(nameof(EncapFiles))]
+        //[Parallelizable(ParallelScope.All)]
+        public void Encap(string fileName)
         {
-            MLKemParameters[] parameters = new MLKemParameters[]{
-                MLKemParameters.ML_KEM_512,
-                MLKemParameters.ML_KEM_768,
-                MLKemParameters.ML_KEM_1024,
-            };
-            string[] files = new string[]{
-                "encapDecap_encapsulation_ML-KEM-512.txt",
-                "encapDecap_encapsulation_ML-KEM-768.txt",
-                "encapDecap_encapsulation_ML-KEM-1024.txt",
-            };
-            TestSampler sampler = new TestSampler();
-            for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
+            RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
             {
-                string name = files[fileIndex];
-                // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
-                string line = null;
-                Dictionary<string, string> buf = new Dictionary<string, string>();
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                    {
-                        continue;
-                    }
-                    if (line.Length == 0)
-                    {
-                        if (buf.Count > 0)
-                        {
-                            byte[] m = Hex.Decode(buf["m"]);
-                            byte[] c = Hex.Decode(buf["c"]);
-                            byte[] k = Hex.Decode(buf["k"]);
-                            string reason = buf["reason"];
-                            byte[] ek = Hex.Decode(buf["ek"]);
-                            byte[] dk = Hex.Decode(buf["dk"]);
-                            MLKemParameters mlkemparameters = parameters[fileIndex];
-                            MLKemPublicKeyParameters pubKey = new MLKemPublicKeyParameters(mlkemparameters, ek);
-                            MLKemPrivateKeyParameters privKey = new MLKemPrivateKeyParameters(mlkemparameters, dk);
-                            MLKemPublicKeyParameters pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
-                            MLKemPrivateKeyParameters privParams = (MLKemPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
-                                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privKey));
-                            // Kem Enc
-                            MLKemGenerator generator = new MLKemGenerator(new SecureRandom());
-                            ISecretWithEncapsulation secWenc = generator.InternalGenerateEncapsulated(pubParams, m);
-                            byte[] generated_cipher_text = secWenc.GetEncapsulation();
-                            //Assert.True(name + " " + count + ": kem_enc cipher text", Arrays.AreEqual(ct, generated_cipher_text));
-                            byte[] secret = secWenc.GetSecret();
-                            Assert.True(/*name + ": c",*/ Arrays.AreEqual(c, generated_cipher_text));
-                            Assert.True(/*name + ": k",*/ Arrays.AreEqual(k, 0, secret.Length, secret, 0, secret.Length));
-                        }
-                        buf.Clear();
-                        continue;
-                    }
-                    int a = line.IndexOf("=");
-                    if (a > -1)
-                    {
-                        buf.Add(line.Substring(0, a).Trim(), line.Substring(a + 1).Trim());
-                    }
-                }
-                // System.Out.WriteLine("testing successful!");
-            }
+                byte[] m = Hex.Decode(data["m"]);
+                byte[] c = Hex.Decode(data["c"]);
+                byte[] k = Hex.Decode(data["k"]);
+                //string reason = data["reason"];
+                byte[] ek = Hex.Decode(data["ek"]);
+                //byte[] dk = Hex.Decode(data["dk"]);
+
+                var random = new SecureRandom();
+                var parameters = FileParameters[name];
+
+                var publicKey = new MLKemPublicKeyParameters(parameters, ek);
+                //var privateKey = new MLKemPrivateKeyParameters(parameters, dk);
+
+                var generator = new MLKemGenerator(random);
+                ISecretWithEncapsulation secWenc = generator.InternalGenerateEncapsulated(publicKey, m);
+                byte[] generated_cipher_text = secWenc.GetEncapsulation();
+                byte[] secret = secWenc.GetSecret();
+                Assert.True(Arrays.AreEqual(c, generated_cipher_text), name + ": c");
+                Assert.True(Arrays.AreEqual(k, 0, secret.Length, secret, 0, secret.Length), name + ": k");
+            });
         }
 
-        [Test]
-        public void TestEncapDecap_decapsulation()
+        [TestCaseSource(nameof(KeyGenFiles))]
+        //[Parallelizable(ParallelScope.All)]
+        public void KeyGen(string fileName)
         {
-            MLKemParameters[]
-            parameters = new MLKemParameters[]{
-                MLKemParameters.ML_KEM_512,
-                MLKemParameters.ML_KEM_768,
-                MLKemParameters.ML_KEM_1024,
-            };
-            string[] files = new string[]{
-                "encapDecap_decapsulation_ML-KEM-512.txt",
-                "encapDecap_decapsulation_ML-KEM-768.txt",
-                "encapDecap_decapsulation_ML-KEM-1024.txt",
-            };
-            TestSampler sampler = new TestSampler();
-            for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
+            RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
             {
-                string name = files[fileIndex];
-                // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/acvp", name));
-                string line = null;
-                Dictionary<string, string> buf = new Dictionary<string, string>();
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                    {
-                        continue;
-                    }
-                    if (line.Length == 0)
-                    {
-                        if (buf.Count > 0)
-                        {
-                            byte[] c = Hex.Decode(buf["c"]);
-                            byte[] k = Hex.Decode(buf["k"]);
-                            string reason = buf["reason"];
-                            byte[] ek = Hex.Decode(buf["ek"]);
-                            byte[] dk = Hex.Decode(buf["dk"]);
-                            MLKemParameters mlkemparameters = parameters[fileIndex];
-                            MLKemPublicKeyParameters pubKey = new MLKemPublicKeyParameters(mlkemparameters, ek);
-                            MLKemPrivateKeyParameters privKey = new MLKemPrivateKeyParameters(mlkemparameters, dk);
-                            MLKemPublicKeyParameters pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((MLKemPublicKeyParameters)pubKey));
-                            MLKemPrivateKeyParameters privParams = (MLKemPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
-                                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((MLKemPrivateKeyParameters)privKey));
-                            MLKemExtractor extractor = new MLKemExtractor(privParams);
-                            byte[] dec_key = extractor.ExtractSecret(c);
+                byte[] z = Hex.Decode(data["z"]);
+                byte[] d = Hex.Decode(data["d"]);
+                byte[] ek = Hex.Decode(data["ek"]);
+                byte[] dk = Hex.Decode(data["dk"]);
 
-                            Assert.True(/*name + ": dk",*/ Arrays.AreEqual(dec_key, k));
-                        }
-                        buf.Clear();
-                        continue;
-                    }
-                    int a = line.IndexOf("=");
-                    if (a > -1)
-                    {
-                        buf.Add(line.Substring(0, a).Trim(), line.Substring(a + 1).Trim());
-                    }
-                }
-                // System.Out.WriteLine("testing successful!");
-            }
+                var random = new SecureRandom();
+                var parameters = FileParameters[name];
+
+                var kpg = new MLKemKeyPairGenerator();
+                kpg.Init(new MLKemKeyGenerationParameters(random, parameters));
+
+                var kp = kpg.InternalGenerateKeyPair(d, z);
+
+                MLKemPublicKeyParameters pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                    PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((MLKemPublicKeyParameters)kp.Public));
+                MLKemPrivateKeyParameters privParams = (MLKemPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                    PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((MLKemPrivateKeyParameters)kp.Private));
+
+                Assert.True(Arrays.AreEqual(ek, pubParams.GetEncoded()), name + ": ek");
+                Assert.True(Arrays.AreEqual(dk, privParams.GetEncoded()), name + ": dk");
+            });
         }
 
-        [Test]
-        public void TestModulus()
+        [TestCaseSource(nameof(ModulusFiles))]
+        //[Parallelizable(ParallelScope.All)]
+        public void Modulus(string fileName)
         {
-            MLKemParameters[] parameters = new MLKemParameters[]{
-                MLKemParameters.ML_KEM_512,
-                MLKemParameters.ML_KEM_768,
-                MLKemParameters.ML_KEM_1024,
-            };
-            string[] files = new string[]{
-                "ML-KEM-512.txt",
-                "ML-KEM-768.txt",
-                "ML-KEM-1024.txt",
-            };
-            TestSampler sampler = new TestSampler();
-            for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/modulus", fileName)))
             {
-                string name = files[fileIndex];
-                // System.Out.WriteLine("testing: " + name);
-                var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/kyber/modulus", name));
-                string line = null;
+                string line;
                 while ((line = src.ReadLine()) != null)
                 {
                     line = line.Trim();
+
                     byte[] key = Hex.Decode(line);
-                    MLKemParameters mlkemparameters = parameters[fileIndex];
-                    MLKemPublicKeyParameters pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                        PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(new MLKemPublicKeyParameters(mlkemparameters, key)));
-                    // Kem Enc
-                    SecureRandom random = new SecureRandom();
-                    MLKemGenerator generator = new MLKemGenerator(random);
+
+                    var random = new SecureRandom();
+                    var parameters = FileParameters[fileName];
+
+                    var publicKey = new MLKemPublicKeyParameters(parameters, key);
+
+                    var generator = new MLKemGenerator(random);
+
                     bool caughtException = false;
                     try
                     {
-                        ISecretWithEncapsulation secWenc = generator.GenerateEncapsulated(pubParams);
+                        ISecretWithEncapsulation secWenc = generator.GenerateEncapsulated(publicKey);
                         byte[] generated_cipher_text = secWenc.GetEncapsulation();
                     }
                     catch (Exception)
                     {
                         caughtException = true;
                     }
+
                     Assert.True(caughtException);
                 }
             }
@@ -301,7 +223,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         [Test]
-        public void TestRNG()
+        public void TestRng()
         {
             string temp = "061550234D158C5EC95595FE04EF7A25767F2E24CC2BC479D09D86DC9ABCFDE7056A8C266F9EF97ED08541DBD2E1FFA1";
             byte[] seed = Hex.Decode(temp);
@@ -335,6 +257,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 MLKemExtractor kemExtract = new MLKemExtractor((MLKemPrivateKeyParameters)keyPair.Private);
                 byte[] decryptedSharedSecret = kemExtract.ExtractSecret(secretEncap.GetEncapsulation());
                 Assert.True(Arrays.AreEqual(secretEncap.GetSecret(), decryptedSharedSecret));
+            }
+        }
+
+        private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector)
+        {
+            var data = new Dictionary<string, string>();
+            using (var src = new StreamReader(SimpleTest.FindTestResource(homeDir, fileName)))
+            {
+                string line;
+                while ((line = src.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (line.StartsWith("#"))
+                        continue;
+
+                    if (line.Length > 0)
+                    {
+                        int a = line.IndexOf('=');
+                        if (a >= 0)
+                        {
+                            data.Add(line.Substring(0, a).Trim(), line.Substring(a + 1).Trim());
+                        }
+                        continue;
+                    }
+
+                    if (data.Count > 0)
+                    {
+                        runTestVector(fileName, data);
+                        data.Clear();
+                    }
+                }
+
+                if (data.Count > 0)
+                {
+                    runTestVector(fileName, data);
+                    data.Clear();
+                }
             }
         }
     }

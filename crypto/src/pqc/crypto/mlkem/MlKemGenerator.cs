@@ -30,6 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
             return new SecretWithEncapsulationImpl(sessionKey, cipherText);
         }
 
+        // FIXME Avoid needing this in the public API
         public ISecretWithEncapsulation InternalGenerateEncapsulated(AsymmetricKeyParameter recipientKey, byte[] randBytes)
         {
             MLKemPublicKeyParameters key = (MLKemPublicKeyParameters)recipientKey;
