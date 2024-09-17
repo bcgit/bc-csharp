@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.crypto.generators
 {
@@ -171,7 +172,9 @@ namespace Org.BouncyCastle.crypto.generators
                 throw new Exception("Post-quantum keytype not supported");
             }
 
-            return Arrays.Concatenate(classicalSignature, postQuantumSignature);
+            var encodedLength = Pack.UInt32_To_BE(Convert.ToUInt32(classicalSignature.Length));
+
+            return encodedLength.Concat(classicalSignature).Concat(postQuantumSignature).ToArray();
         }
 
         public static bool VerifySignature(AsymmetricKeyParameter pubKey, byte[] message, byte[] signature)
@@ -235,25 +238,35 @@ namespace Org.BouncyCastle.crypto.generators
                 throw new Exception("Post-quantum keytype not supported");
             }
 
-            if (signature.Length <= postQuantumSignatureSize)
+            if (signature.Length <= (4 + postQuantumSignatureSize))
             {
                 throw new Exception("Signature has wrong size");
             }
 
-            var classicalSignature = signature.Take(signature.Length - postQuantumSignatureSize).ToArray();
-            var postQuantumSignature = signature.Skip(signature.Length - postQuantumSignatureSize).ToArray();
+            var classicalSignatureSpace = signature.Length - 4 - postQuantumSignatureSize;
+            var encodedLengthBytes = signature.Take(4).ToArray();
+            var classicalSignature = signature.Skip(4).Take(classicalSignatureSpace).ToArray();
+            var postQuantumSignature = signature.Skip(4 + classicalSignatureSpace).Take(postQuantumSignatureSize).ToArray();
 
             bool classicalVerified = false;
             if (hybridPubKey.Classical is ECPublicKeyParameters ecPublicKey)
             {
                 var domainParameters = ecPublicKey.Parameters;
-                var classicalSignatureLength = BigIntegers.GetUnsignedByteLength(domainParameters.N) * 2;
+                var encodedLength = Convert.ToInt32(Pack.BE_To_UInt32(encodedLengthBytes));
+
+                if (encodedLength > classicalSignature.Length)
+                {
+                    throw new Exception("Incorrect signature encoding");
+                }
+
+                var actualSignature = classicalSignature.Take(encodedLength).ToArray();
 
                 var verifier = new DsaDigestSigner(new ECDsaSigner(), new Sha512Digest());
                 verifier.Init(false, hybridPubKey.Classical);
                 verifier.BlockUpdate(message, 0, message.Length);
+                var valami = verifier.GetMaxSignatureSize();
 
-                if(!verifier.VerifySignature(classicalSignature))
+                if (!verifier.VerifySignature(actualSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
@@ -265,7 +278,7 @@ namespace Org.BouncyCastle.crypto.generators
                 var verifier = new Ed25519Signer();
                 verifier.Init(true, ed25519PublicKey);
                 verifier.BlockUpdate(message, 0, message.Length);
-                if(!verifier.VerifySignature(classicalSignature))
+                if (!verifier.VerifySignature(classicalSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
@@ -275,7 +288,7 @@ namespace Org.BouncyCastle.crypto.generators
             {
                 var verifier = new Ed448Signer(message);
                 verifier.Init(true, ed448PublicKey);
-                if(!verifier.VerifySignature(classicalSignature))
+                if (!verifier.VerifySignature(classicalSignature))
                 {
                     throw new VerificationException("Signature verification failed");
                 }
