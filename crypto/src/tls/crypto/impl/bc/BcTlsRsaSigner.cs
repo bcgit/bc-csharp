@@ -14,12 +14,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsRsaSigner
         : BcTlsSigner
     {
-        private readonly RsaKeyParameters m_publicKey;
-
+        [Obsolete("Use constructor without 'publicKey' parameter instead")]
         public BcTlsRsaSigner(BcTlsCrypto crypto, RsaKeyParameters privateKey, RsaKeyParameters publicKey)
+            : this(crypto, privateKey)
+        {
+        }
+
+        public BcTlsRsaSigner(BcTlsCrypto crypto, RsaKeyParameters privateKey)
             : base(crypto, privateKey)
         {
-            this.m_publicKey = publicKey;
         }
 
         public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
@@ -50,22 +53,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             signer.BlockUpdate(hash, 0, hash.Length);
             try
             {
-                byte[] signature = signer.GenerateSignature();
-
-                signer.Init(false, m_publicKey);
-                signer.BlockUpdate(hash, 0, hash.Length);
-
-                if (signer.VerifySignature(signature))
-                {
-                    return signature;
-                }
+                return signer.GenerateSignature();
             }
             catch (CryptoException e)
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
-
-            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
     }
 }
