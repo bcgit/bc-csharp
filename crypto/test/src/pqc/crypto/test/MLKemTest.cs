@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         int a = line.IndexOf('=');
                         if (a >= 0)
                         {
-                            data.Add(line.Substring(0, a).Trim(), line.Substring(a + 1).Trim());
+                            data[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
                         }
                         continue;
                     }
