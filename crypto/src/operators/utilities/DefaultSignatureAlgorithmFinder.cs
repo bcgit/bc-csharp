@@ -138,8 +138,10 @@ namespace Org.BouncyCastle.Operators.Utilities
             Algorithms["SHA256WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_256;
             Algorithms["SHA384WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_384;
             Algorithms["SHA512WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_512;
+#pragma warning disable CS0618 // Type or member is obsolete
             Algorithms["SHA3-512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA3_512;
             Algorithms["SHA512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA512;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             Algorithms["SHA1WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA1;
             Algorithms["RIPEMD160WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_RIPEMD160;
@@ -263,11 +265,13 @@ namespace Org.BouncyCastle.Operators.Utilities
             NoParams.Add(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
             NoParams.Add(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             //
             // SPHINCS-256
             //
             NoParams.Add(BCObjectIdentifiers.sphincs256_with_SHA512);
             NoParams.Add(BCObjectIdentifiers.sphincs256_with_SHA3_512);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             //
             // SPHINCS-PLUS

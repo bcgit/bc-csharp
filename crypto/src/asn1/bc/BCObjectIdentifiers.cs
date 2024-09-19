@@ -70,9 +70,13 @@ namespace Org.BouncyCastle.Asn1.BC
         /**
          * Sphincs-256
          */
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256                      = bc_sig.Branch("1");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_BLAKE512        = sphincs256.Branch("1");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_SHA512          = sphincs256.Branch("2");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_SHA3_512        = sphincs256.Branch("3");
 
         /**
