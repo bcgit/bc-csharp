@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+﻿using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -10,6 +8,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         internal readonly byte[] m_rho;
         internal readonly byte[] m_t1;
+
+        private byte[] cachedPublicKeyHash;
 
         public MLDsaPublicKeyParameters(MLDsaParameters parameters, byte[] encoding)
             : base(false, parameters)
@@ -31,11 +31,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetEncoded() => Arrays.Concatenate(m_rho, m_t1);
 
+        internal byte[] GetPublicKeyHash() =>
+            Objects.EnsureSingletonInitialized(ref cachedPublicKeyHash, this, CreatePublicKeyHash);
+
         internal bool VerifyInternal(byte[] msg, int msgOff, int msgLen, byte[] sig)
         {
             var engine = Parameters.GetEngine(null);
 
-            return engine.Verify(sig, sig.Length, msg, msgOff, msgLen, m_rho, encT1: m_t1);
+            return engine.Verify(sig, sig.Length, msg, msgOff, msgLen, m_rho, encT1: m_t1, tr: GetPublicKeyHash());
         }
+
+        private static byte[] CreatePublicKeyHash(MLDsaPublicKeyParameters publicKey) =>
+            DilithiumEngine.CalculatePublicKeyHash(publicKey.m_rho, publicKey.m_t1);
     }
 }
