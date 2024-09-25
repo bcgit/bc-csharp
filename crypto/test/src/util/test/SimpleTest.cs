@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 using Org.BouncyCastle.Utilities.IO;
@@ -149,6 +150,15 @@ namespace Org.BouncyCastle.Utilities.Test
             }
 
             return File.OpenRead(Path.Combine(dataDirPath, homeDir, fileName));
+        }
+
+        public static bool TestDataDirectoryExists(string name)
+        {
+            string fullName = GetFullName(name);
+
+            var result = new List<string>();
+            string[] fullNames = GetAssembly().GetManifestResourceNames();
+            return fullNames.Any((resource) => resource.StartsWith(fullName));
         }
     }
 }
