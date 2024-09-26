@@ -87,13 +87,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.picnicl3full] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl5full] = PicnicConverter;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Converters[BCObjectIdentifiers.dilithium2] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium3] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium5] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium2_aes] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium3_aes] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium5_aes] = DilithiumConverter;
-            
+#pragma warning restore CS0618 // Type or member is obsolete
+
             Converters[BCObjectIdentifiers.falcon_512] = FalconConverter;
             Converters[BCObjectIdentifiers.falcon_1024] = FalconConverter;
 

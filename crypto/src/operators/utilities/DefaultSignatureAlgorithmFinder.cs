@@ -210,12 +210,14 @@ namespace Org.BouncyCastle.Operators.Utilities
             Algorithms["SPHINCS+"] = BCObjectIdentifiers.sphincsPlus;
             Algorithms["SPHINCSPLUS"] = BCObjectIdentifiers.sphincsPlus;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Algorithms["DILITHIUM2"] = BCObjectIdentifiers.dilithium2;
             Algorithms["DILITHIUM3"] = BCObjectIdentifiers.dilithium3;
             Algorithms["DILITHIUM5"] = BCObjectIdentifiers.dilithium5;
             Algorithms["DILITHIUM2-AES"] = BCObjectIdentifiers.dilithium2_aes;
             Algorithms["DILITHIUM3-AES"] = BCObjectIdentifiers.dilithium3_aes;
             Algorithms["DILITHIUM5-AES"] = BCObjectIdentifiers.dilithium5_aes;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             Algorithms["FALCON-512"] = BCObjectIdentifiers.falcon_512;
             Algorithms["FALCON-1024"] = BCObjectIdentifiers.falcon_1024;
@@ -296,6 +298,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             NoParams.Add(BCObjectIdentifiers.sphincsPlus_haraka_256s_r3);
             NoParams.Add(BCObjectIdentifiers.sphincsPlus_haraka_256f_r3);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             //
             // Dilithium
             //
@@ -306,6 +309,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             NoParams.Add(BCObjectIdentifiers.dilithium2_aes);
             NoParams.Add(BCObjectIdentifiers.dilithium3_aes);
             NoParams.Add(BCObjectIdentifiers.dilithium5_aes);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             //
             // Falcon

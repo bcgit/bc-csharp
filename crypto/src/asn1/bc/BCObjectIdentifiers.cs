@@ -240,14 +240,21 @@ namespace Org.BouncyCastle.Asn1.BC
         /*
          * Dilithium
          */
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium = bc_sig.Branch("8");
 
         // OpenSSL OIDs
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium2 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.12.4.4"); // dilithium.branch("1");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium3 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.12.6.5"); // dilithium.branch("2");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium5 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.12.8.7"); // dilithium.branch("3");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium2_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.4.4"); // dilithium.branch("4");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium3_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.6.5"); // dilithium.branch("5");
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium5_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.8.7"); // dilithium.branch("6");
 
         /*

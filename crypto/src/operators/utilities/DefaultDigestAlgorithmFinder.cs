@@ -251,12 +251,14 @@ namespace Org.BouncyCastle.Operators.Utilities
 
             Shake256Oids.Add(EdECObjectIdentifiers.id_Ed448);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Shake256Oids.Add(BCObjectIdentifiers.dilithium2);
             Shake256Oids.Add(BCObjectIdentifiers.dilithium3);
             Shake256Oids.Add(BCObjectIdentifiers.dilithium5);
             Shake256Oids.Add(BCObjectIdentifiers.dilithium2_aes);
             Shake256Oids.Add(BCObjectIdentifiers.dilithium3_aes);
             Shake256Oids.Add(BCObjectIdentifiers.dilithium5_aes);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             Shake256Oids.Add(BCObjectIdentifiers.falcon_512);
             Shake256Oids.Add(BCObjectIdentifiers.falcon_1024);
