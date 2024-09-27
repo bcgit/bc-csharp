@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             m_name = name ?? throw new ArgumentNullException(nameof(name));
             m_mode = mode;
-            m_oid = oid;
+            m_oid = oid ?? throw new ArgumentNullException(nameof(oid));
         }
 
         public string Name => m_name;
