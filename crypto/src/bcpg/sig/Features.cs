@@ -19,6 +19,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
            fingerprint format */
         public static readonly byte FEATURE_VERSION_5_PUBLIC_KEY = 0x04;
 
+        /** Identifier for the Version 2 Symmetrically Encrypted and Integrity Protected
+            Data packet */
+        public static readonly byte FEATURE_VERSION_2_SEIPD = 0x08;
+
         private static byte[] FeatureToByteArray(byte feature)
         {
             return new byte[1]{ feature };
