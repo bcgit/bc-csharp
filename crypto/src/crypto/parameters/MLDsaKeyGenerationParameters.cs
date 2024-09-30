@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         private readonly MLDsaParameters m_parameters;
 
-        // TODO Where does this 255 come from?
+        // TODO[pqc] Check whether 255 is meaningful
         public MLDsaKeyGenerationParameters(SecureRandom random, MLDsaParameters parameters)
             : base(random, 255)
         {

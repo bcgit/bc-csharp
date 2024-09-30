@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -18,6 +17,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Pqc.Asn1;
 
 namespace Org.BouncyCastle.Security
 {
@@ -344,11 +344,10 @@ namespace Org.BouncyCastle.Security
                         gostParams.DigestParamSet,
                         gostParams.EncryptionParamSet));
             }
-            else if (NistObjectIdentifiers.id_ml_dsa_44.Equals(algOid) ||
-                     NistObjectIdentifiers.id_ml_dsa_65.Equals(algOid) ||
-                     NistObjectIdentifiers.id_ml_dsa_87.Equals(algOid))
+            else if (MLDsaParameters.FromOid(algOid) is MLDsaParameters mlDsaParameters)
             {
-                var parameters = MLDsaParameters.FromOid(algOid);
+                // TODO[pqc] Support ASN.1 sequence (see bc-java)?
+
                 var encoding = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
 
                 // TODO Add support?
@@ -356,10 +355,30 @@ namespace Org.BouncyCastle.Security
                 //MLDsaPublicKeyParameters pubKey = null;
                 //if (publicKeyData != null)
                 //{
-                //    pubKey = PublicKeyFactory.GetMLDsaPublicKey(parameters, publicKeyData);
+                //    pubKey = PublicKeyFactory.GetMLDsaPublicKey(mlDsaParameters, publicKeyData);
                 //}
 
-                return new MLDsaPrivateKeyParameters(parameters, encoding.GetOctets());
+                return new MLDsaPrivateKeyParameters(mlDsaParameters, encoding.GetOctets());
+            }
+            else if (SlhDsaParameters.FromOid(algOid) is SlhDsaParameters slhDsaParameters)
+            {
+                Asn1Encodable obj = keyInfo.ParsePrivateKey();
+
+                if (obj is Asn1Sequence keySeq)
+                {
+                    SphincsPlusPrivateKey spKey = SphincsPlusPrivateKey.GetInstance(keySeq);
+
+                    SphincsPlusPublicKey publicKey = spKey.PublicKey;
+
+                    return new SlhDsaPrivateKeyParameters(slhDsaParameters, spKey.GetSkseed(), spKey.GetSkprf(),
+                        publicKey.GetPkseed(), publicKey.GetPkroot());
+                }
+                else
+                {
+                    Asn1OctetString oct = Asn1OctetString.GetInstance(obj);
+
+                    return new SlhDsaPrivateKeyParameters(slhDsaParameters, oct.GetOctets());
+                }
             }
             else
             {

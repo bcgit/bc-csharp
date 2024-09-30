@@ -249,11 +249,20 @@ namespace Org.BouncyCastle.Pkcs
             {
                 var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
 
-                // TODO Add support?
-                //byte[] publicKey = mlDsaKey.GetPublicKey();
+                // TODO[pqc] Add support?
                 byte[] publicKey = null;
 
                 return new PrivateKeyInfo(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
+            }
+
+            if (privateKey is SlhDsaPrivateKeyParameters slhDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(slhDsaKey.Parameters.Oid);
+
+                // TODO[pqc] Add support?
+                byte[] publicKey = null;
+
+                return new PrivateKeyInfo(algID, new DerOctetString(slhDsaKey.GetEncoded()), attributes, publicKey);
             }
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));

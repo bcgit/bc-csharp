@@ -85,6 +85,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new FrodoPrivateKeyParameters(spParams, keyEnc);
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.On(BCObjectIdentifiers.sphincsPlus) || algOid.On(BCObjectIdentifiers.sphincsPlus_interop))
             {
                 Asn1Encodable obj = keyInfo.ParsePrivateKey();
@@ -106,6 +107,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     return new SphincsPlusPrivateKeyParameters(spParams, oct.GetOctets());
                 }
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.On(BCObjectIdentifiers.pqc_kem_saber))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();

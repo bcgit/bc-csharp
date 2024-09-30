@@ -113,6 +113,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.hqc256] = HqcConverter;
 
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Converters[BCObjectIdentifiers.sphincsPlus] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s_r3] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f_r3] = SphincsPlusConverter;
@@ -152,6 +153,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_256f] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_shake_256s] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_shake_256f] = SphincsPlusConverter;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>

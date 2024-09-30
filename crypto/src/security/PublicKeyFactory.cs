@@ -17,6 +17,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
@@ -273,11 +274,13 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
             }
-            else if (NistObjectIdentifiers.id_ml_dsa_44.Equals(algOid) ||
-                     NistObjectIdentifiers.id_ml_dsa_65.Equals(algOid) ||
-                     NistObjectIdentifiers.id_ml_dsa_87.Equals(algOid))
+            else if (MLDsaParameters.FromOid(algOid) is MLDsaParameters mlDsaParameters)
             {
-                return GetMLDsaPublicKey(MLDsaParameters.FromOid(algOid), keyInfo.PublicKey);
+                return GetMLDsaPublicKey(mlDsaParameters, keyInfo.PublicKey);
+            }
+            else if (SlhDsaParameters.FromOid(algOid) is SlhDsaParameters slhDsaParameters)
+            {
+                return GetSlhDsaPublicKey(slhDsaParameters, keyInfo.PublicKey);
             }
             else
             {
@@ -287,6 +290,8 @@ namespace Org.BouncyCastle.Security
 
         internal static MLDsaPublicKeyParameters GetMLDsaPublicKey(MLDsaParameters parameters, DerBitString publicKey)
         {
+            // TODO[pqc] Rework this, use length to guide possible format(s)?
+
             var publicKeyOctets = publicKey.GetOctets();
 
             try
@@ -308,7 +313,6 @@ namespace Org.BouncyCastle.Security
             }
             catch (Exception)
             {
-                // we're a raw encoding
                 return new MLDsaPublicKeyParameters(parameters, publicKeyOctets);
             }
         }
@@ -332,6 +336,24 @@ namespace Org.BouncyCastle.Security
             return keyInfo.PublicKey.GetOctets();
         }
 #endif
+
+        internal static SlhDsaPublicKeyParameters GetSlhDsaPublicKey(SlhDsaParameters parameters, DerBitString publicKey)
+        {
+            // TODO[pqc] Rework this, use length to guide possible format(s)?
+
+            var publicKeyOctets = publicKey.GetOctets();
+
+            try
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(publicKeyOctets).GetOctets();
+
+                return new SlhDsaPublicKeyParameters(parameters, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+            }
+            catch (Exception)
+            {
+                return new SlhDsaPublicKeyParameters(parameters, publicKeyOctets);
+            }
+        }
 
         private static bool IsPkcsDHParam(Asn1Sequence seq)
         {

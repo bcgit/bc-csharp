@@ -111,7 +111,6 @@ namespace Org.BouncyCastle.Operators.Utilities
 #pragma warning disable CS0618 // Type or member is obsolete
             DigestOids.Add(BCObjectIdentifiers.sphincs256_with_SHA3_512, NistObjectIdentifiers.IdSha3_512);
             DigestOids.Add(BCObjectIdentifiers.sphincs256_with_SHA512, NistObjectIdentifiers.IdSha512);
-#pragma warning restore CS0618 // Type or member is obsolete
 
             DigestOids.Add(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, NistObjectIdentifiers.IdSha256);
             DigestOids.Add(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3, NistObjectIdentifiers.IdSha256);
@@ -138,6 +137,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids.Add(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3_simple, NistObjectIdentifiers.IdSha256);
             DigestOids.Add(BCObjectIdentifiers.sphincsPlus_shake_256s_r3_simple, NistObjectIdentifiers.IdShake256);
             DigestOids.Add(BCObjectIdentifiers.sphincsPlus_shake_256f_r3_simple, NistObjectIdentifiers.IdShake256);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             DigestOids.Add(BCObjectIdentifiers.falcon, NistObjectIdentifiers.IdShake256);
             DigestOids.Add(BCObjectIdentifiers.falcon_512, NistObjectIdentifiers.IdShake256);

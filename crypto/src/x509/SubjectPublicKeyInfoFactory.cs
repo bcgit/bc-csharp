@@ -12,7 +12,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
@@ -255,6 +254,13 @@ namespace Org.BouncyCastle.X509
                 var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
 
                 return new SubjectPublicKeyInfo(algID, mlDsaKey.GetEncoded());
+            }
+
+            if (publicKey is SlhDsaPublicKeyParameters slhDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(slhDsaKey.Parameters.Oid);
+
+                return new SubjectPublicKeyInfo(algID, slhDsaKey.GetEncoded());
             }
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
