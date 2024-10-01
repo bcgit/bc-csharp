@@ -6,6 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
+    [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {

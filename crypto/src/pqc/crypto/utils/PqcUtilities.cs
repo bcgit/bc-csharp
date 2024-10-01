@@ -48,8 +48,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<HqcParameters, DerObjectIdentifier> hqcOids = new Dictionary<HqcParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, HqcParameters> hqcParams = new Dictionary<DerObjectIdentifier, HqcParameters>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly static Dictionary<SphincsPlusParameters, DerObjectIdentifier> sphincsPlusOids = new Dictionary<SphincsPlusParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, SphincsPlusParameters> sphincsPlusParams = new Dictionary<DerObjectIdentifier, SphincsPlusParameters>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         static PqcUtilities()
         {
@@ -366,6 +368,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(hqcParams, oid);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DerObjectIdentifier SphincsPlusOidLookup(SphincsPlusParameters parameters)
         {
             return CollectionUtilities.GetValueOrNull(sphincsPlusOids, parameters);
@@ -375,5 +378,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CollectionUtilities.GetValueOrNull(sphincsPlusParams, oid);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

@@ -55,6 +55,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (privateKey is SphincsPlusPrivateKeyParameters sphincsPlusPrivateKeyParameters)
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
@@ -62,6 +63,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(sphincsPlusPrivateKeyParameters.GetEncoded()), attributes);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is CmcePrivateKeyParameters cmcePrivateKeyParameters)
             {
                 byte[] encoding = cmcePrivateKeyParameters.GetEncoded();

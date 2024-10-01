@@ -366,12 +366,15 @@ namespace Org.BouncyCastle.Security
 
                 if (obj is Asn1Sequence keySeq)
                 {
+                    // TODO[pqc] Check whether these ASN.1 formats should still be supported - rename if so
+#pragma warning disable CS0618 // Type or member is obsolete
                     SphincsPlusPrivateKey spKey = SphincsPlusPrivateKey.GetInstance(keySeq);
 
                     SphincsPlusPublicKey publicKey = spKey.PublicKey;
 
                     return new SlhDsaPrivateKeyParameters(slhDsaParameters, spKey.GetSkseed(), spKey.GetSkprf(),
                         publicKey.GetPkseed(), publicKey.GetPkroot());
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
                 {

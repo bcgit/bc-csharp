@@ -247,6 +247,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private static AsymmetricKeyParameter SphincsPlusConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
             try
@@ -266,6 +267,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new SphincsPlusPublicKeyParameters(spParams, keyEnc);
             }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private static AsymmetricKeyParameter CmceConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {

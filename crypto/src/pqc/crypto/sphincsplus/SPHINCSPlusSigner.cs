@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
      *     for further details.
      * </p>
      */
+    [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusSigner
         : IMessageSigner
     {

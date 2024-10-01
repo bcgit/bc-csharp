@@ -53,6 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (publicKey is SphincsPlusPublicKeyParameters sphincsPlusPublicKeyParameters)
             {
                 byte[] encoding = sphincsPlusPublicKeyParameters.GetEncoded();
@@ -61,6 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.SphincsPlusOidLookup(sphincsPlusPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (publicKey is CmcePublicKeyParameters cmcePublicKeyParameters)
             {
                 byte[] encoding = cmcePublicKeyParameters.GetEncoded();

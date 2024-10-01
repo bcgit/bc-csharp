@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         SphincsPlusEngine Get();
     }
 
+    [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusParameters
     {
         // SHA-2
