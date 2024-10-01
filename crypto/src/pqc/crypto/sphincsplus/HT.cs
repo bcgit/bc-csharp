@@ -131,12 +131,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             // build authentication path
             for (int j = 0; j < engine.H_PRIME; j++)
             {
-                uint k = (uint) (idx / (1 << j)) ^ 1;
-                AUTH[j] = TreeHash(skSeed, k * (uint) (1 << j), (uint)j, pkSeed, adrs);
+                uint k = (idx >> j) ^ 1;
+                AUTH[j] = TreeHash(skSeed, k << j, (uint)j, pkSeed, adrs);
             }
 
             adrs = new Adrs(paramAdrs);
-            adrs.SetAdrsType(Adrs.WOTS_PK);
+            adrs.SetAdrsType(Adrs.WOTS_HASH);
             adrs.SetKeyPairAddress(idx);
 
             byte[] sig = wots.Sign(M, skSeed, pkSeed, adrs);
