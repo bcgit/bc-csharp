@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         private byte[] xmss_PKgen(byte[] skSeed, byte[] pkSeed, Adrs adrs)
         {
-            return TreeHash(skSeed, 0, engine.H_PRIME, pkSeed, adrs);
+            return TreeHash(skSeed, 0, (int)engine.H_PRIME, pkSeed, adrs);
         }
 
         // Input: index idx, XMSS signature SIG_XMSS = (sig || AUTH), n-byte message M, public seed PK.seed, address Adrs
@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             for (int j = 0; j < engine.H_PRIME; j++)
             {
                 uint k = (idx >> j) ^ 1;
-                AUTH[j] = TreeHash(skSeed, k << j, (uint)j, pkSeed, adrs);
+                AUTH[j] = TreeHash(skSeed, k << j, j, pkSeed, adrs);
             }
 
             adrs = new Adrs(paramAdrs);
@@ -142,19 +142,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return new SIG_XMSS(sig, AUTH);
         }
 
-        //
-        // Input: Secret seed SK.seed, start index s, target node height z, public seed
-        //PK.seed, address Adrs
+        // Input: Secret seed SK.seed, start index s, target node height z, public seed PK.seed, address Adrs
         // Output: n-byte root node - top node on Stack
-        private byte[] TreeHash(byte[] skSeed, uint s, uint z, byte[] pkSeed, Adrs adrsParam)
+        private byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
         {
-            if (s % (1 << (int)z) != 0)
+            if ((s >> z) << z != s)
                 return null;
 
             var stack = new Stack<NodeEntry>();
             Adrs adrs = new Adrs(adrsParam);
 
-            for (uint idx = 0; idx < (1 << (int)z); idx++)
+            for (uint idx = 0; idx < (1U << z); idx++)
             {
                 adrs.SetTypeAndClear(Adrs.WOTS_HASH);
                 adrs.SetKeyPairAddress(s + idx);
@@ -175,9 +173,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     adrsTreeIndex = (adrsTreeIndex - 1) / 2;
                     adrs.SetTreeIndex(adrsTreeIndex);
 
-                    engine.H(pkSeed, adrs, stack.Pop().nodeValue, node, node);
+                    var current = stack.Pop();
+                    engine.H(pkSeed, adrs, current.nodeValue, node, node);
 
-                    //topmost node is now one layer higher
+                    // topmost node is now one layer higher
                     adrs.SetTreeHeight(++adrsTreeHeight);
                 }
 

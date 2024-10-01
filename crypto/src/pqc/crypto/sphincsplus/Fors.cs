@@ -17,14 +17,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         // Output: n-byte root node - top node on Stack
         internal byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
         {
-            if (s % (1 << z) != 0)
+            if ((s >> z) << z != s)
                 return null;
 
             var stack = new Stack<NodeEntry>();
             Adrs adrs = new Adrs(adrsParam);
             byte[] sk = new byte[engine.N];
 
-            for (uint idx = 0; idx < (1 << z); idx++)
+            for (uint idx = 0; idx < (1U << z); idx++)
             {
                 adrs.SetTypeAndClear(Adrs.FORS_PRF);
                 adrs.SetKeyPairAddress(adrsParam.GetKeyPairAddress());
@@ -48,9 +48,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     adrsTreeIndex = (adrsTreeIndex - 1) / 2;
                     adrs.SetTreeIndex(adrsTreeIndex);
 
-                    engine.H(pkSeed, adrs, stack.Pop().nodeValue, node, node);
+                    var current = stack.Pop();
+                    engine.H(pkSeed, adrs, current.nodeValue, node, node);
 
-                    //topmost node is now one layer higher
+                    // topmost node is now one layer higher
                     adrs.SetTreeHeight(++adrsTreeHeight);
                 }
 
