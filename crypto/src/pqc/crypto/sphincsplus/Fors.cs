@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             for (uint idx = 0; idx < (1 << z); idx++)
             {
-                adrs.SetAdrsType(Adrs.FORS_PRF);
+                adrs.SetTypeAndClear(Adrs.FORS_PRF);
                 adrs.SetKeyPairAddress(adrsParam.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex(s + idx);
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 uint idx = GetMessageIdx(md, (int)i, engine.A);
 
                 // pick private key element
-                adrs.SetAdrsType(Adrs.FORS_PRF);
+                adrs.SetTypeAndClear(Adrs.FORS_PRF);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex((uint) (i * t + idx));
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 
             Adrs forspkAdrs = new Adrs(adrs); // copy address to create FTS public key address
-            forspkAdrs.SetAdrsType(Adrs.FORS_PK);
+            forspkAdrs.SetTypeAndClear(Adrs.FORS_PK);
             forspkAdrs.SetKeyPairAddress(adrs.GetKeyPairAddress());
 
             byte[] result = new byte[engine.N];

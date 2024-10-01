@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             Adrs adrs = new Adrs(paramAdrs);
 
             // compute WOTS+ pk from WOTS+ sig
-            adrs.SetAdrsType(Adrs.WOTS_HASH);
+            adrs.SetTypeAndClear(Adrs.WOTS_HASH);
             adrs.SetKeyPairAddress(idx);
             byte[] sig = sig_xmss.WotsSig;
             byte[][] AUTH = sig_xmss.XmssAuth;
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             wots.PKFromSig(sig, M, pkSeed, adrs, node);
 
             // compute root from WOTS+ pk and AUTH
-            adrs.SetAdrsType(Adrs.TREE);
+            adrs.SetTypeAndClear(Adrs.TREE);
             adrs.SetTreeIndex(idx);
             for (uint k = 0; k < engine.H_PRIME; k++)
             {
@@ -123,10 +123,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             
             Adrs adrs = new Adrs(paramAdrs);
 
-            adrs.SetAdrsType(Adrs.TREE);
+            adrs.SetTypeAndClear(Adrs.TREE);
             adrs.SetLayerAddress(paramAdrs.GetLayerAddress());
             adrs.SetTreeAddress(paramAdrs.GetTreeAddress());
-
 
             // build authentication path
             for (int j = 0; j < engine.H_PRIME; j++)
@@ -136,7 +135,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 
             adrs = new Adrs(paramAdrs);
-            adrs.SetAdrsType(Adrs.WOTS_HASH);
+            adrs.SetTypeAndClear(Adrs.WOTS_HASH);
             adrs.SetKeyPairAddress(idx);
 
             byte[] sig = wots.Sign(M, skSeed, pkSeed, adrs);
@@ -157,13 +156,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             for (uint idx = 0; idx < (1 << (int)z); idx++)
             {
-                adrs.SetAdrsType(Adrs.WOTS_HASH);
+                adrs.SetTypeAndClear(Adrs.WOTS_HASH);
                 adrs.SetKeyPairAddress(s + idx);
 
                 byte[] node = new byte[engine.N];
                 wots.PKGen(skSeed, pkSeed, adrs, node);
 
-                adrs.SetAdrsType(Adrs.TREE);
+                adrs.SetTypeAndClear(Adrs.TREE);
                 adrs.SetTreeHeight(1);
                 adrs.SetTreeIndex(s + idx);
 

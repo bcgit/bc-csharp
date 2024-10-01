@@ -85,13 +85,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             uint idx_leaf = idxDigest.idx_leaf;
             // FORS sign
             Adrs adrs = new Adrs();
-            adrs.SetAdrsType(Adrs.FORS_TREE);
+            adrs.SetTypeAndClear(Adrs.FORS_TREE);
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
             SIG_FORS[] sig_fors = fors.Sign(mHash, m_privKey.m_sk.seed, m_privKey.m_pk.seed, adrs);
             // get FORS public key - spec shows M?
             adrs = new Adrs();
-            adrs.SetAdrsType(Adrs.FORS_TREE);
+            adrs.SetTypeAndClear(Adrs.FORS_TREE);
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
 
@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             // sign FORS public key with HT
             Adrs treeAdrs = new Adrs();
-            treeAdrs.SetAdrsType(Adrs.TREE);
+            treeAdrs.SetTypeAndClear(Adrs.TREE);
 
             HT ht = new HT(engine, m_privKey.GetSeed(), m_privKey.GetPublicSeed());
 
@@ -146,13 +146,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             uint idx_leaf = idxDigest.idx_leaf;
 
             // compute FORS public key
-            adrs.SetAdrsType(Adrs.FORS_TREE);
+            adrs.SetTypeAndClear(Adrs.FORS_TREE);
             adrs.SetLayerAddress(0);
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
             byte[] PK_FORS = new Fors(engine).PKFromSig(sig_fors, mHash, m_pubKey.GetSeed(), adrs);
             // verify HT signature
-            adrs.SetAdrsType(Adrs.TREE);
+            adrs.SetTypeAndClear(Adrs.TREE);
             adrs.SetLayerAddress(0);
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
