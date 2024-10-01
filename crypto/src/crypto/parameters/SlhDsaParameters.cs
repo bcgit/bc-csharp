@@ -19,56 +19,56 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         public static readonly SlhDsaParameters SLH_DSA_SHA2_128s = new SlhDsaParameters(
             "SLH-DSA-SHA2-128s",
-            new Sha2EngineProvider(false, 16, 16, 7, 12, 14, 63),
+            new Sha2EngineProvider(n: 16, w: 16, d: 7, a: 12, k: 14, h: 63),
             NistObjectIdentifiers.id_slh_dsa_sha2_128s);
         public static readonly SlhDsaParameters SLH_DSA_SHAKE_128s = new SlhDsaParameters(
             "SLH-DSA-SHAKE-128s",
-            new Shake256EngineProvider(false, 16, 16, 7, 12, 14, 63),
+            new Shake256EngineProvider(n: 16, w: 16, d: 7, a: 12, k: 14, h: 63),
             NistObjectIdentifiers.id_slh_dsa_shake_128s);
 
         public static readonly SlhDsaParameters SLH_DSA_SHA2_128f = new SlhDsaParameters(
             "SLH-DSA-SHA2-128f",
-            new Sha2EngineProvider(false, 16, 16, 22, 6, 33, 66),
+            new Sha2EngineProvider(n: 16, w: 16, d: 22, a: 6, k: 33, h: 66),
             NistObjectIdentifiers.id_slh_dsa_sha2_128f);
         public static readonly SlhDsaParameters SLH_DSA_SHAKE_128f = new SlhDsaParameters(
             "SLH-DSA-SHAKE-128f",
-            new Shake256EngineProvider(false, 16, 16, 22, 6, 33, 66),
+            new Shake256EngineProvider(n: 16, w: 16, d: 22, a: 6, k: 33, h: 66),
             NistObjectIdentifiers.id_slh_dsa_shake_128f);
 
         public static readonly SlhDsaParameters SLH_DSA_SHA2_192s = new SlhDsaParameters(
             "SLH-DSA-SHA2-192s",
-            new Sha2EngineProvider(false, 24, 16, 7, 14, 17, 63),
+            new Sha2EngineProvider(n: 24, w: 16, d: 7, a: 14, k: 17, h: 63),
             NistObjectIdentifiers.id_slh_dsa_sha2_192s);
         public static readonly SlhDsaParameters SLH_DSA_SHAKE_192s = new SlhDsaParameters(
             "SLH-DSA-SHAKE-192s",
-            new Shake256EngineProvider(false, 24, 16, 7, 14, 17, 63),
+            new Shake256EngineProvider(n: 24, w: 16, d: 7, a: 14, k: 17, h: 63),
             NistObjectIdentifiers.id_slh_dsa_shake_192s);
 
         public static readonly SlhDsaParameters SLH_DSA_SHA2_192f = new SlhDsaParameters(
             "SLH-DSA-SHA2-192f",
-            new Sha2EngineProvider(false, 24, 16, 22, 8, 33, 66),
+            new Sha2EngineProvider(n: 24, w: 16, d: 22, a: 8, k: 33, h: 66),
             NistObjectIdentifiers.id_slh_dsa_sha2_192f);
         public static readonly SlhDsaParameters SLH_DSA_SHAKE_192f = new SlhDsaParameters(
             "SLH-DSA-SHAKE-192f",
-            new Shake256EngineProvider(false, 24, 16, 22, 8, 33, 66),
+            new Shake256EngineProvider(n: 24, w: 16, d: 22, a: 8, k: 33, h: 66),
             NistObjectIdentifiers.id_slh_dsa_shake_192f);
 
         public static readonly SlhDsaParameters SLH_DSA_SHA2_256s = new SlhDsaParameters(
             "SLH-DSA-SHA2-256s",
-            new Sha2EngineProvider(false, 32, 16, 8, 14, 22, 64),
+            new Sha2EngineProvider(n: 32, w: 16, d: 8, a: 14, k: 22, h: 64),
             NistObjectIdentifiers.id_slh_dsa_sha2_256s);
         public static readonly SlhDsaParameters SLH_DSA_SHAKE_256s = new SlhDsaParameters(
             "SLH-DSA-SHAKE-256s",
-            new Shake256EngineProvider(false, 32, 16, 8, 14, 22, 64),
+            new Shake256EngineProvider(n: 32, w: 16, d: 8, a: 14, k: 22, h: 64),
             NistObjectIdentifiers.id_slh_dsa_shake_256s);
 
         public static readonly SlhDsaParameters SLH_DSA_SHA2_256f = new SlhDsaParameters(
             "SLH-DSA-SHA2-256f",
-            new Sha2EngineProvider(false, 32, 16, 17, 9, 35, 68),
+            new Sha2EngineProvider(n: 32, w: 16, d: 17, a: 9, k: 35, h: 68),
             NistObjectIdentifiers.id_slh_dsa_sha2_256f);
         public static readonly SlhDsaParameters SLH_DSA_SHAKE_256f = new SlhDsaParameters(
             "SLH-DSA-SHAKE-256f",
-            new Shake256EngineProvider(false, 32, 16, 17, 9, 35, 68),
+            new Shake256EngineProvider(n: 32, w: 16, d: 17, a: 9, k: 35, h: 68),
             NistObjectIdentifiers.id_slh_dsa_shake_256f);
 
         private static readonly Dictionary<string, SlhDsaParameters> ByName =
@@ -133,7 +133,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
     internal sealed class Sha2EngineProvider
         : ISphincsPlusEngineProvider
     {
-        private readonly bool robust;
         private readonly int n;
         private readonly uint w;
         private readonly uint d;
@@ -141,9 +140,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly int k;
         private readonly uint h;
 
-        internal Sha2EngineProvider(bool robust, int n, uint w, uint d, int a, int k, uint h)
+        internal Sha2EngineProvider(int n, uint w, uint d, int a, int k, uint h)
         {
-            this.robust = robust;
             this.n = n;
             this.w = w;
             this.d = d;
@@ -154,13 +152,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public int N => this.n;
 
-        public SphincsPlusEngine Get() => new SphincsPlusEngine.Sha2Engine(robust, n, w, d, a, k, h);
+        public SphincsPlusEngine Get() => new SphincsPlusEngine.Sha2Engine(robust: false, n, w, d, a, k, h);
     }
 
     internal sealed class Shake256EngineProvider
         : ISphincsPlusEngineProvider
     {
-        private readonly bool robust;
         private readonly int n;
         private readonly uint w;
         private readonly uint d;
@@ -168,9 +165,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly int k;
         private readonly uint h;
 
-        internal Shake256EngineProvider(bool robust, int n, uint w, uint d, int a, int k, uint h)
+        internal Shake256EngineProvider(int n, uint w, uint d, int a, int k, uint h)
         {
-            this.robust = robust;
             this.n = n;
             this.w = w;
             this.d = d;
@@ -181,6 +177,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public int N => this.n;
 
-        public SphincsPlusEngine Get() => new SphincsPlusEngine.Shake256Engine(robust, n, w, d, a, k, h);
+        public SphincsPlusEngine Get() => new SphincsPlusEngine.Shake256Engine(robust: false, n, w, d, a, k, h);
     }
 }
