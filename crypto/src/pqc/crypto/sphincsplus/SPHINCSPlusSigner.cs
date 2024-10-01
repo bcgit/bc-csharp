@@ -1,9 +1,9 @@
 using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
@@ -101,18 +101,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             treeAdrs.SetAdrsType(Adrs.TREE);
 
             HT ht = new HT(engine, m_privKey.GetSeed(), m_privKey.GetPublicSeed());
-            byte[] SIG_HT = ht.Sign(PK_FORS, idx_tree, idx_leaf);
-            byte[][] sigComponents = new byte[sig_fors.Length + 2][];
-            sigComponents[0] = R;
 
-            for (int i = 0; i != sig_fors.Length; i++)
+            int sigLen = R.Length;
+            sigLen += engine.K * (1 + engine.A) * engine.N; // K SIG_FORS, each is (A + 1) hashes of length N
+            sigLen += ht.GetSignatureLength();
+
+            byte[] signature = new byte[sigLen];
+            int pos = 0;
+
+            Array.Copy(R, 0, signature, 0, R.Length);
+            pos += R.Length;
+
+            for (int i = 0; i < sig_fors.Length; ++i)
             {
-                sigComponents[1 + i] = Arrays.Concatenate(sig_fors[i].sk, Arrays.ConcatenateAll(sig_fors[i].authPath));
+                sig_fors[i].CopyToSignature(signature, ref pos);
             }
 
-            sigComponents[sigComponents.Length - 1] = SIG_HT;
-
-            return Arrays.ConcatenateAll(sigComponents);
+            ht.Sign(PK_FORS, idx_tree, idx_leaf, signature, ref pos);
+            Debug.Assert(pos == sigLen);
+            return signature;
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)

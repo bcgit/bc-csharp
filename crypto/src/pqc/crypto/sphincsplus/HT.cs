@@ -35,7 +35,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
         }
 
-        internal byte[] Sign(byte[] M, ulong idx_tree, uint idx_leaf)
+        internal int GetSignatureLength() => (int)engine.D * (engine.WOTS_LEN + (int)engine.H_PRIME) * engine.N;
+
+        internal void Sign(byte[] M, ulong idx_tree, uint idx_leaf, byte[] signature, ref int pos)
         {
             // init
             Adrs adrs = new Adrs();
@@ -65,13 +67,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 }
             }
 
-            byte[][] totSigs = new byte[SIG_HT.Length][];
-            for (int i = 0; i != totSigs.Length; i++)
+            for (int i = 0; i < SIG_HT.Length; ++i)
             {
-                totSigs[i] = Arrays.Concatenate(SIG_HT[i].sig, Arrays.ConcatenateAll(SIG_HT[i].auth));
+                SIG_HT[i].CopyToSignature(signature, ref pos);
             }
-
-            return Arrays.ConcatenateAll(totSigs);
         }
 
         private byte[] xmss_PKgen(byte[] skSeed, byte[] pkSeed, Adrs adrs)

@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     internal class SIG_FORS
@@ -11,8 +13,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             this.sk = sk;
         }
 
-        public byte[] SK => sk;
+        internal void CopyToSignature(byte[] signature, ref int pos)
+        {
+            Array.Copy(sk, 0, signature, pos, sk.Length);
+            pos += sk.Length;
 
-        public byte[][] AuthPath => authPath;
+            for (int i = 0; i < authPath.Length; ++i)
+            {
+                Array.Copy(authPath[i], 0, signature, pos, authPath[i].Length);
+                pos += authPath[i].Length;
+            }
+        }
+
+        internal byte[] SK => sk;
+
+        internal byte[][] AuthPath => authPath;
     }
 }
