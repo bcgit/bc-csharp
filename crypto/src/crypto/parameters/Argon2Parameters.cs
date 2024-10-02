@@ -1,67 +1,60 @@
-﻿using Org.BouncyCastle.Utilities;
-using System;
+﻿using System;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public sealed class Argon2Parameters
     {
-        public const int ARGON2_d = 0x00;
-        public const int ARGON2_i = 0x01;
-        public const int ARGON2_id = 0x02;
+        public static readonly int Argon2_d = 0x00;
+        public static readonly int Argon2_i = 0x01;
+        public static readonly int Argon2_id = 0x02;
 
-        public const int ARGON2_VERSION_10 = 0x10;
-        public const int ARGON2_VERSION_13 = 0x13;
+        public static readonly int Argon2_Version10 = 0x10;
+        public static readonly int Argon2_Version13 = 0x13;
 
+        private readonly int type;
         private readonly byte[] salt;
         private readonly byte[] secret;
         private readonly byte[] additional;
-
         private readonly int iterations;
         private readonly int memory;
         private readonly int lanes;
-
         private readonly int version;
-        private readonly int type;
         private readonly ICharToByteConverter converter;
 
-        public class Builder
+        public sealed class Builder
         {
-            private const int DEFAULT_ITERATIONS = 3;
-            private const int DEFAULT_MEMORY_COST = 12;
-            private const int DEFAULT_LANES = 1;
-            private const int DEFAULT_TYPE = ARGON2_i;
-            private const int DEFAULT_VERSION = ARGON2_VERSION_13;
+            private static readonly int DefaultIterations = 3;
+            private static readonly int DefaultMemoryCost = 12;
+            private static readonly int DefaultLanes = 1;
+            private static readonly int DefaultType = Argon2_i;
+            private static readonly int DefaultVersion = Argon2_Version13;
+
+            private readonly int type;
 
             private byte[] salt = Array.Empty<byte>();
             private byte[] secret = Array.Empty<byte>();
             private byte[] additional = Array.Empty<byte>();
-
-            private int iterations;
-            private int memory;
-            private int lanes;
-
-            private int version;
-            private readonly int type;
-
-            private ICharToByteConverter converter = PasswordConverter.UTF8;
+            private int iterations = DefaultIterations;
+            private int memory = 1 << DefaultMemoryCost;
+            private int lanes = DefaultLanes;
+            private int version = DefaultVersion;
+            private ICharToByteConverter converter = PasswordConverter.Utf8;
 
             public Builder()
-                : this(DEFAULT_TYPE)
+                : this(DefaultType)
             {
             }
 
             public Builder(int type)
             {
                 this.type = type;
-                lanes = DEFAULT_LANES;
-                memory = 1 << DEFAULT_MEMORY_COST;
-                iterations = DEFAULT_ITERATIONS;
-                version = DEFAULT_VERSION;
             }
 
             public Builder WithParallelism(int parallelism)
             {
-                lanes = parallelism;
+                this.lanes = parallelism;
                 return this;
             }
 
@@ -113,20 +106,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 return this;
             }
 
-            public Builder WithCharToByteConverter(string name, Func<char[], byte[]> converterFunction)
-            {
-                return WithCharToByteConverter(new PasswordConverter(name, converterFunction));
-            }
-
-            public Builder WithCharToByteConverter(Func<char[], byte[]> converterFunction)
-            {
-                return WithCharToByteConverter("Custom", converterFunction);
-            }
-
-            public Argon2Parameters Build()
-            {
-                return new Argon2Parameters(type, salt, secret, additional, iterations, memory, lanes, version, converter);
-            }
+            public Argon2Parameters Build() =>
+                new Argon2Parameters(type, salt, secret, additional, iterations, memory, lanes, version, converter);
 
             public void Clear()
             {
@@ -136,73 +117,42 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
-        private Argon2Parameters(
-            int type,
-            byte[] salt,
-            byte[] secret,
-            byte[] additional,
-            int iterations,
-            int memory,
-            int lanes,
-            int version,
-            ICharToByteConverter converter)
+        private Argon2Parameters(int type, byte[] salt, byte[] secret, byte[] additional, int iterations, int memory,
+            int lanes, int version, ICharToByteConverter converter)
         {
-
-            this.salt = Arrays.Clone(salt);
-            this.secret = Arrays.Clone(secret);
-            this.additional = Arrays.Clone(additional);
+            this.type = type;
+            this.salt = salt;
+            this.secret = secret;
+            this.additional = additional;
             this.iterations = iterations;
             this.memory = memory;
             this.lanes = lanes;
             this.version = version;
-            this.type = type;
             this.converter = converter;
         }
 
-        public byte[] GetSalt()
-        {
-            return Arrays.Clone(salt);
-        }
+        public ICharToByteConverter CharToByteConverter => converter;
 
-        public byte[] GetSecret()
-        {
-            return Arrays.Clone(secret);
-        }
+        public byte[] GetSalt() => Arrays.Clone(salt);
 
-        public byte[] GetAdditional()
-        {
-            return Arrays.Clone(additional);
-        }
+        public byte[] GetSecret() => Arrays.Clone(secret);
 
-        public int GetIterations()
-        {
-            return iterations;
-        }
+        public byte[] GetAdditional() => Arrays.Clone(additional);
 
-        public int GetMemory()
-        {
-            return memory;
-        }
+        public int Iterations => iterations;
 
-        public int GetLanes()
-        {
-            return lanes;
-        }
+        public int Lanes => lanes;
 
-        public int GetVersion()
-        {
-            return version;
-        }
+        public int Memory => memory;
 
-        public int GetArgonType()
-        {
-            return type;
-        }
+        public int Type => type;
 
-        public ICharToByteConverter GetCharToByteConverter()
-        {
-            return converter;
-        }
+        public int Version => version;
 
+        internal byte[] Additional => additional;
+
+        internal byte[] Salt => salt;
+
+        internal byte[] Secret => secret;
     }
 }
