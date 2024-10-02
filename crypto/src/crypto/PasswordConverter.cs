@@ -1,44 +1,36 @@
-﻿using System;
-using System.Text;
-
-namespace Org.BouncyCastle.Crypto
+﻿namespace Org.BouncyCastle.Crypto
 {
-    public class PasswordConverter
+    /// <summary>
+    /// Standard char[] to byte[] converters for password based derivation algorithms.
+    /// </summary>
+    public sealed class PasswordConverter
         : ICharToByteConverter
     {
-        private readonly string name;
-        private readonly Func<char[], byte[]> converterFunction;
+        private delegate byte[] ConverterFunction(char[] password);
 
-        public PasswordConverter(string name, Func<char[], byte[]> converterFunction)
+        private readonly string m_name;
+        private readonly ConverterFunction m_converterFunction;
+
+        private PasswordConverter(string name, ConverterFunction converterFunction)
         {
-            this.name = name;
-            this.converterFunction = converterFunction;
+            m_name = name;
+            m_converterFunction = converterFunction;
         }
 
-        public byte[] Convert(char[] password)
-        {
-            return converterFunction.Invoke(password);
-        }
+        public byte[] Convert(char[] password) => m_converterFunction(password);
 
-        public string GetName()
-        {
-            return name;
-        }
+        public string Name => m_name;
 
-        public readonly static ICharToByteConverter ASCII = new PasswordConverter("ASCII", PbeParametersGenerator.Pkcs5PasswordToBytes);
+        /// <summary>Do a straight char[] to 8 bit conversion.</summary>
+        public readonly static ICharToByteConverter Ascii = new PasswordConverter("ASCII",
+            PbeParametersGenerator.Pkcs5PasswordToBytes);
 
-        public readonly static ICharToByteConverter UTF8 = new PasswordConverter("UTF8", PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes);
+        /// <summary>Do a char[] conversion by producing UTF-8 data.</summary>
+        public readonly static ICharToByteConverter Utf8 = new PasswordConverter("UTF8",
+            PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes);
 
-        public readonly static ICharToByteConverter PKCS12 = new PasswordConverter("PKCS12", PbeParametersGenerator.Pkcs12PasswordToBytes);
-
-        public readonly static ICharToByteConverter UTF32 = new PasswordConverter("UTF32", Encoding.UTF32.GetBytes);
-
-        public readonly static ICharToByteConverter Unicode = new PasswordConverter("Unicode", Encoding.Unicode.GetBytes);
-
-        public readonly static ICharToByteConverter BigEndianUnicode = new PasswordConverter("BigEndianUnicode", Encoding.BigEndianUnicode.GetBytes);
-
-#if NET6_0_OR_GREATER
-        public readonly static ICharToByteConverter Latin1 = new PasswordConverter("Latin1", Encoding.Latin1.GetBytes);
-#endif
+        /// <summary>Do char[] to BMP conversion (i.e. 2 bytes per character).</summary>
+        public readonly static ICharToByteConverter Pkcs12 = new PasswordConverter("PKCS12",
+            PbeParametersGenerator.Pkcs12PasswordToBytes);
     }
 }

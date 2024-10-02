@@ -1,35 +1,16 @@
 ﻿namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>
+    /// Interface for a converter that produces a byte encoding for a char array.
+    /// </summary>
     public interface ICharToByteConverter
     {
-        /**
-         * Return the type of the conversion.
-         *
-         * @return a type name for the conversion.
-         */
-        string GetName();
+        /// <summary>The name of the conversion.</summary>
+        string Name { get; }
 
-        /**
-         * Return a byte encoded representation of the passed in password.
-         *
-         * @param password the characters to encode.
-         * @return a byte encoding of password.
-         */
+        /// <summary>Return a byte encoded representation of the passed in password.</summary>
+        /// <param name="password">the characters to encode.</param>
+        /// <return>a byte encoding of password.</return>
         byte[] Convert(char[] password);
-    }
-
-    public static class CharToByteConverterExtensions
-    {
-
-        /**
-         * Return a byte encoded representation of the passed in password.
-         *
-         * @param password the string to encode.
-         * @return a byte encoding of password.
-         */
-        public static byte[] Convert(this ICharToByteConverter converter, string password)
-        {
-            return converter.Convert(password.ToCharArray());
-        }
     }
 }
