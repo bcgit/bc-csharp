@@ -20,17 +20,14 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestExceptions()
         {
-            // lanes less than MIN_PARALLELISM
+            // Parallelism less than MIN_PARALLELISM
             CheckInvalidConfig(b => b.WithParallelism(0));
 
-            // lanes greater than MAX_PARALLELISM
-            CheckInvalidConfig(b => b.WithParallelism(16777299));
+            // Parallelism greater than MAX_PARALLELISM
+            CheckInvalidConfig(b => b.WithParallelism(1 << 24));
 
             // iterations less than MIN_ITERATIONS
             CheckInvalidConfig(b => b.WithIterations(0));
-
-            // memory less than 2 * lanes
-            CheckInvalidConfig(b => b.WithMemoryAsKB(10).WithParallelism(6));
 
             // output length less than MIN_OUTLEN
             Assert.Throws<InvalidOperationException>(() =>
@@ -86,8 +83,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                         for (int k = 0; k != salts.Length; k++)
                         {
                             byte[] salt = salts[k];
-                            byte[] expected = Generate(Argon2Parameters.Argon2_Version10, 1, 8, 2, rootPassword, salt, 32);
-                            byte[] testValue = Generate(Argon2Parameters.Argon2_Version10, 1, 8, 2, candidate, salt, 32);
+                            byte[] expected = Generate(Argon2Parameters.Version10, 1, 8, 2, rootPassword, salt, 32);
+                            byte[] testValue = Generate(Argon2Parameters.Version10, 1, 8, 2, candidate, salt, 32);
 
                             //
                             // If the passwords are the same for the same salt we should have the same string.
@@ -145,7 +142,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static byte[] Generate(int version, int iterations, int memory, int parallelism, byte[] password,
             byte[] salt, int outputLength)
         {
-            Argon2Parameters parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2_i)
+            Argon2Parameters parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2i)
                 .WithVersion(version)
                 .WithIterations(iterations)
                 .WithMemoryPowOfTwo(memory)
@@ -172,7 +169,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             /* Multiple test cases for various input values */
 
-            int version = Argon2Parameters.Argon2_Version10;
+            int version = Argon2Parameters.Version10;
 
             HashTest(version, 2, 16, 1, "password", "somesalt",
                 "f6c4db4a54e2a370627aff3db6176b94a2a209a62c8e36152711802f7b30c694",
@@ -219,7 +216,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void HashTestsVersion13()
         {
-            int version = Argon2Parameters.Argon2_Version13;
+            int version = Argon2Parameters.Version13;
 
             HashTest(version, 2, 16, 1, "password", "somesalt",
                 "c1628832147d9720c5bd1cfd61367078729f6dfb6f8fea9ff98158e0d7816ed0",
@@ -261,7 +258,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         private void HashTest(int version, int iterations, int memory, int parallelism, string password, string salt,
             string passwordRef, int outputLength)
         {
-            Argon2Parameters parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2_i)
+            Argon2Parameters parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2i)
                 .WithVersion(version)
                 .WithIterations(iterations)
                 .WithMemoryPowOfTwo(memory)
@@ -313,34 +310,34 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             /* Version 0x13 (19) from RFC 9106 https://datatracker.ietf.org/doc/html/rfc9106#name-test-vectors */
             SpecsTest(
-                Argon2Parameters.Argon2_Version13,
-                Argon2Parameters.Argon2_d,
+                Argon2Parameters.Version13,
+                Argon2Parameters.Argon2d,
                 "512b391b6f1162975371d30919734294f868e3be3984f3c1a13a4db9fabe4acb");
 
             SpecsTest(
-                Argon2Parameters.Argon2_Version13,
-                Argon2Parameters.Argon2_i,
+                Argon2Parameters.Version13,
+                Argon2Parameters.Argon2i,
                 "c814d9d1dc7f37aa13f0d77f2494bda1c8de6b016dd388d29952a4c4672b6ce8");
 
             SpecsTest(
-                Argon2Parameters.Argon2_Version13,
-                Argon2Parameters.Argon2_id,
+                Argon2Parameters.Version13,
+                Argon2Parameters.Argon2id,
                 "0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659");
 
             /* Version 0x10 (16) from reference C implementation https://github.com/P-H-C/phc-winner-argon2/tree/master/kats */
             SpecsTest(
-                Argon2Parameters.Argon2_Version10,
-                Argon2Parameters.Argon2_d,
+                Argon2Parameters.Version10,
+                Argon2Parameters.Argon2d,
                 "96a9d4e5a1734092c85e29f410a45914a5dd1f5cbf08b2670da68a0285abf32b");
 
             SpecsTest(
-                Argon2Parameters.Argon2_Version10,
-                Argon2Parameters.Argon2_i,
+                Argon2Parameters.Version10,
+                Argon2Parameters.Argon2i,
                 "87aeedd6517ab830cd9765cd8231abb2e647a5dee08f7c05e02fcb763335d0fd");
 
             SpecsTest(
-                Argon2Parameters.Argon2_Version10,
-                Argon2Parameters.Argon2_id,
+                Argon2Parameters.Version10,
+                Argon2Parameters.Argon2id,
                 "b64615f07789b66b645b67ee9ed3b377ae350b6bfcbb0fc95141ea8f322613c0");
         }
         #endregion

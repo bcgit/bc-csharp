@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         /* Minimum and maximum number of lanes (degree of parallelism) */
         private const int MinParallelism = 1;
-        private const int MaxParallelism = 16777216;
+        private const int MaxParallelism = (1 << 24) - 1;
 
         /* Minimum and maximum digest size in bytes */
         private const int MinOutlen = 4;
@@ -50,18 +50,43 @@ namespace Org.BouncyCastle.Crypto.Generators
          */
         public void Init(Argon2Parameters parameters)
         {
+            if (parameters.Version != Argon2Parameters.Version10 &&
+                parameters.Version != Argon2Parameters.Version13)
+            {
+                throw new NotSupportedException("unknown Argon2 version");
+            }
+            if (parameters.Type != Argon2Parameters.Argon2d &&
+                parameters.Type != Argon2Parameters.Argon2i &&
+                parameters.Type != Argon2Parameters.Argon2id)
+            {
+                throw new NotSupportedException("unknown Argon2 type");
+            }
+
+            if (parameters.Parallelism < MinParallelism)
+                throw new InvalidOperationException("parallelism must be at least " + MinParallelism);
+            if (parameters.Parallelism > MaxParallelism)
+                throw new InvalidOperationException("parallelism must be at most " + MaxParallelism);
+            if (parameters.Iterations < MinIterations)
+                throw new InvalidOperationException("iterations must be at least " + MinIterations);
+
             this.parameters = parameters;
 
-            if (parameters.Lanes < MinParallelism)
-                throw new InvalidOperationException($"lanes must be greater than " + MinParallelism);
-            if (parameters.Lanes > MaxParallelism)
-                throw new InvalidOperationException("lanes must be less than " + MaxParallelism);
-            if (parameters.Memory < 2 * parameters.Lanes)
-                throw new InvalidOperationException("memory is less than: " + (2 * parameters.Lanes) + " expected " + (2 * parameters.Lanes));
-            if (parameters.Iterations < MinIterations)
-                throw new InvalidOperationException("iterations is less than: " + MinIterations);
+            // 2. Align memory size
+            // Minimum memoryBlocks = 8L blocks, where L is the number of lanes
+            int memoryBlocks = System.Math.Max(parameters.Memory, 2 * Argon2SyncPoints * parameters.Parallelism);
 
-            DoInit(parameters);
+            this.segmentLength = memoryBlocks / (Argon2SyncPoints * parameters.Parallelism);
+            this.laneLength = segmentLength * Argon2SyncPoints;
+
+            // Ensure that all segments have equal length
+            memoryBlocks = parameters.Parallelism * laneLength;
+
+            this.memory = new Block[memoryBlocks];
+
+            for (int i = 0; i < memory.Length; i++)
+            {
+                memory[i] = new Block();
+            }
         }
 
         public int GenerateBytes(char[] password, byte[] output) =>
@@ -102,31 +127,6 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        private void DoInit(Argon2Parameters parameters)
-        {
-            /* 2. Align memory size */
-            /* Minimum memoryBlocks = 8L blocks, where L is the number of lanes */
-            int memoryBlocks = System.Math.Max(parameters.Memory, 2 * Argon2SyncPoints * parameters.Lanes);
-
-            this.segmentLength = memoryBlocks / (parameters.Lanes * Argon2SyncPoints);
-            this.laneLength = segmentLength * Argon2SyncPoints;
-
-            /* Ensure that all segments have equal length */
-            memoryBlocks = segmentLength * (parameters.Lanes * Argon2SyncPoints);
-
-            InitMemory(memoryBlocks);
-        }
-
-        private void InitMemory(int memoryBlocks)
-        {
-            this.memory = new Block[memoryBlocks];
-
-            for (int i = 0; i < memory.Length; i++)
-            {
-                memory[i] = new Block();
-            }
-        }
-
         private void FillMemoryBlocks()
         {
             FillBlock filler = new FillBlock();
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 {
                     position.slice = slice;
 
-                    for (int lane = 0; lane < parameters.Lanes; ++lane)
+                    for (int lane = 0; lane < parameters.Parallelism; ++lane)
                     {
                         position.lane = lane;
 
@@ -202,8 +202,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private bool IsDataIndependentAddressing(Position position)
         {
-            return (parameters.Type == Argon2Parameters.Argon2_i) ||
-                (parameters.Type == Argon2Parameters.Argon2_id
+            return (parameters.Type == Argon2Parameters.Argon2i) ||
+                (parameters.Type == Argon2Parameters.Argon2id
                     && (position.pass == 0)
                     && (position.slice < Argon2SyncPoints / 2)
                 );
@@ -227,7 +227,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private bool IsWithXor(Position position)
         {
-            return !(position.pass == 0 || parameters.Version == Argon2Parameters.Argon2_Version10);
+            return !(position.pass == 0 || parameters.Version == Argon2Parameters.Version10);
         }
 
         private int GetPrevOffset(int currentOffset)
@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private int GetRefLane(Position position, ulong pseudoRandom)
         {
-            int refLane = (int)((long)(pseudoRandom >> 32) % parameters.Lanes);
+            int refLane = (int)((long)(pseudoRandom >> 32) % parameters.Parallelism);
 
             if ((position.pass == 0) && (position.slice == 0))
             {
@@ -347,7 +347,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             Block finalBlock = memory[laneLength - 1];
 
             /* XOR the last blocks */
-            for (int i = 1; i < parameters.Lanes; i++)
+            for (int i = 1; i < parameters.Parallelism; i++)
             {
                 int lastBlockInLane = i * laneLength + (laneLength - 1);
                 finalBlock.XorWith(memory[lastBlockInLane]);
@@ -479,7 +479,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             Blake2bDigest blake = new Blake2bDigest(Argon2PrehashDigestLength * 8);
 
             uint[] values = {
-                (uint)parameters.Lanes,
+                (uint)parameters.Parallelism,
                 (uint)outputLength,
                 (uint)parameters.Memory,
                 (uint)parameters.Iterations,
@@ -522,10 +522,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         {
             byte[] initialHashWithOnes = new byte[Argon2PrehashSeedLength];
             Array.Copy(initialHashWithZeros, 0, initialHashWithOnes, 0, Argon2PrehashDigestLength);
-            //        Pack.intToLittleEndian(1, initialHashWithOnes, Argon2PrehashDigestLength);
             initialHashWithOnes[Argon2PrehashDigestLength] = 1;
 
-            for (int i = 0; i < parameters.Lanes; i++)
+            for (int i = 0; i < parameters.Parallelism; i++)
             {
                 Pack.UInt32_To_LE((uint)i, initialHashWithZeros, Argon2PrehashDigestLength + 4);
                 Pack.UInt32_To_LE((uint)i, initialHashWithOnes, Argon2PrehashDigestLength + 4);
@@ -650,14 +649,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             internal void XorWith(Block b1, Block b2)
             {
-                // TODO New Nat.Xor variant for this
-                ulong[] v0 = v;
-                ulong[] v1 = b1.v;
-                ulong[] v2 = b2.v;
-                for (int i = 0; i < Size; i++)
-                {
-                    v0[i] ^= v1[i] ^ v2[i];
-                }
+                Nat.XorBothTo64(Size, b1.v, b2.v, v);
             }
 
             internal Block Clear()
