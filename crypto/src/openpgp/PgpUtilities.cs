@@ -343,8 +343,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             if (s2k != null && s2k.Type == S2k.Argon2)
             {
                 Argon2Parameters.Builder builder =
-                    new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-                        .WithVersion(Argon2Parameters.ARGON2_VERSION_13)
+                    new Argon2Parameters.Builder(Argon2Parameters.Argon2_id)
+                        .WithVersion(Argon2Parameters.Argon2_Version13)
                         .WithIterations(s2k.Passes)
                         .WithMemoryPowOfTwo(s2k.MemorySizeExponent)
                         .WithParallelism(s2k.Parallelism)
