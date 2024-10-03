@@ -6,12 +6,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     public sealed class Argon2Parameters
     {
-        public static readonly int Argon2_d = 0x00;
-        public static readonly int Argon2_i = 0x01;
-        public static readonly int Argon2_id = 0x02;
+        public static readonly int Argon2d = 0x00;
+        public static readonly int Argon2i = 0x01;
+        public static readonly int Argon2id = 0x02;
 
-        public static readonly int Argon2_Version10 = 0x10;
-        public static readonly int Argon2_Version13 = 0x13;
+        public static readonly int Version10 = 0x10;
+        public static readonly int Version13 = 0x13;
 
         private readonly int type;
         private readonly byte[] salt;
@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly byte[] additional;
         private readonly int iterations;
         private readonly int memory;
-        private readonly int lanes;
+        private readonly int parallelism;
         private readonly int version;
         private readonly ICharToByteConverter converter;
 
@@ -27,9 +27,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             private static readonly int DefaultIterations = 3;
             private static readonly int DefaultMemoryCost = 12;
-            private static readonly int DefaultLanes = 1;
-            private static readonly int DefaultType = Argon2_i;
-            private static readonly int DefaultVersion = Argon2_Version13;
+            private static readonly int DefaultParallelism = 1;
+            private static readonly int DefaultType = Argon2i;
+            private static readonly int DefaultVersion = Version13;
 
             private readonly int type;
 
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             private byte[] additional = Array.Empty<byte>();
             private int iterations = DefaultIterations;
             private int memory = 1 << DefaultMemoryCost;
-            private int lanes = DefaultLanes;
+            private int parallelism = DefaultParallelism;
             private int version = DefaultVersion;
             private ICharToByteConverter converter = PasswordConverter.Utf8;
 
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             public Builder WithParallelism(int parallelism)
             {
-                this.lanes = parallelism;
+                this.parallelism = parallelism;
                 return this;
             }
 
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             public Argon2Parameters Build() =>
-                new Argon2Parameters(type, salt, secret, additional, iterations, memory, lanes, version, converter);
+                new Argon2Parameters(type, salt, secret, additional, iterations, memory, parallelism, version, converter);
 
             public void Clear()
             {
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         private Argon2Parameters(int type, byte[] salt, byte[] secret, byte[] additional, int iterations, int memory,
-            int lanes, int version, ICharToByteConverter converter)
+            int parallelism, int version, ICharToByteConverter converter)
         {
             this.type = type;
             this.salt = salt;
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.additional = additional;
             this.iterations = iterations;
             this.memory = memory;
-            this.lanes = lanes;
+            this.parallelism = parallelism;
             this.version = version;
             this.converter = converter;
         }
@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public int Iterations => iterations;
 
-        public int Lanes => lanes;
+        public int Parallelism => parallelism;
 
         public int Memory => memory;
 
