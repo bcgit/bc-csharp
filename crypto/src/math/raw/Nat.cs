@@ -2930,6 +2930,88 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static void XorBothTo(int len, uint[] x, uint[] y, uint[] z)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorBothTo(len, x.AsSpan(0, len), y.AsSpan(0, len), z.AsSpan(0, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] ^= x[i] ^ y[i];
+            }
+#endif
+        }
+
+        public static void XorBothTo(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorBothTo(len, x.AsSpan(xOff, len), y.AsSpan(yOff, len), z.AsSpan(zOff, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] ^= x[xOff + i] ^ y[yOff + i];
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorBothTo(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+            int i = 0, limit16 = len - 16;
+            while (i <= limit16)
+            {
+                Nat512.XorBothTo(x[i..], y[i..], z[i..]);
+                i += 16;
+            }
+            while (i < len)
+            {
+                z[i] ^= x[i] ^ y[i];
+                ++i;
+            }
+        }
+#endif
+
+        public static void XorBothTo64(int len, ulong[] x, ulong[] y, ulong[] z)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorBothTo64(len, x.AsSpan(0, len), y.AsSpan(0, len), z.AsSpan(0, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] ^= x[i] ^ y[i];
+            }
+#endif
+        }
+
+        public static void XorBothTo64(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorBothTo64(len, x.AsSpan(xOff, len), y.AsSpan(yOff, len), z.AsSpan(zOff, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] ^= x[xOff + i] ^ y[yOff + i];
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorBothTo64(int len, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> z)
+        {
+            int i = 0, limit8 = len - 8;
+            while (i <= limit8)
+            {
+                Nat512.XorBothTo64(x[i..], y[i..], z[i..]);
+                i += 8;
+            }
+            while (i < len)
+            {
+                z[i] ^= x[i] ^ y[i];
+                ++i;
+            }
+        }
+#endif
+
         public static void XorTo(int len, uint[] x, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
