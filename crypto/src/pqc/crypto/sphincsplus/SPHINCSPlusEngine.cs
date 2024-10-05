@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public abstract void H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2, byte[] output);
 #endif
 
-        public abstract IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message);
+        public abstract IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] msg, int msgOff, int msgLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public abstract void T_l(byte[] pkSeed, Adrs adrs, byte[] m, Span<byte> output);
@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public abstract void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff);
 
-        public abstract byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message);
+        public abstract byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] msg, int msgOff, int msgLen);
 
         internal class Sha2Engine
             : SphincsPlusEngine
@@ -260,7 +260,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 #endif
 
-            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
+            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] msg, int msgOff, int msgLen)
             {
                 int forsMsgBytes = (((A * K) + 7) / 8);
                 uint leafBits = FH / D;
@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 msgDigest.BlockUpdate(prf, 0, prf.Length);
                 msgDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 msgDigest.BlockUpdate(pkRoot, 0, pkRoot.Length);
-                msgDigest.BlockUpdate(message, 0, message.Length);
+                msgDigest.BlockUpdate(msg, msgOff, msgLen);
                 msgDigest.DoFinal(dig, 0);
 
                 byte[] output = new byte[m];
@@ -330,11 +330,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 Array.Copy(sha256Buf, 0, prf, prfOff, n);
             }
 
-            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
+            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] msg, int msgOff, int msgLen)
             {
                 treeHMac.Init(new KeyParameter(prf));
                 treeHMac.BlockUpdate(randomiser, 0, randomiser.Length);
-                treeHMac.BlockUpdate(message, 0, message.Length);
+                treeHMac.BlockUpdate(msg, msgOff, msgLen);
                 treeHMac.DoFinal(hmacBuf, 0);
 
                 return Arrays.CopyOfRange(hmacBuf, 0, N);
@@ -474,7 +474,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 #endif
 
-            public override IndexedDigest H_msg(byte[] R, byte[] pkSeed, byte[] pkRoot, byte[] message)
+            public override IndexedDigest H_msg(byte[] R, byte[] pkSeed, byte[] pkRoot, byte[] msg, int msgOff, int msgLen)
             {
                 int forsMsgBytes = ((A * K) + 7) / 8;
                 uint leafBits = FH / D;
@@ -487,7 +487,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.BlockUpdate(R, 0, R.Length);
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(pkRoot, 0, pkRoot.Length);
-                treeDigest.BlockUpdate(message, 0, message.Length);
+                treeDigest.BlockUpdate(msg, msgOff, msgLen);
                 treeDigest.OutputFinal(output, 0, output.Length);
 
                 // tree index
@@ -531,11 +531,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 treeDigest.OutputFinal(prf, prfOff, N);
             }
 
-            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
+            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] msg, int msgOff, int msgLen)
             {
                 treeDigest.BlockUpdate(prf, 0, prf.Length);
                 treeDigest.BlockUpdate(randomiser, 0, randomiser.Length);
-                treeDigest.BlockUpdate(message, 0, message.Length);
+                treeDigest.BlockUpdate(msg, msgOff, msgLen);
                 byte[] output = new byte[N];
                 treeDigest.OutputFinal(output, 0, output.Length);
                 return output;
@@ -665,7 +665,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 #endif
 
-            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
+            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] msg, int msgOff, int msgLen)
             {
                 int forsMsgBytes = ((A * K) + 7) >> 3;
                 uint leafBits = FH / D;
@@ -676,7 +676,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 byte[] output = new byte[forsMsgBytes + treeBytes + leafBytes];
                 harakaSXof.BlockUpdate(prf, 0, prf.Length);
                 harakaSXof.BlockUpdate(pkRoot, 0, pkRoot.Length);
-                harakaSXof.BlockUpdate(message, 0, message.Length);
+                harakaSXof.BlockUpdate(msg, msgOff, msgLen);
                 harakaSXof.OutputFinal(output, 0, output.Length);
 
                 // tree index
@@ -719,12 +719,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 Array.Copy(rv, 0, prf, prfOff, N);
             }
 
-            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
+            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] msg, int msgOff, int msgLen)
             {
                 byte[] rv = new byte[N];
                 harakaSXof.BlockUpdate(prf, 0, prf.Length);
                 harakaSXof.BlockUpdate(randomiser, 0, randomiser.Length);
-                harakaSXof.BlockUpdate(message, 0, message.Length);
+                harakaSXof.BlockUpdate(msg, msgOff, msgLen);
                 harakaSXof.OutputFinal(rv, 0, rv.Length);
                 return rv;
             }
@@ -820,7 +820,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 m_harakaS.OutputFinal(output[..N]);
             }
 
-            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
+            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] msg, int msgOff, int msgLen)
             {
                 int forsMsgBytes = ((A * K) + 7) >> 3;
                 int leafBits = (int)(FH / D);
@@ -833,7 +833,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 m_harakaS.BlockUpdate(prf);
                 m_harakaS.BlockUpdate(pkRoot);
-                m_harakaS.BlockUpdate(message);
+                m_harakaS.BlockUpdate(msg.AsSpan(msgOff, msgLen));
                 m_harakaS.Output(output);
                 m_harakaS.OutputFinal(indices);
 
@@ -869,12 +869,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 buf[..N].CopyTo(prf.AsSpan(prfOff));
             }
 
-            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
+            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] msg, int msgOff, int msgLen)
             {
                 byte[] rv = new byte[N];
                 m_harakaS.BlockUpdate(prf);
                 m_harakaS.BlockUpdate(randomiser);
-                m_harakaS.BlockUpdate(message);
+                m_harakaS.BlockUpdate(msg.AsSpan(msgOff, msgLen));
                 m_harakaS.OutputFinal(rv);
                 return rv;
             }

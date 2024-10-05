@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
@@ -61,16 +62,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return stack.Peek().nodeValue;
         }
 
-        internal SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs paramAdrs)
+        internal SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs paramAdrs, bool legacy)
         {
             Adrs adrs = new Adrs(paramAdrs);
             SIG_FORS[] sig_fors = new SIG_FORS[engine.K];
+
+            uint[] indices = legacy ? null : Base2B(md, engine.A, engine.K);
+
             // compute signature elements
             uint t = engine.T;
             for (uint i = 0; i < engine.K; i++)
             {
                 // get next index
-                uint idx = GetMessageIdx(md, (int)i, engine.A);
+                uint idx = legacy ? GetMessageIdx(md, (int)i, engine.A) : indices[i];
 
                 // pick private key element
                 adrs.SetTypeAndClear(Adrs.FORS_PRF);
@@ -97,16 +101,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return sig_fors;
         }
 
-        internal byte[] PKFromSig(SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed, Adrs adrs)
+        internal byte[] PKFromSig(SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed, Adrs adrs, bool legacy)
         {
             byte[][] root = new byte[engine.K][];
             uint t = engine.T;
+
+            uint[] indices = legacy ? null : Base2B(message, engine.A, engine.K);
 
             // compute roots
             for (uint i = 0; i < engine.K; i++)
             {
                 // get next index
-                uint idx = GetMessageIdx(message, (int)i, engine.A);
+                uint idx = legacy ? GetMessageIdx(message, (int)i, engine.A) : indices[i];
 
                 // compute leaf
                 byte[] sk = sig_fors[i].SK;
@@ -161,6 +167,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 offset++;
             }
             return idx;
+        }
+
+        private static uint[] Base2B(byte[] msg, int b, int outLen)
+        {
+            uint[] result = new uint[outLen];
+            int i = 0;
+            int bits = 0;
+            BigInteger total = BigInteger.Zero;
+
+            for (int o = 0; o < outLen; o++)
+            {
+                while (bits < b)
+                {
+                    total = total.ShiftLeft(8).Add(BigInteger.ValueOf((int)msg[i]));
+                    i += 1;
+                    bits += 8;
+                }
+                bits -= b;
+                result[o] = (uint)(total.ShiftRight(bits).Mod(BigInteger.Two.Pow(b))).IntValueExact;
+            }
+
+            return result;
         }
     }
 }

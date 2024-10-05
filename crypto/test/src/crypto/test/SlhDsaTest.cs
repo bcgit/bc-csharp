@@ -202,13 +202,38 @@ namespace Org.BouncyCastle.Crypto.Tests
         //private static void ImplSigGen(string name, Dictionary<string, string> data,
         //    SlhDsaParameters parameters)
         //{
-        //    // TODO[pqc]
+        //    byte[] sk = Hex.Decode(data["sk"]);
+        //    byte[] message = Hex.Decode(data["message"]);
+        //    byte[] signature = Hex.Decode(data["signature"]);
+
+        //    bool deterministic = !data.ContainsKey("additionalRandomness");
+
+        //    byte[] additionalRandomness = null;
+        //    if (!deterministic)
+        //    {
+        //        additionalRandomness = Hex.Decode(data["additionalRandomness"]);
+        //    }
+
+        //    var privateKey = new SlhDsaPrivateKeyParameters(parameters, sk);
+
+        //    byte[] generated = privateKey.SignInternal(optRand: additionalRandomness, message, 0, message.Length);
+
+        //    Assert.True(Arrays.AreEqual(generated, signature));
         //}
 
         //private static void ImplSigVer(string name, Dictionary<string, string> data,
         //    SlhDsaParameters parameters)
         //{
-        //    // TODO[pqc]
+        //    bool testPassed = bool.Parse(data["testPassed"]);
+        //    byte[] pk = Hex.Decode(data["pk"]);
+        //    byte[] message = Hex.Decode(data["message"]);
+        //    byte[] signature = Hex.Decode(data["signature"]);
+
+        //    var publicKey = new SlhDsaPublicKeyParameters(parameters, pk);
+
+        //    bool verified = publicKey.VerifyInternal(message, 0, message.Length, signature);
+
+        //    Assert.True(verified == testPassed, "expected " + testPassed);
         //}
 
         private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector)
