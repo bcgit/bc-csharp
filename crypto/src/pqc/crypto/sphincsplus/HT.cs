@@ -35,8 +35,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
         }
 
-        internal int GetSignatureLength() => (int)engine.D * (engine.WOTS_LEN + (int)engine.H_PRIME) * engine.N;
-
         internal void Sign(byte[] M, ulong idx_tree, uint idx_leaf, byte[] signature, ref int pos)
         {
             // init

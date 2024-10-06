@@ -95,11 +95,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             HT ht = new HT(engine, SK.seed, PK.seed);
 
-            int sigLen = R.Length;
-            sigLen += engine.K * (1 + engine.A) * engine.N; // K SIG_FORS, each is (A + 1) hashes of length N
-            sigLen += ht.GetSignatureLength();
-
-            byte[] signature = new byte[sigLen];
+            byte[] signature = new byte[engine.SignatureLength];
             int pos = 0;
 
             Array.Copy(R, 0, signature, 0, R.Length);
@@ -111,10 +107,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             ht.Sign(PK_FORS, idx_tree, idx_leaf, signature, ref pos);
-
-            byte[] SIG_HT = Arrays.CopyOfRange(signature, signature.Length - ht.GetSignatureLength(), signature.Length);
-
-            Debug.Assert(pos == sigLen);
+            Debug.Assert(pos == engine.SignatureLength);
             return signature;
         }
     }

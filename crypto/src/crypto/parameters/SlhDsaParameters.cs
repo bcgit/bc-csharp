@@ -123,6 +123,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public string Name => m_name;
 
+        public override string ToString() => Name;
+
         internal DerObjectIdentifier Oid => m_oid;
 
         internal int N => m_engineProvider.N;

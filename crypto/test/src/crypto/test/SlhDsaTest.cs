@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -55,6 +56,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             { "SLH-DSA-SHAKE-256f", SlhDsaParameters.SLH_DSA_SHAKE_256f },
         };
 
+        private static readonly IEnumerable<SlhDsaParameters> ParameterSets = Parameters.Values;
+
         private static readonly string[] KeyGenAcvpFiles =
         {
             "keyGen_SLH-DSA-SHA2-128s.txt",
@@ -81,50 +84,38 @@ namespace Org.BouncyCastle.Crypto.Tests
             "sigVer_SLH-DSA-SHAKE-256f.txt",
         };
 
-        //[Test]
-        //public void Consistency()
-        //{
-        //    var msg = new byte[2048];
-        //    var random = new SecureRandom();
+        [TestCaseSource(nameof(ParameterSets))]
+        [Parallelizable(ParallelScope.All)]
+        public void Consistency(SlhDsaParameters parameters)
+        {
+            var msg = new byte[256];
+            var random = new SecureRandom();
 
-        //    var kpg = new SlhDsaKeyPairGenerator();
+            var kpg = new SlhDsaKeyPairGenerator();
+            kpg.Init(new SlhDsaKeyGenerationParameters(random, parameters));
 
-        //    foreach (var parameters in Parameters.Values)
-        //    {
-        //        kpg.Init(new SlhDsaKeyGenerationParameters(random, parameters));
+            for (int i = 0; i < 4; ++i)
+            {
+                var kp = kpg.GenerateKeyPair();
 
-        //        int msgLen = 0;
-        //        do
-        //        {
-        //            for (int i = 0; i < 3; ++i)
-        //            {
-        //                var kp = kpg.GenerateKeyPair();
+                var signer = new SlhDsaSigner();
 
-        //                var signer = new SlhDsaSigner();
+                int msgLen = random.Next(msg.Length + 1);
+                random.NextBytes(msg, 0, msgLen);
 
-        //                for (int j = 0; j < 3; ++j)
-        //                {
-        //                    random.NextBytes(msg, 0, msgLen);
+                // sign
+                signer.Init(true, new ParametersWithRandom(kp.Private, random));
+                signer.BlockUpdate(msg, 0, msgLen);
+                var signature = signer.GenerateSignature();
 
-        //                    // sign
-        //                    signer.Init(true, new ParametersWithRandom(kp.Private, random));
-        //                    signer.BlockUpdate(msg, 0, msgLen);
-        //                    var signature = signer.GenerateSignature();
+                // verify
+                signer.Init(false, kp.Public);
+                signer.BlockUpdate(msg, 0, msgLen);
+                bool shouldVerify = signer.VerifySignature(signature);
 
-        //                    // verify
-        //                    signer.Init(false, kp.Public);
-        //                    signer.BlockUpdate(msg, 0, msgLen);
-        //                    bool shouldVerify = signer.VerifySignature(signature);
-
-        //                    Assert.True(shouldVerify);
-        //                }
-        //            }
-
-        //            msgLen += msgLen < 128 ? 1 : 17;
-        //        }
-        //        while (msgLen <= 2048);
-        //    }
-        //}
+                Assert.True(shouldVerify);
+            }
+        }
 
         [Test]
         [Parallelizable]

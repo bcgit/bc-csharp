@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             var engine = Parameters.GetEngine();
 
-            if (((1 + engine.K * (1 + engine.A) + engine.FH + engine.D * engine.WOTS_LEN) * engine.N) != signature.Length)
+            if (engine.SignatureLength != signature.Length)
                 return false;
 
             // init

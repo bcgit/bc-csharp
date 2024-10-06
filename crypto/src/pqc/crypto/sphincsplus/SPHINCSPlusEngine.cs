@@ -12,23 +12,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     internal abstract class SphincsPlusEngine
     {
-        internal bool robust;
+        internal readonly bool robust;
 
-        internal int N;
+        internal readonly int N;
 
-        internal uint WOTS_W;
-        internal int WOTS_LOGW;
-        internal int WOTS_LEN;
-        internal int WOTS_LEN1;
-        internal int WOTS_LEN2;
+        internal readonly uint WOTS_W;
+        internal readonly int WOTS_LOGW;
+        internal readonly int WOTS_LEN;
+        internal readonly int WOTS_LEN1;
+        internal readonly int WOTS_LEN2;
 
-        internal uint D;
-        internal int A; // FORS_HEIGHT
-        internal int K; // FORS_TREES
-        internal uint FH; // FULL_HEIGHT
-        internal uint H_PRIME; // H / D
+        internal readonly uint D;
+        internal readonly int A; // FORS_HEIGHT
+        internal readonly int K; // FORS_TREES
+        internal readonly uint FH; // FULL_HEIGHT
+        internal readonly uint H_PRIME; // H / D
 
-        internal uint T; // T = 1 << A
+        internal readonly uint T; // T = 1 << A
+
+        internal readonly int SignatureLength;
 
         internal SphincsPlusEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
         {
@@ -88,6 +90,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             this.FH = h;
             this.H_PRIME = (h / d);
             this.T = 1U << a;
+
+            this.SignatureLength = (1 + K * (1 + A) + (int)FH + (int)D * WOTS_LEN) * N;
         }
 
         public abstract void Init(byte[] pkSeed);

@@ -103,11 +103,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             HT ht = new HT(engine, m_privKey.GetSeed(), m_privKey.GetPublicSeed());
 
-            int sigLen = R.Length;
-            sigLen += engine.K * (1 + engine.A) * engine.N; // K SIG_FORS, each is (A + 1) hashes of length N
-            sigLen += ht.GetSignatureLength();
-
-            byte[] signature = new byte[sigLen];
+            byte[] signature = new byte[engine.SignatureLength];
             int pos = 0;
 
             Array.Copy(R, 0, signature, 0, R.Length);
@@ -119,7 +115,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 
             ht.Sign(PK_FORS, idx_tree, idx_leaf, signature, ref pos);
-            Debug.Assert(pos == sigLen);
+            Debug.Assert(pos == engine.SignatureLength);
             return signature;
         }
 
@@ -130,7 +126,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             SphincsPlusEngine engine = m_pubKey.Parameters.GetEngine();
 
-            if (((1 + engine.K * (1 + engine.A) + engine.FH + engine.D * engine.WOTS_LEN) * engine.N) != signature.Length)
+            if (engine.SignatureLength != signature.Length)
                 return false;
 
             // init
