@@ -66,14 +66,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             Reset();
         }
 
-        public void Update(byte b)
+        public void Update(byte input)
         {
-            m_msgRepDigest.Update(b);
+            m_msgRepDigest.Update(input);
         }
 
-        public void BlockUpdate(byte[] buf, int off, int len)
+        public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            m_msgRepDigest.BlockUpdate(buf, off, len);
+            m_msgRepDigest.BlockUpdate(input, inOff, inLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

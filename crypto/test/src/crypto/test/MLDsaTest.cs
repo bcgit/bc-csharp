@@ -42,6 +42,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             { "ML-DSA-87", MLDsaParameters.ML_DSA_87 },
         };
 
+        private static readonly IEnumerable<MLDsaParameters> ParameterSets = Parameters.Values;
+
         private static readonly string[] KeyGenAcvpFiles =
         {
             "keyGen_ML-DSA-44.txt",
@@ -63,49 +65,46 @@ namespace Org.BouncyCastle.Crypto.Tests
             "sigVer_ML-DSA-87.txt",
         };
 
-        [Test]
-        public void Consistency()
+        [TestCaseSource(nameof(ParameterSets))]
+        [Parallelizable(ParallelScope.All)]
+        public void Consistency(MLDsaParameters parameters)
         {
             var msg = new byte[2048];
             var random = new SecureRandom();
 
             var kpg = new MLDsaKeyPairGenerator();
+            kpg.Init(new MLDsaKeyGenerationParameters(random, parameters));
 
-            foreach (var parameters in Parameters.Values)
+            int msgLen = 0;
+            do
             {
-                kpg.Init(new MLDsaKeyGenerationParameters(random, parameters));
-
-                int msgLen = 0;
-                do
+                for (int i = 0; i < 2; ++i)
                 {
-                    for (int i = 0; i < 3; ++i)
+                    var kp = kpg.GenerateKeyPair();
+
+                    var signer = new MLDsaSigner();
+
+                    for (int j = 0; j < 2; ++j)
                     {
-                        var kp = kpg.GenerateKeyPair();
+                        random.NextBytes(msg, 0, msgLen);
 
-                        var signer = new MLDsaSigner();
+                        // sign
+                        signer.Init(true, new ParametersWithRandom(kp.Private, random));
+                        signer.BlockUpdate(msg, 0, msgLen);
+                        var signature = signer.GenerateSignature();
 
-                        for (int j = 0; j < 3; ++j)
-                        {
-                            random.NextBytes(msg, 0, msgLen);
+                        // verify
+                        signer.Init(false, kp.Public);
+                        signer.BlockUpdate(msg, 0, msgLen);
+                        bool shouldVerify = signer.VerifySignature(signature);
 
-                            // sign
-                            signer.Init(true, new ParametersWithRandom(kp.Private, random));
-                            signer.BlockUpdate(msg, 0, msgLen);
-                            var signature = signer.GenerateSignature();
-
-                            // verify
-                            signer.Init(false, kp.Public);
-                            signer.BlockUpdate(msg, 0, msgLen);
-                            bool shouldVerify = signer.VerifySignature(signature);
-
-                            Assert.True(shouldVerify);
-                        }
+                        Assert.True(shouldVerify);
                     }
-
-                    msgLen += msgLen < 128 ? 1 : 17;
                 }
-                while (msgLen <= 2048);
+
+                msgLen += msgLen < 128 ? 1 : 17;
             }
+            while (msgLen <= 2048);
         }
 
         [Test]
