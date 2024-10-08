@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Text;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
@@ -72,8 +72,11 @@ namespace Org.BouncyCastle.X509
 		/// <param name="input"></param>
 		public X509Certificate ReadCertificate(byte[] input)
 		{
-			return ReadCertificate(new MemoryStream(input, false));
-		}
+            using (var stream = new MemoryStream(input, false))
+            {
+                return ReadCertificate(stream);
+            };
+        }
 
 		/// <summary>
 		/// Create loading data from byte array.
@@ -81,8 +84,11 @@ namespace Org.BouncyCastle.X509
 		/// <param name="input"></param>
 		public IList<X509Certificate> ReadCertificates(byte[] input)
 		{
-			return ReadCertificates(new MemoryStream(input, false));
-		}
+            using (var stream = new MemoryStream(input, false))
+            {
+                return ReadCertificates(new MemoryStream(input, false));
+            };
+        }
 
 		/**
 		 * Generates a certificate object and initializes it with the data
@@ -133,6 +139,16 @@ namespace Org.BouncyCastle.X509
                     PushbackStream pis = new PushbackStream(inStream);
                     pis.Unread(tag);
                     inStream = pis;
+                }
+
+                if (tag == 0x4d)
+                {
+                    var inBytes = new byte[inStream.Length];
+                    inStream.Read(inBytes, 0, inBytes.Length);
+                    var outBytes = Convert.FromBase64String(Encoding.UTF8.GetString(inBytes));
+                    inStream.Dispose();
+                    inStream = new MemoryStream(outBytes, false);
+                    tag = outBytes[0];
                 }
 
                 if (tag != 0x30)  // assume ascii PEM encoded.
