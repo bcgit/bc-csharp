@@ -56,8 +56,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public static readonly DerObjectIdentifier IdPbkdf2 = pkcs_5.Branch("12");
         public static readonly DerObjectIdentifier IdPbeS2 = pkcs_5.Branch("13");
+        public static readonly DerObjectIdentifier IdPbmac1 = pkcs_5.Branch("14");
 
-		//
+        //
         // encryptionAlgorithm OBJECT IDENTIFIER ::= {
         //       iso(1) member-body(2) us(840) rsadsi(113549) 3 }
         //
@@ -97,8 +98,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier IdHmacWithSha256	= DigestAlgorithmOid.Branch("9");
         public static readonly DerObjectIdentifier IdHmacWithSha384	= DigestAlgorithmOid.Branch("10");
         public static readonly DerObjectIdentifier IdHmacWithSha512	= DigestAlgorithmOid.Branch("11");
+        public static readonly DerObjectIdentifier IdHmacWithSHA512_224 = DigestAlgorithmOid.Branch("12");
+        public static readonly DerObjectIdentifier IdHmacWithSHA512_256 = DigestAlgorithmOid.Branch("13");
 
-		//
+        //
         // pkcs-7 OBJECT IDENTIFIER ::= {
         //       iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 7 }
         //
@@ -132,6 +135,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier Pkcs9AtExtensionRequest				= pkcs_9.Branch("14");
         public static readonly DerObjectIdentifier Pkcs9AtSmimeCapabilities				= pkcs_9.Branch("15");
         public static readonly DerObjectIdentifier IdSmime                              = pkcs_9.Branch("16");
+        public static readonly DerObjectIdentifier Pkcs9AtBinarySigningTime             = pkcs_9.Branch("16.2.46");
 
         public static readonly DerObjectIdentifier Pkcs9AtFriendlyName					= pkcs_9.Branch("20");
         public static readonly DerObjectIdentifier Pkcs9AtLocalKeyID					= pkcs_9.Branch("21");
@@ -174,6 +178,13 @@ pkcs9(9) 52 }  */
         public static readonly DerObjectIdentifier IdRsaKem = IdAlg.Branch("14");
 
         /**
+         * id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
+         *     member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
+         *    smime(16) alg(3) 17 }
+         */
+        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = IdAlg.Branch("17");
+
+        /**
          * <pre>
          * id-alg-AEADChaCha20Poly1305 OBJECT IDENTIFIER ::=
          * { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1)
@@ -184,13 +195,29 @@ pkcs9(9) 52 }  */
          */
         public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = IdAlg.Branch("18");
 
-        
         /**
-     * id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
-     *     member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
-     *    smime(16) alg(3) 17 }
-     */
-        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = IdAlg.Branch("17");
+         * <pre>
+         *    id-alg-hkdf-with-sha256 OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+         *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 28 }
+         * </pre>
+         */
+        public static readonly DerObjectIdentifier id_alg_hkdf_with_sha256 = IdAlg.Branch("28");
+
+        /**
+         * <pre>
+         *    id-alg-hkdf-with-sha384 OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+         *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 29 }
+         * </pre>
+         */
+        public static readonly DerObjectIdentifier id_alg_hkdf_with_sha384 = IdAlg.Branch("29");
+
+        /**
+         * <pre>
+         *    id-alg-hkdf-with-sha512 OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+         *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 30 }
+         * </pre>
+         */
+        public static readonly DerObjectIdentifier id_alg_hkdf_with_sha512 = IdAlg.Branch("30");
 
         //
         // SMIME capability sub oids.
@@ -240,6 +267,9 @@ pkcs9(9) 52 }  */
         public static readonly DerObjectIdentifier id_aa = new DerObjectIdentifier(IdAA);
         [Obsolete("Use 'id_aa' instead")]
         public static readonly DerObjectIdentifier IdAAOid = id_aa;
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.1 -- smime attribute receiptRequest */
+        public static readonly DerObjectIdentifier id_aa_receiptRequest = id_aa.Branch("1");
 
         public static readonly DerObjectIdentifier IdAAContentHint = id_aa.Branch("4"); // See RFC 2634
     	public static readonly DerObjectIdentifier IdAAMsgSigDigest = id_aa.Branch("5");
