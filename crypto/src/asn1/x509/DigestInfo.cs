@@ -49,6 +49,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_digest = DerOctetString.FromContents(digest);
         }
 
+        public DigestInfo(AlgorithmIdentifier digestAlgorithm, Asn1OctetString digest)
+        {
+            m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
+            m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
+        }
+
+        [Obsolete("Use 'DigestAlgorithm' property instead")]
         public AlgorithmIdentifier AlgorithmID => m_digestAlgorithm;
 
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
