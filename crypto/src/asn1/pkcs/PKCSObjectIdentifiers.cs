@@ -98,8 +98,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier IdHmacWithSha256	= DigestAlgorithmOid.Branch("9");
         public static readonly DerObjectIdentifier IdHmacWithSha384	= DigestAlgorithmOid.Branch("10");
         public static readonly DerObjectIdentifier IdHmacWithSha512	= DigestAlgorithmOid.Branch("11");
-        public static readonly DerObjectIdentifier IdHmacWithSHA512_224 = DigestAlgorithmOid.Branch("12");
-        public static readonly DerObjectIdentifier IdHmacWithSHA512_256 = DigestAlgorithmOid.Branch("13");
+        public static readonly DerObjectIdentifier IdHmacWithSha512_224 = DigestAlgorithmOid.Branch("12");
+        public static readonly DerObjectIdentifier IdHmacWithSha512_256 = DigestAlgorithmOid.Branch("13");
 
         //
         // pkcs-7 OBJECT IDENTIFIER ::= {

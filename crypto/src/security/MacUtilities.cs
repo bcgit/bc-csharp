@@ -40,6 +40,8 @@ namespace Org.BouncyCastle.Security
             AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha256] = "HMAC-SHA256";
             AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha384] = "HMAC-SHA384";
             AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512] = "HMAC-SHA512";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512_224] = "HMAC-SHA512-224";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512_256] = "HMAC-SHA512-256";
 
             AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_224] = "HMAC-SHA3-224";
             AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_256] = "HMAC-SHA3-256";

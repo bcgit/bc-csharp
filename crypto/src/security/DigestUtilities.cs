@@ -77,13 +77,17 @@ namespace Org.BouncyCastle.Security
             AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512] = "SHA-512";
 
             AlgorithmMap["SHA512/224"] = "SHA-512/224";
+            AlgorithmMap["SHA512-224"] = "SHA-512/224";
             AlgorithmMap["SHA512(224)"] = "SHA-512/224";
             AlgorithmMap["SHA-512(224)"] = "SHA-512/224";
             AlgorithmOidMap[NistObjectIdentifiers.IdSha512_224] = "SHA-512/224";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512_224] = "SHA-512/224";
             AlgorithmMap["SHA512/256"] = "SHA-512/256";
+            AlgorithmMap["SHA512-256"] = "SHA-512/256";
             AlgorithmMap["SHA512(256)"] = "SHA-512/256";
             AlgorithmMap["SHA-512(256)"] = "SHA-512/256";
             AlgorithmOidMap[NistObjectIdentifiers.IdSha512_256] = "SHA-512/256";
+            AlgorithmOidMap[PkcsObjectIdentifiers.IdHmacWithSha512_256] = "SHA-512/256";
 
             AlgorithmMap["RIPEMD-128"] = "RIPEMD128";
             AlgorithmOidMap[TeleTrusTObjectIdentifiers.RipeMD128] = "RIPEMD128";
