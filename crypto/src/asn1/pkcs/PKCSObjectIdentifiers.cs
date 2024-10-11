@@ -135,7 +135,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier Pkcs9AtExtensionRequest				= pkcs_9.Branch("14");
         public static readonly DerObjectIdentifier Pkcs9AtSmimeCapabilities				= pkcs_9.Branch("15");
         public static readonly DerObjectIdentifier IdSmime                              = pkcs_9.Branch("16");
-        public static readonly DerObjectIdentifier Pkcs9AtBinarySigningTime             = pkcs_9.Branch("16.2.46");
 
         public static readonly DerObjectIdentifier Pkcs9AtFriendlyName					= pkcs_9.Branch("20");
         public static readonly DerObjectIdentifier Pkcs9AtLocalKeyID					= pkcs_9.Branch("21");
@@ -151,18 +150,19 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public static readonly DerObjectIdentifier X509Crl = crl_types.Branch("1");
 
-        public static readonly DerObjectIdentifier IdAlg = IdSmime.Branch("3");
+        public static readonly DerObjectIdentifier id_alg = IdSmime.Branch("3");
+        [Obsolete("Use 'id_alg' instead")]
+        public static readonly DerObjectIdentifier IdAlg = id_alg;
 
-        public static readonly DerObjectIdentifier IdAlgEsdh            = IdAlg.Branch("5");
-        public static readonly DerObjectIdentifier IdAlgCms3DesWrap     = IdAlg.Branch("6");
-        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap      = IdAlg.Branch("7");
-        public static readonly DerObjectIdentifier IdAlgZlibCompress    = IdAlg.Branch("8");
-        public static readonly DerObjectIdentifier IdAlgPwriKek         = IdAlg.Branch("9");
-        public static readonly DerObjectIdentifier IdAlgSsdh            = IdAlg.Branch("10");
+        public static readonly DerObjectIdentifier IdAlgEsdh            = id_alg.Branch("5");
+        public static readonly DerObjectIdentifier IdAlgCms3DesWrap     = id_alg.Branch("6");
+        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap      = id_alg.Branch("7");
+        public static readonly DerObjectIdentifier IdAlgZlibCompress    = id_alg.Branch("8");
+        public static readonly DerObjectIdentifier IdAlgPwriKek         = id_alg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlgSsdh            = id_alg.Branch("10");
 
         /** RFC 6211 -  id-aa-cmsAlgorithmProtect OBJECT IDENTIFIER ::= {
-iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1)
-pkcs9(9) 52 }  */
+         * iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9) 52 } */
         public static readonly DerObjectIdentifier id_aa_cmsAlgorithmProtect = pkcs_9.Branch("52");
 
         /*
@@ -175,14 +175,14 @@ pkcs9(9) 52 }  */
          *   }
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdRsaKem = IdAlg.Branch("14");
+        public static readonly DerObjectIdentifier IdRsaKem = id_alg.Branch("14");
 
         /**
          * id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
          *     member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
          *    smime(16) alg(3) 17 }
          */
-        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = IdAlg.Branch("17");
+        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = id_alg.Branch("17");
 
         /**
          * <pre>
@@ -193,7 +193,7 @@ pkcs9(9) 52 }  */
          * AEADChaCha20Poly1305Nonce ::= OCTET STRING (SIZE(12))
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = IdAlg.Branch("18");
+        public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = id_alg.Branch("18");
 
         /**
          * <pre>
@@ -201,7 +201,7 @@ pkcs9(9) 52 }  */
          *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 28 }
          * </pre>
          */
-        public static readonly DerObjectIdentifier id_alg_hkdf_with_sha256 = IdAlg.Branch("28");
+        public static readonly DerObjectIdentifier IdAlgHkdfWithSha256 = id_alg.Branch("28");
 
         /**
          * <pre>
@@ -209,7 +209,7 @@ pkcs9(9) 52 }  */
          *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 29 }
          * </pre>
          */
-        public static readonly DerObjectIdentifier id_alg_hkdf_with_sha384 = IdAlg.Branch("29");
+        public static readonly DerObjectIdentifier IdAlgHkdfWithSha384 = id_alg.Branch("29");
 
         /**
          * <pre>
@@ -217,7 +217,7 @@ pkcs9(9) 52 }  */
          *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 30 }
          * </pre>
          */
-        public static readonly DerObjectIdentifier id_alg_hkdf_with_sha512 = IdAlg.Branch("30");
+        public static readonly DerObjectIdentifier IdAlgHkdfWithSha512 = id_alg.Branch("30");
 
         //
         // SMIME capability sub oids.
@@ -227,16 +227,11 @@ pkcs9(9) 52 }  */
         public static readonly DerObjectIdentifier SmimeCapabilitiesVersions    = Pkcs9AtSmimeCapabilities.Branch("3");
 
         //
-        // other SMIME attributes
-        //
-        public static readonly DerObjectIdentifier IdAAReceiptRequest = IdSmime.Branch("2.1");
-
-        //
         // id-ct OBJECT IDENTIFIER ::= {iso(1) member-body(2) usa(840)
         // rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) ct(1)}
         //
         public const string IdCT = "1.2.840.113549.1.9.16.1";
-        public static readonly DerObjectIdentifier id_ct = new DerObjectIdentifier(IdCT);
+        public static readonly DerObjectIdentifier id_ct = IdSmime.Branch("1");
 
         public static readonly DerObjectIdentifier IdCTAuthData          = id_ct.Branch("2");
         public static readonly DerObjectIdentifier IdCTTstInfo           = id_ct.Branch("4");
@@ -249,7 +244,7 @@ pkcs9(9) 52 }  */
         // rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) cti(6)}
         //
         public const string IdCti = "1.2.840.113549.1.9.16.6";
-        public static readonly DerObjectIdentifier id_cti = new DerObjectIdentifier(IdCti);
+        public static readonly DerObjectIdentifier id_cti = IdSmime.Branch("6");
 
         public static readonly DerObjectIdentifier IdCtiEtsProofOfOrigin	= id_cti.Branch("1");
         public static readonly DerObjectIdentifier IdCtiEtsProofOfReceipt	= id_cti.Branch("2");
@@ -264,12 +259,14 @@ pkcs9(9) 52 }  */
         //
         public const string IdAA = "1.2.840.113549.1.9.16.2";
 
-        public static readonly DerObjectIdentifier id_aa = new DerObjectIdentifier(IdAA);
+        public static readonly DerObjectIdentifier id_aa = IdSmime.Branch("2");
         [Obsolete("Use 'id_aa' instead")]
         public static readonly DerObjectIdentifier IdAAOid = id_aa;
 
+        public static readonly DerObjectIdentifier Pkcs9AtBinarySigningTime = id_aa.Branch("46");
+
         /** PKCS#9: 1.2.840.113549.1.9.16.2.1 -- smime attribute receiptRequest */
-        public static readonly DerObjectIdentifier id_aa_receiptRequest = id_aa.Branch("1");
+        public static readonly DerObjectIdentifier IdAAReceiptRequest = id_aa.Branch("1");
 
         public static readonly DerObjectIdentifier IdAAContentHint = id_aa.Branch("4"); // See RFC 2634
     	public static readonly DerObjectIdentifier IdAAMsgSigDigest = id_aa.Branch("5");
@@ -323,7 +320,7 @@ pkcs9(9) 52 }  */
 		// rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) id-spq(5)}
 		//
 		public const string IdSpq = "1.2.840.113549.1.9.16.5";
-        public static readonly DerObjectIdentifier id_spq = new DerObjectIdentifier(IdSpq);
+        public static readonly DerObjectIdentifier id_spq = IdSmime.Branch("5");
 
 		public static readonly DerObjectIdentifier IdSpqEtsUri = id_spq.Branch("1");
 		public static readonly DerObjectIdentifier IdSpqEtsUNotice = id_spq.Branch("2");
