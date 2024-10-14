@@ -150,16 +150,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public static readonly DerObjectIdentifier X509Crl = crl_types.Branch("1");
 
-        public static readonly DerObjectIdentifier id_alg = IdSmime.Branch("3");
-        [Obsolete("Use 'id_alg' instead")]
+        public static readonly DerObjectIdentifier smime_alg = IdSmime.Branch("3");
+        [Obsolete("Use 'smime_alg' instead")]
+        public static readonly DerObjectIdentifier id_alg = smime_alg;
+        [Obsolete("Use 'smime_alg' instead")]
         public static readonly DerObjectIdentifier IdAlg = id_alg;
 
-        public static readonly DerObjectIdentifier IdAlgEsdh            = id_alg.Branch("5");
-        public static readonly DerObjectIdentifier IdAlgCms3DesWrap     = id_alg.Branch("6");
-        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap      = id_alg.Branch("7");
-        public static readonly DerObjectIdentifier IdAlgZlibCompress    = id_alg.Branch("8");
-        public static readonly DerObjectIdentifier IdAlgPwriKek         = id_alg.Branch("9");
-        public static readonly DerObjectIdentifier IdAlgSsdh            = id_alg.Branch("10");
+        public static readonly DerObjectIdentifier IdAlgEsdh            = smime_alg.Branch("5");
+        public static readonly DerObjectIdentifier IdAlgCms3DesWrap     = smime_alg.Branch("6");
+        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap      = smime_alg.Branch("7");
+        public static readonly DerObjectIdentifier IdAlgZlibCompress    = smime_alg.Branch("8");
+        public static readonly DerObjectIdentifier IdAlgPwriKek         = smime_alg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlgSsdh            = smime_alg.Branch("10");
 
         /** RFC 6211 -  id-aa-cmsAlgorithmProtect OBJECT IDENTIFIER ::= {
          * iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9) 52 } */
@@ -175,14 +177,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          *   }
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdRsaKem = id_alg.Branch("14");
+        public static readonly DerObjectIdentifier IdRsaKem = smime_alg.Branch("14");
 
         /**
          * id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
          *     member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
          *    smime(16) alg(3) 17 }
          */
-        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = id_alg.Branch("17");
+        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = smime_alg.Branch("17");
 
         /**
          * <pre>
@@ -193,7 +195,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          * AEADChaCha20Poly1305Nonce ::= OCTET STRING (SIZE(12))
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = id_alg.Branch("18");
+        public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = smime_alg.Branch("18");
 
         /**
          * <pre>
@@ -201,7 +203,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 28 }
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdAlgHkdfWithSha256 = id_alg.Branch("28");
+        public static readonly DerObjectIdentifier IdAlgHkdfWithSha256 = smime_alg.Branch("28");
 
         /**
          * <pre>
@@ -209,7 +211,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 29 }
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdAlgHkdfWithSha384 = id_alg.Branch("29");
+        public static readonly DerObjectIdentifier IdAlgHkdfWithSha384 = smime_alg.Branch("29");
 
         /**
          * <pre>
@@ -217,7 +219,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 30 }
          * </pre>
          */
-        public static readonly DerObjectIdentifier IdAlgHkdfWithSha512 = id_alg.Branch("30");
+        public static readonly DerObjectIdentifier IdAlgHkdfWithSha512 = smime_alg.Branch("30");
 
         //
         // SMIME capability sub oids.

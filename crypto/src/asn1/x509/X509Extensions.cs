@@ -127,37 +127,37 @@ namespace Org.BouncyCastle.Asn1.X509
 		/**
          * Authority Info Access
          */
-		public static readonly DerObjectIdentifier AuthorityInfoAccess = new DerObjectIdentifier("1.3.6.1.5.5.7.1.1");
+		public static readonly DerObjectIdentifier AuthorityInfoAccess = X509ObjectIdentifiers.IdPE.Branch("1");
 
-		/**
-		 * Subject Info Access
-		 */
-		public static readonly DerObjectIdentifier SubjectInfoAccess = new DerObjectIdentifier("1.3.6.1.5.5.7.1.11");
-
-		/**
-		 * Logo Type
-		 */
-		public static readonly DerObjectIdentifier LogoType = new DerObjectIdentifier("1.3.6.1.5.5.7.1.12");
-
-		/**
+        /**
 		 * BiometricInfo
 		 */
-		public static readonly DerObjectIdentifier BiometricInfo = new DerObjectIdentifier("1.3.6.1.5.5.7.1.2");
+        public static readonly DerObjectIdentifier BiometricInfo = X509ObjectIdentifiers.IdPE.Branch("2");
 
-		/**
+        /**
 		 * QCStatements
 		 */
-		public static readonly DerObjectIdentifier QCStatements = new DerObjectIdentifier("1.3.6.1.5.5.7.1.3");
+        public static readonly DerObjectIdentifier QCStatements = X509ObjectIdentifiers.IdPE.Branch("3");
 
-		/**
+        /**
 		 * Audit identity extension in attribute certificates.
 		 */
-		public static readonly DerObjectIdentifier AuditIdentity = new DerObjectIdentifier("1.3.6.1.5.5.7.1.4");
+        public static readonly DerObjectIdentifier AuditIdentity = X509ObjectIdentifiers.IdPE.Branch("4");
 
-		/**
+        /**
+		 * Subject Info Access
+		 */
+        public static readonly DerObjectIdentifier SubjectInfoAccess = X509ObjectIdentifiers.IdPE.Branch("11");
+
+        /**
+		 * Logo Type
+		 */
+        public static readonly DerObjectIdentifier LogoType = X509ObjectIdentifiers.IdPE.Branch("12");
+
+        /**
 		 * NoRevAvail extension in attribute certificates.
 		 */
-		public static readonly DerObjectIdentifier NoRevAvail = new DerObjectIdentifier("2.5.29.56");
+        public static readonly DerObjectIdentifier NoRevAvail = new DerObjectIdentifier("2.5.29.56");
 
 		/**
 		 * TargetInformation extension in attribute certificates.

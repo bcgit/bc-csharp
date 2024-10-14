@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
@@ -24,13 +25,13 @@ namespace Org.BouncyCastle.Asn1.Cms
          * id-ri OBJECT IDENTIFIER ::= { iso(1) identified-organization(3)
          *                                   dod(6) internet(1) security(5) mechanisms(5) pkix(7) ri(16) }
          */
-        public static readonly DerObjectIdentifier id_ri = new DerObjectIdentifier("1.3.6.1.5.5.7.16");
+        public static readonly DerObjectIdentifier id_ri = X509ObjectIdentifiers.IdPkix.Branch("16");
 
         public static readonly DerObjectIdentifier id_ri_ocsp_response = id_ri.Branch("2");
         public static readonly DerObjectIdentifier id_ri_scvp = id_ri.Branch("4");
 
         /** 1.3.6.1.5.5.7.6 */
-        public static readonly DerObjectIdentifier id_alg  = new DerObjectIdentifier("1.3.6.1.5.5.7.6");
+        public static readonly DerObjectIdentifier id_alg = X509ObjectIdentifiers.pkix_algorithms;
 
         public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE128 = id_alg.Branch("30");
 
@@ -43,8 +44,15 @@ namespace Org.BouncyCastle.Asn1.Cms
         /**
          * OtherRecipientInfo types
          */
-        public static readonly DerObjectIdentifier id_ori = new DerObjectIdentifier("1.2.840.113549.1.9.16.13");
+        public static readonly DerObjectIdentifier id_ori = PkcsObjectIdentifiers.IdSmime.Branch("13");
 
         public static readonly DerObjectIdentifier id_ori_kem = id_ori.Branch("3");
+
+        /**
+         *    id-alg-cek-hkdf-sha256 OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+         *        us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) alg(3) 31 }
+         */
+        public static readonly DerObjectIdentifier id_alg_cek_hkdf_sha256 =
+            PkcsObjectIdentifiers.smime_alg.Branch("31");
     }
 }

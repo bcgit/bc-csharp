@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Asn1.X509
     public sealed class KeyPurposeID
         : DerObjectIdentifier
     {
-        private const string id_kp = "1.3.6.1.5.5.7.3";
+        private static readonly string id_kp = X509ObjectIdentifiers.IdPkix.Branch("3").GetID();
 
 		private KeyPurposeID(string id)
 			: base(id)

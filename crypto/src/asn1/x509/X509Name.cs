@@ -107,29 +107,29 @@ namespace Org.BouncyCastle.Asn1.X509
         /**
          * RFC 3039 DateOfBirth - GeneralizedTime - YYYYMMDD000000Z
          */
-        public static readonly DerObjectIdentifier DateOfBirth = new DerObjectIdentifier("1.3.6.1.5.5.7.9.1");
+        public static readonly DerObjectIdentifier DateOfBirth = X509ObjectIdentifiers.id_pda.Branch("1");
 
         /**
          * RFC 3039 PlaceOfBirth - DirectoryString(SIZE(1..128)
          */
-        public static readonly DerObjectIdentifier PlaceOfBirth = new DerObjectIdentifier("1.3.6.1.5.5.7.9.2");
+        public static readonly DerObjectIdentifier PlaceOfBirth = X509ObjectIdentifiers.id_pda.Branch("2");
 
         /**
          * RFC 3039 DateOfBirth - PrintableString (SIZE(1)) -- "M", "F", "m" or "f"
          */
-        public static readonly DerObjectIdentifier Gender = new DerObjectIdentifier("1.3.6.1.5.5.7.9.3");
+        public static readonly DerObjectIdentifier Gender = X509ObjectIdentifiers.id_pda.Branch("3");
 
         /**
          * RFC 3039 CountryOfCitizenship - PrintableString (SIZE (2)) -- ISO 3166
          * codes only
          */
-        public static readonly DerObjectIdentifier CountryOfCitizenship = new DerObjectIdentifier("1.3.6.1.5.5.7.9.4");
+        public static readonly DerObjectIdentifier CountryOfCitizenship = X509ObjectIdentifiers.id_pda.Branch("4");
 
         /**
          * RFC 3039 CountryOfCitizenship - PrintableString (SIZE (2)) -- ISO 3166
          * codes only
          */
-        public static readonly DerObjectIdentifier CountryOfResidence = new DerObjectIdentifier("1.3.6.1.5.5.7.9.5");
+        public static readonly DerObjectIdentifier CountryOfResidence = X509ObjectIdentifiers.id_pda.Branch("5");
 
         /**
          * ISIS-MTT NameAtBirth - DirectoryString(SIZE(1..64)
