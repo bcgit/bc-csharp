@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Asn1.Bsi;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.EdEC;
@@ -156,10 +155,10 @@ namespace Org.BouncyCastle.Operators.Utilities
             //DigestOids.Add(GMObjectIdentifiers.sm2sign_with_sha512, NistObjectIdentifiers.IdSha512);
             DigestOids.Add(GMObjectIdentifiers.sm2sign_with_sm3, GMObjectIdentifiers.sm3);
 
-            DigestOids.Add(CmsObjectIdentifiers.id_RSASSA_PSS_SHAKE128, NistObjectIdentifiers.IdShake128);
-            DigestOids.Add(CmsObjectIdentifiers.id_RSASSA_PSS_SHAKE256, NistObjectIdentifiers.IdShake256);
-            DigestOids.Add(CmsObjectIdentifiers.id_ecdsa_with_shake128, NistObjectIdentifiers.IdShake128);
-            DigestOids.Add(CmsObjectIdentifiers.id_ecdsa_with_shake256, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(X509ObjectIdentifiers.id_ecdsa_with_shake128, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(X509ObjectIdentifiers.id_ecdsa_with_shake256, NistObjectIdentifiers.IdShake256);
 
             DigestNameToOids.Add("SHA-1", OiwObjectIdentifiers.IdSha1);
             DigestNameToOids.Add("SHA-224", NistObjectIdentifiers.IdSha224);

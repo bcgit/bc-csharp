@@ -91,11 +91,6 @@ namespace Org.BouncyCastle.Asn1.X509
 		public static readonly DerObjectIdentifier OcspAccessMethod = IdADOcsp;
 		public static readonly DerObjectIdentifier CrlAccessMethod = IdADCAIssuers;
 
-        /**
-         * ISO ARC for standard certificate and CRL extensions
-         * <p>
-         * OID: 2.5.29
-         */
         public static readonly DerObjectIdentifier id_ce = new DerObjectIdentifier("2.5.29");
     }
 }

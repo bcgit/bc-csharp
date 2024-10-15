@@ -33,13 +33,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         /** 1.3.6.1.5.5.7.6 */
         public static readonly DerObjectIdentifier id_alg = X509ObjectIdentifiers.pkix_algorithms;
 
-        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE128 = id_alg.Branch("30");
-
-        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE256 = id_alg.Branch("31");
-
-        public static readonly DerObjectIdentifier id_ecdsa_with_shake128 = id_alg.Branch("32");
-
-        public static readonly DerObjectIdentifier id_ecdsa_with_shake256 = id_alg.Branch("33");
+        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE128 = X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128;
+        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE256 = X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256;
+        public static readonly DerObjectIdentifier id_ecdsa_with_shake128 = X509ObjectIdentifiers.id_ecdsa_with_shake128;
+        public static readonly DerObjectIdentifier id_ecdsa_with_shake256 = X509ObjectIdentifiers.id_ecdsa_with_shake256;
 
         /**
          * OtherRecipientInfo types
