@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.X509
             var result = CalculateResult(verifierFactory.CreateCalculator(), asn1Encodable);
 
 			// TODO[api] Use GetOctetsSpan() once IsVerified(ReadOnlySpan<byte>) is available
-			return result.IsVerified(signature.GetOctets());
+			return result.IsVerified(signature.GetBytes());
         }
 
         internal static Asn1TaggedObject TrimExtensions(int tagNo, X509Extensions exts)
