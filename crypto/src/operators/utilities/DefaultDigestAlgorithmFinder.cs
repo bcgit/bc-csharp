@@ -31,9 +31,6 @@ namespace Org.BouncyCastle.Operators.Utilities
         private static readonly Dictionary<DerObjectIdentifier, AlgorithmIdentifier> DigestOidToAlgIDs =
             new Dictionary<DerObjectIdentifier, AlgorithmIdentifier>();
 
-        // signatures that use SHAKE-256
-        private static readonly HashSet<DerObjectIdentifier> Shake256Oids = new HashSet<DerObjectIdentifier>();
-
         static DefaultDigestAlgorithmFinder()
         {
             //
@@ -138,6 +135,39 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids.Add(BCObjectIdentifiers.sphincsPlus_shake_256f_r3_simple, NistObjectIdentifiers.IdShake256);
 #pragma warning restore CS0618 // Type or member is obsolete
 
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128s, NistObjectIdentifiers.IdSha256);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128f, NistObjectIdentifiers.IdSha256);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192s, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192f, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_sha2_256s, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_sha2_256f, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_sha2_128s_with_sha256, NistObjectIdentifiers.IdSha256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_sha2_128f_with_sha256, NistObjectIdentifiers.IdSha256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_sha2_192s_with_sha512, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_sha2_192f_with_sha512, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_sha2_256s_with_sha512, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_sha2_256f_with_sha512, NistObjectIdentifiers.IdSha512);
+
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_shake_128s, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_shake_128f, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_shake_192s, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_shake_192f, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_shake_256s, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_slh_dsa_shake_256f, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_shake_128s_with_shake128, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_shake_128f_with_shake128, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_shake_192s_with_shake256, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_shake_192f_with_shake256, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_shake_256s_with_shake256, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_slh_dsa_shake_256f_with_shake256, NistObjectIdentifiers.IdShake256);
+
+            DigestOids.Add(NistObjectIdentifiers.id_ml_dsa_44, NistObjectIdentifiers.IdShake128);
+            DigestOids.Add(NistObjectIdentifiers.id_ml_dsa_65, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_ml_dsa_87, NistObjectIdentifiers.IdShake256);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_ml_dsa_65_with_sha512, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(NistObjectIdentifiers.id_hash_ml_dsa_87_with_sha512, NistObjectIdentifiers.IdSha512);
+
             DigestOids.Add(BCObjectIdentifiers.falcon, NistObjectIdentifiers.IdShake256);
             DigestOids.Add(BCObjectIdentifiers.falcon_512, NistObjectIdentifiers.IdShake256);
             DigestOids.Add(BCObjectIdentifiers.falcon_1024, NistObjectIdentifiers.IdShake256);
@@ -159,6 +189,10 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256, NistObjectIdentifiers.IdShake256);
             DigestOids.Add(X509ObjectIdentifiers.id_ecdsa_with_shake128, NistObjectIdentifiers.IdShake128);
             DigestOids.Add(X509ObjectIdentifiers.id_ecdsa_with_shake256, NistObjectIdentifiers.IdShake256);
+
+            DigestOids.Add(EdECObjectIdentifiers.id_Ed25519, NistObjectIdentifiers.IdSha512);
+
+            DigestOids.Add(PkcsObjectIdentifiers.IdAlgHssLmsHashsig, NistObjectIdentifiers.IdSha256);
 
             DigestNameToOids.Add("SHA-1", OiwObjectIdentifiers.IdSha1);
             DigestNameToOids.Add("SHA-224", NistObjectIdentifiers.IdSha224);
@@ -223,8 +257,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddDigestAlgID(NistObjectIdentifiers.IdSha3_256, false);
             AddDigestAlgID(NistObjectIdentifiers.IdSha3_384, false);
             AddDigestAlgID(NistObjectIdentifiers.IdSha3_512, false);
-
-            // RFC 8702
             AddDigestAlgID(NistObjectIdentifiers.IdShake128, false);
             AddDigestAlgID(NistObjectIdentifiers.IdShake256, false);
 
@@ -247,20 +279,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddDigestAlgID(TeleTrusTObjectIdentifiers.RipeMD128, true);
             AddDigestAlgID(TeleTrusTObjectIdentifiers.RipeMD160, true);
             AddDigestAlgID(TeleTrusTObjectIdentifiers.RipeMD256, true);
-
-            Shake256Oids.Add(EdECObjectIdentifiers.id_Ed448);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            Shake256Oids.Add(BCObjectIdentifiers.dilithium2);
-            Shake256Oids.Add(BCObjectIdentifiers.dilithium3);
-            Shake256Oids.Add(BCObjectIdentifiers.dilithium5);
-            Shake256Oids.Add(BCObjectIdentifiers.dilithium2_aes);
-            Shake256Oids.Add(BCObjectIdentifiers.dilithium3_aes);
-            Shake256Oids.Add(BCObjectIdentifiers.dilithium5_aes);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            Shake256Oids.Add(BCObjectIdentifiers.falcon_512);
-            Shake256Oids.Add(BCObjectIdentifiers.falcon_1024);
         }
 
         private static void AddDigestAlgID(DerObjectIdentifier oid, bool withNullParams) =>
@@ -274,21 +292,13 @@ namespace Org.BouncyCastle.Operators.Utilities
         {
             DerObjectIdentifier signatureOid = signatureAlgorithm.Algorithm;
 
-            if (Shake256Oids.Contains(signatureOid))
+            if (EdECObjectIdentifiers.id_Ed448.Equals(signatureOid))
                 return new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len, new DerInteger(512));
 
             DerObjectIdentifier digestOid;
             if (PkcsObjectIdentifiers.IdRsassaPss.Equals(signatureOid))
             {
                 digestOid = RsassaPssParameters.GetInstance(signatureAlgorithm.Parameters).HashAlgorithm.Algorithm;
-            }
-            else if (EdECObjectIdentifiers.id_Ed25519.Equals(signatureOid))
-            {
-                digestOid = NistObjectIdentifiers.IdSha512;
-            }
-            else if (PkcsObjectIdentifiers.IdAlgHssLmsHashsig.Equals(signatureOid))
-            {
-                digestOid = NistObjectIdentifiers.IdSha256;
             }
             else
             {

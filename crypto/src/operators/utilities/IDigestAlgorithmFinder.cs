@@ -16,17 +16,17 @@ namespace Org.BouncyCastle.Operators.Utilities
         AlgorithmIdentifier Find(AlgorithmIdentifier signatureAlgorithm);
 
         /// <summary>
-        /// Find the digest algorithm identifier that matches with the passed in digest name.
+        /// Find the digest algorithm identifier that matches with the passed in digest OID.
         /// </summary>
         /// <param name="digestOid">the OID of the digest algorithm of interest.</param>
-        /// <returns>an algorithm identifier for the digest signature.</returns>
+        /// <returns>an algorithm identifier for the digest OID.</returns>
         AlgorithmIdentifier Find(DerObjectIdentifier digestOid);
 
         /// <summary>
         /// Find the digest algorithm identifier that matches with the passed in digest name.
         /// </summary>
         /// <param name="digestName">the name of the digest algorithm of interest.</param>
-        /// <returns>an algorithm identifier for the digest signature.</returns>
+        /// <returns>an algorithm identifier for the digest name.</returns>
         AlgorithmIdentifier Find(string digestName);
     }
 }
