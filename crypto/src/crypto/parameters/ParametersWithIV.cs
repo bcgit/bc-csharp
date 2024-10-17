@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         : ICipherParameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api] 'parameter' -> 'parameters'
         public static ParametersWithIV Create<TState>(ICipherParameters parameter, int ivLength, TState state,
             SpanAction<byte, TState> action)
         {
@@ -23,16 +24,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
-        internal static ICipherParameters ApplyOptionalIV(ICipherParameters parameters, byte[] iv)
-        {
-            return iv == null ? parameters : new ParametersWithIV(parameters, iv);
-        }
+        internal static ICipherParameters ApplyOptionalIV(ICipherParameters parameters, byte[] iv) =>
+            iv == null ? parameters : new ParametersWithIV(parameters, iv);
 
         private readonly ICipherParameters m_parameters;
         private readonly byte[] m_iv;
 
         public ParametersWithIV(ICipherParameters parameters, byte[] iv)
-            : this(parameters, iv, 0, iv.Length)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             if (iv == null)
@@ -80,10 +78,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Array.Copy(m_iv, 0, buf, off, len);
         }
 
-        public byte[] GetIV()
-        {
-            return (byte[])m_iv.Clone();
-        }
+        public byte[] GetIV() => (byte[])m_iv.Clone();
 
         public int IVLength => m_iv.Length;
 
