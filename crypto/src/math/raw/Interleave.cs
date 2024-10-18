@@ -66,27 +66,9 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static void Expand64To128(ulong x, ulong[] z, int zOff)
         {
-#if NETCOREAPP3_0_OR_GREATER
-            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.X64.IsEnabled)
-            {
-                z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
-                z[zOff + 1] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0x5555555555555555UL);
-                return;
-            }
-#endif
-
-            // "shuffle" low half to even bits and high half to odd bits
-            x = Bits.BitPermuteStep(x, 0x00000000FFFF0000UL, 16);
-            x = Bits.BitPermuteStep(x, 0x0000FF000000FF00UL, 8);
-            x = Bits.BitPermuteStep(x, 0x00F000F000F000F0UL, 4);
-            x = Bits.BitPermuteStep(x, 0x0C0C0C0C0C0C0C0CUL, 2);
-            x = Bits.BitPermuteStep(x, 0x2222222222222222UL, 1);
-
-            z[zOff    ] = (x     ) & M64;
-            z[zOff + 1] = (x >> 1) & M64;
+            Expand64To128(x, z.AsSpan(zOff));
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void Expand64To128(ulong x, Span<ulong> z)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -108,19 +90,12 @@ namespace Org.BouncyCastle.Math.Raw
             z[0] = (x     ) & M64;
             z[1] = (x >> 1) & M64;
         }
-#endif
 
         internal static void Expand64To128(ulong[] xs, int xsOff, int xsLen, ulong[] zs, int zsOff)
         {
-            int xsPos = xsLen, zsPos = zsOff + (xsLen << 1);
-            while (--xsPos >= 0)
-            {
-                zsPos -= 2;
-                Expand64To128(xs[xsOff + xsPos], zs, zsPos);
-            }
+            Expand64To128(xs.AsSpan(xsOff, xsLen), zs.AsSpan(zsOff));
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void Expand64To128(ReadOnlySpan<ulong> xs, Span<ulong> zs)
         {
             int xsPos = xs.Length, zsPos = xs.Length << 1;
@@ -131,7 +106,6 @@ namespace Org.BouncyCastle.Math.Raw
                 Expand64To128(xs[xsPos], zs[zsPos..]);
             }
         }
-#endif
 
         internal static ulong Expand64To128Rev(ulong x, out ulong low)
         {
