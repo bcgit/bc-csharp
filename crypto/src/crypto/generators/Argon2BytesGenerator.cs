@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Threading.Tasks;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -129,7 +129,6 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private void FillMemoryBlocks()
         {
-            FillBlock filler = new FillBlock();
             Position position = new Position();
             for (int pass = 0; pass < parameters.Iterations; ++pass)
             {
@@ -139,19 +138,34 @@ namespace Org.BouncyCastle.Crypto.Generators
                 {
                     position.slice = slice;
 
-                    for (int lane = 0; lane < parameters.Parallelism; ++lane)
+                    if(parameters.Parallelism <= 1)
                     {
-                        position.lane = lane;
+                        // We don't need to multithread if there's only one lane
+                        position.lane = 0;
+                        FillSegment(position);
+                    }
+                    else
+                    {
+                        Task[] tasks = new Task[parameters.Parallelism];
 
-                        FillSegment(filler, position);
+                        for (int lane = 0; lane < parameters.Parallelism; ++lane)
+                        {
+                            Position taskPosition = (Position) position.Clone();
+                            taskPosition.lane = lane;
+
+                            tasks[lane] = Task.Run(() => FillSegment(taskPosition));
+                        }
+
+                        Task.WaitAll(tasks);
                     }
                 }
             }
         }
 
-        private void FillSegment(FillBlock filler, Position position)
+        private void FillSegment(Position position)
         {
             Block addressBlock = null, inputBlock = null;
+            FillBlock filler = new FillBlock();
 
             bool dataIndependentAddressing = IsDataIndependentAddressing(position);
             int startingIndex = GetStartingIndex(position);
@@ -659,7 +673,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        private sealed class Position
+        private sealed class Position: ICloneable
         {
             internal int pass;
             internal int lane;
@@ -667,6 +681,11 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             internal Position()
             {
+            }
+
+            public object Clone()
+            {
+                return MemberwiseClone();
             }
         }
     }
