@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly DerInteger m_serialNumber;
         private readonly AlgorithmIdentifier m_signature;
         private readonly X509Name m_issuer;
-        private readonly Time m_startDate, m_endDate;
+        private readonly Validity m_validity;
         private readonly X509Name m_subject;
         private readonly SubjectPublicKeyInfo m_subjectPublicKeyInfo;
         private readonly DerBitString m_issuerUniqueID;
@@ -81,12 +81,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_serialNumber = DerInteger.GetInstance(seq[pos++]);
             m_signature = AlgorithmIdentifier.GetInstance(seq[pos++]);
             m_issuer = X509Name.GetInstance(seq[pos++]);
-
-            // TODO New ASN.1 type
-            var validity = Asn1Sequence.GetInstance(seq[pos++]);
-            m_startDate = Time.GetInstance(validity[0]);
-            m_endDate = Time.GetInstance(validity[1]);
-
+            m_validity = Validity.GetInstance(seq[pos++]);
             m_subject = X509Name.GetInstance(seq[pos++]);
             m_subjectPublicKeyInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
 
@@ -117,9 +112,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public X509Name Issuer => m_issuer;
 
-        public Time StartDate => m_startDate;
+        public Validity Validity => m_validity;
 
-        public Time EndDate => m_endDate;
+        public Time StartDate => Validity.NotBefore;
+
+        public Time EndDate => Validity.NotAfter;
 
         public X509Name Subject => m_subject;
 
@@ -145,14 +142,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 v.Add(new DerTaggedObject(true, 0, m_version));
             }
 
-            v.Add(m_serialNumber, m_signature, m_issuer);
-
-			//
-			// before and after dates
-			//
-			v.Add(new DerSequence(m_startDate, m_endDate));
-
-            v.Add(m_subject, m_subjectPublicKeyInfo);
+            v.Add(m_serialNumber, m_signature, m_issuer, m_validity, m_subject, m_subjectPublicKeyInfo);
 
             // Note: implicit tag
 			v.AddOptionalTagged(false, 1, m_issuerUniqueID);

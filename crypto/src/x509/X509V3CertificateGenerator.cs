@@ -38,8 +38,7 @@ namespace Org.BouncyCastle.X509
 			tbsGen = new V3TbsCertificateGenerator();
 			tbsGen.SetSerialNumber(template.SerialNumber);
 			tbsGen.SetIssuer(template.Issuer);
-			tbsGen.SetStartDate(template.StartDate);
-			tbsGen.SetEndDate(template.EndDate);
+            tbsGen.SetValidity(template.Validity);
 			tbsGen.SetSubject(template.Subject);
 			tbsGen.SetSubjectPublicKeyInfo(template.SubjectPublicKeyInfo);
 
@@ -94,6 +93,11 @@ namespace Org.BouncyCastle.X509
             X509Name issuer)
         {
             tbsGen.SetIssuer(issuer);
+        }
+
+        public void SetValidity(Validity validity)
+        {
+            tbsGen.SetValidity(validity);
         }
 
 		/// <summary>

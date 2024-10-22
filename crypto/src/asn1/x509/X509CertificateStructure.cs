@@ -78,6 +78,8 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public X509Name Issuer => m_tbsCert.Issuer;
 
+        public Validity Validity => m_tbsCert.Validity;
+
         public Time StartDate => m_tbsCert.StartDate;
 
         public Time EndDate => m_tbsCert.EndDate;

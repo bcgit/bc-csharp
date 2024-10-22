@@ -61,11 +61,16 @@ namespace Org.BouncyCastle.X509
 			tbsGen.SetIssuer(issuer);
 		}
 
-		/// <summary>
-		/// Set the date that this certificate is to be valid from.
-		/// </summary>
-		/// <param name="date"/>
-		public void SetNotBefore(
+        public void SetValidity(Validity validity)
+        {
+            tbsGen.SetValidity(validity);
+        }
+
+        /// <summary>
+        /// Set the date that this certificate is to be valid from.
+        /// </summary>
+        /// <param name="date"/>
+        public void SetNotBefore(
 			DateTime date)
 		{
 			tbsGen.SetStartDate(new Time(date));
