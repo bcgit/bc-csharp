@@ -27,8 +27,6 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private OptionalValidity(Asn1Sequence seq)
         {
-            // TODO Enforce "at least one MUST be present"?
-
             int count = seq.Count;
             if (count < 0 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -44,7 +42,6 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public OptionalValidity(Time notBefore, Time notAfter)
         {
-            // TODO Enforce "at least one MUST be present"?
             m_notBefore = notBefore;
             m_notAfter = notAfter;
         }

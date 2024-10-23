@@ -57,7 +57,27 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
+            Rfc4211Asn1Utilities.CheckValidityFieldPresent(m_validity);
+
             m_seq = seq;
+        }
+
+        public CertTemplate(DerInteger version, DerInteger serialNumber, AlgorithmIdentifier signingAlg,
+            X509Name issuer, OptionalValidity validity, X509Name subject, SubjectPublicKeyInfo publicKey,
+            DerBitString issuerUID, DerBitString subjectUID, X509Extensions extensions)
+        {
+            m_version = version;
+            m_serialNumber = serialNumber;
+            m_signingAlg = signingAlg;
+            m_issuer = issuer;
+            m_validity = Rfc4211Asn1Utilities.CheckValidityFieldPresent(validity);
+            m_subject = subject;
+            m_publicKey = publicKey;
+            m_issuerUID = issuerUID;
+            m_subjectUID = subjectUID;
+            m_extensions = extensions;
+
+            m_seq = CreateSequence();
         }
 
         public virtual int Version => m_version.IntValueExact;
@@ -97,5 +117,21 @@ namespace Org.BouncyCastle.Asn1.Crmf
          * @return a basic ASN.1 object representation.
          */
         public override Asn1Object ToAsn1Object() => m_seq;
+
+        private Asn1Sequence CreateSequence()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(10);
+            v.AddOptionalTagged(false, 0, m_version);
+            v.AddOptionalTagged(false, 1, m_serialNumber);
+            v.AddOptionalTagged(false, 2, m_signingAlg);
+            v.AddOptionalTagged(true, 3, m_issuer); // CHOICE
+            v.AddOptionalTagged(false, 4, m_validity);
+            v.AddOptionalTagged(true, 5, m_subject); // CHOICE
+            v.AddOptionalTagged(false, 6, m_publicKey);
+            v.AddOptionalTagged(false, 7, m_issuerUID);
+            v.AddOptionalTagged(false, 8, m_subjectUID);
+            v.AddOptionalTagged(false, 9, m_extensions);
+            return new DerSequence(v);
+        }
     }
 }

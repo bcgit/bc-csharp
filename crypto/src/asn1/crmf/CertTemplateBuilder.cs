@@ -48,6 +48,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return this;
         }
 
+        public virtual CertTemplateBuilder SetValidity(DateTime? notBefore, DateTime? notAfter) =>
+            SetValidity(new OptionalValidity(CreateTime(notBefore), CreateTime(notAfter)));
+
         public virtual CertTemplateBuilder SetSubject(X509Name name)
         {
             subject = name;
@@ -98,18 +101,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public virtual CertTemplate Build()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(10);
-            v.AddOptionalTagged(false, 0, version);
-            v.AddOptionalTagged(false, 1, serialNumber);
-            v.AddOptionalTagged(false, 2, signingAlg);
-            v.AddOptionalTagged(true, 3, issuer); // CHOICE
-            v.AddOptionalTagged(false, 4, validity);
-            v.AddOptionalTagged(true, 5, subject); // CHOICE
-            v.AddOptionalTagged(false, 6, publicKey);
-            v.AddOptionalTagged(false, 7, issuerUID);
-            v.AddOptionalTagged(false, 8, subjectUID);
-            v.AddOptionalTagged(false, 9, extensions);
-            return CertTemplate.GetInstance(new DerSequence(v));
+            return new CertTemplate(version, serialNumber, signingAlg, issuer, validity, subject, publicKey,
+                issuerUID, subjectUID, extensions);
         }
+
+        private static Time CreateTime(DateTime? dateTime) => dateTime == null ? null : new Time(dateTime.Value);
     }
 }

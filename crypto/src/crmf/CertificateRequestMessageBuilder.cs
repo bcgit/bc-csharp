@@ -88,9 +88,15 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        public CertificateRequestMessageBuilder SetValidity(OptionalValidity validity)
+        {
+            m_templateBuilder.SetValidity(validity);
+            return this;
+        }
+
         public CertificateRequestMessageBuilder SetValidity(DateTime? notBefore, DateTime? notAfter)
         {
-            m_templateBuilder.SetValidity(new OptionalValidity(CreateTime(notBefore), CreateTime(notAfter)));
+            m_templateBuilder.SetValidity(notBefore, notAfter);
             return this;
         }
 
@@ -270,11 +276,6 @@ namespace Org.BouncyCastle.Crmf
             CertReqMsg certReqMsg = new CertReqMsg(request, proofOfPossession, m_regInfo);
 
             return new CertificateRequestMessage(certReqMsg);
-        }
-
-        private static Time CreateTime(DateTime? dateTime)
-        {
-            return dateTime == null ? null : new Time(dateTime.Value);
         }
     }
 }
