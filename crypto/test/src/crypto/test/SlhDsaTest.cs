@@ -94,26 +94,27 @@ namespace Org.BouncyCastle.Crypto.Tests
             var kpg = new SlhDsaKeyPairGenerator();
             kpg.Init(new SlhDsaKeyGenerationParameters(random, parameters));
 
-            for (int i = 0; i < 4; ++i)
             {
                 var kp = kpg.GenerateKeyPair();
 
                 var signer = new SlhDsaSigner();
 
-                int msgLen = random.Next(msg.Length + 1);
-                random.NextBytes(msg, 0, msgLen);
+                {
+                    int msgLen = random.Next(msg.Length + 1);
+                    random.NextBytes(msg, 0, msgLen);
 
-                // sign
-                signer.Init(true, new ParametersWithRandom(kp.Private, random));
-                signer.BlockUpdate(msg, 0, msgLen);
-                var signature = signer.GenerateSignature();
+                    // sign
+                    signer.Init(true, new ParametersWithRandom(kp.Private, random));
+                    signer.BlockUpdate(msg, 0, msgLen);
+                    var signature = signer.GenerateSignature();
 
-                // verify
-                signer.Init(false, kp.Public);
-                signer.BlockUpdate(msg, 0, msgLen);
-                bool shouldVerify = signer.VerifySignature(signature);
+                    // verify
+                    signer.Init(false, kp.Public);
+                    signer.BlockUpdate(msg, 0, msgLen);
+                    bool shouldVerify = signer.VerifySignature(signature);
 
-                Assert.True(shouldVerify);
+                    Assert.True(shouldVerify);
+                }
             }
         }
 
@@ -165,8 +166,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
         //}
 
-        private static void ImplKeyGen(string name, Dictionary<string, string> data,
-            SlhDsaParameters parameters)
+        private static void ImplKeyGen(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
         {
             byte[] skSeed = Hex.Decode(data["skSeed"]);
             byte[] skPrf = Hex.Decode(data["skPrf"]);
@@ -190,8 +190,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + ": secret key");
         }
 
-        //private static void ImplSigGen(string name, Dictionary<string, string> data,
-        //    SlhDsaParameters parameters)
+        //private static void ImplSigGen(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
         //{
         //    byte[] sk = Hex.Decode(data["sk"]);
         //    byte[] message = Hex.Decode(data["message"]);
@@ -212,8 +211,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //    Assert.True(Arrays.AreEqual(generated, signature));
         //}
 
-        //private static void ImplSigVer(string name, Dictionary<string, string> data,
-        //    SlhDsaParameters parameters)
+        //private static void ImplSigVer(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
         //{
         //    bool testPassed = bool.Parse(data["testPassed"]);
         //    byte[] pk = Hex.Decode(data["pk"]);

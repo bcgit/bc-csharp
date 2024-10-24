@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     {
         private delegate void RunTestVector(string name, Dictionary<string, string> data);
 
-        private static readonly Dictionary<string, MLKemParameters> FileParameters =
+        private static readonly Dictionary<string, MLKemParameters> AcvpFileParameters =
             new Dictionary<string, MLKemParameters>()
         {
             { "encapDecap_decapsulation_ML-KEM-512.txt", MLKemParameters.ML_KEM_512 },
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "encapDecap_encapsulation_ML-KEM-1024.txt",
         };
 
-        private static readonly string[] KeyGenFiles =
+        private static readonly string[] KeyGenAcvpFiles =
         {
             "keyGen_ML-KEM-512.txt",
             "keyGen_ML-KEM-768.txt",
@@ -67,85 +67,89 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "ML-KEM-1024.txt",
         };
 
+        private static readonly Dictionary<string, MLKemParameters> Parameters =
+            new Dictionary<string, MLKemParameters>()
+        {
+            { "ML-KEM-512", MLKemParameters.ML_KEM_512 },
+            { "ML-KEM-768", MLKemParameters.ML_KEM_768 },
+            { "ML-KEM-1024", MLKemParameters.ML_KEM_1024 },
+        };
+
+        private static readonly IEnumerable<MLKemParameters> ParameterSets = Parameters.Values;
+
+        [TestCaseSource(nameof(ParameterSets))]
+        [Parallelizable(ParallelScope.All)]
+        public void Consistency(MLKemParameters parameters)
+        {
+            var random = new SecureRandom();
+
+            var kpg = new MLKemKeyPairGenerator();
+            kpg.Init(new MLKemKeyGenerationParameters(random, parameters));
+
+            for (int i = 0; i < 100; ++i)
+            {
+                var kp = kpg.GenerateKeyPair();
+
+                var generator = new MLKemGenerator(random);
+                var encap = generator.GenerateEncapsulated(kp.Public);
+
+                var extractor = new MLKemExtractor((MLKemPrivateKeyParameters)kp.Private);
+                var secret = extractor.ExtractSecret(encap.GetEncapsulation());
+
+                Assert.True(Arrays.AreEqual(encap.GetSecret(), secret));
+            }
+        }
+
+        [Test]
+        [Parallelizable]
+        public void EncapDecap()
+        {
+            RunTestVectors("pqc/crypto/mlkem", "ML-KEM-encapDecap.txt", (name, data) =>
+            {
+                var parameters = Parameters[data["parameterSet"]];
+
+                var function = data["function"];
+                if ("encapsulation" == function)
+                {
+                    ImplEncap(name, data, parameters);
+                }
+                else
+                {
+                    ImplDecap(name, data, parameters);
+                }
+            });
+        }
+
         [TestCaseSource(nameof(DecapFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void Decap(string fileName)
+        public void DecapAcvp(string fileName)
         {
-            RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
-            {
-                byte[] c = Hex.Decode(data["c"]);
-                byte[] k = Hex.Decode(data["k"]);
-                //string reason = data["reason"];
-                //byte[] ek = Hex.Decode(data["ek"]);
-                byte[] dk = Hex.Decode(data["dk"]);
-
-                var parameters = FileParameters[name];
-
-                //var publicKey = new MLKemPublicKeyParameters(parameters, ek);
-                var privateKey = new MLKemPrivateKeyParameters(parameters, dk);
-
-                var extractor = new MLKemExtractor(privateKey);
-                byte[] dec_key = extractor.ExtractSecret(c);
-
-                Assert.True(Arrays.AreEqual(dec_key, k), name + ": k");
-            });
+            RunTestVectors("pqc/crypto/kyber/acvp", fileName,
+                (name, data) => ImplDecap(name, data, AcvpFileParameters[name]));
         }
 
         [TestCaseSource(nameof(EncapFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void Encap(string fileName)
+        public void EncapAcvp(string fileName)
         {
-            RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
-            {
-                byte[] m = Hex.Decode(data["m"]);
-                byte[] c = Hex.Decode(data["c"]);
-                byte[] k = Hex.Decode(data["k"]);
-                //string reason = data["reason"];
-                byte[] ek = Hex.Decode(data["ek"]);
-                //byte[] dk = Hex.Decode(data["dk"]);
-
-                var random = new SecureRandom();
-                var parameters = FileParameters[name];
-
-                var publicKey = new MLKemPublicKeyParameters(parameters, ek);
-                //var privateKey = new MLKemPrivateKeyParameters(parameters, dk);
-
-                var generator = new MLKemGenerator(random);
-                ISecretWithEncapsulation secWenc = generator.InternalGenerateEncapsulated(publicKey, m);
-                byte[] generated_cipher_text = secWenc.GetEncapsulation();
-                byte[] secret = secWenc.GetSecret();
-                Assert.True(Arrays.AreEqual(c, generated_cipher_text), name + ": c");
-                Assert.True(Arrays.AreEqual(k, 0, secret.Length, secret, 0, secret.Length), name + ": k");
-            });
+            RunTestVectors("pqc/crypto/kyber/acvp", fileName,
+                (name, data) => ImplEncap(name, data, AcvpFileParameters[name]));
         }
 
-        [TestCaseSource(nameof(KeyGenFiles))]
-        [Parallelizable(ParallelScope.All)]
-        public void KeyGen(string fileName)
+        [Test]
+        [Parallelizable]
+        public void KeyGen()
         {
-            RunTestVectors("pqc/crypto/kyber/acvp", fileName, (name, data) =>
-            {
-                byte[] z = Hex.Decode(data["z"]);
-                byte[] d = Hex.Decode(data["d"]);
-                byte[] ek = Hex.Decode(data["ek"]);
-                byte[] dk = Hex.Decode(data["dk"]);
+            RunTestVectors("pqc/crypto/mlkem", "ML-KEM-keyGen.txt",
+                (name, data) => ImplKeyGen(name, data, Parameters[data["parameterSet"]]));
+        }
 
-                var random = new SecureRandom();
-                var parameters = FileParameters[name];
-
-                var kpg = new MLKemKeyPairGenerator();
-                kpg.Init(new MLKemKeyGenerationParameters(random, parameters));
-
-                var kp = kpg.InternalGenerateKeyPair(d, z);
-
-                MLKemPublicKeyParameters pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                    PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((MLKemPublicKeyParameters)kp.Public));
-                MLKemPrivateKeyParameters privParams = (MLKemPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
-                    PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((MLKemPrivateKeyParameters)kp.Private));
-
-                Assert.True(Arrays.AreEqual(ek, pubParams.GetEncoded()), name + ": ek");
-                Assert.True(Arrays.AreEqual(dk, privParams.GetEncoded()), name + ": dk");
-            });
+        [TestCaseSource(nameof(KeyGenAcvpFiles))]
+        [Parallelizable(ParallelScope.All)]
+        public void KeyGenAcvp(string fileName)
+        {
+            RunTestVectors("pqc/crypto/kyber/acvp", fileName,
+                (name, data) => ImplKeyGen(name, data, AcvpFileParameters[name]));
         }
 
         [TestCaseSource(nameof(ModulusFiles))]
@@ -162,7 +166,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     byte[] key = Hex.Decode(line);
 
                     var random = new SecureRandom();
-                    var parameters = FileParameters[fileName];
+                    var parameters = AcvpFileParameters[fileName];
 
                     var publicKey = new MLKemPublicKeyParameters(parameters, key);
 
@@ -171,8 +175,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     bool caughtException = false;
                     try
                     {
-                        ISecretWithEncapsulation secWenc = generator.GenerateEncapsulated(publicKey);
-                        byte[] generated_cipher_text = secWenc.GetEncapsulation();
+                        ISecretWithEncapsulation encap = generator.GenerateEncapsulated(publicKey);
+                        //byte[] generated_cipher_text =
+                        encap.GetEncapsulation();
                     }
                     catch (Exception)
                     {
@@ -243,21 +248,59 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(256, MLKemParameters.ML_KEM_1024.SessionKeySize);
         }
 
-        [Test]
-        public void TestMLKemRandom()
+        private static void ImplDecap(string name, Dictionary<string, string> data, MLKemParameters parameters)
         {
-            SecureRandom random = new SecureRandom();
-            MLKemKeyPairGenerator keyGen = new MLKemKeyPairGenerator();
-            keyGen.Init(new MLKemKeyGenerationParameters(random, MLKemParameters.ML_KEM_1024));
-            for (int i = 0; i != 1000; i++)
-            {
-                AsymmetricCipherKeyPair keyPair = keyGen.GenerateKeyPair();
-                MLKemGenerator kemGen = new MLKemGenerator(random);
-                ISecretWithEncapsulation secretEncap = kemGen.GenerateEncapsulated(keyPair.Public);
-                MLKemExtractor kemExtract = new MLKemExtractor((MLKemPrivateKeyParameters)keyPair.Private);
-                byte[] decryptedSharedSecret = kemExtract.ExtractSecret(secretEncap.GetEncapsulation());
-                Assert.True(Arrays.AreEqual(secretEncap.GetSecret(), decryptedSharedSecret));
-            }
+            byte[] c = Hex.Decode(data["c"]);
+            byte[] k = Hex.Decode(data["k"]);
+            byte[] dk = Hex.Decode(data["dk"]);
+
+            var privateKey = new MLKemPrivateKeyParameters(parameters, dk);
+
+            var extractor = new MLKemExtractor(privateKey);
+            var secret = extractor.ExtractSecret(c);
+
+            Assert.True(Arrays.AreEqual(k, secret), name + ": k");
+        }
+
+        private static void ImplEncap(string name, Dictionary<string, string> data, MLKemParameters parameters)
+        {
+            byte[] m = Hex.Decode(data["m"]);
+            byte[] c = Hex.Decode(data["c"]);
+            byte[] k = Hex.Decode(data["k"]);
+            byte[] ek = Hex.Decode(data["ek"]);
+
+            var random = new SecureRandom();
+
+            var publicKey = new MLKemPublicKeyParameters(parameters, ek);
+
+            var generator = new MLKemGenerator(random);
+            var encap = generator.InternalGenerateEncapsulated(publicKey, m);
+
+            Assert.True(Arrays.AreEqual(c, encap.GetEncapsulation()), name + ": c");
+            Assert.True(Arrays.AreEqual(k, encap.GetSecret()), name + ": k");
+        }
+
+        private static void ImplKeyGen(string name, Dictionary<string, string> data, MLKemParameters parameters)
+        {
+            byte[] z = Hex.Decode(data["z"]);
+            byte[] d = Hex.Decode(data["d"]);
+            byte[] ek = Hex.Decode(data["ek"]);
+            byte[] dk = Hex.Decode(data["dk"]);
+
+            var random = new SecureRandom();
+
+            var kpg = new MLKemKeyPairGenerator();
+            kpg.Init(new MLKemKeyGenerationParameters(random, parameters));
+
+            var kp = kpg.InternalGenerateKeyPair(d, z);
+
+            var pubParams = (MLKemPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            var privParams = (MLKemPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
+
+            Assert.True(Arrays.AreEqual(ek, pubParams.GetEncoded()), name + ": ek");
+            Assert.True(Arrays.AreEqual(dk, privParams.GetEncoded()), name + ": dk");
         }
 
         private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector)

@@ -22,6 +22,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
 
         public int SessionKeySize => 256;
 
+        public override string ToString() => Name;
+
         internal MLKemEngine GetEngine() => new MLKemEngine(m_k);
     }
 }

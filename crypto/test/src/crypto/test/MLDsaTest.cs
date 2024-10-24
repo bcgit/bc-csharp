@@ -155,8 +155,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
         //}
 
-        private static void ImplKeyGen(string name, Dictionary<string, string> data,
-            MLDsaParameters parameters)
+        private static void ImplKeyGen(string name, Dictionary<string, string> data, MLDsaParameters parameters)
         {
             byte[] seed = Hex.Decode(data["seed"]);
             byte[] pk = Hex.Decode(data["pk"]);
@@ -178,8 +177,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + ": secret key");
         }
 
-        //private static void ImplSigGen(string name, Dictionary<string, string> data,
-        //    MLDsaParameters parameters)
+        //private static void ImplSigGen(string name, Dictionary<string, string> data, MLDsaParameters parameters)
         //{
         //    byte[] sk = Hex.Decode(data["sk"]);
         //    byte[] message = Hex.Decode(data["message"]);
@@ -204,8 +202,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //    Assert.True(Arrays.AreEqual(generated, signature));
         //}
 
-        //private static void ImplSigVer(string name, Dictionary<string, string> data,
-        //    MLDsaParameters parameters)
+        //private static void ImplSigVer(string name, Dictionary<string, string> data, MLDsaParameters parameters)
         //{
         //    bool testPassed = bool.Parse(data["testPassed"]);
         //    byte[] pk = Hex.Decode(data["pk"]);
