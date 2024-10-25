@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -19,10 +20,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// </summary>
         /// <returns>The full/partial recoveredMessage message.</returns>
         /// <seealso cref="ISignerWithRecovery.GetRecoveredMessage"/>
-        public byte[] GetRecoveredMessage()
-        {
-            return recoveredMessage;
-        }
+        public byte[] GetRecoveredMessage() => recoveredMessage;
 
         private IDigest digest;
         private IAsymmetricBlockCipher cipher;
@@ -30,7 +28,6 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom random;
         private byte[] standardSalt;
 
-        private int hLen;
         private int trailer;
         private int keyBits;
         private byte[] block;
@@ -46,21 +43,16 @@ namespace Org.BouncyCastle.Crypto.Signers
         private int preTLength;
 
         /// <summary>
-        /// Generate a signer with either implicit or explicit trailers for ISO9796-2, scheme 2 or 3.
+        /// Generate a signer with either implicit or explicit trailer for ISO9796-2, scheme 2 or 3.
         /// </summary>
         /// <param name="cipher">base cipher to use for signature creation/verification</param>
         /// <param name="digest">digest to use.</param>
         /// <param name="saltLength">length of salt in bytes.</param>
         /// <param name="isImplicit">whether or not the trailer is implicit or gives the hash.</param>
-        public Iso9796d2PssSigner(
-            IAsymmetricBlockCipher	cipher,
-            IDigest					digest,
-            int						saltLength,
-            bool					isImplicit)
+        public Iso9796d2PssSigner(IAsymmetricBlockCipher cipher, IDigest digest, int saltLength, bool isImplicit)
         {
             this.cipher = cipher;
             this.digest = digest;
-            this.hLen = digest.GetDigestSize();
             this.saltLength = saltLength;
 
             if (isImplicit)
@@ -77,27 +69,18 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
-        /// <summary> Constructor for a signer with an explicit digest trailer.
-        ///
+        /// <summary>
+        /// Generate a signer with explicit trailer for ISO9796-2, scheme 2 or 3.
         /// </summary>
-        /// <param name="cipher">cipher to use.
-        /// </param>
-        /// <param name="digest">digest to sign with.
-        /// </param>
-        /// <param name="saltLength">length of salt in bytes.
-        /// </param>
-        public Iso9796d2PssSigner(
-            IAsymmetricBlockCipher	cipher,
-            IDigest					digest,
-            int						saltLength)
-            : this(cipher, digest, saltLength, false)
+        /// <param name="cipher">base cipher to use for signature creation/verification</param>
+        /// <param name="digest">digest to use.</param>
+        /// <param name="saltLength">length of salt in bytes.</param>
+        public Iso9796d2PssSigner(IAsymmetricBlockCipher cipher, IDigest digest, int saltLength)
+            : this(cipher, digest, saltLength, isImplicit: false)
         {
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return digest.AlgorithmName + "with" + "ISO9796-2S2"; }
-        }
+        public virtual string AlgorithmName => digest.AlgorithmName + "with" + "ISO9796-2S2";
 
         /// <summary>Initialise the signer.</summary>
         /// <param name="forSigning">true if for signing, false if for verification.</param>
@@ -140,14 +123,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             block = new byte[(keyBits + 7) / 8];
 
-            if (trailer == IsoTrailers.TRAILER_IMPLICIT)
-            {
-                mBuf = new byte[block.Length - digest.GetDigestSize() - saltLength - 1 - 1];
-            }
-            else
-            {
-                mBuf = new byte[block.Length - digest.GetDigestSize() - saltLength - 1 - 2];
-            }
+            int tLength = trailer == IsoTrailers.TRAILER_IMPLICIT ? 1 : 2;
+            mBuf = new byte[block.Length - digest.GetDigestSize() - saltLength - 1 - tLength];
 
             Reset();
         }
@@ -155,33 +132,14 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <summary> compare two byte arrays - constant time.</summary>
         private bool IsSameAs(byte[] a, byte[] b)
         {
-            if (messageLength != b.Length)
-            {
-                return false;
-            }
-
-            bool isOkay = true;
-
-            for (int i = 0; i != b.Length; i++)
-            {
-                if (a[i] != b[i])
-                {
-                    isOkay = false;
-                }
-            }
-
-            return isOkay;
+            return messageLength == b.Length &&
+                   Arrays.FixedTimeEquals(messageLength, a, 0, b, 0);
         }
 
         /// <summary> clear possible sensitive data</summary>
-        private void  ClearBlock(
-            byte[] block)
-        {
-            Array.Clear(block, 0, block.Length);
-        }
+        private void ClearBlock(byte[] block) => Array.Clear(block, 0, block.Length);
 
-        public virtual void UpdateWithRecoveredMessage(
-            byte[] signature)
+        public virtual void UpdateWithRecoveredMessage(byte[] signature)
         {
             byte[] block = cipher.ProcessBlock(signature, 0, signature.Length);
 
@@ -198,14 +156,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             int tLength;
-
-            if (((block[block.Length - 1] & 0xFF) ^ 0xBC) == 0)
+            if (block[block.Length - 1] == 0xBC)
             {
                 tLength = 1;
             }
             else
             {
-                int sigTrail = ((block[block.Length - 2] & 0xFF) << 8) | (block[block.Length - 1] & 0xFF);
+                int sigTrail = Pack.BE_To_UInt16(block, block.Length - 2);
 
                 if (IsoTrailers.NoTrailerAvailable(digest))
                     throw new ArgumentException("unrecognised hash in signature");
@@ -216,28 +173,21 @@ namespace Org.BouncyCastle.Crypto.Signers
                 tLength = 2;
             }
 
-            //
-            // calculate H(m2)
-            //
-            byte[] m2Hash = new byte[hLen];
-            digest.DoFinal(m2Hash, 0);
+            int hLen = digest.GetDigestSize();
 
             //
             // remove the mask
             //
-            byte[] dbMask = MaskGeneratorFunction1(block, block.Length - hLen - tLength, hLen, block.Length - hLen - tLength);
-            for (int i = 0; i != dbMask.Length; i++)
-            {
-                block[i] ^= dbMask[i];
-            }
+            int dbMaskLen = block.Length - hLen - tLength;
+            byte[] dbMask = MaskGeneratorFunction1(block, dbMaskLen, hLen, dbMaskLen);
+            Bytes.XorTo(dbMaskLen, dbMask, block);
 
-            block[0] &= 0x7f;
+            block[0] &= 0x7F;
 
             //
             // find out how much padding we've got
             //
             int mStart = 0;
-
             while (mStart < block.Length)
             {
                 if (block[mStart++] == 0x01)
@@ -263,8 +213,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
         /// <summary> update the internal digest with the byte b</summary>
-        public virtual void Update(
-            byte input)
+        public virtual void Update(byte input)
         {
             if (preSig == null && messageLength < mBuf.Length)
             {
@@ -324,31 +273,31 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// </summary>
         public virtual byte[] GenerateSignature()
         {
-            int digSize = digest.GetDigestSize();
-            byte[] m2Hash = new byte[digSize];
-            digest.DoFinal(m2Hash, 0);
+            byte[] salt = standardSalt ?? SecureRandom.GetNextBytes(random, saltLength);
 
+            int hLen = digest.GetDigestSize();
+
+            // calculate H(m2)
+            byte[] hash = new byte[hLen];
+            digest.DoFinal(hash, 0);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> C = stackalloc byte[8];
+            Pack.UInt64_To_BE((uint)(messageLength * 8), C);
+            digest.BlockUpdate(C);
+#else
             byte[] C = new byte[8];
-            LtoOSP(messageLength * 8, C);
-
+            Pack.UInt64_To_BE((uint)(messageLength * 8), C);
             digest.BlockUpdate(C, 0, C.Length);
-            digest.BlockUpdate(mBuf, 0, messageLength);
-            digest.BlockUpdate(m2Hash, 0, m2Hash.Length);
+#endif
 
-            byte[] salt;
-            if (standardSalt != null)
+            if (messageLength > 0)
             {
-                salt = standardSalt;
-            }
-            else
-            {
-                salt = new byte[saltLength];
-                random.NextBytes(salt);
+                digest.BlockUpdate(mBuf, 0, messageLength);
             }
 
+            digest.BlockUpdate(hash, 0, hash.Length);
             digest.BlockUpdate(salt, 0, salt.Length);
-
-            byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
 
             int tLength = 2;
@@ -359,16 +308,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             int off = block.Length - messageLength - salt.Length - hLen - tLength - 1;
 
-            block[off] = (byte) (0x01);
+            block[off] = 0x01;
 
             Array.Copy(mBuf, 0, block, off + 1, messageLength);
             Array.Copy(salt, 0, block, off + 1 + messageLength, salt.Length);
 
-            byte[] dbMask = MaskGeneratorFunction1(hash, 0, hash.Length, block.Length - hLen - tLength);
-            for (int i = 0; i != dbMask.Length; i++)
-            {
-                block[i] ^= dbMask[i];
-            }
+            int dbMaskLen = block.Length - hLen - tLength;
+            byte[] dbMask = MaskGeneratorFunction1(hash, 0, hash.Length, dbMaskLen);
+            Bytes.XorTo(dbMaskLen, dbMask, block);
 
             Array.Copy(hash, 0, block, block.Length - hLen - tLength, hLen);
 
@@ -378,11 +325,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
             else
             {
-                block[block.Length - 2] = (byte) ((uint)trailer >> 8);
-                block[block.Length - 1] = (byte) trailer;
+                Pack.UInt16_To_BE((ushort)trailer, block, block.Length - 2);
             }
 
-            block[0] &= (byte) (0x7f);
+            block[0] &= 0x7F;
 
             byte[] b = cipher.ProcessBlock(block, 0, block.Length);
 
@@ -396,18 +342,13 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <summary> return true if the signature represents a ISO9796-2 signature
         /// for the passed in message.
         /// </summary>
-        public virtual bool VerifySignature(
-            byte[] signature)
+        public virtual bool VerifySignature(byte[] signature)
         {
-            //
-            // calculate H(m2)
-            //
-            byte[] m2Hash = new byte[hLen];
-            digest.DoFinal(m2Hash, 0);
+            int hLen = digest.GetDigestSize();
 
-            byte[] block;
-            int tLength;
-            int mStart = 0;
+            // calculate H(m2)
+            byte[] hash = new byte[hLen];
+            digest.DoFinal(hash, 0);
 
             if (preSig == null)
             {
@@ -420,17 +361,14 @@ namespace Org.BouncyCastle.Crypto.Signers
                     return false;
                 }
             }
-            else
+            else if (!Arrays.AreEqual(preSig, signature))
             {
-                if (!Arrays.AreEqual(preSig, signature))
-                {
-                    throw new InvalidOperationException("UpdateWithRecoveredMessage called on different signature");
-                }
+                throw new InvalidOperationException("UpdateWithRecoveredMessage called on different signature");
             }
 
-            block = preBlock;
-            mStart = preMStart;
-            tLength = preTLength;
+            byte[] block = preBlock;
+            int mStart = preMStart;
+            int tLength = preTLength;
 
             preSig = null;
             preBlock = null;
@@ -438,17 +376,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             //
             // check the hashes
             //
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> C = stackalloc byte[8];
+            Pack.UInt64_To_BE((uint)(recoveredMessage.Length * 8), C);
+            digest.BlockUpdate(C);
+#else
             byte[] C = new byte[8];
-            LtoOSP(recoveredMessage.Length * 8, C);
-
+            Pack.UInt64_To_BE((uint)(recoveredMessage.Length * 8), C);
             digest.BlockUpdate(C, 0, C.Length);
+#endif
 
-            if (recoveredMessage.Length != 0)
+            if (recoveredMessage.Length > 0)
             {
                 digest.BlockUpdate(recoveredMessage, 0, recoveredMessage.Length);
             }
 
-            digest.BlockUpdate(m2Hash, 0, m2Hash.Length);
+            digest.BlockUpdate(hash, 0, hash.Length);
 
             // Update for the salt
             if (standardSalt != null)
@@ -460,20 +403,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                 digest.BlockUpdate(block, mStart + recoveredMessage.Length, saltLength);
             }
 
-            byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
 
-            int off = block.Length - tLength - hash.Length;
-
-            bool isOkay = true;
-
-            for (int i = 0; i != hash.Length; i++)
-            {
-                if (hash[i] != block[off + i])
-                {
-                    isOkay = false;
-                }
-            }
+            bool isOkay = Arrays.FixedTimeEquals(hLen, hash, 0, block, block.Length - tLength - hLen);
 
             ClearBlock(block);
             ClearBlock(hash);
@@ -490,20 +422,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             // if they've input a message check what we've recovered against
             // what was input.
             //
-            if (messageLength != 0)
-            {
-                if (!IsSameAs(mBuf, recoveredMessage))
-                {
-                    messageLength = 0;
-                    ClearBlock(mBuf);
-                    return false;
-                }
-            }
+            bool result = messageLength == 0 || IsSameAs(mBuf, recoveredMessage);
 
             messageLength = 0;
 
             ClearBlock(mBuf);
-            return true;
+            return result;
         }
 
         /// <summary> reset the internal state</summary>
@@ -534,71 +458,35 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// </summary>
         /// <returns>true on full message recovery, false otherwise, or if not sure.</returns>
         /// <seealso cref="ISignerWithRecovery.HasFullMessage"/>
-        public virtual bool HasFullMessage()
-        {
-            return fullMessage;
-        }
-
-        /// <summary> int to octet string.</summary>
-        /// <summary> int to octet string.</summary>
-        private void ItoOSP(
-            int		i,
-            byte[]	sp)
-        {
-            sp[0] = (byte)((uint)i >> 24);
-            sp[1] = (byte)((uint)i >> 16);
-            sp[2] = (byte)((uint)i >> 8);
-            sp[3] = (byte)((uint)i >> 0);
-        }
-
-        /// <summary> long to octet string.</summary>
-        private void  LtoOSP(long l, byte[] sp)
-        {
-            sp[0] = (byte)((ulong)l >> 56);
-            sp[1] = (byte)((ulong)l >> 48);
-            sp[2] = (byte)((ulong)l >> 40);
-            sp[3] = (byte)((ulong)l >> 32);
-            sp[4] = (byte)((ulong)l >> 24);
-            sp[5] = (byte)((ulong)l >> 16);
-            sp[6] = (byte)((ulong)l >> 8);
-            sp[7] = (byte)((ulong)l >> 0);
-        }
+        public virtual bool HasFullMessage() => fullMessage;
 
         /// <summary> mask generator function, as described in Pkcs1v2.</summary>
-        private byte[] MaskGeneratorFunction1(
-            byte[]	Z,
-            int		zOff,
-            int		zLen,
-            int		length)
+        private byte[] MaskGeneratorFunction1(byte[] z, int zOff, int zLen, int length)
         {
+            int hLen = digest.GetDigestSize();
+
             byte[] mask = new byte[length];
-            byte[] hashBuf = new byte[hLen];
-            byte[] C = new byte[4];
-            int counter = 0;
+            byte[] buf = new byte[System.Math.Max(4, hLen)];
+            uint counter = 0U;
 
             digest.Reset();
 
-            do
+            int pos = 0, limit = length - hLen;
+            while (pos <= limit)
             {
-                ItoOSP(counter, C);
-
-                digest.BlockUpdate(Z, zOff, zLen);
-                digest.BlockUpdate(C, 0, C.Length);
-                digest.DoFinal(hashBuf, 0);
-
-                Array.Copy(hashBuf, 0, mask, counter * hLen, hLen);
+                Pack.UInt32_To_BE(counter++, buf);
+                digest.BlockUpdate(z, zOff, zLen);
+                digest.BlockUpdate(buf, 0, 4);
+                digest.DoFinal(mask, pos);
+                pos += hLen;
             }
-            while (++counter < (length / hLen));
-
-            if ((counter * hLen) < length)
+            if (pos < length)
             {
-                ItoOSP(counter, C);
-
-                digest.BlockUpdate(Z, zOff, zLen);
-                digest.BlockUpdate(C, 0, C.Length);
-                digest.DoFinal(hashBuf, 0);
-
-                Array.Copy(hashBuf, 0, mask, counter * hLen, mask.Length - (counter * hLen));
+                Pack.UInt32_To_BE(counter, buf);
+                digest.BlockUpdate(z, zOff, zLen);
+                digest.BlockUpdate(buf, 0, 4);
+                digest.DoFinal(buf, 0);
+                Array.Copy(buf, 0, mask, pos, length - pos);
             }
 
             return mask;
