@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     public sealed class SlhDsaSigner
         : ISigner
     {
-        private readonly Buffer m_buffer;
+        private readonly Buffer m_buffer = new Buffer();
         private readonly bool m_deterministic;
 
         private SlhDsaPrivateKeyParameters m_privateKey;
@@ -19,19 +19,12 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SphincsPlusEngine m_engine;
 
         public SlhDsaSigner()
+            : this(deterministic: false)
         {
-            m_buffer = new Buffer(Array.Empty<byte>());
-            m_deterministic = false;
         }
 
-        public SlhDsaSigner(byte[] ctx, bool deterministic)
+        public SlhDsaSigner(bool deterministic)
         {
-            if (ctx == null)
-                throw new ArgumentNullException(nameof(ctx));
-            if (ctx.Length > 255)
-                throw new ArgumentOutOfRangeException(nameof(ctx));
-
-            m_buffer = new Buffer((byte[])ctx.Clone());
             m_deterministic = deterministic;
         }
 
@@ -39,6 +32,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
+            byte[] providedContext = null;
+            if (parameters is ParametersWithContext withContext)
+            {
+                if (withContext.ContextLength > 255)
+                    throw new ArgumentOutOfRangeException("context too long", nameof(parameters));
+
+                providedContext = withContext.GetContext();
+                parameters = withContext.Parameters;
+            }
+
             if (forSigning)
             {
                 SecureRandom providedRandom = null;
@@ -63,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 m_engine = m_publicKey.Parameters.GetEngine();
             }
 
-            Reset();
+            m_buffer.Init(context: providedContext ?? Array.Empty<byte>());
         }
 
         public void Update(byte input)
@@ -108,16 +111,21 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         private sealed class Buffer : MemoryStream
         {
-            private readonly int m_prefixLength;
+            private int m_prefixLength;
 
-            internal Buffer(byte[] ctx)
+            internal void Init(byte[] context)
             {
-                // TODO Prehash variant uses 0x01 here
-                WriteByte(0x00);
-                WriteByte((byte)ctx.Length);
-                Write(ctx, 0, ctx.Length);
+                lock (this)
+                {
+                    TruncateAndClear(newLength: 0);
 
-                m_prefixLength = 2 + ctx.Length;
+                    // TODO Prehash variant uses 0x01 here
+                    WriteByte(0x00);
+                    WriteByte((byte)context.Length);
+                    Write(context, 0, context.Length);
+
+                    m_prefixLength = 2 + context.Length;
+                }
             }
 
             internal byte[] GenerateSignature(SlhDsaPrivateKeyParameters privateKey, SphincsPlusEngine engine,
@@ -154,12 +162,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             internal void Reset()
             {
-                lock (this)
-                {
-                    int count = Convert.ToInt32(Length);
-                    Array.Clear(GetBuffer(), m_prefixLength, count - m_prefixLength);
-                    SetLength(m_prefixLength);
-                }
+                lock (this) TruncateAndClear(newLength: m_prefixLength);
+            }
+
+            private void TruncateAndClear(int newLength)
+            {
+                int count = Convert.ToInt32(Length);
+                Array.Clear(GetBuffer(), newLength, count - newLength);
+                SetLength(newLength);
             }
         }
     }

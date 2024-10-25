@@ -10,29 +10,22 @@ namespace Org.BouncyCastle.Crypto.Signers
     public sealed class MLDsaSigner
         : ISigner
     {
-        private readonly byte[] m_ctx;
         private readonly bool m_deterministic;
 
         private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
 
+        private byte[] m_context;
         private MLDsaPrivateKeyParameters m_privateKey;
         private MLDsaPublicKeyParameters m_publicKey;
         private DilithiumEngine m_engine;
 
         public MLDsaSigner()
+            : this(deterministic: false)
         {
-            m_ctx = Array.Empty<byte>();
-            m_deterministic = false;
         }
 
-        public MLDsaSigner(byte[] ctx, bool deterministic)
+        public MLDsaSigner(bool deterministic)
         {
-            if (ctx == null)
-                throw new ArgumentNullException(nameof(ctx));
-            if (ctx.Length > 255)
-                throw new ArgumentOutOfRangeException(nameof(ctx));
-
-            m_ctx = (byte[])ctx.Clone();
             m_deterministic = deterministic;
         }
 
@@ -40,6 +33,18 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
+            byte[] providedContext = null;
+            if (parameters is ParametersWithContext withContext)
+            {
+                if (withContext.ContextLength > 255)
+                    throw new ArgumentOutOfRangeException("context too long", nameof(parameters));
+
+                providedContext = withContext.GetContext();
+                parameters = withContext.Parameters;
+            }
+
+            m_context = providedContext ?? Array.Empty<byte>();
+
             if (forSigning)
             {
                 SecureRandom providedRandom = null;
@@ -119,8 +124,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             // TODO Prehash variant uses 0x01 here
             m_msgRepDigest.Update(0x00);
-            m_msgRepDigest.Update((byte)m_ctx.Length);
-            m_msgRepDigest.BlockUpdate(m_ctx, 0, m_ctx.Length);
+            m_msgRepDigest.Update((byte)m_context.Length);
+            m_msgRepDigest.BlockUpdate(m_context, 0, m_context.Length);
         }
     }
 }
