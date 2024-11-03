@@ -42,8 +42,6 @@ namespace Org.BouncyCastle.Asn1.X509
         public static TbsCertificateStructure GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TbsCertificateStructure(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-        private readonly Asn1Sequence m_seq;
-
         private readonly DerInteger m_version;
         private readonly DerInteger m_serialNumber;
         private readonly AlgorithmIdentifier m_signature;
@@ -54,6 +52,8 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly DerBitString m_issuerUniqueID;
         private readonly DerBitString m_subjectUniqueID;
         private readonly X509Extensions m_extensions;
+
+        private readonly Asn1Sequence m_seq;
 
         private TbsCertificateStructure(Asn1Sequence seq)
 		{
@@ -102,7 +102,26 @@ namespace Org.BouncyCastle.Asn1.X509
 			m_seq = seq;
 		}
 
-		public int Version => m_version.IntValueExact + 1;
+        public TbsCertificateStructure(DerInteger version, DerInteger serialNumber, AlgorithmIdentifier signature,
+            X509Name issuer, Validity validity, X509Name subject, SubjectPublicKeyInfo subjectPublicKeyInfo,
+            DerBitString issuerUniqueID, DerBitString subjectUniqueID, X509Extensions extensions)
+        {
+            m_version = version ?? DerInteger.Zero;
+            m_serialNumber = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
+            m_signature = signature ?? throw new ArgumentNullException(nameof(signature));
+            m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
+            m_validity = validity ?? throw new ArgumentNullException(nameof(validity));
+            m_subject = subject ?? throw new ArgumentNullException(nameof(subject));
+            m_subjectPublicKeyInfo = subjectPublicKeyInfo ??
+                throw new ArgumentNullException(nameof(subjectPublicKeyInfo));
+            m_issuerUniqueID = issuerUniqueID;
+            m_subjectUniqueID = subjectUniqueID;
+            m_extensions = extensions;
+
+            m_seq = null;
+        }
+
+        public int Version => m_version.IntValueExact + 1;
 
 		public DerInteger VersionNumber => m_version;
 
@@ -130,9 +149,12 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public override Asn1Object ToAsn1Object()
         {
-            string property = Platform.GetEnvironmentVariable("Org.BouncyCastle.X509.Allow_Non-DER_TBSCert");
-            if (null == property || Platform.EqualsIgnoreCase("true", property))
-                return m_seq;
+            if (m_seq != null)
+            {
+                string property = Platform.GetEnvironmentVariable("Org.BouncyCastle.X509.Allow_Non-DER_TBSCert");
+                if (null == property || Platform.EqualsIgnoreCase("true", property))
+                    return m_seq;
+            }
 
             Asn1EncodableVector v = new Asn1EncodableVector(10);
 

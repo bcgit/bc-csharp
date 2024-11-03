@@ -49,6 +49,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly AlgorithmIdentifier m_sigAlgID;
         private readonly DerBitString m_sig;
 
+        // TODO[api] Fix parameter names
         public X509CertificateStructure(TbsCertificateStructure tbsCert, AlgorithmIdentifier sigAlgID, DerBitString sig)
         {
             m_tbsCert = tbsCert ?? throw new ArgumentNullException(nameof(tbsCert));
@@ -87,6 +88,12 @@ namespace Org.BouncyCastle.Asn1.X509
         public X509Name Subject => m_tbsCert.Subject;
 
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_tbsCert.SubjectPublicKeyInfo;
+
+        public DerBitString IssuerUniqueID => m_tbsCert.IssuerUniqueID;
+
+        public DerBitString SubjectUniqueID => m_tbsCert.SubjectUniqueID;
+
+        public X509Extensions Extensions => m_tbsCert.Extensions;
 
         public AlgorithmIdentifier SignatureAlgorithm => m_sigAlgID;
 

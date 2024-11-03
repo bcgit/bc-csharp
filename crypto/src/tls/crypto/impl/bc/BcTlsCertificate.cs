@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         /// <exception cref="IOException"/>
         public override byte[] GetExtension(DerObjectIdentifier extensionOid)
         {
-            X509Extensions extensions = m_certificate.TbsCertificate.Extensions;
+            X509Extensions extensions = m_certificate.Extensions;
             if (extensions != null)
             {
                 X509Extension extension = extensions.GetExtension(extensionOid);
@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected override bool SupportsKeyUsage(int keyUsageBits)
         {
-            X509Extensions exts = m_certificate.TbsCertificate.Extensions;
+            X509Extensions exts = m_certificate.Extensions;
             if (exts != null)
             {
                 KeyUsage ku = KeyUsage.FromExtensions(exts);

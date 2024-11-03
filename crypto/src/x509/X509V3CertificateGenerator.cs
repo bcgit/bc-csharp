@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.X509
 			tbsGen.SetSubject(template.Subject);
 			tbsGen.SetSubjectPublicKeyInfo(template.SubjectPublicKeyInfo);
 
-			var extensions = template.TbsCertificate.Extensions;
+			var extensions = template.Extensions;
 
             foreach (var oid in extensions.ExtensionOids)
             {
@@ -170,66 +170,69 @@ namespace Org.BouncyCastle.X509
 		}
 
         /// <summary>
-        /// Add a given extension field for the standard extensions tag (tag 3).
+        /// Add an extension using a string with a dotted decimal OID.
         /// </summary>
         /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
         /// <param name="critical">Is it critical.</param>
         /// <param name="extensionValue">The value.</param>
-        public void AddExtension(
-			string			oid,
-			bool			critical,
-			Asn1Encodable	extensionValue)
-		{
-			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
-		}
+        public void AddExtension(string oid, bool critical, Asn1Encodable extensionValue) =>
+            AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
 
-		/// <summary>
+        /// <summary>
         /// Add an extension to this certificate.
         /// </summary>
         /// <param name="oid">Its Object Identifier.</param>
         /// <param name="critical">Is it critical.</param>
         /// <param name="extensionValue">The value.</param>
-        public void AddExtension(
-			DerObjectIdentifier	oid,
-			bool				critical,
-			Asn1Encodable		extensionValue)
-        {
-			extGenerator.AddExtension(oid, critical, extensionValue);
-        }
+        public void AddExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extensionValue) =>
+            extGenerator.AddExtension(oid, critical, extensionValue);
 
-		/// <summary>
-		/// Add an extension using a string with a dotted decimal OID.
-		/// </summary>
-		/// <param name="oid">string containing a dotted decimal Object Identifier.</param>
-		/// <param name="critical">Is it critical.</param>
-		/// <param name="extensionValue">byte[] containing the value of this extension.</param>
-		public void AddExtension(
-			string	oid,
-			bool	critical,
-			byte[]	extensionValue)
-		{
-			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, DerOctetString.FromContents(extensionValue));
-		}
+        /// <summary>
+        /// Add an extension using a string with a dotted decimal OID.
+        /// </summary>
+        /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">The value.</param>
+        public void AddExtension(string oid, bool critical, IAsn1Convertible extensionValue) =>
+            AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
 
-		/// <summary>
+        /// <summary>
+        /// Add an extension to this certificate.
+        /// </summary>
+        /// <param name="oid">Its Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">The value.</param>
+        public void AddExtension(DerObjectIdentifier oid, bool critical, IAsn1Convertible extensionValue) =>
+            extGenerator.AddExtension(oid, critical, extensionValue);
+
+        /// <summary>
+        /// Add an extension using a string with a dotted decimal OID.
+        /// </summary>
+        /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">byte[] containing the value of this extension.</param>
+        public void AddExtension(string oid, bool critical, byte[] extensionValue) =>
+            AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
+
+        /// <summary>
         /// Add an extension to this certificate.
         /// </summary>
         /// <param name="oid">Its Object Identifier.</param>
         /// <param name="critical">Is it critical.</param>
         /// <param name="extensionValue">byte[] containing the value of this extension.</param>
-        public void AddExtension(
-			DerObjectIdentifier	oid,
-			bool				critical,
-			byte[]				extensionValue)
-        {
-			extGenerator.AddExtension(oid, critical, DerOctetString.FromContents(extensionValue));
-        }
+        public void AddExtension(DerObjectIdentifier oid, bool critical, byte[] extensionValue) =>
+            extGenerator.AddExtension(oid, critical, DerOctetString.FromContents(extensionValue));
 
-		/// <summary>
-		/// Add a given extension field for the standard extensions tag (tag 3),
-		/// copying the extension value from another certificate.
-		/// </summary>
-		public void CopyAndAddExtension(
+        public void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension) =>
+            extGenerator.AddExtension(oid, x509Extension);
+
+        public void AddExtension(Asn1.X509.Extension extension) => extGenerator.AddExtension(extension);
+
+        /// <summary>
+        /// Add a given extension field for the standard extensions tag (tag 3),
+        /// copying the extension value from another certificate.
+        /// </summary>
+        public void CopyAndAddExtension(
 			string			oid,
 			bool			critical,
 			X509Certificate	cert)

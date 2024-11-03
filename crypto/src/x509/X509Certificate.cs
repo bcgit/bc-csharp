@@ -320,7 +320,7 @@ namespace Org.BouncyCastle.X509
         /// <returns>A DerBitString.</returns>
         public virtual DerBitString IssuerUniqueID
         {
-            get { return c.TbsCertificate.IssuerUniqueID; }
+            get { return c.IssuerUniqueID; }
         }
 
         /// <summary>
@@ -329,7 +329,7 @@ namespace Org.BouncyCastle.X509
         /// <returns>A DerBitString.</returns>
         public virtual DerBitString SubjectUniqueID
         {
-            get { return c.TbsCertificate.SubjectUniqueID; }
+            get { return c.SubjectUniqueID; }
         }
 
         /// <summary>
@@ -455,12 +455,7 @@ namespace Org.BouncyCastle.X509
             return result;
         }
 
-        protected override X509Extensions GetX509Extensions()
-        {
-            return c.Version >= 3
-                ? c.TbsCertificate.Extensions
-                : null;
-        }
+        protected override X509Extensions GetX509Extensions() => c.Version >= 3 ? c.Extensions : null;
 
         /// <summary>
         /// Return the plain SubjectPublicKeyInfo that holds the encoded public key.
@@ -570,7 +565,7 @@ namespace Org.BouncyCastle.X509
                 buf.Append("                       ").AppendLine(Hex.ToHexString(sig, i, len));
             }
 
-            X509Extensions extensions = c.TbsCertificate.Extensions;
+            X509Extensions extensions = c.Extensions;
 
             if (extensions != null)
             {

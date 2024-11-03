@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Asn1.X509
     /// <remarks>Generator for X.509 extensions</remarks>
     public class X509ExtensionsGenerator
     {
+        // TODO Store Asn1.X509.Extension values (and consolidate into a KeyedCollection)?
         private Dictionary<DerObjectIdentifier, X509Extension> m_extensions =
             new Dictionary<DerObjectIdentifier, X509Extension>();
         private List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
@@ -62,6 +63,17 @@ namespace Org.BouncyCastle.Asn1.X509
                 new DerOctetString(concat.GetEncoded(Asn1Encodable.Der)));
         }
 
+        public void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension)
+        {
+            if (HasExtension(oid))
+                throw new ArgumentException("extension " + oid + " already added");
+
+            m_ordering.Add(oid);
+            m_extensions.Add(oid, x509Extension);
+        }
+
+        public void AddExtension(Extension extension) => AddExtension(extension.ExtnID, extension.GetX509Extension());
+
         public void AddExtensions(X509Extensions extensions)
         {
             foreach (var oid in extensions.GetExtensionOids())
@@ -99,29 +111,25 @@ namespace Org.BouncyCastle.Asn1.X509
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extValue) =>
             ReplaceExtension(oid, critical, extValue.GetEncoded(Asn1Encodable.Der));
 
-        public void ReplaceExtension(DerObjectIdentifier oid, bool critical, byte[] extValue)
+        public void ReplaceExtension(DerObjectIdentifier oid, bool critical, byte[] extValue) =>
+            ReplaceExtension(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
+
+        public void ReplaceExtension(DerObjectIdentifier oid, X509Extension x509Extension)
         {
             if (!HasExtension(oid))
                 throw new InvalidOperationException("extension " + oid + " not present");
 
-            // Note that the ordering is left as is
-            m_extensions[oid] = new X509Extension(critical, DerOctetString.FromContents(extValue));
+            m_extensions[oid] = x509Extension;
         }
+
+        public void ReplaceExtension(Extension extension) =>
+            ReplaceExtension(extension.ExtnID, extension.GetX509Extension());
 
         /// <summary>Reset the generator</summary>
         public void Reset()
         {
             m_extensions = new Dictionary<DerObjectIdentifier, X509Extension>();
             m_ordering = new List<DerObjectIdentifier>();
-        }
-
-        internal void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension)
-        {
-            if (m_extensions.ContainsKey(oid))
-                throw new ArgumentException("extension " + oid + " already added");
-
-            m_ordering.Add(oid);
-            m_extensions.Add(oid, x509Extension);
         }
     }
 }
