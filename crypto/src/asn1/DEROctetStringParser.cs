@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1
 		{
 			try
 			{
-				return new DerOctetString(stream.ToArray());
+				return DerOctetString.WithContents(stream.ToArray());
 			}
 			catch (IOException e)
 			{

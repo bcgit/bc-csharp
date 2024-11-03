@@ -138,10 +138,8 @@ namespace Org.BouncyCastle.Asn1
             return new DerExternal(this);
         }
 
-        internal override Asn1OctetString ToAsn1OctetString()
-        {
-            return new DerOctetString(BerOctetString.FlattenOctetStrings(GetConstructedOctetStrings()));
-        }
+        internal override Asn1OctetString ToAsn1OctetString() =>
+            DerOctetString.WithContents(BerOctetString.FlattenOctetStrings(GetConstructedOctetStrings()));
 
         internal override Asn1Set ToAsn1Set()
         {

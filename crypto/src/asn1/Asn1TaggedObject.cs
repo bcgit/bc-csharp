@@ -406,7 +406,7 @@ namespace Org.BouncyCastle.Asn1
         internal static Asn1Object CreatePrimitive(int tagClass, int tagNo, byte[] contentsOctets)
         {
             // Note: !CONSTRUCTED => IMPLICIT
-            return new DLTaggedObject(ParsedImplicit, tagClass, tagNo, new DerOctetString(contentsOctets));
+            return new DLTaggedObject(ParsedImplicit, tagClass, tagNo, DerOctetString.WithContents(contentsOctets));
         }
 
         private static Asn1TaggedObject CheckedCast(Asn1Object asn1Object)
