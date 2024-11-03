@@ -60,6 +60,10 @@ namespace Org.BouncyCastle.Asn1.Nist
         public static readonly DerObjectIdentifier IdKmacWithShake128 = HashAlgs.Branch("19");
         /// <summary> 2.16.840.1.101.3.4.2.20  </summary>
         public static readonly DerObjectIdentifier IdKmacWithShake256 = HashAlgs.Branch("20");
+        /// <summary> 2.16.840.1.101.3.4.2.21 </summary>
+        public static readonly DerObjectIdentifier IdKmac128 = HashAlgs.Branch("21");
+        /// <summary> 2.16.840.1.101.3.4.2.22  </summary>
+        public static readonly DerObjectIdentifier IdKmac256 = HashAlgs.Branch("22");
 
         /// <summary> 2.16.840.1.101.3.4.1 </summary>
         public static readonly DerObjectIdentifier Aes = NistAlgorithm.Branch("1");
