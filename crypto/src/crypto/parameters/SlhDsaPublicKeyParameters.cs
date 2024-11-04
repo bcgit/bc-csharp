@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public SlhDsaPublicKeyParameters(SlhDsaParameters parameters, byte[] encoding)
             : base(false, parameters)
         {
-            int n = parameters.N;
+            int n = parameters.ParameterSet.N;
             if (encoding.Length != 2 * n)
                 throw new ArgumentException("public key encoding does not match parameters", nameof(encoding));
 
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             //# Input: Message M, signature SIG, public key PK
             //# Output: bool
 
-            var engine = Parameters.GetEngine();
+            var engine = Parameters.ParameterSet.GetEngine();
 
             if (engine.SignatureLength != signature.Length)
                 return false;

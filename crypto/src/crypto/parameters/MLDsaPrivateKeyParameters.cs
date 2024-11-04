@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             // TODO Validation
 
-            var engine = parameters.GetEngine(null);
+            var engine = parameters.ParameterSet.GetEngine(null);
 
             int index = 0;
             m_rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes); index += DilithiumEngine.SeedBytes;
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal byte[] SignInternal(byte[] rnd, byte[] msg, int msgOff, int msgLen)
         {
-            var engine = Parameters.GetEngine(null);
+            var engine = Parameters.ParameterSet.GetEngine(null);
 
             byte[] sig = new byte[engine.CryptoBytes];
             engine.SignInternal(sig, sig.Length, msg, msgOff, msgLen, m_rho, m_k, m_tr, m_t0, m_s1, m_s2, rnd,

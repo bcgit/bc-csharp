@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public SlhDsaPrivateKeyParameters(SlhDsaParameters parameters, byte[] encoding)
             : base(true, parameters)
         {
-            int n = parameters.N;
+            int n = parameters.ParameterSet.N;
             if (encoding.Length != 4 * n)
                 throw new ArgumentException("private key encoding does not match parameters", nameof(encoding));
 
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             // # Input: Message M, private key SK = (SK.seed, SK.prf, PK.seed, PK.root)
             // # Output: SPHINCS+ signature SIG
 
-            var engine = Parameters.GetEngine();
+            var engine = Parameters.ParameterSet.GetEngine();
 
             if (optRand == null)
             {

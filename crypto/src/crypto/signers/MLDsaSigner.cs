@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     public sealed class MLDsaSigner
         : ISigner
     {
+        private readonly MLDsaParameterSet m_parameterSet;
         private readonly bool m_deterministic;
 
         private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
@@ -19,16 +20,18 @@ namespace Org.BouncyCastle.Crypto.Signers
         private MLDsaPublicKeyParameters m_publicKey;
         private DilithiumEngine m_engine;
 
-        public MLDsaSigner()
-            : this(deterministic: false)
+        public MLDsaSigner(MLDsaParameterSet parameterSet)
+            : this(parameterSet, deterministic: false)
         {
         }
 
-        public MLDsaSigner(bool deterministic)
+        public MLDsaSigner(MLDsaParameterSet parameterSet, bool deterministic)
         {
+            m_parameterSet = parameterSet;
             m_deterministic = deterministic;
         }
 
+        // TODO[pqc] Name via the parameter set?
         public string AlgorithmName => "ML-DSA";
 
         public void Init(bool forSigning, ICipherParameters parameters)
@@ -58,14 +61,14 @@ namespace Org.BouncyCastle.Crypto.Signers
                 m_publicKey = null;
 
                 var random = m_deterministic ? null : CryptoServicesRegistrar.GetSecureRandom(providedRandom);
-                m_engine = m_privateKey.Parameters.GetEngine(random);
+                m_engine = GetEngine(m_privateKey.Parameters, random);
             }
             else
             {
                 m_privateKey = null;
                 m_publicKey = (MLDsaPublicKeyParameters)parameters;
 
-                m_engine = m_publicKey.Parameters.GetEngine(random: null);
+                m_engine = GetEngine(m_publicKey.Parameters, random: null);
             }
 
             Reset();
@@ -126,6 +129,16 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_msgRepDigest.Update(0x00);
             m_msgRepDigest.Update((byte)m_context.Length);
             m_msgRepDigest.BlockUpdate(m_context, 0, m_context.Length);
+        }
+
+        private DilithiumEngine GetEngine(MLDsaParameters keyParameters, SecureRandom random)
+        {
+            var keyParameterSet = keyParameters.ParameterSet;
+
+            if (m_parameterSet != null && keyParameters.ParameterSet != m_parameterSet)
+                throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
+
+            return keyParameterSet.GetEngine(random);
         }
     }
 }

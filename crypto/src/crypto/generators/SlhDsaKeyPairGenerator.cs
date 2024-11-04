@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            var engine = m_parameters.GetEngine();
+            var engine = m_parameters.ParameterSet.GetEngine();
 
             byte[] skSeed = SecRand(engine.N);
             byte[] skPrf = SecRand(engine.N);

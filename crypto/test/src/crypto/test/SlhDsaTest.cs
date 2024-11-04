@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             { "SLH-DSA-SHAKE-256f", SlhDsaParameters.SLH_DSA_SHAKE_256f },
         };
 
-        private static readonly IEnumerable<SlhDsaParameters> ParameterSets = Parameters.Values;
+        private static readonly IEnumerable<SlhDsaParameters> ParametersValues = Parameters.Values;
 
         private static readonly string[] KeyGenAcvpFiles =
         {
@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             "sigVer_SLH-DSA-SHAKE-256f.txt",
         };
 
-        [TestCaseSource(nameof(ParameterSets))]
+        [TestCaseSource(nameof(ParametersValues))]
         [Parallelizable(ParallelScope.All)]
         public void Consistency(SlhDsaParameters parameters)
         {
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 var kp = kpg.GenerateKeyPair();
 
-                var signer = new SlhDsaSigner();
+                var signer = new SlhDsaSigner(parameters.ParameterSet);
 
                 {
                     int msgLen = random.Next(msg.Length + 1);

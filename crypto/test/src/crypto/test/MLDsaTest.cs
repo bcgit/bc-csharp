@@ -23,26 +23,26 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static readonly Dictionary<string, MLDsaParameters> AcvpFileParameters =
             new Dictionary<string, MLDsaParameters>()
         {
-            { "keyGen_ML-DSA-44.txt", MLDsaParameters.ML_DSA_44 },
-            { "keyGen_ML-DSA-65.txt", MLDsaParameters.ML_DSA_65 },
-            { "keyGen_ML-DSA-87.txt", MLDsaParameters.ML_DSA_87 },
-            { "sigGen_ML-DSA-44.txt", MLDsaParameters.ML_DSA_44 },
-            { "sigGen_ML-DSA-65.txt", MLDsaParameters.ML_DSA_65 },
-            { "sigGen_ML-DSA-87.txt", MLDsaParameters.ML_DSA_87 },
-            { "sigVer_ML-DSA-44.txt", MLDsaParameters.ML_DSA_44 },
-            { "sigVer_ML-DSA-65.txt", MLDsaParameters.ML_DSA_65 },
-            { "sigVer_ML-DSA-87.txt", MLDsaParameters.ML_DSA_87 },
+            { "keyGen_ML-DSA-44.txt", MLDsaParameters.ml_dsa_44 },
+            { "keyGen_ML-DSA-65.txt", MLDsaParameters.ml_dsa_65 },
+            { "keyGen_ML-DSA-87.txt", MLDsaParameters.ml_dsa_87 },
+            { "sigGen_ML-DSA-44.txt", MLDsaParameters.ml_dsa_44 },
+            { "sigGen_ML-DSA-65.txt", MLDsaParameters.ml_dsa_65 },
+            { "sigGen_ML-DSA-87.txt", MLDsaParameters.ml_dsa_87 },
+            { "sigVer_ML-DSA-44.txt", MLDsaParameters.ml_dsa_44 },
+            { "sigVer_ML-DSA-65.txt", MLDsaParameters.ml_dsa_65 },
+            { "sigVer_ML-DSA-87.txt", MLDsaParameters.ml_dsa_87 },
         };
 
         private static readonly Dictionary<string, MLDsaParameters> Parameters =
             new Dictionary<string, MLDsaParameters>()
         {
-            { "ML-DSA-44", MLDsaParameters.ML_DSA_44 },
-            { "ML-DSA-65", MLDsaParameters.ML_DSA_65 },
-            { "ML-DSA-87", MLDsaParameters.ML_DSA_87 },
+            { "ML-DSA-44", MLDsaParameters.ml_dsa_44 },
+            { "ML-DSA-65", MLDsaParameters.ml_dsa_65 },
+            { "ML-DSA-87", MLDsaParameters.ml_dsa_87 },
         };
 
-        private static readonly IEnumerable<MLDsaParameters> ParameterSets = Parameters.Values;
+        private static readonly IEnumerable<MLDsaParameters> ParametersValues = Parameters.Values;
 
         private static readonly string[] KeyGenAcvpFiles =
         {
@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             "sigVer_ML-DSA-87.txt",
         };
 
-        [TestCaseSource(nameof(ParameterSets))]
+        [TestCaseSource(nameof(ParametersValues))]
         [Parallelizable(ParallelScope.All)]
         public void Consistency(MLDsaParameters parameters)
         {
@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     var kp = kpg.GenerateKeyPair();
 
-                    var signer = new MLDsaSigner();
+                    var signer = new MLDsaSigner(parameters.ParameterSet);
 
                     for (int j = 0; j < 2; ++j)
                     {

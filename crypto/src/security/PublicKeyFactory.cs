@@ -274,11 +274,11 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
             }
-            else if (MLDsaParameters.FromOid(algOid) is MLDsaParameters mlDsaParameters)
+            else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
             {
                 return GetMLDsaPublicKey(mlDsaParameters, keyInfo.PublicKey);
             }
-            else if (SlhDsaParameters.FromOid(algOid) is SlhDsaParameters slhDsaParameters)
+            else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
                 return GetSlhDsaPublicKey(slhDsaParameters, keyInfo.PublicKey);
             }

@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         : ISigner
     {
         private readonly Buffer m_buffer = new Buffer();
+        private readonly SlhDsaParameterSet m_parameterSet;
         private readonly bool m_deterministic;
 
         private SlhDsaPrivateKeyParameters m_privateKey;
@@ -18,16 +19,18 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom m_random;
         private SphincsPlusEngine m_engine;
 
-        public SlhDsaSigner()
-            : this(deterministic: false)
+        public SlhDsaSigner(SlhDsaParameterSet parameterSet)
+            : this(parameterSet, deterministic: false)
         {
         }
 
-        public SlhDsaSigner(bool deterministic)
+        public SlhDsaSigner(SlhDsaParameterSet parameterSet, bool deterministic)
         {
+            m_parameterSet = parameterSet;
             m_deterministic = deterministic;
         }
 
+        // TODO[pqc] Name via the parameter set?
         public string AlgorithmName => "SLH-DSA";
 
         public void Init(bool forSigning, ICipherParameters parameters)
@@ -55,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 m_publicKey = null;
 
                 m_random = m_deterministic ? null : CryptoServicesRegistrar.GetSecureRandom(providedRandom);
-                m_engine = m_privateKey.Parameters.GetEngine();
+                m_engine = GetEngine(m_privateKey.Parameters);
             }
             else
             {
@@ -63,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 m_publicKey = (SlhDsaPublicKeyParameters)parameters;
 
                 m_random = null;
-                m_engine = m_publicKey.Parameters.GetEngine();
+                m_engine = GetEngine(m_publicKey.Parameters);
             }
 
             m_buffer.Init(context: providedContext ?? Array.Empty<byte>());
@@ -107,6 +110,16 @@ namespace Org.BouncyCastle.Crypto.Signers
         public void Reset()
         {
             m_buffer.Reset();
+        }
+
+        private SphincsPlusEngine GetEngine(SlhDsaParameters keyParameters)
+        {
+            var keyParameterSet = keyParameters.ParameterSet;
+
+            if (m_parameterSet != null && keyParameters.ParameterSet != m_parameterSet)
+                throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
+
+            return keyParameterSet.GetEngine();
         }
 
         private sealed class Buffer : MemoryStream

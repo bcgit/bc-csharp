@@ -344,7 +344,7 @@ namespace Org.BouncyCastle.Security
                         gostParams.DigestParamSet,
                         gostParams.EncryptionParamSet));
             }
-            else if (MLDsaParameters.FromOid(algOid) is MLDsaParameters mlDsaParameters)
+            else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
             {
                 // TODO[pqc] Support ASN.1 sequence (see bc-java)?
 
@@ -360,7 +360,7 @@ namespace Org.BouncyCastle.Security
 
                 return new MLDsaPrivateKeyParameters(mlDsaParameters, encoding.GetOctets());
             }
-            else if (SlhDsaParameters.FromOid(algOid) is SlhDsaParameters slhDsaParameters)
+            else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
                 Asn1Encodable obj = keyInfo.ParsePrivateKey();
 

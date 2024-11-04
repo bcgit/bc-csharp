@@ -7,9 +7,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         private readonly SlhDsaParameters m_parameters;
 
-        // TODO[pqc] Check whether 256 is meaningful
         public SlhDsaKeyGenerationParameters(SecureRandom random, SlhDsaParameters parameters)
-            : base(random, 256)
+            : base(random, 0)
         {
             m_parameters = parameters;
         }

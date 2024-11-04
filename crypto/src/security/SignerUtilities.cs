@@ -17,6 +17,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -478,6 +479,32 @@ namespace Org.BouncyCastle.Security
             Oids["SHA256withSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
             Oids["SM3withSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
 
+            /*
+             * ML-DSA
+             */
+            foreach (MLDsaParameters mlDsaParameters in MLDsaParameters.ByName.Values)
+            {
+                string name = mlDsaParameters.Name;
+                DerObjectIdentifier oid = mlDsaParameters.Oid;
+
+                AlgorithmMap.Add(name.ToUpperInvariant(), name);
+                AlgorithmOidMap.Add(oid, name);
+                Oids.Add(name, oid);
+            }
+
+            /*
+             * SLH-DSA
+             */
+            foreach (SlhDsaParameters slhDsaParameters in SlhDsaParameters.ByName.Values)
+            {
+                string name = slhDsaParameters.Name;
+                DerObjectIdentifier oid = slhDsaParameters.Oid;
+
+                AlgorithmMap.Add(name.ToUpperInvariant(), name);
+                AlgorithmOidMap.Add(oid, name);
+                Oids.Add(name, oid);
+            }
+
 #if DEBUG
             foreach (var key in AlgorithmMap.Keys)
             {
@@ -771,6 +798,24 @@ namespace Org.BouncyCastle.Security
                         return new X931Signer(cipher, digest);
                     }
                 }
+            }
+
+            if (MLDsaParameters.ByName.TryGetValue(mechanism, out MLDsaParameters mlDsaParameters))
+            {
+                var preHashOid = mlDsaParameters.PreHashOid;
+                if (preHashOid == null)
+                    return new MLDsaSigner(mlDsaParameters.ParameterSet);
+
+                // TODO[pqc] HashML-DSA
+            }
+
+            if (SlhDsaParameters.ByName.TryGetValue(mechanism, out SlhDsaParameters slhDsaParameters))
+            {
+                var preHashOid = slhDsaParameters.PreHashOid;
+                if (preHashOid == null)
+                    return new SlhDsaSigner(slhDsaParameters.ParameterSet);
+
+                // TODO[pqc] HashSLH-DSA
             }
 
             return null;

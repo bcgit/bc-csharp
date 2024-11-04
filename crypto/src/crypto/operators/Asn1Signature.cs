@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -150,6 +151,30 @@ namespace Org.BouncyCastle.Crypto.Operators
 
 			AlgorithmIdentifier sha512AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, DerNull.Instance);
             m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
+
+            /*
+             * ML-DSA
+             */
+            foreach (MLDsaParameters mlDsaParameters in MLDsaParameters.ByName.Values)
+            {
+                string name = mlDsaParameters.Name;
+                DerObjectIdentifier oid = mlDsaParameters.Oid;
+
+                m_algorithms.Add(name, oid);
+                noParams.Add(oid);
+            }
+
+            /*
+             * SLH-DSA
+             */
+            foreach (SlhDsaParameters slhDsaParameters in SlhDsaParameters.ByName.Values)
+            {
+                string name = slhDsaParameters.Name;
+                DerObjectIdentifier oid = slhDsaParameters.Oid;
+
+                m_algorithms.Add(name, oid);
+                noParams.Add(oid);
+            }
 		}
 
         /**

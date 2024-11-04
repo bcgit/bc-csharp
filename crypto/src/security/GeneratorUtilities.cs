@@ -17,6 +17,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -267,9 +268,12 @@ namespace Org.BouncyCastle.Security
             AddKpgAlgorithm("GOST3410",
                 "GOST-3410",
                 "GOST-3410-94");
+            AddKpgAlgorithm("ML-DSA");
+            AddKpgAlgorithm("ML-KEM");
             AddKpgAlgorithm("RSA",
                 PkcsObjectIdentifiers.RsaEncryption);
             AddKpgAlgorithm("RSASSA-PSS");
+            AddKpgAlgorithm("SLH-DSA");
             AddKpgAlgorithm("X25519",
                 EdECObjectIdentifiers.id_X25519);
             AddKpgAlgorithm("X448",
@@ -409,8 +413,17 @@ namespace Org.BouncyCastle.Security
             if (canonicalName == "GOST3410")
                 return new Gost3410KeyPairGenerator();
 
+            if (canonicalName == "ML-DSA")
+                return new MLDsaKeyPairGenerator();
+
+            if (canonicalName == "ML-KEM")
+                return new MLKemKeyPairGenerator();
+
             if (canonicalName == "RSA" || canonicalName == "RSASSA-PSS")
                 return new RsaKeyPairGenerator();
+
+            if (canonicalName == "SLH-DSA")
+                return new SlhDsaKeyPairGenerator();
 
             if (canonicalName == "X25519")
                 return new X25519KeyPairGenerator();

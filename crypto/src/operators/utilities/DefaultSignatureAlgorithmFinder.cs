@@ -17,6 +17,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Operators.Utilities
 {
@@ -500,6 +501,42 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids[X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256] = NistObjectIdentifiers.IdShake256;
             DigestOids[X509ObjectIdentifiers.id_ecdsa_with_shake128] = NistObjectIdentifiers.IdShake128;
             DigestOids[X509ObjectIdentifiers.id_ecdsa_with_shake256] = NistObjectIdentifiers.IdShake256;
+
+            /*
+             * ML-DSA
+             */
+            foreach (MLDsaParameters mlDsaParameters in MLDsaParameters.ByName.Values)
+            {
+                string name = mlDsaParameters.Name;
+                DerObjectIdentifier oid = mlDsaParameters.Oid;
+                DerObjectIdentifier preHashOid = mlDsaParameters.PreHashOid;
+
+                Algorithms.Add(name, oid);
+                NoParams.Add(oid);
+
+                if (preHashOid != null)
+                {
+                    DigestOids.Add(oid, preHashOid);
+                }
+            }
+
+            /*
+             * SLH-DSA
+             */
+            foreach (SlhDsaParameters slhDsaParameters in SlhDsaParameters.ByName.Values)
+            {
+                string name = slhDsaParameters.Name;
+                DerObjectIdentifier oid = slhDsaParameters.Oid;
+                DerObjectIdentifier preHashOid = slhDsaParameters.PreHashOid;
+
+                Algorithms.Add(name, oid);
+                NoParams.Add(oid);
+
+                if (preHashOid != null)
+                {
+                    DigestOids.Add(oid, preHashOid);
+                }
+            }
         }
 
         private static RsassaPssParameters CreatePssParams(AlgorithmIdentifier hashAlgID, int saltSize)
