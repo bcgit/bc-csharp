@@ -22,7 +22,8 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V3TbsCertificateGenerator
     {
-        internal DerTaggedObject         version = new DerTaggedObject(0, DerInteger.Two);
+        private static readonly DerTaggedObject Version = new DerTaggedObject(0, DerInteger.Two);
+
         internal DerInteger              serialNumber;
         internal AlgorithmIdentifier     signature;
         internal X509Name                issuer;
@@ -131,7 +132,18 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new InvalidOperationException("not all mandatory fields set in V3 TBScertificate generator");
             }
 
-            return GenerateTbsStructure();
+            Asn1EncodableVector v = new Asn1EncodableVector(9);
+            v.Add(Version);
+            v.Add(serialNumber);
+            // No signature
+            v.Add(issuer);
+            v.Add(validity ?? new Validity(startDate, endDate));
+            v.Add(subject ?? X509Name.GetInstance(DerSequence.Empty));
+            v.Add(subjectPublicKeyInfo);
+            v.AddOptionalTagged(false, 1, issuerUniqueID);
+            v.AddOptionalTagged(false, 2, subjectUniqueID);
+            v.AddOptionalTagged(true, 3, extensions);
+            return new DerSequence(v);
         }
 
         public TbsCertificateStructure GenerateTbsCertificate()
@@ -143,23 +155,9 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new InvalidOperationException("not all mandatory fields set in V3 TBScertificate generator");
             }
 
-            return TbsCertificateStructure.GetInstance(GenerateTbsStructure());
-        }
-
-        private Asn1Sequence GenerateTbsStructure()
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(10);
-            v.Add(version);
-            v.Add(serialNumber);
-            v.AddOptional(signature);
-            v.Add(issuer);
-            v.Add(validity ?? new Validity(startDate, endDate));
-            v.Add((Asn1Encodable)subject ?? DerSequence.Empty);
-            v.Add(subjectPublicKeyInfo);
-            v.AddOptionalTagged(false, 1, issuerUniqueID);
-            v.AddOptionalTagged(false, 2, subjectUniqueID);
-            v.AddOptionalTagged(true, 3, extensions);
-            return new DerSequence(v);
+            return new TbsCertificateStructure(version: DerInteger.Two, serialNumber, signature, issuer,
+                validity ?? new Validity(startDate, endDate), subject ?? X509Name.GetInstance(DerSequence.Empty),
+                subjectPublicKeyInfo, issuerUniqueID, subjectUniqueID, extensions);
         }
     }
 }
