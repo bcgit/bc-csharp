@@ -632,15 +632,14 @@ namespace Org.BouncyCastle.X509
         }
 
         // TODO[api] Rename 'key' to 'publicKey'
-        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
-        {
-            return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
-        }
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key) =>
+            CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
 
-        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
-        {
-            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
-        }
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider) =>
+            CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+
+        public virtual bool IsAlternativeSignatureValid(AsymmetricKeyParameter publicKey) =>
+            IsAlternativeSignatureValid(new Asn1VerifierFactoryProvider(publicKey));
 
         public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
         {

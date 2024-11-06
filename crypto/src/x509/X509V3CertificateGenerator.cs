@@ -280,13 +280,23 @@ namespace Org.BouncyCastle.X509
 
             if (!extGenerator.IsEmpty)
             {
+                var deltaExtension = extGenerator.GetExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor);
+                if (deltaExtension != null)
+                {
+                    var descriptor = DeltaCertificateTool.TrimDeltaCertificateDescriptor(
+                        DeltaCertificateDescriptor.GetInstance(deltaExtension.GetParsedValue()),
+                        tbsGen.GenerateTbsCertificate(),
+                        extGenerator.Generate());
+
+                    extGenerator.ReplaceExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor,
+                        deltaExtension.IsCritical, descriptor);
+                }
+
                 tbsGen.SetExtensions(extGenerator.Generate());
             }
 
             var tbsCertificate = tbsGen.GenerateTbsCertificate();
-
 			var signature = X509Utilities.GenerateSignature(signatureFactory, tbsCertificate);
-
 			return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
         }
 
@@ -304,17 +314,43 @@ namespace Org.BouncyCastle.X509
         public X509Certificate Generate(ISignatureFactory signatureFactory, bool isCritical,
 			ISignatureFactory altSignatureFactory)
 		{
-            tbsGen.SetSignature(null);
-
+            var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
             var altSigAlgID = (AlgorithmIdentifier)altSignatureFactory.AlgorithmDetails;
+
 			extGenerator.AddExtension(X509Extensions.AltSignatureAlgorithm, isCritical, altSigAlgID);
 
+            var deltaExtension = extGenerator.GetExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor);
+            if (deltaExtension != null)
+            {
+                tbsGen.SetSignature(sigAlgID);
+
+                // the altSignatureValue is not present yet, but it must be in the deltaCertificate and
+                // it must be different (by definition!). We add a dummy one to trigger inclusion.
+                var tmpExtGenerator = new X509ExtensionsGenerator();
+                tmpExtGenerator.AddExtensions(extGenerator.Generate());
+                tmpExtGenerator.AddExtension(X509Extensions.AltSignatureValue, false, DerNull.Instance);
+
+                var descriptor = DeltaCertificateTool.TrimDeltaCertificateDescriptor(
+                    DeltaCertificateDescriptor.GetInstance(deltaExtension.GetParsedValue()),
+                    tbsGen.GenerateTbsCertificate(),
+                    tmpExtGenerator.Generate());
+
+                extGenerator.ReplaceExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor,
+                    deltaExtension.IsCritical, descriptor);
+            }
+
+            tbsGen.SetSignature(null);
             tbsGen.SetExtensions(extGenerator.Generate());
 
 			var altSignature = X509Utilities.GenerateSignature(altSignatureFactory, tbsGen.GeneratePreTbsCertificate());
 			extGenerator.AddExtension(X509Extensions.AltSignatureValue, isCritical, altSignature);
 
-			return Generate(signatureFactory);
+            tbsGen.SetSignature(sigAlgID);
+            tbsGen.SetExtensions(extGenerator.Generate());
+
+            var tbsCertificate = tbsGen.GenerateTbsCertificate();
+            var signature = X509Utilities.GenerateSignature(signatureFactory, tbsCertificate);
+            return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
 		}
 
 		/// <summary>
@@ -336,10 +372,7 @@ namespace Org.BouncyCastle.X509
 
             for (int i = 0; i != id.Length; i++)
             {
-                if (id[i])
-                {
-                    bytes[i >> 3] |= (byte)(0x80 >> (i & 7));
-                }
+                bytes[i >> 3] |= (byte)(id[i] ? (0x80 >> (i & 7)) : 0);
             }
 
             return new DerBitString(bytes, (8 - id.Length) & 7);

@@ -184,6 +184,12 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static readonly DerObjectIdentifier AltSignatureValue = new DerObjectIdentifier("2.5.29.74");
 
+        /**
+         * delta certificate extension - prototype value will change!
+         */
+        public static readonly DerObjectIdentifier DRAFT_DeltaCertificateDescriptor =
+            new DerObjectIdentifier("2.16.840.1.114027.80.6.1");
+
         private readonly Dictionary<DerObjectIdentifier, X509Extension> m_extensions =
             new Dictionary<DerObjectIdentifier, X509Extension>();
         private readonly List<DerObjectIdentifier> m_ordering;
