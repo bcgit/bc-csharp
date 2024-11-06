@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.X509
         };
 
         public void AddExtension(DerObjectIdentifier oid, bool critical, IAsn1Convertible extValue) =>
-            AddExtension(oid, critical, extValue.ToAsn1Object().GetEncoded(Asn1Encodable.Der));
+            AddExtension(oid, critical, extValue.ToAsn1Object());
 
         /// <summary>
         /// Add an extension with the given oid and the passed in value to be included
@@ -31,8 +31,17 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <param name="oid">OID for the extension.</param>
         /// <param name="critical">True if critical, false otherwise.</param>
         /// <param name="extValue">The ASN.1 object to be included in the extension.</param>
-        public void AddExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extValue) =>
-            AddExtension(oid, critical, extValue.GetEncoded(Asn1Encodable.Der));
+        public void AddExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extValue)
+        {
+            if (m_extensions.TryGetValue(oid, out X509Extension existingExtension))
+            {
+                ImplAddExtensionDup(existingExtension, oid, critical, extValue.GetEncoded(Asn1Encodable.Der));
+            }
+            else
+            {
+                ImplAddExtension(oid, new X509Extension(critical, new DerOctetString(extValue)));
+            }
+        }
 
         /// <summary>
         /// Add an extension with the given oid and the passed in byte array to be wrapped
@@ -43,24 +52,14 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <param name="extValue">The byte array to be wrapped.</param>
         public void AddExtension(DerObjectIdentifier oid, bool critical, byte[] extValue)
         {
-            if (!m_extensions.TryGetValue(oid, out X509Extension existingExtension))
+            if (m_extensions.TryGetValue(oid, out X509Extension existingExtension))
             {
-                m_ordering.Add(oid);
-                m_extensions.Add(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
-                return;
+                ImplAddExtensionDup(existingExtension, oid, critical, extValue);
             }
-
-            if (!m_dupsAllowed.Contains(oid))
-                throw new ArgumentException("extension " + oid + " already added");
-
-            Asn1Sequence seq1 = Asn1Sequence.GetInstance(existingExtension.Value.GetOctets());
-            Asn1Sequence seq2 = Asn1Sequence.GetInstance(extValue);
-
-            var concat = DerSequence.Concatenate(seq1, seq2);
-
-            m_extensions[oid] = new X509Extension(
-                existingExtension.IsCritical | critical,
-                new DerOctetString(concat.GetEncoded(Asn1Encodable.Der)));
+            else
+            {
+                ImplAddExtension(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
+            }
         }
 
         public void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension)
@@ -68,8 +67,7 @@ namespace Org.BouncyCastle.Asn1.X509
             if (HasExtension(oid))
                 throw new ArgumentException("extension " + oid + " already added");
 
-            m_ordering.Add(oid);
-            m_extensions.Add(oid, x509Extension);
+            ImplAddExtension(oid, x509Extension);
         }
 
         public void AddExtension(Extension extension) => AddExtension(extension.ExtnID, extension.GetX509Extension());
@@ -106,10 +104,10 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, IAsn1Convertible extValue) =>
-            ReplaceExtension(oid, critical, extValue.ToAsn1Object().GetEncoded(Asn1Encodable.Der));
+            ReplaceExtension(oid, critical, extValue.ToAsn1Object());
 
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extValue) =>
-            ReplaceExtension(oid, critical, extValue.GetEncoded(Asn1Encodable.Der));
+            ReplaceExtension(oid, new X509Extension(critical, new DerOctetString(extValue)));
 
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, byte[] extValue) =>
             ReplaceExtension(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
@@ -130,6 +128,28 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             m_extensions = new Dictionary<DerObjectIdentifier, X509Extension>();
             m_ordering = new List<DerObjectIdentifier>();
+        }
+
+        private void ImplAddExtension(DerObjectIdentifier oid, X509Extension x509Extension)
+        {
+            m_ordering.Add(oid);
+            m_extensions.Add(oid, x509Extension);
+        }
+
+        private void ImplAddExtensionDup(X509Extension existingExtension, DerObjectIdentifier oid, bool critical,
+            byte[] extValue)
+        {
+            if (!m_dupsAllowed.Contains(oid))
+                throw new ArgumentException("extension " + oid + " already added");
+
+            Asn1Sequence seq1 = Asn1Sequence.GetInstance(existingExtension.Value.GetOctets());
+            Asn1Sequence seq2 = Asn1Sequence.GetInstance(extValue);
+
+            var concat = DerSequence.Concatenate(seq1, seq2);
+
+            m_extensions[oid] = new X509Extension(
+                existingExtension.IsCritical | critical,
+                new DerOctetString(concat));
         }
     }
 }
