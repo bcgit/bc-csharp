@@ -11,18 +11,17 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
 {
-	/**
+    /**
 	 * Base class for an RFC 3161 Time Stamp Request.
 	 */
-	public class TimeStampRequest
+    public class TimeStampRequest
 		: X509ExtensionBase
 	{
-		private TimeStampReq req;
+		private readonly TimeStampReq m_req;
 
-		public TimeStampRequest(
-			TimeStampReq req)
+		public TimeStampRequest(TimeStampReq req)
 		{
-			this.req = req;
+			m_req = req;
 		}
 
 		/**
@@ -31,8 +30,7 @@ namespace Org.BouncyCastle.Tsp
 		* @param req byte array containing the request.
 		* @throws IOException if the request is malformed.
 		*/
-		public TimeStampRequest(
-			byte[] req)
+		public TimeStampRequest(byte[] req)
 			: this(new Asn1InputStream(req))
 		{
 		}
@@ -43,18 +41,16 @@ namespace Org.BouncyCastle.Tsp
 		* @param in input stream containing the request.
 		* @throws IOException if the request is malformed.
 		*/
-		public TimeStampRequest(
-			Stream input)
+		public TimeStampRequest(Stream input)
 			: this(new Asn1InputStream(input))
 		{
 		}
 
-		private TimeStampRequest(
-			Asn1InputStream str)
+		private TimeStampRequest(Asn1InputStream str)
 		{
 			try
 			{
-				this.req = TimeStampReq.GetInstance(str.ReadObject());
+				m_req = TimeStampReq.GetInstance(str.ReadObject());
 			}
 			catch (InvalidCastException e)
 			{
@@ -66,50 +62,22 @@ namespace Org.BouncyCastle.Tsp
 			}
 		}
 
-		public int Version
-		{
-            get { return req.Version.IntValueExact; }
-		}
+		public int Version => m_req.Version.IntValueExact;
 
-		public string MessageImprintAlgOid
-		{
-            get { return req.MessageImprint.HashAlgorithm.Algorithm.Id; }
-		}
+		public MessageImprint MessageImprint => m_req.MessageImprint;
 
-		public byte[] GetMessageImprintDigest()
-		{
-			return req.MessageImprint.GetHashedMessage();
-		}
+		public AlgorithmIdentifier MessageImprintAlgID => m_req.MessageImprint.HashAlgorithm;
 
-		public string ReqPolicy
-		{
-			get
-			{
-				return req.ReqPolicy == null
-					?	null
-					:	req.ReqPolicy.Id;
-			}
-		}
+		// TODO[api] Change this to return just the OID itself
+        public string MessageImprintAlgOid => m_req.MessageImprint.HashAlgorithm.Algorithm.Id;
 
-		public BigInteger Nonce
-		{
-			get
-			{
-				return req.Nonce == null
-					?	null
-					:	req.Nonce.Value;
-			}
-		}
+		public byte[] GetMessageImprintDigest() => m_req.MessageImprint.GetHashedMessage();
 
-		public bool CertReq
-		{
-			get
-			{
-				return req.CertReq == null
-					?	false
-					:	req.CertReq.IsTrue;
-			}
-		}
+		public string ReqPolicy => m_req.ReqPolicy?.Id;
+
+		public BigInteger Nonce => m_req.Nonce?.Value;
+
+		public bool CertReq => (m_req.CertReq ?? DerBoolean.False).IsTrue;
 
 		/**
 		* Validate the timestamp request, checking the digest to see if it is of an
@@ -146,9 +114,9 @@ namespace Org.BouncyCastle.Tsp
 		/**
 		 * return the ASN.1 encoded representation of this object.
 		 */
-		public byte[] GetEncoded() => req.GetEncoded();
+		public byte[] GetEncoded() => m_req.GetEncoded();
 
-		internal X509Extensions Extensions => req.Extensions;
+		internal X509Extensions Extensions => m_req.Extensions;
 
 		public virtual bool HasExtensions => Extensions != null;
 

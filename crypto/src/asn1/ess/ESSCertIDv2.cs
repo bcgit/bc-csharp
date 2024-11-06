@@ -1,7 +1,9 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Ess
@@ -9,8 +11,15 @@ namespace Org.BouncyCastle.Asn1.Ess
     public class EssCertIDv2
         : Asn1Encodable
     {
-        private static readonly AlgorithmIdentifier DefaultAlgID = new AlgorithmIdentifier(
-            NistObjectIdentifiers.IdSha256);
+        private static readonly AlgorithmIdentifier DefaultHashAlgorithm =
+            DefaultDigestAlgorithmFinder.Instance.Find(NistObjectIdentifiers.IdSha256);
+
+        public static EssCertIDv2 From(EssCertID essCertID)
+        {
+            AlgorithmIdentifier hashAlgorithm = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
+
+            return new EssCertIDv2(hashAlgorithm, essCertID.CertHash, essCertID.IssuerSerial);
+        }
 
         public static EssCertIDv2 GetInstance(object obj)
         {
@@ -38,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Ess
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_hashAlgorithm = Asn1Utilities.ReadOptional(seq, ref pos, AlgorithmIdentifier.GetOptional)
-                ?? DefaultAlgID;
+                ?? DefaultHashAlgorithm;
             m_certHash = Asn1OctetString.GetInstance(seq[pos++]);
             m_issuerSerial = Asn1Utilities.ReadOptional(seq, ref pos, IssuerSerial.GetOptional);
 
@@ -63,12 +72,21 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         public EssCertIDv2(AlgorithmIdentifier algId, byte[] certHash, IssuerSerial issuerSerial)
         {
-            m_hashAlgorithm = algId ?? DefaultAlgID;
+            m_hashAlgorithm = algId ?? DefaultHashAlgorithm;
             m_certHash = DerOctetString.FromContents(certHash);
             m_issuerSerial = issuerSerial;
         }
 
+        public EssCertIDv2(AlgorithmIdentifier hashAlgorithm, Asn1OctetString certHash, IssuerSerial issuerSerial)
+        {
+            m_hashAlgorithm = hashAlgorithm ?? DefaultHashAlgorithm;
+            m_certHash = certHash ?? throw new ArgumentNullException(nameof(certHash));
+            m_issuerSerial = issuerSerial;
+        }
+
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
+
+        public Asn1OctetString CertHash => m_certHash;
 
         public byte[] GetCertHash() => Arrays.Clone(m_certHash.GetOctets());
 
@@ -94,7 +112,7 @@ namespace Org.BouncyCastle.Asn1.Ess
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
-            if (!DefaultAlgID.Equals(m_hashAlgorithm))
+            if (!DefaultHashAlgorithm.Equals(m_hashAlgorithm))
             {
                 v.Add(m_hashAlgorithm);
             }

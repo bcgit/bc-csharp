@@ -472,11 +472,11 @@ namespace Org.BouncyCastle.Cms
 				var certificates = new List<Asn1Encodable>();
 				if (x509Certs != null)
 				{
-					certificates.AddRange(CmsUtilities.GetCertificatesFromStore(x509Certs));
+					CmsUtilities.CollectCertificates(certificates, x509Certs);
 				}
 				if (x509AttrCerts != null)
 				{
-					certificates.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(x509AttrCerts));
+					CmsUtilities.CollectAttributeCertificates(certificates, x509AttrCerts);
 				}
 
 				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(certificates);
@@ -491,11 +491,11 @@ namespace Org.BouncyCastle.Cms
 				var revocations = new List<Asn1Encodable>();
 				if (x509Crls != null)
 				{
-					revocations.AddRange(CmsUtilities.GetCrlsFromStore(x509Crls));
+					CmsUtilities.CollectCrls(revocations, x509Crls);
 				}
 				if (otherRevocationInfos != null)
 				{
-                    revocations.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfos));
+                    CmsUtilities.CollectOtherRevocationInfos(revocations, otherRevocationInfos);
                 }
 
 				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(revocations);

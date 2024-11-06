@@ -112,80 +112,6 @@ namespace Org.BouncyCastle.Cms
 
 		internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
 
-		internal static List<Asn1TaggedObject> GetAttributeCertificatesFromStore(
-			IStore<X509V2AttributeCertificate> attrCertStore)
-		{
-			var result = new List<Asn1TaggedObject>();
-			if (attrCertStore != null)
-            {
-				foreach (var attrCert in attrCertStore.EnumerateMatches(null))
-				{
-					result.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
-				}
-            }
-			return result;
-		}
-
-		internal static List<X509CertificateStructure> GetCertificatesFromStore(IStore<X509Certificate> certStore)
-		{
-			var result = new List<X509CertificateStructure>();
-			if (certStore != null)
-            {
-                foreach (var cert in certStore.EnumerateMatches(null))
-                {
-                    result.Add(cert.CertificateStructure);
-                }
-			}
-			return result;
-		}
-
-		internal static List<CertificateList> GetCrlsFromStore(IStore<X509Crl> crlStore)
-		{
-			var result = new List<CertificateList>();
-			if (crlStore != null)
-			{
-                foreach (var crl in crlStore.EnumerateMatches(null))
-                {
-                    result.Add(crl.CertificateList);
-				}
-			}
-			return result;
-		}
-
-        internal static List<Asn1TaggedObject> GetOtherRevocationInfosFromStore(
-			IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
-        {
-            var result = new List<Asn1TaggedObject>();
-            if (otherRevocationInfoStore != null)
-            {
-                foreach (var otherRevocationInfo in otherRevocationInfoStore.EnumerateMatches(null))
-                {
-                    ValidateOtherRevocationInfo(otherRevocationInfo);
-
-                    result.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
-                }
-            }
-            return result;
-        }
-
-        internal static List<DerTaggedObject> GetOtherRevocationInfosFromStore(IStore<Asn1Encodable> otherRevInfoStore,
-            DerObjectIdentifier otherRevInfoFormat)
-        {
-			var result = new List<DerTaggedObject>();
-			if (otherRevInfoStore != null && otherRevInfoFormat != null)
-			{
-				foreach (var otherRevInfo in otherRevInfoStore.EnumerateMatches(null))
-				{
-                    var otherRevocationInfo = new OtherRevocationInfoFormat(otherRevInfoFormat, otherRevInfo);
-
-                    ValidateOtherRevocationInfo(otherRevocationInfo);
-
-                    result.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
-				}
-			}
-			return result;
-        }
-
 		// TODO Clean up this method (which is not present in bc-java)
         internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
             IDigestAlgorithmFinder digestAlgorithmFinder)
@@ -258,6 +184,94 @@ namespace Org.BouncyCastle.Cms
             }
 
             return new Asn1.Cms.AttributeTable(DerSet.FromVector(v));
+        }
+
+        internal static void CollectAttributeCertificate(List<Asn1Encodable> result,
+            X509V2AttributeCertificate attrCert)
+        {
+            result.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
+        }
+
+        internal static void CollectAttributeCertificates(List<Asn1Encodable> result,
+            IStore<X509V2AttributeCertificate> attrCertStore)
+        {
+            if (attrCertStore != null)
+            {
+                foreach (var attrCert in attrCertStore.EnumerateMatches(null))
+                {
+                    CollectAttributeCertificate(result, attrCert);
+                }
+            }
+        }
+
+        internal static void CollectCertificate(List<Asn1Encodable> result, X509Certificate cert)
+        {
+            result.Add(cert.CertificateStructure);
+        }
+
+        internal static void CollectCertificates(List<Asn1Encodable> result, IStore<X509Certificate> certStore)
+        {
+            if (certStore != null)
+            {
+                foreach (var cert in certStore.EnumerateMatches(null))
+                {
+                    CollectCertificate(result, cert);
+                }
+            }
+        }
+
+        internal static void CollectCrl(List<Asn1Encodable> result, X509Crl crl)
+        {
+            result.Add(crl.CertificateList);
+        }
+
+        internal static void CollectCrls(List<Asn1Encodable> result, IStore<X509Crl> crlStore)
+        {
+            if (crlStore != null)
+            {
+                foreach (var crl in crlStore.EnumerateMatches(null))
+                {
+                    CollectCrl(result, crl);
+                }
+            }
+        }
+
+        internal static void CollectOtherRevocationInfo(List<Asn1Encodable> result,
+            OtherRevocationInfoFormat otherRevocationInfo)
+        {
+            ValidateOtherRevocationInfo(otherRevocationInfo);
+
+            result.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
+        }
+
+        internal static void CollectOtherRevocationInfo(List<Asn1Encodable> result,
+            DerObjectIdentifier otherRevInfoFormat, Asn1Encodable otherRevInfo)
+        {
+            CollectOtherRevocationInfo(result, new OtherRevocationInfoFormat(otherRevInfoFormat, otherRevInfo));
+        }
+
+        internal static void CollectOtherRevocationInfos(List<Asn1Encodable> result,
+            IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
+        {
+            if (otherRevocationInfoStore != null)
+            {
+                foreach (var otherRevocationInfo in otherRevocationInfoStore.EnumerateMatches(null))
+                {
+                    CollectOtherRevocationInfo(result, otherRevocationInfo);
+                }
+            }
+        }
+
+        internal static void CollectOtherRevocationInfos(List<Asn1Encodable> result,
+            DerObjectIdentifier otherRevInfoFormat, IStore<Asn1Encodable> otherRevInfoStore)
+        {
+            if (otherRevInfoStore != null && otherRevInfoFormat != null)
+            {
+                foreach (var otherRevInfo in otherRevInfoStore.EnumerateMatches(null))
+                {
+                    CollectOtherRevocationInfo(result, otherRevInfoFormat, otherRevInfo);
+                }
+            }
         }
 
         internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)

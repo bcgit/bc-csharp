@@ -115,11 +115,11 @@ namespace Org.BouncyCastle.Tsp.Tests
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
 
 			// --- These are test case only values
-			reqGen.SetReqPolicy("2.5.29.56"); 
-			reqGen.AddExtension(new DerObjectIdentifier("1.3.6.1.5.5.7.1.2"), true, new DerOctetString(new byte[20]));
+			reqGen.SetReqPolicy(X509Extensions.NoRevAvail);
+			reqGen.AddExtension(X509Extensions.BiometricInfo, true, new DerOctetString(new byte[20]));
 			// --- not for any real world purpose.
 
-			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
+            TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
 
 			try
 			{
@@ -418,7 +418,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
-			reqGen.SetReqPolicy("1.1");
+			reqGen.SetReqPolicy(new DerObjectIdentifier("1.1"));
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
 
 			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed,

@@ -35,7 +35,13 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			m_hashedMessage = Asn1OctetString.GetInstance(seq[1]);
 		}
 
-		public MessageImprint(AlgorithmIdentifier hashAlgorithm, byte[] hashedMessage)
+        public MessageImprint(AlgorithmIdentifier hashAlgorithm, Asn1OctetString hashedMessage)
+        {
+            m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+            m_hashedMessage = hashedMessage ?? throw new ArgumentNullException(nameof(hashedMessage));
+        }
+
+        public MessageImprint(AlgorithmIdentifier hashAlgorithm, byte[] hashedMessage)
 		{
 			m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
 			m_hashedMessage = DerOctetString.FromContents(hashedMessage);

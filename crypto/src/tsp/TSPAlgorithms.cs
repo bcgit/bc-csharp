@@ -11,11 +11,13 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Tsp
 {
-	/**
+    /**
 	 * Recognised hash algorithms for the time stamp protocol.
 	 */
-	public static class TspAlgorithms
+    public static class TspAlgorithms
 	{
+		// TODO[api] Change all these to OIDs
+
 		public static readonly string MD5 = PkcsObjectIdentifiers.MD5.Id;
 
 		public static readonly string Sha1 = OiwObjectIdentifiers.IdSha1.Id;
@@ -24,6 +26,11 @@ namespace Org.BouncyCastle.Tsp
 		public static readonly string Sha256 = NistObjectIdentifiers.IdSha256.Id;
 		public static readonly string Sha384 = NistObjectIdentifiers.IdSha384.Id;
 		public static readonly string Sha512 = NistObjectIdentifiers.IdSha512.Id;
+
+        public static readonly string Sha3_224 = NistObjectIdentifiers.IdSha3_224.Id;
+		public static readonly string Sha3_256 = NistObjectIdentifiers.IdSha3_256.Id;
+		public static readonly string Sha3_384 = NistObjectIdentifiers.IdSha3_384.Id;
+		public static readonly string Sha3_512 = NistObjectIdentifiers.IdSha3_512.Id;
 
 		public static readonly string RipeMD128 = TeleTrusTObjectIdentifiers.RipeMD128.Id;
 		public static readonly string RipeMD160 = TeleTrusTObjectIdentifiers.RipeMD160.Id;
@@ -35,6 +42,7 @@ namespace Org.BouncyCastle.Tsp
 
         public static readonly string SM3 = GMObjectIdentifiers.sm3.Id;
 
+		// TODO[api] Prefer an enumeration method?
 		public static readonly IList<string> Allowed;
 
 		static TspAlgorithms()

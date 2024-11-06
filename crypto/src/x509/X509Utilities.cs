@@ -137,6 +137,9 @@ namespace Org.BouncyCastle.X509
 			return digestResult.Collect();
         }
 
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf) =>
+            CalculateDigest(digestFactory, buf, 0, buf.Length);
+
         internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf, int off, int len)
         {
             var digestCalculator = digestFactory.CreateCalculator();
