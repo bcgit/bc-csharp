@@ -1,17 +1,20 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
-    public sealed class SlhDsaSigner
+    public sealed class HashSlhDsaSigner
         : ISigner
     {
         private readonly Buffer m_buffer = new Buffer();
         private readonly SlhDsaParameterSet m_parameterSet;
+        private readonly byte[] m_preHashOidEncoding;
+        private readonly IDigest m_preHashDigest;
         private readonly bool m_deterministic;
 
         private SlhDsaPrivateKeyParameters m_privateKey;
@@ -19,9 +22,15 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom m_random;
         private SphincsPlusEngine m_engine;
 
-        public SlhDsaSigner(SlhDsaParameterSet parameterSet, bool deterministic)
+        public HashSlhDsaSigner(SlhDsaParameterSet parameterSet, DerObjectIdentifier preHashOid, IDigest preHashDigest,
+            bool deterministic)
         {
+            if (preHashOid == null)
+                throw new ArgumentNullException(nameof(preHashOid));
+
             m_parameterSet = parameterSet;
+            m_preHashOidEncoding = preHashOid.GetEncoded(Asn1Encodable.Der);
+            m_preHashDigest = preHashDigest ?? throw new ArgumentNullException(nameof(preHashDigest));
             m_deterministic = deterministic;
         }
 
@@ -64,23 +73,23 @@ namespace Org.BouncyCastle.Crypto.Signers
                 m_engine = GetEngine(m_publicKey.Parameters);
             }
 
-            m_buffer.Init(context: providedContext ?? Array.Empty<byte>());
+            m_buffer.Init(context: providedContext ?? Array.Empty<byte>(), m_preHashOidEncoding);
         }
 
         public void Update(byte input)
         {
-            m_buffer.WriteByte(input);
+            m_preHashDigest.Update(input);
         }
 
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            m_buffer.Write(input, inOff, inLen);
+            m_preHashDigest.BlockUpdate(input, inOff, inLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            m_buffer.Write(input);
+            m_preHashDigest.BlockUpdate(input);
         }
 #endif
 
@@ -91,6 +100,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (m_privateKey == null)
                 throw new InvalidOperationException("SlhDsaSigner not initialised for signature generation.");
 
+            FinishPreHash();
+
             return m_buffer.GenerateSignature(m_privateKey, m_engine, m_random);
         }
 
@@ -99,12 +110,26 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (m_publicKey == null)
                 throw new InvalidOperationException("SlhDsaSigner not initialised for verification");
 
+            FinishPreHash();
+
             return m_buffer.VerifySignature(m_publicKey, m_engine, signature);
         }
 
         public void Reset()
         {
-            m_buffer.Reset();
+            m_preHashDigest.Reset();
+        }
+
+        private void FinishPreHash()
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> preHash = stackalloc byte[m_preHashDigest.GetDigestSize()];
+            m_preHashDigest.DoFinal(preHash);
+            m_buffer.Write(preHash);
+#else
+            byte[] preHash = DigestUtilities.DoFinal(m_preHashDigest);
+            m_buffer.Write(preHash, 0, preHash.Length);
+#endif
         }
 
         private SphincsPlusEngine GetEngine(SlhDsaParameters keyParameters)
@@ -121,15 +146,16 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             private int m_prefixLength;
 
-            internal void Init(byte[] context)
+            internal void Init(byte[] context, byte[] preHashOidEncoding)
             {
                 lock (this)
                 {
                     TruncateAndClear(newLength: 0);
 
-                    WriteByte(0x00);
+                    WriteByte(0x01);
                     WriteByte((byte)context.Length);
                     Write(context, 0, context.Length);
+                    Write(preHashOidEncoding, 0, preHashOidEncoding.Length);
 
                     m_prefixLength = Convert.ToInt32(Length);
                 }

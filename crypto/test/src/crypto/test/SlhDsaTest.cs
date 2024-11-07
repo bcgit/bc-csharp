@@ -23,37 +23,37 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static readonly Dictionary<string, SlhDsaParameters> AcvpFileParameters =
             new Dictionary<string, SlhDsaParameters>()
         {
-            { "keyGen_SLH-DSA-SHA2-128s.txt", SlhDsaParameters.SLH_DSA_SHA2_128s },
-            { "keyGen_SLH-DSA-SHA2-192f.txt", SlhDsaParameters.SLH_DSA_SHA2_192f },
-            { "keyGen_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.SLH_DSA_SHAKE_192s },
-            { "keyGen_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.SLH_DSA_SHAKE_256f },
-            { "sigGen_SLH-DSA-SHA2-192s.txt", SlhDsaParameters.SLH_DSA_SHA2_192s },
-            { "sigGen_SLH-DSA-SHA2-256f.txt", SlhDsaParameters.SLH_DSA_SHA2_256f },
-            { "sigGen_SLH-DSA-SHAKE-128f.txt", SlhDsaParameters.SLH_DSA_SHAKE_128f },
-            { "sigGen_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.SLH_DSA_SHAKE_192s },
-            { "sigGen_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.SLH_DSA_SHAKE_256f },
-            { "sigVer_SLH-DSA-SHA2-192s.txt", SlhDsaParameters.SLH_DSA_SHA2_192s },
-            { "sigVer_SLH-DSA-SHA2-256f.txt", SlhDsaParameters.SLH_DSA_SHA2_256f },
-            { "sigVer_SLH-DSA-SHAKE-128f.txt", SlhDsaParameters.SLH_DSA_SHAKE_128f },
-            { "sigVer_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.SLH_DSA_SHAKE_192s },
-            { "sigVer_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.SLH_DSA_SHAKE_256f },
+            { "keyGen_SLH-DSA-SHA2-128s.txt", SlhDsaParameters.slh_dsa_sha2_128s },
+            { "keyGen_SLH-DSA-SHA2-192f.txt", SlhDsaParameters.slh_dsa_sha2_192f },
+            { "keyGen_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.slh_dsa_shake_192s },
+            { "keyGen_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.slh_dsa_shake_256f },
+            { "sigGen_SLH-DSA-SHA2-192s.txt", SlhDsaParameters.slh_dsa_sha2_192s },
+            { "sigGen_SLH-DSA-SHA2-256f.txt", SlhDsaParameters.slh_dsa_sha2_256f },
+            { "sigGen_SLH-DSA-SHAKE-128f.txt", SlhDsaParameters.slh_dsa_shake_128f },
+            { "sigGen_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.slh_dsa_shake_192s },
+            { "sigGen_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.slh_dsa_shake_256f },
+            { "sigVer_SLH-DSA-SHA2-192s.txt", SlhDsaParameters.slh_dsa_sha2_192s },
+            { "sigVer_SLH-DSA-SHA2-256f.txt", SlhDsaParameters.slh_dsa_sha2_256f },
+            { "sigVer_SLH-DSA-SHAKE-128f.txt", SlhDsaParameters.slh_dsa_shake_128f },
+            { "sigVer_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.slh_dsa_shake_192s },
+            { "sigVer_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.slh_dsa_shake_256f },
         };
 
         private static readonly Dictionary<string, SlhDsaParameters> Parameters =
             new Dictionary<string, SlhDsaParameters>()
         {
-            { "SLH-DSA-SHA2-128f", SlhDsaParameters.SLH_DSA_SHA2_128f },
-            { "SLH-DSA-SHA2-128s", SlhDsaParameters.SLH_DSA_SHA2_128s },
-            { "SLH-DSA-SHA2-192f", SlhDsaParameters.SLH_DSA_SHA2_192f },
-            { "SLH-DSA-SHA2-192s", SlhDsaParameters.SLH_DSA_SHA2_192s },
-            { "SLH-DSA-SHA2-256f", SlhDsaParameters.SLH_DSA_SHA2_256f },
-            { "SLH-DSA-SHA2-256s", SlhDsaParameters.SLH_DSA_SHA2_256s },
-            { "SLH-DSA-SHAKE-128f", SlhDsaParameters.SLH_DSA_SHAKE_128f },
-            { "SLH-DSA-SHAKE-128s", SlhDsaParameters.SLH_DSA_SHAKE_128s },
-            { "SLH-DSA-SHAKE-192f", SlhDsaParameters.SLH_DSA_SHAKE_192f },
-            { "SLH-DSA-SHAKE-192s", SlhDsaParameters.SLH_DSA_SHAKE_192s },
-            { "SLH-DSA-SHAKE-256s", SlhDsaParameters.SLH_DSA_SHAKE_256s },
-            { "SLH-DSA-SHAKE-256f", SlhDsaParameters.SLH_DSA_SHAKE_256f },
+            { "SLH-DSA-SHA2-128f", SlhDsaParameters.slh_dsa_sha2_128f },
+            { "SLH-DSA-SHA2-128s", SlhDsaParameters.slh_dsa_sha2_128s },
+            { "SLH-DSA-SHA2-192f", SlhDsaParameters.slh_dsa_sha2_192f },
+            { "SLH-DSA-SHA2-192s", SlhDsaParameters.slh_dsa_sha2_192s },
+            { "SLH-DSA-SHA2-256f", SlhDsaParameters.slh_dsa_sha2_256f },
+            { "SLH-DSA-SHA2-256s", SlhDsaParameters.slh_dsa_sha2_256s },
+            { "SLH-DSA-SHAKE-128f", SlhDsaParameters.slh_dsa_shake_128f },
+            { "SLH-DSA-SHAKE-128s", SlhDsaParameters.slh_dsa_shake_128s },
+            { "SLH-DSA-SHAKE-192f", SlhDsaParameters.slh_dsa_shake_192f },
+            { "SLH-DSA-SHAKE-192s", SlhDsaParameters.slh_dsa_shake_192s },
+            { "SLH-DSA-SHAKE-256s", SlhDsaParameters.slh_dsa_shake_256s },
+            { "SLH-DSA-SHAKE-256f", SlhDsaParameters.slh_dsa_shake_256f },
         };
 
         private static readonly IEnumerable<SlhDsaParameters> ParametersValues = Parameters.Values;

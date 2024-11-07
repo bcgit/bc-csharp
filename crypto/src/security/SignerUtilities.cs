@@ -819,7 +819,9 @@ namespace Org.BouncyCastle.Security
                 if (preHashOid == null)
                     return new SlhDsaSigner(slhDsaParameters.ParameterSet, deterministic: false);
 
-                // TODO[pqc] HashSLH-DSA
+                var preHashDigest = DigestUtilities.GetDigest(preHashOid);
+                return new HashSlhDsaSigner(slhDsaParameters.ParameterSet, preHashOid, preHashDigest,
+                    deterministic: false);
             }
 
             return null;
