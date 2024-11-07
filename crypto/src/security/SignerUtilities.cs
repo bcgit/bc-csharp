@@ -808,7 +808,9 @@ namespace Org.BouncyCastle.Security
                 if (preHashOid == null)
                     return new MLDsaSigner(mlDsaParameters.ParameterSet, deterministic: false);
 
-                // TODO[pqc] HashML-DSA
+                var preHashDigest = DigestUtilities.GetDigest(preHashOid);
+                return new HashMLDsaSigner(mlDsaParameters.ParameterSet, preHashOid, preHashDigest,
+                    deterministic: false);
             }
 
             if (SlhDsaParameters.ByName.TryGetValue(mechanism, out SlhDsaParameters slhDsaParameters))
