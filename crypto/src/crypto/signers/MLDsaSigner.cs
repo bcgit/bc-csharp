@@ -10,20 +10,15 @@ namespace Org.BouncyCastle.Crypto.Signers
     public sealed class MLDsaSigner
         : ISigner
     {
+        private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
+
         private readonly MLDsaParameterSet m_parameterSet;
         private readonly bool m_deterministic;
-
-        private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
 
         private byte[] m_context;
         private MLDsaPrivateKeyParameters m_privateKey;
         private MLDsaPublicKeyParameters m_publicKey;
         private DilithiumEngine m_engine;
-
-        public MLDsaSigner(MLDsaParameterSet parameterSet)
-            : this(parameterSet, deterministic: false)
-        {
-        }
 
         public MLDsaSigner(MLDsaParameterSet parameterSet, bool deterministic)
         {
@@ -111,8 +106,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (m_publicKey == null)
                 throw new InvalidOperationException("MLDsaSigner not initialised for verification");
 
-            bool result = m_engine.MsgRepEndVerify(m_msgRepDigest, signature, signature.Length, m_publicKey.m_rho,
-                encT1: m_publicKey.m_t1);
+            bool result = m_engine.MsgRepEndVerifyInternal(m_msgRepDigest, signature, signature.Length,
+                m_publicKey.m_rho, encT1: m_publicKey.m_t1);
 
             Reset();
             return result;
@@ -125,7 +120,6 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] tr = m_privateKey != null ? m_privateKey.m_tr : m_publicKey.GetPublicKeyHash();
             m_engine.MsgRepBegin(m_msgRepDigest, tr);
 
-            // TODO Prehash variant uses 0x01 here
             m_msgRepDigest.Update(0x00);
             m_msgRepDigest.Update((byte)m_context.Length);
             m_msgRepDigest.BlockUpdate(m_context, 0, m_context.Length);

@@ -806,7 +806,7 @@ namespace Org.BouncyCastle.Security
             {
                 var preHashOid = mlDsaParameters.PreHashOid;
                 if (preHashOid == null)
-                    return new MLDsaSigner(mlDsaParameters.ParameterSet);
+                    return new MLDsaSigner(mlDsaParameters.ParameterSet, deterministic: false);
 
                 // TODO[pqc] HashML-DSA
             }
@@ -815,7 +815,7 @@ namespace Org.BouncyCastle.Security
             {
                 var preHashOid = slhDsaParameters.PreHashOid;
                 if (preHashOid == null)
-                    return new SlhDsaSigner(slhDsaParameters.ParameterSet);
+                    return new SlhDsaSigner(slhDsaParameters.ParameterSet, deterministic: false);
 
                 // TODO[pqc] HashSLH-DSA
             }

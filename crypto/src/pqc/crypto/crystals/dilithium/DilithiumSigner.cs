@@ -54,8 +54,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             var engine = pubKey.Parameters.GetEngine(random);
             var tr = DilithiumEngine.CalculatePublicKeyHash(pubKey.m_rho, pubKey.m_t1);
-            return engine.Verify(signature, signature.Length, message, 0, message.Length, pubKey.m_rho, pubKey.m_t1,
-                tr);
+            return engine.VerifyInternal(signature, signature.Length, message, 0, message.Length, pubKey.m_rho,
+                pubKey.m_t1, tr);
         }
     }
 }

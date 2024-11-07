@@ -314,11 +314,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 return;
             }
 
-            // FIXME Exception type and message
+            // TODO[pqc] Exception type and message
             throw new InvalidOperationException();
         }
 
-        internal bool MsgRepEndVerify(ShakeDigest d, byte[] sig, int siglen, byte[] rho, byte[] encT1)
+        internal bool MsgRepEndVerifyInternal(ShakeDigest d, byte[] sig, int siglen, byte[] rho, byte[] encT1)
         {
             if (siglen != CryptoBytes)
                 return false;
@@ -397,13 +397,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             MsgRepEndSignInternal(d, sig, siglen, rho, k, t0Enc, s1Enc, s2Enc, rnd, legacy);
         }
 
-        internal bool Verify(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] encT1,
+        internal bool VerifyInternal(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] encT1,
             byte[] tr)
         {
             var d = MsgRepCreateDigest();
             MsgRepBegin(d, tr);
             d.BlockUpdate(msg, msgOff, msgLen);
-            return MsgRepEndVerify(d, sig, siglen, rho, encT1);
+            return MsgRepEndVerifyInternal(d, sig, siglen, rho, encT1);
         }
     }
 }

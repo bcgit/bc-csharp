@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 var kp = kpg.GenerateKeyPair();
 
-                var signer = new SlhDsaSigner(parameters.ParameterSet);
+                var signer = new SlhDsaSigner(parameters.ParameterSet, deterministic: false);
 
                 {
                     int msgLen = random.Next(msg.Length + 1);

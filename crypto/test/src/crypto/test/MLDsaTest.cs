@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     var kp = kpg.GenerateKeyPair();
 
-                    var signer = new MLDsaSigner(parameters.ParameterSet);
+                    var signer = new MLDsaSigner(parameters.ParameterSet, deterministic: false);
 
                     for (int j = 0; j < 2; ++j)
                     {

@@ -19,11 +19,6 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom m_random;
         private SphincsPlusEngine m_engine;
 
-        public SlhDsaSigner(SlhDsaParameterSet parameterSet)
-            : this(parameterSet, deterministic: false)
-        {
-        }
-
         public SlhDsaSigner(SlhDsaParameterSet parameterSet, bool deterministic)
         {
             m_parameterSet = parameterSet;

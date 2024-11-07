@@ -38,7 +38,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             var engine = Parameters.ParameterSet.GetEngine(null);
 
-            return engine.Verify(sig, sig.Length, msg, msgOff, msgLen, m_rho, encT1: m_t1, tr: GetPublicKeyHash());
+            return engine.VerifyInternal(sig, sig.Length, msg, msgOff, msgLen, m_rho, encT1: m_t1,
+                tr: GetPublicKeyHash());
         }
 
         private static byte[] CreatePublicKeyHash(MLDsaPublicKeyParameters publicKey) =>
