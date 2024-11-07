@@ -154,9 +154,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             Algorithms["SHA3-384WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA3_384;
             Algorithms["SHA3-512WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA3_512;
 
-            Algorithms["ED25519"] = EdECObjectIdentifiers.id_Ed25519;
-            Algorithms["ED448"] = EdECObjectIdentifiers.id_Ed448;
-
             // RFC 8692
             Algorithms["SHAKE128WITHRSAPSS"] = X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128;
             Algorithms["SHAKE256WITHRSAPSS"] = X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256;
@@ -365,10 +362,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             //m_noParams.Add(GMObjectIdentifiers.sm2sign_with_sha512);
             NoParams.Add(GMObjectIdentifiers.sm2sign_with_sm3);
 
-            // EdDSA
-            NoParams.Add(EdECObjectIdentifiers.id_Ed25519);
-            NoParams.Add(EdECObjectIdentifiers.id_Ed448);
-
             // RFC 8692
             NoParams.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128);
             NoParams.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256);
@@ -503,39 +496,45 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids[X509ObjectIdentifiers.id_ecdsa_with_shake256] = NistObjectIdentifiers.IdShake256;
 
             /*
+             * EdDSA
+             */
+            AddAlgorithm("Ed25519", EdECObjectIdentifiers.id_Ed25519, digestOid: null, isNoParams: true);
+            AddAlgorithm("Ed448", EdECObjectIdentifiers.id_Ed448, digestOid: null, isNoParams: true);
+
+            /*
              * ML-DSA
              */
-            foreach (MLDsaParameters mlDsaParameters in MLDsaParameters.ByName.Values)
+            foreach (MLDsaParameters mlDsa in MLDsaParameters.ByName.Values)
             {
-                string name = mlDsaParameters.Name;
-                DerObjectIdentifier oid = mlDsaParameters.Oid;
-                DerObjectIdentifier preHashOid = mlDsaParameters.PreHashOid;
-
-                Algorithms.Add(name, oid);
-                NoParams.Add(oid);
-
-                if (preHashOid != null)
-                {
-                    DigestOids.Add(oid, preHashOid);
-                }
+                AddAlgorithm(mlDsa.Name, mlDsa.Oid, mlDsa.PreHashOid, isNoParams: true);
             }
 
             /*
              * SLH-DSA
              */
-            foreach (SlhDsaParameters slhDsaParameters in SlhDsaParameters.ByName.Values)
+            foreach (SlhDsaParameters slhDsa in SlhDsaParameters.ByName.Values)
             {
-                string name = slhDsaParameters.Name;
-                DerObjectIdentifier oid = slhDsaParameters.Oid;
-                DerObjectIdentifier preHashOid = slhDsaParameters.PreHashOid;
+                AddAlgorithm(slhDsa.Name, slhDsa.Oid, slhDsa.PreHashOid, isNoParams: true);
+            }
+        }
 
-                Algorithms.Add(name, oid);
+        private static void AddAlgorithm(string name, DerObjectIdentifier oid, DerObjectIdentifier digestOid,
+            bool isNoParams)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (oid == null)
+                throw new ArgumentNullException(nameof(oid));
+
+            Algorithms.Add(name, oid);
+
+            if (digestOid != null)
+            {
+                DigestOids.Add(oid, digestOid);
+            }
+            if (isNoParams)
+            {
                 NoParams.Add(oid);
-
-                if (preHashOid != null)
-                {
-                    DigestOids.Add(oid, preHashOid);
-                }
             }
         }
 

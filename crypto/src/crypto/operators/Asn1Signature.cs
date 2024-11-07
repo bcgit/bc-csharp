@@ -100,8 +100,6 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_algorithms.Add("GOST3411-2012-256WITHECGOST3410-2012-256", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
             m_algorithms.Add("GOST3411-2012-512WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
             m_algorithms.Add("GOST3411-2012-512WITHECGOST3410-2012-512", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
-            m_algorithms.Add("Ed25519", EdECObjectIdentifiers.id_Ed25519);
-            m_algorithms.Add("Ed448", EdECObjectIdentifiers.id_Ed448);
 
             m_algorithms.Add("SHA256WITHSM2", GMObjectIdentifiers.sm2sign_with_sha256);
             m_algorithms.Add("SM3WITHSM2", GMObjectIdentifiers.sm2sign_with_sm3);
@@ -129,12 +127,6 @@ namespace Org.BouncyCastle.Crypto.Operators
 			noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 
             //
-            // RFC 8410
-            //
-            noParams.Add(EdECObjectIdentifiers.id_Ed25519);
-            noParams.Add(EdECObjectIdentifiers.id_Ed448);
-
-            //
             // explicit params
             //
             AlgorithmIdentifier sha1AlgId = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
@@ -153,29 +145,41 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
 
             /*
+             * EdDSA
+             */
+            AddAlgorithm("Ed25519", EdECObjectIdentifiers.id_Ed25519, isNoParams: true);
+            AddAlgorithm("Ed448", EdECObjectIdentifiers.id_Ed448, isNoParams: true);
+
+            /*
              * ML-DSA
              */
-            foreach (MLDsaParameters mlDsaParameters in MLDsaParameters.ByName.Values)
+            foreach (MLDsaParameters mlDsa in MLDsaParameters.ByName.Values)
             {
-                string name = mlDsaParameters.Name;
-                DerObjectIdentifier oid = mlDsaParameters.Oid;
-
-                m_algorithms.Add(name, oid);
-                noParams.Add(oid);
+                AddAlgorithm(mlDsa.Name, mlDsa.Oid, isNoParams: true);
             }
 
             /*
              * SLH-DSA
              */
-            foreach (SlhDsaParameters slhDsaParameters in SlhDsaParameters.ByName.Values)
+            foreach (SlhDsaParameters slhDsa in SlhDsaParameters.ByName.Values)
             {
-                string name = slhDsaParameters.Name;
-                DerObjectIdentifier oid = slhDsaParameters.Oid;
-
-                m_algorithms.Add(name, oid);
-                noParams.Add(oid);
+                AddAlgorithm(slhDsa.Name, slhDsa.Oid, isNoParams: true);
             }
 		}
+
+        private static void AddAlgorithm(string name, DerObjectIdentifier oid, bool isNoParams)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (oid == null)
+                throw new ArgumentNullException(nameof(oid));
+
+            m_algorithms.Add(name, oid);
+            if (isNoParams)
+            {
+                noParams.Add(oid);
+            }
+        }
 
         /**
 		 * Return the digest algorithm using one of the standard JCA string

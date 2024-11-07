@@ -251,24 +251,24 @@ namespace Org.BouncyCastle.Operators.Utilities
             /*
              * ML-DSA
              */
-            foreach (MLDsaParameters mlDsaParameters in MLDsaParameters.ByName.Values)
+            foreach (MLDsaParameters mlDsa in MLDsaParameters.ByName.Values)
             {
-                DerObjectIdentifier preHashOid = mlDsaParameters.PreHashOid;
+                var preHashOid = mlDsa.PreHashOid;
                 if (preHashOid != null)
                 {
-                    DigestOids.Add(mlDsaParameters.Oid, preHashOid);
+                    DigestOids.Add(mlDsa.Oid, preHashOid);
                 }
             }
 
             /*
              * SLH-DSA
              */
-            foreach (SlhDsaParameters slhDsaParameters in SlhDsaParameters.ByName.Values)
+            foreach (SlhDsaParameters slhDsa in SlhDsaParameters.ByName.Values)
             {
-                DerObjectIdentifier preHashOid = slhDsaParameters.PreHashOid;
+                var preHashOid = slhDsa.PreHashOid;
                 if (preHashOid != null)
                 {
-                    DigestOids.Add(slhDsaParameters.Oid, preHashOid);
+                    DigestOids.Add(slhDsa.Oid, preHashOid);
                 }
             }
         }
