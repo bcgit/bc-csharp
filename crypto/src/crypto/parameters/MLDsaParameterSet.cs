@@ -9,16 +9,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     public sealed class MLDsaParameterSet
     {
-        public static readonly MLDsaParameterSet ML_DSA_44 = new MLDsaParameterSet("ML-DSA-44", 2);
-        public static readonly MLDsaParameterSet ML_DSA_65 = new MLDsaParameterSet("ML-DSA-65", 3);
-        public static readonly MLDsaParameterSet ML_DSA_87 = new MLDsaParameterSet("ML-DSA-87", 5);
+        public static readonly MLDsaParameterSet ml_dsa_44 = new MLDsaParameterSet("ML-DSA-44", 2);
+        public static readonly MLDsaParameterSet ml_dsa_65 = new MLDsaParameterSet("ML-DSA-65", 3);
+        public static readonly MLDsaParameterSet ml_dsa_87 = new MLDsaParameterSet("ML-DSA-87", 5);
 
         private static readonly Dictionary<string, MLDsaParameterSet> ByName =
             new Dictionary<string, MLDsaParameterSet>()
         {
-            { ML_DSA_44.Name, ML_DSA_44 },
-            { ML_DSA_65.Name, ML_DSA_65 },
-            { ML_DSA_87.Name, ML_DSA_87 },
+            { ml_dsa_44.Name, ml_dsa_44 },
+            { ml_dsa_65.Name, ml_dsa_65 },
+            { ml_dsa_87.Name, ml_dsa_87 },
         };
 
         internal static MLDsaParameterSet FromName(string name) => CollectionUtilities.GetValueOrNull(ByName, name);

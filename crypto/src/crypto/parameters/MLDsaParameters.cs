@@ -9,33 +9,31 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     public sealed class MLDsaParameters
     {
-        // TODO[pqc] Review pattern for "name" field
-
-        public static readonly MLDsaParameters ml_dsa_44 = new MLDsaParameters("ml-dsa-44", MLDsaParameterSet.ML_DSA_44,
+        public static readonly MLDsaParameters ml_dsa_44 = new MLDsaParameters("ML-DSA-44", MLDsaParameterSet.ml_dsa_44,
             NistObjectIdentifiers.id_ml_dsa_44, null);
-        public static readonly MLDsaParameters ml_dsa_65 = new MLDsaParameters("ml-dsa-65", MLDsaParameterSet.ML_DSA_65,
+        public static readonly MLDsaParameters ml_dsa_65 = new MLDsaParameters("ML-DSA-65", MLDsaParameterSet.ml_dsa_65,
             NistObjectIdentifiers.id_ml_dsa_65, null);
-        public static readonly MLDsaParameters ml_dsa_87 = new MLDsaParameters("ml-dsa-87", MLDsaParameterSet.ML_DSA_87,
+        public static readonly MLDsaParameters ml_dsa_87 = new MLDsaParameters("ML-DSA-87", MLDsaParameterSet.ml_dsa_87,
             NistObjectIdentifiers.id_ml_dsa_87, null);
 
-        public static readonly MLDsaParameters ml_dsa_44_with_sha512 = new MLDsaParameters("ml-dsa-44-with-sha512",
-            MLDsaParameterSet.ML_DSA_44, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512,
+        public static readonly MLDsaParameters ml_dsa_44_with_sha512 = new MLDsaParameters("ML-DSA-44-WITH-SHA512",
+            MLDsaParameterSet.ml_dsa_44, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512,
             NistObjectIdentifiers.IdSha512);
-        public static readonly MLDsaParameters ml_dsa_65_with_sha512 = new MLDsaParameters("ml-dsa-65-with-sha512",
-            MLDsaParameterSet.ML_DSA_65, NistObjectIdentifiers.id_hash_ml_dsa_65_with_sha512,
+        public static readonly MLDsaParameters ml_dsa_65_with_sha512 = new MLDsaParameters("ML-DSA-65-WITH-SHA512",
+            MLDsaParameterSet.ml_dsa_65, NistObjectIdentifiers.id_hash_ml_dsa_65_with_sha512,
             NistObjectIdentifiers.IdSha512);
-        public static readonly MLDsaParameters ml_dsa_87_with_sha512 = new MLDsaParameters("ml-dsa-87-with-sha512",
-            MLDsaParameterSet.ML_DSA_87, NistObjectIdentifiers.id_hash_ml_dsa_87_with_sha512,
+        public static readonly MLDsaParameters ml_dsa_87_with_sha512 = new MLDsaParameters("ML-DSA-87-WITH-SHA512",
+            MLDsaParameterSet.ml_dsa_87, NistObjectIdentifiers.id_hash_ml_dsa_87_with_sha512,
             NistObjectIdentifiers.IdSha512);
 
         internal static readonly IDictionary<string, MLDsaParameters> ByName = CollectionUtilities.ReadOnly(
             new Dictionary<string, MLDsaParameters>()
         {
             { ml_dsa_44.Name, ml_dsa_44 },
-            { ml_dsa_65.Name, ml_dsa_65 },
-            { ml_dsa_87.Name, ml_dsa_87 },
             { ml_dsa_44_with_sha512.Name, ml_dsa_44_with_sha512 },
+            { ml_dsa_65.Name, ml_dsa_65 },
             { ml_dsa_65_with_sha512.Name, ml_dsa_65_with_sha512 },
+            { ml_dsa_87.Name, ml_dsa_87 },
             { ml_dsa_87_with_sha512.Name, ml_dsa_87_with_sha512 },
         });
 
@@ -43,10 +41,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             new Dictionary<DerObjectIdentifier, MLDsaParameters>()
         {
             { ml_dsa_44.Oid, ml_dsa_44 },
-            { ml_dsa_65.Oid, ml_dsa_65 },
-            { ml_dsa_87.Oid, ml_dsa_87 },
             { ml_dsa_44_with_sha512.Oid, ml_dsa_44_with_sha512 },
+            { ml_dsa_65.Oid, ml_dsa_65 },
             { ml_dsa_65_with_sha512.Oid, ml_dsa_65_with_sha512 },
+            { ml_dsa_87.Oid, ml_dsa_87 },
             { ml_dsa_87_with_sha512.Oid, ml_dsa_87_with_sha512 },
         });
 
