@@ -37,12 +37,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
             Polynomial r = pair.R();
             Polynomial m = pair.M();
 
-            var rm1 = r.S3ToBytes(parameterSet.OwcpaMsgBytes());
-            Array.Copy(rm1, 0, rm, 0, rm1.Length);
-
-            var rm2 = m.S3ToBytes(rm.Length - parameterSet.PackTrinaryBytes());
-
-            Array.Copy(rm2, 0, rm, parameterSet.PackTrinaryBytes(), rm2.Length);
+            r.S3ToBytes(rm, 0);
+            m.S3ToBytes(rm, parameterSet.PackTrinaryBytes());
 
             var sha3256 = new Sha3Digest(256);
             sha3256.BlockUpdate(rm, 0, rm.Length);

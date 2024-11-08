@@ -16,10 +16,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     {
         private static readonly Dictionary<string, NtruParameters> Parameters = new Dictionary<string, NtruParameters>()
         {
-            { "PQCkemKAT_935.rsp", NtruParameters.NtruHps2048509 },
-            { "PQCkemKAT_1234.rsp", NtruParameters.NtruHps2048677 },
-            { "PQCkemKAT_1590.rsp", NtruParameters.NtruHps4096821 },
-            { "PQCkemKAT_1450.rsp", NtruParameters.NtruHrss701 },
+            { "ntruhps2048509/PQCkemKAT_935.rsp", NtruParameters.NtruHps2048509 },
+            { "ntruhps2048677/PQCkemKAT_1234.rsp", NtruParameters.NtruHps2048677 },
+            { "ntruhps4096821/PQCkemKAT_1590.rsp", NtruParameters.NtruHps4096821 },
+            { "ntruhps40961229/PQCkemKAT_2366.rsp", NtruParameters.NtruHps40961229 },
+            { "ntruhrss701/PQCkemKAT_1450.rsp", NtruParameters.NtruHrss701 },
+            { "ntruhrss1373/PQCkemKAT_2983.rsp", NtruParameters.NtruHrss1373 },
         };
         
         [Test]
@@ -28,6 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(256, NtruParameters.NtruHps4096821.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHps2048509.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHps2048677.DefaultKeySize);
+            Assert.AreEqual(256, NtruParameters.NtruHps40961229.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHrss701.DefaultKeySize);
         }
 
@@ -87,7 +90,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.ntru." + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntru", name)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)
@@ -126,5 +129,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 }
             }
         }
+
+        //[Test]
+        //public void TestPrivInfoGeneration()
+        //{
+        //    SecureRandom random = new SecureRandom();
+        //    PqcOtherInfoGenerator.PartyU partyU = new PqcOtherInfoGenerator.PartyU(NtruParameters.NtruHrss701, new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+        //    byte[] partA = partyU.GetSuppPrivInfoPartA();
+        //    PqcOtherInfoGenerator.PartyV partyV = new PqcOtherInfoGenerator.PartyV(NtruParameters.NtruHrss701, new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+        //    byte[] partB = partyV.GetSuppPrivInfoPartB(partA);
+        //    DerOtherInfo otherInfoU = partyU.Generate(partB);
+        //    DerOtherInfo otherInfoV = partyV.Generate();
+        //    Assert.True(Arrays.AreEqual(otherInfoU.GetEncoded(), otherInfoV.GetEncoded()));
+        //}
     }
 }

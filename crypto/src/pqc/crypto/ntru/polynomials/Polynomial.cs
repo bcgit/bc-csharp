@@ -87,9 +87,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
         }
 
         // Pack an S3 polynomial as a byte array
-        public byte[] S3ToBytes(int messageSize)
+        public void S3ToBytes(byte[] msg, int msgOff)
         {
-            byte[] msg = new byte[messageSize];
             byte c;
 
             for (int i = 0; i < ParameterSet.PackDegree() / 5; i++)
@@ -99,7 +98,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
                 c = (byte)(3 * c + coeffs[5 * i + 2] & 255);
                 c = (byte)(3 * c + coeffs[5 * i + 1] & 255);
                 c = (byte)(3 * c + coeffs[5 * i + 0] & 255);
-                msg[i] = c;
+                msg[i + msgOff] = c;
             }
 
             if (ParameterSet.PackDegree() > (ParameterSet.PackDegree() / 5) * 5)
@@ -112,10 +111,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
                     c = (byte)(3 * c + coeffs[5 * i + j] & 255);
                 }
 
-                msg[i] = c;
+                msg[i + msgOff] = c;
             }
-
-            return msg;
         }
 
         // Unpack an S3 polynomial
