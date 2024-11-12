@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>For when the public key is an ASN.1 encoding.</summary>
         public virtual Asn1Object ParsePublicKey()
         {
-            return m_publicKey == null ? null : Asn1Object.FromByteArray(m_publicKey.GetOctets());
+            return m_publicKey == null ? null : Asn1Object.FromMemoryStream(m_publicKey.GetOctetMemoryStream());
         }
 
         public virtual DerBitString PublicKey => m_publicKey;

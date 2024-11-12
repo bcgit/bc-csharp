@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * @exception IOException - if the bit string doesn't represent a Der
          * encoded object.
          */
-        public Asn1Object ParsePublicKey() => Asn1Object.FromByteArray(m_publicKey.GetOctets());
+        public Asn1Object ParsePublicKey() => Asn1Object.FromMemoryStream(m_publicKey.GetOctetMemoryStream());
 
         /// <summary>Return the public key as a raw bit string.</summary>
         public DerBitString PublicKey => m_publicKey;

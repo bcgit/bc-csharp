@@ -271,9 +271,13 @@ namespace Org.BouncyCastle.X509
 
         internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString expected)
         {
-            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable);
+            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable).Collect();
 
-            return Arrays.FixedTimeEquals(result.Collect(), expected.GetOctets());
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Arrays.FixedTimeEquals(result, expected.GetOctetsSpan());
+#else
+            return Arrays.FixedTimeEquals(result, expected.GetOctets());
+#endif
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,
