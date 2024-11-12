@@ -21,11 +21,12 @@ namespace Org.BouncyCastle.Crypto.Operators
 {
     internal class X509Utilities
 	{
-        private static readonly IDictionary<string, DerObjectIdentifier> Algorithms =
+        private static readonly Dictionary<string, DerObjectIdentifier> Algorithms =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
-        private static readonly IDictionary<string, Asn1Encodable> ExParams =
+        private static readonly Dictionary<string, Asn1Encodable> ExParams =
             new Dictionary<string, Asn1Encodable>(StringComparer.OrdinalIgnoreCase);
-        private static readonly HashSet<DerObjectIdentifier> NoParams = new HashSet<DerObjectIdentifier>();
+        private static readonly Dictionary<DerObjectIdentifier, AlgorithmIdentifier> NoParams =
+            new Dictionary<DerObjectIdentifier, AlgorithmIdentifier>();
 
 		static X509Utilities()
 		{
@@ -109,23 +110,23 @@ namespace Org.BouncyCastle.Crypto.Operators
             // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
             // The parameters field SHALL be NULL for RSA based signature algorithms.
             //
-            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
-			NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
-			NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
-			NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
-			NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
-			NoParams.Add(X9ObjectIdentifiers.IdDsaWithSha1);
-            NoParams.Add(OiwObjectIdentifiers.DsaWithSha1); 
-            NoParams.Add(NistObjectIdentifiers.DsaWithSha224);
-			NoParams.Add(NistObjectIdentifiers.DsaWithSha256);
-			NoParams.Add(NistObjectIdentifiers.DsaWithSha384);
-			NoParams.Add(NistObjectIdentifiers.DsaWithSha512);
+            AddNoParams(X9ObjectIdentifiers.ECDsaWithSha1);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha224);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha256);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha384);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha512);
+			AddNoParams(X9ObjectIdentifiers.IdDsaWithSha1);
+            AddNoParams(OiwObjectIdentifiers.DsaWithSha1); 
+            AddNoParams(NistObjectIdentifiers.DsaWithSha224);
+			AddNoParams(NistObjectIdentifiers.DsaWithSha256);
+			AddNoParams(NistObjectIdentifiers.DsaWithSha384);
+			AddNoParams(NistObjectIdentifiers.DsaWithSha512);
 
 			//
 			// RFC 4491
 			//
-			NoParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
-			NoParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+			AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
+			AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 
             //
             // explicit params
@@ -178,8 +179,13 @@ namespace Org.BouncyCastle.Crypto.Operators
             Algorithms.Add(name, oid);
             if (isNoParams)
             {
-                NoParams.Add(oid);
+                AddNoParams(oid);
             }
+        }
+
+        private static void AddNoParams(DerObjectIdentifier oid)
+        {
+            NoParams.Add(oid, new AlgorithmIdentifier(oid));
         }
 
         private static RsassaPssParameters CreatePssParams(AlgorithmIdentifier digAlgID, int saltSize)
@@ -203,8 +209,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 		{
             DerObjectIdentifier sigOid = X509Utilities.GetSigOid(algorithmName);
 
-            if (NoParams.Contains(sigOid))
-				return new AlgorithmIdentifier(sigOid);
+            if (NoParams.TryGetValue(sigOid, out var noParamsAlgID))
+                return noParamsAlgID;
 
             if (ExParams.TryGetValue(algorithmName, out var explicitParameters))
                 return new AlgorithmIdentifier(sigOid, explicitParameters);
