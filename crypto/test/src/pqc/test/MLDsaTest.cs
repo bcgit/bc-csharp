@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Tests
                 null);
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, MLDsaParameters.ml_dsa_44_with_sha512));
+            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Pqc.Tests
                 Hex.Decode("061550234D158C5EC95595FE04EF7A25767F2E24CC2BC479D09D86DC9ABCFDE7056A8C266F9EF97ED08541DBD2E1FFA1"),
                 null);
 
-            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, MLDsaParameters.ml_dsa_44));
+            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, NistObjectIdentifiers.id_ml_dsa_44));
 
             kp = kpg.GenerateKeyPair();
 
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Tests
                 null);
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, MLDsaParameters.ml_dsa_44_with_sha512));
+            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -167,7 +167,7 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void HashMLDsaRandomSig()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(m_random, MLDsaParameters.ml_dsa_44_with_sha512));
+            kpg.Init(new MLDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -199,7 +199,7 @@ namespace Org.BouncyCastle.Pqc.Tests
                 null);
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, MLDsaParameters.ml_dsa_44));
+            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, NistObjectIdentifiers.id_ml_dsa_44));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -255,7 +255,7 @@ namespace Org.BouncyCastle.Pqc.Tests
                 null);
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, MLDsaParameters.ml_dsa_44));
+            kpg.Init(new MLDsaKeyGenerationParameters(katRandom, NistObjectIdentifiers.id_ml_dsa_44));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -298,7 +298,7 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void MLDsaRandomSig()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(m_random, MLDsaParameters.ml_dsa_44));
+            kpg.Init(new MLDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_ml_dsa_44));
 
             var kp = kpg.GenerateKeyPair();
 

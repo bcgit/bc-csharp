@@ -1,4 +1,7 @@
-﻿using Org.BouncyCastle.Security;
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -10,7 +13,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public MLDsaKeyGenerationParameters(SecureRandom random, MLDsaParameters parameters)
             : base(random, 0)
         {
-            m_parameters = parameters;
+            m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+        }
+
+        public MLDsaKeyGenerationParameters(SecureRandom random, DerObjectIdentifier parametersOid)
+            : base(random, 0)
+        {
+            if (parametersOid == null)
+                throw new ArgumentNullException(nameof(parametersOid));
+            if (!MLDsaParameters.ByOid.TryGetValue(parametersOid, out m_parameters))
+                throw new ArgumentException("unrecognised ML-DSA parameters OID", nameof(parametersOid));
         }
 
         public MLDsaParameters Parameters => m_parameters;

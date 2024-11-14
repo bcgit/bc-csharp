@@ -42,7 +42,8 @@ namespace Org.BouncyCastle.Pqc.Tests
             byte[] msg = Hex.Decode("D81C4D8D734FCBFBEADE3D3F8A039FAA2A2C9957E835AD55B22E75BF57BB556AC8");
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom, SlhDsaParameters.slh_dsa_sha2_128f_with_sha256));
+            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom,
+                NistObjectIdentifiers.id_hash_slh_dsa_sha2_128f_with_sha256));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -74,7 +75,8 @@ namespace Org.BouncyCastle.Pqc.Tests
             byte[] context = Strings.ToByteArray("Hello, world!");
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom, SlhDsaParameters.slh_dsa_sha2_128f_with_sha256));
+            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom,
+                NistObjectIdentifiers.id_hash_slh_dsa_sha2_128f_with_sha256));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -96,7 +98,8 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void HashSlhDsaRandomSigSha2()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, SlhDsaParameters.slh_dsa_sha2_256f_with_sha512));
+            kpg.Init(new SlhDsaKeyGenerationParameters(m_random,
+                NistObjectIdentifiers.id_hash_slh_dsa_sha2_256f_with_sha512));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -117,7 +120,8 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void HashSlhDsaRandomSigShake()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, SlhDsaParameters.slh_dsa_shake_256f_with_shake256));
+            kpg.Init(new SlhDsaKeyGenerationParameters(m_random,
+                NistObjectIdentifiers.id_hash_slh_dsa_shake_256f_with_shake256));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -146,7 +150,7 @@ namespace Org.BouncyCastle.Pqc.Tests
             byte[] msg = Hex.Decode("D81C4D8D734FCBFBEADE3D3F8A039FAA2A2C9957E835AD55B22E75BF57BB556AC8");
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom, SlhDsaParameters.slh_dsa_sha2_128f));
+            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom, NistObjectIdentifiers.id_slh_dsa_sha2_128f));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -178,7 +182,7 @@ namespace Org.BouncyCastle.Pqc.Tests
             byte[] context = Strings.ToByteArray("Hello, world!");
 
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom, SlhDsaParameters.slh_dsa_sha2_128f));
+            kpg.Init(new SlhDsaKeyGenerationParameters(kpgRandom, NistObjectIdentifiers.id_slh_dsa_sha2_128f));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -200,7 +204,7 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void SlhDsaRandomSigSha2()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, SlhDsaParameters.slh_dsa_sha2_256f));
+            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_slh_dsa_sha2_256f));
 
             var kp = kpg.GenerateKeyPair();
 
@@ -221,7 +225,7 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void SlhDsaRandomSigShake()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, SlhDsaParameters.slh_dsa_shake_256f));
+            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_slh_dsa_shake_256f));
 
             var kp = kpg.GenerateKeyPair();
 
