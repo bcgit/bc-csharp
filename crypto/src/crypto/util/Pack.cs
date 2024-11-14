@@ -56,16 +56,24 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return bs;
         }
 
-        internal static byte[] UInt16_To_BE(ushort[] ns)
-        {
-            return UInt16_To_BE(ns, 0, ns.Length);
-        }
+        internal static byte[] UInt16_To_BE(ushort[] ns) => UInt16_To_BE(ns, 0, ns.Length);
 
         internal static byte[] UInt16_To_BE(ushort[] ns, int nsOff, int nsLen)
         {
             byte[] bs = new byte[2 * nsLen];
             UInt16_To_BE(ns, nsOff, nsLen, bs, 0);
             return bs;
+        }
+
+        internal static ushort BE_To_UInt16(byte[] bs)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return BinaryPrimitives.ReadUInt16BigEndian(bs);
+#else
+            uint n = (uint)bs[0] << 8
+                | bs[1];
+            return (ushort)n;
+#endif
         }
 
         internal static ushort BE_To_UInt16(byte[] bs, int off)
@@ -84,21 +92,28 @@ namespace Org.BouncyCastle.Crypto.Utilities
             ns[nsOff] = BE_To_UInt16(bs, bsOff);
         }
 
-        internal static ushort[] BE_To_UInt16(byte[] bs)
+        internal static void BE_To_UInt16(byte[] bs, int off, ushort[] ns)
         {
-            return BE_To_UInt16(bs, 0, bs.Length);
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = BE_To_UInt16(bs, off);
+                off += 2;
+            }
         }
 
-        internal static ushort[] BE_To_UInt16(byte[] bs, int off, int len)
+        internal static void BE_To_UInt16(byte[] bs, int bsOff, ushort[] ns, int nsOff, int nsLen)
         {
-            if ((len & 1) != 0)
-                throw new ArgumentException("must be a multiple of 2", "len");
-
-            ushort[] ns = new ushort[len / 2];
-            for (int i = 0; i < len; i += 2)
+            for (int i = 0; i < nsLen; ++i)
             {
-                BE_To_UInt16(bs, off + i, ns, i >> 1);
+                ns[nsOff + i] = BE_To_UInt16(bs, bsOff);
+                bsOff += 2;
             }
+        }
+
+        internal static ushort[] BE_To_UInt16(byte[] bs, int off, int count)
+        {
+            ushort[] ns = new ushort[count];
+            BE_To_UInt16(bs, off, ns);
             return ns;
         }
 
@@ -197,10 +212,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return bs;
         }
 
-        internal static byte[] UInt32_To_BE(uint[] ns)
+        internal static byte[] UInt32_To_BE(uint[] ns) => UInt32_To_BE(ns, 0, ns.Length);
+
+        internal static byte[] UInt32_To_BE(uint[] ns, int nsOff, int nsLen)
         {
-            byte[] bs = new byte[4 * ns.Length];
-            UInt32_To_BE(ns, bs, 0);
+            byte[] bs = new byte[4 * nsLen];
+            UInt32_To_BE(ns, nsOff, nsLen, bs, 0);
             return bs;
         }
 
@@ -264,11 +281,11 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        internal static byte[] UInt64_To_BE(ulong n)
+        internal static uint[] BE_To_UInt32(byte[] bs, int off, int count)
         {
-            byte[] bs = new byte[8];
-            UInt64_To_BE(n, bs);
-            return bs;
+            uint[] ns = new uint[count];
+            BE_To_UInt32(bs, off, ns);
+            return ns;
         }
 
         internal static void UInt64_To_BE(ulong n, byte[] bs)
@@ -309,13 +326,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             UInt64_To_BE_High(n << ((8 - len) << 3), bs, off, len);
         }
 
-        internal static byte[] UInt64_To_BE(ulong[] ns)
-        {
-            byte[] bs = new byte[8 * ns.Length];
-            UInt64_To_BE(ns, bs, 0);
-            return bs;
-        }
-
         internal static void UInt64_To_BE(ulong[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -332,6 +342,22 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 UInt64_To_BE(ns[nsOff + i], bs, bsOff);
                 bsOff += 8;
             }
+        }
+
+        internal static byte[] UInt64_To_BE(ulong n)
+        {
+            byte[] bs = new byte[8];
+            UInt64_To_BE(n, bs);
+            return bs;
+        }
+
+        internal static byte[] UInt64_To_BE(ulong[] ns) => UInt64_To_BE(ns, 0, ns.Length);
+
+        internal static byte[] UInt64_To_BE(ulong[] ns, int nsOff, int nsLen)
+        {
+            byte[] bs = new byte[8 * nsLen];
+            UInt64_To_BE(ns, nsOff, nsLen, bs, 0);
+            return bs;
         }
 
         internal static ulong BE_To_UInt64(byte[] bs)
@@ -412,20 +438,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
-        internal static byte[] UInt16_To_LE(ushort n)
-        {
-            byte[] bs = new byte[2];
-            UInt16_To_LE(n, bs);
-            return bs;
-        }
-
-        internal static byte[] UInt16_To_LE(ushort[] ns)
-        {
-            byte[] bs = new byte[2 * ns.Length];
-            UInt16_To_LE(ns, bs, 0);
-            return bs;
-        }
-
         internal static void UInt16_To_LE(ushort[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -442,6 +454,22 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 UInt16_To_LE(ns[nsOff + i], bs, bsOff);
                 bsOff += 2;
             }
+        }
+
+        internal static byte[] UInt16_To_LE(ushort n)
+        {
+            byte[] bs = new byte[2];
+            UInt16_To_LE(n, bs);
+            return bs;
+        }
+
+        internal static byte[] UInt16_To_LE(ushort[] ns) => UInt16_To_LE(ns, 0, ns.Length);
+
+        internal static byte[] UInt16_To_LE(ushort[] ns, int nsOff, int nsLen)
+        {
+            byte[] bs = new byte[2 * nsLen];
+            UInt16_To_LE(ns, nsOff, nsLen, bs, 0);
+            return bs;
         }
 
         internal static ushort LE_To_UInt16(byte[] bs)
@@ -491,13 +519,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return ns;
         }
 
-        internal static byte[] UInt32_To_LE(uint n)
-        {
-            byte[] bs = new byte[4];
-            UInt32_To_LE(n, bs);
-            return bs;
-        }
-
         internal static void UInt32_To_LE(uint n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -539,13 +560,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        internal static byte[] UInt32_To_LE(uint[] ns)
-        {
-            byte[] bs = new byte[4 * ns.Length];
-            UInt32_To_LE(ns, bs, 0);
-            return bs;
-        }
-
         internal static void UInt32_To_LE(uint[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -562,6 +576,22 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 UInt32_To_LE(ns[nsOff + i], bs, bsOff);
                 bsOff += 4;
             }
+        }
+
+        internal static byte[] UInt32_To_LE(uint n)
+        {
+            byte[] bs = new byte[4];
+            UInt32_To_LE(n, bs);
+            return bs;
+        }
+
+        internal static byte[] UInt32_To_LE(uint[] ns) => UInt32_To_LE(ns, 0, ns.Length);
+
+        internal static byte[] UInt32_To_LE(uint[] ns, int nsOff, int nsLen)
+        {
+            byte[] bs = new byte[4 * nsLen];
+            UInt32_To_LE(ns, nsOff, nsLen, bs, 0);
+            return bs;
         }
 
         internal static uint LE_To_UInt24(byte[] bs, int off)
@@ -639,13 +669,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return ns;
         }
 
-        internal static byte[] UInt64_To_LE(ulong n)
-        {
-            byte[] bs = new byte[8];
-            UInt64_To_LE(n, bs);
-            return bs;
-        }
-
         internal static void UInt64_To_LE(ulong n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -683,13 +706,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        internal static byte[] UInt64_To_LE(ulong[] ns)
-        {
-            byte[] bs = new byte[8 * ns.Length];
-            UInt64_To_LE(ns, bs, 0);
-            return bs;
-        }
-
         internal static void UInt64_To_LE(ulong[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -706,6 +722,22 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 UInt64_To_LE(ns[nsOff + i], bs, bsOff);
                 bsOff += 8;
             }
+        }
+
+        internal static byte[] UInt64_To_LE(ulong n)
+        {
+            byte[] bs = new byte[8];
+            UInt64_To_LE(n, bs);
+            return bs;
+        }
+
+        internal static byte[] UInt64_To_LE(ulong[] ns) => UInt64_To_LE(ns, 0, ns.Length);
+
+        internal static byte[] UInt64_To_LE(ulong[] ns, int nsOff, int nsLen)
+        {
+            byte[] bs = new byte[8 * nsLen];
+            UInt64_To_LE(ns, nsOff, nsLen, bs, 0);
+            return bs;
         }
 
         internal static ulong LE_To_UInt64(byte[] bs)
@@ -775,6 +807,28 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ushort BE_To_UInt16(ReadOnlySpan<byte> bs)
+        {
+            return BinaryPrimitives.ReadUInt16BigEndian(bs);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ushort BE_To_UInt16(ReadOnlySpan<byte> bs, int off)
+        {
+            return BinaryPrimitives.ReadUInt16BigEndian(bs[off..]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void BE_To_UInt16(ReadOnlySpan<byte> bs, Span<ushort> ns)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = BE_To_UInt16(bs);
+                bs = bs[2..];
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static uint BE_To_UInt32(ReadOnlySpan<byte> bs)
         {
@@ -863,6 +917,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static ushort LE_To_UInt16(ReadOnlySpan<byte> bs)
         {
             return BinaryPrimitives.ReadUInt16LittleEndian(bs);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ushort LE_To_UInt16(ReadOnlySpan<byte> bs, int off)
+        {
+            return BinaryPrimitives.ReadUInt16LittleEndian(bs[off..]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
