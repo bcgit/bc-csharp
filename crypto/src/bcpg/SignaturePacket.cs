@@ -132,16 +132,11 @@ namespace Org.BouncyCastle.Bcpg
 				signature = new MPInteger[1]{ v };
                 break;
 			case PublicKeyAlgorithmTag.Dsa:
+            case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
+            case PublicKeyAlgorithmTag.ElGamalGeneral:
                 MPInteger r = new MPInteger(bcpgIn);
                 MPInteger s = new MPInteger(bcpgIn);
 				signature = new MPInteger[2]{ r, s };
-                break;
-            case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
-            case PublicKeyAlgorithmTag.ElGamalGeneral:
-                MPInteger p = new MPInteger(bcpgIn);
-                MPInteger g = new MPInteger(bcpgIn);
-                MPInteger y = new MPInteger(bcpgIn);
-				signature = new MPInteger[3]{ p, g, y };
                 break;
             case PublicKeyAlgorithmTag.ECDsa:
             case PublicKeyAlgorithmTag.EdDsa_Legacy:
