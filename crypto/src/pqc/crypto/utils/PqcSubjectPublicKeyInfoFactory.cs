@@ -114,8 +114,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (publicKey is MLKemPublicKeyParameters mlKemKey)
             {
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.MLKemOidLookup(mlKemKey.Parameters));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
 
                 return new SubjectPublicKeyInfo(algorithmIdentifier, mlKemKey.GetEncoded());
             }

@@ -11,16 +11,15 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -140,14 +139,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new HqcPrivateKeyParameters(hqcParams, keyEnc);
             }
-            if (NistObjectIdentifiers.id_alg_ml_kem_512.Equals(algOid) ||
-                NistObjectIdentifiers.id_alg_ml_kem_768.Equals(algOid) ||
-                NistObjectIdentifiers.id_alg_ml_kem_1024.Equals(algOid))
+            if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
             {
                 Asn1OctetString privateKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
-                MLKemParameters parameters = PqcUtilities.MLKemParamsLookup(algOid);
 
-                return new MLKemPrivateKeyParameters(parameters, privateKey.GetOctets());
+                return new MLKemPrivateKeyParameters(mlKemParameters, encoding: privateKey.GetOctets());
             }
 #pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.dilithium2) ||

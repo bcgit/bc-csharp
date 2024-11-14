@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -12,16 +13,15 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
@@ -315,9 +315,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private static AsymmetricKeyParameter MLKemConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            MLKemParameters parameters = PqcUtilities.MLKemParamsLookup(keyInfo.Algorithm.Algorithm);
+            var mlKemParameters = MLKemParameters.ByOid[keyInfo.Algorithm.Algorithm];
 
-            return new MLKemPublicKeyParameters(parameters, keyInfo.PublicKey.GetOctets());
+            return new MLKemPublicKeyParameters(mlKemParameters, encoding: keyInfo.PublicKey.GetOctets());
         }
 
         private static AsymmetricKeyParameter FalconConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

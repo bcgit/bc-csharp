@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
         private readonly MLKemParameters m_parameters;
 
         public MLKemKeyGenerationParameters(SecureRandom random, MLKemParameters parameters)
-            : base(random, 256)
+            : base(random, 0)
         {
             m_parameters = parameters;
         }

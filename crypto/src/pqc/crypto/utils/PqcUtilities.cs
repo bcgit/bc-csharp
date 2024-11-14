@@ -2,14 +2,12 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -30,9 +28,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private readonly static Dictionary<PicnicParameters, DerObjectIdentifier> picnicOids = new Dictionary<PicnicParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, PicnicParameters> picnicParams = new Dictionary<DerObjectIdentifier, PicnicParameters>();
-
-        private readonly static Dictionary<MLKemParameters, DerObjectIdentifier> mlKemOids = new Dictionary<MLKemParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, MLKemParameters> mlKemParams = new Dictionary<DerObjectIdentifier, MLKemParameters>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
         private readonly static Dictionary<DilithiumParameters, DerObjectIdentifier> dilithiumOids = new Dictionary<DilithiumParameters, DerObjectIdentifier>();
@@ -155,14 +150,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl1full] = PicnicParameters.picnicl1full;
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
-
-            mlKemOids[MLKemParameters.ML_KEM_512] = NistObjectIdentifiers.id_alg_ml_kem_512;
-            mlKemOids[MLKemParameters.ML_KEM_768] = NistObjectIdentifiers.id_alg_ml_kem_768;
-            mlKemOids[MLKemParameters.ML_KEM_1024] = NistObjectIdentifiers.id_alg_ml_kem_1024;
-
-            mlKemParams[NistObjectIdentifiers.id_alg_ml_kem_512] = MLKemParameters.ML_KEM_512;
-            mlKemParams[NistObjectIdentifiers.id_alg_ml_kem_768] = MLKemParameters.ML_KEM_768;
-            mlKemParams[NistObjectIdentifiers.id_alg_ml_kem_1024] = MLKemParameters.ML_KEM_1024;
 
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
@@ -304,16 +291,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         internal static SaberParameters SaberParamsLookup(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(saberParams, oid);
-        }
-
-        internal static MLKemParameters MLKemParamsLookup(DerObjectIdentifier oid)
-        {
-            return CollectionUtilities.GetValueOrNull(mlKemParams, oid);
-        }
-
-        internal static DerObjectIdentifier MLKemOidLookup(MLKemParameters parameters)
-        {
-            return CollectionUtilities.GetValueOrNull(mlKemOids, parameters);
         }
 
         internal static FalconParameters FalconParamsLookup(DerObjectIdentifier oid)

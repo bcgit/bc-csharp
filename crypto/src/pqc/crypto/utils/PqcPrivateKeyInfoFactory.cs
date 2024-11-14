@@ -118,9 +118,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (privateKey is MLKemPrivateKeyParameters mlKemKey)
             {
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.MLKemOidLookup(mlKemKey.Parameters));
-                
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
+
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(mlKemKey.GetEncoded()), attributes);
             }
 #pragma warning disable CS0618 // Type or member is obsolete
