@@ -1001,9 +1001,36 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ulong LE_To_UInt64_High(ReadOnlySpan<byte> bs)
+        {
+            return LE_To_UInt64_Low(bs) << ((8 - bs.Length) << 3);
+        }
+
+        internal static ulong LE_To_UInt64_Low(ReadOnlySpan<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 8);
+
+            ulong result = bs[0];
+            int pos = 0;
+            for (int i = 1; i < len; ++i)
+            {
+                pos += 8;
+                result |= (ulong)bs[i] << pos;
+            }
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt16_To_BE(ushort n, Span<byte> bs)
         {
             BinaryPrimitives.WriteUInt16BigEndian(bs, n);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt16_To_BE(ushort n, Span<byte> bs, int off)
+        {
+            BinaryPrimitives.WriteUInt16BigEndian(bs[off..], n);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1020,6 +1047,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static void UInt16_To_LE(ushort n, Span<byte> bs)
         {
             BinaryPrimitives.WriteUInt16LittleEndian(bs, n);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt16_To_LE(ushort n, Span<byte> bs, int off)
+        {
+            BinaryPrimitives.WriteUInt16LittleEndian(bs[off..], n);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1044,6 +1077,16 @@ namespace Org.BouncyCastle.Crypto.Utilities
             BinaryPrimitives.WriteUInt32BigEndian(bs[off..], n);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt32_To_BE(ReadOnlySpan<uint> ns, Span<byte> bs)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt32_To_BE(ns[i], bs);
+                bs = bs[4..];
+            }
+        }
+
         internal static void UInt32_To_BE_High(uint n, Span<byte> bs)
         {
             int len = bs.Length;
@@ -1062,16 +1105,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static void UInt32_To_BE_Low(uint n, Span<byte> bs)
         {
             UInt32_To_BE_High(n << ((4 - bs.Length) << 3), bs);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void UInt32_To_BE(ReadOnlySpan<uint> ns, Span<byte> bs)
-        {
-            for (int i = 0; i < ns.Length; ++i)
-            {
-                UInt32_To_BE(ns[i], bs);
-                bs = bs[4..];
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1128,6 +1161,16 @@ namespace Org.BouncyCastle.Crypto.Utilities
             BinaryPrimitives.WriteUInt64BigEndian(bs[off..], n);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt64_To_BE(ReadOnlySpan<ulong> ns, Span<byte> bs)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt64_To_BE(ns[i], bs);
+                bs = bs[8..];
+            }
+        }
+
         internal static void UInt64_To_BE_High(ulong n, Span<byte> bs)
         {
             int len = bs.Length;
@@ -1146,16 +1189,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static void UInt64_To_BE_Low(ulong n, Span<byte> bs)
         {
             UInt64_To_BE_High(n << ((8 - bs.Length) << 3), bs);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void UInt64_To_BE(ReadOnlySpan<ulong> ns, Span<byte> bs)
-        {
-            for (int i = 0; i < ns.Length; ++i)
-            {
-                UInt64_To_BE(ns[i], bs);
-                bs = bs[8..];
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
