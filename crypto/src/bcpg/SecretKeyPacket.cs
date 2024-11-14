@@ -31,16 +31,16 @@ namespace Org.BouncyCastle.Bcpg
 				pubKeyPacket = new PublicKeyPacket(bcpgIn);
 			}
 
-			s2kUsage = bcpgIn.ReadByte();
+			s2kUsage = bcpgIn.RequireByte();
 
 			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
             {
-                encAlgorithm = (SymmetricKeyAlgorithmTag) bcpgIn.ReadByte();
+                encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
                 s2k = new S2k(bcpgIn);
             }
             else
             {
-                encAlgorithm = (SymmetricKeyAlgorithmTag) s2kUsage;
+                encAlgorithm = (SymmetricKeyAlgorithmTag)s2kUsage;
 			}
 
 			if (!(s2k != null && s2k.Type == S2k.GnuDummyS2K && s2k.ProtectionMode == 0x01))

@@ -68,29 +68,18 @@ namespace Org.BouncyCastle.Bcpg
         }
 #endif
 
-        public byte[] ReadAll()
-        {
-			return Streams.ReadAll(this);
-		}
+        public byte[] ReadAll() => Streams.ReadAll(this);
 
-		public void ReadFully(byte[] buffer, int offset, int count)
-        {
-			if (Streams.ReadFully(this, buffer, offset, count) < count)
-				throw new EndOfStreamException();
-        }
+		public void ReadFully(byte[] buffer, int offset, int count) =>
+            StreamUtilities.RequireBytes(this, buffer, offset, count);
 
-		public void ReadFully(byte[] buffer)
-        {
-            ReadFully(buffer, 0, buffer.Length);
-        }
+		public void ReadFully(byte[] buffer) => StreamUtilities.RequireBytes(this, buffer);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void ReadFully(Span<byte> buffer)
-        {
-            if (Streams.ReadFully(this, buffer) < buffer.Length)
-                throw new EndOfStreamException();
-        }
+        public void ReadFully(Span<byte> buffer) => StreamUtilities.RequireBytes(this, buffer);
 #endif
+
+        public byte RequireByte() => StreamUtilities.RequireByte(this);
 
         /// <summary>Returns the next packet tag in the stream.</summary>
         public PacketTag NextPacketTag()
@@ -122,48 +111,24 @@ namespace Org.BouncyCastle.Bcpg
 
         public Packet ReadPacket()
         {
-            int hdr = this.ReadByte();
-
+            int hdr = ReadByte();
             if (hdr < 0)
-            {
                 return null;
-            }
 
             if ((hdr & 0x80) == 0)
-            {
                 throw new IOException("invalid header encountered");
-            }
 
             bool newPacket = (hdr & 0x40) != 0;
             PacketTag tag = 0;
-            int bodyLen = 0;
+            // TODO[pgp] Is the length field supposed to support full uint range?
+            int bodyLen;
             bool partial = false;
 
             if (newPacket)
             {
                 tag = (PacketTag)(hdr & 0x3f);
-
-                int l = this.ReadByte();
-
-                if (l < 192)
-                {
-                    bodyLen = l;
-                }
-                else if (l <= 223)
-                {
-                    int b = m_in.ReadByte();
-                    bodyLen = ((l - 192) << 8) + (b) + 192;
-                }
-                else if (l == 255)
-                {
-                    bodyLen = (m_in.ReadByte() << 24) | (m_in.ReadByte() << 16)
-                        |  (m_in.ReadByte() << 8)  | m_in.ReadByte();
-                }
-                else
-                {
-                    partial = true;
-                    bodyLen = 1 << (l & 0x1f);
-                }
+                bodyLen = StreamUtilities.RequireBodyLen(this, out var streamFlags);
+                partial = streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial);
             }
             else
             {
@@ -173,21 +138,21 @@ namespace Org.BouncyCastle.Bcpg
 
                 switch (lengthType)
                 {
-                    case 0:
-                        bodyLen = this.ReadByte();
-                        break;
-                    case 1:
-                        bodyLen = (this.ReadByte() << 8) | this.ReadByte();
-                        break;
-                    case 2:
-                        bodyLen = (this.ReadByte() << 24) | (this.ReadByte() << 16)
-                            | (this.ReadByte() << 8) | this.ReadByte();
-                        break;
-                    case 3:
-                        partial = true;
-                        break;
-                    default:
-                        throw new IOException("unknown length type encountered");
+                case 0:
+                    bodyLen = StreamUtilities.RequireByte(this);
+                    break;
+                case 1:
+                    bodyLen = StreamUtilities.RequireUInt16BE(this);
+                    break;
+                case 2:
+                    bodyLen = (int)StreamUtilities.RequireUInt32BE(this);
+                    break;
+                case 3:
+                    bodyLen = 0;
+                    partial = true;
+                    break;
+                default:
+                    throw new IOException("unknown length type encountered");
                 }
             }
 
@@ -205,49 +170,49 @@ namespace Org.BouncyCastle.Bcpg
 
             switch (tag)
             {
-                case PacketTag.Reserved:
-                    return new InputStreamPacket(objStream);
-                case PacketTag.PublicKeyEncryptedSession:
-                    return new PublicKeyEncSessionPacket(objStream);
-                case PacketTag.Signature:
-                    return new SignaturePacket(objStream);
-                case PacketTag.SymmetricKeyEncryptedSessionKey:
-                    return new SymmetricKeyEncSessionPacket(objStream);
-                case PacketTag.OnePassSignature:
-                    return new OnePassSignaturePacket(objStream);
-                case PacketTag.SecretKey:
-                    return new SecretKeyPacket(objStream);
-                case PacketTag.PublicKey:
-                    return new PublicKeyPacket(objStream);
-                case PacketTag.SecretSubkey:
-                    return new SecretSubkeyPacket(objStream);
-                case PacketTag.CompressedData:
-                    return new CompressedDataPacket(objStream);
-                case PacketTag.SymmetricKeyEncrypted:
-                    return new SymmetricEncDataPacket(objStream);
-                case PacketTag.Marker:
-                    return new MarkerPacket(objStream);
-                case PacketTag.LiteralData:
-                    return new LiteralDataPacket(objStream);
-                case PacketTag.Trust:
-                    return new TrustPacket(objStream);
-                case PacketTag.UserId:
-                    return new UserIdPacket(objStream);
-                case PacketTag.UserAttribute:
-                    return new UserAttributePacket(objStream);
-                case PacketTag.PublicSubkey:
-                    return new PublicSubkeyPacket(objStream);
-                case PacketTag.SymmetricEncryptedIntegrityProtected:
-                    return new SymmetricEncIntegrityPacket(objStream);
-                case PacketTag.ModificationDetectionCode:
-                    return new ModDetectionCodePacket(objStream);
-                case PacketTag.Experimental1:
-                case PacketTag.Experimental2:
-                case PacketTag.Experimental3:
-                case PacketTag.Experimental4:
-                    return new ExperimentalPacket(tag, objStream);
-                default:
-                    throw new IOException("unknown packet type encountered: " + tag);
+            case PacketTag.Reserved:
+                return new InputStreamPacket(objStream);
+            case PacketTag.PublicKeyEncryptedSession:
+                return new PublicKeyEncSessionPacket(objStream);
+            case PacketTag.Signature:
+                return new SignaturePacket(objStream);
+            case PacketTag.SymmetricKeyEncryptedSessionKey:
+                return new SymmetricKeyEncSessionPacket(objStream);
+            case PacketTag.OnePassSignature:
+                return new OnePassSignaturePacket(objStream);
+            case PacketTag.SecretKey:
+                return new SecretKeyPacket(objStream);
+            case PacketTag.PublicKey:
+                return new PublicKeyPacket(objStream);
+            case PacketTag.SecretSubkey:
+                return new SecretSubkeyPacket(objStream);
+            case PacketTag.CompressedData:
+                return new CompressedDataPacket(objStream);
+            case PacketTag.SymmetricKeyEncrypted:
+                return new SymmetricEncDataPacket(objStream);
+            case PacketTag.Marker:
+                return new MarkerPacket(objStream);
+            case PacketTag.LiteralData:
+                return new LiteralDataPacket(objStream);
+            case PacketTag.Trust:
+                return new TrustPacket(objStream);
+            case PacketTag.UserId:
+                return new UserIdPacket(objStream);
+            case PacketTag.UserAttribute:
+                return new UserAttributePacket(objStream);
+            case PacketTag.PublicSubkey:
+                return new PublicSubkeyPacket(objStream);
+            case PacketTag.SymmetricEncryptedIntegrityProtected:
+                return new SymmetricEncIntegrityPacket(objStream);
+            case PacketTag.ModificationDetectionCode:
+                return new ModDetectionCodePacket(objStream);
+            case PacketTag.Experimental1:
+            case PacketTag.Experimental2:
+            case PacketTag.Experimental3:
+            case PacketTag.Experimental4:
+                return new ExperimentalPacket(tag, objStream);
+            default:
+                throw new IOException("unknown packet type encountered: " + tag);
             }
         }
 
@@ -300,14 +265,13 @@ namespace Org.BouncyCastle.Bcpg
 					{
 						int ch = m_in.ReadByte();
 						if (ch < 0)
-						{
 							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
-						}
+
 						dataLength--;
 						return ch;
 					}
 				}
-				while (partial && ReadPartialDataLength() >= 0);
+				while (partial && ReadPartialDataLength());
 
 				return -1;
 			}
@@ -329,7 +293,7 @@ namespace Org.BouncyCastle.Bcpg
 						return len;
 					}
 				}
-				while (partial && ReadPartialDataLength() >= 0);
+				while (partial && ReadPartialDataLength());
 
 				return 0;
 			}
@@ -351,43 +315,25 @@ namespace Org.BouncyCastle.Bcpg
 						return len;
 					}
 				}
-				while (partial && ReadPartialDataLength() >= 0);
+				while (partial && ReadPartialDataLength());
 
 				return 0;
             }
 #endif
 
-            private int ReadPartialDataLength()
+            private bool ReadPartialDataLength()
             {
-                int l = m_in.ReadByte();
-
-				if (l < 0)
+                int bodyLen = StreamUtilities.ReadBodyLen(m_in, out var streamFlags);
+                if (bodyLen < 0)
                 {
-                    return -1;
+                    partial = false;
+                    dataLength = 0;
+                    return false;
                 }
 
-				partial = false;
-
-				if (l < 192)
-                {
-                    dataLength = l;
-                }
-                else if (l <= 223)
-                {
-                    dataLength = ((l - 192) << 8) + (m_in.ReadByte()) + 192;
-                }
-                else if (l == 255)
-                {
-                    dataLength = (m_in.ReadByte() << 24) | (m_in.ReadByte() << 16)
-                        |  (m_in.ReadByte() << 8)  | m_in.ReadByte();
-                }
-                else
-                {
-                    partial = true;
-                    dataLength = 1 << (l & 0x1f);
-                }
-
-                return 0;
+                partial = streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial);
+                dataLength = bodyLen;
+                return true;
             }
         }
     }

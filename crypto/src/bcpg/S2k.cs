@@ -25,11 +25,10 @@ namespace Org.BouncyCastle.Bcpg
         internal int itCount = -1;
         internal int protectionMode = -1;
 
-        internal S2k(
-            Stream inStr)
+        internal S2k(Stream inStr)
         {
-			type = inStr.ReadByte();
-            algorithm = (HashAlgorithmTag) inStr.ReadByte();
+			type = StreamUtilities.RequireByte(inStr);
+            algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
 
             //
             // if this happens we have a dummy-S2k packet.
@@ -39,8 +38,7 @@ namespace Org.BouncyCastle.Bcpg
                 if (type != 0)
                 {
 					iv = new byte[8];
-					if (Streams.ReadFully(inStr, iv, 0, iv.Length) < iv.Length)
-						throw new EndOfStreamException();
+                    StreamUtilities.RequireBytes(inStr, iv);
 
 					if (type == 3)
 					{
@@ -50,10 +48,12 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                inStr.ReadByte(); // G
-                inStr.ReadByte(); // N
-                inStr.ReadByte(); // U
-                protectionMode = inStr.ReadByte(); // protection mode
+                //inStr.ReadByte(); // G
+                //inStr.ReadByte(); // N
+                //inStr.ReadByte(); // U
+                //protectionMode = inStr.ReadByte(); // protection mode
+                uint GNU_ = StreamUtilities.RequireUInt32BE(inStr);
+                protectionMode = (byte)GNU_;
             }
         }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
@@ -18,7 +17,7 @@ namespace Org.BouncyCastle.Bcpg
         protected ECPublicBcpgKey(
             BcpgInputStream bcpgIn)
         {
-            this.oid = DerObjectIdentifier.GetInstance(Asn1Object.FromByteArray(ReadBytesOfEncodedLength(bcpgIn)));
+            this.oid = DerObjectIdentifier.GetInstance(ReadBytesOfEncodedLength(bcpgIn));
             this.point = new MPInteger(bcpgIn).Value;
         }
 
@@ -80,9 +79,7 @@ namespace Org.BouncyCastle.Bcpg
         protected static byte[] ReadBytesOfEncodedLength(
             BcpgInputStream bcpgIn)
         {
-            int length = bcpgIn.ReadByte();
-            if (length < 0)
-                throw new EndOfStreamException();
+            int length = bcpgIn.RequireByte();
             if (length == 0 || length == 0xFF)
                 throw new IOException("future extensions not yet implemented");
             if (length > 127)

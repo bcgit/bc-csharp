@@ -18,17 +18,16 @@ namespace Org.BouncyCastle.Bcpg
         internal PublicKeyPacket(
             BcpgInputStream bcpgIn)
         {
-            version = bcpgIn.ReadByte();
+            version = bcpgIn.RequireByte();
 
-            time = ((uint)bcpgIn.ReadByte() << 24) | ((uint)bcpgIn.ReadByte() << 16)
-                | ((uint)bcpgIn.ReadByte() << 8) | (uint)bcpgIn.ReadByte();
+            time = StreamUtilities.RequireUInt32BE(bcpgIn);
 
             if (version <= 3)
             {
-                validDays = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
+                validDays = StreamUtilities.RequireUInt16BE(bcpgIn);
             }
 
-            algorithm = (PublicKeyAlgorithmTag)bcpgIn.ReadByte();
+            algorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
 
             switch (algorithm)
             {

@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Bcpg
         public ECDHPublicBcpgKey(BcpgInputStream bcpgIn)
             : base(bcpgIn)
         {
-            int length = bcpgIn.ReadByte();
+            int length = bcpgIn.RequireByte();
             if (length != 3)
                 throw new InvalidOperationException("KDF parameters size of 3 expected.");
 
