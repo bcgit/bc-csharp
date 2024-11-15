@@ -206,20 +206,20 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual byte[] GetOctets()
         {
-            CheckOctetAlignment();
+            CheckOctetAligned();
             return Arrays.CopyOfRange(m_contents, 1, m_contents.Length);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal ReadOnlyMemory<byte> GetOctetsMemory()
         {
-            CheckOctetAlignment();
+            CheckOctetAligned();
             return m_contents.AsMemory(1);
         }
 
         internal ReadOnlySpan<byte> GetOctetsSpan()
         {
-            CheckOctetAlignment();
+            CheckOctetAligned();
             return m_contents.AsSpan(1);
         }
 #endif
@@ -235,6 +235,10 @@ namespace Org.BouncyCastle.Asn1
             rv[rv.Length - 1] &= (byte)(0xFF << padBits);
             return rv;
         }
+
+        public virtual int GetBytesLength() => m_contents.Length - 1;
+
+        public virtual bool IsOctetAligned() => PadBits == 0;
 
         public virtual int PadBits => m_contents[0];
 
@@ -374,7 +378,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal MemoryStream GetOctetMemoryStream()
         {
-            CheckOctetAlignment();
+            CheckOctetAligned();
             return GetMemoryStream();
         }
 
@@ -399,7 +403,7 @@ namespace Org.BouncyCastle.Asn1
 			return buffer.ToString();
 		}
 
-        private void CheckOctetAlignment()
+        private void CheckOctetAligned()
         {
             if (m_contents[0] != 0x00)
                 throw new IOException("expected octet-aligned bitstring, but found padBits: " + m_contents[0]);
