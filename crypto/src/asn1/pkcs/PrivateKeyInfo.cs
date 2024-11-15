@@ -44,6 +44,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class PrivateKeyInfo
         : Asn1Encodable
     {
+        public static PrivateKeyInfo Create(AlgorithmIdentifier privateKeyAlgorithm, Asn1OctetString privateKey,
+            Asn1Set attributes, DerBitString publicKey)
+        {
+            var version = new DerInteger(publicKey != null ? 1 : 0);
+
+            return new PrivateKeyInfo(version, privateKeyAlgorithm, privateKey, attributes, publicKey);
+        }
+
         public static PrivateKeyInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -119,6 +127,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_privateKey = new DerOctetString(privateKey);
             m_attributes = attributes;
             m_publicKey = publicKey == null ? null : new DerBitString(publicKey);
+        }
+
+        private PrivateKeyInfo(DerInteger version, AlgorithmIdentifier privateKeyAlgorithm, Asn1OctetString privateKey,
+            Asn1Set attributes, DerBitString publicKey)
+        {
+            m_version = version ?? throw new ArgumentNullException(nameof(version));
+            m_privateKeyAlgorithm = privateKeyAlgorithm ?? throw new ArgumentNullException(nameof(privateKeyAlgorithm));
+            m_privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
+            m_attributes = attributes;
+            m_publicKey = publicKey;
         }
 
         public virtual DerInteger Version => m_version;
