@@ -816,11 +816,10 @@ namespace Org.BouncyCastle.Security
             {
                 var preHashOid = slhDsaParameters.PreHashOid;
                 if (preHashOid == null)
-                    return new SlhDsaSigner(slhDsaParameters.ParameterSet, deterministic: false);
+                    return new SlhDsaSigner(slhDsaParameters, deterministic: false);
 
                 var preHashDigest = DigestUtilities.GetDigest(preHashOid);
-                return new HashSlhDsaSigner(slhDsaParameters.ParameterSet, preHashOid, preHashDigest,
-                    deterministic: false);
+                return new HashSlhDsaSigner(slhDsaParameters, deterministic: false);
             }
 
             return null;

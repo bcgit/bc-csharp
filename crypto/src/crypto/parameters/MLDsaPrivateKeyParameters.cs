@@ -77,8 +77,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetEncoded() => Arrays.ConcatenateAll(m_rho, m_k, m_tr, m_s1, m_s2, m_t0);
 
-        public MLDsaPublicKeyParameters GetPublicKey() =>
-            m_t1 == null ? null : new MLDsaPublicKeyParameters(Parameters, m_rho, m_t1);
+        public MLDsaPublicKeyParameters GetPublicKey() => new MLDsaPublicKeyParameters(Parameters, m_rho, m_t1);
+
+        public byte[] GetPublicKeyEncoded() => Arrays.Concatenate(m_rho, m_t1);
 
         public byte[] GetSeed() => Arrays.Clone(m_seed);
 

@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         : ISigner
     {
         private readonly Buffer m_buffer = new Buffer();
-        private readonly SlhDsaParameterSet m_parameterSet;
+        private readonly SlhDsaParameters m_parameters;
         private readonly byte[] m_preHashOidEncoding;
         private readonly IDigest m_preHashDigest;
         private readonly bool m_deterministic;
@@ -22,20 +22,20 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom m_random;
         private SphincsPlusEngine m_engine;
 
-        public HashSlhDsaSigner(SlhDsaParameterSet parameterSet, DerObjectIdentifier preHashOid, IDigest preHashDigest,
-            bool deterministic)
+        public HashSlhDsaSigner(SlhDsaParameters parameters, bool deterministic)
         {
-            if (preHashOid == null)
-                throw new ArgumentNullException(nameof(preHashOid));
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (parameters.PreHashOid == null)
+                throw new ArgumentException("cannot be used for SLH-DSA", nameof(parameters));
 
-            m_parameterSet = parameterSet;
-            m_preHashOidEncoding = preHashOid.GetEncoded(Asn1Encodable.Der);
-            m_preHashDigest = preHashDigest ?? throw new ArgumentNullException(nameof(preHashDigest));
+            m_parameters = parameters;
+            m_preHashOidEncoding = parameters.PreHashOid.GetEncoded(Asn1Encodable.Der);
+            m_preHashDigest = DigestUtilities.GetDigest(parameters.PreHashOid);
             m_deterministic = deterministic;
         }
 
-        // TODO[pqc] Name via the parameter set?
-        public string AlgorithmName => "SLH-DSA";
+        public string AlgorithmName => m_parameters.Name;
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (m_parameterSet != null && keyParameters.ParameterSet != m_parameterSet)
+            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine();

@@ -8,17 +8,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public sealed class SlhDsaPublicKeyParameters
         : SlhDsaKeyParameters
     {
-        private readonly PK m_pk;
-
-        public SlhDsaPublicKeyParameters(SlhDsaParameters parameters, byte[] encoding)
-            : base(false, parameters)
+        public static SlhDsaPublicKeyParameters FromEncoding(SlhDsaParameters parameters, byte[] encoding)
         {
-            int n = parameters.ParameterSet.N;
-            if (encoding.Length != 2 * n)
-                throw new ArgumentException("public key encoding does not match parameters", nameof(encoding));
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (encoding == null)
+                throw new ArgumentNullException(nameof(encoding));
+            if (encoding.Length != parameters.ParameterSet.PublicKeyLength)
+                throw new ArgumentException("invalid encoding", nameof(encoding));
 
-            m_pk = new PK(Arrays.CopyOfRange(encoding, 0, n), Arrays.CopyOfRange(encoding, n, 2 * n));
+            int n = parameters.ParameterSet.N;
+            PK pk = new PK(Arrays.CopyOfRange(encoding, 0, n), Arrays.CopyOfRange(encoding, n, 2 * n));
+            return new SlhDsaPublicKeyParameters(parameters, pk);
         }
+
+        private readonly PK m_pk;
 
         internal SlhDsaPublicKeyParameters(SlhDsaParameters parameters, PK pk)
             : base(false, parameters)

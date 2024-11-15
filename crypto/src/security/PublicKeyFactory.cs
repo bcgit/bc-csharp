@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -352,22 +351,41 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
-        internal static SlhDsaPublicKeyParameters GetSlhDsaPublicKey(SlhDsaParameters parameters, DerBitString publicKey)
+        internal static SlhDsaPublicKeyParameters GetSlhDsaPublicKey(SlhDsaParameters slhDsaParameters,
+            DerBitString publicKey)
         {
-            // TODO[pqc] Rework this, use length to guide possible format(s)?
-
-            var publicKeyOctets = publicKey.GetOctets();
-
-            try
+            if (publicKey.IsOctetAligned())
             {
-                byte[] keyEnc = Asn1OctetString.GetInstance(publicKeyOctets).GetOctets();
+                int publicKeyLength = slhDsaParameters.ParameterSet.PublicKeyLength;
 
-                return new SlhDsaPublicKeyParameters(parameters, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == publicKeyLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return SlhDsaPublicKeyParameters.FromEncoding(slhDsaParameters, encoding: publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                if (bytesLength > publicKeyLength)
+                {
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            if (oct.GetOctetsLength() == 4 + publicKeyLength)
+                            {
+                                byte[] octets = oct.GetOctets();
+                                byte[] encoding = Arrays.CopyOfRange(octets, 4, octets.Length);
+                                return SlhDsaPublicKeyParameters.FromEncoding(slhDsaParameters, encoding);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
             }
-            catch (Exception)
-            {
-                return new SlhDsaPublicKeyParameters(parameters, publicKeyOctets);
-            }
+
+            throw new ArgumentException("invalid " + slhDsaParameters.Name + " public key");
         }
 
         private static bool IsPkcsDHParam(Asn1Sequence seq)

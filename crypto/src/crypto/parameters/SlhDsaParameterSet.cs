@@ -75,6 +75,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public string Name => m_name;
 
+        internal int PrivateKeyLength => 4 * N;
+
+        internal int PublicKeyLength => 2 * N;
+
         public override string ToString() => Name;
 
         internal int N => m_engineProvider.N;

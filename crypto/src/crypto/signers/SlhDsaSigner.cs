@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         : ISigner
     {
         private readonly Buffer m_buffer = new Buffer();
-        private readonly SlhDsaParameterSet m_parameterSet;
+        private readonly SlhDsaParameters m_parameters;
         private readonly bool m_deterministic;
 
         private SlhDsaPrivateKeyParameters m_privateKey;
@@ -19,14 +19,18 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom m_random;
         private SphincsPlusEngine m_engine;
 
-        public SlhDsaSigner(SlhDsaParameterSet parameterSet, bool deterministic)
+        public SlhDsaSigner(SlhDsaParameters parameters, bool deterministic)
         {
-            m_parameterSet = parameterSet;
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (parameters.PreHashOid != null)
+                throw new ArgumentException("cannot be used for HashSLH-DSA", nameof(parameters));
+
+            m_parameters = parameters;
             m_deterministic = deterministic;
         }
 
-        // TODO[pqc] Name via the parameter set?
-        public string AlgorithmName => "SLH-DSA";
+        public string AlgorithmName => m_parameters.Name;
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
@@ -111,7 +115,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (m_parameterSet != null && keyParameters.ParameterSet != m_parameterSet)
+            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine();

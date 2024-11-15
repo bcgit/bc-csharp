@@ -17,7 +17,6 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
-using Org.BouncyCastle.Pqc.Asn1;
 
 namespace Org.BouncyCastle.Security
 {
@@ -369,26 +368,19 @@ namespace Org.BouncyCastle.Security
             }
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
-                Asn1Encodable obj = keyInfo.ParsePrivateKey();
+                var privateKey = keyInfo.PrivateKey;
+                int length = privateKey.GetOctetsLength();
 
-                if (obj is Asn1Sequence keySeq)
+                var parameterSet = slhDsaParameters.ParameterSet;
+
+                if (length == parameterSet.PrivateKeyLength)
                 {
-                    // TODO[pqc] Check whether these ASN.1 formats should still be supported - rename if so
-#pragma warning disable CS0618 // Type or member is obsolete
-                    SphincsPlusPrivateKey spKey = SphincsPlusPrivateKey.GetInstance(keySeq);
-
-                    SphincsPlusPublicKey publicKey = spKey.PublicKey;
-
-                    return new SlhDsaPrivateKeyParameters(slhDsaParameters, spKey.GetSkseed(), spKey.GetSkprf(),
-                        publicKey.GetPkseed(), publicKey.GetPkroot());
-#pragma warning restore CS0618 // Type or member is obsolete
+                    // NOTE: We ignore the publicKey field since the private key includes it anyway
+                    // TODO[pqc] Validate the public key if it is included?
+                    return SlhDsaPrivateKeyParameters.FromEncoding(slhDsaParameters, encoding: privateKey.GetOctets());
                 }
-                else
-                {
-                    Asn1OctetString oct = Asn1OctetString.GetInstance(obj);
 
-                    return new SlhDsaPrivateKeyParameters(slhDsaParameters, oct.GetOctets());
-                }
+                throw new ArgumentException("invalid " + slhDsaParameters.Name + " private key");
             }
             else
             {

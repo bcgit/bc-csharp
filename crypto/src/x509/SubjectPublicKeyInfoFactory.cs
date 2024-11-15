@@ -261,7 +261,8 @@ namespace Org.BouncyCastle.X509
             {
                 var algID = new AlgorithmIdentifier(slhDsaKey.Parameters.Oid);
 
-                return new SubjectPublicKeyInfo(algID, slhDsaKey.GetEncoded());
+                // TODO[pqc] Avoid redundant copies?
+                return new SubjectPublicKeyInfo(algID, publicKey: slhDsaKey.GetEncoded());
             }
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));

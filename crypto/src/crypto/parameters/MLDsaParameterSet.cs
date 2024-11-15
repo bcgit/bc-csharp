@@ -64,21 +64,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal int SeedLength => DilithiumEngine.SeedBytes;
 
-        //internal int SignatureLength
-        //{
-        //    get
-        //    {
-        //        switch (m_mode)
-        //        {
-        //        case 2: return 2420;
-        //        case 3: return 3309;
-        //        case 5: return 4627;
-        //        default:
-        //            throw new InvalidOperationException();
-        //        };
-        //    }
-        //}
-
         public string Name => m_name;
 
         public override string ToString() => Name;
