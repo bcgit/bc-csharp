@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             //}
             }
 
-            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         /// <exception cref="IOException"/>
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureAlgorithm.gostr34102012_512:
 
             default:
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             //}
 
             default:
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
@@ -295,7 +295,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             catch (InvalidCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not DH", e);
             }
         }
 
@@ -308,7 +308,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             catch (InvalidCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not DSS", e);
             }
         }
 
@@ -321,7 +321,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             catch (InvalidCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not EC", e);
             }
         }
 
@@ -334,7 +334,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             catch (InvalidCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not Ed25519", e);
             }
         }
 
@@ -347,7 +347,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             catch (InvalidCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not Ed448", e);
             }
         }
 
@@ -360,7 +360,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             catch (InvalidCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not RSA", e);
             }
         }
 
@@ -395,7 +395,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
             }
 
-            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         /// <exception cref="IOException"/>
@@ -411,6 +411,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        // TODO[api] Rename parameter to 'keyUsageBit'
         protected virtual bool SupportsKeyUsage(int keyUsageBits)
         {
             return true;
@@ -485,31 +486,50 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         /// <exception cref="IOException"/>
+        // TODO[api] Rename parameter to 'keyUsageBit'
         public virtual void ValidateKeyUsage(int keyUsageBits)
         {
             if (!SupportsKeyUsage(keyUsageBits))
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+            {
+                switch (keyUsageBits)
+                {
+                case KeyUsage.DigitalSignature:
+                    throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                        "KeyUsage does not allow digital signatures");
+                case KeyUsage.KeyAgreement:
+                    throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                        "KeyUsage does not allow key agreement");
+                case KeyUsage.KeyEncipherment:
+                    throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                        "KeyUsage does not allow key encipherment");
+                default:
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+                }
+            }
         }
 
         /// <exception cref="IOException"/>
         protected virtual void ValidateRsa_Pkcs1()
         {
             if (!SupportsRsa_Pkcs1())
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                    "No support for rsa_pkcs1 signature schemes");
         }
 
         /// <exception cref="IOException"/>
         protected virtual void ValidateRsa_Pss_Pss(short signatureAlgorithm)
         {
             if (!SupportsRsa_Pss_Pss(signatureAlgorithm))
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                    "No support for rsa_pss_pss signature schemes");
         }
 
         /// <exception cref="IOException"/>
         protected virtual void ValidateRsa_Pss_Rsae()
         {
             if (!SupportsRsa_Pss_Rsae())
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                    "No support for rsa_pss_rsae signature schemes");
         }
     }
 }

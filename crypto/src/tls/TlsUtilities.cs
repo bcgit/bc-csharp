@@ -4572,7 +4572,8 @@ namespace Org.BouncyCastle.Tls
                 for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
                 {
                     if (!(tlsFeaturesSeq[i] is DerInteger))
-                        throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                        throw new TlsFatalAlert(AlertDescription.bad_certificate,
+                            "Server certificate has invalid TLS Features extension");
                 }
 
                 RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
@@ -4585,7 +4586,8 @@ namespace Org.BouncyCastle.Tls
                         int extensionType = tlsExtension.IntValueExact;
 
                         if (clientExtensions.ContainsKey(extensionType) && !serverExtensions.ContainsKey(extensionType))
-                            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                            throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                                "Server extensions missing TLS Feature " + extensionType);
                     }
                 }
             }

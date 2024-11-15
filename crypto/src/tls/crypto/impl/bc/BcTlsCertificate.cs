@@ -78,6 +78,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override Asn1Encodable GetSigAlgParams() => m_certificate.SignatureAlgorithm.Parameters;
 
+        // TODO[api] Rename parameter to 'keyUsageBit'
         protected override bool SupportsKeyUsage(int keyUsageBits)
         {
             X509Extensions exts = m_certificate.Extensions;
