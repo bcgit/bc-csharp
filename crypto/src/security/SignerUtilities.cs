@@ -806,11 +806,10 @@ namespace Org.BouncyCastle.Security
             {
                 var preHashOid = mlDsaParameters.PreHashOid;
                 if (preHashOid == null)
-                    return new MLDsaSigner(mlDsaParameters.ParameterSet, deterministic: false);
+                    return new MLDsaSigner(mlDsaParameters, deterministic: false);
 
                 var preHashDigest = DigestUtilities.GetDigest(preHashOid);
-                return new HashMLDsaSigner(mlDsaParameters.ParameterSet, preHashOid, preHashDigest,
-                    deterministic: false);
+                return new HashMLDsaSigner(mlDsaParameters, deterministic: false);
             }
 
             if (SlhDsaParameters.ByName.TryGetValue(mechanism, out SlhDsaParameters slhDsaParameters))

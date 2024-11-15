@@ -2,10 +2,11 @@
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Pqc.Crypto.Tests;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -56,14 +57,11 @@ namespace Org.BouncyCastle.Pqc.Tests
             DerBitString pubSeq = pubInfo.PublicKey;
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
-            // TODO[pqc] Align private key encoding with bc-java (include public key data?)
-            //PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            //Asn1OctetString seq = Asn1OctetString.GetInstance(privInfo.ParsePrivateKey());
-            //Assert.True(Arrays.AreEqual(seq.GetOctets(), seed));
+            PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
+            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
-            ISigner sigDet = new HashMLDsaSigner(MLDsaParameterSet.ml_dsa_44, NistObjectIdentifiers.IdSha512,
-                new Sha512Digest(), deterministic: true);
+            ISigner sigDet = new HashMLDsaSigner(MLDsaParameters.ml_dsa_44_with_sha512, deterministic: true);
             ISigner sigRnd = SignerUtilities.GetSigner(NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512);
 
             sigDet.Init(forSigning: true, kp.Private);
@@ -131,14 +129,11 @@ namespace Org.BouncyCastle.Pqc.Tests
             DerBitString pubSeq = pubInfo.PublicKey;
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
-            // TODO[pqc] Align private key encoding with bc-java (include public key data?)
-            //PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            //Asn1OctetString seq = Asn1OctetString.GetInstance(privInfo.ParsePrivateKey());
-            //Assert.True(Arrays.AreEqual(seq.GetOctets(), seed));
+            PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
+            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
-            ISigner sigDet = new HashMLDsaSigner(MLDsaParameterSet.ml_dsa_44, NistObjectIdentifiers.IdSha512,
-                new Sha512Digest(), deterministic: true);
+            ISigner sigDet = new HashMLDsaSigner(MLDsaParameters.ml_dsa_44_with_sha512, deterministic: true);
             ISigner sigRnd = SignerUtilities.GetSigner(NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512);
 
             sigDet.Init(forSigning: true, new ParametersWithContext(kp.Private, context));
@@ -207,13 +202,11 @@ namespace Org.BouncyCastle.Pqc.Tests
             DerBitString pubSeq = pubInfo.PublicKey;
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
-            // TODO[pqc] Align private key encoding with bc-java (include public key data?)
-            //PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            //Asn1OctetString seq = Asn1OctetString.GetInstance(privInfo.ParsePrivateKey());
-            //Assert.True(Arrays.AreEqual(seq.GetOctets(), seed));
+            PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
+            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
-            ISigner sigDet = new MLDsaSigner(MLDsaParameterSet.ml_dsa_44, deterministic: true);
+            ISigner sigDet = new MLDsaSigner(MLDsaParameters.ml_dsa_44, deterministic: true);
             ISigner sigRnd = SignerUtilities.GetSigner(NistObjectIdentifiers.id_ml_dsa_44);
 
             sigDet.Init(forSigning: true, kp.Private);
@@ -263,13 +256,11 @@ namespace Org.BouncyCastle.Pqc.Tests
             DerBitString pubSeq = pubInfo.PublicKey;
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
-            // TODO[pqc] Align private key encoding with bc-java (include public key data?)
-            //PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            //Asn1OctetString seq = Asn1OctetString.GetInstance(privInfo.ParsePrivateKey());
-            //Assert.True(Arrays.AreEqual(seq.GetOctets(), seed));
+            PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
+            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
-            ISigner sigDet = new MLDsaSigner(MLDsaParameterSet.ml_dsa_44, deterministic: true);
+            ISigner sigDet = new MLDsaSigner(MLDsaParameters.ml_dsa_44, deterministic: true);
             ISigner sigRnd = SignerUtilities.GetSigner(NistObjectIdentifiers.id_ml_dsa_44);
 
             sigDet.Init(forSigning: true, new ParametersWithContext(kp.Private, context));

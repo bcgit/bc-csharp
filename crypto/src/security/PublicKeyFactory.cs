@@ -17,6 +17,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
@@ -288,33 +289,47 @@ namespace Org.BouncyCastle.Security
             }
         }
 
-        internal static MLDsaPublicKeyParameters GetMLDsaPublicKey(MLDsaParameters parameters, DerBitString publicKey)
+        internal static MLDsaPublicKeyParameters GetMLDsaPublicKey(MLDsaParameters mlDsaParameters, DerBitString publicKey)
         {
-            // TODO[pqc] Rework this, use length to guide possible format(s)?
-
-            var publicKeyOctets = publicKey.GetOctets();
-
-            try
+            if (publicKey.IsOctetAligned())
             {
-                Asn1Object obj = Asn1Object.FromByteArray(publicKeyOctets);
-                if (obj is Asn1Sequence keySeq)
-                {
-                    return new MLDsaPublicKeyParameters(
-                        parameters,
-                        Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
-                        Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
-                }
-                else
-                {
-                    byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
+                int publicKeyLength = mlDsaParameters.ParameterSet.PublicKeyLength;
 
-                    return new MLDsaPublicKeyParameters(parameters, encKey);
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == publicKeyLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return MLDsaPublicKeyParameters.FromEncoding(mlDsaParameters, encoding: publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                if (bytesLength > publicKeyLength)
+                {
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            if (oct.GetOctetsLength() == publicKeyLength)
+                                return MLDsaPublicKeyParameters.FromEncoding(mlDsaParameters, encoding: oct.GetOctets());
+                        }
+                        else if (obj is Asn1Sequence seq)
+                        {
+                            var rho = Asn1OctetString.GetInstance(seq[0]);
+                            var t1 = Asn1OctetString.GetInstance(seq[1]);
+
+                            if (rho.GetOctetsLength() == DilithiumEngine.SeedBytes &&
+                                t1.GetOctetsLength() == publicKeyLength - DilithiumEngine.SeedBytes)
+                            {
+                                return new MLDsaPublicKeyParameters(mlDsaParameters, rho.GetOctets(), t1.GetOctets());
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
-            catch (Exception)
-            {
-                return new MLDsaPublicKeyParameters(parameters, publicKeyOctets);
-            }
+
+            throw new ArgumentException("invalid " + mlDsaParameters.Name + " public key");
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

@@ -346,19 +346,26 @@ namespace Org.BouncyCastle.Security
             }
             else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
             {
-                // TODO[pqc] Support ASN.1 sequence (see bc-java)?
+                var privateKey = keyInfo.PrivateKey;
+                int length = privateKey.GetOctetsLength();
 
-                var encoding = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
+                var parameterSet = mlDsaParameters.ParameterSet;
 
-                // TODO Add support?
-                //DerBitString publicKeyData = keyInfo.PublicKey;
-                //MLDsaPublicKeyParameters pubKey = null;
-                //if (publicKeyData != null)
-                //{
-                //    pubKey = PublicKeyFactory.GetMLDsaPublicKey(mlDsaParameters, publicKeyData);
-                //}
+                if (length == parameterSet.SeedLength)
+                {
+                    // NOTE: We ignore the publicKey field since we will recover it from the seed anyway
+                    // TODO[pqc] Validate the public key if it is included?
+                    return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed: privateKey.GetOctets());
+                }
 
-                return new MLDsaPrivateKeyParameters(mlDsaParameters, encoding.GetOctets());
+                if (length == parameterSet.PrivateKeyLength)
+                {
+                    // NOTE: We ignore the publicKey field since we will derive it anyway
+                    // TODO[pqc] Validate the public key if it is included?
+                    return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding: privateKey.GetOctets());
+                }
+
+                throw new ArgumentException("invalid " + mlDsaParameters.Name + " private key");
             }
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {

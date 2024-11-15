@@ -249,10 +249,19 @@ namespace Org.BouncyCastle.Pkcs
             {
                 var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
 
-                // TODO[pqc] Add support?
-                byte[] publicKey = null;
+                byte[] seed = mlDsaKey.GetSeed();
+                if (seed != null)
+                    return PrivateKeyInfo.Create(algID, new DerOctetString(seed), attributes, publicKey: null);
 
-                return new PrivateKeyInfo(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
+                DerBitString publicKey = null;
+                MLDsaPublicKeyParameters mlDsaPubKey = mlDsaKey.GetPublicKey();
+                if (mlDsaPubKey != null)
+                {
+                    // TODO[pqc] Avoid redundant copies?
+                    publicKey = new DerBitString(publicKey.GetEncoded());
+                }
+
+                return PrivateKeyInfo.Create(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
             }
 
             if (privateKey is SlhDsaPrivateKeyParameters slhDsaKey)

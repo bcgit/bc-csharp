@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     {
         private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
 
-        private readonly MLDsaParameterSet m_parameterSet;
+        private readonly MLDsaParameters m_parameters;
         private readonly bool m_deterministic;
 
         private byte[] m_context;
@@ -20,14 +20,18 @@ namespace Org.BouncyCastle.Crypto.Signers
         private MLDsaPublicKeyParameters m_publicKey;
         private DilithiumEngine m_engine;
 
-        public MLDsaSigner(MLDsaParameterSet parameterSet, bool deterministic)
+        public MLDsaSigner(MLDsaParameters parameters, bool deterministic)
         {
-            m_parameterSet = parameterSet;
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (parameters.PreHashOid != null)
+                throw new ArgumentException("cannot be used for HashML-DSA", nameof(parameters));
+
+            m_parameters = parameters;
             m_deterministic = deterministic;
         }
 
-        // TODO[pqc] Name via the parameter set?
-        public string AlgorithmName => "ML-DSA";
+        public string AlgorithmName => m_parameters.Name;
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
@@ -95,7 +99,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] sig = new byte[m_engine.CryptoBytes];
             m_engine.MsgRepEndSign(m_msgRepDigest, sig, sig.Length, m_privateKey.m_rho, m_privateKey.m_k,
-                m_privateKey.m_t0, m_privateKey.m_s1, m_privateKey.m_s2);
+                m_privateKey.m_t0, m_privateKey.m_s1, m_privateKey.m_s2, legacy: false);
 
             Reset();
             return sig;
@@ -129,7 +133,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (m_parameterSet != null && keyParameters.ParameterSet != m_parameterSet)
+            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine(random);

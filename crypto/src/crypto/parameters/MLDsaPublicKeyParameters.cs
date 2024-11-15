@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+﻿using System;
+
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -6,27 +8,30 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public sealed class MLDsaPublicKeyParameters
         : MLDsaKeyParameters
     {
+        public static MLDsaPublicKeyParameters FromEncoding(MLDsaParameters parameters, byte[] encoding)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (encoding == null)
+                throw new ArgumentNullException(nameof(encoding));
+            if (encoding.Length != parameters.ParameterSet.PublicKeyLength)
+                throw new ArgumentException("invalid encoding", nameof(encoding));
+
+            byte[] rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes);
+            byte[] t1 = Arrays.CopyOfRange(encoding, DilithiumEngine.SeedBytes, encoding.Length);
+            return new MLDsaPublicKeyParameters(parameters, rho, t1);
+        }
+
         internal readonly byte[] m_rho;
         internal readonly byte[] m_t1;
 
         private byte[] cachedPublicKeyHash;
 
-        public MLDsaPublicKeyParameters(MLDsaParameters parameters, byte[] encoding)
-            : base(false, parameters)
-        {
-            // TODO Validation
-
-            m_rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes);
-            m_t1 = Arrays.CopyOfRange(encoding, DilithiumEngine.SeedBytes, encoding.Length);
-        }
-
         internal MLDsaPublicKeyParameters(MLDsaParameters parameters, byte[] rho, byte[] t1)
             : base(false, parameters)
         {
-            // TODO Validation
-
-            m_rho = Arrays.Clone(rho);
-            m_t1 = Arrays.Clone(t1);
+            m_rho = rho;
+            m_t1 = t1;
         }
 
         public byte[] GetEncoded() => Arrays.Concatenate(m_rho, m_t1);

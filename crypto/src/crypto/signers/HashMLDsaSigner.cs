@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     {
         private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
 
-        private readonly MLDsaParameterSet m_parameterSet;
+        private readonly MLDsaParameters m_parameters;
         private readonly byte[] m_preHashOidEncoding;
         private readonly IDigest m_preHashDigest;
         private readonly bool m_deterministic;
@@ -23,20 +23,20 @@ namespace Org.BouncyCastle.Crypto.Signers
         private MLDsaPublicKeyParameters m_publicKey;
         private DilithiumEngine m_engine;
 
-        public HashMLDsaSigner(MLDsaParameterSet parameterSet, DerObjectIdentifier preHashOid, IDigest preHashDigest,
-            bool deterministic)
+        public HashMLDsaSigner(MLDsaParameters parameters, bool deterministic)
         {
-            if (preHashOid == null)
-                throw new ArgumentNullException(nameof(preHashOid));
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (parameters.PreHashOid == null)
+                throw new ArgumentException("cannot be used for ML-DSA", nameof(parameters));
 
-            m_parameterSet = parameterSet;
-            m_preHashOidEncoding = preHashOid.GetEncoded(Asn1Encodable.Der);
-            m_preHashDigest = preHashDigest ?? throw new ArgumentNullException(nameof(preHashDigest));
+            m_parameters = parameters;
+            m_preHashOidEncoding = parameters.PreHashOid.GetEncoded(Asn1Encodable.Der);
+            m_preHashDigest = DigestUtilities.GetDigest(parameters.PreHashOid);
             m_deterministic = deterministic;
         }
 
-        // TODO[pqc] Name via the parameter set?
-        public string AlgorithmName => "HashML-DSA";
+        public string AlgorithmName => m_parameters.Name;
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] sig = new byte[m_engine.CryptoBytes];
             m_engine.MsgRepEndSign(msgRepDigest, sig, sig.Length, m_privateKey.m_rho, m_privateKey.m_k,
-                m_privateKey.m_t0, m_privateKey.m_s1, m_privateKey.m_s2);
+                m_privateKey.m_t0, m_privateKey.m_s1, m_privateKey.m_s2, legacy: false);
             return sig;
         }
 
@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (m_parameterSet != null && keyParameters.ParameterSet != m_parameterSet)
+            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine(random);
