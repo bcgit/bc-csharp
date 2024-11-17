@@ -36,7 +36,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public static ECDomainParameters GetDomainParameters(TlsECConfig ecConfig)
         {
-            return GetDomainParameters(ecConfig.NamedGroup);
+            return GetDomainParameters(ecConfig.NamedGroup) ??
+                throw new ArgumentException("No EC configuration provided", nameof(ecConfig));
         }
 
         public static ECDomainParameters GetDomainParameters(int namedGroup)

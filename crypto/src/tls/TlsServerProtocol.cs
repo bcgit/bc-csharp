@@ -364,16 +364,21 @@ namespace Org.BouncyCastle.Tls
                 {
                     agreement = crypto.CreateDHDomain(new TlsDHConfig(namedGroup, true)).CreateDH();
                 }
+                else if (NamedGroup.RefersToASpecificKem(namedGroup))
+                {
+                    agreement = crypto.CreateKemDomain(new TlsKemConfig(namedGroup, isServer: true)).CreateKem();
+                }
                 else
                 {
                     throw new TlsFatalAlert(AlertDescription.internal_error);
                 }
 
+                agreement.ReceivePeerValue(clientShare.KeyExchange);
+
                 byte[] key_exchange = agreement.GenerateEphemeral();
                 KeyShareEntry serverShare = new KeyShareEntry(namedGroup, key_exchange);
                 TlsExtensionsUtilities.AddKeyShareServerHello(serverHelloExtensions, serverShare);
 
-                agreement.ReceivePeerValue(clientShare.KeyExchange);
                 sharedSecret = agreement.CalculateSecret();
             }
 
