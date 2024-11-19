@@ -123,6 +123,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         public override void PerformTest()
         {
+            IetfUtilitiesTest();
+            BogusEqualsTest();
+
             doTestEncodingPrintableString(X509Name.C, "AU");
             doTestEncodingPrintableString(X509Name.SerialNumber, "123456");
             doTestEncodingPrintableString(X509Name.DnQualifier, "123456");
@@ -593,6 +596,24 @@ namespace Org.BouncyCastle.Asn1.Tests
             if (vls.Count != 1 || !vls[0].Equals("+61999999999"))
             {
                 Fail("telephonenumber escaped + not reduced properly");
+            }
+        }
+
+        private void IetfUtilitiesTest()
+        {
+            IetfUtilities.ValueToString(new DerUtf8String(" "));
+        }
+
+        private void BogusEqualsTest()
+        {
+            try
+            {
+                new X509Name("CN=foo=bar");
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsEquals("badly formatted directory string", e.Message);
             }
         }
 
