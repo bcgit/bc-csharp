@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -337,7 +338,7 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("dn", DnQualifier);
             DefaultLookupInternal.Add("pseudonym", Pseudonym);
             DefaultLookupInternal.Add("postaladdress", PostalAddress);
-            DefaultLookupInternal.Add("nameofbirth", NameAtBirth);
+            DefaultLookupInternal.Add("nameatbirth", NameAtBirth);
             DefaultLookupInternal.Add("countryofcitizenship", CountryOfCitizenship);
             DefaultLookupInternal.Add("countryofresidence", CountryOfResidence);
             DefaultLookupInternal.Add("gender", Gender);
@@ -867,6 +868,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_added.Add(added);
         }
 
+        // TODO Refactor common code between this and IetfUtilities.ValueToString
         private static void AppendValue(StringBuilder buf, IDictionary<DerObjectIdentifier, string> oidSymbols,
             DerObjectIdentifier oid, string val)
         {
@@ -880,34 +882,57 @@ namespace Org.BouncyCastle.Asn1.X509
             }
 
             buf.Append('=');
-
-            int index = buf.Length;
+            int start = buf.Length;
 
             buf.Append(val);
-
             int end = buf.Length;
 
-            if (val.StartsWith("\\#"))
+            int index = start;
+            if (index + 1 < end && buf[index] == '\\' && buf[index + 1] == '#')
             {
                 index += 2;
             }
 
             while (index != end)
             {
-                if ((buf[index] == ',')
-                || (buf[index] == '"')
-                || (buf[index] == '\\')
-                || (buf[index] == '+')
-                || (buf[index] == '=')
-                || (buf[index] == '<')
-                || (buf[index] == '>')
-                || (buf[index] == ';'))
+                switch (buf[index])
                 {
-                    buf.Insert(index++, "\\");
-                    end++;
+                case ',':
+                case '"':
+                case '\\':
+                case '+':
+                case '=':
+                case '<':
+                case '>':
+                case ';':
+                {
+                    buf.Insert(index, "\\");
+                    index += 2;
+                    ++end;
+                    break;
                 }
+                default:
+                {
+                    ++index;
+                    break;
+                }
+                }
+            }
 
-                index++;
+            Debug.Assert(end == buf.Length);
+
+            while (start < end && buf[start] == ' ')
+            {
+                buf.Insert(start, '\\');
+                start += 2;
+                ++end;
+            }
+
+            Debug.Assert(end == buf.Length);
+
+            while (--end > start && buf[end] == ' ')
+            {
+                buf.Insert(end, '\\');
             }
         }
 

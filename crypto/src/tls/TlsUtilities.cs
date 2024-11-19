@@ -3874,6 +3874,7 @@ namespace Org.BouncyCastle.Tls
                     // TODO[tls13] We're conservatively adding both here, though maybe only one is needed
                     AddToSet(result, NamedGroupRole.dh);
                     AddToSet(result, NamedGroupRole.ecdh);
+                    AddToSet(result, NamedGroupRole.kem);
                     break;
                 }
                 }
@@ -5067,6 +5068,13 @@ namespace Org.BouncyCastle.Tls
                         agreement = crypto.CreateDHDomain(new TlsDHConfig(supportedGroup, true)).CreateDH();
                     }
                 }
+                else if (NamedGroup.RefersToASpecificKem(supportedGroup))
+                {
+                    if (crypto.HasKemAgreement())
+                    {
+                        agreement = crypto.CreateKemDomain(new TlsKemConfig(supportedGroup, isServer: false)).CreateKem();
+                    }
+                }
 
                 if (null != agreement)
                 {
@@ -5113,13 +5121,12 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToAnECDHCurve(group) && !crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
                     {
-                        continue;
+                        return clientShare;
                     }
-
-                    return clientShare;
                 }
             }
             return null;
@@ -5141,13 +5148,12 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToAnECDHCurve(group) && !crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
                     {
-                        continue;
+                        return group;
                     }
-
-                    return group;
                 }
             }
             return -1;
