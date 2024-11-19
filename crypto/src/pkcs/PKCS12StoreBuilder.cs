@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Pkcs
 		private DerObjectIdentifier keyPrfAlgorithm = null;
 		private bool useDerEncoding = false;
 		private bool reverseCertificates = false;
+		private bool overwriteFriendlyName = true;
 
 		public Pkcs12StoreBuilder()
 		{
@@ -19,12 +20,17 @@ namespace Org.BouncyCastle.Pkcs
 
 		public Pkcs12Store Build()
 		{
-			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding, reverseCertificates);
+			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding, reverseCertificates, overwriteFriendlyName);
 		}
 
 		public Pkcs12StoreBuilder SetReverseCertificates(bool reverseCertificates)
 		{
 			this.reverseCertificates = reverseCertificates;
+			return this;
+		}
+		public Pkcs12StoreBuilder SetOverwriteFriendlyName(bool overwriteFriendlyName)
+		{
+			this.overwriteFriendlyName = overwriteFriendlyName;
 			return this;
 		}
 

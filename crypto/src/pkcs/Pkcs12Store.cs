@@ -43,6 +43,7 @@ namespace Org.BouncyCastle.Pkcs
         private readonly DerObjectIdentifier certAlgorithm;
         private readonly bool useDerEncoding;
         private readonly bool reverseCertificates;
+        private readonly bool overwriteFriendlyName;
 
         private AsymmetricKeyEntry unmarkedKeyEntry = null;
 
@@ -85,13 +86,14 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         internal Pkcs12Store(DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm,
-            DerObjectIdentifier certAlgorithm, bool useDerEncoding, bool reverseCertificates)
+            DerObjectIdentifier certAlgorithm, bool useDerEncoding, bool reverseCertificates, bool overwriteFriendlyName)
         {
             this.keyAlgorithm = keyAlgorithm;
             this.keyPrfAlgorithm = keyPrfAlgorithm;
             this.certAlgorithm = certAlgorithm;
             this.useDerEncoding = useDerEncoding;
             this.reverseCertificates = reverseCertificates;
+            this.overwriteFriendlyName = overwriteFriendlyName;
         }
 
         protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes)
@@ -552,6 +554,40 @@ namespace Org.BouncyCastle.Pkcs
             Map(m_chainCerts, m_chainCertsOrder, new CertID(certEntry), certEntry);
         }
 
+        public void SetFriendlyName(string alias, String newFriendlyName)
+        {
+            if (alias.Equals(newFriendlyName) || overwriteFriendlyName)
+            {
+                return;
+            }
+
+            if (IsKeyEntry(alias))
+            {
+                AsymmetricKeyEntry keyEntry = GetKey(alias);
+                X509CertificateEntry keyCertEntry = GetCertificate(alias);
+                keyEntry.SetFriendlyName(newFriendlyName);
+                m_keys.Add(newFriendlyName, keyEntry);
+                m_keys.Remove(alias);
+                m_keysOrder.Add(newFriendlyName);
+                m_keysOrder.Remove(alias);
+
+                keyCertEntry.SetFriendlyName(newFriendlyName);
+                m_keyCerts.Add(newFriendlyName, keyCertEntry);
+                m_keyCerts.Remove(alias);
+
+            }
+
+            if (IsCertificateEntry(alias))
+            {
+                X509CertificateEntry certEntry = GetCertificate(alias);
+                certEntry.SetFriendlyName(newFriendlyName);
+                m_certs.Add(newFriendlyName, certEntry);
+                m_certs.Remove(alias);
+                m_certsOrder.Add(newFriendlyName);
+                m_certsOrder.Remove(alias);
+            }
+        }
+
         public void SetKeyEntry(string alias, AsymmetricKeyEntry keyEntry, X509CertificateEntry[] chain)
         {
             if (alias == null)
@@ -691,10 +727,26 @@ namespace Org.BouncyCastle.Pkcs
                 // NB: We always set the FriendlyName based on 'name'
                 //if (privKey[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] == null)
                 {
-                    kName.Add(
-                        new DerSequence(
-                            PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
-                            new DerSet(new DerBmpString(name))));
+                    if (overwriteFriendlyName)
+                    {
+                        kName.Add(
+                            new DerSequence(
+                                PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
+                                new DerSet(new DerBmpString(name))));
+                    }
+                    else 
+                    {
+                        DerSet friendlyName = DerSet.Empty;
+                        if(privKey.HasFriendlyName)
+                        {
+                            friendlyName = new DerSet(privKey[PkcsObjectIdentifiers.Pkcs9AtFriendlyName]);
+                        }
+                        kName.Add(
+                            new DerSequence(
+                                PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
+                                friendlyName));
+                    }
+                   
                 }
 
                 //
@@ -756,11 +808,24 @@ namespace Org.BouncyCastle.Pkcs
                 //
                 // NB: We always set the FriendlyName based on 'name'
                 //if (certEntry[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] == null)
+                if(overwriteFriendlyName)
                 {
                     fName.Add(
                         new DerSequence(
                             PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
                             new DerSet(new DerBmpString(name))));
+                }
+                else
+                {
+                    DerSet friendlyName = DerSet.Empty;
+                    if(certEntry.HasFriendlyName)
+                    {
+                        friendlyName = new DerSet(certEntry[PkcsObjectIdentifiers.Pkcs9AtFriendlyName]);
+                    }
+                    fName.Add(
+                            new DerSequence(
+                                PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
+                                friendlyName));
                 }
 
                 //
@@ -819,11 +884,24 @@ namespace Org.BouncyCastle.Pkcs
                 //
                 // NB: We always set the FriendlyName based on 'certId'
                 //if (cert[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] == null)
+                if(overwriteFriendlyName)
                 {
                     fName.Add(
                         new DerSequence(
                             PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
                             new DerSet(new DerBmpString(alias))));
+                }
+                else
+                {
+                    DerSet friendlyName = DerSet.Empty;
+                    if(cert.HasFriendlyName)
+                    {
+                        friendlyName = new DerSet(cert[PkcsObjectIdentifiers.Pkcs9AtFriendlyName]);
+                    }
+                    fName.Add(
+                            new DerSequence(
+                                PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
+                                friendlyName));
                 }
 
                 // the Oracle PKCS12 parser looks for a trusted key usage for named certificates as well
