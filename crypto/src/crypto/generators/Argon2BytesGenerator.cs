@@ -1,4 +1,10 @@
 ﻿using System;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using System.Threading.Tasks;
 
 using Org.BouncyCastle.Crypto.Digests;
@@ -6,10 +12,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Runtime.InteropServices;
-#endif
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -39,13 +41,27 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private readonly byte[] ZeroBytes = new byte[4];
 
+        private readonly TaskFactory m_taskFactory;
+
         private Argon2Parameters parameters;
         private Block[] memory;
         private int segmentLength;
         private int laneLength;
 
         public Argon2BytesGenerator()
+            : this(taskFactory: null)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Argon2BytesGenerator"/> with an optional <see cref="TaskFactory"/>.
+        /// </summary>
+        /// <param name="taskFactory">
+        /// The <see cref="TaskFactory"/> that (if not null) will be used for parallel execution when parallelism > 1.
+        /// </param>
+        public Argon2BytesGenerator(TaskFactory taskFactory)
+        {
+            m_taskFactory = taskFactory;
         }
 
         /**
@@ -134,20 +150,17 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private void FillMemoryBlocks()
         {
-            Position position = new Position();
             for (int pass = 0; pass < parameters.Iterations; ++pass)
             {
-                position.pass = pass;
-
                 for (int slice = 0; slice < Argon2SyncPoints; ++slice)
                 {
-                    position.slice = slice;
-
-                    if(parameters.Parallelism <= 1)
+                    if (m_taskFactory == null || parameters.Parallelism <= 1)
                     {
-                        // We don't need to multithread if there's only one lane
-                        position.lane = 0;
-                        FillSegment(position);
+                        for (int lane = 0; lane < parameters.Parallelism; ++lane)
+                        {
+                            var position = new Position(pass, slice, lane);
+                            FillSegment(position);
+                        }
                     }
                     else
                     {
@@ -155,10 +168,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 
                         for (int lane = 0; lane < parameters.Parallelism; ++lane)
                         {
-                            Position taskPosition = (Position) position.Clone();
-                            taskPosition.lane = lane;
-
-                            tasks[lane] = Task.Run(() => FillSegment(taskPosition));
+                            var position = new Position(pass, slice, lane);
+                            tasks[lane] = m_taskFactory.StartNew(() => FillSegment(position));
                         }
 
                         Task.WaitAll(tasks);
@@ -377,7 +388,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (BitConverter.IsLittleEndian)
             {
                 Span<byte> accumulatorBytes = MemoryMarshal.AsBytes(finalBlock.v.AsSpan());
-                Hash(accumulatorBytes, output.AsSpan()[outOff..(outOff + outLen)]);
+                Hash(accumulatorBytes, output.AsSpan(outOff, outLen));
             }
             else
 #endif
@@ -394,16 +405,18 @@ namespace Org.BouncyCastle.Crypto.Generators
         private static void Hash(byte[] input, byte[] output, int outOff, int outLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Hash(input.AsSpan(), output.AsSpan()[outOff..(outOff + outLen)]);
+            Hash(input.AsSpan(), output.AsSpan(outOff, outLen));
         }
 
         private static void Hash(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int outLen = output.Length;
             int outOff = 0;
-#endif
+            Span<byte> outLenBytes = stackalloc byte[4];
+#else
             byte[] outLenBytes = new byte[4];
-            Pack.UInt32_To_LE((uint)outLen, outLenBytes, 0);
+#endif
+            Pack.UInt32_To_LE((uint)outLen, outLenBytes);
 
             int blake2bLength = 64;
 
@@ -411,12 +424,12 @@ namespace Org.BouncyCastle.Crypto.Generators
             {
                 IDigest blake = new Blake2bDigest(outLen * 8);
 
-                blake.BlockUpdate(outLenBytes, 0, outLenBytes.Length);
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                blake.BlockUpdate(outLenBytes);
                 blake.BlockUpdate(input);
                 blake.DoFinal(output);
 #else
+                blake.BlockUpdate(outLenBytes, 0, outLenBytes.Length);
                 blake.BlockUpdate(input, 0, input.Length);
                 blake.DoFinal(output, outOff);
 #endif
@@ -429,14 +442,13 @@ namespace Org.BouncyCastle.Crypto.Generators
                 byte[] outBuffer = new byte[blake2bLength];
 
                 /* V1 */
-                digest.BlockUpdate(outLenBytes, 0, outLenBytes.Length);
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.BlockUpdate(outLenBytes);
                 digest.BlockUpdate(input);
                 digest.DoFinal(outBuffer);
                 outBuffer[0..halfLen].CopyTo(output);
-
 #else
+                digest.BlockUpdate(outLenBytes, 0, outLenBytes.Length);
                 digest.BlockUpdate(input, 0, input.Length);
                 digest.DoFinal(outBuffer, 0);
                 Array.Copy(outBuffer, 0, output, outPos, halfLen);
@@ -473,6 +485,9 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static void RoundFunction(Block block,
                                           int v0, int v1, int v2, int v3,
                                           int v4, int v5, int v6, int v7,
@@ -492,6 +507,9 @@ namespace Org.BouncyCastle.Crypto.Generators
             F(v, v3, v4, v9, v14);
         }
 
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static void F(ulong[] v, int a, int b, int c, int d)
         {
             QuarterRound(v, a, b, d, 32);
@@ -500,6 +518,9 @@ namespace Org.BouncyCastle.Crypto.Generators
             QuarterRound(v, c, d, b, 63);
         }
 
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static void QuarterRound(ulong[] v, int x, int y, int z, int s)
         {
             //        fBlaMka(v, x, y);
@@ -734,19 +755,17 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        private sealed class Position: ICloneable
+        private sealed class Position
         {
-            internal int pass;
-            internal int lane;
-            internal int slice;
+            internal readonly int pass;
+            internal readonly int slice;
+            internal readonly int lane;
 
-            internal Position()
+            internal Position(int pass, int slice, int lane)
             {
-            }
-
-            public object Clone()
-            {
-                return MemberwiseClone();
+                this.pass = pass;
+                this.slice = slice;
+                this.lane = lane;
             }
         }
     }
