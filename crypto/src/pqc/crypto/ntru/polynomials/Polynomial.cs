@@ -89,29 +89,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
         // Pack an S3 polynomial as a byte array
         public void S3ToBytes(byte[] msg, int msgOff)
         {
-            byte c;
+            int degree = ParameterSet.PackDegree(), limit = degree - 5;
 
-            for (int i = 0; i < ParameterSet.PackDegree() / 5; i++)
+            int i = 0;
+            while (i <= limit)
             {
-                c = (byte)(coeffs[5 * i + 4] & 255);
-                c = (byte)(3 * c + coeffs[5 * i + 3] & 255);
-                c = (byte)(3 * c + coeffs[5 * i + 2] & 255);
-                c = (byte)(3 * c + coeffs[5 * i + 1] & 255);
-                c = (byte)(3 * c + coeffs[5 * i + 0] & 255);
-                msg[i + msgOff] = c;
+                uint c0 = coeffs[i + 0];
+                uint c1 = coeffs[i + 1] * 3U;
+                uint c2 = coeffs[i + 2] * 9U;
+                uint c3 = coeffs[i + 3] * 27U;
+                uint c4 = coeffs[i + 4] * 81U;
+
+                msg[msgOff++] = (byte)(c0 + c1 + c2 + c3 + c4);
+                i += 5;
             }
 
-            if (ParameterSet.PackDegree() > (ParameterSet.PackDegree() / 5) * 5)
+            if (i < degree)
             {
-                int i = ParameterSet.PackDegree() / 5;
-                c = 0;
+                int j = degree - 1;
+                uint c = coeffs[j];
 
-                for (int j = ParameterSet.PackDegree() - (5 * i) - 1; j >= 0; j--)
+                while (--j >= i)
                 {
-                    c = (byte)(3 * c + coeffs[5 * i + j] & 255);
+                    c *= 3U;
+                    c += coeffs[j];
                 }
 
-                msg[i + msgOff] = c;
+                msg[msgOff++] = (byte)c;
             }
         }
 
