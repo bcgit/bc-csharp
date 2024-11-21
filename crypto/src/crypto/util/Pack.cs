@@ -360,15 +360,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             UInt64_To_BE_High(n << ((8 - len) << 3), bs, off, len);
         }
 
-        internal static void UInt64_To_BE_Partial(ulong n, byte[] bs, int off, int len)
-        {
-            for (int i = len - 1; i >= 0; i--)
-            {
-                bs[i + off] = (byte)(n & 0xff);
-                n >>= 8;
-            }
-        }
-
         internal static ulong BE_To_UInt64(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -432,16 +423,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 result |= bs[off + i];
             }
             return result;
-        }
-
-        internal static ulong BE_To_UInt64_Partial(byte[] bs, int off, int len)
-        {
-            ulong x = 0;
-            for (int i = 0; i < len; ++i)
-            {
-                x |= (bs[i + off] & 0xFFUL) << ((7 - i) << 3);
-            }
-            return x;
         }
 
         internal static void UInt16_To_LE(ushort n, byte[] bs)
@@ -715,14 +696,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
-        public static void UInt64_To_LE(ulong n, byte[] bs, int off, int len)
-        {
-            for (int i = 0; i < len; ++i)
-            {
-                bs[off + i] = (byte)(n >> (i << 3));
-            }
-        }
-
         internal static void UInt64_To_LE(ulong[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -771,14 +744,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 n >>= 8;
                 bs[off + i] = (byte)n;
-            }
-        }
-
-        internal static void UInt64_To_LE_Partial(ulong n, byte[] bs, int off, int len)
-        {
-            for (int i = 0; i < len; ++i)
-            {
-                bs[off + i] = (byte)(n >> (i << 3));
             }
         }
 
@@ -844,16 +809,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 pos += 8;
                 result |= (ulong)bs[off + i] << pos;
-            }
-            return result;
-        }
-
-        internal static ulong LE_To_UInt64_Partial(byte[] bs, int off, int len)
-        {
-            ulong result = 0UL;
-            for (int i = 0; i < len; ++i)
-            {
-                result |= (bs[off + i] & 0xFFUL) << (i << 3);
             }
             return result;
         }
@@ -965,16 +920,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return result;
         }
 
-        internal static ulong BE_To_UInt64_Partial(ReadOnlySpan<byte> bs)
-        {
-            ulong x = 0;
-            for (int i = 0; i < bs.Length; ++i)
-            {
-                x |= (bs[i] & 0xFFUL) << ((7 - i) << 3);
-            }
-            return x;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ushort LE_To_UInt16(ReadOnlySpan<byte> bs)
         {
@@ -1079,17 +1024,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 pos += 8;
                 result |= (ulong)bs[i] << pos;
-            }
-            return result;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ulong LE_To_UInt64_Partial(ReadOnlySpan<byte> bs)
-        {
-            ulong result = 0UL;
-            for (int i = 0; i < bs.Length; ++i)
-            {
-                result |= (bs[i] & 0xFFUL) << (i << 3);
             }
             return result;
         }
@@ -1265,16 +1199,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void UInt64_To_BE_Partial(ulong n, Span<byte> bs)
-        {
-            for (int i = bs.Length - 1; i >= 0; i--)
-            {
-                bs[i] = (byte)(n & 0xff);
-                n >>= 8;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt64_To_LE(ulong n, Span<byte> bs)
         {
             BinaryPrimitives.WriteUInt64LittleEndian(bs, n);
@@ -1297,15 +1221,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         // TODO UInt64_To_LE_High/Low
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void UInt64_To_LE_Partial(ulong n, Span<byte> bs)
-        {
-            for (int i = 0; i < bs.Length; ++i)
-            {
-                bs[i] = (byte)(n >> (i << 3));
-            }
-        }
 #endif
     }
 }
