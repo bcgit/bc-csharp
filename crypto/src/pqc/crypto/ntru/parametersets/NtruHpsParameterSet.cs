@@ -7,10 +7,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets
     /// <para/>
     /// The naming convention for the classes is <c>NTRUHPS[q][n]</c>. e.g. <see cref="NtruHps2048509"/> has n = 509 and q = 2048.
     /// </summary>
+    /// <remarks><a href="https://ntru.org/f/ntru-20190330.pdf">NTRU specification document section 1.3.2</a>.</remarks>
     /// <seealso cref="NtruHps2048509"></seealso>
     /// <seealso cref="NtruHps2048677"></seealso>
     /// <seealso cref="NtruHps4096821"></seealso>
-    /// <seealso cref="https://ntru.org/f/ntru-20190330.pdf">NTRU specification document section 1.3.2</seealso>
     internal class NtruHpsParameterSet : NtruParameterSet
     {
         private protected NtruHpsParameterSet(int n, int logQ, int seedBytes, int prfKeyBytes, int sharedKeyBytes) :

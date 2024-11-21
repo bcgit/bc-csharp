@@ -5,9 +5,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets
     /// <summary>
     /// Abstract class for all NTRU parameter sets.
     /// </summary>
+    /// <remarks><a href="https://ntru.org/f/ntru-20190330.pdf">NTRU specification document</a>.</remarks>
     /// <seealso cref="NtruHpsParameterSet"></seealso>
     /// <seealso cref="NtruHrssParameterSet"></seealso>
-    /// <seealso cref="https://ntru.org/f/ntru-20190330.pdf">NTRU specification document"></seealso>
     internal abstract class NtruParameterSet
     {
         /// <summary>
