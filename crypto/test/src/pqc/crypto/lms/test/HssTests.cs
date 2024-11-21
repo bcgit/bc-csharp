@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void TestHssVector_1()
         {
-            var blocks = LoadVector("pqc.lms.testcase_1.txt");
+            var blocks = LoadTestResource("pqc/crypto/lms/testcase_1.txt");
 
             HssPublicKeyParameters publicKey = HssPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = blocks[1];
@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void TestHssVector_2()
         {
-            var blocks = LoadVector("pqc.lms.testcase_2.txt");
+            var blocks = LoadTestResource("pqc/crypto/lms/testcase_2.txt");
 
             HssPublicKeyParameters publicKey = HssPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = blocks[1];
@@ -94,9 +94,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(Lms.VerifySignature(lmsPub, lmsSignature, message), "Test Case 2 Signature 2");
         }
 
-        private IList<byte[]> LoadVector(string vector)
+        private IList<byte[]> LoadTestResource(string path)
         {
-            StreamReader bin = new StreamReader(SimpleTest.GetTestDataAsStream(vector));
+            StreamReader bin = new StreamReader(SimpleTest.FindTestResource(path));
             var blocks = new List<byte[]>();
             StringBuilder sw = new StringBuilder();
 
@@ -296,7 +296,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void TestVectorsFromReference()
         {
-            StreamReader sr = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.lms.depth_1.txt"));
+            StreamReader sr = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/lms/depth_1.txt"));
 
             var lmsParameters = new List<LMSigParameters>();
             var lmOtsParameters = new List<LMOtsParameters>();
@@ -430,7 +430,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void TestVectorsFromReference_Expanded()
         {
-            using (StreamReader sr = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.lms.expansion.txt")))
+            using (StreamReader sr = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/lms/expansion.txt")))
             {
                 var lmsParameters = new List<LMSigParameters>();
                 var lmOtsParameters = new List<LMOtsParameters>();

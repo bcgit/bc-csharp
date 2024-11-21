@@ -448,7 +448,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.sphincsplus.subset_" + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/sphincs_plus", $"subset_{name}")))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)

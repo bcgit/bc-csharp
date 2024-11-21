@@ -38,12 +38,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorFile)
+        public void TV(string testVectorPath)
         {
-            RunTestVectorFile(testVectorFile);
+            RunTestVectorFile(testVectorPath);
         }
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, IDictionary<string, string> buf)
         {
             string count = buf["count"];
             byte[] seed = Hex.Decode(buf["seed"]);
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] ss = Hex.Decode(buf["ss"]);
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            NtruParameters ntruParameters = Parameters[name];
+            NtruParameters ntruParameters = Parameters[path];
 
             // Test keygen
             NtruKeyGenerationParameters keygenParameters =
@@ -66,8 +66,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             NtruPublicKeyParameters pubParams = (NtruPublicKeyParameters)keyPair.Public;
             NtruPrivateKeyParameters privParams = (NtruPrivateKeyParameters)keyPair.Private;
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), $"{name} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), $"{name} {count} : private key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), $"{path} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), $"{path} {count} : private key");
 
             // Test encapsulate
             NtruKemGenerator encapsulator = new NtruKemGenerator(random);
@@ -76,21 +76,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] generatedCiphertext = encapsulation.GetEncapsulation();
 
             Assert.AreEqual(generatedSecret.Length, ntruParameters.DefaultKeySize / 8);
-            Assert.True(Arrays.AreEqual(ss, 0, generatedSecret.Length, generatedSecret, 0, generatedSecret.Length), $"{name} {count} : shared secret");
-            Assert.True(Arrays.AreEqual(ct, generatedCiphertext), $"{name} {count} : ciphertext");
+            Assert.True(Arrays.AreEqual(ss, 0, generatedSecret.Length, generatedSecret, 0, generatedSecret.Length), $"{path} {count} : shared secret");
+            Assert.True(Arrays.AreEqual(ct, generatedCiphertext), $"{path} {count} : ciphertext");
 
             // Test decapsulate
             NtruKemExtractor decapsulator = new NtruKemExtractor(new NtruPrivateKeyParameters(ntruParameters, sk));
             byte[] extractedSecret = decapsulator.ExtractSecret(ct);
             Assert.AreEqual(generatedSecret.Length, extractedSecret.Length);
-            Assert.True(Arrays.AreEqual(ss, 0, extractedSecret.Length, extractedSecret, 0, extractedSecret.Length), $"{name} {count} : extract secret");
+            Assert.True(Arrays.AreEqual(ss, 0, extractedSecret.Length, extractedSecret, 0, extractedSecret.Length), $"{path} {count} : extract secret");
         }
 
-        private static void RunTestVectorFile(string name)
+        private static void RunTestVectorFile(string path)
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntru", name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntru", path)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     {
                         if (!sampler.SkipTest(buf["count"]))
                         {
-                            RunTestVector(name, buf);
+                            RunTestVector(path, buf);
                         }
                         buf.Clear();
                     }
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 {
                     if (!sampler.SkipTest(buf["count"]))
                     {
-                        RunTestVector(name, buf);
+                        RunTestVector(path, buf);
                     }
                     buf.Clear();
                 }

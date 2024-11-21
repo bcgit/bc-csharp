@@ -16,22 +16,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     {
         private static readonly Dictionary<string, NtruLPRimeParameters> ParametersNtruLP = new Dictionary<string, NtruLPRimeParameters>()
         {
-            { "kat_kem_ntrulp_653.rsp", NtruLPRimeParameters.ntrulpr653 },
-            { "kat_kem_ntrulp_761.rsp", NtruLPRimeParameters.ntrulpr761 },
-            { "kat_kem_ntrulp_857.rsp", NtruLPRimeParameters.ntrulpr857 },
-            { "kat_kem_ntrulp_953.rsp", NtruLPRimeParameters.ntrulpr953 },
-            { "kat_kem_ntrulp_1013.rsp", NtruLPRimeParameters.ntrulpr1013 },
-            { "kat_kem_ntrulp_1277.rsp", NtruLPRimeParameters.ntrulpr1277 },
+            { "ntrulpr653.rsp", NtruLPRimeParameters.ntrulpr653 },
+            { "ntrulpr761.rsp", NtruLPRimeParameters.ntrulpr761 },
+            { "ntrulpr857.rsp", NtruLPRimeParameters.ntrulpr857 },
+            { "ntrulpr953.rsp", NtruLPRimeParameters.ntrulpr953 },
+            { "ntrulpr1013.rsp", NtruLPRimeParameters.ntrulpr1013 },
+            { "ntrulpr1277.rsp", NtruLPRimeParameters.ntrulpr1277 },
         };
 
         private static readonly Dictionary<string, SNtruPrimeParameters> ParametersSNtruP = new Dictionary<string, SNtruPrimeParameters>()
         {
-            { "kat_kem_sntrup_653.rsp", SNtruPrimeParameters.sntrup653 },
-            { "kat_kem_sntrup_761.rsp", SNtruPrimeParameters.sntrup761 },
-            { "kat_kem_sntrup_857.rsp", SNtruPrimeParameters.sntrup857 },
-            { "kat_kem_sntrup_953.rsp", SNtruPrimeParameters.sntrup953 },
-            { "kat_kem_sntrup_1013.rsp", SNtruPrimeParameters.sntrup1013 },
-            { "kat_kem_sntrup_1277.rsp", SNtruPrimeParameters.sntrup1277 },
+            { "sntrup653.rsp", SNtruPrimeParameters.sntrup653 },
+            { "sntrup761.rsp", SNtruPrimeParameters.sntrup761 },
+            { "sntrup857.rsp", SNtruPrimeParameters.sntrup857 },
+            { "sntrup953.rsp", SNtruPrimeParameters.sntrup953 },
+            { "sntrup1013.rsp", SNtruPrimeParameters.sntrup1013 },
+            { "sntrup1277.rsp", SNtruPrimeParameters.sntrup1277 },
         };
 
         private static readonly IEnumerable<string> TestVectorFilesNtruLP = ParametersNtruLP.Keys;
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.ntruprime." + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntruprime/ntrulpr", name)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)
@@ -214,7 +214,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.ntruprime." + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntruprime/sntrup", name)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)

@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static void RunTestVectorFile(string name)
         {
             var buf = new Dictionary<string, string>();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.hqc." + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/hqc", name)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)
