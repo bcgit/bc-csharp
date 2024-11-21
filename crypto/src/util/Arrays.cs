@@ -1169,6 +1169,18 @@ namespace Org.BouncyCastle.Utilities
             return null == array || array.Length < 1;
         }
 
+        public static void ValidateRange<T>(T[] buf, int off, int len)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+            int available = buf.Length - off;
+            if ((off | available) < 0)
+                throw new ArgumentOutOfRangeException(nameof(off));
+            int remaining = available - len;
+            if ((len | remaining) < 0)
+                throw new ArgumentOutOfRangeException(nameof(len));
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)

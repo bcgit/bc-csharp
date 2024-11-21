@@ -213,13 +213,13 @@ namespace Org.BouncyCastle.Utilities.IO
         public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
 			if (buffer == null)
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			int available = buffer.Length - offset;
 			if ((offset | available) < 0)
-				throw new ArgumentOutOfRangeException("offset");
+				throw new ArgumentOutOfRangeException(nameof(offset));
 			int remaining = available - count;
 			if ((count | remaining) < 0)
-				throw new ArgumentOutOfRangeException("count");
+				throw new ArgumentOutOfRangeException(nameof(count));
 		}
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
