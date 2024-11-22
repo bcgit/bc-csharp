@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/ascon-spec-final.pdf<br/>
     /// ASCON v1.2 AEAD with reference to C Reference Impl from: https://github.com/ascon/ascon-c .
     /// </remarks>
+    [Obsolete("This class is deprecated. For the latest Ascon version, use AsconAead128 instead.")]
     public sealed class AsconEngine
         : IAeadCipher
     {

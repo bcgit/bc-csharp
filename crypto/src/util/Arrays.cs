@@ -1169,7 +1169,17 @@ namespace Org.BouncyCastle.Utilities
             return null == array || array.Length < 1;
         }
 
-        public static void ValidateRange<T>(T[] buf, int off, int len)
+        public static void ValidateRange<T>(T[] buf, int from, int to)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+            if ((from | (buf.Length - from)) < 0)
+                throw new ArgumentOutOfRangeException(nameof(from));
+            if (((to - from) | (buf.Length - to)) < 0)
+                throw new ArgumentOutOfRangeException(nameof(to));
+        }
+
+        public static void ValidateSegment<T>(T[] buf, int off, int len)
         {
             if (buf == null)
                 throw new ArgumentNullException(nameof(buf));

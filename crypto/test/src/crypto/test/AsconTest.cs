@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -19,244 +20,383 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test, Explicit]
         public void BenchDigest_AsconHash()
         {
-            ImplBenchDigest(AsconDigest.AsconParameters.AsconHash);
+            ImplBenchDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHash));
         }
 
         [Test, Explicit]
         public void BenchDigest_AsconHashA()
         {
-            ImplBenchDigest(AsconDigest.AsconParameters.AsconHashA);
+            ImplBenchDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHashA));
+        }
+
+        [Test, Explicit]
+        public void BenchDigest_AsconHash256()
+        {
+            ImplBenchDigest(new AsconHash256());
         }
 
         [Test, Explicit]
         public void BenchEngineAuth_ascon128()
         {
-            ImplBenchEngineAuth(AsconEngine.AsconParameters.ascon128);
+            ImplBenchEngineAuth(new AsconEngine(AsconEngine.AsconParameters.ascon128));
         }
 
         [Test, Explicit]
         public void BenchEngineAuth_ascon128a()
         {
-            ImplBenchEngineAuth(AsconEngine.AsconParameters.ascon128a);
+            ImplBenchEngineAuth(new AsconEngine(AsconEngine.AsconParameters.ascon128a));
         }
 
         [Test, Explicit]
         public void BenchEngineAuth_ascon80pq()
         {
-            ImplBenchEngineAuth(AsconEngine.AsconParameters.ascon80pq);
+            ImplBenchEngineAuth(new AsconEngine(AsconEngine.AsconParameters.ascon80pq));
+        }
+
+        [Test, Explicit]
+        public void BenchEngineAuth_AsconAead128()
+        {
+            ImplBenchEngineAuth(new AsconAead128());
         }
 
         [Test, Explicit]
         public void BenchEngineDecrypt_ascon128()
         {
-            ImplBenchEngineCrypt(AsconEngine.AsconParameters.ascon128, false);
+            ImplBenchEngineCrypt(new AsconEngine(AsconEngine.AsconParameters.ascon128), false);
         }
 
         [Test, Explicit]
         public void BenchEngineDecrypt_ascon128a()
         {
-            ImplBenchEngineCrypt(AsconEngine.AsconParameters.ascon128a, false);
+            ImplBenchEngineCrypt(new AsconEngine(AsconEngine.AsconParameters.ascon128a), false);
         }
 
         [Test, Explicit]
         public void BenchEngineDecrypt_ascon80pq()
         {
-            ImplBenchEngineCrypt(AsconEngine.AsconParameters.ascon80pq, false);
+            ImplBenchEngineCrypt(new AsconEngine(AsconEngine.AsconParameters.ascon80pq), false);
+        }
+
+        [Test, Explicit]
+        public void BenchEngineDecrypt_AsconAead128()
+        {
+            ImplBenchEngineCrypt(new AsconAead128(), false);
         }
 
         [Test, Explicit]
         public void BenchEngineEncrypt_ascon128()
         {
-            ImplBenchEngineCrypt(AsconEngine.AsconParameters.ascon128, true);
+            ImplBenchEngineCrypt(new AsconEngine(AsconEngine.AsconParameters.ascon128), true);
         }
 
         [Test, Explicit]
         public void BenchEngineEncrypt_ascon128a()
         {
-            ImplBenchEngineCrypt(AsconEngine.AsconParameters.ascon128a, true);
+            ImplBenchEngineCrypt(new AsconEngine(AsconEngine.AsconParameters.ascon128a), true);
         }
 
         [Test, Explicit]
         public void BenchEngineEncrypt_ascon80pq()
         {
-            ImplBenchEngineCrypt(AsconEngine.AsconParameters.ascon80pq, true);
+            ImplBenchEngineCrypt(new AsconEngine(AsconEngine.AsconParameters.ascon80pq), true);
+        }
+
+        [Test, Explicit]
+        public void BenchEngineEncrypt_AsconAead128()
+        {
+            ImplBenchEngineCrypt(new AsconAead128(), true);
         }
 
         [Test, Explicit]
         public void BenchXof_AsconXof()
         {
-            ImplBenchXof(AsconXof.AsconParameters.AsconXof);
+            ImplBenchXof(new AsconXof(AsconXof.AsconParameters.AsconXof));
         }
 
         [Test, Explicit]
         public void BenchXof_AsconXofA()
         {
-            ImplBenchXof(AsconXof.AsconParameters.AsconXofA);
+            ImplBenchXof(new AsconXof(AsconXof.AsconParameters.AsconXofA));
+        }
+
+        [Test, Explicit]
+        public void BenchXof_AsconXof128()
+        {
+            ImplBenchXof(new AsconXof128());
+        }
+
+        [Test, Explicit]
+        public void BenchXof_AsconCXof128()
+        {
+            ImplBenchXof(new AsconCXof128());
         }
 
         [Test]
         public void TestBufferingEngine_ascon128()
         {
-            ImplTestBufferingEngine(AsconEngine.AsconParameters.ascon128);
+            ImplTestBufferingEngine(() => new AsconEngine(AsconEngine.AsconParameters.ascon128));
         }
 
         [Test]
         public void TestBufferingEngine_ascon128a()
         {
-            ImplTestBufferingEngine(AsconEngine.AsconParameters.ascon128a);
+            ImplTestBufferingEngine(() => new AsconEngine(AsconEngine.AsconParameters.ascon128a));
         }
 
         [Test]
         public void TestBufferingEngine_ascon80()
         {
-            ImplTestBufferingEngine(AsconEngine.AsconParameters.ascon80pq);
+            ImplTestBufferingEngine(() => new AsconEngine(AsconEngine.AsconParameters.ascon80pq));
+        }
+
+        [Test]
+        public void TestBufferingEngine_AsconAead128()
+        {
+            ImplTestBufferingEngine(() => new AsconAead128());
+        }
+
+        [Test]
+        public void TestDigestReset()
+        {
+            CheckDigestReset(new AsconHash256());
+            CheckDigestReset(new AsconXof128());
+            CheckDigestReset(new AsconCXof128());
+            CheckDigestReset(new AsconXof(AsconXof.AsconParameters.AsconXof));
+            CheckDigestReset(new AsconXof(AsconXof.AsconParameters.AsconXofA));
+            CheckDigestReset(new AsconDigest(AsconDigest.AsconParameters.AsconHash));
+            CheckDigestReset(new AsconDigest(AsconDigest.AsconParameters.AsconHashA));
         }
 
         [Test]
         public void TestExceptionsDigest_AsconHash()
         {
-            ImplTestExceptionsDigest(AsconDigest.AsconParameters.AsconHash);
+            ImplTestExceptionsDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHash));
         }
 
         [Test]
         public void TestExceptionsDigest_AsconHashA()
         {
-            ImplTestExceptionsDigest(AsconDigest.AsconParameters.AsconHashA);
+            ImplTestExceptionsDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHashA));
+        }
+
+        [Test]
+        public void TestExceptionsDigest_AsconHash256()
+        {
+            ImplTestExceptionsDigest(new AsconHash256());
         }
 
         [Test]
         public void TestExceptionsEngine_ascon128()
         {
-            ImplTestExceptionsEngine(AsconEngine.AsconParameters.ascon128);
+            ImplTestExceptionsEngine(new AsconEngine(AsconEngine.AsconParameters.ascon128));
         }
 
         [Test]
         public void TestExceptionsEngine_ascon128a()
         {
-            ImplTestExceptionsEngine(AsconEngine.AsconParameters.ascon128a);
+            ImplTestExceptionsEngine(new AsconEngine(AsconEngine.AsconParameters.ascon128a));
         }
 
         [Test]
         public void TestExceptionsEngine_ascon80pq()
         {
-            ImplTestExceptionsEngine(AsconEngine.AsconParameters.ascon80pq);
+            ImplTestExceptionsEngine(new AsconEngine(AsconEngine.AsconParameters.ascon80pq));
+        }
+
+        [Test]
+        public void TestExceptionsEngine_AsconAead128()
+        {
+            ImplTestExceptionsEngine(new AsconAead128());
         }
 
         [Test]
         public void TestExceptionsXof_AsconXof()
         {
-            ImplTestExceptionsXof(AsconXof.AsconParameters.AsconXof);
+            ImplTestExceptionsXof(new AsconXof(AsconXof.AsconParameters.AsconXof));
         }
 
         [Test]
         public void TestExceptionsXof_AsconXofA()
         {
-            ImplTestExceptionsXof(AsconXof.AsconParameters.AsconXofA);
+            ImplTestExceptionsXof(new AsconXof(AsconXof.AsconParameters.AsconXofA));
+        }
+
+        [Test]
+        public void TestExceptionsXof_AsconXof128()
+        {
+            ImplTestExceptionsXof(new AsconXof128());
+        }
+
+        [Test]
+        public void TestExceptionsXof_AsconCXof128()
+        {
+            ImplTestExceptionsXof(new AsconCXof128());
+        }
+
+        [Test]
+        public void TestLongMessage()
+        {
+            CheckAeadCipher(32, 16, 100, 128, () => new AsconAead128());
+            CheckAeadCipher(32, 16, 100, 128, () => new AsconEngine(AsconEngine.AsconParameters.ascon128));
+            CheckAeadCipher(32, 16, 100, 128, () => new AsconEngine(AsconEngine.AsconParameters.ascon128a));
+            CheckAeadCipher(32, 16, 100, 160, () => new AsconEngine(AsconEngine.AsconParameters.ascon80pq));
         }
 
         [Test]
         public void TestParametersDigest_AsconHash()
         {
-            ImplTestParametersDigest(AsconDigest.AsconParameters.AsconHash, 32);
+            ImplTestParametersDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHash), 32);
         }
 
         [Test]
         public void TestParametersDigest_AsconHashA()
         {
-            ImplTestParametersDigest(AsconDigest.AsconParameters.AsconHashA, 32);
+            ImplTestParametersDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHashA), 32);
+        }
+
+        [Test]
+        public void TestParametersDigest_AsconHash256()
+        {
+            ImplTestParametersDigest(new AsconHash256(), 32);
         }
 
         [Test]
         public void TestParametersEngine_ascon128()
         {
-            ImplTestParametersEngine(AsconEngine.AsconParameters.ascon128, 16, 16, 16);
+            ImplTestParametersEngine(new AsconEngine(AsconEngine.AsconParameters.ascon128), 16, 16, 16);
         }
 
         [Test]
         public void TestParametersEngine_ascon128a()
         {
-            ImplTestParametersEngine(AsconEngine.AsconParameters.ascon128a, 16, 16, 16);
+            ImplTestParametersEngine(new AsconEngine(AsconEngine.AsconParameters.ascon128a), 16, 16, 16);
         }
 
         [Test]
         public void TestParametersEngine_ascon80pq()
         {
-            ImplTestParametersEngine(AsconEngine.AsconParameters.ascon80pq, 20, 16, 16);
+            ImplTestParametersEngine(new AsconEngine(AsconEngine.AsconParameters.ascon80pq), 20, 16, 16);
+        }
+
+        [Test]
+        public void TestParametersEngine_AsconAead128()
+        {
+            ImplTestParametersEngine(new AsconAead128(), 16, 16, 16);
         }
 
         [Test]
         public void TestParametersXof_AsconXof()
         {
-            ImplTestParametersXof(AsconXof.AsconParameters.AsconXof, 32);
+            ImplTestParametersXof(new AsconXof(AsconXof.AsconParameters.AsconXof), 32);
         }
 
         [Test]
         public void TestParametersXof_AsconXofA()
         {
-            ImplTestParametersXof(AsconXof.AsconParameters.AsconXofA, 32);
+            ImplTestParametersXof(new AsconXof(AsconXof.AsconParameters.AsconXofA), 32);
+        }
+
+        [Test]
+        public void TestParametersXof_AsconXof128()
+        {
+            ImplTestParametersXof(new AsconXof128(), 32);
+        }
+
+        [Test]
+        public void TestParametersXof_AsconCXof128()
+        {
+            ImplTestParametersXof(new AsconCXof128(), 32);
         }
 
         [Test]
         public void TestVectorsDigest_AsconHash()
         {
-            ImplTestVectorsDigest(AsconDigest.AsconParameters.AsconHash, "asconhash");
+            ImplTestVectorsDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHash), "crypto/ascon", "asconhash_LWC_HASH_KAT_256.txt");
         }
 
         [Test]
         public void TestVectorsDigest_AsconHashA()
         {
-            ImplTestVectorsDigest(AsconDigest.AsconParameters.AsconHashA, "asconhasha");
+            ImplTestVectorsDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHashA), "crypto/ascon", "asconhasha_LWC_HASH_KAT_256.txt");
+        }
+
+        [Test]
+        public void TestVectorsDigest_AsconHash256()
+        {
+            ImplTestVectorsDigest(new AsconHash256(), "crypto/ascon/asconhash256", "LWC_HASH_KAT_256.txt");
         }
 
         [Test]
         public void TestVectorsEngine_ascon128()
         {
-            ImplTestVectorsEngine(AsconEngine.AsconParameters.ascon128, "128_128");
+            ImplTestVectorsEngine(() => new AsconEngine(AsconEngine.AsconParameters.ascon128), "crypto/ascon", "LWC_AEAD_KAT_128_128.txt");
         }
 
         [Test]
         public void TestVectorsEngine_ascon128a()
         {
-            ImplTestVectorsEngine(AsconEngine.AsconParameters.ascon128a, "128_128_a");
+            ImplTestVectorsEngine(() => new AsconEngine(AsconEngine.AsconParameters.ascon128a), "crypto/ascon", "LWC_AEAD_KAT_128_128_a.txt");
         }
 
         [Test]
         public void TestVectorsEngine_ascon80pq()
         {
-            ImplTestVectorsEngine(AsconEngine.AsconParameters.ascon80pq, "160_128");
+            ImplTestVectorsEngine(() => new AsconEngine(AsconEngine.AsconParameters.ascon80pq), "crypto/ascon", "LWC_AEAD_KAT_160_128.txt");
+        }
+
+        [Test]
+        public void TestVectorsEngine_AsconAead128()
+        {
+            ImplTestVectorsEngine(() => new AsconAead128(), "crypto/ascon/asconaead128", "LWC_AEAD_KAT_128_128.txt");
         }
 
         [Test]
         public void TestVectorsXof_AsconXof()
         {
-            ImplTestVectorsXof(AsconXof.AsconParameters.AsconXof, "asconxof");
+            ImplTestVectorsXof(new AsconXof(AsconXof.AsconParameters.AsconXof), "crypto/ascon", "asconxof_LWC_HASH_KAT_256.txt");
         }
 
         [Test]
         public void TestVectorsXof_AsconXofA()
         {
-            ImplTestVectorsXof(AsconXof.AsconParameters.AsconXofA, "asconxofa");
+            ImplTestVectorsXof(new AsconXof(AsconXof.AsconParameters.AsconXofA), "crypto/ascon", "asconxofa_LWC_HASH_KAT_256.txt");
         }
 
-        private static AsconDigest CreateDigest(AsconDigest.AsconParameters asconParameters)
+        [Test]
+        public void TestVectorsXof_AsconXof128()
         {
-            return new AsconDigest(asconParameters);
+            ImplTestVectorsXof(new AsconXof128(), "crypto/ascon/asconxof128", "LWC_HASH_KAT_256.txt");
         }
 
-        private static AsconEngine CreateEngine(AsconEngine.AsconParameters asconParameters)
+        private static void CheckAeadCipher(int aeadLen, int ivLen, int msgLen, int strength,
+            CipherTest.CreateAeadCipher create)
         {
-            return new AsconEngine(asconParameters);
+            Assert.True(CipherTest.TestAeadCipher(aeadLen, ivLen, msgLen, strength, create));
         }
 
-        private static AsconXof CreateXof(AsconXof.AsconParameters asconParameters)
+        private static void CheckDigestReset(IDigest digest)
         {
-            return new AsconXof(asconParameters);
+            Assert.True(DigestTest.TestDigestReset(digest));
         }
 
-        private static void ImplBenchDigest(AsconDigest.AsconParameters asconParameters)
+        private static int GetKeyBytesSize(IAeadCipher ascon)
         {
-            var ascon = CreateDigest(asconParameters);
+            if (ascon is AsconAead128 asconAead128)
+                return asconAead128.GetKeyBytesSize();
 
+            return ((AsconEngine)ascon).GetKeyBytesSize();
+        }
+
+        private static int GetIVBytesSize(IAeadCipher ascon)
+        {
+            if (ascon is AsconAead128 asconAead128)
+                return asconAead128.GetIVBytesSize();
+
+            return ((AsconEngine)ascon).GetIVBytesSize();
+        }
+
+        private static void ImplBenchDigest(IDigest ascon)
+        {
             byte[] data = new byte[1024];
             for (int i = 0; i < 1024; ++i)
             {
@@ -281,9 +421,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplBenchEngineAuth(AsconEngine.AsconParameters asconParameters)
+        private static void ImplBenchEngineAuth(IAeadCipher ascon)
         {
-            var ascon = CreateEngine(asconParameters);
             InitEngine(ascon, true);
 
             byte[] data = new byte[1024];
@@ -299,9 +438,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplBenchEngineCrypt(AsconEngine.AsconParameters asconParameters, bool forEncryption)
+        private static void ImplBenchEngineCrypt(IAeadCipher ascon, bool forEncryption)
         {
-            var ascon = CreateEngine(asconParameters);
             InitEngine(ascon, forEncryption);
 
             byte[] data = new byte[1024 + 64];
@@ -317,10 +455,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplBenchXof(AsconXof.AsconParameters asconParameters)
+        private static void ImplBenchXof(IXof ascon)
         {
-            var ascon = CreateXof(asconParameters);
-
             byte[] data = new byte[1024];
             for (int i = 0; i < 1024; ++i)
             {
@@ -345,7 +481,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestBufferingEngine(AsconEngine.AsconParameters asconParameters)
+        private static void ImplTestBufferingEngine(CipherTest.CreateAeadCipher create)
         {
             Random random = new Random();
 
@@ -353,7 +489,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] plaintext = new byte[plaintextLength];
             random.NextBytes(plaintext);
 
-            var ascon0 = CreateEngine(asconParameters);
+            var ascon0 = create();
             InitEngine(ascon0, true);
 
             byte[] ciphertext = new byte[ascon0.GetOutputSize(plaintextLength)];
@@ -367,7 +503,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // Encryption
             for (int split = 1; split < plaintextLength; ++split)
             {
-                var ascon = CreateEngine(asconParameters);
+                var ascon = create();
                 InitEngine(ascon, true);
 
                 random.NextBytes(output);
@@ -386,7 +522,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // Decryption
             for (int split = 1; split < ciphertextLength; ++split)
             {
-                var ascon = CreateEngine(asconParameters);
+                var ascon = create();
                 InitEngine(ascon, false);
 
                 random.NextBytes(output);
@@ -403,10 +539,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestExceptionsDigest(AsconDigest.AsconParameters asconParameters)
+        private static void ImplTestExceptionsDigest(IDigest ascon)
         {
-            var ascon = CreateDigest(asconParameters);
-
             try
             {
                 ascon.BlockUpdate(new byte[1], 1, 1);
@@ -428,10 +562,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void ImplTestExceptionsEngine(AsconEngine.AsconParameters asconParameters)
+        private void ImplTestExceptionsEngine(IAeadCipher ascon)
         {
-            var ascon = CreateEngine(asconParameters);
-            int keySize = ascon.GetKeyBytesSize(), ivSize = ascon.GetIVBytesSize();
+            int keySize = GetKeyBytesSize(ascon), ivSize = GetIVBytesSize(ascon);
             int offset;
             byte[] k = new byte[keySize];
             byte[] iv = new byte[ivSize];
@@ -738,7 +871,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 #endif
         }
 
-        private static void ImplTestExceptionsGetUpdateOutputSize(AsconEngine ascon, bool forEncryption,
+        private static void ImplTestExceptionsGetUpdateOutputSize(IAeadCipher ascon, bool forEncryption,
             ICipherParameters parameters, int maxInputSize)
         {
             // TODO Maybe use a different IV for this
@@ -774,10 +907,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestExceptionsXof(AsconXof.AsconParameters asconParameters)
+        private static void ImplTestExceptionsXof(IXof ascon)
         {
-            var ascon = CreateXof(asconParameters);
-
             try
             {
                 ascon.BlockUpdate(new byte[1], 1, 1);
@@ -799,21 +930,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestParametersDigest(AsconDigest.AsconParameters asconParameters, int digestSize)
+        private static void ImplTestParametersDigest(IDigest ascon, int digestSize)
         {
-            var ascon = CreateDigest(asconParameters);
-
             Assert.AreEqual(digestSize, ascon.GetDigestSize(), ascon.AlgorithmName + ": digest size is not correct");
         }
 
-        private static void ImplTestParametersEngine(AsconEngine.AsconParameters asconParameters, int keySize,
+        private static void ImplTestParametersEngine(IAeadCipher ascon, int keySize,
             int ivSize, int macSize)
         {
-            var ascon = CreateEngine(asconParameters);
-
-            Assert.AreEqual(keySize, ascon.GetKeyBytesSize(),
+            Assert.AreEqual(keySize, GetKeyBytesSize(ascon),
                 "key bytes of " + ascon.AlgorithmName + " is not correct");
-            Assert.AreEqual(ivSize, ascon.GetIVBytesSize(),
+            Assert.AreEqual(ivSize, GetIVBytesSize(ascon),
                 "iv bytes of " + ascon.AlgorithmName + " is not correct");
 
             var parameters = new ParametersWithIV(new KeyParameter(new byte[keySize]), new byte[ivSize]);
@@ -827,21 +954,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "GetOutputSize of " + ascon.AlgorithmName + " is incorrect for decryption");
         }
 
-        private static void ImplTestParametersXof(AsconXof.AsconParameters asconParameters, int digestSize)
+        private static void ImplTestParametersXof(IXof ascon, int digestSize)
         {
-            var ascon = CreateXof(asconParameters);
-
             Assert.AreEqual(digestSize, ascon.GetDigestSize(),
                 ascon.AlgorithmName + ": digest size is not correct");
         }
 
-        private static void ImplTestVectorsDigest(AsconDigest.AsconParameters asconParameters, string filename)
+        private static void ImplTestVectorsDigest(IDigest ascon, string path, string filename)
         {
             Random random = new Random();
-            var ascon = CreateDigest(asconParameters);
             var map = new Dictionary<string, string>();
-            using (var src = new StreamReader(
-                SimpleTest.GetTestDataAsStream("crypto.ascon." + filename + "_LWC_HASH_KAT_256.txt")))
+            using (var src = new StreamReader(SimpleTest.FindTestResource(path, filename)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)
@@ -849,6 +972,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     var data = line.Split(' ');
                     if (data.Length == 1)
                     {
+                        string count = map["Count"];
                         byte[] ptByte = Hex.Decode(map["Msg"]);
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
@@ -883,12 +1007,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestVectorsEngine(AsconEngine.AsconParameters asconParameters, string filename)
+        private static void ImplTestVectorsEngine(CipherTest.CreateAeadCipher create, string path, string filename)
         {
             Random random = new Random();
-            var asconEngine = CreateEngine(asconParameters);
+            var asconEngine = create();
             var buf = new Dictionary<string, string>();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.ascon.LWC_AEAD_KAT_" + filename + ".txt")))
+            using (var src = new StreamReader(SimpleTest.FindTestResource(path, filename)))
             {
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 string line;
@@ -897,6 +1021,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     var data = line.Split(' ');
                     if (data.Length == 1)
                     {
+                        string count = map["Count"];
                         byte[] key = Hex.Decode(map["Key"]);
                         byte[] nonce = Hex.Decode(map["Nonce"]);
                         byte[] ad = Hex.Decode(map["AD"]);
@@ -949,13 +1074,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestVectorsXof(AsconXof.AsconParameters asconParameters, string filename)
+        private static void ImplTestVectorsXof(IXof ascon, string path, string filename)
         {
             Random random = new Random();
-            var ascon = CreateXof(asconParameters);
+
             var buf = new Dictionary<string, string>();
-            using (var src = new StreamReader(
-                SimpleTest.GetTestDataAsStream("crypto.ascon." + filename + "_LWC_HASH_KAT_256.txt")))
+            using (var src = new StreamReader(SimpleTest.FindTestResource(path, filename)))
             {
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 string line;
@@ -964,6 +1088,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     var data = line.Split(' ');
                     if (data.Length == 1)
                     {
+                        string count = map["Count"];
                         byte[] ptByte = Hex.Decode(map["Msg"]);
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
@@ -998,10 +1123,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void InitEngine(AsconEngine ascon, bool forEncryption)
+        private static void InitEngine(IAeadCipher ascon, bool forEncryption)
         {
-            int keySize = ascon.GetKeyBytesSize();
-            int ivSize = ascon.GetIVBytesSize();
+            int keySize = GetKeyBytesSize(ascon);
+            int ivSize = GetIVBytesSize(ascon);
             int macSize = ivSize * 8;
 
             var parameters = new AeadParameters(new KeyParameter(new byte[keySize]), macSize, new byte[ivSize], null);

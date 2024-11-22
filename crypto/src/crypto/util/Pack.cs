@@ -1220,7 +1220,25 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        // TODO UInt64_To_LE_High/Low
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt64_To_LE_High(ulong n, Span<byte> bs)
+        {
+            UInt64_To_LE_Low(n >> ((8 - bs.Length) << 3), bs);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt64_To_LE_Low(ulong n, Span<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 8);
+
+            bs[0] = (byte)n;
+            for (int i = 1; i < len; ++i)
+            {
+                n >>= 8;
+                bs[i] = (byte)n;
+            }
+        }
 #endif
     }
 }

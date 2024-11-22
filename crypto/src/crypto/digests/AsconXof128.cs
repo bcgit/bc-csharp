@@ -8,67 +8,37 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    /// <summary>ASCON v1.2 XOF, https://ascon.iaik.tugraz.at/ .</summary>
+    /// <summary>
+    /// Ascon-XOF128 was introduced in NIST Special Publication (SP) 800-232 (Initial Public Draft).
+    /// </summary>
     /// <remarks>
-    /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/ascon-spec-final.pdf<br/>
-    /// ASCON v1.2 XOF with reference to C Reference Impl from: https://github.com/ascon/ascon-c .
+    /// Additional details and the specification can be found in:
+    /// <a href="https://csrc.nist.gov/pubs/sp/800/232/ipd">NIST SP 800-232 (Initial Public Draft)</a>.
+    /// For reference source code and implementation details, please see:
+    /// <a href="https://github.com/ascon/ascon-c">Reference, highly optimized, masked C and
+    /// ASM implementations of Ascon (NIST SP 800-232)</a>.
     /// </remarks>
-    [Obsolete("This class is deprecated. For the latest Ascon version, use AsconXof128 or AsconCXof128 instead.")]
-    public sealed class AsconXof
+    public sealed class AsconXof128
         : IXof
     {
-        public enum AsconParameters
-        {
-            AsconXof,
-            AsconXofA,
-        }
-
-        private readonly AsconParameters m_asconParameters;
-        private readonly int ASCON_PB_ROUNDS;
-
-        private ulong x0;
-        private ulong x1;
-        private ulong x2;
-        private ulong x3;
-        private ulong x4;
+        private const int Rate = 8;
 
         private readonly byte[] m_buf = new byte[8];
+
+        private ulong S0, S1, S2, S3, S4;
         private int m_bufPos = 0;
         private bool m_squeezing = false;
 
-        public AsconXof(AsconParameters parameters)
+        public AsconXof128()
         {
-            m_asconParameters = parameters;
-            switch (parameters)
-            {
-            case AsconParameters.AsconXof:
-                ASCON_PB_ROUNDS = 12;
-                break;
-            case AsconParameters.AsconXofA:
-                ASCON_PB_ROUNDS = 8;
-                break;
-            default:
-                throw new ArgumentException("Invalid parameter settings for Ascon XOF");
-            }
             Reset();
         }
 
-        public string AlgorithmName
-        {
-            get
-            {
-                switch (m_asconParameters)
-                {
-                case AsconParameters.AsconXof:      return "Ascon-Xof";
-                case AsconParameters.AsconXofA:     return "Ascon-XofA";
-                default: throw new InvalidOperationException();
-                }
-            }
-        }
+        public string AlgorithmName => "Ascon-XOF128";
 
         public int GetDigestSize() => 32;
 
-        public int GetByteLength() => 8;
+        public int GetByteLength() => Rate;
 
         public void Update(byte input)
         {
@@ -76,10 +46,10 @@ namespace Org.BouncyCastle.Crypto.Digests
                 throw new InvalidOperationException("attempt to absorb while squeezing");
 
             m_buf[m_bufPos] = input;
-            if (++m_bufPos == 8)
+            if (++m_bufPos == Rate)
             {
-                x0 ^= Pack.BE_To_UInt64(m_buf, 0);
-                P(ASCON_PB_ROUNDS);
+                S0 ^= Pack.LE_To_UInt64(m_buf, 0);
+                P12();
                 m_bufPos = 0;
             }
         }
@@ -97,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (inLen < 1)
                 return;
 
-            int available = 8 - m_bufPos;
+            int available = Rate - m_bufPos;
             if (inLen < available)
             {
                 Array.Copy(input, inOff, m_buf, m_bufPos, inLen);
@@ -110,16 +80,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 Array.Copy(input, inOff, m_buf, m_bufPos, available);
                 inPos += available;
-                x0 ^= Pack.BE_To_UInt64(m_buf, 0);
-                P(ASCON_PB_ROUNDS);
+                S0 ^= Pack.LE_To_UInt64(m_buf, 0);
+                P12();
             }
 
             int remaining;
-            while ((remaining = inLen - inPos) >= 8)
+            while ((remaining = inLen - inPos) >= Rate)
             {
-                x0 ^= Pack.BE_To_UInt64(input, inOff + inPos);
-                P(ASCON_PB_ROUNDS);
-                inPos += 8;
+                S0 ^= Pack.LE_To_UInt64(input, inOff + inPos);
+                P12();
+                inPos += Rate;
             }
 
             Array.Copy(input, inOff + inPos, m_buf, 0, remaining);
@@ -133,7 +103,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (m_squeezing)
                 throw new InvalidOperationException("attempt to absorb while squeezing");
 
-            int available = 8 - m_bufPos;
+            int available = Rate - m_bufPos;
             if (input.Length < available)
             {
                 input.CopyTo(m_buf.AsSpan(m_bufPos));
@@ -144,16 +114,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (m_bufPos > 0)
             {
                 input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
-                x0 ^= Pack.BE_To_UInt64(m_buf);
-                P(ASCON_PB_ROUNDS);
+                S0 ^= Pack.LE_To_UInt64(m_buf);
+                P12();
                 input = input[available..];
             }
 
-            while (input.Length >= 8)
+            while (input.Length >= Rate)
             {
-                x0 ^= Pack.BE_To_UInt64(input);
-                P(ASCON_PB_ROUNDS);
-                input = input[8..];
+                S0 ^= Pack.LE_To_UInt64(input);
+                P12();
+                input = input[Rate..];
             }
 
             input.CopyTo(m_buf);
@@ -176,6 +146,26 @@ namespace Org.BouncyCastle.Crypto.Digests
             return OutputFinal(output[..digestSize]);
         }
 #endif
+
+        public void Reset()
+        {
+            //S0 = 0x0000080000cc0003UL;
+            //S1 = 0UL;
+            //S2 = 0UL;
+            //S3 = 0UL;
+            //S4 = 0UL;
+            //P12();
+
+            S0 = 0xda82ce768d9447ebUL;
+            S1 = 0xcc7ce6c75f1ef969UL;
+            S2 = 0xe7508fd780085631UL;
+            S3 = 0x0ee0ea53416b58ccUL;
+            S4 = 0xe0547524db6f0bdeUL;
+
+            Array.Clear(m_buf, 0, m_buf.Length);
+            m_bufPos = 0;
+            m_squeezing = false;
+        }
 
         public int OutputFinal(byte[] output, int outOff, int outLen)
         {
@@ -207,7 +197,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             Check.OutputLength(output, outOff, outLen, "output buffer is too short");
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Output(output.AsSpan(outOff, outLen));
 #else
             int result = outLen;
@@ -218,13 +208,13 @@ namespace Org.BouncyCastle.Crypto.Digests
 
                 if (outLen >= 8)
                 {
-                    Pack.UInt64_To_BE(x0, output, outOff);
+                    Pack.UInt64_To_LE(S0, output, outOff);
                     outOff += 8;
                     outLen -= 8;
                 }
                 else
                 {
-                    Pack.UInt64_To_BE(x0, m_buf);
+                    Pack.UInt64_To_LE(S0, m_buf);
                     m_bufPos = 0;
                 }
             }
@@ -247,16 +237,16 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             while (outLen >= 8)
             {
-                P(ASCON_PB_ROUNDS);
-                Pack.UInt64_To_BE(x0, output, outOff);
+                P12();
+                Pack.UInt64_To_LE(S0, output, outOff);
                 outOff += 8;
                 outLen -= 8;
             }
 
             if (outLen > 0)
             {
-                P(ASCON_PB_ROUNDS);
-                Pack.UInt64_To_BE(x0, m_buf);
+                P12();
+                Pack.UInt64_To_LE(S0, m_buf);
                 Array.Copy(m_buf, 0, output, outOff, outLen);
             }
 
@@ -265,7 +255,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #endif
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int Output(Span<byte> output)
         {
             int result = output.Length;
@@ -276,12 +266,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
                 if (output.Length >= 8)
                 {
-                    Pack.UInt64_To_BE(x0, output);
+                    Pack.UInt64_To_LE(S0, output);
                     output = output[8..];
                 }
                 else
                 {
-                    Pack.UInt64_To_BE(x0, m_buf);
+                    Pack.UInt64_To_LE(S0, m_buf);
                     m_bufPos = 0;
                 }
             }
@@ -303,15 +293,15 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             while (output.Length >= 8)
             {
-                P(ASCON_PB_ROUNDS);
-                Pack.UInt64_To_BE(x0, output);
+                P12();
+                Pack.UInt64_To_LE(S0, output);
                 output = output[8..];
             }
 
             if (!output.IsEmpty)
             {
-                P(ASCON_PB_ROUNDS);
-                Pack.UInt64_To_BE(x0, m_buf);
+                P12();
+                Pack.UInt64_To_LE(S0, m_buf);
                 output.CopyFrom(m_buf);
             }
 
@@ -320,81 +310,55 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        public void Reset()
-        {
-            Array.Clear(m_buf, 0, m_buf.Length);
-            m_bufPos = 0;
-            m_squeezing = false;
-
-            switch (m_asconParameters)
-            {
-            case AsconParameters.AsconXof:
-                x0 = 13077933504456348694UL;
-                x1 = 3121280575360345120UL;
-                x2 = 7395939140700676632UL;
-                x3 = 6533890155656471820UL;
-                x4 = 5710016986865767350UL;
-                break;
-            case AsconParameters.AsconXofA:
-                x0 = 4940560291654768690UL;
-                x1 = 14811614245468591410UL;
-                x2 = 17849209150987444521UL;
-                x3 = 2623493988082852443UL;
-                x4 = 12162917349548726079UL;
-                break;
-            default:
-                throw new InvalidOperationException();
-            }
-        }
-
         private void FinishAbsorbing()
         {
-            m_buf[m_bufPos] = 0x80;
-            x0 ^= Pack.BE_To_UInt64(m_buf, 0) & (ulong.MaxValue << (56 - (m_bufPos << 3)));
+            PadAndAbsorb();
 
-            P(12);
-
-            m_bufPos = 8;
+            m_bufPos = m_buf.Length;
             m_squeezing = true;
         }
 
-        private void P(int nr)
+        private void PadAndAbsorb()
         {
-            //if (nr >= 8)
-            {
-                if (nr == 12)
-                {
-                    ROUND(0xf0UL);
-                    ROUND(0xe1UL);
-                    ROUND(0xd2UL);
-                    ROUND(0xc3UL);
-                }
-                ROUND(0xb4UL);
-                ROUND(0xa5UL);
-            }
-            ROUND(0x96UL);
-            ROUND(0x87UL);
-            ROUND(0x78UL);
-            ROUND(0x69UL);
-            ROUND(0x5aUL);
-            ROUND(0x4bUL);
+            int finalBits = m_bufPos << 3;
+            S0 ^= Pack.LE_To_UInt64(m_buf, 0) & (0x00FFFFFFFFFFFFFFUL >> (56 - finalBits));
+            S0 ^= 0x01UL << finalBits;
+
+            P12();
+        }
+
+        private void P12()
+        {
+            Round(0xf0UL);
+            Round(0xe1UL);
+            Round(0xd2UL);
+            Round(0xc3UL);
+            Round(0xb4UL);
+            Round(0xa5UL);
+            Round(0x96UL);
+            Round(0x87UL);
+            Round(0x78UL);
+            Round(0x69UL);
+            Round(0x5aUL);
+            Round(0x4bUL);
         }
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        private void ROUND(ulong c)
+        private void Round(ulong c)
         {
-            ulong t0 = x0 ^ x1 ^ x2 ^ x3 ^ c ^ (x1 & (x0 ^ x2 ^ x4 ^ c));
-            ulong t1 = x0 ^ x2 ^ x3 ^ x4 ^ c ^ ((x1 ^ x2 ^ c) & (x1 ^ x3));
-            ulong t2 = x1 ^ x2 ^ x4 ^ c ^ (x3 & x4);
-            ulong t3 = x0 ^ x1 ^ x2 ^ c ^ (~x0 & (x3 ^ x4));
-            ulong t4 = x1 ^ x3 ^ x4 ^ ((x0 ^ x4) & x1);
-            x0 = t0 ^ Longs.RotateRight(t0, 19) ^ Longs.RotateRight(t0, 28);
-            x1 = t1 ^ Longs.RotateRight(t1, 39) ^ Longs.RotateRight(t1, 61);
-            x2 = ~(t2 ^ Longs.RotateRight(t2, 1) ^ Longs.RotateRight(t2, 6));
-            x3 = t3 ^ Longs.RotateRight(t3, 10) ^ Longs.RotateRight(t3, 17);
-            x4 = t4 ^ Longs.RotateRight(t4, 7) ^ Longs.RotateRight(t4, 41);
+            ulong SX = S2 ^ c;
+            ulong t0 = S0 ^ S1 ^ SX ^ S3 ^ (S1 & (S0 ^ SX ^ S4));
+            ulong t1 = S0 ^ SX ^ S3 ^ S4 ^ ((S1 ^ SX) & (S1 ^ S3));
+            ulong t2 = S1 ^ SX ^ S4 ^ (S3 & S4);
+            ulong t3 = S0 ^ S1 ^ SX ^ (~S0 & (S3 ^ S4));
+            ulong t4 = S1 ^ S3 ^ S4 ^ ((S0 ^ S4) & S1);
+            S0 = t0 ^ Longs.RotateRight(t0, 19) ^ Longs.RotateRight(t0, 28);
+            S1 = t1 ^ Longs.RotateRight(t1, 39) ^ Longs.RotateRight(t1, 61);
+            S2 = ~(t2 ^ Longs.RotateRight(t2, 1) ^ Longs.RotateRight(t2, 6));
+            S3 = t3 ^ Longs.RotateRight(t3, 10) ^ Longs.RotateRight(t3, 17);
+            S4 = t4 ^ Longs.RotateRight(t4, 7) ^ Longs.RotateRight(t4, 41);
         }
     }
 }
