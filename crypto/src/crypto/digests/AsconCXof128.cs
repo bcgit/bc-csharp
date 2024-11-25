@@ -353,7 +353,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             ulong bitLength = Convert.ToUInt64(zLen) << 3;
             Pack.UInt64_To_LE(bitLength, m_buf);
             P12();
-            BlockUpdate(z, 0, zLen);
+            BlockUpdate(z, zOff, zLen);
             PadAndAbsorb();
 
             m_bufPos = 0;
