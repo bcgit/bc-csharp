@@ -3,8 +3,13 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.Oiw;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -69,6 +74,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), $"{path} {count} : public key");
             Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), $"{path} {count} : private key");
 
+            var publicKeyRT = (NtruPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams));
+            var privateKeyRT = (NtruPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams));
+
+            Assert.True(Arrays.AreEqual(pk, publicKeyRT.PublicKey), $"{path} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privateKeyRT.PrivateKey), $"{path} {count} : private key");
+
             // Test encapsulate
             NtruKemGenerator encapsulator = new NtruKemGenerator(random);
             ISecretWithEncapsulation encapsulation = encapsulator.GenerateEncapsulated(new NtruPublicKeyParameters(ntruParameters, pk));
@@ -130,17 +143,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             }
         }
 
-        //[Test]
-        //public void TestPrivInfoGeneration()
-        //{
-        //    SecureRandom random = new SecureRandom();
-        //    PqcOtherInfoGenerator.PartyU partyU = new PqcOtherInfoGenerator.PartyU(NtruParameters.NtruHrss701, new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
-        //    byte[] partA = partyU.GetSuppPrivInfoPartA();
-        //    PqcOtherInfoGenerator.PartyV partyV = new PqcOtherInfoGenerator.PartyV(NtruParameters.NtruHrss701, new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
-        //    byte[] partB = partyV.GetSuppPrivInfoPartB(partA);
-        //    DerOtherInfo otherInfoU = partyU.Generate(partB);
-        //    DerOtherInfo otherInfoV = partyV.Generate();
-        //    Assert.True(Arrays.AreEqual(otherInfoU.GetEncoded(), otherInfoV.GetEncoded()));
-        //}
+        [Test]
+        public void TestPrivInfoGeneration()
+        {
+            SecureRandom random = new SecureRandom();
+            PqcOtherInfoGenerator.PartyU partyU = new PqcOtherInfoGenerator.PartyU(NtruParameters.NtruHrss701,
+                new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+            byte[] partA = partyU.GetSuppPrivInfoPartA();
+            PqcOtherInfoGenerator.PartyV partyV = new PqcOtherInfoGenerator.PartyV(NtruParameters.NtruHrss701,
+                new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+            byte[] partB = partyV.GetSuppPrivInfoPartB(partA);
+            DerOtherInfo otherInfoU = partyU.Generate(partB);
+            DerOtherInfo otherInfoV = partyV.Generate();
+            Assert.True(Arrays.AreEqual(otherInfoU.GetEncoded(), otherInfoV.GetEncoded()));
+        }
     }
 }

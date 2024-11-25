@@ -8,11 +8,12 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.MLKem;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -146,6 +147,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.HqcOidLookup(hqcPrivateKeyParameters.Parameters));
                 byte[] encoding = hqcPrivateKeyParameters.PrivateKey;
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
+            }
+            else if (privateKey is NtruPrivateKeyParameters ntruPrivateKeyParameters)
+            {
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.NtruOidLookup(ntruPrivateKeyParameters.Parameters));
+                byte[] encoding = ntruPrivateKeyParameters.GetEncoded();
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
 

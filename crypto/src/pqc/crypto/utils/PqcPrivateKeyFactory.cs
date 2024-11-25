@@ -16,6 +16,7 @@ using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -179,6 +180,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
                     Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
                     keyInfo.PublicKey?.GetOctets()); // encT1
+            }
+            if (algOid.On(BCObjectIdentifiers.pqc_kem_ntru))
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
+                NtruParameters ntruParams = PqcUtilities.NtruParamsLookup(algOid);
+
+                return new NtruPrivateKeyParameters(ntruParams, keyEnc);
             }
 
             throw new Exception("algorithm identifier in private key not recognised");

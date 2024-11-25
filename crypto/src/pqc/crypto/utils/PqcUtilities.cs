@@ -8,6 +8,7 @@ using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -47,6 +48,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<SphincsPlusParameters, DerObjectIdentifier> sphincsPlusOids = new Dictionary<SphincsPlusParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, SphincsPlusParameters> sphincsPlusParams = new Dictionary<DerObjectIdentifier, SphincsPlusParameters>();
 #pragma warning restore CS0618 // Type or member is obsolete
+
+        private readonly static Dictionary<NtruParameters, DerObjectIdentifier> ntruOids = new Dictionary<NtruParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, NtruParameters> ntruParams = new Dictionary<DerObjectIdentifier, NtruParameters>();
 
         static PqcUtilities()
         {
@@ -150,6 +154,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl1full] = PicnicParameters.picnicl1full;
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
+
+            ntruOids[NtruParameters.NtruHps2048509] = BCObjectIdentifiers.ntruhps2048509;
+            ntruOids[NtruParameters.NtruHps2048677] = BCObjectIdentifiers.ntruhps2048677;
+            ntruOids[NtruParameters.NtruHps4096821] = BCObjectIdentifiers.ntruhps4096821;
+            ntruOids[NtruParameters.NtruHps40961229] = BCObjectIdentifiers.ntruhps40961229;
+            ntruOids[NtruParameters.NtruHrss701] = BCObjectIdentifiers.ntruhrss701;
+            ntruOids[NtruParameters.NtruHrss1373] = BCObjectIdentifiers.ntruhrss1373;
+
+            ntruParams.Add(BCObjectIdentifiers.ntruhps2048509, NtruParameters.NtruHps2048509);
+            ntruParams.Add(BCObjectIdentifiers.ntruhps2048677, NtruParameters.NtruHps2048677);
+            ntruParams.Add(BCObjectIdentifiers.ntruhps4096821, NtruParameters.NtruHps4096821);
+            ntruParams.Add(BCObjectIdentifiers.ntruhps40961229, NtruParameters.NtruHps40961229);
+            ntruParams.Add(BCObjectIdentifiers.ntruhrss701, NtruParameters.NtruHrss701);
+            ntruParams.Add(BCObjectIdentifiers.ntruhrss1373, NtruParameters.NtruHrss1373);
 
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
@@ -356,5 +374,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(sphincsPlusParams, oid);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
+
+        internal static DerObjectIdentifier NtruOidLookup(NtruParameters parameters)
+        {
+            return CollectionUtilities.GetValueOrNull(ntruOids, parameters);
+        }
+
+        internal static NtruParameters NtruParamsLookup(DerObjectIdentifier oid)
+        {
+            return CollectionUtilities.GetValueOrNull(ntruParams, oid);
+        }
     }
 }

@@ -18,6 +18,7 @@ using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -86,6 +87,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.picnicl1full] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl3full] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl5full] = PicnicConverter;
+
+            Converters.Add(BCObjectIdentifiers.ntruhps2048509, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhps2048677, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhps4096821, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhps40961229, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhrss701, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhrss1373, NtruConverter);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             Converters[BCObjectIdentifiers.dilithium2] = DilithiumConverter;
@@ -318,6 +326,50 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             var mlKemParameters = MLKemParameters.ByOid[keyInfo.Algorithm.Algorithm];
 
             return new MLKemPublicKeyParameters(mlKemParameters, encoding: keyInfo.PublicKey.GetOctets());
+        }
+
+        private static AsymmetricKeyParameter NtruConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
+        {
+            var ntruParameters = PqcUtilities.NtruParamsLookup(keyInfo.Algorithm.Algorithm);
+
+            return GetNtruPublicKey(ntruParameters, keyInfo.PublicKey);
+        }
+
+        private static NtruPublicKeyParameters GetNtruPublicKey(NtruParameters ntruParameters, DerBitString publicKey)
+        {
+            if (publicKey.IsOctetAligned())
+            {
+                //int publicKeyLength = ntruParameters.PublicKeyLength;
+
+                //int bytesLength = publicKey.GetBytesLength();
+                //if (bytesLength == publicKeyLength)
+                //    // TODO[pqc] Avoid redundant copies?
+                //    return new NtruPublicKeyParameters(ntruParameters, key: publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                //if (bytesLength > publicKeyLength)
+                {
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            //if (oct.GetOctetsLength() == publicKeyLength)
+                            {
+                                return new NtruPublicKeyParameters(ntruParameters, key: oct.GetOctets());
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                // TODO[pqc] Avoid redundant copies?
+                return new NtruPublicKeyParameters(ntruParameters, key: publicKey.GetOctets());
+            }
+
+            throw new ArgumentException("invalid " + ntruParameters.Name + " public key");
         }
 
         private static AsymmetricKeyParameter FalconConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

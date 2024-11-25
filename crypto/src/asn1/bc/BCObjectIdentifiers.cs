@@ -405,6 +405,8 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier ntruhps2048677 = pqc_kem_ntru.Branch("2");
         public static readonly DerObjectIdentifier ntruhps4096821 = pqc_kem_ntru.Branch("3");
         public static readonly DerObjectIdentifier ntruhrss701 = pqc_kem_ntru.Branch("4");
+        public static readonly DerObjectIdentifier ntruhps40961229 = pqc_kem_ntru.Branch("5");
+        public static readonly DerObjectIdentifier ntruhrss1373 = pqc_kem_ntru.Branch("6");
 
         /**
          * NTRUPrime

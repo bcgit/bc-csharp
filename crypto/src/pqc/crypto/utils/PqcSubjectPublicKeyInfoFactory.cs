@@ -13,6 +13,7 @@ using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.MLKem;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
@@ -142,6 +143,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.HqcOidLookup(hqcPublicKeyParameters.Parameters));
 
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
+            }
+            if (publicKey is NtruPublicKeyParameters ntruPublicKeyParameters)
+            {
+                byte[] encoding = ntruPublicKeyParameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.NtruOidLookup(ntruPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
 
