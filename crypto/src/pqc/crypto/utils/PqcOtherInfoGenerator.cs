@@ -4,7 +4,6 @@ using System.IO;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Security;
 
@@ -58,16 +57,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] partyVInfo, SecureRandom random)
                 : base(algorithmID, partyUInfo, partyVInfo, random)
             {
-                if (kemParams is MLKemParameters mlKemParameters)
-                {
-                    MLKemKeyPairGenerator kpg = new MLKemKeyPairGenerator();
-                    kpg.Init(new MLKemKeyGenerationParameters(random, mlKemParameters));
+                //if (kemParams is MLKemParameters mlKemParameters)
+                //{
+                //    MLKemKeyPairGenerator kpg = new MLKemKeyPairGenerator();
+                //    kpg.Init(new MLKemKeyGenerationParameters(random, mlKemParameters));
 
-                    m_aKp = kpg.GenerateKeyPair();
+                //    m_aKp = kpg.GenerateKeyPair();
 
-                    m_encSE = new MLKemExtractor((MLKemPrivateKeyParameters)m_aKp.Private);
-                }
-                else if (kemParams is NtruParameters ntruParameters)
+                //    m_encSE = new MLKemExtractor((MLKemPrivateKeyParameters)m_aKp.Private);
+                //}
+                //else
+                if (kemParams is NtruParameters ntruParameters)
                 {
                     NtruKeyPairGenerator kpg = new NtruKeyPairGenerator();
                     kpg.Init(new NtruKeyGenerationParameters(random, ntruParameters));
@@ -128,11 +128,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] partyVInfo, SecureRandom random)
                 : base(algorithmID, partyUInfo, partyVInfo, random)
             {
-                if (kemParams is MLKemParameters)
-                {
-                    m_encSG = new MLKemGenerator(random);
-                }
-                else if (kemParams is NtruParameters)
+                //if (kemParams is MLKemParameters)
+                //{
+                //    m_encSG = new MLKemGenerator(random);
+                //}
+                //else
+                if (kemParams is NtruParameters)
                 {
                     m_encSG = new NtruKemGenerator(random);
                 }

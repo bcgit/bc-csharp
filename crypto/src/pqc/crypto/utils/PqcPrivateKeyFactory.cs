@@ -15,7 +15,6 @@ using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
@@ -139,12 +138,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 HqcParameters hqcParams = PqcUtilities.HqcParamsLookup(algOid);
 
                 return new HqcPrivateKeyParameters(hqcParams, keyEnc);
-            }
-            if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
-            {
-                Asn1OctetString privateKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
-
-                return new MLKemPrivateKeyParameters(mlKemParameters, encoding: privateKey.GetOctets());
             }
 #pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.dilithium2) ||

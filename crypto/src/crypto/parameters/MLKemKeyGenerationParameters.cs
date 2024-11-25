@@ -1,10 +1,9 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
-namespace Org.BouncyCastle.Pqc.Crypto.MLKem
+namespace Org.BouncyCastle.Crypto.Parameters
 {
     public sealed class MLKemKeyGenerationParameters
         : KeyGenerationParameters

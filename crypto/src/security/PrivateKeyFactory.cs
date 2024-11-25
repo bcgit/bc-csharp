@@ -366,6 +366,29 @@ namespace Org.BouncyCastle.Security
 
                 throw new ArgumentException("invalid " + mlDsaParameters.Name + " private key");
             }
+            else if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
+            {
+                var privateKey = keyInfo.PrivateKey;
+                int length = privateKey.GetOctetsLength();
+
+                var parameterSet = mlKemParameters.ParameterSet;
+
+                if (length == parameterSet.SeedLength)
+                {
+                    // NOTE: We ignore the publicKey field since we will recover it from the seed anyway
+                    // TODO[pqc] Validate the public key if it is included?
+                    return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed: privateKey.GetOctets());
+                }
+
+                if (length == parameterSet.PrivateKeyLength)
+                {
+                    // NOTE: We ignore the publicKey field since we will derive it anyway
+                    // TODO[pqc] Validate the public key if it is included?
+                    return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding: privateKey.GetOctets());
+                }
+
+                throw new ArgumentException("invalid " + mlKemParameters.Name + " private key");
+            }
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
                 var privateKey = keyInfo.PrivateKey;

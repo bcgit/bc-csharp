@@ -2,11 +2,15 @@
 
 using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Pqc.Crypto.MLKem
+namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal static class Cbd
     {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Eta(Poly r, ReadOnlySpan<byte> bytes, int eta)
+#else
         internal static void Eta(Poly r, byte[] bytes, int eta)
+#endif
         {
             switch (eta)
             {
@@ -21,7 +25,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.MLKem
                     {
                         short a = (short)((d >> (4 * j + 0)) & 0x3);
                         short b = (short)((d >> (4 * j + eta)) & 0x3);
-                        r.m_coeffs[8 * i + j] = (short) (a - b);
+                        r.m_coeffs[8 * i + j] = (short)(a - b);
                     }
                 }
                 break;

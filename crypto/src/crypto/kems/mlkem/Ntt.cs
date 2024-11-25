@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.MLKem
+﻿namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal static class Ntt
     {

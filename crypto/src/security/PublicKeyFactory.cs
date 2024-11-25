@@ -278,6 +278,10 @@ namespace Org.BouncyCastle.Security
             {
                 return GetMLDsaPublicKey(mlDsaParameters, keyInfo.PublicKey);
             }
+            else if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
+            {
+                return GetMLKemPublicKey(mlKemParameters, keyInfo.PublicKey);
+            }
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
                 return GetSlhDsaPublicKey(slhDsaParameters, keyInfo.PublicKey);
@@ -329,6 +333,22 @@ namespace Org.BouncyCastle.Security
             }
 
             throw new ArgumentException("invalid " + mlDsaParameters.Name + " public key");
+        }
+
+        internal static MLKemPublicKeyParameters GetMLKemPublicKey(MLKemParameters mlKemParameters,
+            DerBitString publicKey)
+        {
+            if (publicKey.IsOctetAligned())
+            {
+                int publicKeyLength = mlKemParameters.ParameterSet.PublicKeyLength;
+
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == publicKeyLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return MLKemPublicKeyParameters.FromEncoding(mlKemParameters, encoding: publicKey.GetOctets());
+            }
+
+            throw new ArgumentException("invalid " + mlKemParameters.Name + " public key");
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

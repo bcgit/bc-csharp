@@ -1,7 +1,9 @@
 ﻿using System;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
@@ -43,22 +45,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public virtual BcTlsSecret Decapsulate(MLKemPrivateKeyParameters privateKey, byte[] ciphertext)
         {
-            MLKemExtractor kemExtract = new MLKemExtractor(privateKey);
-            byte[] secret = kemExtract.ExtractSecret(ciphertext);
-            return m_crypto.AdoptLocalSecret(secret);
+            var decapsulator = KemUtilities.GetDecapsulator(m_domainParameters.Oid);
+            decapsulator.Init(privateKey);
+            var sec = KemUtilities.Decapsulate(decapsulator, ciphertext, 0, ciphertext.Length);
+            return m_crypto.AdoptLocalSecret(sec);
         }
 
-        public virtual MLKemPublicKeyParameters DecodePublicKey(byte[] encoding)
-        {
-            return new MLKemPublicKeyParameters(m_domainParameters, encoding);
-        }
+        public virtual MLKemPublicKeyParameters DecodePublicKey(byte[] encoding) =>
+            MLKemPublicKeyParameters.FromEncoding(m_domainParameters, encoding);
 
         public virtual byte[] Encapsulate(MLKemPublicKeyParameters publicKey, out TlsSecret secret)
         {
-            MLKemGenerator kemGen = new MLKemGenerator(m_crypto.SecureRandom);
-            ISecretWithEncapsulation encapsulated = kemGen.GenerateEncapsulated(publicKey);
-            secret = m_crypto.AdoptLocalSecret(encapsulated.GetSecret());
-            return encapsulated.GetEncapsulation();
+            var encapsulator = KemUtilities.GetEncapsulator(m_domainParameters.Oid);
+            encapsulator.Init(new ParametersWithRandom(publicKey, m_crypto.SecureRandom));
+            var enc_sec = KemUtilities.Encapsulate(encapsulator);
+            secret = m_crypto.AdoptLocalSecret(enc_sec.Item2);
+            return enc_sec.Item1;
         }
 
         public virtual byte[] EncodePublicKey(MLKemPublicKeyParameters publicKey)

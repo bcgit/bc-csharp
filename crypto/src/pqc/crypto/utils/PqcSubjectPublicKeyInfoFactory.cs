@@ -12,7 +12,6 @@ using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
@@ -112,12 +111,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.FalconOidLookup(falconPublicKeyParameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
-            }
-            if (publicKey is MLKemPublicKeyParameters mlKemKey)
-            {
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
-
-                return new SubjectPublicKeyInfo(algorithmIdentifier, mlKemKey.GetEncoded());
             }
 #pragma warning disable CS0618 // Type or member is obsolete
             if (publicKey is DilithiumPublicKeyParameters dilithiumPublicKeyParameters)

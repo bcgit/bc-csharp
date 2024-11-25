@@ -257,6 +257,14 @@ namespace Org.BouncyCastle.X509
                 return new SubjectPublicKeyInfo(algID, publicKey: mlDsaKey.GetEncoded());
             }
 
+            if (publicKey is MLKemPublicKeyParameters mlKemKey)
+            {
+                var algID = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
+
+                // TODO[pqc] Avoid redundant copies?
+                return new SubjectPublicKeyInfo(algID, publicKey: mlKemKey.GetEncoded());
+            }
+
             if (publicKey is SlhDsaPublicKeyParameters slhDsaKey)
             {
                 var algID = new AlgorithmIdentifier(slhDsaKey.Parameters.Oid);

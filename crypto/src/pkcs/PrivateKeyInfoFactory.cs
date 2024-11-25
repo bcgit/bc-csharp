@@ -264,6 +264,20 @@ namespace Org.BouncyCastle.Pkcs
                 return PrivateKeyInfo.Create(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
             }
 
+            if (privateKey is MLKemPrivateKeyParameters mlKemKey)
+            {
+                var algID = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
+
+                byte[] seed = mlKemKey.GetSeed();
+                if (seed != null)
+                    return PrivateKeyInfo.Create(algID, new DerOctetString(seed), attributes, publicKey: null);
+
+                // NOTE: The private key already includes the public key
+                DerBitString publicKey = null;
+
+                return PrivateKeyInfo.Create(algID, new DerOctetString(mlKemKey.GetEncoded()), attributes, publicKey);
+            }
+
             if (privateKey is SlhDsaPrivateKeyParameters slhDsaKey)
             {
                 var algID = new AlgorithmIdentifier(slhDsaKey.Parameters.Oid);

@@ -17,7 +17,6 @@ using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
@@ -106,11 +105,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
             Converters[BCObjectIdentifiers.falcon_512] = FalconConverter;
             Converters[BCObjectIdentifiers.falcon_1024] = FalconConverter;
-
-
-            Converters[NistObjectIdentifiers.id_alg_ml_kem_512] = MLKemConverter;
-            Converters[NistObjectIdentifiers.id_alg_ml_kem_768] = MLKemConverter;
-            Converters[NistObjectIdentifiers.id_alg_ml_kem_1024] = MLKemConverter;
 
             Converters[BCObjectIdentifiers.bike128] = BikeConverter;
             Converters[BCObjectIdentifiers.bike192] = BikeConverter;
@@ -319,13 +313,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             var dilithiumParameters = PqcUtilities.DilithiumParamsLookup(keyInfo.Algorithm.Algorithm);
 
             return GetDilithiumPublicKey(dilithiumParameters, publicKeyData: keyInfo.PublicKey);
-        }
-
-        private static AsymmetricKeyParameter MLKemConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
-        {
-            var mlKemParameters = MLKemParameters.ByOid[keyInfo.Algorithm.Algorithm];
-
-            return new MLKemPublicKeyParameters(mlKemParameters, encoding: keyInfo.PublicKey.GetOctets());
         }
 
         private static AsymmetricKeyParameter NtruConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

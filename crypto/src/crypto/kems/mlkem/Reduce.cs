@@ -1,7 +1,14 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.MLKem
+﻿#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+
+namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal static class Reduce
     {
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static short MontgomeryReduce(int a)
         {
             short u = (short)(a * MLKemEngine.QInv);
@@ -11,6 +18,9 @@
             return (short)t;
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static short BarrettReduce(short a)
         {
             short v = (short)(((1U << 26) + (MLKemEngine.Q / 2)) / MLKemEngine.Q);
@@ -19,6 +29,9 @@
             return (short)(a - t);
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static short CondSubQ(short a)
         {
             a -= MLKemEngine.Q;

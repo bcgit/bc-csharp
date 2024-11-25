@@ -1,5 +1,5 @@
 ﻿using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {

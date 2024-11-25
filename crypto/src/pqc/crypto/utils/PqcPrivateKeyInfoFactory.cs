@@ -12,7 +12,6 @@ using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
-using Org.BouncyCastle.Pqc.Crypto.MLKem;
 using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
@@ -116,12 +115,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes,
                     falconPrivateKeyParameters.GetPublicKey());
-            }
-            if (privateKey is MLKemPrivateKeyParameters mlKemKey)
-            {
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
-
-                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(mlKemKey.GetEncoded()), attributes);
             }
 #pragma warning disable CS0618 // Type or member is obsolete
             if (privateKey is DilithiumPrivateKeyParameters dilithiumPrivateKeyParameters)
