@@ -17,18 +17,31 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (encoding.Length != parameters.ParameterSet.PrivateKeyLength)
                 throw new ArgumentException("invalid encoding", nameof(encoding));
 
-            var engine = parameters.ParameterSet.GetEngine(null);
+            var engine = parameters.ParameterSet.GetEngine(random: null);
 
             int index = 0;
-            byte[] rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes); index += DilithiumEngine.SeedBytes;
-            byte[] k = Arrays.CopyOfRange(encoding, index, index + DilithiumEngine.SeedBytes); index += DilithiumEngine.SeedBytes;
-            byte[] tr = Arrays.CopyOfRange(encoding, index, index + DilithiumEngine.TrBytes); index += DilithiumEngine.TrBytes;
+
+            byte[] rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes);
+            index += DilithiumEngine.SeedBytes;
+
+            byte[] k = Arrays.CopyOfRange(encoding, index, index + DilithiumEngine.SeedBytes);
+            index += DilithiumEngine.SeedBytes;
+
+            byte[] tr = Arrays.CopyOfRange(encoding, index, index + DilithiumEngine.TrBytes);
+            index += DilithiumEngine.TrBytes;
+
             int delta = engine.L * engine.PolyEtaPackedBytes;
-            byte[] s1 = Arrays.CopyOfRange(encoding, index, index + delta); index += delta;
+            byte[] s1 = Arrays.CopyOfRange(encoding, index, index + delta);
+            index += delta;
+
             delta = engine.K * engine.PolyEtaPackedBytes;
-            byte[] s2 = Arrays.CopyOfRange(encoding, index, index + delta); index += delta;
+            byte[] s2 = Arrays.CopyOfRange(encoding, index, index + delta);
+            index += delta;
+
             delta = engine.K * DilithiumEngine.PolyT0PackedBytes;
             byte[] t0 = Arrays.CopyOfRange(encoding, index, index + delta);
+            //index += delta;
+
             byte[] t1 = engine.DeriveT1(rho, s1, s2, t0);
             byte[] seed = null;
 
@@ -44,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (seed.Length != parameters.ParameterSet.SeedLength)
                 throw new ArgumentException("invalid seed", nameof(seed));
 
-            var engine = parameters.ParameterSet.GetEngine(null);
+            var engine = parameters.ParameterSet.GetEngine(random: null);
 
             engine.GenerateKeyPairInternal(seed, legacy: false, out var rho, out var k, out var tr, out var s1,
                 out var s2, out var t0, out var t1);
@@ -87,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal byte[] SignInternal(byte[] rnd, byte[] msg, int msgOff, int msgLen)
         {
-            var engine = Parameters.ParameterSet.GetEngine(null);
+            var engine = Parameters.ParameterSet.GetEngine(random: null);
 
             byte[] sig = new byte[engine.CryptoBytes];
             engine.SignInternal(sig, sig.Length, msg, msgOff, msgLen, m_rho, m_k, m_tr, m_t0, m_s1, m_s2, rnd,

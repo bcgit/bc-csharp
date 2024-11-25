@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal bool VerifyInternal(byte[] msg, int msgOff, int msgLen, byte[] sig)
         {
-            var engine = Parameters.ParameterSet.GetEngine(null);
+            var engine = Parameters.ParameterSet.GetEngine(random: null);
 
             return engine.VerifyInternal(sig, sig.Length, msg, msgOff, msgLen, m_rho, encT1: m_t1,
                 tr: GetPublicKeyHash());

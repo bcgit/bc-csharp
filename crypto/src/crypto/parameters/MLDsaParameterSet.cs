@@ -32,6 +32,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_mode = mode;
         }
 
+        internal DilithiumEngine GetEngine(SecureRandom random) => new DilithiumEngine(m_mode, random, usingAes: false);
+
+        public string Name => m_name;
+
         internal int PrivateKeyLength
         {
             get
@@ -64,10 +68,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal int SeedLength => DilithiumEngine.SeedBytes;
 
-        public string Name => m_name;
-
         public override string ToString() => Name;
-
-        internal DilithiumEngine GetEngine(SecureRandom random) => new DilithiumEngine(m_mode, random, usingAes: false);
     }
 }
