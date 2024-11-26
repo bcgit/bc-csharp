@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crmf.Tests
             CertificateRequestMessageBuilder certReqBuild = new CertificateRequestMessageBuilder(BigInteger.One);
 
             certReqBuild.SetSubject(new X509Name("CN=Test"))
-                .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public))                
+                .SetPublicKey(rsaKeyPair.Public)
                 .SetProofOfPossessionSignKeySigner(new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private));
 
             CertificateRequestMessage certificateRequestMessage = certReqBuild.Build();
@@ -103,8 +103,8 @@ namespace Org.BouncyCastle.Crmf.Tests
 
             CertificateRequestMessageBuilder certificateRequestMessageBuilder = new CertificateRequestMessageBuilder(BigInteger.One);
             certificateRequestMessageBuilder.SetSubject(new X509Name("CN=Test"));
-            certificateRequestMessageBuilder.SetPublicKey(publicKeyInfo);
-           
+            certificateRequestMessageBuilder.SetSubjectPublicKeyInfo(publicKeyInfo);
+
             certificateRequestMessageBuilder.AddControl(
                 new PkiArchiveControlBuilder(privateInfo, new GeneralName(new X509Name("CN=Test")))
                     .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))

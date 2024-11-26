@@ -57,7 +57,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return this;
         }
 
-        public virtual CertTemplateBuilder SetPublicKey(SubjectPublicKeyInfo spki)
+        [Obsolete("Use 'SetSubjectPublicKeyInfo' instead")]
+        public virtual CertTemplateBuilder SetPublicKey(SubjectPublicKeyInfo spki) => SetSubjectPublicKeyInfo(spki);
+
+        public virtual CertTemplateBuilder SetSubjectPublicKeyInfo(SubjectPublicKeyInfo spki)
         {
             publicKey = spki;
             return this;

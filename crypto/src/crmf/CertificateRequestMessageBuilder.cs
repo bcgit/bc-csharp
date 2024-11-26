@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crmf
 {
@@ -38,11 +39,18 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        public CertificateRequestMessageBuilder SetPublicKey(SubjectPublicKeyInfo publicKeyInfo)
+        public CertificateRequestMessageBuilder SetPublicKey(AsymmetricKeyParameter publicKey) =>
+            SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+
+        [Obsolete("Use 'SetSubjectPublicKeyInfo' instead")]
+        public CertificateRequestMessageBuilder SetPublicKey(SubjectPublicKeyInfo publicKeyInfo) =>
+            SetSubjectPublicKeyInfo(spki: publicKeyInfo);
+
+        public CertificateRequestMessageBuilder SetSubjectPublicKeyInfo(SubjectPublicKeyInfo spki)
         {
-            if (publicKeyInfo != null)
+            if (spki != null)
             {
-                m_templateBuilder.SetPublicKey(publicKeyInfo);
+                m_templateBuilder.SetSubjectPublicKeyInfo(spki);
             }
 
             return this;

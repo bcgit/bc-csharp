@@ -68,7 +68,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		public PkiStatusInfo(int status)
+        public PkiStatusInfo(PkiStatusEncodable status)
+        {
+			m_status = DerInteger.GetInstance(status.ToAsn1Object());
+        }
+
+        public PkiStatusInfo(int status)
 		{
 			m_status = new DerInteger(status);
 			m_statusString = null;
