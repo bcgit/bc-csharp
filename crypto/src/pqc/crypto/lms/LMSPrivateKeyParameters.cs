@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -18,14 +17,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         private byte[] I;
-        private LMSigParameters sigParameters;
+        private readonly LMSigParameters sigParameters;
         private LMOtsParameters otsParameters;
         private int maxQ;
         private byte[] masterSecret;
         // TODO Java uses a WeakHashMap
         private ConcurrentDictionary<int, byte[]> tCache;
         private int maxCacheR;
-        private IDigest tDigest;
 
         private int q;
         private readonly bool m_isPlaceholder;
@@ -54,7 +52,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = Arrays.Clone(masterSecret);
             this.maxCacheR = 1 << (sigParameters.H + 1);
             this.tCache = new ConcurrentDictionary<int, byte[]>();
-            this.tDigest = LmsUtilities.GetDigest(lmsParameter);
             this.m_isPlaceholder = isPlaceholder;
         }
 
@@ -69,7 +66,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = parent.masterSecret;
             this.maxCacheR = 1 << sigParameters.H;
             this.tCache = parent.tCache;
-            this.tDigest = LmsUtilities.GetDigest(sigParameters);
             this.m_publicKey = parent.m_publicKey;
         }
 
@@ -260,6 +256,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private byte[] CalcT(int r)
         {
+            var tDigest = LmsUtilities.GetDigest(this.sigParameters);
+
             int h = sigParameters.H;
 
             int twoToh = 1 << h;
