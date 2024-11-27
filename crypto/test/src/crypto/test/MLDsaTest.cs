@@ -45,6 +45,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             { "mldsa87Sha512.rsp", MLDsaParameters.ml_dsa_87_with_sha512 },
         };
 
+        private static readonly IEnumerable<string> ContextFiles = ContextFileParameters.Keys;
+
         private static readonly Dictionary<string, MLDsaParameters> Parameters =
             new Dictionary<string, MLDsaParameters>()
         {
@@ -61,8 +63,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             "keyGen_ML-DSA-65.txt",
             "keyGen_ML-DSA-87.txt",
         };
-
-        private static readonly IEnumerable<string> ContextFiles = ContextFileParameters.Keys;
 
         private static readonly string[] SigGenAcvpFiles =
         {

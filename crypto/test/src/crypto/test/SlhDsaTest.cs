@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Pqc.Crypto.Tests;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -38,6 +39,44 @@ namespace Org.BouncyCastle.Crypto.Tests
             { "sigVer_SLH-DSA-SHAKE-192s.txt", SlhDsaParameters.slh_dsa_shake_192s },
             { "sigVer_SLH-DSA-SHAKE-256f.txt", SlhDsaParameters.slh_dsa_shake_256f },
         };
+
+        private static readonly Dictionary<string, SlhDsaParameters> ContextFastFileParameters =
+            new Dictionary<string, SlhDsaParameters>()
+        {
+            { "sha2-128f.rsp", SlhDsaParameters.slh_dsa_sha2_128f },
+            { "sha2-128f-sha256.rsp", SlhDsaParameters.slh_dsa_sha2_128f_with_sha256 },
+            { "sha2-192f.rsp", SlhDsaParameters.slh_dsa_sha2_192f },
+            { "sha2-192f-sha512.rsp", SlhDsaParameters.slh_dsa_sha2_192f_with_sha512 },
+            { "sha2-256f.rsp", SlhDsaParameters.slh_dsa_sha2_256f },
+            { "sha2-256f-sha512.rsp", SlhDsaParameters.slh_dsa_sha2_256f_with_sha512 },
+            { "shake-128f.rsp", SlhDsaParameters.slh_dsa_shake_128f },
+            { "shake-128f-shake128.rsp", SlhDsaParameters.slh_dsa_shake_128f_with_shake128 },
+            { "shake-192f.rsp", SlhDsaParameters.slh_dsa_shake_192f },
+            { "shake-192f-shake256.rsp", SlhDsaParameters.slh_dsa_shake_192f_with_shake256 },
+            { "shake-256f.rsp", SlhDsaParameters.slh_dsa_shake_256f },
+            { "shake-256f-shake256.rsp", SlhDsaParameters.slh_dsa_shake_256f_with_shake256 },
+        };
+
+        private static readonly IEnumerable<string> ContextFastFiles = ContextFastFileParameters.Keys;
+
+        private static readonly Dictionary<string, SlhDsaParameters> ContextSlowFileParameters =
+            new Dictionary<string, SlhDsaParameters>()
+        {
+            { "sha2-128s.rsp", SlhDsaParameters.slh_dsa_sha2_128s },
+            { "sha2-128s-sha256.rsp", SlhDsaParameters.slh_dsa_sha2_128s_with_sha256 },
+            { "sha2-192s.rsp", SlhDsaParameters.slh_dsa_sha2_192s },
+            { "sha2-192s-sha512.rsp", SlhDsaParameters.slh_dsa_sha2_192s_with_sha512 },
+            { "sha2-256s.rsp", SlhDsaParameters.slh_dsa_sha2_256s },
+            { "sha2-256s-sha512.rsp", SlhDsaParameters.slh_dsa_sha2_256s_with_sha512 },
+            { "shake-128s.rsp", SlhDsaParameters.slh_dsa_shake_128s },
+            { "shake-128s-shake128.rsp", SlhDsaParameters.slh_dsa_shake_128s_with_shake128 },
+            { "shake-192s.rsp", SlhDsaParameters.slh_dsa_shake_192s },
+            { "shake-192s-shake256.rsp", SlhDsaParameters.slh_dsa_shake_192s_with_shake256 },
+            { "shake-256s.rsp", SlhDsaParameters.slh_dsa_shake_256s },
+            { "shake-256s-shake256.rsp", SlhDsaParameters.slh_dsa_shake_256s_with_shake256 },
+        };
+
+        private static readonly IEnumerable<string> ContextSlowFiles = ContextSlowFileParameters.Keys;
 
         private static readonly Dictionary<string, SlhDsaParameters> Parameters =
             new Dictionary<string, SlhDsaParameters>()
@@ -118,6 +157,22 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        [TestCaseSource(nameof(ContextFastFiles))]
+        [Parallelizable]
+        public void ContextFast(string fileName)
+        {
+            RunTestVectors("pqc/crypto/slhdsa", fileName, sampleOnly: true,
+                (name, data) => ImplContext(name, data, ContextFastFileParameters[name]));
+        }
+
+        [TestCaseSource(nameof(ContextSlowFiles)), Explicit]
+        [Parallelizable]
+        public void ContextSlow(string fileName)
+        {
+            RunTestVectors("pqc/crypto/slhdsa", fileName, sampleOnly: true,
+                (name, data) => ImplContext(name, data, ContextSlowFileParameters[name]));
+        }
+
         [Test]
         [Parallelizable]
         public void KeyGen()
@@ -166,6 +221,80 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
         //}
 
+        private static void ImplContext(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
+        {
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);
+            byte[] msg = Hex.Decode(data["msg"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] sm = Hex.Decode(data["sm"]);
+            byte[] optrand = Hex.Decode(data["optrand"]);
+
+            byte[] context = null;
+            if (data.TryGetValue("context", out var contextValue))
+            {
+                context = Hex.Decode(contextValue);
+            }
+
+            var random = FixedSecureRandom.From(seed);
+
+            var kpg = new SlhDsaKeyPairGenerator();
+            kpg.Init(new SlhDsaKeyGenerationParameters(random, parameters));
+
+            var kp = kpg.GenerateKeyPair();
+
+            var publicKey = (SlhDsaPublicKeyParameters)kp.Public;
+            var privateKey = (SlhDsaPrivateKeyParameters)kp.Private;
+
+            Assert.True(Arrays.AreEqual(pk, publicKey.GetEncoded()), $"{name} {count}: public key");
+            Assert.True(Arrays.AreEqual(sk, privateKey.GetEncoded()), $"{name} {count}: secret key");
+
+            var publicKeyRT = (SlhDsaPublicKeyParameters)PublicKeyFactory.CreateKey(
+                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+            var privateKeyRT = (SlhDsaPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey));
+
+            Assert.True(Arrays.AreEqual(pk, publicKeyRT.GetEncoded()), $"{name} {count}: public key (round-trip)");
+            Assert.True(Arrays.AreEqual(sk, privateKeyRT.GetEncoded()), $"{name} {count}: secret key (round-trip)");
+
+            // Note that this is not a deterministic signature test, since we are given "optrand"
+            ISigner sig;
+            if (parameters.IsPreHash)
+            {
+                sig = new HashSlhDsaSigner(parameters, deterministic: false);
+            }
+            else
+            {
+                sig = new SlhDsaSigner(parameters, deterministic: false);
+            }
+
+            // The current test data is a bit weird and uses internal signing when no explicit context provided.
+            if (context == null)
+            {
+                //byte[] generated = privateKey.SignInternal(optrand, msg, 0, msg.Length);
+                //Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: SignInternal");
+
+                //bool shouldVerify = publicKey.VerifyInternal(msg, 0, msg.Length, sm);
+                //Assert.True(shouldVerify, $"{name} {count}: VerifyInternal");
+            }
+            else
+            {
+                sig.Init(forSigning: true,
+                    ParameterUtilities.WithContext(
+                        ParameterUtilities.WithRandom(privateKey, FixedSecureRandom.From(optrand)),
+                        context));
+                sig.BlockUpdate(msg, 0, msg.Length);
+                byte[] generated = sig.GenerateSignature();
+                Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: GenerateSignature");
+
+                sig.Init(forSigning: false, ParameterUtilities.WithContext(publicKey, context));
+                sig.BlockUpdate(msg, 0, msg.Length);
+                bool shouldVerify = sig.VerifySignature(sm);
+                Assert.True(shouldVerify, $"{name} {count}: VerifySignature");
+            }
+        }
+
         private static void ImplKeyGen(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
         {
             byte[] skSeed = Hex.Decode(data["skSeed"]);
@@ -204,7 +333,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        additionalRandomness = Hex.Decode(data["additionalRandomness"]);
         //    }
 
-        //    var privateKey = new SlhDsaPrivateKeyParameters(parameters, sk);
+        //    var privateKey = SlhDsaPrivateKeyParameters.FromEncoding(parameters, sk);
 
         //    byte[] generated = privateKey.SignInternal(optRand: additionalRandomness, message, 0, message.Length);
 
@@ -218,16 +347,21 @@ namespace Org.BouncyCastle.Crypto.Tests
         //    byte[] message = Hex.Decode(data["message"]);
         //    byte[] signature = Hex.Decode(data["signature"]);
 
-        //    var publicKey = new SlhDsaPublicKeyParameters(parameters, pk);
+        //    var publicKey = SlhDsaPublicKeyParameters.FromEncoding(parameters, pk);
 
         //    bool verified = publicKey.VerifyInternal(message, 0, message.Length, signature);
 
         //    Assert.True(verified == testPassed, "expected " + testPassed);
         //}
 
-        private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector)
+        private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector) =>
+            RunTestVectors(homeDir, fileName, sampleOnly: false, runTestVector);
+
+        private static void RunTestVectors(string homeDir, string fileName, bool sampleOnly,
+            RunTestVector runTestVector)
         {
             var data = new Dictionary<string, string>();
+            var sampler = sampleOnly ? new TestSampler() : null;
             using (var src = new StreamReader(SimpleTest.FindTestResource(homeDir, fileName)))
             {
                 string line;
@@ -249,14 +383,20 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                     if (data.Count > 0)
                     {
-                        runTestVector(fileName, data);
+                        if (sampler == null || !sampler.SkipTest(data["count"]))
+                        {
+                            runTestVector(fileName, data);
+                        }
                         data.Clear();
                     }
                 }
 
                 if (data.Count > 0)
                 {
-                    runTestVector(fileName, data);
+                    if (sampler == null || !sampler.SkipTest(data["count"]))
+                    {
+                        runTestVector(fileName, data);
+                    }
                     data.Clear();
                 }
             }
