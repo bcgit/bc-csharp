@@ -62,6 +62,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_preHashOid = preHashOid;
         }
 
+        public bool IsPreHash => m_preHashOid != null;
+
         public string Name => m_name;
 
         internal DerObjectIdentifier Oid => m_oid;

@@ -377,6 +377,15 @@ namespace Org.BouncyCastle.Security
             return cipherParameters;
         }
 
+        public static ICipherParameters WithContext(ICipherParameters cp, byte[] context)
+        {
+            if (context != null)
+            {
+                cp = new ParametersWithContext(cp, context);
+            }
+            return cp;
+        }
+
         public static ICipherParameters WithRandom(ICipherParameters cp, SecureRandom random)
         {
             if (random != null)

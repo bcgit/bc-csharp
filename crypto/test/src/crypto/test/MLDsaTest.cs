@@ -34,6 +34,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             { "sigVer_ML-DSA-87.txt", MLDsaParameters.ml_dsa_87 },
         };
 
+        private static readonly Dictionary<string, MLDsaParameters> ContextFileParameters =
+            new Dictionary<string, MLDsaParameters>()
+        {
+            { "mldsa44.rsp", MLDsaParameters.ml_dsa_44 },
+            { "mldsa65.rsp", MLDsaParameters.ml_dsa_65 },
+            { "mldsa87.rsp", MLDsaParameters.ml_dsa_87 },
+            { "mldsa44Sha512.rsp", MLDsaParameters.ml_dsa_44_with_sha512 },
+            { "mldsa65Sha512.rsp", MLDsaParameters.ml_dsa_65_with_sha512 },
+            { "mldsa87Sha512.rsp", MLDsaParameters.ml_dsa_87_with_sha512 },
+        };
+
         private static readonly Dictionary<string, MLDsaParameters> Parameters =
             new Dictionary<string, MLDsaParameters>()
         {
@@ -50,6 +61,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             "keyGen_ML-DSA-65.txt",
             "keyGen_ML-DSA-87.txt",
         };
+
+        private static readonly IEnumerable<string> ContextFiles = ContextFileParameters.Keys;
 
         private static readonly string[] SigGenAcvpFiles =
         {
@@ -107,6 +120,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             while (msgLen <= 2048);
         }
 
+        [TestCaseSource(nameof(ContextFiles))]
+        [Parallelizable]
+        public void Context(string fileName)
+        {
+            RunTestVectors("pqc/crypto/mldsa", fileName,
+                (name, data) => ImplContext(name, data, ContextFileParameters[name]));
+        }
+
         [Test]
         [Parallelizable]
         public void KeyGen()
@@ -155,6 +176,77 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
         //}
 
+        private static void ImplContext(string name, Dictionary<string, string> data, MLDsaParameters parameters)
+        {
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);
+            byte[] msg = Hex.Decode(data["msg"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] sm = Hex.Decode(data["sm"]);
+
+            byte[] context = null;
+            if (data.TryGetValue("context", out var contextValue))
+            {
+                context = Hex.Decode(contextValue);
+            }
+
+            var random = FixedSecureRandom.From(seed);
+
+            var kpg = new MLDsaKeyPairGenerator();
+            kpg.Init(new MLDsaKeyGenerationParameters(random, parameters));
+
+            var kp = kpg.GenerateKeyPair();
+
+            var publicKey = (MLDsaPublicKeyParameters)kp.Public;
+            var privateKey = (MLDsaPrivateKeyParameters)kp.Private;
+
+            Assert.True(Arrays.AreEqual(pk, publicKey.GetEncoded()), $"{name} {count}: public key");
+            Assert.True(Arrays.AreEqual(sk, privateKey.GetEncoded()), $"{name} {count}: secret key");
+
+            var publicKeyRT = (MLDsaPublicKeyParameters)PublicKeyFactory.CreateKey(
+                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+            var privateKeyRT = (MLDsaPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey));
+
+            Assert.True(Arrays.AreEqual(pk, publicKeyRT.GetEncoded()), $"{name} {count}: public key (round-trip)");
+            Assert.True(Arrays.AreEqual(sk, privateKeyRT.GetEncoded()), $"{name} {count}: secret key (round-trip)");
+
+            // Note that this is a deterministic signature test, since we are not given "rnd"
+            ISigner sig;
+            if (parameters.IsPreHash)
+            {
+                sig = new HashMLDsaSigner(parameters, deterministic: true);
+            }
+            else
+            {
+                sig = new MLDsaSigner(parameters, deterministic: true);
+            }
+
+            // The current test data is a bit weird and uses internal signing when no explicit context provided.
+            if (context == null)
+            {
+                //var rnd = new byte[32]; // Deterministic
+                //byte[] generated = privateKey.SignInternal(rnd, msg, 0, msg.Length);
+                //Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: SignInternal");
+
+                //bool shouldVerify = publicKey.VerifyInternal(msg, 0, msg.Length, sm);
+                //Assert.True(shouldVerify, $"{name} {count}: VerifyInternal");
+            }
+            else
+            {
+                sig.Init(forSigning: true, ParameterUtilities.WithContext(privateKey, context));
+                sig.BlockUpdate(msg, 0, msg.Length);
+                byte[] generated = sig.GenerateSignature();
+                Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: GenerateSignature");
+
+                sig.Init(forSigning: false, ParameterUtilities.WithContext(publicKey, context));
+                sig.BlockUpdate(msg, 0, msg.Length);
+                bool shouldVerify = sig.VerifySignature(sm);
+                Assert.True(shouldVerify, $"{name} {count}: VerifySignature");
+            }
+        }
+
         private static void ImplKeyGen(string name, Dictionary<string, string> data, MLDsaParameters parameters)
         {
             byte[] seed = Hex.Decode(data["seed"]);
@@ -195,7 +287,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        rnd = Hex.Decode(data["rnd"]);
         //    }
 
-        //    var privateKey = new MLDsaPrivateKeyParameters(parameters, sk);
+        //    var privateKey = MLDsaPrivateKeyParameters.FromEncoding(parameters, sk);
 
         //    byte[] generated = privateKey.SignInternal(rnd, message, 0, message.Length);
 
@@ -209,7 +301,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //    byte[] message = Hex.Decode(data["message"]);
         //    byte[] signature = Hex.Decode(data["signature"]);
 
-        //    var publicKey = new MLDsaPublicKeyParameters(parameters, pk);
+        //    var publicKey = MLDsaPublicKeyParameters.FromEncoding(parameters, pk);
 
         //    bool verified = publicKey.VerifyInternal(message, 0, message.Length, signature);
 
