@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -48,11 +49,14 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static readonly IEnumerable<string> ContextFiles = ContextFileParameters.Keys;
 
         private static readonly Dictionary<string, MLDsaParameters> Parameters =
-            new Dictionary<string, MLDsaParameters>()
+            new Dictionary<string, MLDsaParameters>(StringComparer.OrdinalIgnoreCase)
         {
             { "ML-DSA-44", MLDsaParameters.ml_dsa_44 },
             { "ML-DSA-65", MLDsaParameters.ml_dsa_65 },
             { "ML-DSA-87", MLDsaParameters.ml_dsa_87 },
+            { "ML-DSA-44-WITH-SHA512", MLDsaParameters.ml_dsa_44_with_sha512 },
+            { "ML-DSA-65-WITH-SHA512", MLDsaParameters.ml_dsa_65_with_sha512 },
+            { "ML-DSA-87-WITH-SHA512", MLDsaParameters.ml_dsa_87_with_sha512 },
         };
 
         private static readonly IEnumerable<MLDsaParameters> ParametersValues = Parameters.Values;
@@ -95,7 +99,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     var kp = kpg.GenerateKeyPair();
 
-                    var signer = new MLDsaSigner(parameters, deterministic: false);
+                    var signer = CreateSigner(parameters, deterministic: false);
 
                     for (int j = 0; j < 2; ++j)
                     {
@@ -121,7 +125,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [TestCaseSource(nameof(ContextFiles))]
-        [Parallelizable]
+        [Parallelizable(ParallelScope.All)]
         public void Context(string fileName)
         {
             RunTestVectors("pqc/crypto/mldsa", fileName,
@@ -176,6 +180,14 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
         //}
 
+        private static ISigner CreateSigner(MLDsaParameters parameters, bool deterministic)
+        {
+            if (parameters.IsPreHash)
+                return new HashMLDsaSigner(parameters, deterministic);
+
+            return new MLDsaSigner(parameters, deterministic);
+        }
+
         private static void ImplContext(string name, Dictionary<string, string> data, MLDsaParameters parameters)
         {
             string count = data["count"];
@@ -213,15 +225,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(sk, privateKeyRT.GetEncoded()), $"{name} {count}: secret key (round-trip)");
 
             // Note that this is a deterministic signature test, since we are not given "rnd"
-            ISigner sig;
-            if (parameters.IsPreHash)
-            {
-                sig = new HashMLDsaSigner(parameters, deterministic: true);
-            }
-            else
-            {
-                sig = new MLDsaSigner(parameters, deterministic: true);
-            }
+            var signer = CreateSigner(parameters, deterministic: true);
 
             // The current test data is a bit weird and uses internal signing when no explicit context provided.
             if (context == null)
@@ -235,14 +239,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             else
             {
-                sig.Init(forSigning: true, ParameterUtilities.WithContext(privateKey, context));
-                sig.BlockUpdate(msg, 0, msg.Length);
-                byte[] generated = sig.GenerateSignature();
+                signer.Init(forSigning: true, ParameterUtilities.WithContext(privateKey, context));
+                signer.BlockUpdate(msg, 0, msg.Length);
+                byte[] generated = signer.GenerateSignature();
                 Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: GenerateSignature");
 
-                sig.Init(forSigning: false, ParameterUtilities.WithContext(publicKey, context));
-                sig.BlockUpdate(msg, 0, msg.Length);
-                bool shouldVerify = sig.VerifySignature(sm);
+                signer.Init(forSigning: false, ParameterUtilities.WithContext(publicKey, context));
+                signer.BlockUpdate(msg, 0, msg.Length);
+                bool shouldVerify = signer.VerifySignature(sm);
                 Assert.True(shouldVerify, $"{name} {count}: VerifySignature");
             }
         }

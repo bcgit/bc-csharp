@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         };
 
         private static readonly Dictionary<string, MLKemParameters> Parameters =
-            new Dictionary<string, MLKemParameters>()
+            new Dictionary<string, MLKemParameters>(StringComparer.OrdinalIgnoreCase)
         {
             { "ML-KEM-512", MLKemParameters.ml_kem_512 },
             { "ML-KEM-768", MLKemParameters.ml_kem_768 },

@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         public static readonly SlhDsaParameters slh_dsa_sha2_128s = new SlhDsaParameters("SLH-DSA-SHA2-128S",
             SlhDsaParameterSet.slh_dsa_sha2_128s, NistObjectIdentifiers.id_slh_dsa_sha2_128s, preHashOid: null);
-        public static readonly SlhDsaParameters slh_dsa_shake_128s = new SlhDsaParameters("SLH-DSA-SHAKE-128s",
+        public static readonly SlhDsaParameters slh_dsa_shake_128s = new SlhDsaParameters("SLH-DSA-SHAKE-128S",
             SlhDsaParameterSet.slh_dsa_shake_128s, NistObjectIdentifiers.id_slh_dsa_shake_128s, preHashOid: null);
 
         public static readonly SlhDsaParameters slh_dsa_sha2_128f = new SlhDsaParameters("SLH-DSA-SHA2-128F",

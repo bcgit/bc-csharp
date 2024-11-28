@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
@@ -79,20 +80,32 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static readonly IEnumerable<string> ContextSlowFiles = ContextSlowFileParameters.Keys;
 
         private static readonly Dictionary<string, SlhDsaParameters> Parameters =
-            new Dictionary<string, SlhDsaParameters>()
+            new Dictionary<string, SlhDsaParameters>(StringComparer.OrdinalIgnoreCase)
         {
-            { "SLH-DSA-SHA2-128f", SlhDsaParameters.slh_dsa_sha2_128f },
-            { "SLH-DSA-SHA2-128s", SlhDsaParameters.slh_dsa_sha2_128s },
-            { "SLH-DSA-SHA2-192f", SlhDsaParameters.slh_dsa_sha2_192f },
-            { "SLH-DSA-SHA2-192s", SlhDsaParameters.slh_dsa_sha2_192s },
-            { "SLH-DSA-SHA2-256f", SlhDsaParameters.slh_dsa_sha2_256f },
-            { "SLH-DSA-SHA2-256s", SlhDsaParameters.slh_dsa_sha2_256s },
-            { "SLH-DSA-SHAKE-128f", SlhDsaParameters.slh_dsa_shake_128f },
-            { "SLH-DSA-SHAKE-128s", SlhDsaParameters.slh_dsa_shake_128s },
-            { "SLH-DSA-SHAKE-192f", SlhDsaParameters.slh_dsa_shake_192f },
-            { "SLH-DSA-SHAKE-192s", SlhDsaParameters.slh_dsa_shake_192s },
-            { "SLH-DSA-SHAKE-256s", SlhDsaParameters.slh_dsa_shake_256s },
-            { "SLH-DSA-SHAKE-256f", SlhDsaParameters.slh_dsa_shake_256f },
+            { "SLH-DSA-SHA2-128F", SlhDsaParameters.slh_dsa_sha2_128f },
+            { "SLH-DSA-SHA2-128F-WITH-SHA256", SlhDsaParameters.slh_dsa_sha2_128f_with_sha256 },
+            { "SLH-DSA-SHA2-128S", SlhDsaParameters.slh_dsa_sha2_128s },
+            { "SLH-DSA-SHA2-128S-WITH-SHA256", SlhDsaParameters.slh_dsa_sha2_128s_with_sha256 },
+            { "SLH-DSA-SHA2-192F", SlhDsaParameters.slh_dsa_sha2_192f },
+            { "SLH-DSA-SHA2-192F-WITH-SHA512", SlhDsaParameters.slh_dsa_sha2_192f_with_sha512 },
+            { "SLH-DSA-SHA2-192S", SlhDsaParameters.slh_dsa_sha2_192s },
+            { "SLH-DSA-SHA2-192S-WITH-SHA512", SlhDsaParameters.slh_dsa_sha2_192s_with_sha512 },
+            { "SLH-DSA-SHA2-256F", SlhDsaParameters.slh_dsa_sha2_256f },
+            { "SLH-DSA-SHA2-256F-WITH-SHA512", SlhDsaParameters.slh_dsa_sha2_256f_with_sha512 },
+            { "SLH-DSA-SHA2-256S", SlhDsaParameters.slh_dsa_sha2_256s },
+            { "SLH-DSA-SHA2-256S-WITH-SHA512", SlhDsaParameters.slh_dsa_sha2_256s_with_sha512 },
+            { "SLH-DSA-SHAKE-128F", SlhDsaParameters.slh_dsa_shake_128f },
+            { "SLH-DSA-SHAKE-128F-WITH-SHAKE128", SlhDsaParameters.slh_dsa_shake_128f_with_shake128 },
+            { "SLH-DSA-SHAKE-128S", SlhDsaParameters.slh_dsa_shake_128s },
+            { "SLH-DSA-SHAKE-128S-WITH-SHAKE128", SlhDsaParameters.slh_dsa_shake_128s_with_shake128 },
+            { "SLH-DSA-SHAKE-192F", SlhDsaParameters.slh_dsa_shake_192f },
+            { "SLH-DSA-SHAKE-192F-WITH-SHAKE256", SlhDsaParameters.slh_dsa_shake_192f_with_shake256 },
+            { "SLH-DSA-SHAKE-192S", SlhDsaParameters.slh_dsa_shake_192s },
+            { "SLH-DSA-SHAKE-192S-WITH-SHAKE256", SlhDsaParameters.slh_dsa_shake_192s_with_shake256 },
+            { "SLH-DSA-SHAKE-256F", SlhDsaParameters.slh_dsa_shake_256f },
+            { "SLH-DSA-SHAKE-256F-WITH-SHAKE256", SlhDsaParameters.slh_dsa_shake_256f_with_shake256 },
+            { "SLH-DSA-SHAKE-256S", SlhDsaParameters.slh_dsa_shake_256s },
+            { "SLH-DSA-SHAKE-256S-WITH-SHAKE256", SlhDsaParameters.slh_dsa_shake_256s_with_shake256 },
         };
 
         private static readonly IEnumerable<SlhDsaParameters> ParametersValues = Parameters.Values;
@@ -136,7 +149,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 var kp = kpg.GenerateKeyPair();
 
-                var signer = new SlhDsaSigner(parameters, deterministic: false);
+                var signer = CreateSigner(parameters, deterministic: false);
 
                 {
                     int msgLen = random.Next(msg.Length + 1);
@@ -158,7 +171,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [TestCaseSource(nameof(ContextFastFiles))]
-        [Parallelizable]
+        [Parallelizable(ParallelScope.All)]
         public void ContextFast(string fileName)
         {
             RunTestVectors("pqc/crypto/slhdsa", fileName, sampleOnly: true,
@@ -166,7 +179,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [TestCaseSource(nameof(ContextSlowFiles)), Explicit]
-        [Parallelizable]
+        [Parallelizable(ParallelScope.All)]
         public void ContextSlow(string fileName)
         {
             RunTestVectors("pqc/crypto/slhdsa", fileName, sampleOnly: true,
@@ -221,6 +234,14 @@ namespace Org.BouncyCastle.Crypto.Tests
         //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
         //}
 
+        private static ISigner CreateSigner(SlhDsaParameters parameters, bool deterministic)
+        {
+            if (parameters.IsPreHash)
+                return new HashSlhDsaSigner(parameters, deterministic);
+
+            return new SlhDsaSigner(parameters, deterministic);
+        }
+
         private static void ImplContext(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
         {
             string count = data["count"];
@@ -259,15 +280,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(sk, privateKeyRT.GetEncoded()), $"{name} {count}: secret key (round-trip)");
 
             // Note that this is not a deterministic signature test, since we are given "optrand"
-            ISigner sig;
-            if (parameters.IsPreHash)
-            {
-                sig = new HashSlhDsaSigner(parameters, deterministic: false);
-            }
-            else
-            {
-                sig = new SlhDsaSigner(parameters, deterministic: false);
-            }
+            var signer = CreateSigner(parameters, deterministic: false);
 
             // The current test data is a bit weird and uses internal signing when no explicit context provided.
             if (context == null)
@@ -280,17 +293,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             else
             {
-                sig.Init(forSigning: true,
+                signer.Init(forSigning: true,
                     ParameterUtilities.WithContext(
                         ParameterUtilities.WithRandom(privateKey, FixedSecureRandom.From(optrand)),
                         context));
-                sig.BlockUpdate(msg, 0, msg.Length);
-                byte[] generated = sig.GenerateSignature();
+                signer.BlockUpdate(msg, 0, msg.Length);
+                byte[] generated = signer.GenerateSignature();
                 Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: GenerateSignature");
 
-                sig.Init(forSigning: false, ParameterUtilities.WithContext(publicKey, context));
-                sig.BlockUpdate(msg, 0, msg.Length);
-                bool shouldVerify = sig.VerifySignature(sm);
+                signer.Init(forSigning: false, ParameterUtilities.WithContext(publicKey, context));
+                signer.BlockUpdate(msg, 0, msg.Length);
+                bool shouldVerify = signer.VerifySignature(sm);
                 Assert.True(shouldVerify, $"{name} {count}: VerifySignature");
             }
         }
