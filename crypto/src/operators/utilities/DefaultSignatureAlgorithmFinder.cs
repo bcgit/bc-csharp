@@ -162,12 +162,12 @@ namespace Org.BouncyCastle.Operators.Utilities
             Algorithms["SHAKE128WITHECDSA"] = X509ObjectIdentifiers.id_ecdsa_with_shake128;
             Algorithms["SHAKE256WITHECDSA"] = X509ObjectIdentifiers.id_ecdsa_with_shake256;
 
-            //m_algorithms["RIPEMD160WITHSM2"] = GMObjectIdentifiers.sm2sign_with_rmd160;
-            //m_algorithms["SHA1WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha1;
-            //m_algorithms["SHA224WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha224;
+            //Algorithms["RIPEMD160WITHSM2"] = GMObjectIdentifiers.sm2sign_with_rmd160;
+            //Algorithms["SHA1WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha1;
+            //Algorithms["SHA224WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha224;
             Algorithms["SHA256WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
-            //m_algorithms["SHA384WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha384;
-            //m_algorithms["SHA512WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha512;
+            //Algorithms["SHA384WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha384;
+            //Algorithms["SHA512WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha512;
             Algorithms["SM3WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
 
             Algorithms["SHA256WITHXMSS"] = BCObjectIdentifiers.xmss_SHA256ph;
@@ -354,12 +354,12 @@ namespace Org.BouncyCastle.Operators.Utilities
             //
             // SM2
             //
-            //m_noParams.Add(GMObjectIdentifiers.sm2sign_with_rmd160);
-            //m_noParams.Add(GMObjectIdentifiers.sm2sign_with_sha1);
-            //m_noParams.Add(GMObjectIdentifiers.sm2sign_with_sha224);
+            //NoParams.Add(GMObjectIdentifiers.sm2sign_with_rmd160);
+            //NoParams.Add(GMObjectIdentifiers.sm2sign_with_sha1);
+            //NoParams.Add(GMObjectIdentifiers.sm2sign_with_sha224);
             NoParams.Add(GMObjectIdentifiers.sm2sign_with_sha256);
-            //m_noParams.Add(GMObjectIdentifiers.sm2sign_with_sha384);
-            //m_noParams.Add(GMObjectIdentifiers.sm2sign_with_sha512);
+            //NoParams.Add(GMObjectIdentifiers.sm2sign_with_sha384);
+            //NoParams.Add(GMObjectIdentifiers.sm2sign_with_sha512);
             NoParams.Add(GMObjectIdentifiers.sm2sign_with_sm3);
 
             // RFC 8692
@@ -482,12 +482,12 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids[BCObjectIdentifiers.sphincsPlus_shake_256f_r3_simple] = NistObjectIdentifiers.IdShake256;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            //m_digestOids[GMObjectIdentifiers.sm2sign_with_rmd160] = TeleTrusTObjectIdentifiers.RipeMD160;
-            //m_digestOids[GMObjectIdentifiers.sm2sign_with_sha1] = OiwObjectIdentifiers.IdSha1;
-            //m_digestOids[GMObjectIdentifiers.sm2sign_with_sha224] = NistObjectIdentifiers.IdSha224;
+            //DigestOids[GMObjectIdentifiers.sm2sign_with_rmd160] = TeleTrusTObjectIdentifiers.RipeMD160;
+            //DigestOids[GMObjectIdentifiers.sm2sign_with_sha1] = OiwObjectIdentifiers.IdSha1;
+            //DigestOids[GMObjectIdentifiers.sm2sign_with_sha224] = NistObjectIdentifiers.IdSha224;
             DigestOids[GMObjectIdentifiers.sm2sign_with_sha256] = NistObjectIdentifiers.IdSha256;
-            //m_digestOids[GMObjectIdentifiers.sm2sign_with_sha384] = NistObjectIdentifiers.IdSha384;
-            //m_digestOids[GMObjectIdentifiers.sm2sign_with_sha512] = NistObjectIdentifiers.IdSha512;
+            //DigestOids[GMObjectIdentifiers.sm2sign_with_sha384] = NistObjectIdentifiers.IdSha384;
+            //DigestOids[GMObjectIdentifiers.sm2sign_with_sha512] = NistObjectIdentifiers.IdSha512;
             DigestOids[GMObjectIdentifiers.sm2sign_with_sm3] = GMObjectIdentifiers.sm3;
 
             DigestOids[X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128] = NistObjectIdentifiers.IdShake128;
