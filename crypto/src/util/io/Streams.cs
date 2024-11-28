@@ -134,6 +134,7 @@ namespace Org.BouncyCastle.Utilities.IO
 			return buf.ToArray();
 		}
 
+        [Obsolete("Will be removed")]
         public static byte[] ReadAll(MemoryStream inStr)
         {
 			return inStr.ToArray();
