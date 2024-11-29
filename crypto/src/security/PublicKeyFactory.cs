@@ -314,17 +314,6 @@ namespace Org.BouncyCastle.Security
                             if (oct.GetOctetsLength() == publicKeyLength)
                                 return MLDsaPublicKeyParameters.FromEncoding(mlDsaParameters, encoding: oct.GetOctets());
                         }
-                        else if (obj is Asn1Sequence seq)
-                        {
-                            var rho = Asn1OctetString.GetInstance(seq[0]);
-                            var t1 = Asn1OctetString.GetInstance(seq[1]);
-
-                            if (rho.GetOctetsLength() == DilithiumEngine.SeedBytes &&
-                                t1.GetOctetsLength() == publicKeyLength - DilithiumEngine.SeedBytes)
-                            {
-                                return new MLDsaPublicKeyParameters(mlDsaParameters, rho.GetOctets(), t1.GetOctets());
-                            }
-                        }
                     }
                     catch (Exception)
                     {
