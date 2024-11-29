@@ -32,11 +32,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [Test]
         public void TestParameters()
         {
-            Assert.AreEqual(256, NtruParameters.NtruHps4096821.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHps2048509.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHps2048677.DefaultKeySize);
+            Assert.AreEqual(256, NtruParameters.NtruHps4096821.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHps40961229.DefaultKeySize);
             Assert.AreEqual(256, NtruParameters.NtruHrss701.DefaultKeySize);
+            Assert.AreEqual(256, NtruParameters.NtruHrss1373.DefaultKeySize);
         }
 
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
@@ -71,32 +72,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             NtruPublicKeyParameters pubParams = (NtruPublicKeyParameters)keyPair.Public;
             NtruPrivateKeyParameters privParams = (NtruPrivateKeyParameters)keyPair.Private;
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.PublicKey), $"{path} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.PrivateKey), $"{path} {count} : private key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), $"{path} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), $"{path} {count} : private key");
 
             var publicKeyRT = (NtruPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
                 PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams));
             var privateKeyRT = (NtruPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
                 PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams));
 
-            Assert.True(Arrays.AreEqual(pk, publicKeyRT.PublicKey), $"{path} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privateKeyRT.PrivateKey), $"{path} {count} : private key");
+            Assert.True(Arrays.AreEqual(pk, publicKeyRT.GetEncoded()), $"{path} {count} : public key (round-trip)");
+            Assert.True(Arrays.AreEqual(sk, privateKeyRT.GetEncoded()), $"{path} {count} : private key (round-trip)");
 
             // Test encapsulate
             NtruKemGenerator encapsulator = new NtruKemGenerator(random);
-            ISecretWithEncapsulation encapsulation = encapsulator.GenerateEncapsulated(new NtruPublicKeyParameters(ntruParameters, pk));
+            ISecretWithEncapsulation encapsulation = encapsulator.GenerateEncapsulated(
+                NtruPublicKeyParameters.FromEncoding(ntruParameters, pk));
             byte[] generatedSecret = encapsulation.GetSecret();
             byte[] generatedCiphertext = encapsulation.GetEncapsulation();
 
             Assert.AreEqual(generatedSecret.Length, ntruParameters.DefaultKeySize / 8);
-            Assert.True(Arrays.AreEqual(ss, 0, generatedSecret.Length, generatedSecret, 0, generatedSecret.Length), $"{path} {count} : shared secret");
+            Assert.True(Arrays.AreEqual(ss, generatedSecret), $"{path} {count} : generated secret");
             Assert.True(Arrays.AreEqual(ct, generatedCiphertext), $"{path} {count} : ciphertext");
 
             // Test decapsulate
-            NtruKemExtractor decapsulator = new NtruKemExtractor(new NtruPrivateKeyParameters(ntruParameters, sk));
+            NtruKemExtractor decapsulator = new NtruKemExtractor(
+                NtruPrivateKeyParameters.FromEncoding(ntruParameters, sk));
             byte[] extractedSecret = decapsulator.ExtractSecret(ct);
-            Assert.AreEqual(generatedSecret.Length, extractedSecret.Length);
-            Assert.True(Arrays.AreEqual(ss, 0, extractedSecret.Length, extractedSecret, 0, extractedSecret.Length), $"{path} {count} : extract secret");
+            Assert.True(Arrays.AreEqual(ss, extractedSecret), $"{path} {count} : extracted secret");
         }
 
         private static void RunTestVectorFile(string path)

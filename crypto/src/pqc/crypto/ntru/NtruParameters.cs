@@ -42,21 +42,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
         /// </summary>
         public static readonly NtruParameters NtruHrss1373 = new NtruParameters("ntruhrss1373", new NtruHrss1373());
 
-        /// <summary>
-        /// Currently selected parameter set
-        /// </summary>
-        internal readonly NtruParameterSet ParameterSet;
-
-        private readonly string _name;
+        private readonly string m_name;
+        private readonly NtruParameterSet m_parameterSet;
 
         private NtruParameters(string name, NtruParameterSet parameterSet)
         {
-            _name = name;
-            ParameterSet = parameterSet;
+            m_name = name;
+            m_parameterSet = parameterSet;
         }
 
-        public string Name => _name;
+        public string Name => m_name;
 
+        internal NtruParameterSet ParameterSet => m_parameterSet;
+
+        internal int PrivateKeyLength => ParameterSet.NtruSecretKeyBytes();
+
+        internal int PublicKeyLength => ParameterSet.NtruPublicKeyBytes();
+
+        // TODO[pqc] bc-java uses 'SessionKeySize' for this
         public int DefaultKeySize => ParameterSet.SharedKeyBytes * 8;
     }
 }

@@ -326,37 +326,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             if (publicKey.IsOctetAligned())
             {
-                //int publicKeyLength = ntruParameters.PublicKeyLength;
+                int expectedLength = ntruParameters.PublicKeyLength;
 
-                //int bytesLength = publicKey.GetBytesLength();
-                //if (bytesLength == publicKeyLength)
-                //    // TODO[pqc] Avoid redundant copies?
-                //    return new NtruPublicKeyParameters(ntruParameters, key: publicKey.GetOctets());
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == expectedLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return NtruPublicKeyParameters.FromEncoding(ntruParameters, encoding: publicKey.GetOctets());
 
                 // TODO[pqc] Remove support for legacy/prototype formats?
-                //if (bytesLength > publicKeyLength)
+                if (bytesLength > expectedLength)
                 {
                     try
                     {
                         Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
-                        if (obj is Asn1OctetString oct)
-                        {
-                            //if (oct.GetOctetsLength() == publicKeyLength)
-                            {
-                                return new NtruPublicKeyParameters(ntruParameters, key: oct.GetOctets());
-                            }
-                        }
+                        if (obj is Asn1OctetString oct && oct.GetOctetsLength() == expectedLength)
+                            return NtruPublicKeyParameters.FromEncoding(ntruParameters, encoding: oct.GetOctets());
                     }
                     catch (Exception)
                     {
                     }
                 }
-
-                // TODO[pqc] Avoid redundant copies?
-                return new NtruPublicKeyParameters(ntruParameters, key: publicKey.GetOctets());
             }
 
-            throw new ArgumentException("invalid " + ntruParameters.Name + " public key");
+            throw new ArgumentException($"invalid {ntruParameters.Name} public key");
         }
 
         private static AsymmetricKeyParameter FalconConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

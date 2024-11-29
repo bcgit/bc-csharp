@@ -176,10 +176,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (algOid.On(BCObjectIdentifiers.pqc_kem_ntru))
             {
-                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
-                NtruParameters ntruParams = PqcUtilities.NtruParamsLookup(algOid);
+                var ntruParameters = PqcUtilities.NtruParamsLookup(algOid);
+                if (ntruParameters != null)
+                {
+                    int expectedLength = ntruParameters.PrivateKeyLength;
 
-                return new NtruPrivateKeyParameters(ntruParams, keyEnc);
+                    var privateKey = keyInfo.PrivateKey;
+                    int length = privateKey.GetOctetsLength();
+
+                    // TODO[pqc] Future support for raw encoding
+                    //if (length == expectedLength)
+                    //    return NtruPrivateKeyParameters.FromEncoding(ntruParameters, encoding: privateKey.GetOctets());
+
+                    if (length > expectedLength)
+                    {
+                        try
+                        {
+                            Asn1Object obj = keyInfo.ParsePrivateKey();
+                            if (obj is Asn1OctetString oct && oct.GetOctetsLength() == expectedLength)
+                                return NtruPrivateKeyParameters.FromEncoding(ntruParameters, encoding: oct.GetOctets());
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    throw new ArgumentException($"invalid {ntruParameters.Name} private key");
+                }
             }
 
             throw new Exception("algorithm identifier in private key not recognised");
