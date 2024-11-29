@@ -4,7 +4,6 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -232,21 +231,53 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private static AsymmetricKeyParameter LmsConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+            DerBitString publicKey = keyInfo.PublicKey;
 
-            if (Pack.BE_To_UInt32(keyEnc, 0) == 1U)
+            if (publicKey.IsOctetAligned())
             {
-                return LmsPublicKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
-            }
-            else
-            {
-                // public key with extra tree height
-                if (keyEnc.Length == 64)
+                //int expectedLength = ???;
+
+                //int bytesLength = publicKey.GetBytesLength();
+                //if (bytesLength == expectedLength)
+                //    return GetLmsKeyParameters(publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                //if (bytesLength > expectedLength)
                 {
-                    keyEnc = Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length);
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            //if (oct.GetOctetsLength() == expectedLength)
+                            {
+                                return GetLmsKeyParameters(oct.GetOctets());
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-                return HssPublicKeyParameters.GetInstance(keyEnc);
+
+                return GetLmsKeyParameters(publicKey.GetOctets());
             }
+
+            throw new ArgumentException($"invalid LMS public key");
+        }
+
+        private static LmsKeyParameters GetLmsKeyParameters(byte[] keyEnc)
+        {
+            if (Pack.BE_To_UInt32(keyEnc, 0) == 1U)
+                return LmsPublicKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+
+            // public key with extra tree height
+            if (keyEnc.Length == 64)
+            {
+                keyEnc = Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length);
+            }
+
+            return HssPublicKeyParameters.GetInstance(keyEnc);
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete

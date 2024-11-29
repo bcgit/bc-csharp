@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public long IndexLimit => m_indexLimit;
 
-        public long GetUsagesRemaining() => m_indexLimit - m_index;
+        public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
         internal LmsPrivateKeyParameters GetRootKey() => m_keys[0];
 
@@ -172,22 +172,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-                if (GetUsagesRemaining() < usageCount)
-                    throw new ArgumentException("usageCount exceeds usages remaining in current leaf");
+                if (usageCount < 0)
+                    throw new ArgumentOutOfRangeException("cannot be negative", nameof(usageCount));
+                if (usageCount > m_indexLimit - m_index)
+                    throw new ArgumentException("exceeds usages remaining in current leaf", nameof(usageCount));
 
-                long maxIndexForShard = m_index + usageCount;
-                long shardStartIndex = m_index;
+                long shardIndex = m_index;
+                long shardIndexLimit = m_index + usageCount;
 
-                //
                 // Move this key's index along
-                //
-                m_index += usageCount;
+                m_index = shardIndexLimit;
 
                 var keys = new List<LmsPrivateKeyParameters>(this.GetKeys());
                 var sig = new List<LmsSignature>(this.GetSig());
 
                 HssPrivateKeyParameters shard = MakeCopy(
-                    new HssPrivateKeyParameters(m_level, keys, sig, shardStartIndex, maxIndexForShard, true));
+                    new HssPrivateKeyParameters(m_level, keys, sig, shardIndex, shardIndexLimit, isShard: true));
 
                 ResetKeyToIndex();
 

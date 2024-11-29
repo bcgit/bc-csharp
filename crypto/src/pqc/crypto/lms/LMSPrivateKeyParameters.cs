@@ -211,13 +211,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-                if (q + usageCount >= maxQ)
-                    throw new ArgumentException("usageCount exceeds usages remaining");
+                if (usageCount < 0)
+                    throw new ArgumentOutOfRangeException("cannot be negative", nameof(usageCount));
+                if (usageCount > maxQ - q)
+                    throw new ArgumentException("exceeds usages remaining", nameof(usageCount));
 
-                LmsPrivateKeyParameters keyParameters = new LmsPrivateKeyParameters(this, q, q + usageCount);
-                q += usageCount;
+                int shardIndex = q;
+                int shardIndexLimit = q + usageCount;
 
-                return keyParameters;
+                // Move this key's index along
+                q = shardIndexLimit;
+
+                return new LmsPrivateKeyParameters(this, shardIndex, shardIndexLimit);
             }
         }
 
@@ -235,7 +240,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetMasterSecret() => Arrays.Clone(masterSecret);
 
-        public long GetUsagesRemaining() => maxQ - GetIndex();
+        public int IndexLimit => maxQ;
+
+        // TODO[api] Only needs 'int'
+        public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
         public LmsPublicKeyParameters GetPublicKey()
         {

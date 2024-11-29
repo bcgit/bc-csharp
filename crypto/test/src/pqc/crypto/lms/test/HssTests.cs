@@ -507,6 +507,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                 Assert.AreEqual(1024, keyPair.GetUsagesRemaining());
                 Assert.AreEqual(1024, keyPair.IndexLimit);
+                Assert.AreEqual(0, keyPair.GetIndex());
 
                 //
                 // Split the space up with a shard.
@@ -603,6 +604,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             HssPrivateKeyParameters shard = keyPair.ExtractKeyShard(10);
 
+            Assert.True(10 == shard.GetUsagesRemaining());
             Assert.True(15 == shard.IndexLimit);
             Assert.True(5 == shard.GetIndex());
 

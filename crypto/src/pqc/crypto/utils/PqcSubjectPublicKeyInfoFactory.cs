@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] encoding = Composer.Compose().U32Str(1).Bytes(lmsPublicKeyParameters).Build();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
             if (publicKey is HssPublicKeyParameters hssPublicKeyParameters)
             {
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] encoding = Composer.Compose().U32Str(L).Bytes(hssPublicKeyParameters.LmsPublicKey).Build();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
-                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
             }
 #pragma warning disable CS0618 // Type or member is obsolete
             if (publicKey is SphincsPlusPublicKeyParameters sphincsPlusPublicKeyParameters)
