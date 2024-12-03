@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Tls.Tests
             server.SetNamedGroups(new int[]{ NamedGroup.MLKEM768 });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: true);
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             try
             {
                 serverThread.Start();
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockTlsKemServer server = new MockTlsKemServer();
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: false);
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             clientProtocol.Connect(client);

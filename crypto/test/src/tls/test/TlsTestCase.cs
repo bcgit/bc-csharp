@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsTestServerImpl serverImpl = new TlsTestServerImpl(config);
 
             ServerTask serverTask = new ServerTask(this, serverProtocol, serverImpl);
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             Exception caught = null;

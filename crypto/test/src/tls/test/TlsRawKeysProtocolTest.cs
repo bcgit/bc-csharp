@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
 
             ServerTask serverTask = new ServerTask(serverProtocol, server);
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             clientProtocol.Connect(client);
