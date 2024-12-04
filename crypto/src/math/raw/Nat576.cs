@@ -7,33 +7,11 @@ namespace Org.BouncyCastle.Math.Raw
 {
     internal static class Nat576
     {
-        public static void Copy64(ulong[] x, ulong[] z)
-        {
-            z[0] = x[0];
-            z[1] = x[1];
-            z[2] = x[2];
-            z[3] = x[3];
-            z[4] = x[4];
-            z[5] = x[5];
-            z[6] = x[6];
-            z[7] = x[7];
-            z[8] = x[8];
-        }
-
         public static void Copy64(ulong[] x, int xOff, ulong[] z, int zOff)
         {
-            z[zOff + 0] = x[xOff + 0];
-            z[zOff + 1] = x[xOff + 1];
-            z[zOff + 2] = x[xOff + 2];
-            z[zOff + 3] = x[xOff + 3];
-            z[zOff + 4] = x[xOff + 4];
-            z[zOff + 5] = x[xOff + 5];
-            z[zOff + 6] = x[xOff + 6];
-            z[zOff + 7] = x[xOff + 7];
-            z[zOff + 8] = x[xOff + 8];
+            Copy64(x.AsSpan(xOff), z.AsSpan(zOff));
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Copy64(ReadOnlySpan<ulong> x, Span<ulong> z)
         {
             z[0] = x[0];
@@ -46,7 +24,6 @@ namespace Org.BouncyCastle.Math.Raw
             z[7] = x[7];
             z[8] = x[8];
         }
-#endif
 
         public static ulong[] Create64()
         {
@@ -86,11 +63,7 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static bool IsZero64(ReadOnlySpan<ulong> x)
-#else
-        public static bool IsZero64(ulong[] x)
-#endif
         {
             for (int i = 0; i < 9; ++i)
             {
