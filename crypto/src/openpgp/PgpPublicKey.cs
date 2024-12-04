@@ -1050,7 +1050,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpPublicKey returnKey = new PgpPublicKey(key);
             bool found = false;
 
-            for (int i = 0; i < returnKey.ids.Count; i++)
+            for (int i = returnKey.ids.Count-1; i >=0; i--)
             {
                 if (id.Equals(returnKey.ids[i]))
                 {
