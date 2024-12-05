@@ -396,7 +396,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             IsEquals(pubKey.Algorithm, PublicKeyAlgorithmTag.EdDsa_Legacy);
             IsEquals(pubKey.CreationTime.ToString("yyyyMMddHHmmss"), "20140819142827");
-
+            IsEquals(pubKey.BitStrength, 256);
             byte[] expectedFingerprint = Hex.Decode("C959BDBAFA32A2F89A153B678CFDE12197965A9A");
             IsEquals((ulong)pubKey.KeyId, 0x8CFDE12197965A9A);
             IsTrue("wrong fingerprint", AreEqual(pubKey.GetFingerprint(), expectedFingerprint));
@@ -622,6 +622,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             IsEquals(keypair.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed25519);
             IsEquals(keypair.PublicKey.CreationTime.ToString("yyyyMMddHHmmss"), "20221130160803");
+            IsEquals(keypair.PublicKey.BitStrength, 256);
             byte[] expectedFingerprint = Hex.Decode("CB186C4F0609A697E4D52DFA6C722B0C1F1E27C18A56708F6525EC27BAD9ACC9");
             IsEquals((ulong)keypair.KeyId, 0xCB186C4F0609A697);
             IsTrue("wrong master key fingerprint", AreEqual(keypair.PublicKey.GetFingerprint(), expectedFingerprint));
@@ -744,6 +745,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair keypair = new PgpKeyPair(PublicKeyPacket.Version6, PublicKeyAlgorithmTag.Ed448, kp, now);
             IsEquals(keypair.PublicKey.Algorithm, PublicKeyAlgorithmTag.Ed448);
             IsEquals(keypair.PublicKey.CreationTime.ToString("yyyyMMddHHmmss"), now.ToString("yyyyMMddHHmmss"));
+            IsEquals(keypair.PublicKey.BitStrength, 448);
             long keyId = keypair.PublicKey.KeyId;
             byte[] fpr = keypair.PublicKey.GetFingerprint();
             IsEquals(fpr.Length, 32);

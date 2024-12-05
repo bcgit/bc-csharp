@@ -217,6 +217,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         this.keyStrength = -1; // unknown
                     }
                 }
+                else if (key is Ed25519PublicBcpgKey || key is X25519PublicBcpgKey)
+                {
+                    this.keyStrength = 256;
+                }
+                else if (key is Ed448PublicBcpgKey || key is X448PublicBcpgKey)
+                {
+                    this.keyStrength = 448;
+                }
             }
         }
 
