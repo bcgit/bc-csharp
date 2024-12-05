@@ -32,6 +32,10 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId9020500">Release 2.5.0</a>
+                                    <li>
+                                        <a href="#mozTocId9020400">Release 2.4.0</a>
+                                    <li>
                                         <a href="#mozTocId85332">Release 2.3.1</a>
                                     <li>
                                         <a href="#mozTocId85331">Release 2.3.0</a>
@@ -331,13 +335,70 @@
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
 
-        <h4><a class="mozTocH4" name="mozTocId85332"></a>Release 2.3.1, TBD</h4>
+        <h4><a class="mozTocH4" name="mozTocId9020500"></a>Release 2.5.0, Sunday December 1, 2024</h4>
         <h5>Defects Fixed</h5>
         <ul>
-            <li>PSS: Fixed regression in 2.3.0 when updating signer from a span.</li>
+            <li>Fixed tag for unprotectedAttrs field of Asn1.Cms.EncryptedData (regression in 2.4.0).</li>
+            <li>X509Name: Fixed whitespace escaping on output, and NameAtBirth lookup.</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>
+            <li>Added support for modified UTF-8 in JKS.</li>
+            <li>(D)TLS: Removed redundant verification of self-generated RSA signatures.</li>
+            <li>Added support for the PQC algorithms ML-DSA (including pre-hash), ML-KEM, and SLH-DSA (including pre-hash).</li>
+            <li>Added ParametersWithContext class to support signature contexts for ML-DSA and SLH-DSA.</li>
+            <li>Added support for Argon2.</li>
+            <li>TLS: Added draft ML-KEM support (draft-connolly-tls-mlkem-key-agreement-03).</li>
+            <li>
+                Ascon: Implemented latest algorithms: AsconHash256, AsconXof128, AsconCXof128, AsconAead128; deprecated
+                prototypes: AsconDigest, AsconXof, AsconEngine.
+            </li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                To avoid potential intellectual property issues, Kyber (precursor of ML-KEM) was completely removed.
+                Since that already created a backward compatibility break, we took the opportunity to also remove SIKE.
+            </li>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
+
+        <h4><a class="mozTocH4" name="mozTocId9020400"></a>Release 2.4.0, Monday May 27, 2024</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Fixed the input length check for the CCM cipher mode.</li>
+            <li>CMS: Fix recipient selection based on certificate SubjectKeyIdentifier.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>Embed Picnic and Sike data in source to make it trim-friendly.</li>
+            <li>Auto-adjust DateTime precision for GeneralizedTime in X.509 (and OCSP).</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
+
+        <h4><a class="mozTocH4" name="mozTocId85332"></a>Release 2.3.1, Tuesday May 7, 2024</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>TLS: Fixed timing side-channel for RSA key exchange (CVE-2024-30171 - "The Marvin Attack").</li>
+            <li>PSS: Fixed regression in 2.3.0 when updating signer from a span.</li>
+            <li>
+                EdDSA: Fixed verification infinite loop (regression in 2.1.0)
+                - see <a href="https://github.com/bcgit/bc-java/issues/1599">corresponding bc-java issue</a> (CVE-2024-30172).
+            </li>
+            <li>EC: Restricted m value in F2m curves (CVE-2024-29857).</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>ASN.1: Limited OID contents to 4096 bytes.</li>
         </ul>
         <h5>Additional Notes</h5>
         <ul>

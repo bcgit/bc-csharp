@@ -1,30 +1,33 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
-using System;
+﻿using System;
+using System.Diagnostics;
+
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class Poly
     {
-        public int[] Coeffs { get; set; }
+        private const int N = DilithiumEngine.N;
 
-        private int N;
-        private DilithiumEngine Engine;
-        private int PolyUniformNBlocks;
-        private Symmetric Symmetric;
+        private readonly DilithiumEngine Engine;
+        private readonly int PolyUniformNBlocks;
+        private readonly Symmetric Symmetric;
+
+        internal readonly int[] Coeffs;
 
         public Poly(DilithiumEngine engine)
         {
-            N = DilithiumEngine.N;
-            Coeffs = new int[N];
             Engine = engine;
             Symmetric = engine.Symmetric;
             PolyUniformNBlocks = (768 + Symmetric.Stream128BlockBytes - 1) / Symmetric.Stream128BlockBytes;
+
+            Coeffs = new int[N];
         }
 
         public void UniformBlocks(byte[] seed, ushort nonce)
         {
             int i, ctr, off,
-            buflen = PolyUniformNBlocks * Symmetric.Stream128BlockBytes;
+                buflen = PolyUniformNBlocks * Symmetric.Stream128BlockBytes;
             byte[] buf = new byte[buflen + 2];
             
             Symmetric.Stream128Init(seed, nonce);
@@ -44,19 +47,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 buflen = Symmetric.Stream128BlockBytes + off;
                 ctr += RejectUniform(Coeffs, ctr, N - ctr, buf, buflen);
             }
-
-
         }
 
         private static int RejectUniform(int[] coeffs, int off, int len, byte[] buf, int buflen)
         {
-            int ctr, pos;
-            uint t;
-
-
-            ctr = pos = 0;
+            int ctr = 0, pos = 0;
             while (ctr < len && pos + 3 <= buflen)
             {
+                uint t;
                 t = (uint)(buf[pos++] & 0xFF);
                 t |= (uint)(buf[pos++] & 0xFF) << 8;
                 t |= (uint)(buf[pos++] & 0xFF) << 16;
@@ -68,19 +66,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 }
             }
             return ctr;
-
         }
 
         public void UniformEta(byte[] seed, ushort nonce)
         {
-            int ctr, PolyUniformEtaNBlocks, eta = Engine.Eta;
-
-
-            if (Engine.Eta == 2)
+            int PolyUniformEtaNBlocks, eta = Engine.Eta;
+            if (eta == 2)
             {
                 PolyUniformEtaNBlocks = ((136 + Symmetric.Stream256BlockBytes - 1) / Symmetric.Stream256BlockBytes);
             }
-            else if (Engine.Eta == 4)
+            else if (eta == 4)
             {
                 PolyUniformEtaNBlocks = ((227 + Symmetric.Stream256BlockBytes - 1) / Symmetric.Stream256BlockBytes);
             }
@@ -95,9 +90,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             Symmetric.Stream256Init(seed, nonce);
             Symmetric.Stream256SqueezeBlocks(buf, 0, buflen);
-            ctr = RejectEta(Coeffs, 0, N, buf, buflen, eta);
+            int ctr = RejectEta(Coeffs, 0, N, buf, buflen, eta);
 
-            while (ctr < DilithiumEngine.N)
+            while (ctr < N)
             {
                 Symmetric.Stream256SqueezeBlocks(buf, 0, Symmetric.Stream256BlockBytes);
                 ctr += RejectEta(Coeffs, ctr, N - ctr, buf, Symmetric.Stream256BlockBytes, eta);
@@ -106,15 +101,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         private static int RejectEta(int[] coeffs, int off, int len, byte[] buf, int buflen, int eta)
         {
-            int ctr, pos;
-            uint t0, t1;
-
-            ctr = pos = 0;
+            int ctr = 0, pos = 0;
 
             while (ctr < len && pos < buflen)
             {
-                t0 = (uint)(buf[pos] & 0xFF) & 0x0F;
-                t1 = (uint)(buf[pos++] & 0xFF) >> 4;
+                byte b = buf[pos++];
+                uint t0 = (uint)b & 0x0F;
+                uint t1 = (uint)b >> 4;
                 if (eta == 2)
                 {
                     if (t0 < 15)
@@ -145,31 +138,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void PointwiseMontgomery(Poly v, Poly w)
         {
-            int i;
-            for (i = 0; i < N; ++i)
+            for (int i = 0; i < N; ++i)
             {
                 Coeffs[i] = Reduce.MontgomeryReduce((long)((long)v.Coeffs[i] * (long)w.Coeffs[i]));
             }
         }
 
-        public void PointwiseAccountMontgomery(PolyVecL u, PolyVecL v)
+        public void PointwiseAccountMontgomery(PolyVec u, PolyVec v)
         {
-            int i;
+            Debug.Assert(u.Vec.Length == Engine.L);
+            Debug.Assert(v.Vec.Length == Engine.L);
+
             Poly t = new Poly(Engine);
 
             PointwiseMontgomery(u.Vec[0], v.Vec[0]);
 
-            for (i = 1; i < Engine.L; ++i)
+            for (int i = 1; i < Engine.L; ++i)
             {
                 t.PointwiseMontgomery(u.Vec[i], v.Vec[i]);
-                AddPoly(t);
+                Add(t);
             }
         }
 
-        public void AddPoly(Poly a)
+        public void Add(Poly a)
         {
-            int i;
-            for (i = 0; i < N; i++)
+            for (int i = 0; i < N; i++)
             {
                 Coeffs[i] += a.Coeffs[i];
             }
@@ -221,9 +214,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void PolyT0Pack(byte[] r, int off)
         {
-            int i;
             int[] t = new int[8];
-            for (i = 0; i < N / 8; ++i)
+            for (int i = 0; i < N / 8; ++i)
             {
                 t[0] = (1 << (DilithiumEngine.D - 1)) - Coeffs[8 * i + 0];
                 t[1] = (1 << (DilithiumEngine.D - 1)) - Coeffs[8 * i + 1];
@@ -260,8 +252,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void PolyT0Unpack(byte[] a, int off)
         {
-            int i;
-            for (i = 0; i < N / 8; ++i)
+            for (int i = 0; i < N / 8; ++i)
             {
                 Coeffs[8 * i + 0] =
                     (
@@ -326,63 +317,65 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        public byte[] PolyT1Pack()
+        public void PolyT1Pack(byte[] buf, int bufOff)
         {
-            byte[] output = new byte[DilithiumEngine.PolyT1PackedBytes];
             for (int i = 0; i < N / 4; ++i)
             {
-                output[5 * i + 0] = (byte)(Coeffs[4 * i + 0] >> 0);
-                output[5 * i + 1] = (byte)((Coeffs[4 * i + 0] >> 8) | (Coeffs[4 * i + 1] << 2));
-                output[5 * i + 2] = (byte)((Coeffs[4 * i + 1] >> 6) | (Coeffs[4 * i + 2] << 4));
-                output[5 * i + 3] = (byte)((Coeffs[4 * i + 2] >> 4) | (Coeffs[4 * i + 3] << 6));
-                output[5 * i + 4] = (byte)(Coeffs[4 * i + 3] >> 2);
+                buf[bufOff + 0] = (byte)(Coeffs[4 * i + 0] >> 0);
+                buf[bufOff + 1] = (byte)((Coeffs[4 * i + 0] >> 8) | (Coeffs[4 * i + 1] << 2));
+                buf[bufOff + 2] = (byte)((Coeffs[4 * i + 1] >> 6) | (Coeffs[4 * i + 2] << 4));
+                buf[bufOff + 3] = (byte)((Coeffs[4 * i + 2] >> 4) | (Coeffs[4 * i + 3] << 6));
+                buf[bufOff + 4] = (byte)(Coeffs[4 * i + 3] >> 2);
+                bufOff += 5;
             }
-            return output;
         }
 
-        public void PolyT1Unpack(byte[] a)
+        public void PolyT1Unpack(byte[] a, int aOff)
         {
-            int i;
-
-            for (i = 0; i < N / 4; ++i)
+            for (int i = 0; i < N / 4; ++i)
             {
-                Coeffs[4 * i + 0] = (((a[5 * i + 0] & 0xFF) >> 0) | ((int)(a[5 * i + 1] & 0xFF) << 8)) & 0x3FF;
-                Coeffs[4 * i + 1] = (((a[5 * i + 1] & 0xFF) >> 2) | ((int)(a[5 * i + 2] & 0xFF) << 6)) & 0x3FF;
-                Coeffs[4 * i + 2] = (((a[5 * i + 2] & 0xFF) >> 4) | ((int)(a[5 * i + 3] & 0xFF) << 4)) & 0x3FF;
-                Coeffs[4 * i + 3] = (((a[5 * i + 3] & 0xFF) >> 6) | ((int)(a[5 * i + 4] & 0xFF) << 2)) & 0x3FF;
+                int a0 = a[aOff + 0];
+                int a1 = a[aOff + 1];
+                int a2 = a[aOff + 2];
+                int a3 = a[aOff + 3];
+                int a4 = a[aOff + 4];
+                aOff += 5;
+
+                Coeffs[4 * i + 0] = ((a0 >> 0) | (a1 << 8)) & 0x3FF;
+                Coeffs[4 * i + 1] = ((a1 >> 2) | (a2 << 6)) & 0x3FF;
+                Coeffs[4 * i + 2] = ((a2 >> 4) | (a3 << 4)) & 0x3FF;
+                Coeffs[4 * i + 3] = ((a3 >> 6) | (a4 << 2));
             }
         }
 
         public void PolyEtaPack(byte[] r, int off)
         {
-            int i;
-            byte[] t = new byte[8];
-
-            if (Engine.Eta == 2)
+            int eta = Engine.Eta;
+            if (eta == 2)
             {
-                for (i = 0; i < N / 8; ++i)
+                for (int i = 0; i < N / 8; ++i)
                 {
-                    t[0] = (byte)(Engine.Eta - Coeffs[8 * i + 0]);
-                    t[1] = (byte)(Engine.Eta - Coeffs[8 * i + 1]);
-                    t[2] = (byte)(Engine.Eta - Coeffs[8 * i + 2]);
-                    t[3] = (byte)(Engine.Eta - Coeffs[8 * i + 3]);
-                    t[4] = (byte)(Engine.Eta - Coeffs[8 * i + 4]);
-                    t[5] = (byte)(Engine.Eta - Coeffs[8 * i + 5]);
-                    t[6] = (byte)(Engine.Eta - Coeffs[8 * i + 6]);
-                    t[7] = (byte)(Engine.Eta - Coeffs[8 * i + 7]);
+                    byte t0 = (byte)(eta - Coeffs[8 * i + 0]);
+                    byte t1 = (byte)(eta - Coeffs[8 * i + 1]);
+                    byte t2 = (byte)(eta - Coeffs[8 * i + 2]);
+                    byte t3 = (byte)(eta - Coeffs[8 * i + 3]);
+                    byte t4 = (byte)(eta - Coeffs[8 * i + 4]);
+                    byte t5 = (byte)(eta - Coeffs[8 * i + 5]);
+                    byte t6 = (byte)(eta - Coeffs[8 * i + 6]);
+                    byte t7 = (byte)(eta - Coeffs[8 * i + 7]);
 
-                    r[off + 3 * i + 0] = (byte)((t[0] >> 0) | (t[1] << 3) | (t[2] << 6));
-                    r[off + 3 * i + 1] = (byte)((t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7));
-                    r[off + 3 * i + 2] = (byte)((t[5] >> 1) | (t[6] << 2) | (t[7] << 5));
+                    r[off + 3 * i + 0] = (byte)((t0 >> 0) | (t1 << 3) | (t2 << 6));
+                    r[off + 3 * i + 1] = (byte)((t2 >> 2) | (t3 << 1) | (t4 << 4) | (t5 << 7));
+                    r[off + 3 * i + 2] = (byte)((t5 >> 1) | (t6 << 2) | (t7 << 5));
                 }
             }
-            else if (Engine.Eta == 4)
+            else if (eta == 4)
             {
-                for (i = 0; i < N / 2; ++i)
+                for (int i = 0; i < N / 2; ++i)
                 {
-                    t[0] = (byte)(Engine.Eta - Coeffs[2 * i + 0]);
-                    t[1] = (byte)(Engine.Eta - Coeffs[2 * i + 1]);
-                    r[off + i] = (byte)(t[0] | t[1] << 4);
+                    byte t0 = (byte)(eta - Coeffs[2 * i + 0]);
+                    byte t1 = (byte)(eta - Coeffs[2 * i + 1]);
+                    r[off + i] = (byte)(t0 | t1 << 4);
                 }
             }
             else
@@ -393,11 +386,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void PolyEtaUnpack(byte[] a, int off)
         {
-            int i, eta = Engine.Eta;
-
+            int eta = Engine.Eta;
             if (eta == 2)
             {
-                for (i = 0; i < N / 8; ++i)
+                for (int i = 0; i < N / 8; ++i)
                 {
                     Coeffs[8 * i + 0] = (((a[off + 3 * i + 0] & 0xFF) >> 0) & 7);
                     Coeffs[8 * i + 1] = ((((a[off + 3 * i + 0] & 0xFF) >> 3)) & 7);
@@ -420,7 +412,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
             else if (eta == 4)
             {
-                for (i = 0; i < N / 2; ++i)
+                for (int i = 0; i < N / 2; ++i)
                 {
                     Coeffs[2 * i + 0] = ((a[off + i] & 0xFF) & 0x0F);
                     Coeffs[2 * i + 1] = ((a[off + i] & 0xFF) >> 4);
@@ -436,46 +428,42 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             Symmetric.Stream256Init(seed, nonce);
             Symmetric.Stream256SqueezeBlocks(buf, 0, buf.Length);
             UnpackZ(buf);
-
         }
 
         public void PackZ(byte[] r, int offset)
         {
-            int i;
-            uint[] t = new uint[4];
             if (Engine.Gamma1 == (1 << 17))
             {
-                for (i = 0; i < N / 4; ++i)
+                for (int i = 0; i < N / 4; ++i)
                 {
-                    t[0] = (uint)(Engine.Gamma1 - Coeffs[4 * i + 0]);
-                    t[1] = (uint)(Engine.Gamma1 - Coeffs[4 * i + 1]);
-                    t[2] = (uint)(Engine.Gamma1 - Coeffs[4 * i + 2]);
-                    t[3] = (uint)(Engine.Gamma1 - Coeffs[4 * i + 3]);
+                    uint t0 = (uint)(Engine.Gamma1 - Coeffs[4 * i + 0]);
+                    uint t1 = (uint)(Engine.Gamma1 - Coeffs[4 * i + 1]);
+                    uint t2 = (uint)(Engine.Gamma1 - Coeffs[4 * i + 2]);
+                    uint t3 = (uint)(Engine.Gamma1 - Coeffs[4 * i + 3]);
 
-                    r[offset + 9 * i + 0] = (byte)t[0];
-                    r[offset + 9 * i + 1] = (byte)(t[0] >> 8);
-                    r[offset + 9 * i + 2] = (byte)((byte)(t[0] >> 16) | (t[1] << 2));
-                    r[offset + 9 * i + 3] = (byte)(t[1] >> 6);
-                    r[offset + 9 * i + 4] = (byte)((byte)(t[1] >> 14) | (t[2] << 4));
-                    r[offset + 9 * i + 5] = (byte)(t[2] >> 4);
-                    r[offset + 9 * i + 6] = (byte)((byte)(t[2] >> 12) | (t[3] << 6));
-                    r[offset + 9 * i + 7] = (byte)(t[3] >> 2);
-                    r[offset + 9 * i + 8] = (byte)(t[3] >> 10);
+                    r[offset + 9 * i + 0] = (byte)t0;
+                    r[offset + 9 * i + 1] = (byte)(t0 >> 8);
+                    r[offset + 9 * i + 2] = (byte)((byte)(t0 >> 16) | (t1 << 2));
+                    r[offset + 9 * i + 3] = (byte)(t1 >> 6);
+                    r[offset + 9 * i + 4] = (byte)((byte)(t1 >> 14) | (t2 << 4));
+                    r[offset + 9 * i + 5] = (byte)(t2 >> 4);
+                    r[offset + 9 * i + 6] = (byte)((byte)(t2 >> 12) | (t3 << 6));
+                    r[offset + 9 * i + 7] = (byte)(t3 >> 2);
+                    r[offset + 9 * i + 8] = (byte)(t3 >> 10);
                 }
             }
             else if (Engine.Gamma1 == (1 << 19))
             {
-                for (i = 0; i < N / 2; ++i)
+                for (int i = 0; i < N / 2; ++i)
                 {
-                    t[0] = (uint)(Engine.Gamma1 - Coeffs[2 * i + 0]);
-                    t[1] = (uint)(Engine.Gamma1 - Coeffs[2 * i + 1]);
+                    uint t0 = (uint)(Engine.Gamma1 - Coeffs[2 * i + 0]);
+                    uint t1 = (uint)(Engine.Gamma1 - Coeffs[2 * i + 1]);
 
-                    r[offset + 5 * i + 0] = (byte)t[0];
-                    r[offset + 5 * i + 1] = (byte)(t[0] >> 8);
-                    r[offset + 5 * i + 2] = (byte)((byte)(t[0] >> 16) | (t[1] << 4));
-                    r[offset + 5 * i + 3] = (byte)(t[1] >> 4);
-                    r[offset + 5 * i + 4] = (byte)(t[1] >> 12);
-
+                    r[offset + 5 * i + 0] = (byte)t0;
+                    r[offset + 5 * i + 1] = (byte)(t0 >> 8);
+                    r[offset + 5 * i + 2] = (byte)((byte)(t0 >> 16) | (t1 << 4));
+                    r[offset + 5 * i + 3] = (byte)(t1 >> 4);
+                    r[offset + 5 * i + 4] = (byte)(t1 >> 12);
                 }
             }
             else
@@ -486,10 +474,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void UnpackZ(byte[] a)
         {
-            int i;
             if (Engine.Gamma1 == (1 << 17))
             {
-                for (i = 0; i < N / 4; ++i)
+                for (int i = 0; i < N / 4; ++i)
                 {
                     Coeffs[4 * i + 0] =
                         (
@@ -525,7 +512,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
             else if (Engine.Gamma1 == (1 << 19))
             {
-                for (i = 0; i < N / 2; ++i)
+                for (int i = 0; i < N / 2; ++i)
                 {
                     Coeffs[2 * i + 0] =
                         (
@@ -552,8 +539,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void Decompose(Poly a)
         {
-            int i;
-            for (i = 0; i < N; ++i)
+            for (int i = 0; i < N; ++i)
             {
                 int[] decomp = Rounding.Decompose(Coeffs[i], Engine.Gamma2);
                 a.Coeffs[i] = decomp[0];
@@ -563,11 +549,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void PackW1(byte[] r, int off)
         {
-            int i;
-
             if (Engine.Gamma2 == (DilithiumEngine.Q - 1) / 88)
             {
-                for (i = 0; i < N / 4; ++i)
+                for (int i = 0; i < N / 4; ++i)
                 {
                     r[off + 3 * i + 0] = (byte)(((byte)Coeffs[4 * i + 0]) | (Coeffs[4 * i + 1] << 6));
                     r[off + 3 * i + 1] = (byte)((byte)(Coeffs[4 * i + 1] >> 2) | (Coeffs[4 * i + 2] << 4));
@@ -576,7 +560,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
             else if (Engine.Gamma2 == (DilithiumEngine.Q - 1) / 32)
             {
-                for (i = 0; i < N / 2; ++i)
+                for (int i = 0; i < N / 2; ++i)
                 {
                     r[off + i] = (byte)(Coeffs[2 * i + 0] | (Coeffs[2 * i + 1] << 4));
                 }
@@ -590,7 +574,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             byte[] buf = new byte[Symmetric.Stream256BlockBytes];
 
             ShakeDigest ShakeDigest256 = new ShakeDigest(256);
-            ShakeDigest256.BlockUpdate(seed, 0, DilithiumEngine.SeedBytes);
+            ShakeDigest256.BlockUpdate(seed, 0, Engine.CTilde);
             ShakeDigest256.Output(buf, 0, Symmetric.Stream256BlockBytes);
 
             signs = 0;
@@ -627,30 +611,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public bool CheckNorm(int B)
         {
-            int i, t;
-
             if (B > (DilithiumEngine.Q - 1) / 8)
-            {
                 return true;
-            }
 
-            for (i = 0; i < N; ++i)
+            for (int i = 0; i < N; ++i)
             {
-                t = Coeffs[i] >> 31;
+                int t = Coeffs[i] >> 31;
                 t = Coeffs[i] - (t & 2 * Coeffs[i]);
 
                 if (t >= B)
-                {
                     return true;
-                }
             }
             return false;
         }
         public int PolyMakeHint(Poly a0, Poly a1)
         {
-            int i, s = 0;
-
-            for (i = 0; i < N; ++i)
+            int s = 0;
+            for (int i = 0; i < N; ++i)
             {
                 Coeffs[i] = Rounding.MakeHint(a0.Coeffs[i], a1.Coeffs[i], Engine);
                 s += Coeffs[i];
@@ -660,7 +637,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void PolyUseHint(Poly a, Poly h)
         {
-            for (int i = 0; i < DilithiumEngine.N; ++i)
+            for (int i = 0; i < N; ++i)
             {
                 Coeffs[i] = Rounding.UseHint(a.Coeffs[i], h.Coeffs[i], Engine.Gamma2);
             }
@@ -673,6 +650,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 Coeffs[i] <<= DilithiumEngine.D;
             }
         }
-
     }
 }

@@ -12,10 +12,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevReqContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RevReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new RevReqContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static RevReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevReqContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RevReqContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevReqContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

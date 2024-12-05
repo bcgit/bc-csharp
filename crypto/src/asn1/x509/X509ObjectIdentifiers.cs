@@ -6,19 +6,18 @@ namespace Org.BouncyCastle.Asn1.X509
         //
         // base id
         //
-        internal const string ID = "2.5.4";
+        public static readonly DerObjectIdentifier attributeType = new DerObjectIdentifier("2.5.4");
 
-		public static readonly DerObjectIdentifier CommonName              = new DerObjectIdentifier(ID + ".3");
-        public static readonly DerObjectIdentifier CountryName             = new DerObjectIdentifier(ID + ".6");
-        public static readonly DerObjectIdentifier LocalityName            = new DerObjectIdentifier(ID + ".7");
-        public static readonly DerObjectIdentifier StateOrProvinceName     = new DerObjectIdentifier(ID + ".8");
-        public static readonly DerObjectIdentifier Organization            = new DerObjectIdentifier(ID + ".10");
-        public static readonly DerObjectIdentifier OrganizationalUnitName  = new DerObjectIdentifier(ID + ".11");
+        public static readonly DerObjectIdentifier CommonName = attributeType.Branch("3");
+        public static readonly DerObjectIdentifier CountryName = attributeType.Branch("6");
+        public static readonly DerObjectIdentifier LocalityName = attributeType.Branch("7");
+        public static readonly DerObjectIdentifier StateOrProvinceName = attributeType.Branch("8");
+        public static readonly DerObjectIdentifier Organization = attributeType.Branch("10");
+        public static readonly DerObjectIdentifier OrganizationalUnitName = attributeType.Branch("11");
 
-		public static readonly DerObjectIdentifier id_at_telephoneNumber   = new DerObjectIdentifier(ID + ".20");
-		public static readonly DerObjectIdentifier id_at_name              = new DerObjectIdentifier(ID + ".41");
-
-        public static readonly DerObjectIdentifier id_at_organizationIdentifier = new DerObjectIdentifier("2.5.4.97");
+        public static readonly DerObjectIdentifier id_at_telephoneNumber = attributeType.Branch("20");
+        public static readonly DerObjectIdentifier id_at_name = attributeType.Branch("41");
+        public static readonly DerObjectIdentifier id_at_organizationIdentifier = attributeType.Branch("97");
 
         // id-SHA1 OBJECT IDENTIFIER ::=
         //   {iso(1) identified-organization(3) oiw(14) secsig(3) algorithms(2) 26 }    //
@@ -44,19 +43,54 @@ namespace Org.BouncyCastle.Asn1.X509
 		//
 		// private internet extensions
 		//
-		public static readonly DerObjectIdentifier IdPE = new DerObjectIdentifier(IdPkix + ".1");
+		public static readonly DerObjectIdentifier IdPE = IdPkix.Branch("1");
 
-		//
-		// authority information access
-		//
-		public static readonly DerObjectIdentifier IdAD = new DerObjectIdentifier(IdPkix + ".48");
-		public static readonly DerObjectIdentifier IdADCAIssuers = new DerObjectIdentifier(IdAD + ".2");
-		public static readonly DerObjectIdentifier IdADOcsp = new DerObjectIdentifier(IdAD + ".1");
+        /** 1.3.6.1.5.5.7.6 */
+        public static readonly DerObjectIdentifier pkix_algorithms = IdPkix.Branch("6");
+
+        /**
+         *    id-RSASSA-PSS-SHAKE128  OBJECT IDENTIFIER  ::=  { iso(1)
+         *             identified-organization(3) dod(6) internet(1)
+         *             security(5) mechanisms(5) pkix(7) algorithms(6) 30 }
+         */
+        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE128 = pkix_algorithms.Branch("30");
+
+        /**
+         *    id-RSASSA-PSS-SHAKE256  OBJECT IDENTIFIER  ::=  { iso(1)
+         *             identified-organization(3) dod(6) internet(1)
+         *             security(5) mechanisms(5) pkix(7) algorithms(6) 31 }
+         */
+        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE256 = pkix_algorithms.Branch("31");
+
+        /**
+         * id-ecdsa-with-shake128 OBJECT IDENTIFIER  ::=  { iso(1)
+         *        identified-organization(3) dod(6) internet(1)
+         *        security(5) mechanisms(5) pkix(7) algorithms(6) 32 }
+         */
+        public static readonly DerObjectIdentifier id_ecdsa_with_shake128 = pkix_algorithms.Branch("32");
+
+        /**
+         * id-ecdsa-with-shake256 OBJECT IDENTIFIER  ::=  { iso(1)
+         *         identified-organization(3) dod(6) internet(1)
+         *         security(5) mechanisms(5) pkix(7) algorithms(6) 33 }
+         */
+        public static readonly DerObjectIdentifier id_ecdsa_with_shake256 = pkix_algorithms.Branch("33");
+
+        public static readonly DerObjectIdentifier id_pda = IdPkix.Branch("9");
+
+        //
+        // authority information access
+        //
+        public static readonly DerObjectIdentifier IdAD = IdPkix.Branch("48");
+        public static readonly DerObjectIdentifier IdADOcsp = IdAD.Branch("1");
+        public static readonly DerObjectIdentifier IdADCAIssuers = IdAD.Branch("2");
 
 		//
 		// OID for ocsp and crl uri in AuthorityInformationAccess extension
 		//
 		public static readonly DerObjectIdentifier OcspAccessMethod = IdADOcsp;
 		public static readonly DerObjectIdentifier CrlAccessMethod = IdADCAIssuers;
+
+        public static readonly DerObjectIdentifier id_ce = new DerObjectIdentifier("2.5.29");
     }
 }

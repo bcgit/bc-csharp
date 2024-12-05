@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	public class SymmetricEncIntegrityPacket
+    public class SymmetricEncIntegrityPacket
 		: InputStreamPacket
 	{
         /// <summary>
@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Bcpg
 		/// <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-symmetrically-encrypted-dat"/>
         public const int Version2 = 2;
 
-        private readonly int version;                               // V1, V2
+        private readonly int m_version;                               // V1, V2
         private readonly SymmetricKeyAlgorithmTag cipherAlgorithm;  // V2 Only
         private readonly AeadAlgorithmTag aeadAlgorithm;            // V2 Only
         private readonly int chunkSize;                             // V2 Only
@@ -28,12 +28,12 @@ namespace Org.BouncyCastle.Bcpg
 			BcpgInputStream bcpgIn)
 			: base(bcpgIn, PacketTag.SymmetricEncryptedIntegrityProtected)
         {
-			version = bcpgIn.ReadByte();
-            if (version == Version2)
+			m_version = bcpgIn.RequireByte();
+            if (m_version == Version2)
             {
-                cipherAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.ReadByte();
-                aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.ReadByte();
-                chunkSize = bcpgIn.ReadByte();
+                cipherAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
+                aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
+                chunkSize = bcpgIn.RequireByte();
 
                 salt = new byte[32];
                 if (bcpgIn.Read(salt, 0, 32) != salt.Length)
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public int Version
         {
-            get { return version; }
+            get { return m_version; }
         }
 
         public SymmetricKeyAlgorithmTag CipherAlgorithm

@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OtherKeyAttribute
@@ -9,41 +11,65 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return null;
             if (obj is OtherKeyAttribute otherKeyAttribute)
                 return otherKeyAttribute;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new OtherKeyAttribute(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static OtherKeyAttribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new OtherKeyAttribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private DerObjectIdentifier	keyAttrId;
-        private Asn1Encodable		keyAttr;
-
-		public OtherKeyAttribute(
-            Asn1Sequence seq)
+        public static OtherKeyAttribute GetOptional(Asn1Encodable element)
         {
-            keyAttrId = (DerObjectIdentifier) seq[0];
-            keyAttr = seq[1];
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is OtherKeyAttribute otherKeyAttribute)
+                return otherKeyAttribute;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+#pragma warning disable CS0618 // Type or member is obsolete
+                return new OtherKeyAttribute(asn1Sequence);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return null;
         }
 
-		public OtherKeyAttribute(
-            DerObjectIdentifier	keyAttrId,
-            Asn1Encodable		keyAttr)
+        public static OtherKeyAttribute GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            this.keyAttrId = keyAttrId;
-            this.keyAttr = keyAttr;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new OtherKeyAttribute(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-		public DerObjectIdentifier KeyAttrId
-		{
-			get { return keyAttrId; }
-		}
+        private readonly DerObjectIdentifier m_keyAttrId;
+        private readonly Asn1Encodable m_keyAttr;
 
-		public Asn1Encodable KeyAttr
-		{
-			get { return keyAttr; }
-		}
+        [Obsolete("Use 'GetInstance' instead")]
+        public OtherKeyAttribute(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_keyAttrId = DerObjectIdentifier.GetInstance(seq[0]);
+            m_keyAttr = count == 1 ? null : seq[1];
+        }
+
+        public OtherKeyAttribute(DerObjectIdentifier keyAttrId, Asn1Encodable keyAttr)
+        {
+            m_keyAttrId = keyAttrId ?? throw new ArgumentNullException(nameof(keyAttrId));
+            m_keyAttr = keyAttr;
+        }
+
+        public DerObjectIdentifier KeyAttrId => m_keyAttrId;
+
+        public Asn1Encodable KeyAttr => m_keyAttr;
 
 		/**
          * Produce an object suitable for an Asn1OutputStream.
@@ -56,7 +82,9 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-			return new DerSequence(keyAttrId, keyAttr);
+            return m_keyAttr == null
+                ?  new DerSequence(m_keyAttrId)
+                :  new DerSequence(m_keyAttrId, m_keyAttr);
         }
     }
 }

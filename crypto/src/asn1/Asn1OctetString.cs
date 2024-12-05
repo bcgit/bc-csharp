@@ -44,8 +44,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1OctetString converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is Asn1OctetString converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -75,6 +74,22 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1OctetString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
+        public static Asn1OctetString GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1OctetString existing)
+                return existing;
+
+            return null;
+        }
+
+        public static Asn1OctetString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1OctetString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
         internal readonly byte[] contents;
 
         /**
@@ -82,10 +97,7 @@ namespace Org.BouncyCastle.Asn1
          */
         internal Asn1OctetString(byte[] contents)
         {
-			if (null == contents)
-				throw new ArgumentNullException("contents");
-
-			this.contents = contents;
+			this.contents = contents ?? throw new ArgumentNullException(nameof(contents));
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -129,15 +141,10 @@ namespace Org.BouncyCastle.Asn1
 			return Arrays.GetHashCode(GetOctets());
         }
 
-		protected override bool Asn1Equals(
-			Asn1Object asn1Object)
+		protected override bool Asn1Equals(Asn1Object asn1Object)
 		{
-			DerOctetString other = asn1Object as DerOctetString;
-
-			if (other == null)
-				return false;
-
-			return Arrays.AreEqual(GetOctets(), other.GetOctets());
+            return asn1Object is Asn1OctetString that
+                && Arrays.AreEqual(this.GetOctets(), that.GetOctets());
 		}
 
 		public override string ToString()
@@ -145,9 +152,6 @@ namespace Org.BouncyCastle.Asn1
 			return "#" + Hex.ToHexString(contents);
 		}
 
-        internal static Asn1OctetString CreatePrimitive(byte[] contents)
-        {
-            return new DerOctetString(contents);
-        }
+        internal static Asn1OctetString CreatePrimitive(byte[] contents) => DerOctetString.WithContents(contents);
     }
 }

@@ -335,7 +335,7 @@ namespace Org.BouncyCastle.Pkix
                 }
 
                 SignedData sd = new SignedData(
-					new DerInteger(1),
+					DerInteger.One,
 					new DerSet(),
 					encInfo,
                     DerSet.FromVector(v),

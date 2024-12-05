@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CrlAnnContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CrlAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CrlAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

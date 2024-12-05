@@ -29,23 +29,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new ArchiveTimeStampSequence(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ArchiveTimeStampSequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new ArchiveTimeStampSequence(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static ArchiveTimeStampSequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ArchiveTimeStampSequence(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static ArchiveTimeStampSequence GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ArchiveTimeStampSequence(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_archiveTimeStampChains;
 
-        private ArchiveTimeStampSequence(Asn1Sequence sequence)
+        private ArchiveTimeStampSequence(Asn1Sequence seq)
         {
-            Asn1EncodableVector vector = new Asn1EncodableVector(sequence.Count);
-
-            foreach (var element in sequence)
-            {
-                vector.Add(ArchiveTimeStampChain.GetInstance(element));
-            }
-
-            m_archiveTimeStampChains = new DerSequence(vector);
+            m_archiveTimeStampChains = DerSequence.Map(seq, ArchiveTimeStampChain.GetInstance);
         }
 
         public ArchiveTimeStampSequence(ArchiveTimeStampChain archiveTimeStampChain)
@@ -55,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         public ArchiveTimeStampSequence(ArchiveTimeStampChain[] archiveTimeStampChains)
         {
-            m_archiveTimeStampChains = new DerSequence(archiveTimeStampChains);
+            m_archiveTimeStampChains = DerSequence.FromElements(archiveTimeStampChains);
         }
 
         /**
@@ -76,6 +70,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
          */
         public virtual ArchiveTimeStampSequence Append(ArchiveTimeStampChain chain)
         {
+            if (chain == null)
+                throw new ArgumentNullException(nameof(chain));
+
             Asn1EncodableVector v = new Asn1EncodableVector(m_archiveTimeStampChains.Count + 1);
 
             foreach (var element in m_archiveTimeStampChains)

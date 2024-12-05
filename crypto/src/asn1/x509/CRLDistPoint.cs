@@ -1,44 +1,41 @@
-using System;
 using System.Text;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class CrlDistPoint
         : Asn1Encodable
     {
-		public static CrlDistPoint GetInstance(Asn1TaggedObject obj, bool explicitly)
+        public static CrlDistPoint GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-		public static CrlDistPoint GetInstance(object obj)
-        {
-            if (obj is CrlDistPoint)
-                return (CrlDistPoint)obj;
             if (obj == null)
                 return null;
+            if (obj is CrlDistPoint crlDistPoint)
+                return crlDistPoint;
             return new CrlDistPoint(Asn1Sequence.GetInstance(obj));
-		}
+        }
+
+        public static CrlDistPoint GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new CrlDistPoint(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static CrlDistPoint GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlDistPoint(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public static CrlDistPoint FromExtensions(X509Extensions extensions)
         {
-            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CrlDistributionPoints));
+            return GetInstance(
+                X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CrlDistributionPoints));
         }
 
-        internal readonly Asn1Sequence seq;
+        private readonly Asn1Sequence m_seq;
 
-        private CrlDistPoint(
-            Asn1Sequence seq)
+        private CrlDistPoint(Asn1Sequence seq)
         {
-            this.seq = seq;
+            m_seq = seq;
         }
 
-		public CrlDistPoint(
-            DistributionPoint[] points)
+		public CrlDistPoint(DistributionPoint[] points)
         {
-			seq = new DerSequence(points);
+			m_seq = new DerSequence(points);
         }
 
         /**
@@ -46,10 +43,7 @@ namespace Org.BouncyCastle.Asn1.X509
          *
          * @return DistributionPoint[]
          */
-        public DistributionPoint[] GetDistributionPoints()
-        {
-            return seq.MapElements(DistributionPoint.GetInstance);
-        }
+        public DistributionPoint[] GetDistributionPoints() => m_seq.MapElements(DistributionPoint.GetInstance);
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -57,10 +51,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * CrlDistPoint ::= Sequence SIZE {1..MAX} OF DistributionPoint
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return seq;
-        }
+        public override Asn1Object ToAsn1Object() => m_seq;
 
 		public override string ToString()
 		{

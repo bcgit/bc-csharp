@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 
@@ -15,16 +17,21 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
         }
 
-        public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static IssuerAndSerialNumber GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IssuerAndSerialNumber(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private X509Name m_name;
         private DerInteger m_serialNumber;
 
         private IssuerAndSerialNumber(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_name = X509Name.GetInstance(seq[0]);
             m_serialNumber = DerInteger.GetInstance(seq[1]);
         }

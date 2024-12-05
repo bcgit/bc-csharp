@@ -18,6 +18,9 @@ namespace Org.BouncyCastle.Asn1.X500
         public static Rdn GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Rdn(Asn1Set.GetInstance(taggedObject, declaredExplicit));
 
+        public static Rdn GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Rdn(Asn1Set.GetTagged(taggedObject, declaredExplicit));
+
         private readonly Asn1Set m_values;
 
         private Rdn(Asn1Set values)

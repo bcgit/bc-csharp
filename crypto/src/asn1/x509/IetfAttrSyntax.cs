@@ -12,41 +12,52 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int ValueOid		= 2;
         public const int ValueUtf8		= 3;
 
-		internal readonly GeneralNames	policyAuthority;
-        internal readonly Asn1EncodableVector values = new Asn1EncodableVector();
-
-		internal int valueChoice = -1;
-
-		/**
-         *
-         */
-        public IetfAttrSyntax(
-			Asn1Sequence seq)
+        public static IetfAttrSyntax GetInstance(object obj)
         {
-            int i = 0;
+            if (obj == null)
+                return null;
+            if (obj is IetfAttrSyntax ietfAttrSyntax)
+                return ietfAttrSyntax;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new IetfAttrSyntax(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-            if (seq[0] is Asn1TaggedObject taggedObject)
+        public static IetfAttrSyntax GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new IetfAttrSyntax(Asn1Sequence.GetInstance(obj, isExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static IetfAttrSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new IetfAttrSyntax(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly GeneralNames m_policyAuthority;
+        private readonly Asn1Sequence m_values;
+        private readonly int m_valueChoice = -1;
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public IetfAttrSyntax(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_policyAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, GeneralNames.GetTagged);
+            m_values = Asn1Sequence.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            int valueChoice = -1;
+            foreach (var obj in m_values)
             {
-                policyAuthority = GeneralNames.GetInstance(taggedObject, false);
-                i++;
-            }
-            else if (seq.Count == 2)
-            { // VOMS fix
-                policyAuthority = GeneralNames.GetInstance(seq[0]);
-                i++;
-            }
-
-			if (!(seq[i] is Asn1Sequence))
-            {
-                throw new ArgumentException("Non-IetfAttrSyntax encoding");
-            }
-
-			seq = (Asn1Sequence) seq[i];
-
-			foreach (Asn1Object obj in seq)
-			{
                 int type;
-
                 if (obj is DerObjectIdentifier)
                 {
                     type = ValueOid;
@@ -68,62 +79,32 @@ namespace Org.BouncyCastle.Asn1.X509
                 {
                     valueChoice = type;
                 }
-
-				if (type != valueChoice)
+                else if (type != valueChoice)
                 {
                     throw new ArgumentException("Mix of value types in IetfAttrSyntax");
                 }
-
-				values.Add(obj);
             }
+
+            m_valueChoice = valueChoice;
         }
 
-		public GeneralNames PolicyAuthority
-		{
-			get { return policyAuthority; }
-		}
+        public GeneralNames PolicyAuthority => m_policyAuthority;
 
-		public int ValueType
-		{
-			get { return valueChoice; }
-		}
+        public int ValueType => m_valueChoice;
 
 		public object[] GetValues()
         {
-            if (this.ValueType == ValueOctets)
+            switch (m_valueChoice)
             {
-                Asn1OctetString[] tmp = new Asn1OctetString[values.Count];
-
-				for (int i = 0; i != tmp.Length; i++)
-                {
-                    tmp[i] = (Asn1OctetString) values[i];
-                }
-
-				return tmp;
+            case ValueOctets:
+                return m_values.MapElements(Asn1OctetString.GetInstance);
+            case ValueOid:
+                return m_values.MapElements(DerObjectIdentifier.GetInstance);
+            case ValueUtf8:
+                return m_values.MapElements(DerUtf8String.GetInstance);
+            default:
+                return Array.Empty<object>();
             }
-
-			if (this.ValueType == ValueOid)
-            {
-                DerObjectIdentifier[] tmp = new DerObjectIdentifier[values.Count];
-
-                for (int i = 0; i != tmp.Length; i++)
-                {
-                    tmp[i] = (DerObjectIdentifier) values[i];
-                }
-
-				return tmp;
-            }
-
-			{
-				DerUtf8String[] tmp = new DerUtf8String[values.Count];
-
-				for (int i = 0; i != tmp.Length; i++)
-				{
-					tmp[i] = (DerUtf8String) values[i];
-				}
-
-				return tmp;
-			}
         }
 
 		/**
@@ -144,8 +125,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptionalTagged(true, 0, policyAuthority);
-            v.Add(new DerSequence(values));
+            v.AddOptionalTagged(false, 0, m_policyAuthority);
+            v.Add(m_values);
             return new DerSequence(v);
         }
     }

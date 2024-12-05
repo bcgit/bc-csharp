@@ -453,7 +453,7 @@ namespace Org.BouncyCastle.Security
                 DerObjectIdentifier encOid = encScheme.Algorithm;
                 Asn1Object encParams = encScheme.Parameters.ToAsn1Object();
 
-                Pbkdf2Params pbeParams = Pbkdf2Params.GetInstance(s2p.KeyDerivationFunc.Parameters.ToAsn1Object());
+                Pbkdf2Params pbeParams = Pbkdf2Params.GetInstance(s2p.KeyDerivationFunc.Parameters);
                 IDigest digest = DigestUtilities.GetDigest(pbeParams.Prf.Algorithm);
 
                 byte[] iv;

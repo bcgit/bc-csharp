@@ -23,10 +23,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new OobCert(X509CertificateStructure.GetInstance(obj));
         }
 
-        public static new OobCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static new OobCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static new OobCert GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         [Obsolete("Use constructor from Asn1TaggedObject instead")]
         public OobCert(int type, Asn1Encodable otherCert)

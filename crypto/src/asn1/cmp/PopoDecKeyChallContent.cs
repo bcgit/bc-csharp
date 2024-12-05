@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PopoDecKeyChallContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PopoDecKeyChallContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PopoDecKeyChallContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PopoDecKeyChallContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PopoDecKeyChallContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PopoDecKeyChallContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PopoDecKeyChallContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

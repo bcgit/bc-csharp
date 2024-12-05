@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.picnic." + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/picnic", name)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)

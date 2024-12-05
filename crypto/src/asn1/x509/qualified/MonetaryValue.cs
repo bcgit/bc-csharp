@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509.Qualified
 {
@@ -18,65 +17,49 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     public class MonetaryValue
         : Asn1Encodable
     {
-        internal Iso4217CurrencyCode	currency;
-        internal DerInteger				amount;
-        internal DerInteger				exponent;
-
-		public static MonetaryValue GetInstance(
-            object obj)
+        public static MonetaryValue GetInstance(object obj)
         {
-            if (obj == null || obj is MonetaryValue)
-            {
-                return (MonetaryValue) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new MonetaryValue(Asn1Sequence.GetInstance(obj));
-            }
-
-			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		private MonetaryValue(
-            Asn1Sequence seq)
-        {
-			if (seq.Count != 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
-
-            currency = Iso4217CurrencyCode.GetInstance(seq[0]);
-            amount = DerInteger.GetInstance(seq[1]);
-            exponent = DerInteger.GetInstance(seq[2]);
+            if (obj == null)
+                return null;
+            if (obj is MonetaryValue monetaryValue)
+                return monetaryValue;
+            return new MonetaryValue(Asn1Sequence.GetInstance(obj));
         }
 
-		public MonetaryValue(
-            Iso4217CurrencyCode	currency,
-            int					amount,
-            int					exponent)
+        public static MonetaryValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MonetaryValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static MonetaryValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MonetaryValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Iso4217CurrencyCode m_currency;
+        private readonly DerInteger m_amount;
+        private readonly DerInteger m_exponent;
+
+        private MonetaryValue(Asn1Sequence seq)
         {
-            this.currency = currency;
-            this.amount = new DerInteger(amount);
-            this.exponent = new DerInteger(exponent);
+            int count = seq.Count;
+            if (count != 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_currency = Iso4217CurrencyCode.GetInstance(seq[0]);
+            m_amount = DerInteger.GetInstance(seq[1]);
+            m_exponent = DerInteger.GetInstance(seq[2]);
         }
 
-		public Iso4217CurrencyCode Currency
-		{
-			get { return currency; }
-		}
-
-		public BigInteger Amount
-		{
-			get { return amount.Value; }
-		}
-
-		public BigInteger Exponent
-		{
-			get { return exponent.Value; }
-		}
-
-		public override Asn1Object ToAsn1Object()
+        public MonetaryValue(Iso4217CurrencyCode currency, int amount, int exponent)
         {
-			return new DerSequence(currency, amount, exponent);
+            m_currency = currency ?? throw new ArgumentNullException(nameof(currency));
+            m_amount = new DerInteger(amount);
+            m_exponent = new DerInteger(exponent);
         }
+
+		public Iso4217CurrencyCode Currency => m_currency;
+
+        public BigInteger Amount => m_amount.Value;
+
+        public BigInteger Exponent => m_exponent.Value;
+
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_currency, m_amount, m_exponent);
     }
 }

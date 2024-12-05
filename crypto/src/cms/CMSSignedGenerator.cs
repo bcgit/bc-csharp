@@ -120,51 +120,34 @@ namespace Org.BouncyCastle.Cms
                 : DerSet.FromVector(attr.ToAsn1EncodableVector());
         }
 
-        public void AddAttributeCertificate(X509V2AttributeCertificate attrCert)
-        {
-            _certs.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
-        }
+        public void AddAttributeCertificate(X509V2AttributeCertificate attrCert) =>
+            CmsUtilities.CollectAttributeCertificate(_certs, attrCert);
 
-        public void AddAttributeCertificates(IStore<X509V2AttributeCertificate> attrCertStore)
-        {
-            _certs.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(attrCertStore));
-        }
+        public void AddAttributeCertificates(IStore<X509V2AttributeCertificate> attrCertStore) =>
+            CmsUtilities.CollectAttributeCertificates(_certs, attrCertStore);
 
-        public void AddCertificate(X509Certificate cert)
-        {
-            _certs.Add(cert.CertificateStructure);
-        }
+        public void AddCertificate(X509Certificate cert) => CmsUtilities.CollectCertificate(_certs, cert);
 
-        public void AddCertificates(IStore<X509Certificate> certStore)
-        {
-            _certs.AddRange(CmsUtilities.GetCertificatesFromStore(certStore));
-        }
+        public void AddCertificates(IStore<X509Certificate> certStore) =>
+            CmsUtilities.CollectCertificates(_certs, certStore);
 
-        public void AddCrl(X509Crl crl)
-        {
-            _crls.Add(crl.CertificateList);
-        }
+        public void AddCrl(X509Crl crl) => CmsUtilities.CollectCrl(_crls, crl);
 
-        public void AddCrls(IStore<X509Crl> crlStore)
-        {
-            _crls.AddRange(CmsUtilities.GetCrlsFromStore(crlStore));
-        }
+        public void AddCrls(IStore<X509Crl> crlStore) => CmsUtilities.CollectCrls(_crls, crlStore);
 
-        public void AddOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
-        {
-            CmsUtilities.ValidateOtherRevocationInfo(otherRevocationInfo);
-            _crls.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
-        }
+        public void AddOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo) =>
+            CmsUtilities.CollectOtherRevocationInfo(_crls, otherRevocationInfo);
 
-        public void AddOtherRevocationInfos(IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
-        {
-            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfoStore));
-        }
+        public void AddOtherRevocationInfo(DerObjectIdentifier otherRevInfoFormat, Asn1Encodable otherRevInfo) =>
+            CmsUtilities.CollectOtherRevocationInfo(_crls, otherRevInfoFormat, otherRevInfo);
+
+        public void AddOtherRevocationInfos(IStore<OtherRevocationInfoFormat> otherRevocationInfoStore) =>
+            CmsUtilities.CollectOtherRevocationInfos(_crls, otherRevocationInfoStore);
 
         public void AddOtherRevocationInfos(DerObjectIdentifier otherRevInfoFormat,
             IStore<Asn1Encodable> otherRevInfoStore)
         {
-            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevInfoStore, otherRevInfoFormat));
+            CmsUtilities.CollectOtherRevocationInfos(_crls, otherRevInfoFormat, otherRevInfoStore);
         }
 
         /**

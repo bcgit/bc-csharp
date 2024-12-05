@@ -24,13 +24,6 @@ namespace Org.BouncyCastle.Asn1.Tsp
     public class ArchiveTimeStamp
         : Asn1Encodable
     {
-        /**
-         * Return an ArchiveTimestamp from the given object.
-         *
-         * @param obj the object we want converted.
-         * @return an ArchiveTimestamp instance, or null.
-         * @throws IllegalArgumentException if the object cannot be converted.
-         */
         public static ArchiveTimeStamp GetInstance(object obj)
         {
             if (obj == null)
@@ -40,15 +33,31 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new ArchiveTimeStamp(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ArchiveTimeStamp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new ArchiveTimeStamp(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static ArchiveTimeStamp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ArchiveTimeStamp(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static ArchiveTimeStamp GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ArchiveTimeStamp(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_digestAlgorithm;
         private readonly Attributes m_attributes;
         private readonly Asn1Sequence m_reducedHashTree;
         private readonly ContentInfo m_timeStamp;
+
+        private ArchiveTimeStamp(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_digestAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, AlgorithmIdentifier.GetTagged);
+            m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Attributes.GetTagged);
+            m_reducedHashTree = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, Asn1Sequence.GetTagged);
+            m_timeStamp = ContentInfo.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
         public ArchiveTimeStamp(AlgorithmIdentifier digestAlgorithm, PartialHashtree[] reducedHashTree,
             ContentInfo timeStamp)
@@ -66,52 +75,8 @@ namespace Org.BouncyCastle.Asn1.Tsp
         {
             m_digestAlgorithm = digestAlgorithm;
             m_attributes = attributes;
-            if (reducedHashTree != null)
-            {
-                m_reducedHashTree = new DerSequence(reducedHashTree);
-            }
-            else
-            {
-                m_reducedHashTree = null;
-            }
-            m_timeStamp = timeStamp;
-        }
-
-        private ArchiveTimeStamp(Asn1Sequence sequence)
-        {
-            if (sequence.Count < 1 || sequence.Count > 4)
-                throw new ArgumentException("wrong sequence size in constructor: " + sequence.Count, nameof(sequence));
-
-            AlgorithmIdentifier digAlg = null;
-            Attributes attrs = null;
-            Asn1Sequence rHashTree = null;
-            for (int i = 0; i < sequence.Count - 1; i++)
-            {
-                Asn1Encodable obj = sequence[i];
-
-                if (obj is Asn1TaggedObject taggedObject)
-                {
-                    switch (taggedObject.TagNo)
-                    {
-                    case 0:
-                        digAlg = AlgorithmIdentifier.GetInstance(taggedObject, false);
-                        break;
-                    case 1:
-                        attrs = Attributes.GetInstance(taggedObject, false);
-                        break;
-                    case 2:
-                        rHashTree = Asn1Sequence.GetInstance(taggedObject, false);
-                        break;
-                    default:
-                        throw new ArgumentException("invalid tag no in constructor: " + taggedObject.TagNo);
-                    }
-                }
-            }
-
-            m_digestAlgorithm = digAlg;
-            m_attributes = attrs;
-            m_reducedHashTree = rHashTree;
-            m_timeStamp = ContentInfo.GetInstance(sequence[sequence.Count - 1]);
+            m_reducedHashTree = reducedHashTree == null ? null : new DerSequence(reducedHashTree);
+            m_timeStamp = timeStamp ?? throw new ArgumentNullException(nameof(timeStamp));
         }
 
         public virtual AlgorithmIdentifier GetDigestAlgorithmIdentifier() => m_digestAlgorithm
@@ -153,13 +118,8 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return PartialHashtree.GetInstance(m_reducedHashTree[0]);
         }
 
-        public virtual PartialHashtree[] GetReducedHashTree()
-        {
-            if (m_reducedHashTree == null)
-                return null;
-
-            return m_reducedHashTree.MapElements(PartialHashtree.GetInstance);
-        }
+        public virtual PartialHashtree[] GetReducedHashTree() =>
+            m_reducedHashTree?.MapElements(PartialHashtree.GetInstance);
 
         public virtual ContentInfo TimeStamp => m_timeStamp;
 

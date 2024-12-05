@@ -1,11 +1,10 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X500;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 {
-	/**
+    /**
 	* Names of authorities which are responsible for the administration of title
 	* registers.
 	* 
@@ -20,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 	* @see Org.BouncyCastle.Asn1.IsisMtt.X509.AdmissionSyntax
 	* 
 	*/
-	public class NamingAuthority
+    public class NamingAuthority
 		: Asn1Encodable
 	{
 		/**
@@ -29,30 +28,29 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		* �Recht, Wirtschaft, Steuern� (�Law, Economy, Taxes�) is registered as the
 		* first naming authority under the OID id-isismtt-at-namingAuthorities.
 		*/
-		public static readonly DerObjectIdentifier IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern
-			= new DerObjectIdentifier(IsisMttObjectIdentifiers.IdIsisMttATNamingAuthorities + ".1");
-
-		private readonly DerObjectIdentifier	namingAuthorityID;
-		private readonly string					namingAuthorityUrl;
-		private readonly DirectoryString		namingAuthorityText;
+		public static readonly DerObjectIdentifier IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern =
+			IsisMttObjectIdentifiers.IdIsisMttATNamingAuthorities.Branch("1");
 
 		public static NamingAuthority GetInstance(object obj)
 		{
-			if (obj == null || obj is NamingAuthority)
-				return (NamingAuthority) obj;
-
-			if (obj is Asn1Sequence seq)
-				return new NamingAuthority(seq);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is NamingAuthority namingAuthority)
+                return namingAuthority;
+            return new NamingAuthority(Asn1Sequence.GetInstance(obj));
 		}
 
-		public static NamingAuthority GetInstance(Asn1TaggedObject obj, bool isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-		}
+		public static NamingAuthority GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+			new NamingAuthority(Asn1Sequence.GetInstance(obj, isExplicit));
 
-		/**
+        public static NamingAuthority GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new NamingAuthority(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerObjectIdentifier m_namingAuthorityID;
+        private readonly DerIA5String m_namingAuthorityUrl;
+        private readonly DirectoryString m_namingAuthorityText;
+
+        /**
 		* Constructor from Asn1Sequence.
 		* <p/>
 		* <p/>
@@ -67,90 +65,38 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private NamingAuthority(Asn1Sequence seq)
+        private NamingAuthority(Asn1Sequence seq)
 		{
-			if (seq.Count > 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			var e = seq.GetEnumerator();
+			m_namingAuthorityID = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
+            m_namingAuthorityUrl = Asn1Utilities.ReadOptional(seq, ref pos, DerIA5String.GetOptional);
+            m_namingAuthorityText = Asn1Utilities.ReadOptional(seq, ref pos, DirectoryString.GetOptional);
 
-			if (e.MoveNext())
-			{
-				Asn1Encodable o = e.Current;
-				if (o is DerObjectIdentifier oid)
-				{
-					namingAuthorityID = oid;
-				}
-				else if (o is DerIA5String ia5)
-				{
-					namingAuthorityUrl = ia5.GetString();
-				}
-				else if (o is IAsn1String)
-				{
-					namingAuthorityText = DirectoryString.GetInstance(o);
-				}
-				else
-				{
-                    throw new ArgumentException("Bad object encountered: " + Platform.GetTypeName(o));
-				}
-			}
-
-			if (e.MoveNext())
-			{
-				Asn1Encodable o = e.Current;
-				if (o is DerIA5String ia5)
-				{
-					namingAuthorityUrl = ia5.GetString();
-				}
-				else if (o is IAsn1String)
-				{
-					namingAuthorityText = DirectoryString.GetInstance(o);
-				}
-				else
-				{
-                    throw new ArgumentException("Bad object encountered: " + Platform.GetTypeName(o));
-				}
-			}
-
-			if (e.MoveNext())
-			{
-				Asn1Encodable o = e.Current;
-				if (o is IAsn1String)
-				{
-					namingAuthorityText = DirectoryString.GetInstance(o);
-				}
-				else
-				{
-                    throw new ArgumentException("Bad object encountered: " + Platform.GetTypeName(o));
-				}
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		/**
 		* @return Returns the namingAuthorityID.
 		*/
-		public virtual DerObjectIdentifier NamingAuthorityID
-		{
-			get { return namingAuthorityID; }
-		}
+		public virtual DerObjectIdentifier NamingAuthorityID => m_namingAuthorityID;
 
 		/**
 		* @return Returns the namingAuthorityText.
 		*/
-		public virtual DirectoryString NamingAuthorityText
-		{
-			get { return namingAuthorityText; }
-		}
+		public virtual DirectoryString NamingAuthorityText => m_namingAuthorityText;
 
 		/**
 		* @return Returns the namingAuthorityUrl.
 		*/
-		public virtual string NamingAuthorityUrl
-		{
-			get { return namingAuthorityUrl; }
-		}
+		public virtual string NamingAuthorityUrl => m_namingAuthorityUrl?.GetString();
 
-		/**
+        public virtual DerIA5String NamingAuthorityUrlData => m_namingAuthorityUrl;
+
+        /**
 		* Constructor from given details.
 		* <p/>
 		* All parameters can be combined.
@@ -159,17 +105,15 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		* @param namingAuthorityUrl  URL for naming authority.
 		* @param namingAuthorityText Textual representation of naming authority.
 		*/
-		public NamingAuthority(
-			DerObjectIdentifier	namingAuthorityID,
-			string				namingAuthorityUrl,
-			DirectoryString		namingAuthorityText)
-		{
-			this.namingAuthorityID = namingAuthorityID;
-			this.namingAuthorityUrl = namingAuthorityUrl;
-			this.namingAuthorityText = namingAuthorityText;
-		}
+        public NamingAuthority(DerObjectIdentifier namingAuthorityID, string namingAuthorityUrl,
+			DirectoryString namingAuthorityText)
+        {
+            m_namingAuthorityID = namingAuthorityID;
+            m_namingAuthorityUrl = namingAuthorityUrl == null ? null : new DerIA5String(namingAuthorityUrl, true);
+            m_namingAuthorityText = namingAuthorityText;
+        }
 
-		/**
+        /**
 		* Produce an object suitable for an Asn1OutputStream.
 		* <p/>
 		* Returns:
@@ -185,17 +129,12 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @return an Asn1Object
 		*/
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.AddOptional(namingAuthorityID);
-
-			if (namingAuthorityUrl != null)
-			{
-				v.Add(new DerIA5String(namingAuthorityUrl, true));
-			}
-
-            v.AddOptional(namingAuthorityText);
+            v.AddOptional(m_namingAuthorityID);
+            v.AddOptional(m_namingAuthorityUrl);
+            v.AddOptional(m_namingAuthorityText);
 			return new DerSequence(v);
 		}
 	}

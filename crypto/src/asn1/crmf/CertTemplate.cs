@@ -7,123 +7,98 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class CertTemplate
         : Asn1Encodable
     {
-        private readonly Asn1Sequence seq;
+        public static CertTemplate GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CertTemplate certTemplate)
+                return certTemplate;
+            return new CertTemplate(Asn1Sequence.GetInstance(obj));
+        }
 
-        private readonly DerInteger version;
-        private readonly DerInteger serialNumber;
-        private readonly AlgorithmIdentifier signingAlg;
-        private readonly X509Name issuer;
-        private readonly OptionalValidity validity;
-        private readonly X509Name subject;
-        private readonly SubjectPublicKeyInfo publicKey;
-        private readonly DerBitString issuerUID;
-        private readonly DerBitString subjectUID;
-        private readonly X509Extensions extensions;
+        public static CertTemplate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertTemplate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertTemplate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertTemplate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1Sequence m_seq;
+
+        private readonly DerInteger m_version;
+        private readonly DerInteger m_serialNumber;
+        private readonly AlgorithmIdentifier m_signingAlg;
+        private readonly X509Name m_issuer;
+        private readonly OptionalValidity m_validity;
+        private readonly X509Name m_subject;
+        private readonly SubjectPublicKeyInfo m_publicKey;
+        private readonly DerBitString m_issuerUID;
+        private readonly DerBitString m_subjectUID;
+        private readonly X509Extensions m_extensions;
 
         private CertTemplate(Asn1Sequence seq)
         {
-            this.seq = seq;
+            int count = seq.Count;
+            if (count < 0 || count > 10)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            foreach (Asn1TaggedObject tObj in seq)
-            {
-                switch (tObj.TagNo)
-                {
-                case 0:
-                    version = DerInteger.GetInstance(tObj, false);
-                    break;
-                case 1:
-                    serialNumber = DerInteger.GetInstance(tObj, false);
-                    break;
-                case 2:
-                    signingAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                    break;
-                case 3:
-                    issuer = X509Name.GetInstance(tObj, true); // CHOICE
-                    break;
-                case 4:
-                    validity = OptionalValidity.GetInstance(Asn1Sequence.GetInstance(tObj, false));
-                    break;
-                case 5:
-                    subject = X509Name.GetInstance(tObj, true); // CHOICE
-                    break;
-                case 6:
-                    publicKey = SubjectPublicKeyInfo.GetInstance(tObj, false);
-                    break;
-                case 7:
-                    issuerUID = DerBitString.GetInstance(tObj, false);
-                    break;
-                case 8:
-                    subjectUID = DerBitString.GetInstance(tObj, false);
-                    break;
-                case 9:
-                    extensions = X509Extensions.GetInstance(tObj, false);
-                    break;
-                default:
-                    throw new ArgumentException("unknown tag: " + tObj.TagNo, "seq");
-                }
-            }
+            int pos = 0;
+
+            m_version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, DerInteger.GetTagged);
+            m_serialNumber = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerInteger.GetTagged);
+            m_signingAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, AlgorithmIdentifier.GetTagged);
+            m_issuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, X509Name.GetTagged); // CHOICE Name
+            m_validity = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, OptionalValidity.GetTagged);
+            m_subject = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, true, X509Name.GetTagged); // CHOICE Name
+            m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 6, false, SubjectPublicKeyInfo.GetTagged);
+            m_issuerUID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 7, false, DerBitString.GetTagged);
+            m_subjectUID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 8, false, DerBitString.GetTagged);
+            m_extensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 9, false, X509Extensions.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            Rfc4211Asn1Utilities.CheckValidityFieldPresent(m_validity);
+
+            m_seq = seq;
         }
 
-        public static CertTemplate GetInstance(object obj)
+        public CertTemplate(DerInteger version, DerInteger serialNumber, AlgorithmIdentifier signingAlg,
+            X509Name issuer, OptionalValidity validity, X509Name subject, SubjectPublicKeyInfo publicKey,
+            DerBitString issuerUID, DerBitString subjectUID, X509Extensions extensions)
         {
-            if (obj is CertTemplate)
-                return (CertTemplate)obj;
+            m_version = version;
+            m_serialNumber = serialNumber;
+            m_signingAlg = signingAlg;
+            m_issuer = issuer;
+            m_validity = Rfc4211Asn1Utilities.CheckValidityFieldPresent(validity);
+            m_subject = subject;
+            m_publicKey = publicKey;
+            m_issuerUID = issuerUID;
+            m_subjectUID = subjectUID;
+            m_extensions = extensions;
 
-            if (obj != null)
-                return new CertTemplate(Asn1Sequence.GetInstance(obj));
-
-            return null;
+            m_seq = CreateSequence();
         }
 
-        public virtual int Version
-        {
-            get { return version.IntValueExact; }
-        }
+        public virtual int Version => m_version.IntValueExact;
 
-        public virtual DerInteger SerialNumber
-        {
-            get { return serialNumber; }
-        }
+        public virtual DerInteger SerialNumber => m_serialNumber;
 
-        public virtual AlgorithmIdentifier SigningAlg
-        {
-            get { return signingAlg; }
-        }
+        public virtual AlgorithmIdentifier SigningAlg => m_signingAlg;
 
-        public virtual X509Name Issuer
-        {
-            get { return issuer; }
-        }
+        public virtual X509Name Issuer => m_issuer;
 
-        public virtual OptionalValidity Validity
-        {
-            get { return validity; }
-        }
+        public virtual OptionalValidity Validity => m_validity;
 
-        public virtual X509Name Subject
-        {
-            get { return subject; }
-        }
+        public virtual X509Name Subject => m_subject;
 
-        public virtual SubjectPublicKeyInfo PublicKey
-        {
-            get { return publicKey; }
-        }
+        public virtual SubjectPublicKeyInfo PublicKey => m_publicKey;
 
-        public virtual DerBitString IssuerUID
-        {
-            get { return issuerUID; }
-        }
+        public virtual DerBitString IssuerUID => m_issuerUID;
 
-        public virtual DerBitString SubjectUID
-        {
-            get { return subjectUID; }
-        }
+        public virtual DerBitString SubjectUID => m_subjectUID;
 
-        public virtual X509Extensions Extensions
-        {
-            get { return extensions; }
-        }
+        public virtual X509Extensions Extensions => m_extensions;
 
         /**
          * <pre>
@@ -141,9 +116,22 @@ namespace Org.BouncyCastle.Asn1.Crmf
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object() => m_seq;
+
+        private Asn1Sequence CreateSequence()
         {
-            return seq;
+            Asn1EncodableVector v = new Asn1EncodableVector(10);
+            v.AddOptionalTagged(false, 0, m_version);
+            v.AddOptionalTagged(false, 1, m_serialNumber);
+            v.AddOptionalTagged(false, 2, m_signingAlg);
+            v.AddOptionalTagged(true, 3, m_issuer); // CHOICE
+            v.AddOptionalTagged(false, 4, m_validity);
+            v.AddOptionalTagged(true, 5, m_subject); // CHOICE
+            v.AddOptionalTagged(false, 6, m_publicKey);
+            v.AddOptionalTagged(false, 7, m_issuerUID);
+            v.AddOptionalTagged(false, 8, m_subjectUID);
+            v.AddOptionalTagged(false, 9, m_extensions);
+            return new DerSequence(v);
         }
     }
 }

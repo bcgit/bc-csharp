@@ -12,12 +12,12 @@ namespace Org.BouncyCastle.Asn1.X509
 	 *       OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )
 	 * </pre>
 	 */
-	public sealed class PolicyQualifierID : DerObjectIdentifier
+	public sealed class PolicyQualifierID
+		: DerObjectIdentifier
 	{
-		private const string IdQt = "1.3.6.1.5.5.7.2";
+		private static readonly string IdQt = X509ObjectIdentifiers.IdPkix.Branch("2").GetID();
 
-		private PolicyQualifierID(
-			string id)
+		private PolicyQualifierID(string id)
 			: base(id)
 		{
 		}

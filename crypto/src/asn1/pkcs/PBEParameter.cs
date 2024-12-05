@@ -4,12 +4,9 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
-	public class PbeParameter
+    public class PbeParameter
 		: Asn1Encodable
 	{
-		private readonly Asn1OctetString	salt;
-		private readonly DerInteger			iterationCount;
-
         public static PbeParameter GetInstance(object obj)
         {
             if (obj == null)
@@ -19,34 +16,35 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new PbeParameter(Asn1Sequence.GetInstance(obj));
         }
 
-		private PbeParameter(Asn1Sequence seq)
-		{
-			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", "seq");
+        public static PbeParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbeParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-			salt = Asn1OctetString.GetInstance(seq[0]);
-			iterationCount = DerInteger.GetInstance(seq[1]);
+        public static PbeParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbeParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1OctetString m_salt;
+        private readonly DerInteger m_iterationCount;
+
+        private PbeParameter(Asn1Sequence seq)
+		{
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_salt = Asn1OctetString.GetInstance(seq[0]);
+			m_iterationCount = DerInteger.GetInstance(seq[1]);
 		}
 
 		public PbeParameter(byte[] salt, int iterationCount)
 		{
-			this.salt = new DerOctetString(salt);
-			this.iterationCount = new DerInteger(iterationCount);
+			m_salt = DerOctetString.FromContents(salt);
+			m_iterationCount = new DerInteger(iterationCount);
 		}
 
-		public byte[] GetSalt()
-		{
-			return salt.GetOctets();
-		}
+		public byte[] GetSalt() => m_salt.GetOctets();
 
-		public BigInteger IterationCount
-		{
-			get { return iterationCount.Value; }
-		}
+		public BigInteger IterationCount => m_iterationCount.Value;
 
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(salt, iterationCount);
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_salt, m_iterationCount);
 	}
 }

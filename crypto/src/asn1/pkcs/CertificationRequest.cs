@@ -14,31 +14,35 @@ namespace Org.BouncyCastle.Asn1.Pkcs
      * }
      * </pre>
      */
+    // TODO[api] Stop subclassing this class
     public class CertificationRequest
         : Asn1Encodable
     {
-        protected CertificationRequestInfo	reqInfo;
-        protected AlgorithmIdentifier		sigAlgId;
-        protected DerBitString				sigBits;
-
-		public static CertificationRequest GetInstance(
-			object obj)
+		public static CertificationRequest GetInstance(object obj)
 		{
             if (obj == null)
                 return null;
-            if (obj is CertificationRequest)
-				return (CertificationRequest)obj;
+            if (obj is CertificationRequest certificationRequest)
+				return certificationRequest;
             return new CertificationRequest(Asn1Sequence.GetInstance(obj));
 		}
 
-		protected CertificationRequest()
+        public static CertificationRequest GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificationRequest(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertificationRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificationRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        protected CertificationRequestInfo reqInfo;
+        protected AlgorithmIdentifier sigAlgId;
+        protected DerBitString sigBits;
+
+        protected CertificationRequest()
         {
         }
 
-		public CertificationRequest(
-            CertificationRequestInfo	requestInfo,
-            AlgorithmIdentifier			algorithm,
-            DerBitString				signature)
+        public CertificationRequest(CertificationRequestInfo requestInfo, AlgorithmIdentifier algorithm,
+            DerBitString signature)
         {
             this.reqInfo = requestInfo;
             this.sigAlgId = algorithm;
@@ -55,29 +59,15 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             sigBits = DerBitString.GetInstance(seq[2]);
         }
 
-		public CertificationRequestInfo GetCertificationRequestInfo()
-        {
-            return reqInfo;
-        }
+        // TODO[api] Rename as a property
+        public CertificationRequestInfo GetCertificationRequestInfo() => reqInfo;
 
-		public AlgorithmIdentifier SignatureAlgorithm
-		{
-			get { return sigAlgId; }
-		}
+		public AlgorithmIdentifier SignatureAlgorithm => sigAlgId;
 
-		public DerBitString Signature
-		{
-			get { return sigBits; }
-		}
+		public DerBitString Signature => sigBits;
 
-        public byte[] GetSignatureOctets()
-        {
-            return sigBits.GetOctets();
-        }
+        public byte[] GetSignatureOctets() => sigBits.GetOctets();
 
-        public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(reqInfo, sigAlgId, sigBits);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(reqInfo, sigAlgId, sigBits);
     }
 }

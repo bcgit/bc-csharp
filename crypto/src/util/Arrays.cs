@@ -763,37 +763,53 @@ namespace Org.BouncyCastle.Utilities
 
         public static void Fill(byte[] buf, byte b)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(buf, b);
+#else
             int i = buf.Length;
             while (i > 0)
             {
                 buf[--i] = b;
             }
+#endif
         }
 
         [CLSCompliant(false)]
         public static void Fill(ulong[] buf, ulong b)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(buf, b);
+#else
             int i = buf.Length;
             while (i > 0)
             {
                 buf[--i] = b;
             }
+#endif
         }
 
         public static void Fill(byte[] buf, int from, int to, byte b)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(buf, b, from, count: to - from);
+#else
             for (int i = from; i < to; ++i)
             {
                 buf[i] = b;
             }
+#endif
         }
 
         public static void Fill<T>(T[] ts, T t)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(ts, t);
+#else
             for (int i = 0; i < ts.Length; ++i)
             {
                 ts[i] = t;
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1151,6 +1167,28 @@ namespace Org.BouncyCastle.Utilities
         public static bool IsNullOrEmpty(object[] array)
         {
             return null == array || array.Length < 1;
+        }
+
+        public static void ValidateRange<T>(T[] buf, int from, int to)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+            if ((from | (buf.Length - from)) < 0)
+                throw new ArgumentOutOfRangeException(nameof(from));
+            if (((to - from) | (buf.Length - to)) < 0)
+                throw new ArgumentOutOfRangeException(nameof(to));
+        }
+
+        public static void ValidateSegment<T>(T[] buf, int off, int len)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+            int available = buf.Length - off;
+            if ((off | available) < 0)
+                throw new ArgumentOutOfRangeException(nameof(off));
+            int remaining = available - len;
+            if ((len | remaining) < 0)
+                throw new ArgumentOutOfRangeException(nameof(len));
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

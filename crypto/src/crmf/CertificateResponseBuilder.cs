@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Crmf
             if (m_rspInfo != null)
                 throw new InvalidOperationException("response info already set");
 
-            m_rspInfo = new DerOctetString(responseInfo);
+            m_rspInfo = DerOctetString.FromContents(responseInfo);
 
             return this;
         }

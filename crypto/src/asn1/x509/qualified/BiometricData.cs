@@ -17,88 +17,69 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     public class BiometricData
         : Asn1Encodable
     {
-        private readonly TypeOfBiometricData typeOfBiometricData;
-        private readonly AlgorithmIdentifier hashAlgorithm;
-        private readonly Asn1OctetString     biometricDataHash;
-        private readonly DerIA5String        sourceDataUri;
-
-        public static BiometricData GetInstance(
-            object obj)
+        public static BiometricData GetInstance(object obj)
         {
-            if (obj == null || obj is BiometricData)
-            {
-                return (BiometricData)obj;
-            }
-
-            if (obj is Asn1Sequence)
-            {
-				return new BiometricData(Asn1Sequence.GetInstance(obj));
-            }
-
-			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		private BiometricData(
-			Asn1Sequence seq)
-        {
-			typeOfBiometricData = TypeOfBiometricData.GetInstance(seq[0]);
-			hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[1]);
-			biometricDataHash = Asn1OctetString.GetInstance(seq[2]);
-
-			if (seq.Count > 3)
-			{
-				sourceDataUri = DerIA5String.GetInstance(seq[3]);
-			}
+            if (obj == null)
+                return null;
+            if (obj is BiometricData biometricData)
+                return biometricData;
+            return new BiometricData(Asn1Sequence.GetInstance(obj));
         }
 
-		public BiometricData(
-            TypeOfBiometricData	typeOfBiometricData,
-            AlgorithmIdentifier	hashAlgorithm,
-            Asn1OctetString		biometricDataHash,
-            DerIA5String		sourceDataUri)
+        public static BiometricData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new BiometricData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static BiometricData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new BiometricData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly TypeOfBiometricData m_typeOfBiometricData;
+        private readonly AlgorithmIdentifier m_hashAlgorithm;
+        private readonly Asn1OctetString m_biometricDataHash;
+        private readonly DerIA5String m_sourceDataUri;
+
+        private BiometricData(Asn1Sequence seq)
         {
-            this.typeOfBiometricData = typeOfBiometricData;
-            this.hashAlgorithm = hashAlgorithm;
-            this.biometricDataHash = biometricDataHash;
-            this.sourceDataUri = sourceDataUri;
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_typeOfBiometricData = TypeOfBiometricData.GetInstance(seq[pos++]);
+			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+			m_biometricDataHash = Asn1OctetString.GetInstance(seq[pos++]);
+            m_sourceDataUri = Asn1Utilities.ReadOptional(seq, ref pos, DerIA5String.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public BiometricData(
-            TypeOfBiometricData	typeOfBiometricData,
-            AlgorithmIdentifier	hashAlgorithm,
-            Asn1OctetString		biometricDataHash)
+        public BiometricData(TypeOfBiometricData typeOfBiometricData, AlgorithmIdentifier hashAlgorithm,
+            Asn1OctetString biometricDataHash)
+            : this(typeOfBiometricData, hashAlgorithm, biometricDataHash, null)
         {
-            this.typeOfBiometricData = typeOfBiometricData;
-            this.hashAlgorithm = hashAlgorithm;
-            this.biometricDataHash = biometricDataHash;
-            this.sourceDataUri = null;
         }
 
-        public TypeOfBiometricData TypeOfBiometricData
+        public BiometricData(TypeOfBiometricData typeOfBiometricData, AlgorithmIdentifier hashAlgorithm,
+            Asn1OctetString biometricDataHash, DerIA5String sourceDataUri)
         {
-			get { return typeOfBiometricData; }
+            m_typeOfBiometricData = typeOfBiometricData ?? throw new ArgumentNullException(nameof(typeOfBiometricData));
+            m_hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
+            m_biometricDataHash = biometricDataHash ?? throw new ArgumentNullException(nameof(biometricDataHash));
+            m_sourceDataUri = sourceDataUri;
         }
 
-		public AlgorithmIdentifier HashAlgorithm
-		{
-			get { return hashAlgorithm; }
-		}
+        public TypeOfBiometricData TypeOfBiometricData => m_typeOfBiometricData;
 
-		public Asn1OctetString BiometricDataHash
-		{
-			get { return biometricDataHash; }
-		}
+        public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
-		public DerIA5String SourceDataUri
-		{
-			get { return sourceDataUri; }
-		}
+        public Asn1OctetString BiometricDataHash => m_biometricDataHash;
+
+        public DerIA5String SourceDataUri => m_sourceDataUri;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(typeOfBiometricData, hashAlgorithm, biometricDataHash);
-            v.AddOptional(sourceDataUri);
-            return new DerSequence(v);
+            return m_sourceDataUri == null
+                ?  new DerSequence(m_typeOfBiometricData, m_hashAlgorithm, m_biometricDataHash)
+                :  new DerSequence(m_typeOfBiometricData, m_hashAlgorithm, m_biometricDataHash, m_sourceDataUri);
         }
     }
 }

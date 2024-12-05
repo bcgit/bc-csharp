@@ -2,21 +2,18 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// RFC 3126: 4.3.1 Certificate Values Attribute Definition
-	/// <code>
-	/// CertificateValues ::= SEQUENCE OF Certificate
-	/// </code>
-	/// </remarks>
-	public class CertificateValues
+    /// <remarks>
+    /// RFC 3126: 4.3.1 Certificate Values Attribute Definition
+    /// <code>
+    /// CertificateValues ::= SEQUENCE OF Certificate
+    /// </code>
+    /// </remarks>
+    public class CertificateValues
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence m_certificates;
-
 		public static CertificateValues GetInstance(object obj)
 		{
             if (obj == null)
@@ -26,28 +23,23 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CertificateValues(Asn1Sequence.GetInstance(obj));
 		}
 
-        public static CertificateValues GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertificateValues GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificateValues(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertificateValues GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertificateValues(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly Asn1Sequence m_certificates;
 
         private CertificateValues(Asn1Sequence seq)
 		{
-			if (seq == null)
-				throw new ArgumentNullException(nameof(seq));
-
-			// Validate
-            seq.MapElements(element => X509CertificateStructure.GetInstance(element.ToAsn1Object()));
-
 			m_certificates = seq;
-		}
+            m_certificates.MapElements(X509CertificateStructure.GetInstance); // Validate
+        }
 
-		public CertificateValues(params X509CertificateStructure[] certificates)
+        public CertificateValues(params X509CertificateStructure[] certificates)
 		{
-			if (certificates == null)
-				throw new ArgumentNullException(nameof(certificates));
-
-			m_certificates = new DerSequence(certificates);
+			m_certificates = DerSequence.FromElements(certificates);
 		}
 
 		public CertificateValues(IEnumerable<X509CertificateStructure> certificates)
@@ -55,17 +47,12 @@ namespace Org.BouncyCastle.Asn1.Esf
 			if (certificates == null)
                 throw new ArgumentNullException(nameof(certificates));
 
-            m_certificates = new DerSequence(Asn1EncodableVector.FromEnumerable(certificates));
+            m_certificates = DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(certificates));
 		}
 
-		public X509CertificateStructure[] GetCertificates()
-		{
-			return m_certificates.MapElements(element => X509CertificateStructure.GetInstance(element.ToAsn1Object()));
-		}
+		public X509CertificateStructure[] GetCertificates() =>
+			m_certificates.MapElements(X509CertificateStructure.GetInstance);
 
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_certificates;
-		}
+		public override Asn1Object ToAsn1Object() => m_certificates;
  	}
 }

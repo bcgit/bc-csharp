@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	 * <pre>
 	 * IssuingDistributionPoint ::= SEQUENCE { 
 	 *   distributionPoint          [0] DistributionPointName OPTIONAL, 
@@ -14,23 +14,9 @@ namespace Org.BouncyCastle.Asn1.X509
 	 *   onlyContainsAttributeCerts [5] BOOLEAN DEFAULT FALSE }
 	 * </pre>
 	 */
-	public class IssuingDistributionPoint
+    public class IssuingDistributionPoint
         : Asn1Encodable
     {
-		private readonly DistributionPointName	_distributionPoint;
-		private readonly bool					_onlyContainsUserCerts;
-        private readonly bool					_onlyContainsCACerts;
-		private readonly ReasonFlags			_onlySomeReasons;
-		private readonly bool					_indirectCRL;
-        private readonly bool					_onlyContainsAttributeCerts;
-
-		private readonly Asn1Sequence seq;
-
-		public static IssuingDistributionPoint GetInstance(Asn1TaggedObject	obj, bool explicitly)
-        {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
 		public static IssuingDistributionPoint GetInstance(object obj)
         {
 			if (obj == null)
@@ -40,7 +26,22 @@ namespace Org.BouncyCastle.Asn1.X509
             return new IssuingDistributionPoint(Asn1Sequence.GetInstance(obj));
 		}
 
-		/**
+        public static IssuingDistributionPoint GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new IssuingDistributionPoint(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static IssuingDistributionPoint GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new IssuingDistributionPoint(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DistributionPointName m_distributionPoint;
+        private readonly DerBoolean m_onlyContainsUserCerts;
+        private readonly DerBoolean m_onlyContainsCACerts;
+        private readonly ReasonFlags m_onlySomeReasons;
+        private readonly DerBoolean m_indirectCRL;
+        private readonly DerBoolean m_onlyContainsAttributeCerts;
+
+        private readonly Asn1Sequence m_seq;
+
+        /**
 		 * Constructor from given details.
 		 * 
 		 * @param distributionPoint
@@ -55,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 *            information about certificates ssued by other CAs.
 		 * @param onlyContainsAttributeCerts Covers revocation information for attribute certificates.
 		 */
-		public IssuingDistributionPoint(
+        public IssuingDistributionPoint(
 			DistributionPointName	distributionPoint,
 			bool					onlyContainsUserCerts,
 			bool					onlyContainsCACerts,
@@ -63,12 +64,12 @@ namespace Org.BouncyCastle.Asn1.X509
 			bool					indirectCRL,
 			bool					onlyContainsAttributeCerts)
 		{
-			this._distributionPoint = distributionPoint;
-			this._indirectCRL = indirectCRL;
-			this._onlyContainsAttributeCerts = onlyContainsAttributeCerts;
-			this._onlyContainsCACerts = onlyContainsCACerts;
-			this._onlyContainsUserCerts = onlyContainsUserCerts;
-			this._onlySomeReasons = onlySomeReasons;
+			m_distributionPoint = distributionPoint;
+            m_onlyContainsUserCerts = DerBoolean.GetInstance(onlyContainsUserCerts);
+            m_onlyContainsCACerts = DerBoolean.GetInstance(onlyContainsCACerts);
+            m_onlySomeReasons = onlySomeReasons;
+            m_indirectCRL = DerBoolean.GetInstance(indirectCRL);
+			m_onlyContainsAttributeCerts = DerBoolean.GetInstance(onlyContainsAttributeCerts);
 
 			Asn1EncodableVector vec = new Asn1EncodableVector(6);
 			if (distributionPoint != null)
@@ -96,7 +97,7 @@ namespace Org.BouncyCastle.Asn1.X509
 				vec.Add(new DerTaggedObject(false, 5, DerBoolean.True));
 			}
 
-			seq = new DerSequence(vec);
+			m_seq = new DerSequence(vec);
 		}
 
 		/**
@@ -104,107 +105,76 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         private IssuingDistributionPoint(Asn1Sequence seq)
         {
-            this.seq = seq;
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 6)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			for (int i = 0; i != seq.Count; i++)
-            {
-				Asn1TaggedObject o = Asn1TaggedObject.GetInstance(seq[i]);
+			m_distributionPoint = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
+				DistributionPointName.GetTagged); // CHOICE
+            m_onlyContainsUserCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerBoolean.GetTagged)
+				?? DerBoolean.False;
+            m_onlyContainsCACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, DerBoolean.GetTagged)
+                ?? DerBoolean.False;
+            m_onlySomeReasons = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, false,
+				(t, e) => new ReasonFlags(ReasonFlags.GetInstance(t, e)));
+            m_indirectCRL = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, DerBoolean.GetTagged)
+                ?? DerBoolean.False;
+            m_onlyContainsAttributeCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, false, DerBoolean.GetTagged)
+                ?? DerBoolean.False;
 
-				switch (o.TagNo)
-                {
-				case 0:
-					// CHOICE so explicit
-					_distributionPoint = DistributionPointName.GetInstance(o, true);
-					break;
-				case 1:
-					_onlyContainsUserCerts = DerBoolean.GetInstance(o, false).IsTrue;
-					break;
-				case 2:
-					_onlyContainsCACerts = DerBoolean.GetInstance(o, false).IsTrue;
-					break;
-				case 3:
-					_onlySomeReasons = new ReasonFlags(ReasonFlags.GetInstance(o, false));
-					break;
-				case 4:
-					_indirectCRL = DerBoolean.GetInstance(o, false).IsTrue;
-					break;
-				case 5:
-					_onlyContainsAttributeCerts = DerBoolean.GetInstance(o, false).IsTrue;
-					break;
-				default:
-					throw new ArgumentException("unknown tag in IssuingDistributionPoint");
-                }
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            m_seq = seq;
         }
 
-		public bool OnlyContainsUserCerts
-		{
-			get { return _onlyContainsUserCerts; }
-		}
+		public bool OnlyContainsUserCerts => m_onlyContainsUserCerts.IsTrue;
 
-		public bool OnlyContainsCACerts
-		{
-			get { return _onlyContainsCACerts; }
-		}
+		public bool OnlyContainsCACerts => m_onlyContainsCACerts.IsTrue;
 
-		public bool IsIndirectCrl
-		{
-			get { return _indirectCRL; }
-		}
+		public bool IsIndirectCrl => m_indirectCRL.IsTrue;
 
-		public bool OnlyContainsAttributeCerts
-		{
-			get { return _onlyContainsAttributeCerts; }
-		}
+		public bool OnlyContainsAttributeCerts => m_onlyContainsAttributeCerts.IsTrue;
 
 		/**
 		 * @return Returns the distributionPoint.
 		 */
-		public DistributionPointName DistributionPoint
-		{
-			get { return _distributionPoint; }
-		}
+		public DistributionPointName DistributionPoint => m_distributionPoint;
 
 		/**
 		 * @return Returns the onlySomeReasons.
 		 */
-		public ReasonFlags OnlySomeReasons
-		{
-			get { return _onlySomeReasons; }
-		}
+		public ReasonFlags OnlySomeReasons => m_onlySomeReasons;
 
-		public override Asn1Object ToAsn1Object()
-        {
-            return seq;
-        }
+		public override Asn1Object ToAsn1Object() => m_seq;
 
 		public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
 			buf.AppendLine("IssuingDistributionPoint: [");
-			if (_distributionPoint != null)
+			if (m_distributionPoint != null)
 			{
-				AppendObject(buf, "distributionPoint", _distributionPoint.ToString());
+				AppendObject(buf, "distributionPoint", m_distributionPoint.ToString());
 			}
-			if (_onlyContainsUserCerts)
+			if (m_onlyContainsUserCerts.IsTrue)
 			{
-				AppendObject(buf, "onlyContainsUserCerts", _onlyContainsUserCerts.ToString());
+				AppendObject(buf, "onlyContainsUserCerts", m_onlyContainsUserCerts.ToString());
 			}
-			if (_onlyContainsCACerts)
+			if (m_onlyContainsCACerts.IsTrue)
 			{
-				AppendObject(buf, "onlyContainsCACerts", _onlyContainsCACerts.ToString());
+				AppendObject(buf, "onlyContainsCACerts", m_onlyContainsCACerts.ToString());
 			}
-			if (_onlySomeReasons != null)
+			if (m_onlySomeReasons != null)
 			{
-				AppendObject(buf, "onlySomeReasons", _onlySomeReasons.ToString());
+				AppendObject(buf, "onlySomeReasons", m_onlySomeReasons.ToString());
 			}
-			if (_onlyContainsAttributeCerts)
+			if (m_onlyContainsAttributeCerts.IsTrue)
 			{
-				AppendObject(buf, "onlyContainsAttributeCerts", _onlyContainsAttributeCerts.ToString());
+				AppendObject(buf, "onlyContainsAttributeCerts", m_onlyContainsAttributeCerts.ToString());
 			}
-			if (_indirectCRL)
+			if (m_indirectCRL.IsTrue)
 			{
-				AppendObject(buf, "indirectCRL", _indirectCRL.ToString());
+				AppendObject(buf, "indirectCRL", m_indirectCRL.ToString());
 			}
 			buf.AppendLine("]");
 			return buf.ToString();

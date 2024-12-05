@@ -36,41 +36,43 @@ namespace Org.BouncyCastle.Bcpg
         internal S2k(
             Stream inStr)
         {
-			type = inStr.ReadByte();
+			type = StreamUtilities.RequireByte(inStr);
 
             switch (type)
             {
                 case Simple:
-                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
                     break;
 
                 case Salted:
-                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
                     iv = new byte[8];
-                    Streams.ReadFully(inStr, iv);
+                    StreamUtilities.RequireBytes(inStr, iv);
                     break;
 
                 case SaltedAndIterated:
-                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
                     iv = new byte[8];
-                    Streams.ReadFully(inStr, iv);
-                    itCount = inStr.ReadByte();
+                    StreamUtilities.RequireBytes(inStr, iv);
+                    itCount = StreamUtilities.RequireByte(inStr);
                     break;
 
                 case Argon2:
                     iv = new byte[16];
-                    Streams.ReadFully(inStr, iv);
-                    passes = inStr.ReadByte();
-                    parallelism = inStr.ReadByte();
-                    memorySizeExponent = inStr.ReadByte();
+                    StreamUtilities.RequireBytes(inStr, iv);
+                    passes = StreamUtilities.RequireByte(inStr);
+                    parallelism = StreamUtilities.RequireByte(inStr);
+                    memorySizeExponent = StreamUtilities.RequireByte(inStr);
                     break;
 
                 case GnuDummyS2K:
-                    algorithm = (HashAlgorithmTag)inStr.ReadByte();
-                    inStr.ReadByte(); // G
-                    inStr.ReadByte(); // N
-                    inStr.ReadByte(); // U
-                    protectionMode = inStr.ReadByte(); // protection mode
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
+                    //inStr.ReadByte(); // G
+                    //inStr.ReadByte(); // N
+                    //inStr.ReadByte(); // U
+                    //protectionMode = inStr.ReadByte(); // protection mode
+                    uint GNU_ = StreamUtilities.RequireUInt32BE(inStr);
+                    protectionMode = (byte)GNU_;
                     break;
 
                 default:

@@ -16,6 +16,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
@@ -102,8 +103,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
             {
-                ElGamalParameter para = new ElGamalParameter(
-                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+                ElGamalParameter para = ElGamalParameter.GetInstance(algID.Parameters);
                 DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
 
                 return new ElGamalPublicKeyParameters(
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Security
                 }
                 else
                 {
-                    x9 = new X9ECParameters((Asn1Sequence)para.Parameters);
+                    x9 = X9ECParameters.GetInstance(para.Parameters);
                 }
 
                 Asn1OctetString key = new DerOctetString(keyInfo.PublicKey.GetBytes());
@@ -274,10 +274,70 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters(q, ecDomainParameters);
             }
+            else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
+            {
+                return GetMLDsaPublicKey(mlDsaParameters, keyInfo.PublicKey);
+            }
+            else if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
+            {
+                return GetMLKemPublicKey(mlKemParameters, keyInfo.PublicKey);
+            }
+            else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
+            {
+                return GetSlhDsaPublicKey(slhDsaParameters, keyInfo.PublicKey);
+            }
             else
             {
                 throw new SecurityUtilityException("algorithm identifier in public key not recognised: " + algOid);
             }
+        }
+
+        internal static MLDsaPublicKeyParameters GetMLDsaPublicKey(MLDsaParameters mlDsaParameters, DerBitString publicKey)
+        {
+            if (publicKey.IsOctetAligned())
+            {
+                int publicKeyLength = mlDsaParameters.ParameterSet.PublicKeyLength;
+
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == publicKeyLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return MLDsaPublicKeyParameters.FromEncoding(mlDsaParameters, encoding: publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                if (bytesLength > publicKeyLength)
+                {
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            if (oct.GetOctetsLength() == publicKeyLength)
+                                return MLDsaPublicKeyParameters.FromEncoding(mlDsaParameters, encoding: oct.GetOctets());
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+
+            throw new ArgumentException("invalid " + mlDsaParameters.Name + " public key");
+        }
+
+        internal static MLKemPublicKeyParameters GetMLKemPublicKey(MLKemParameters mlKemParameters,
+            DerBitString publicKey)
+        {
+            if (publicKey.IsOctetAligned())
+            {
+                int publicKeyLength = mlKemParameters.ParameterSet.PublicKeyLength;
+
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == publicKeyLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return MLKemPublicKeyParameters.FromEncoding(mlKemParameters, encoding: publicKey.GetOctets());
+            }
+
+            throw new ArgumentException("invalid " + mlKemParameters.Name + " public key");
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -300,6 +360,43 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
+        internal static SlhDsaPublicKeyParameters GetSlhDsaPublicKey(SlhDsaParameters slhDsaParameters,
+            DerBitString publicKey)
+        {
+            if (publicKey.IsOctetAligned())
+            {
+                int publicKeyLength = slhDsaParameters.ParameterSet.PublicKeyLength;
+
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == publicKeyLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return SlhDsaPublicKeyParameters.FromEncoding(slhDsaParameters, encoding: publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                if (bytesLength > publicKeyLength)
+                {
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            if (oct.GetOctetsLength() == 4 + publicKeyLength)
+                            {
+                                byte[] octets = oct.GetOctets();
+                                byte[] encoding = Arrays.CopyOfRange(octets, 4, octets.Length);
+                                return SlhDsaPublicKeyParameters.FromEncoding(slhDsaParameters, encoding);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+
+            throw new ArgumentException("invalid " + slhDsaParameters.Name + " public key");
+        }
+
         private static bool IsPkcsDHParam(Asn1Sequence seq)
         {
             if (seq.Count == 2)
@@ -317,7 +414,7 @@ namespace Org.BouncyCastle.Security
         private static DHPublicKeyParameters ReadPkcsDHParam(DerObjectIdentifier algOid,
             BigInteger y, Asn1Sequence seq)
         {
-            DHParameter para = new DHParameter(seq);
+            DHParameter para = DHParameter.GetInstance(seq);
 
             BigInteger lVal = para.L;
             int l = lVal == null ? 0 : lVal.IntValue;

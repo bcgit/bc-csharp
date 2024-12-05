@@ -45,10 +45,16 @@ namespace Org.BouncyCastle.Pqc.Asn1
         public static readonly DerObjectIdentifier mcEliecePointcheval = new DerObjectIdentifier("1.3.6.1.4.1.8301.3.1.3.4.2.2");
         public static readonly DerObjectIdentifier mcElieceKobara_Imai = new DerObjectIdentifier("1.3.6.1.4.1.8301.3.1.3.4.2.3");
 
+#pragma warning disable CS0618 // Type or member is obsolete
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256 = BCObjectIdentifiers.sphincs256;
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_BLAKE512 = BCObjectIdentifiers.sphincs256_with_BLAKE512;
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_SHA512 = BCObjectIdentifiers.sphincs256_with_SHA512;
+        [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_SHA3_512 = BCObjectIdentifiers.sphincs256_with_SHA3_512;
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public static readonly DerObjectIdentifier newHope = BCObjectIdentifiers.newHope;
 

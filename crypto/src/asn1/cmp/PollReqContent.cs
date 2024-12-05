@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PollReqContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PollReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PollReqContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PollReqContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PollReqContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PollReqContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PollReqContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

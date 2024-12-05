@@ -1,8 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Math;
-
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     /**
@@ -13,51 +10,52 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     {
         public static Pfx GetInstance(object obj)
         {
-            if (obj is Pfx)
-                return (Pfx)obj;
             if (obj == null)
                 return null;
+            if (obj is Pfx pfx)
+                return pfx;
             return new Pfx(Asn1Sequence.GetInstance(obj));
         }
 
-        private readonly ContentInfo contentInfo;
-        private readonly MacData macData;
+        public static Pfx GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Pfx(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static Pfx GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Pfx(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly ContentInfo m_contentInfo;
+        private readonly MacData m_macData;
 
 		private Pfx(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             DerInteger version = DerInteger.GetInstance(seq[0]);
             if (!version.HasValue(3))
                 throw new ArgumentException("wrong version for PFX PDU");
 
-            this.contentInfo = ContentInfo.GetInstance(seq[1]);
+            m_contentInfo = ContentInfo.GetInstance(seq[1]);
 
-            if (seq.Count == 3)
-            {
-                this.macData = MacData.GetInstance(seq[2]);
-            }
+            m_macData = count <= 2 ? null : MacData.GetInstance(seq[2]);
         }
 
 		public Pfx(ContentInfo contentInfo, MacData macData)
         {
-            this.contentInfo = contentInfo;
-            this.macData = macData;
+            m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
+            m_macData = macData;
         }
 
-		public ContentInfo AuthSafe
-		{
-			get { return contentInfo; }
-		}
+        public ContentInfo AuthSafe => m_contentInfo;
 
-		public MacData MacData
-		{
-			get { return macData; }
-		}
+        public MacData MacData => m_macData;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(new DerInteger(3), contentInfo);
-            v.AddOptional(macData);
-            return new BerSequence(v);
+            return m_macData == null
+                ?  new BerSequence(DerInteger.Three, m_contentInfo)
+                :  new BerSequence(DerInteger.Three, m_contentInfo, m_macData);
         }
     }
 }

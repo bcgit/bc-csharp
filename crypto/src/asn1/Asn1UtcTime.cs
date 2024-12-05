@@ -39,8 +39,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1UtcTime converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is Asn1UtcTime converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -63,7 +62,23 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1UtcTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-		private readonly string m_timeString;
+        public static Asn1UtcTime GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1UtcTime existing)
+                return existing;
+
+            return null;
+        }
+
+        public static Asn1UtcTime GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1UtcTime)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
+        private readonly string m_timeString;
 		private readonly DateTime m_dateTime;
         private readonly bool m_dateTimeLocked;
         private readonly int m_twoDigitYearMax;

@@ -87,17 +87,17 @@ namespace Org.BouncyCastle.Bcpg
 			}
 
             int version = pubKeyPacket.Version;
-            s2kUsage = bcpgIn.ReadByte();
+            s2kUsage = bcpgIn.RequireByte();
 
             if (version == PublicKeyPacket.Version6 && s2kUsage != UsageNone)
             {
                 // TODO: Use length to parse unknown parameters
-                int conditionalParameterLength = bcpgIn.ReadByte();
+                int conditionalParameterLength = bcpgIn.RequireByte();
             }
 
             if (HasS2KSpecifier)
             {
-                encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.ReadByte();
+                encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
             }
             else
             {
@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Bcpg
 
             if (s2kUsage == UsageAead)
             {
-                aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.ReadByte();
+                aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
             }
 
             if (HasS2KSpecifier)
@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Bcpg
                 if (version == PublicKeyPacket.Version6)
                 {
                     // TODO: Use length to parse unknown S2Ks
-                    int s2kLen = bcpgIn.ReadByte();
+                    int s2kLen = bcpgIn.RequireByte();
                 }
                 s2k = new S2k(bcpgIn);
             }

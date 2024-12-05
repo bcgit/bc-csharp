@@ -42,8 +42,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal static LMOtsPublicKey Parse(BinaryReader binaryReader)
         {
-            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
+            LMOtsParameters parameter = LMOtsParameters.ParseByID(binaryReader);
 
             byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
 

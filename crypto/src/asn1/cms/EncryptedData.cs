@@ -14,64 +14,47 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new EncryptedData(Asn1Sequence.GetInstance(obj));
         }
 
-		public static EncryptedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-		{
-            return new EncryptedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+		public static EncryptedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncryptedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static EncryptedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new EncryptedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerInteger m_version;
+        private readonly EncryptedContentInfo m_encryptedContentInfo;
+        private readonly Asn1Set m_unprotectedAttrs;
+
+        public EncryptedData(EncryptedContentInfo encInfo)
+            : this(encInfo, null)
+        {
         }
 
-        private readonly DerInteger				version;
-		private readonly EncryptedContentInfo	encryptedContentInfo;
-		private readonly Asn1Set				unprotectedAttrs;
-
-		public EncryptedData(
-			EncryptedContentInfo encInfo)
-			: this(encInfo, null)
-		{
+        public EncryptedData(EncryptedContentInfo encInfo, Asn1Set unprotectedAttrs)
+        {
+			m_version = unprotectedAttrs == null ? DerInteger.Zero : DerInteger.Two;
+			m_encryptedContentInfo = encInfo ?? throw new ArgumentNullException(nameof(encInfo));
+			m_unprotectedAttrs = unprotectedAttrs;
 		}
 
-		public EncryptedData(
-			EncryptedContentInfo	encInfo,
-			Asn1Set					unprotectedAttrs)
+		private EncryptedData(Asn1Sequence seq)
 		{
-			if (encInfo == null)
-				throw new ArgumentNullException("encInfo");
+			int count = seq.Count, pos = 0;
+			if (count < 2 || count > 3)
+				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			this.version = new DerInteger((unprotectedAttrs == null) ? 0 : 2);
-			this.encryptedContentInfo = encInfo;
-			this.unprotectedAttrs = unprotectedAttrs;
-		}
+			m_version = DerInteger.GetInstance(seq[pos++]);
+			m_encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[pos++]);
+			m_unprotectedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
 
-		private EncryptedData(
-			Asn1Sequence seq)
-		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
-			if (seq.Count < 2 || seq.Count > 3)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
-			this.version = DerInteger.GetInstance(seq[0]);
-			this.encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[1]);
+		public virtual DerInteger Version => m_version;
 
-			if (seq.Count > 2)
-			{
-                this.unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject)seq[2], false);
-            }
-		}
+		public virtual EncryptedContentInfo EncryptedContentInfo => m_encryptedContentInfo;
 
-		public virtual DerInteger Version
-		{
-			get { return version; }
-		}
-
-		public virtual EncryptedContentInfo EncryptedContentInfo
-		{
-			get { return encryptedContentInfo; }
-		}
-
-		public virtual Asn1Set UnprotectedAttrs
-		{
-			get { return unprotectedAttrs; }
-		}
+		public virtual Asn1Set UnprotectedAttrs => m_unprotectedAttrs;
 
 		/**
 		* <pre>
@@ -84,11 +67,12 @@ namespace Org.BouncyCastle.Asn1.Cms
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(version, encryptedContentInfo);
+			Asn1EncodableVector v = new Asn1EncodableVector(3);
+			v.Add(m_version, m_encryptedContentInfo);
 
-			if (unprotectedAttrs != null)
+			if (m_unprotectedAttrs != null)
 			{
-				v.Add(new BerTaggedObject(false, 1, unprotectedAttrs));
+				v.Add(new BerTaggedObject(false, 1, m_unprotectedAttrs));
 			}
 
 			return new BerSequence(v);

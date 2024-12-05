@@ -33,8 +33,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerExternal converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is DerExternal converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -57,7 +56,23 @@ namespace Org.BouncyCastle.Asn1
             return (DerExternal)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-		internal readonly DerObjectIdentifier directReference;
+        public static DerExternal GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerExternal existing)
+                return existing;
+
+            return null;
+        }
+
+        public static DerExternal GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerExternal)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
+        }
+
+        internal readonly DerObjectIdentifier directReference;
         internal readonly DerInteger indirectReference;
         internal readonly Asn1ObjectDescriptor dataValueDescriptor;
         internal readonly int encoding;
@@ -262,7 +277,7 @@ namespace Org.BouncyCastle.Asn1
             case 2:
                 return DerBitString.GetInstance(encoding, false);
             default:
-                throw new ArgumentException("invalid tag: " + Asn1Utilities.GetTagText(encoding), nameof(encoding));
+                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(encoding), nameof(encoding));
             }
         }
 

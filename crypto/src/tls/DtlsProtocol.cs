@@ -76,15 +76,14 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         internal static int ValidateSelectedCipherSuite(int selectedCipherSuite, short alertDescription)
         {
-            switch (TlsUtilities.GetEncryptionAlgorithm(selectedCipherSuite))
+            int encryptionAlgorithm = TlsUtilities.GetEncryptionAlgorithm(selectedCipherSuite);
+            if (EncryptionAlgorithm.NULL != encryptionAlgorithm)
             {
-            case EncryptionAlgorithm.RC4_40:
-            case EncryptionAlgorithm.RC4_128:
-            case -1:
-                throw new TlsFatalAlert(alertDescription);
-            default:
-                return selectedCipherSuite;
+                int cipherType = TlsUtilities.GetEncryptionAlgorithmType(encryptionAlgorithm);
+                if (cipherType < 0 || CipherType.stream == cipherType)
+                    throw new TlsFatalAlert(alertDescription);
             }
+            return selectedCipherSuite;
         }
     }
 }

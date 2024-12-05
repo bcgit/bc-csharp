@@ -7,22 +7,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     internal class Adrs
     {
-        internal static uint WOTS_HASH = 0;
-        internal static uint WOTS_PK = 1;
-        internal static uint TREE = 2;
-        internal static uint FORS_TREE = 3;
-        internal static uint FORS_PK = 4;
-        internal static uint WOTS_PRF = 5;
-        internal static uint FORS_PRF = 6;
+        internal const uint WOTS_HASH = 0;
+        internal const uint WOTS_PK = 1;
+        internal const uint TREE = 2;
+        internal const uint FORS_TREE = 3;
+        internal const uint FORS_PK = 4;
+        internal const uint WOTS_PRF = 5;
+        internal const uint FORS_PRF = 6;
 
-        internal static int OFFSET_LAYER = 0;
-        internal static int OFFSET_TREE = 4;
-        internal static int OFFSET_TREE_HGT = 24;
-        internal static int OFFSET_TREE_INDEX = 28;
-        internal static int OFFSET_TYPE = 16;
-        internal static int OFFSET_KP_ADDR = 20;
-        internal static int OFFSET_CHAIN_ADDR = 24;
-        internal static int OFFSET_HASH_ADDR = 28;
+        internal const int OFFSET_LAYER = 0;
+        internal const int OFFSET_TREE = 4;
+        internal const int OFFSET_TREE_HGT = 24;
+        internal const int OFFSET_TREE_INDEX = 28;
+        internal const int OFFSET_TYPE = 16;
+        internal const int OFFSET_KP_ADDR = 20;
+        internal const int OFFSET_CHAIN_ADDR = 24;
+        internal const int OFFSET_HASH_ADDR = 28;
 
         internal readonly byte[] value = new byte[32];
 
@@ -40,6 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             Pack.UInt32_To_BE(layer, value, OFFSET_LAYER);
         }
 
+        // TODO[pqc] Shouldn't need this
         internal uint GetLayerAddress()
         {
             return Pack.BE_To_UInt32(value, OFFSET_LAYER);
@@ -51,6 +52,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             Pack.UInt64_To_BE(tree, value, OFFSET_TREE + 4);
         }
 
+        // TODO[pqc] Shouldn't need this
         internal ulong GetTreeAddress()
         {
             // tree address is 12 bytes
@@ -60,11 +62,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         internal void SetTreeHeight(uint height)
         {
             Pack.UInt32_To_BE(height, value, OFFSET_TREE_HGT);
-        }
-
-        internal uint GetTreeHeight()
-        {
-            return Pack.BE_To_UInt32(value, OFFSET_TREE_HGT);
         }
 
         internal void SetTreeIndex(uint index)
@@ -78,21 +75,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
 
         // resets part of value to zero in line with 2.7.3
-        internal void SetAdrsType(uint adrsType)
+        internal void SetTypeAndClear(uint adrsType)
         {
             Pack.UInt32_To_BE(adrsType, value, OFFSET_TYPE);
 
             Arrays.Fill(value, OFFSET_TYPE + 4, value.Length, 0x00);
         }
 
+        // TODO[pqc] Shouldn't need this
         internal void ChangeAdrsType(uint adrsType)
         {
             Pack.UInt32_To_BE(adrsType, value, OFFSET_TYPE);
-        }
-
-        internal uint GetAdrsType()
-        {
-            return Pack.BE_To_UInt32(value, OFFSET_TYPE);
         }
 
         internal void SetKeyPairAddress(uint keyPairAddr)

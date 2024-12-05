@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 }
 			}
 
-			tagged = new DerTaggedObject(false, 34, new DerTaggedObject(true, 1000, new DerInteger(1)));
+			tagged = new DerTaggedObject(false, 34, new DerTaggedObject(true, 1000, DerInteger.One));
             if (!AreEqual(taggedInteger, tagged.GetEncoded()))
             {
                 Fail("incorrect encoding for implicit explicit tagged integer");

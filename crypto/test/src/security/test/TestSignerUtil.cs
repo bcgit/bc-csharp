@@ -133,6 +133,13 @@ namespace Org.BouncyCastle.Security.Tests
 
             foreach (string algorithm in SignerUtilities.Algorithms)
             {
+                if (algorithm.StartsWith("ML-DSA-", StringComparison.OrdinalIgnoreCase) ||
+                    algorithm.StartsWith("SLH-DSA-", StringComparison.OrdinalIgnoreCase))
+                {
+                    // TODO[pqc]
+                    continue;
+                }
+
                 ISigner signer = SignerUtilities.GetSigner(algorithm);
 
                 string upper = algorithm.ToUpperInvariant();

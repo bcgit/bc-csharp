@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509.Qualified
 {
     /**
@@ -15,65 +13,60 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     public class QCStatement
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	qcStatementId;
-        private readonly Asn1Encodable			qcStatementInfo;
-
-		public static QCStatement GetInstance(
-            object obj)
+        public static QCStatement GetInstance(object obj)
         {
-            if (obj == null || obj is QCStatement)
-            {
-                return (QCStatement) obj;
-            }
+            if (obj == null)
+                return null;
+            if (obj is QCStatement qcStatement)
+                return qcStatement;
+            return new QCStatement(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj is Asn1Sequence)
-            {
-				return new QCStatement(Asn1Sequence.GetInstance(obj));
-            }
+        public static QCStatement GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new QCStatement(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
+        public static QCStatement GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new QCStatement(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-		private QCStatement(
-            Asn1Sequence seq)
+        private readonly DerObjectIdentifier m_statementId;
+        private readonly Asn1Encodable m_statementInfo;
+
+        private QCStatement(Asn1Sequence seq)
         {
-			qcStatementId = DerObjectIdentifier.GetInstance(seq[0]);
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_statementId = DerObjectIdentifier.GetInstance(seq[0]);
 
 			if (seq.Count > 1)
 			{
-				qcStatementInfo = seq[1];
+				m_statementInfo = seq[1];
 			}
         }
 
-		public QCStatement(
-            DerObjectIdentifier qcStatementId)
+        // TODO[api] Rename parameter
+		public QCStatement(DerObjectIdentifier qcStatementId)
+            : this(qcStatementId, null)
         {
-            this.qcStatementId = qcStatementId;
         }
 
-        public QCStatement(
-            DerObjectIdentifier qcStatementId,
-            Asn1Encodable       qcStatementInfo)
+        // TODO[api] Rename parameters
+        public QCStatement(DerObjectIdentifier qcStatementId, Asn1Encodable qcStatementInfo)
         {
-            this.qcStatementId = qcStatementId;
-            this.qcStatementInfo = qcStatementInfo;
+            m_statementId = qcStatementId ?? throw new ArgumentNullException(nameof(qcStatementId));
+            m_statementInfo = qcStatementInfo;
         }
 
-		public DerObjectIdentifier StatementId
-		{
-			get { return qcStatementId; }
-		}
+        public DerObjectIdentifier StatementId => m_statementId;
 
-		public Asn1Encodable StatementInfo
-		{
-			get { return qcStatementInfo; }
-		}
+        public Asn1Encodable StatementInfo => m_statementInfo;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(qcStatementId);
-            v.AddOptional(qcStatementInfo);
-            return new DerSequence(v);
+            return m_statementInfo == null
+                ?  new DerSequence(m_statementId)
+                :  new DerSequence(m_statementId, m_statementInfo);
         }
     }
 }

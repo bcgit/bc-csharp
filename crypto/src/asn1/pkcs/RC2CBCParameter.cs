@@ -8,67 +8,62 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class RC2CbcParameter
         : Asn1Encodable
     {
-        internal DerInteger			version;
-        internal Asn1OctetString	iv;
-
-		public static RC2CbcParameter GetInstance(
-            object obj)
+		public static RC2CbcParameter GetInstance(object obj)
         {
-            if (obj is Asn1Sequence)
-            {
-                return new RC2CbcParameter((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is RC2CbcParameter rc2CbcParameter)
+                return rc2CbcParameter;
+            return new RC2CbcParameter(Asn1Sequence.GetInstance(obj));
 		}
 
-		public RC2CbcParameter(
-            byte[] iv)
+        public static RC2CbcParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RC2CbcParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RC2CbcParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RC2CbcParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerInteger m_version;
+        private readonly Asn1OctetString m_iv;
+
+        private RC2CbcParameter(Asn1Sequence seq)
         {
-            this.iv = new DerOctetString(iv);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_version = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
+            m_iv = Asn1OctetString.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public RC2CbcParameter(
-            int		parameterVersion,
-            byte[]	iv)
+        public RC2CbcParameter(byte[] iv)
         {
-            this.version = new DerInteger(parameterVersion);
-            this.iv = new DerOctetString(iv);
+            m_version = null;
+            m_iv = DerOctetString.FromContents(iv);
         }
 
-		private RC2CbcParameter(
-            Asn1Sequence seq)
+		public RC2CbcParameter(int parameterVersion, byte[] iv)
         {
-            if (seq.Count == 1)
-            {
-                iv = (Asn1OctetString)seq[0];
-            }
-            else
-            {
-                version = (DerInteger)seq[0];
-                iv = (Asn1OctetString)seq[1];
-            }
+            m_version = new DerInteger(parameterVersion);
+            m_iv = DerOctetString.FromContents(iv);
         }
 
-		public BigInteger RC2ParameterVersion
-        {
-            get
-            {
-				return version == null ? null : version.Value;
-            }
-        }
+        public BigInteger RC2ParameterVersion => m_version?.Value;
 
-		public byte[] GetIV()
-        {
-			return Arrays.Clone(iv.GetOctets());
-        }
+        public DerInteger RC2ParameterVersionData => m_version;
+
+        public Asn1OctetString IV => m_iv;
+
+        public byte[] GetIV() => Arrays.Clone(m_iv.GetOctets());
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptional(version);
-            v.Add(iv);
-            return new DerSequence(v);
+            return m_version == null
+                ?  new DerSequence(m_iv)
+                :  new DerSequence(m_version, m_iv);
         }
     }
 }

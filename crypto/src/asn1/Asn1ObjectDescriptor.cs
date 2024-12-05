@@ -44,8 +44,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is Asn1ObjectDescriptor converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is Asn1ObjectDescriptor converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -74,6 +73,22 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1ObjectDescriptor GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1ObjectDescriptor)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+        }
+
+        public static Asn1ObjectDescriptor GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Asn1ObjectDescriptor existing)
+                return existing;
+
+            return null;
+        }
+
+        public static Asn1ObjectDescriptor GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (Asn1ObjectDescriptor)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
         private readonly DerGraphicString m_baseGraphicString;

@@ -27,10 +27,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             this.privParams = mqvPrivateParameters;
         }
 
-        public virtual int GetFieldSize()
-        {
-            return (privParams.StaticPrivateKey.Parameters.Curve.FieldSize + 7) / 8;
-        }
+        public virtual int GetFieldSize() => privParams.StaticPrivateKey.Parameters.Curve.FieldElementEncodingLength;
 
         public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
         {

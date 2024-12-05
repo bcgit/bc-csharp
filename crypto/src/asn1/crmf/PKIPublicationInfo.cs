@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Math;
+﻿using System;
+
+using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -17,30 +19,40 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class PkiPublicationInfo
         : Asn1Encodable
     {
-        public static readonly DerInteger DontPublish = new DerInteger(0);
-        public static readonly DerInteger PleasePublish = new DerInteger(1);
+        public static readonly DerInteger DontPublish = DerInteger.Zero;
+        public static readonly DerInteger PleasePublish = DerInteger.One;
 
         public static PkiPublicationInfo GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
             if (obj is PkiPublicationInfo pkiPublicationInfo)
                 return pkiPublicationInfo;
-
-            if (obj != null)
-                return new PkiPublicationInfo(Asn1Sequence.GetInstance(obj));
-
-            return null;
+            return new PkiPublicationInfo(Asn1Sequence.GetInstance(obj));
         }
+
+        public static PkiPublicationInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiPublicationInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PkiPublicationInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiPublicationInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_action;
         private readonly Asn1Sequence m_pubInfos;
 
         private PkiPublicationInfo(Asn1Sequence seq)
         {
-            m_action = DerInteger.GetInstance(seq[0]);
-            if (seq.Count > 1)
-            {
-                m_pubInfos = Asn1Sequence.GetInstance(seq[1]);
-            }
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            int pos = 0;
+
+            m_action = DerInteger.GetInstance(seq[pos++]);
+            m_pubInfos = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public PkiPublicationInfo(BigInteger action)
@@ -50,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public PkiPublicationInfo(DerInteger action)
         {
-            m_action = action;
+            m_action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         /**
@@ -80,13 +92,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual DerInteger Action => m_action;
 
-        public virtual SinglePubInfo[] GetPubInfos()
-        {
-            if (m_pubInfos == null)
-                return null;
-
-            return m_pubInfos.MapElements(SinglePubInfo.GetInstance);
-        }
+        public virtual SinglePubInfo[] GetPubInfos() => m_pubInfos?.MapElements(SinglePubInfo.GetInstance);
 
         /**
          * <pre>
@@ -103,10 +109,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
          */
         public override Asn1Object ToAsn1Object()
         {
-            if (m_pubInfos == null)
-                return new DerSequence(m_action);
-
-            return new DerSequence(m_action, m_pubInfos);
+            return m_pubInfos == null
+                ?  new DerSequence(m_action)
+                :  new DerSequence(m_action, m_pubInfos);
         }
     }
 }

@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			tsTokenGen.SetCertificates(certs);
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
-			TimeStampRequest request = reqGen.Generate("1.2.3.4.5", new byte[20]);
+			TimeStampRequest request = reqGen.Generate(new DerObjectIdentifier("1.2.3.4.5"), new byte[20]);
 
 			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
 
@@ -223,7 +223,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			tsTokenGen.SetCertificates(certs);
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
-			TimeStampRequest request = reqGen.Generate("1.2.3.4.5", new byte[20]);
+			TimeStampRequest request = reqGen.Generate(new DerObjectIdentifier("1.2.3.4.5"), new byte[20]);
 
 			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(
 				tsTokenGen, TspAlgorithms.Allowed);
@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
 
-			reqGen.SetReqPolicy("1.1");
+			reqGen.SetReqPolicy(new DerObjectIdentifier("1.1"));
 
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
 
@@ -334,7 +334,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			// request specifies policy, token generator doesn't - should work
 			reqGen = new TimeStampRequestGenerator();
 
-			reqGen.SetReqPolicy("1.1");
+			reqGen.SetReqPolicy(new DerObjectIdentifier("1.1"));
 
 			request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
 

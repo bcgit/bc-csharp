@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Sig;
@@ -7,53 +6,33 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/**
+    /**
 	* reader for signature sub-packets
 	*/
-	public class SignatureSubpacketsParser
+    public class SignatureSubpacketsParser
 	{
-		private readonly Stream input;
+		private readonly Stream m_input;
 
-		public SignatureSubpacketsParser(
-			Stream input)
+		public SignatureSubpacketsParser(Stream input)
 		{
-			this.input = input;
+			m_input = input;
 		}
 
 		public SignatureSubpacket ReadPacket()
 		{
-			int l = input.ReadByte();
-			if (l < 0)
-				return null;
+            int bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
+            if (bodyLen < 0)
+                return null;
 
-			int bodyLen = 0;
-            bool isLongLength = false;
-
-            if (l < 192)
-			{
-				bodyLen = l;
-			}
-			else if (l <= 223)
-			{
-				bodyLen = ((l - 192) << 8) + (input.ReadByte()) + 192;
-			}
-			else if (l == 255)
-			{
-                isLongLength = true;
-				bodyLen = (input.ReadByte() << 24) | (input.ReadByte() << 16)
-					|  (input.ReadByte() << 8)  | input.ReadByte();
-			}
-			else
-			{
+            if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
                 throw new IOException("unexpected length header");
-			}
 
-            int tag = input.ReadByte();
-			if (tag < 0)
-				throw new EndOfStreamException("unexpected EOF reading signature sub packet");
+            bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
-            if (bodyLen <= 0)
+            if (bodyLen < 1)
                 throw new EndOfStreamException("out of range data found in signature sub packet");
+
+            int tag = StreamUtilities.RequireByte(m_input);
 
             byte[] data = new byte[bodyLen - 1];
 
@@ -62,7 +41,7 @@ namespace Org.BouncyCastle.Bcpg
             // in fixed length fields, so we check the length we do get, only throwing an exception if
             // we really cannot continue
             //
-            int bytesRead = Streams.ReadFully(input, data);
+            int bytesRead = Streams.ReadFully(m_input, data);
 
             bool isCritical = ((tag & 0x80) != 0);
             SignatureSubpacketTag type = (SignatureSubpacketTag)(tag & 0x7f);

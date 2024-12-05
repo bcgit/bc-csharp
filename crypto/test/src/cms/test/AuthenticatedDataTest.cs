@@ -173,7 +173,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			foreach (RecipientInformation recipient in c)
 			{
-				byte[] recData = recipient.GetContent(ReciECKP.Private);
+                Assert.True(recipient.RecipientID.Match(ReciECCert));
+
+                byte[] recData = recipient.GetContent(ReciECKP.Private);
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
@@ -206,8 +208,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			foreach (RecipientInformation recipient in c)
 			{
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+                Assert.True(recipient.RecipientID.Match(ReciCert));
 
-				byte[] recData = recipient.GetContent(ReciKP.Private);
+                byte[] recData = recipient.GetContent(ReciKP.Private);
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
@@ -237,8 +240,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			foreach (RecipientInformation recipient in c)
 			{
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+                Assert.True(recipient.RecipientID.Match(ReciCert));
 
-				byte[] recData = recipient.GetContent(ReciKP.Private);
+                byte[] recData = recipient.GetContent(ReciKP.Private);
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
@@ -268,8 +272,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			foreach (RecipientInformation recipient in c)
 			{
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.IdRsaesOaep.Id);
+                Assert.True(recipient.RecipientID.Match(ReciCert));
 
-				byte[] recData = recipient.GetContent(ReciKP.Private);
+                byte[] recData = recipient.GetContent(ReciKP.Private);
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
@@ -305,8 +310,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			foreach (RecipientInformation recipient in c)
 			{
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, algOid.Id);
+                Assert.True(Arrays.AreEqual(recipient.RecipientID.KeyIdentifier, kekId));
 
-				byte[] recData = recipient.GetContent(kek);
+                byte[] recData = recipient.GetContent(kek);
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 				Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));

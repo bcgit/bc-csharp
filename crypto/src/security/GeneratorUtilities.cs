@@ -195,8 +195,12 @@ namespace Org.BouncyCastle.Security
                 PkcsObjectIdentifiers.IdHmacWithSha384);
             AddHMacKeyGenerator("SHA512",
                 PkcsObjectIdentifiers.IdHmacWithSha512);
-            AddHMacKeyGenerator("SHA512/224");
-            AddHMacKeyGenerator("SHA512/256");
+            AddHMacKeyGenerator("SHA512/224",
+                PkcsObjectIdentifiers.IdHmacWithSha512_224);
+            AddHMacKeyGenerator("SHA512-224");
+            AddHMacKeyGenerator("SHA512/256",
+                PkcsObjectIdentifiers.IdHmacWithSha512_256);
+            AddHMacKeyGenerator("SHA512-256");
             AddHMacKeyGenerator("KECCAK224");
             AddHMacKeyGenerator("KECCAK256");
             AddHMacKeyGenerator("KECCAK288");
@@ -263,9 +267,12 @@ namespace Org.BouncyCastle.Security
             AddKpgAlgorithm("GOST3410",
                 "GOST-3410",
                 "GOST-3410-94");
+            AddKpgAlgorithm("ML-DSA");
+            AddKpgAlgorithm("ML-KEM");
             AddKpgAlgorithm("RSA",
                 PkcsObjectIdentifiers.RsaEncryption);
             AddKpgAlgorithm("RSASSA-PSS");
+            AddKpgAlgorithm("SLH-DSA");
             AddKpgAlgorithm("X25519",
                 EdECObjectIdentifiers.id_X25519);
             AddKpgAlgorithm("X448",
@@ -279,10 +286,11 @@ namespace Org.BouncyCastle.Security
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
             AddDefaultKeySizeEntries(192, "AES", "AES192", "ARIA192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
                 "RIJNDAEL", "SERPENT", "TNEPRES");
-            AddDefaultKeySizeEntries(224, "HMACSHA3-224", "HMACKECCAK224", "HMACSHA224", "HMACSHA512/224");
+            AddDefaultKeySizeEntries(224, "HMACSHA3-224", "HMACKECCAK224", "HMACSHA224", "HMACSHA512/224",
+                "HMACSHA512-224");
             AddDefaultKeySizeEntries(256, "AES256", "ARIA", "ARIA256", "CAMELLIA", "CAMELLIA256", "CAST6",
                 "CHACHA7539", "GOST28147", "HC256", "HMACGOST3411-2012-256", "HMACSHA3-256", "HMACKECCAK256",
-                "HMACSHA256", "HMACSHA512/256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
+                "HMACSHA256", "HMACSHA512/256", "HMACSHA512-256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
             AddDefaultKeySizeEntries(288, "HMACKECCAK288");
             AddDefaultKeySizeEntries(384, "HMACSHA3-384", "HMACKECCAK384", "HMACSHA384");
             AddDefaultKeySizeEntries(512, "HMACGOST3411-2012-512", "HMACSHA3-512", "HMACKECCAK512", "HMACSHA512",
@@ -404,8 +412,17 @@ namespace Org.BouncyCastle.Security
             if (canonicalName == "GOST3410")
                 return new Gost3410KeyPairGenerator();
 
+            if (canonicalName == "ML-DSA")
+                return new MLDsaKeyPairGenerator();
+
+            if (canonicalName == "ML-KEM")
+                return new MLKemKeyPairGenerator();
+
             if (canonicalName == "RSA" || canonicalName == "RSASSA-PSS")
                 return new RsaKeyPairGenerator();
+
+            if (canonicalName == "SLH-DSA")
+                return new SlhDsaKeyPairGenerator();
 
             if (canonicalName == "X25519")
                 return new X25519KeyPairGenerator();

@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     /// https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/ascon-spec-final.pdf<br/>
     /// ASCON v1.2 XOF with reference to C Reference Impl from: https://github.com/ascon/ascon-c .
     /// </remarks>
+    [Obsolete("This class is deprecated. For the latest Ascon version, use AsconXof128 or AsconCXof128 instead.")]
     public sealed class AsconXof
         : IXof
     {

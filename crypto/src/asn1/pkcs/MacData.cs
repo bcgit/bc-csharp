@@ -2,73 +2,69 @@ using System;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     public class MacData
         : Asn1Encodable
     {
-        internal DigestInfo	digInfo;
-        internal byte[]		salt;
-        internal BigInteger	iterationCount;
-
-		public static MacData GetInstance(
-            object obj)
+        public static MacData GetInstance(object obj)
         {
-            if (obj is MacData)
-            {
-                return (MacData) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new MacData((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		private MacData(
-            Asn1Sequence seq)
-        {
-            this.digInfo = DigestInfo.GetInstance(seq[0]);
-            this.salt = ((Asn1OctetString) seq[1]).GetOctets();
-
-			if (seq.Count == 3)
-            {
-                this.iterationCount = ((DerInteger) seq[2]).Value;
-            }
-            else
-            {
-                this.iterationCount = BigInteger.One;
-            }
+            if (obj == null)
+                return null;
+            if (obj is MacData macData)
+                return macData;
+            return new MacData(Asn1Sequence.GetInstance(obj));
         }
 
-		public MacData(
-            DigestInfo	digInfo,
-            byte[]		salt,
-            int			iterationCount)
+        public static MacData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MacData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static MacData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new MacData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DigestInfo m_mac;
+        private readonly Asn1OctetString m_macSalt;
+        private readonly DerInteger m_iterations;
+
+        private MacData(Asn1Sequence seq)
         {
-            this.digInfo = digInfo;
-            this.salt = (byte[]) salt.Clone();
-            this.iterationCount = BigInteger.ValueOf(iterationCount);
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_mac = DigestInfo.GetInstance(seq[pos++]);
+            m_macSalt = Asn1OctetString.GetInstance(seq[pos++]);
+            m_iterations = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional) ?? DerInteger.One;
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public DigestInfo Mac
-		{
-			get { return digInfo; }
-		}
-
-		public byte[] GetSalt()
+        // TODO[api] Fix parameter names
+        public MacData(DigestInfo digInfo, byte[] salt, int iterationCount)
         {
-            return (byte[]) salt.Clone();
+            m_mac = digInfo ?? throw new ArgumentNullException(nameof(digInfo));
+            m_macSalt = DerOctetString.FromContents(salt);
+            m_iterations = new DerInteger(iterationCount);
         }
 
-		public BigInteger IterationCount
-		{
-			get { return iterationCount; }
-		}
+        public MacData(DigestInfo mac, Asn1OctetString macSalt, DerInteger iterations)
+        {
+            m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
+            m_macSalt = macSalt ?? throw new ArgumentNullException(nameof(macSalt));
+            m_iterations = iterations ?? throw new ArgumentNullException(nameof(iterations));
+        }
+
+        public DigestInfo Mac => m_mac;
+
+        public byte[] GetSalt() => (byte[])m_macSalt.GetOctets().Clone();
+
+        public BigInteger IterationCount => m_iterations.Value;
+
+        public DerInteger Iterations => m_iterations;
+
+        public Asn1OctetString MacSalt => m_macSalt;
 
 		/**
 		 * <pre>
@@ -83,14 +79,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		 */
 		public override Asn1Object ToAsn1Object()
         {
-			Asn1EncodableVector v = new Asn1EncodableVector(digInfo, new DerOctetString(salt));
-
-			if (!iterationCount.Equals(BigInteger.One))
-			{
-				v.Add(new DerInteger(iterationCount));
-			}
-
-			return new DerSequence(v);
+            return m_iterations.HasValue(1)
+                ?  new DerSequence(m_mac, m_macSalt)
+                :  new DerSequence(m_mac, m_macSalt, m_iterations);
         }
     }
 }

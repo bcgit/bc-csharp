@@ -1,6 +1,8 @@
 using System;
 using System.Text;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.X509
 {
     /**
@@ -22,11 +24,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AuthorityInformationAccess
         : Asn1Encodable
     {
-        private static AccessDescription[] Copy(AccessDescription[] descriptions)
-        {
-            return (AccessDescription[])descriptions.Clone();
-        }
-
         public static AuthorityInformationAccess GetInstance(object obj)
         {
             if (obj == null)
@@ -36,31 +33,40 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AuthorityInformationAccess(Asn1Sequence.GetInstance(obj));
         }
 
+        public static AuthorityInformationAccess GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AuthorityInformationAccess(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static AuthorityInformationAccess GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AuthorityInformationAccess(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
         public static AuthorityInformationAccess FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityInfoAccess));
         }
 
-        private readonly AccessDescription[] descriptions;
+        private readonly AccessDescription[] m_descriptions;
 
         private AuthorityInformationAccess(Asn1Sequence seq)
         {
             if (seq.Count < 1)
                 throw new ArgumentException("sequence may not be empty");
 
-            this.descriptions = seq.MapElements(AccessDescription.GetInstance);
+            m_descriptions = seq.MapElements(AccessDescription.GetInstance);
         }
 
-        public AuthorityInformationAccess(
-            AccessDescription description)
+        public AuthorityInformationAccess(AccessDescription description)
         {
-            this.descriptions = new AccessDescription[]{ description };
+            m_descriptions = new AccessDescription[]{
+                description ?? throw new ArgumentNullException(nameof(description))
+            };
         }
 
-        public AuthorityInformationAccess(
-            AccessDescription[] descriptions)
+        public AuthorityInformationAccess(AccessDescription[] descriptions)
         {
-            this.descriptions = Copy(descriptions);
+            if (Arrays.IsNullOrContainsNull(descriptions))
+                throw new NullReferenceException("'descriptions' cannot be null, or contain null");
+
+            m_descriptions = Copy(descriptions);
         }
 
         /**
@@ -71,15 +77,9 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-        public AccessDescription[] GetAccessDescriptions()
-        {
-            return Copy(descriptions);
-        }
+        public AccessDescription[] GetAccessDescriptions() => Copy(m_descriptions);
 
-        public override Asn1Object ToAsn1Object()
-        {
-            return new DerSequence(descriptions);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_descriptions);
 
         public override string ToString()
         {
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
             StringBuilder buf = new StringBuilder();
             buf.AppendLine("AuthorityInformationAccess:");
-            foreach (AccessDescription description in descriptions)
+            foreach (AccessDescription description in m_descriptions)
             {
                 buf.Append("    ")
                    .Append(description)
@@ -95,5 +95,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             return buf.ToString();
         }
+
+        private static AccessDescription[] Copy(AccessDescription[] descriptions) =>
+            (AccessDescription[])descriptions.Clone();
     }
 }

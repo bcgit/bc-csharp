@@ -65,16 +65,14 @@ namespace Org.BouncyCastle.Asn1.X509
                 }
                 else if (c == m_separator)
                 {
-                    // TODO[api] The Trim() is for backward compatibility; remove on transition to X500NameTokenizer
-                    return m_value.Substring(beginIndex, m_index - beginIndex).Trim();
+                    return m_value.Substring(beginIndex, m_index - beginIndex);
                 }
             }
 
             if (escaped || quoted)
                 throw new ArgumentException("badly formatted directory string");
 
-            // TODO[api] The Trim() is for backward compatibility; remove on transition to X500NameTokenizer
-            return m_value.Substring(beginIndex, m_index - beginIndex).Trim();
+            return m_value.Substring(beginIndex, m_index - beginIndex);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             ServerTask serverTask = new ServerTask(serverProtocol, network.Server);
 
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             DatagramTransport clientTransport = network.Client;

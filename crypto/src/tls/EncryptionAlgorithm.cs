@@ -78,5 +78,12 @@ namespace Org.BouncyCastle.Tls
          * GMT 0024-2014
          */
         public const int SM4_CBC = 28;
+
+        /*
+         * RFC 9189
+         */
+        public const int KUZNYECHIK_CTR_OMAC = 29;
+        public const int MAGMA_CTR_OMAC = 30;
+        public const int cls_28147_CNT_IMIT = 31;
     }
 }

@@ -38,12 +38,11 @@ namespace Org.BouncyCastle.X509
 			tbsGen = new V3TbsCertificateGenerator();
 			tbsGen.SetSerialNumber(template.SerialNumber);
 			tbsGen.SetIssuer(template.Issuer);
-			tbsGen.SetStartDate(template.StartDate);
-			tbsGen.SetEndDate(template.EndDate);
+            tbsGen.SetValidity(template.Validity);
 			tbsGen.SetSubject(template.Subject);
 			tbsGen.SetSubjectPublicKeyInfo(template.SubjectPublicKeyInfo);
 
-			var extensions = template.TbsCertificate.Extensions;
+			var extensions = template.Extensions;
 
             foreach (var oid in extensions.ExtensionOids)
             {
@@ -94,6 +93,11 @@ namespace Org.BouncyCastle.X509
             X509Name issuer)
         {
             tbsGen.SetIssuer(issuer);
+        }
+
+        public void SetValidity(Validity validity)
+        {
+            tbsGen.SetValidity(validity);
         }
 
 		/// <summary>
@@ -166,66 +170,69 @@ namespace Org.BouncyCastle.X509
 		}
 
         /// <summary>
-        /// Add a given extension field for the standard extensions tag (tag 3).
+        /// Add an extension using a string with a dotted decimal OID.
         /// </summary>
         /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
         /// <param name="critical">Is it critical.</param>
         /// <param name="extensionValue">The value.</param>
-        public void AddExtension(
-			string			oid,
-			bool			critical,
-			Asn1Encodable	extensionValue)
-		{
-			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
-		}
+        public void AddExtension(string oid, bool critical, Asn1Encodable extensionValue) =>
+            AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
 
-		/// <summary>
+        /// <summary>
         /// Add an extension to this certificate.
         /// </summary>
         /// <param name="oid">Its Object Identifier.</param>
         /// <param name="critical">Is it critical.</param>
         /// <param name="extensionValue">The value.</param>
-        public void AddExtension(
-			DerObjectIdentifier	oid,
-			bool				critical,
-			Asn1Encodable		extensionValue)
-        {
-			extGenerator.AddExtension(oid, critical, extensionValue);
-        }
+        public void AddExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extensionValue) =>
+            extGenerator.AddExtension(oid, critical, extensionValue);
 
-		/// <summary>
-		/// Add an extension using a string with a dotted decimal OID.
-		/// </summary>
-		/// <param name="oid">string containing a dotted decimal Object Identifier.</param>
-		/// <param name="critical">Is it critical.</param>
-		/// <param name="extensionValue">byte[] containing the value of this extension.</param>
-		public void AddExtension(
-			string	oid,
-			bool	critical,
-			byte[]	extensionValue)
-		{
-			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, new DerOctetString(extensionValue));
-		}
+        /// <summary>
+        /// Add an extension using a string with a dotted decimal OID.
+        /// </summary>
+        /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">The value.</param>
+        public void AddExtension(string oid, bool critical, IAsn1Convertible extensionValue) =>
+            AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
 
-		/// <summary>
+        /// <summary>
+        /// Add an extension to this certificate.
+        /// </summary>
+        /// <param name="oid">Its Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">The value.</param>
+        public void AddExtension(DerObjectIdentifier oid, bool critical, IAsn1Convertible extensionValue) =>
+            extGenerator.AddExtension(oid, critical, extensionValue);
+
+        /// <summary>
+        /// Add an extension using a string with a dotted decimal OID.
+        /// </summary>
+        /// <param name="oid">string containing a dotted decimal Object Identifier.</param>
+        /// <param name="critical">Is it critical.</param>
+        /// <param name="extensionValue">byte[] containing the value of this extension.</param>
+        public void AddExtension(string oid, bool critical, byte[] extensionValue) =>
+            AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
+
+        /// <summary>
         /// Add an extension to this certificate.
         /// </summary>
         /// <param name="oid">Its Object Identifier.</param>
         /// <param name="critical">Is it critical.</param>
         /// <param name="extensionValue">byte[] containing the value of this extension.</param>
-        public void AddExtension(
-			DerObjectIdentifier	oid,
-			bool				critical,
-			byte[]				extensionValue)
-        {
-			extGenerator.AddExtension(oid, critical, new DerOctetString(extensionValue));
-        }
+        public void AddExtension(DerObjectIdentifier oid, bool critical, byte[] extensionValue) =>
+            extGenerator.AddExtension(oid, critical, DerOctetString.FromContents(extensionValue));
 
-		/// <summary>
-		/// Add a given extension field for the standard extensions tag (tag 3),
-		/// copying the extension value from another certificate.
-		/// </summary>
-		public void CopyAndAddExtension(
+        public void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension) =>
+            extGenerator.AddExtension(oid, x509Extension);
+
+        public void AddExtension(Asn1.X509.Extension extension) => extGenerator.AddExtension(extension);
+
+        /// <summary>
+        /// Add a given extension field for the standard extensions tag (tag 3),
+        /// copying the extension value from another certificate.
+        /// </summary>
+        public void CopyAndAddExtension(
 			string			oid,
 			bool			critical,
 			X509Certificate	cert)
@@ -273,13 +280,23 @@ namespace Org.BouncyCastle.X509
 
             if (!extGenerator.IsEmpty)
             {
+                var deltaExtension = extGenerator.GetExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor);
+                if (deltaExtension != null)
+                {
+                    var descriptor = DeltaCertificateTool.TrimDeltaCertificateDescriptor(
+                        DeltaCertificateDescriptor.GetInstance(deltaExtension.GetParsedValue()),
+                        tbsGen.GenerateTbsCertificate(),
+                        extGenerator.Generate());
+
+                    extGenerator.ReplaceExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor,
+                        deltaExtension.IsCritical, descriptor);
+                }
+
                 tbsGen.SetExtensions(extGenerator.Generate());
             }
 
             var tbsCertificate = tbsGen.GenerateTbsCertificate();
-
 			var signature = X509Utilities.GenerateSignature(signatureFactory, tbsCertificate);
-
 			return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
         }
 
@@ -297,17 +314,43 @@ namespace Org.BouncyCastle.X509
         public X509Certificate Generate(ISignatureFactory signatureFactory, bool isCritical,
 			ISignatureFactory altSignatureFactory)
 		{
-            tbsGen.SetSignature(null);
-
+            var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
             var altSigAlgID = (AlgorithmIdentifier)altSignatureFactory.AlgorithmDetails;
+
 			extGenerator.AddExtension(X509Extensions.AltSignatureAlgorithm, isCritical, altSigAlgID);
 
+            var deltaExtension = extGenerator.GetExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor);
+            if (deltaExtension != null)
+            {
+                tbsGen.SetSignature(sigAlgID);
+
+                // the altSignatureValue is not present yet, but it must be in the deltaCertificate and
+                // it must be different (by definition!). We add a dummy one to trigger inclusion.
+                var tmpExtGenerator = new X509ExtensionsGenerator();
+                tmpExtGenerator.AddExtensions(extGenerator.Generate());
+                tmpExtGenerator.AddExtension(X509Extensions.AltSignatureValue, false, DerNull.Instance);
+
+                var descriptor = DeltaCertificateTool.TrimDeltaCertificateDescriptor(
+                    DeltaCertificateDescriptor.GetInstance(deltaExtension.GetParsedValue()),
+                    tbsGen.GenerateTbsCertificate(),
+                    tmpExtGenerator.Generate());
+
+                extGenerator.ReplaceExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor,
+                    deltaExtension.IsCritical, descriptor);
+            }
+
+            tbsGen.SetSignature(null);
             tbsGen.SetExtensions(extGenerator.Generate());
 
 			var altSignature = X509Utilities.GenerateSignature(altSignatureFactory, tbsGen.GeneratePreTbsCertificate());
 			extGenerator.AddExtension(X509Extensions.AltSignatureValue, isCritical, altSignature);
 
-			return Generate(signatureFactory);
+            tbsGen.SetSignature(sigAlgID);
+            tbsGen.SetExtensions(extGenerator.Generate());
+
+            var tbsCertificate = tbsGen.GenerateTbsCertificate();
+            var signature = X509Utilities.GenerateSignature(signatureFactory, tbsCertificate);
+            return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
 		}
 
 		/// <summary>
@@ -329,10 +372,7 @@ namespace Org.BouncyCastle.X509
 
             for (int i = 0; i != id.Length; i++)
             {
-                if (id[i])
-                {
-                    bytes[i >> 3] |= (byte)(0x80 >> (i & 7));
-                }
+                bytes[i >> 3] |= (byte)(id[i] ? (0x80 >> (i & 7)) : 0);
             }
 
             return new DerBitString(bytes, (8 - id.Length) & 7);

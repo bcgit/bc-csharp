@@ -37,6 +37,13 @@ namespace Org.BouncyCastle.Asn1.Mozilla
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static PublicKeyAndChallenge GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new PublicKeyAndChallenge(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         private readonly SubjectPublicKeyInfo m_spki;
         private readonly DerIA5String m_challenge;
 

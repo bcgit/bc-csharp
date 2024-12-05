@@ -1,15 +1,13 @@
-using System;
 using System.IO;
 
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Basic packet for a PGP public key.</remarks>
-	public class PublicKeyEncSessionPacket
+    /// <remarks>Basic packet for a PGP public key.</remarks>
+    public class PublicKeyEncSessionPacket
 		: ContainedPacket //, PublicKeyAlgorithmTag
 	{
         private readonly int version;						// V3, V6
@@ -35,21 +33,14 @@ namespace Org.BouncyCastle.Bcpg
 			BcpgInputStream bcpgIn)
 			:base(PacketTag.PublicKeyEncryptedSession)
 		{
-			version = bcpgIn.ReadByte();
+			version = bcpgIn.RequireByte();
             switch (version)
 			{
                 case Version3:
-                    keyId |= (long)bcpgIn.ReadByte() << 56;
-                    keyId |= (long)bcpgIn.ReadByte() << 48;
-                    keyId |= (long)bcpgIn.ReadByte() << 40;
-                    keyId |= (long)bcpgIn.ReadByte() << 32;
-                    keyId |= (long)bcpgIn.ReadByte() << 24;
-                    keyId |= (long)bcpgIn.ReadByte() << 16;
-                    keyId |= (long)bcpgIn.ReadByte() << 8;
-                    keyId |= (uint)bcpgIn.ReadByte();
+                    keyId = (long)StreamUtilities.RequireUInt64BE(bcpgIn);
                     break;
                 case Version6:
-                    int keyInfoLength = bcpgIn.ReadByte();
+                    int keyInfoLength = bcpgIn.RequireByte();
                     if (keyInfoLength == 0)
                     {
                         // anonymous recipient
@@ -59,7 +50,7 @@ namespace Org.BouncyCastle.Bcpg
                     }
                     else
                     {
-                        keyVersion = bcpgIn.ReadByte();
+                        keyVersion = bcpgIn.RequireByte();
                         keyFingerprint = new byte[keyInfoLength - 1];
                         bcpgIn.ReadFully(keyFingerprint);
 
@@ -81,7 +72,7 @@ namespace Org.BouncyCastle.Bcpg
                     throw new UnsupportedPacketVersionException($"Unsupported PGP public key encrypted session key packet version encountered: {version}");
             }
 			
-			algorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
+			algorithm = (PublicKeyAlgorithmTag) bcpgIn.RequireByte();
 
             switch (algorithm)
 			{

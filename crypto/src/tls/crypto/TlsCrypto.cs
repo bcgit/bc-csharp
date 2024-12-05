@@ -58,6 +58,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>true if HKDF is supported with cryptoHashAlgorithm, false otherwise.</returns>
         bool HasHkdfAlgorithm(int cryptoHashAlgorithm);
 
+        /// <summary>Return true if this TlsCrypto can support KEM key agreement.</summary>
+        /// <returns>true if this instance can support KEM key agreement, false otherwise.</returns>
+        bool HasKemAgreement();
+
         /// <summary>Return true if this TlsCrypto can support the passed in MAC algorithm.</summary>
         /// <param name="macAlgorithm">the algorithm of interest.</param>
         /// <returns>true if macAlgorithm is supported, false otherwise.</returns>
@@ -140,6 +144,11 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <param name="ecConfig">the config describing the EC parameters to use.</param>
         /// <returns>a TlsECDomain supporting the parameters in ecConfig.</returns>
         TlsECDomain CreateECDomain(TlsECConfig ecConfig);
+
+        /// <summary>Create a domain object supporting the domain parameters described in kemConfig.</summary>
+        /// <param name="kemConfig">the config describing the KEM parameters to use.</param>
+        /// <returns>a TlsKemDomain supporting the parameters in kemConfig.</returns>
+        TlsKemDomain CreateKemDomain(TlsKemConfig kemConfig);
 
         /// <summary>Adopt the passed in secret, creating a new copy of it.</summary>
         /// <param name="secret">the secret to make a copy of.</param>

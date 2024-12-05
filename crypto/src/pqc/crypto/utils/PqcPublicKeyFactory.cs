@@ -12,14 +12,13 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -87,33 +86,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.picnicl3full] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl5full] = PicnicConverter;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            Converters[BCObjectIdentifiers.sikep434] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep503] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep610] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep751] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep434_compressed] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep503_compressed] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep610_compressed] = SikeConverter;
-            Converters[BCObjectIdentifiers.sikep751_compressed] = SikeConverter;
-#pragma warning restore CS0618 // Type or member is obsolete
+            Converters.Add(BCObjectIdentifiers.ntruhps2048509, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhps2048677, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhps4096821, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhps40961229, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhrss701, NtruConverter);
+            Converters.Add(BCObjectIdentifiers.ntruhrss1373, NtruConverter);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Converters[BCObjectIdentifiers.dilithium2] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium3] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium5] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium2_aes] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium3_aes] = DilithiumConverter;
             Converters[BCObjectIdentifiers.dilithium5_aes] = DilithiumConverter;
-            
+#pragma warning restore CS0618 // Type or member is obsolete
+
             Converters[BCObjectIdentifiers.falcon_512] = FalconConverter;
             Converters[BCObjectIdentifiers.falcon_1024] = FalconConverter;
-            
-            Converters[BCObjectIdentifiers.kyber512] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber512_aes] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber768] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber768_aes] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber1024] = KyberConverter;
-            Converters[BCObjectIdentifiers.kyber1024_aes] = KyberConverter;
 
             Converters[BCObjectIdentifiers.bike128] = BikeConverter;
             Converters[BCObjectIdentifiers.bike192] = BikeConverter;
@@ -124,6 +114,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.hqc256] = HqcConverter;
 
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Converters[BCObjectIdentifiers.sphincsPlus] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_128s_r3] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_128f_r3] = SphincsPlusConverter;
@@ -163,6 +154,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.sphincsPlus_sha2_256f] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_shake_256s] = SphincsPlusConverter;
             Converters[BCObjectIdentifiers.sphincsPlus_shake_256f] = SphincsPlusConverter;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -208,6 +200,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return converter(keyInfo, defaultParams);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DilithiumPublicKeyParameters GetDilithiumPublicKey(DilithiumParameters dilithiumParameters,
             DerBitString publicKeyData)
         {
@@ -234,26 +227,60 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new DilithiumPublicKeyParameters(dilithiumParameters, publicKeyOctets);
             }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private static AsymmetricKeyParameter LmsConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+            DerBitString publicKey = keyInfo.PublicKey;
 
-            if (Pack.BE_To_UInt32(keyEnc, 0) == 1U)
+            if (publicKey.IsOctetAligned())
             {
-                return LmsPublicKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
-            }
-            else
-            {
-                // public key with extra tree height
-                if (keyEnc.Length == 64)
+                //int expectedLength = ???;
+
+                //int bytesLength = publicKey.GetBytesLength();
+                //if (bytesLength == expectedLength)
+                //    return GetLmsKeyParameters(publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                //if (bytesLength > expectedLength)
                 {
-                    keyEnc = Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length);
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct)
+                        {
+                            //if (oct.GetOctetsLength() == expectedLength)
+                            {
+                                return GetLmsKeyParameters(oct.GetOctets());
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-                return HssPublicKeyParameters.GetInstance(keyEnc);
+
+                return GetLmsKeyParameters(publicKey.GetOctets());
             }
+
+            throw new ArgumentException($"invalid LMS public key");
         }
 
+        private static LmsKeyParameters GetLmsKeyParameters(byte[] keyEnc)
+        {
+            if (Pack.BE_To_UInt32(keyEnc, 0) == 1U)
+                return LmsPublicKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+
+            // public key with extra tree height
+            if (keyEnc.Length == 64)
+            {
+                keyEnc = Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length);
+            }
+
+            return HssPublicKeyParameters.GetInstance(keyEnc);
+        }
+
+#pragma warning disable CS0618 // Type or member is obsolete
         private static AsymmetricKeyParameter SphincsPlusConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
             try
@@ -273,6 +300,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new SphincsPlusPublicKeyParameters(spParams, keyEnc);
             }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private static AsymmetricKeyParameter CmceConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
@@ -311,16 +339,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return new PicnicPublicKeyParameters(picnicParams, keyEnc);
         }
 
-        [Obsolete("Will be removed")]
-        private static AsymmetricKeyParameter SikeConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
-        {
-            byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
-
-            SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.Algorithm.Algorithm);
-
-            return new SikePublicKeyParameters(sikeParams, keyEnc);
-        }
-
         private static AsymmetricKeyParameter DilithiumConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
             var dilithiumParameters = PqcUtilities.DilithiumParamsLookup(keyInfo.Algorithm.Algorithm);
@@ -328,24 +346,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return GetDilithiumPublicKey(dilithiumParameters, publicKeyData: keyInfo.PublicKey);
         }
 
-        private static AsymmetricKeyParameter KyberConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
+        private static AsymmetricKeyParameter NtruConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
-            KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.Algorithm.Algorithm);
+            var ntruParameters = PqcUtilities.NtruParamsLookup(keyInfo.Algorithm.Algorithm);
 
-            try
-            {
-                Asn1Object obj = keyInfo.ParsePublicKey();
-#pragma warning disable CS0618 // Type or member is obsolete
-                KyberPublicKey kyberKey = KyberPublicKey.GetInstance(obj);
-#pragma warning restore CS0618 // Type or member is obsolete
+            return GetNtruPublicKey(ntruParameters, keyInfo.PublicKey);
+        }
 
-                return new KyberPublicKeyParameters(kyberParameters, kyberKey.T, kyberKey.Rho);
-            }
-            catch (Exception)
+        private static NtruPublicKeyParameters GetNtruPublicKey(NtruParameters ntruParameters, DerBitString publicKey)
+        {
+            if (publicKey.IsOctetAligned())
             {
-                // we're a raw encoding
-                return new KyberPublicKeyParameters(kyberParameters, keyInfo.PublicKey.GetOctets());
+                int expectedLength = ntruParameters.PublicKeyLength;
+
+                int bytesLength = publicKey.GetBytesLength();
+                if (bytesLength == expectedLength)
+                    // TODO[pqc] Avoid redundant copies?
+                    return NtruPublicKeyParameters.FromEncoding(ntruParameters, encoding: publicKey.GetOctets());
+
+                // TODO[pqc] Remove support for legacy/prototype formats?
+                if (bytesLength > expectedLength)
+                {
+                    try
+                    {
+                        Asn1Object obj = Asn1Object.FromMemoryStream(publicKey.GetOctetMemoryStream());
+                        if (obj is Asn1OctetString oct && oct.GetOctetsLength() == expectedLength)
+                            return NtruPublicKeyParameters.FromEncoding(ntruParameters, encoding: oct.GetOctets());
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
             }
+
+            throw new ArgumentException($"invalid {ntruParameters.Name} public key");
         }
 
         private static AsymmetricKeyParameter FalconConverter(SubjectPublicKeyInfo keyInfo, object defaultParams)

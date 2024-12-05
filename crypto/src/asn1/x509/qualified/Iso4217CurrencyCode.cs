@@ -48,7 +48,13 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
-		public Iso4217CurrencyCode(
+        public static Iso4217CurrencyCode GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static Iso4217CurrencyCode GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public Iso4217CurrencyCode(
             int numeric)
         {
             if (numeric > NumericMaxSize || numeric < NumericMinSize)

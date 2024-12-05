@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockTlsServer server = new MockTlsServer();
 
             ServerTask serverTask = new ServerTask(serverProtocol, server);
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             clientProtocol.Connect(client);

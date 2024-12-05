@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 
@@ -15,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevAnnContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new RevAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static RevAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new RevAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiStatusEncodable m_status;
 		private readonly CertId m_certID;
@@ -35,24 +38,27 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
             Asn1GeneralizedTime badSinceDate, X509Extensions crlDetails)
         {
-            m_status = status;
-            m_certID = certID;
-            m_willBeRevokedAt = willBeRevokedAt;
-            m_badSinceDate = badSinceDate;
+            m_status = status ?? throw new ArgumentNullException(nameof(status));
+            m_certID = certID ?? throw new ArgumentNullException(nameof(certID));
+            m_willBeRevokedAt = willBeRevokedAt ?? throw new ArgumentNullException(nameof(willBeRevokedAt));
+            m_badSinceDate = badSinceDate ?? throw new ArgumentNullException(nameof(badSinceDate));
             m_crlDetails = crlDetails;
         }
 
         private RevAnnContent(Asn1Sequence seq)
 		{
-			m_status = PkiStatusEncodable.GetInstance(seq[0]);
-			m_certID = CertId.GetInstance(seq[1]);
-			m_willBeRevokedAt = Asn1GeneralizedTime.GetInstance(seq[2]);
-			m_badSinceDate = Asn1GeneralizedTime.GetInstance(seq[3]);
+            int count = seq.Count, pos = 0;
+            if (count < 4 || count > 5)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count > 4)
-			{
-				m_crlDetails = X509Extensions.GetInstance(seq[4]);
-			}
+            m_status = PkiStatusEncodable.GetInstance(seq[pos++]);
+            m_certID = CertId.GetInstance(seq[pos++]);
+            m_willBeRevokedAt = Asn1GeneralizedTime.GetInstance(seq[pos++]);
+            m_badSinceDate = Asn1GeneralizedTime.GetInstance(seq[pos++]);
+            m_crlDetails = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public virtual PkiStatusEncodable Status => m_status;

@@ -1,9 +1,9 @@
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
-	public class KeyDerivationFunc
+    // TODO[api] This is not supposed to be a separate type; remove and use AlgorithmIdentifier
+    public class KeyDerivationFunc
 		: AlgorithmIdentifier
 	{
 		internal KeyDerivationFunc(Asn1Sequence seq)

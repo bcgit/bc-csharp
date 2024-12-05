@@ -1,8 +1,12 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
 {
@@ -10,11 +14,18 @@ namespace Org.BouncyCastle.Cmp
     {
         private readonly CertTemplateBuilder m_templateBuilder = new CertTemplateBuilder();
 
-        public RevocationDetailsBuilder SetPublicKey(SubjectPublicKeyInfo publicKey)
+        public RevocationDetailsBuilder SetPublicKey(AsymmetricKeyParameter publicKey) =>
+            SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+
+        [Obsolete("Use 'SetSubjectPublicKeyInfo' instead")]
+        public RevocationDetailsBuilder SetPublicKey(SubjectPublicKeyInfo publicKey) =>
+            SetSubjectPublicKeyInfo(spki: publicKey);
+
+        public RevocationDetailsBuilder SetSubjectPublicKeyInfo(SubjectPublicKeyInfo spki)
         {
-            if (publicKey != null)
+            if (spki != null)
             {
-                m_templateBuilder.SetPublicKey(publicKey);
+                m_templateBuilder.SetSubjectPublicKeyInfo(spki);
             }
 
             return this;

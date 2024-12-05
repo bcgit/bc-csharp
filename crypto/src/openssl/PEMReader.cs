@@ -311,14 +311,14 @@ namespace Org.BouncyCastle.OpenSsl
                     {
                         ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
                         AlgorithmIdentifier algId = new AlgorithmIdentifier(
-                            X9ObjectIdentifiers.IdECPublicKey, pKey.GetParameters());
+                            X9ObjectIdentifiers.IdECPublicKey, pKey.Parameters);
 
                         PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey.ToAsn1Object());
 
                         // TODO Are the keys returned here ECDSA, as Java version forces?
                         privSpec = PrivateKeyFactory.CreateKey(privInfo);
 
-                        DerBitString pubKey = pKey.GetPublicKey();
+                        DerBitString pubKey = pKey.PublicKey;
                         if (pubKey != null)
                         {
                             SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey);

@@ -21,31 +21,31 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CrlStatus(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CrlStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CrlStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CrlStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CrlStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CrlStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CrlSource m_source;
         private readonly Time m_thisUpdate;
 
-        private CrlStatus(Asn1Sequence sequence)
+        private CrlStatus(Asn1Sequence seq)
         {
-            int count = sequence.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
-                throw new ArgumentException("expected sequence size of 1 or 2, got " + count);
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_source = CrlSource.GetInstance(sequence[0]);
+            m_source = CrlSource.GetInstance(seq[pos++]);
+            m_thisUpdate = Asn1Utilities.ReadOptional(seq, ref pos, Time.GetOptional);
 
-            if (sequence.Count == 2)
-            {
-                m_thisUpdate = Time.GetInstance(sequence[1]);
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public CrlStatus(CrlSource source, Time thisUpdate)
         {
-            m_source = source;
+            m_source = source ?? throw new ArgumentNullException(nameof(source));
             m_thisUpdate = thisUpdate;
         }
 
@@ -55,10 +55,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public override Asn1Object ToAsn1Object()
         {
-            if (m_thisUpdate == null)
-                return new DerSequence(m_source);
-
-            return new DerSequence(m_source, m_thisUpdate);
+            return m_thisUpdate == null
+                ?  new DerSequence(m_source)
+                :  new DerSequence(m_source, m_thisUpdate);
         }
     }
 }

@@ -1458,15 +1458,9 @@ namespace Org.BouncyCastle.Tls
             if (null == sessionVersion || !sessionVersion.IsTls)
                 return false;
 
-            bool isEms = sessionParameters.IsExtendedMasterSecret;
-            if (sessionVersion.IsSsl)
+            if (!TlsUtilities.IsExtendedMasterSecretOptional(sessionVersion))
             {
-                if (isEms)
-                    return false;
-            }
-            else if (!TlsUtilities.IsExtendedMasterSecretOptional(sessionVersion))
-            {
-                if (!isEms)
+                if (sessionParameters.IsExtendedMasterSecret == sessionVersion.IsSsl)
                     return false;
             }
 

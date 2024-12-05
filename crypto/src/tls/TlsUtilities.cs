@@ -2059,6 +2059,16 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
+            case CipherSuite.TLS_GOSTR341112_256_WITH_28147_CNT_IMIT:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC:
+            {
+                if (isTlsV12Exactly)
+                    return PrfAlgorithm.tls_prf_gostr3411_2012_256;
+
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            }
+
             case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA384:
             case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA384:
@@ -2543,6 +2553,9 @@ namespace Org.BouncyCastle.Tls
         {
             switch (cipherSuite)
             {
+            case CipherSuite.TLS_GOSTR341112_256_WITH_28147_CNT_IMIT:
+                return EncryptionAlgorithm.cls_28147_CNT_IMIT;
+
             case CipherSuite.TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
@@ -2843,6 +2856,12 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256:
                 return EncryptionAlgorithm.CHACHA20_POLY1305;
 
+            case CipherSuite.TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC:
+                return EncryptionAlgorithm.KUZNYECHIK_CTR_OMAC;
+
+            case CipherSuite.TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC:
+                return EncryptionAlgorithm.MAGMA_CTR_OMAC;
+
             case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA:
             case CipherSuite.TLS_ECDH_anon_WITH_NULL_SHA:
             case CipherSuite.TLS_ECDH_ECDSA_WITH_NULL_SHA:
@@ -2925,6 +2944,9 @@ namespace Org.BouncyCastle.Tls
             case EncryptionAlgorithm.SM4_CBC:
                 return CipherType.block;
 
+            case EncryptionAlgorithm.cls_28147_CNT_IMIT:
+            case EncryptionAlgorithm.KUZNYECHIK_CTR_OMAC:
+            case EncryptionAlgorithm.MAGMA_CTR_OMAC:
             case EncryptionAlgorithm.NULL:
             case EncryptionAlgorithm.RC4_40:
             case EncryptionAlgorithm.RC4_128:
@@ -3171,6 +3193,11 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_ECDHE_RSA_WITH_NULL_SHA:
                 return KeyExchangeAlgorithm.ECDHE_RSA;
+
+            case CipherSuite.TLS_GOSTR341112_256_WITH_28147_CNT_IMIT:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC:
+                return KeyExchangeAlgorithm.GOSTR341112_256;
 
             case CipherSuite.TLS_AES_128_CCM_8_SHA256:
             case CipherSuite.TLS_AES_128_CCM_SHA256:
@@ -3751,6 +3778,9 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_28147_CNT_IMIT:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC:
+            case CipherSuite.TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC:
             case CipherSuite.TLS_PSK_DHE_WITH_AES_128_CCM_8:
             case CipherSuite.TLS_PSK_DHE_WITH_AES_256_CCM_8:
             case CipherSuite.TLS_PSK_WITH_AES_128_CCM:
@@ -3844,6 +3874,7 @@ namespace Org.BouncyCastle.Tls
                     // TODO[tls13] We're conservatively adding both here, though maybe only one is needed
                     AddToSet(result, NamedGroupRole.dh);
                     AddToSet(result, NamedGroupRole.ecdh);
+                    AddToSet(result, NamedGroupRole.kem);
                     break;
                 }
                 }
@@ -3919,8 +3950,6 @@ namespace Org.BouncyCastle.Tls
         internal static bool IsValidSignatureAlgorithmForServerKeyExchange(short signatureAlgorithm,
             int keyExchangeAlgorithm)
         {
-            // TODO[tls13]
-
             switch (keyExchangeAlgorithm)
             {
             case KeyExchangeAlgorithm.DHE_RSA:
@@ -3958,6 +3987,7 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.NULL:
                 return SignatureAlgorithm.anonymous != signatureAlgorithm;
 
+            case KeyExchangeAlgorithm.GOSTR341112_256:
             default:
                 return false;
             }
@@ -4219,6 +4249,9 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.SRP_RSA:
                 return crypto.HasSrpAuthentication()
                     && HasAnyRsaSigAlgs(crypto);
+
+            // TODO[RFC 9189]
+            case KeyExchangeAlgorithm.GOSTR341112_256:
 
             default:
                 return false;
@@ -4540,7 +4573,8 @@ namespace Org.BouncyCastle.Tls
                 for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
                 {
                     if (!(tlsFeaturesSeq[i] is DerInteger))
-                        throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                        throw new TlsFatalAlert(AlertDescription.bad_certificate,
+                            "Server certificate has invalid TLS Features extension");
                 }
 
                 RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
@@ -4553,7 +4587,8 @@ namespace Org.BouncyCastle.Tls
                         int extensionType = tlsExtension.IntValueExact;
 
                         if (clientExtensions.ContainsKey(extensionType) && !serverExtensions.ContainsKey(extensionType))
-                            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                            throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                                "Server extensions missing TLS Feature " + extensionType);
                     }
                 }
             }
@@ -5019,7 +5054,7 @@ namespace Org.BouncyCastle.Tls
                 }
 
                 TlsAgreement agreement = null;
-                if (NamedGroup.RefersToASpecificCurve(supportedGroup))
+                if (NamedGroup.RefersToAnECDHCurve(supportedGroup))
                 {
                     if (crypto.HasECDHAgreement())
                     {
@@ -5031,6 +5066,13 @@ namespace Org.BouncyCastle.Tls
                     if (crypto.HasDHAgreement())
                     {
                         agreement = crypto.CreateDHDomain(new TlsDHConfig(supportedGroup, true)).CreateDH();
+                    }
+                }
+                else if (NamedGroup.RefersToASpecificKem(supportedGroup))
+                {
+                    if (crypto.HasKemAgreement())
+                    {
+                        agreement = crypto.CreateKemDomain(new TlsKemConfig(supportedGroup, isServer: false)).CreateKem();
                     }
                 }
 
@@ -5079,13 +5121,12 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToASpecificCurve(group) && !crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
                     {
-                        continue;
+                        return clientShare;
                     }
-
-                    return clientShare;
                 }
             }
             return null;
@@ -5107,13 +5148,12 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToASpecificCurve(group) && !crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
                     {
-                        continue;
+                        return group;
                     }
-
-                    return group;
                 }
             }
             return -1;
@@ -5275,9 +5315,32 @@ namespace Org.BouncyCastle.Tls
             {
                 securityParameters.m_verifyDataLength = securityParameters.PrfHashLength;
             }
+            else if (negotiatedVersion.IsSsl)
+            {
+                securityParameters.m_verifyDataLength = 36;
+            }
             else
             {
-                securityParameters.m_verifyDataLength = negotiatedVersion.IsSsl ? 36 : 12;
+                /*
+                 * RFC 9189 4.2.6. The verify_data_length value is equal to 32 for the CTR_OMAC cipher
+                 * suites and is equal to 12 for the CNT_IMIT cipher suite.
+                 */
+                switch (cipherSuite)
+                {
+                case CipherSuite.TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC:
+                case CipherSuite.TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC:
+                {
+                    securityParameters.m_verifyDataLength = 32;
+                    break;
+                }
+
+                case CipherSuite.TLS_GOSTR341112_256_WITH_28147_CNT_IMIT:
+                default:
+                {
+                    securityParameters.m_verifyDataLength = 12;
+                    break;
+                }
+                }
             }
         }
 

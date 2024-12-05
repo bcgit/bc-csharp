@@ -14,68 +14,51 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new TimeStampedData(Asn1Sequence.GetInstance(obj));
         }
 
-        public static TimeStampedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static TimeStampedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static TimeStampedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TimeStampedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerInteger m_version;
+        private readonly DerIA5String m_dataUri;
+        private readonly MetaData m_metaData;
+        private readonly Asn1OctetString m_content;
+        private readonly Evidence m_temporalEvidence;
+
+        public TimeStampedData(DerIA5String dataUri, MetaData metaData, Asn1OctetString content,
+            Evidence temporalEvidence)
         {
-            return new TimeStampedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            m_version = DerInteger.One;
+            m_dataUri = dataUri;
+            m_metaData = metaData;
+            m_content = content;
+            m_temporalEvidence = temporalEvidence ?? throw new ArgumentNullException(nameof(temporalEvidence));
         }
 
-        private DerInteger version;
-		private DerIA5String dataUri;
-		private MetaData metaData;
-		private Asn1OctetString content;
-		private Evidence temporalEvidence;
-
-		public TimeStampedData(DerIA5String dataUri, MetaData metaData, Asn1OctetString content,
-			Evidence temporalEvidence)
+        private TimeStampedData(Asn1Sequence seq)
 		{
-			this.version = new DerInteger(1);
-			this.dataUri = dataUri;
-			this.metaData = metaData;
-			this.content = content;
-			this.temporalEvidence = temporalEvidence;
-		}
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 5)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-		private TimeStampedData(Asn1Sequence seq)
-		{
-			this.version = DerInteger.GetInstance(seq[0]);
-			
-			int index = 1;
-			if (seq[index] is DerIA5String ia5)
-			{
-				this.dataUri = ia5;
-				++index;
-			}
-			if (seq[index] is MetaData || seq[index] is Asn1Sequence)
-			{
-				this.metaData = MetaData.GetInstance(seq[index++]);
-			}
-			if (seq[index] is Asn1OctetString octets)
-			{
-				this.content = octets;
-				++index;
-			}
-			this.temporalEvidence = Evidence.GetInstance(seq[index]);
-		}
+            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_dataUri = Asn1Utilities.ReadOptional(seq, ref pos, DerIA5String.GetOptional);
+            m_metaData = Asn1Utilities.ReadOptional(seq, ref pos, MetaData.GetOptional);
+            m_content = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional);
+            m_temporalEvidence = Evidence.GetInstance(seq[pos++]);
 
-		public virtual DerIA5String DataUri
-		{
-			get { return dataUri; }
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
-		public MetaData MetaData
-		{
-			get { return metaData; }
-		}
+        public virtual DerIA5String DataUri => m_dataUri;
 
-		public Asn1OctetString Content
-		{
-			get { return content; }
-		}
+        public MetaData MetaData => m_metaData;
 
-		public Evidence TemporalEvidence
-		{
-			get { return temporalEvidence; }
-		}
+        public Asn1OctetString Content => m_content;
+
+        public Evidence TemporalEvidence => m_temporalEvidence;
 
 		/**
 		 * <pre>
@@ -91,9 +74,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(version);
-			v.AddOptional(dataUri, metaData, content);
-			v.Add(temporalEvidence);
+            Asn1EncodableVector v = new Asn1EncodableVector(5);
+            v.Add(m_version);
+			v.AddOptional(m_dataUri, m_metaData, m_content);
+			v.Add(m_temporalEvidence);
 			return new BerSequence(v);
 		}
 	}

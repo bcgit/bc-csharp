@@ -32,34 +32,35 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CmsAlgorithmProtection GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CmsAlgorithmProtection GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CmsAlgorithmProtection(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CmsAlgorithmProtection GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CmsAlgorithmProtection(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public static readonly int Signature = 1;
         public static readonly int Mac = 2;
 
-        private readonly AlgorithmIdentifier digestAlgorithm;
-        private readonly AlgorithmIdentifier signatureAlgorithm;
-        private readonly AlgorithmIdentifier macAlgorithm;
+        private readonly AlgorithmIdentifier m_digestAlgorithm;
+        private readonly AlgorithmIdentifier m_signatureAlgorithm;
+        private readonly AlgorithmIdentifier m_macAlgorithm;
 
         public CmsAlgorithmProtection(AlgorithmIdentifier digestAlgorithm, int type, AlgorithmIdentifier algorithmIdentifier)
         {
-            if (digestAlgorithm == null || algorithmIdentifier == null)
-                throw new ArgumentException("AlgorithmIdentifiers cannot be null");
+            m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
 
-            this.digestAlgorithm = digestAlgorithm;
+            if (algorithmIdentifier == null)
+                throw new ArgumentNullException(nameof(algorithmIdentifier));
 
             if (type == 1)
             {
-                this.signatureAlgorithm = algorithmIdentifier;
-                this.macAlgorithm = null;
+                m_signatureAlgorithm = algorithmIdentifier;
+                m_macAlgorithm = null;
             }
             else if (type == 2)
             {
-                this.signatureAlgorithm = null;
-                this.macAlgorithm = algorithmIdentifier;
+                m_signatureAlgorithm = null;
+                m_macAlgorithm = algorithmIdentifier;
             }
             else
             {
@@ -67,43 +68,34 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
-        private CmsAlgorithmProtection(Asn1Sequence sequence)
+        private CmsAlgorithmProtection(Asn1Sequence seq)
         {
-            if (sequence.Count != 2)
-                throw new ArgumentException("Sequence wrong size: One of signatureAlgorithm or macAlgorithm must be present");
+            int count = seq.Count, pos = 0;
 
-            this.digestAlgorithm = AlgorithmIdentifier.GetInstance(sequence[0]);
+            // RFC 6211 2. Exactly one of signatureAlgorithm or macAlgorithm SHALL be present.
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(sequence[1]);
-            if (tagged.TagNo == 1)
-            {
-                this.signatureAlgorithm = AlgorithmIdentifier.GetInstance(tagged, false);
-                this.macAlgorithm = null;
-            }
-            else if (tagged.TagNo == 2)
-            {
-                this.signatureAlgorithm = null;
+            m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_signatureAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, AlgorithmIdentifier.GetTagged);
+            m_macAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, AlgorithmIdentifier.GetTagged);
 
-                this.macAlgorithm = AlgorithmIdentifier.GetInstance(tagged, false);
-            }
-            else
-            {
-                throw new ArgumentException("Unknown tag found: " + tagged.TagNo);
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-        public AlgorithmIdentifier DigestAlgorithm => digestAlgorithm;
+        public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
-        public AlgorithmIdentifier MacAlgorithm => macAlgorithm;
+        public AlgorithmIdentifier MacAlgorithm => m_macAlgorithm;
 
-        public AlgorithmIdentifier SignatureAlgorithm => signatureAlgorithm;
+        public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.Add(digestAlgorithm);
-            v.AddOptionalTagged(false, 1, signatureAlgorithm);
-            v.AddOptionalTagged(false, 2, macAlgorithm);
+            v.Add(m_digestAlgorithm);
+            v.AddOptionalTagged(false, 1, m_signatureAlgorithm);
+            v.AddOptionalTagged(false, 2, m_macAlgorithm);
             return new DerSequence(v);
         }
     }

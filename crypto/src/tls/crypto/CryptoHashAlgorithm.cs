@@ -11,5 +11,6 @@ namespace Org.BouncyCastle.Tls.Crypto
         public const int sha384 = 5;
         public const int sha512 = 6;
         public const int sm3 = 7;
+        public const int gostr3411_2012_256 = 8;
     }
 }

@@ -7,9 +7,59 @@ namespace Org.BouncyCastle.Asn1
     {
         public static new readonly DLSequence Empty = new DLSequence();
 
+        public static new DLSequence Concatenate(params Asn1Sequence[] sequences)
+        {
+            if (sequences == null)
+                return Empty;
+
+            switch (sequences.Length)
+            {
+            case 0:
+                return Empty;
+            case 1:
+                return FromSequence(sequences[0]);
+            default:
+                return WithElements(ConcatenateElements(sequences));
+            }
+        }
+
+        public static new DLSequence FromElements(Asn1Encodable[] elements)
+        {
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
+            return elements.Length < 1 ? Empty : new DLSequence(elements);
+        }
+
+        public static new DLSequence FromElementsOptional(Asn1Encodable[] elements)
+        {
+            if (elements == null)
+                return null;
+
+            return elements.Length < 1 ? Empty : new DLSequence(elements);
+        }
+
+        public static new DLSequence FromSequence(Asn1Sequence sequence)
+        {
+            if (sequence is DLSequence dlSequence)
+                return dlSequence;
+
+            return WithElements(sequence.m_elements);
+        }
+
         public static new DLSequence FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSequence(elementVector);
+        }
+
+        public static new DLSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
+        {
+            return sequence.Count < 1 ? Empty : new DLSequence(sequence.MapElements(func), clone: false);
+        }
+
+        internal static new DLSequence WithElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new DLSequence(elements, clone: false);
         }
 
         /**

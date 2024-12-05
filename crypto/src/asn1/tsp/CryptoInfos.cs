@@ -19,10 +19,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new CryptoInfos(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CryptoInfos GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CryptoInfos(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CryptoInfos GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CryptoInfos(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CryptoInfos GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CryptoInfos(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_attributes;
 
@@ -33,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         public CryptoInfos(Asn1.Cms.Attribute[] attrs)
         {
-            m_attributes = new DerSequence(attrs);
+            m_attributes = DerSequence.FromElements(attrs);
         }
 
         public virtual Asn1.Cms.Attribute[] GetAttributes() => m_attributes.MapElements(Asn1.Cms.Attribute.GetInstance);

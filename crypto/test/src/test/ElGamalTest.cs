@@ -300,7 +300,7 @@ namespace Org.BouncyCastle.Tests
 
 //			AlgorithmParameters a2 = AlgorithmParameters.getInstance("ElGamal");
 //			a2.init(encodeParams);
-			ElGamalParameter elP = new ElGamalParameter((Asn1Sequence) Asn1Object.FromByteArray(encodeParams));
+			ElGamalParameter elP = ElGamalParameter.GetInstance(encodeParams);
 			ElGamalParameters p2 = new ElGamalParameters(elP.P, elP.G);
 
 			// a and a2 should be equivalent!

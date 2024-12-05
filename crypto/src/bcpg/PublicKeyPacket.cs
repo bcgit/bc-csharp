@@ -35,17 +35,16 @@ namespace Org.BouncyCastle.Bcpg
             PacketTag tag)
             : base(tag)
         {
-            version = bcpgIn.ReadByte();
+            version = bcpgIn.RequireByte();
 
-            time = ((uint)bcpgIn.ReadByte() << 24) | ((uint)bcpgIn.ReadByte() << 16)
-                | ((uint)bcpgIn.ReadByte() << 8) | (uint)bcpgIn.ReadByte();
+            time = StreamUtilities.RequireUInt32BE(bcpgIn);
 
             if (version <= Version3)
             {
-                validDays = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
+                validDays = StreamUtilities.RequireUInt16BE(bcpgIn);
             }
 
-            algorithm = (PublicKeyAlgorithmTag)bcpgIn.ReadByte();
+            algorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
 
             if (version == Version5 || version == Version6)
             {

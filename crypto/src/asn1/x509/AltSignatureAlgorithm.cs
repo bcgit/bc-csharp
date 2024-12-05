@@ -28,8 +28,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AltSignatureAlgorithm
         : Asn1Encodable
     {
-        private readonly AlgorithmIdentifier m_algorithm;
-
         public static AltSignatureAlgorithm GetInstance(object obj)
         {
             if (obj == null)
@@ -39,10 +37,11 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AltSignatureAlgorithm(AlgorithmIdentifier.GetInstance(obj));
         }
 
-        public static AltSignatureAlgorithm GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(AlgorithmIdentifier.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static AltSignatureAlgorithm GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AltSignatureAlgorithm(AlgorithmIdentifier.GetInstance(taggedObject, declaredExplicit));
+
+        public static AltSignatureAlgorithm GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new AltSignatureAlgorithm(AlgorithmIdentifier.GetTagged(taggedObject, declaredExplicit));
 
         public static AltSignatureAlgorithm FromExtensions(X509Extensions extensions)
         {
@@ -50,9 +49,11 @@ namespace Org.BouncyCastle.Asn1.X509
                 X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AltSignatureAlgorithm));
         }
 
+        private readonly AlgorithmIdentifier m_algorithm;
+
         public AltSignatureAlgorithm(AlgorithmIdentifier algorithm)
         {
-            m_algorithm = algorithm;
+            m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
         }
 
         public AltSignatureAlgorithm(DerObjectIdentifier algorithm)
@@ -67,9 +68,6 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
-        public override Asn1Object ToAsn1Object()
-        {
-            return m_algorithm.ToAsn1Object();
-        }
+        public override Asn1Object ToAsn1Object() => m_algorithm.ToAsn1Object();
     }
 }

@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 				using (var cGen = new BerSequenceGenerator(sGen.GetRawOutputStream(), 0, true))
 				{
-					cGen.AddObject(new DerInteger(0));
+					cGen.AddObject(DerInteger.Zero);
 
 					//
 					// AlgorithmIdentifier

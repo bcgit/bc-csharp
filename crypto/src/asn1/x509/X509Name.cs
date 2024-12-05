@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -80,6 +81,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier Generation = new DerObjectIdentifier("2.5.4.44");
         public static readonly DerObjectIdentifier UniqueIdentifier = new DerObjectIdentifier("2.5.4.45");
 
+        public static readonly DerObjectIdentifier Description = new DerObjectIdentifier("2.5.4.13");
+
         /**
          * businessCategory - DirectoryString(SIZE(1..128)
          */
@@ -100,32 +103,34 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static readonly DerObjectIdentifier Pseudonym = new DerObjectIdentifier("2.5.4.65");
 
+        public static readonly DerObjectIdentifier Role = new DerObjectIdentifier("2.5.4.72");
+
         /**
          * RFC 3039 DateOfBirth - GeneralizedTime - YYYYMMDD000000Z
          */
-        public static readonly DerObjectIdentifier DateOfBirth = new DerObjectIdentifier("1.3.6.1.5.5.7.9.1");
+        public static readonly DerObjectIdentifier DateOfBirth = X509ObjectIdentifiers.id_pda.Branch("1");
 
         /**
          * RFC 3039 PlaceOfBirth - DirectoryString(SIZE(1..128)
          */
-        public static readonly DerObjectIdentifier PlaceOfBirth = new DerObjectIdentifier("1.3.6.1.5.5.7.9.2");
+        public static readonly DerObjectIdentifier PlaceOfBirth = X509ObjectIdentifiers.id_pda.Branch("2");
 
         /**
          * RFC 3039 DateOfBirth - PrintableString (SIZE(1)) -- "M", "F", "m" or "f"
          */
-        public static readonly DerObjectIdentifier Gender = new DerObjectIdentifier("1.3.6.1.5.5.7.9.3");
+        public static readonly DerObjectIdentifier Gender = X509ObjectIdentifiers.id_pda.Branch("3");
 
         /**
          * RFC 3039 CountryOfCitizenship - PrintableString (SIZE (2)) -- ISO 3166
          * codes only
          */
-        public static readonly DerObjectIdentifier CountryOfCitizenship = new DerObjectIdentifier("1.3.6.1.5.5.7.9.4");
+        public static readonly DerObjectIdentifier CountryOfCitizenship = X509ObjectIdentifiers.id_pda.Branch("4");
 
         /**
          * RFC 3039 CountryOfCitizenship - PrintableString (SIZE (2)) -- ISO 3166
          * codes only
          */
-        public static readonly DerObjectIdentifier CountryOfResidence = new DerObjectIdentifier("1.3.6.1.5.5.7.9.5");
+        public static readonly DerObjectIdentifier CountryOfResidence = X509ObjectIdentifiers.id_pda.Branch("5");
 
         /**
          * ISIS-MTT NameAtBirth - DirectoryString(SIZE(1..64)
@@ -183,7 +188,23 @@ namespace Org.BouncyCastle.Asn1.X509
         /**
         * LDAP User id.
         */
+        // TODO[api] Change to 'Uid'
         public static readonly DerObjectIdentifier UID = new DerObjectIdentifier("0.9.2342.19200300.100.1.1");
+
+        /**
+         * CA/Browser Forum https://cabforum.org/uploads/CA-Browser-Forum-BR-v2.0.0.pdf, Table 78
+         */
+        public static readonly DerObjectIdentifier JurisdictionC = new DerObjectIdentifier("1.3.6.1.4.1.311.60.2.1.3");
+
+        /**
+         * CA/Browser Forum https://cabforum.org/uploads/CA-Browser-Forum-BR-v2.0.0.pdf, Table 78
+         */
+        public static readonly DerObjectIdentifier JurisdictionST = new DerObjectIdentifier("1.3.6.1.4.1.311.60.2.1.2");
+
+        /**
+         * CA/Browser Forum https://cabforum.org/uploads/CA-Browser-Forum-BR-v2.0.0.pdf, Table 78
+         */
+        public static readonly DerObjectIdentifier JurisdictionL = new DerObjectIdentifier("1.3.6.1.4.1.311.60.2.1.1");
 
         /**
         * determines whether or not strings should be processed and printed
@@ -195,6 +216,7 @@ namespace Org.BouncyCastle.Asn1.X509
             set { Interlocked.Exchange(ref defaultReverse, Convert.ToInt64(value)); }
         }
 
+        // TODO[api] Replace this global switch
         private static long defaultReverse = 0;
 
         /**
@@ -249,6 +271,8 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultSymbolsInternal.Add(GivenName, "GIVENNAME");
             DefaultSymbolsInternal.Add(Initials, "INITIALS");
             DefaultSymbolsInternal.Add(Generation, "GENERATION");
+            DefaultSymbolsInternal.Add(Description, "DESCRIPTION");
+            DefaultSymbolsInternal.Add(Role, "ROLE");
             DefaultSymbolsInternal.Add(UnstructuredAddress, "unstructuredAddress");
             DefaultSymbolsInternal.Add(UnstructuredName, "unstructuredName");
             DefaultSymbolsInternal.Add(UniqueIdentifier, "UniqueIdentifier");
@@ -264,6 +288,11 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultSymbolsInternal.Add(PostalCode, "PostalCode");
             DefaultSymbolsInternal.Add(BusinessCategory, "BusinessCategory");
             DefaultSymbolsInternal.Add(TelephoneNumber, "TelephoneNumber");
+            DefaultSymbolsInternal.Add(Name, "Name");
+            DefaultSymbolsInternal.Add(OrganizationIdentifier, "organizationIdentifier");
+            DefaultSymbolsInternal.Add(JurisdictionC, "jurisdictionCountry");
+            DefaultSymbolsInternal.Add(JurisdictionST, "jurisdictionState");
+            DefaultSymbolsInternal.Add(JurisdictionL, "jurisdictionLocality");
 
             RFC2253SymbolsInternal.Add(C, "C");
             RFC2253SymbolsInternal.Add(O, "O");
@@ -290,6 +319,7 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("cn", CN);
             DefaultLookupInternal.Add("l", L);
             DefaultLookupInternal.Add("st", ST);
+            DefaultLookupInternal.Add("sn", Surname);
             DefaultLookupInternal.Add("serialnumber", SerialNumber);
             DefaultLookupInternal.Add("street", Street);
             DefaultLookupInternal.Add("emailaddress", E);
@@ -300,13 +330,15 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("givenname", GivenName);
             DefaultLookupInternal.Add("initials", Initials);
             DefaultLookupInternal.Add("generation", Generation);
+            DefaultLookupInternal.Add("description", Description);
+            DefaultLookupInternal.Add("role", Role);
             DefaultLookupInternal.Add("unstructuredaddress", UnstructuredAddress);
             DefaultLookupInternal.Add("unstructuredname", UnstructuredName);
             DefaultLookupInternal.Add("uniqueidentifier", UniqueIdentifier);
             DefaultLookupInternal.Add("dn", DnQualifier);
             DefaultLookupInternal.Add("pseudonym", Pseudonym);
             DefaultLookupInternal.Add("postaladdress", PostalAddress);
-            DefaultLookupInternal.Add("nameofbirth", NameAtBirth);
+            DefaultLookupInternal.Add("nameatbirth", NameAtBirth);
             DefaultLookupInternal.Add("countryofcitizenship", CountryOfCitizenship);
             DefaultLookupInternal.Add("countryofresidence", CountryOfResidence);
             DefaultLookupInternal.Add("gender", Gender);
@@ -315,6 +347,11 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("postalcode", PostalCode);
             DefaultLookupInternal.Add("businesscategory", BusinessCategory);
             DefaultLookupInternal.Add("telephonenumber", TelephoneNumber);
+            DefaultLookupInternal.Add("name", Name);
+            DefaultLookupInternal.Add("organizationidentifier", OrganizationIdentifier);
+            DefaultLookupInternal.Add("jurisdictioncountry", JurisdictionC);
+            DefaultLookupInternal.Add("jurisdictionstate", JurisdictionST);
+            DefaultLookupInternal.Add("jurisdictionlocality", JurisdictionL);
         }
 
         public static X509Name GetInstance(object obj)
@@ -335,6 +372,9 @@ namespace Org.BouncyCastle.Asn1.X509
         */
         public static X509Name GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new X509Name(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static X509Name GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new X509Name(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
         private readonly X509NameEntryConverter converter;
@@ -360,7 +400,7 @@ namespace Org.BouncyCastle.Asn1.X509
             foreach (Asn1Encodable asn1Obj in seq)
             {
                 // RelativeDistinguishedName ::= SET SIZE(1..MAX) OF AttributeTypeAndValue
-                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj.ToAsn1Object());
+                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj);
 
                 // TODO Apply this check? (Currently "breaks" CertificateTest.CheckDudCertificate)
                 //if (rdn.Count < 1)
@@ -368,7 +408,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
                 for (int i = 0; i < rdn.Count; ++i)
                 {
-                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i].ToAsn1Object());
+                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i]);
                     if (attributeTypeAndValue.Count != 2)
                         throw new ArgumentException("badly sized AttributeTypeAndValue");
 
@@ -828,6 +868,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_added.Add(added);
         }
 
+        // TODO Refactor common code between this and IetfUtilities.ValueToString
         private static void AppendValue(StringBuilder buf, IDictionary<DerObjectIdentifier, string> oidSymbols,
             DerObjectIdentifier oid, string val)
         {
@@ -841,34 +882,57 @@ namespace Org.BouncyCastle.Asn1.X509
             }
 
             buf.Append('=');
-
-            int index = buf.Length;
+            int start = buf.Length;
 
             buf.Append(val);
-
             int end = buf.Length;
 
-            if (val.StartsWith("\\#"))
+            int index = start;
+            if (index + 1 < end && buf[index] == '\\' && buf[index + 1] == '#')
             {
                 index += 2;
             }
 
             while (index != end)
             {
-                if ((buf[index] == ',')
-                || (buf[index] == '"')
-                || (buf[index] == '\\')
-                || (buf[index] == '+')
-                || (buf[index] == '=')
-                || (buf[index] == '<')
-                || (buf[index] == '>')
-                || (buf[index] == ';'))
+                switch (buf[index])
                 {
-                    buf.Insert(index++, "\\");
-                    end++;
+                case ',':
+                case '"':
+                case '\\':
+                case '+':
+                case '=':
+                case '<':
+                case '>':
+                case ';':
+                {
+                    buf.Insert(index, "\\");
+                    index += 2;
+                    ++end;
+                    break;
                 }
+                default:
+                {
+                    ++index;
+                    break;
+                }
+                }
+            }
 
-                index++;
+            Debug.Assert(end == buf.Length);
+
+            while (start < end && buf[start] == ' ')
+            {
+                buf.Insert(start, '\\');
+                start += 2;
+                ++end;
+            }
+
+            Debug.Assert(end == buf.Length);
+
+            while (--end > start && buf[end] == ' ')
+            {
+                buf.Insert(end, '\\');
             }
         }
 

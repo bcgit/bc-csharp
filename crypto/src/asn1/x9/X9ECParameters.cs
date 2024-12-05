@@ -13,27 +13,45 @@ namespace Org.BouncyCastle.Asn1.X9
     public class X9ECParameters
         : Asn1Encodable
     {
-        private X9FieldID	fieldID;
-        private ECCurve		curve;
-        private X9ECPoint	g;
-        private BigInteger	n;
-        private BigInteger	h;
-        private byte[]		seed;
-
-		public static X9ECParameters GetInstance(object obj)
-		{
-			if (obj is X9ECParameters)
-				return (X9ECParameters)obj;
-
-            if (obj != null)
-				return new X9ECParameters(Asn1Sequence.GetInstance(obj));
-
-            return null;
-		}
-
-        public X9ECParameters(
-            Asn1Sequence seq)
+        public static X9ECParameters GetInstance(object obj)
         {
+            if (obj == null)
+                return null;
+            if (obj is X9ECParameters x9ECParameters)
+                return x9ECParameters;
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new X9ECParameters(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static X9ECParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new X9ECParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static X9ECParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new X9ECParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly X9FieldID fieldID;
+        private readonly ECCurve curve;
+        private readonly X9ECPoint g;
+        private readonly BigInteger n;
+        private readonly BigInteger h;
+        private readonly byte[] seed;
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public X9ECParameters(Asn1Sequence seq)
+        {
+            int count = seq.Count;
+            if (count < 5 || count > 6)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             if (!(seq[0] is DerInteger)
                 || !((DerInteger)seq[0]).HasValue(1))
             {
@@ -193,7 +211,8 @@ namespace Org.BouncyCastle.Asn1.X9
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
+            Asn1EncodableVector v = new Asn1EncodableVector(6);
+            v.Add(
                 new DerInteger(BigInteger.One),
                 fieldID,
                 new X9Curve(curve, seed),

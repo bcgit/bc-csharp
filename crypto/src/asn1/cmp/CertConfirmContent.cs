@@ -12,10 +12,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertConfirmContent(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertConfirmContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertConfirmContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertConfirmContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertConfirmContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertConfirmContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Sequence m_content;
 

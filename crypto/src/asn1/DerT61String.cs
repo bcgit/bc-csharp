@@ -38,8 +38,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
-                if (asn1Object is DerT61String converted)
+                if (!(obj is Asn1Object) && asn1Convertible.ToAsn1Object() is DerT61String converted)
                     return converted;
             }
             else if (obj is byte[] bytes)
@@ -67,6 +66,22 @@ namespace Org.BouncyCastle.Asn1
         public static DerT61String GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerT61String)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+        }
+
+        public static DerT61String GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DerT61String existing)
+                return existing;
+
+            return null;
+        }
+
+        public static DerT61String GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+            return (DerT61String)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
         private readonly byte[] m_contents;

@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
                 Asn1EncodableVector vec = new Asn1EncodableVector
                 {
-                    new DerInteger(0),
+                    DerInteger.Zero,
                     new DerInteger(dsaparameters.P),
                     new DerInteger(dsaparameters.Q),
                     new DerInteger(dsaparameters.G)
@@ -162,13 +162,24 @@ namespace Org.BouncyCastle.Crypto.Utilities
                     if (sequence[3] is Asn1TaggedObject && sequence[2] is Asn1TaggedObject)
                     {
                         ECPrivateKeyStructure ecPrivateKey = ECPrivateKeyStructure.GetInstance(sequence);
-                        DerObjectIdentifier curveOID = DerObjectIdentifier.GetInstance(ecPrivateKey.GetParameters());
-                        X9ECParameters x9Params = ECNamedCurveTable.GetByOid(curveOID);
-                        result = new ECPrivateKeyParameters(
-                            ecPrivateKey.GetKey(),
-                            new ECNamedDomainParameters(
-                                curveOID,
-                                x9Params));
+
+                        X962Parameters parameters = X962Parameters.GetInstance(ecPrivateKey.Parameters.ToAsn1Object());
+                        if (parameters.IsNamedCurve)
+                        {
+                            result = new ECPrivateKeyParameters(
+                                algorithm: "EC",
+                                d: ecPrivateKey.GetKey(),
+                                publicKeyParamSet: DerObjectIdentifier.GetInstance(parameters.Parameters));
+                        }
+                        else
+                        {
+                            X9ECParameters x9 = X9ECParameters.GetInstance(parameters.Parameters);
+
+                            result = new ECPrivateKeyParameters(
+                                algorithm: "EC",
+                                d: ecPrivateKey.GetKey(),
+                                parameters: new ECDomainParameters(x9));
+                        }
                     }
                 }
             }

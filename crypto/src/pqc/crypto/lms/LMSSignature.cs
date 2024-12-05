@@ -46,17 +46,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LMOtsSignature otsSignature = LMOtsSignature.Parse(binaryReader);
 
-            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-            LMSigParameters type = LMSigParameters.GetParametersByID(index);
+            LMSigParameters sigParameter = LMSigParameters.ParseByID(binaryReader);
 
-            byte[][] path = new byte[type.H][];
+            byte[][] path = new byte[sigParameter.H][];
             for (int h = 0; h < path.Length; h++)
             {
-                path[h] = new byte[type.M];
+                path[h] = new byte[sigParameter.M];
                 binaryReader.Read(path[h], 0, path[h].Length);
             }
 
-            return new LmsSignature(q, otsSignature, type, path);
+            return new LmsSignature(q, otsSignature, sigParameter, path);
         }
 
         // TODO[api] Fix parameter name

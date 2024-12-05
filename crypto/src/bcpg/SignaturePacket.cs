@@ -10,7 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Generic signature packet.</remarks>
+    /// <remarks>Generic signature packet.</remarks>
     public class SignaturePacket
         : ContainedPacket
     {
@@ -74,50 +74,36 @@ namespace Org.BouncyCastle.Bcpg
         internal SignaturePacket(BcpgInputStream bcpgIn)
             :base(PacketTag.Signature)
         {
-            version = bcpgIn.ReadByte();
+            version = bcpgIn.RequireByte();
 
 			if (version == Version2 || version == Version3)
             {
-                bcpgIn.ReadByte();
+//                int l =
+                bcpgIn.RequireByte();
 
-				signatureType = bcpgIn.ReadByte();
-                creationTime = (((long)bcpgIn.ReadByte() << 24) | ((long)bcpgIn.ReadByte() << 16)
-                    | ((long)bcpgIn.ReadByte() << 8) | (uint)bcpgIn.ReadByte()) * 1000L;
-
-				keyId |= (long)bcpgIn.ReadByte() << 56;
-                keyId |= (long)bcpgIn.ReadByte() << 48;
-                keyId |= (long)bcpgIn.ReadByte() << 40;
-                keyId |= (long)bcpgIn.ReadByte() << 32;
-                keyId |= (long)bcpgIn.ReadByte() << 24;
-                keyId |= (long)bcpgIn.ReadByte() << 16;
-                keyId |= (long)bcpgIn.ReadByte() << 8;
-                keyId |= (uint)bcpgIn.ReadByte();
-
-				keyAlgorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
-                hashAlgorithm = (HashAlgorithmTag) bcpgIn.ReadByte();
+				signatureType = bcpgIn.RequireByte();
+                creationTime = (long)StreamUtilities.RequireUInt32BE(bcpgIn) * 1000L;
+                keyId = (long)StreamUtilities.RequireUInt64BE(bcpgIn);
+				keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
+                hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
             }
             else if (version >= Version4 && version <= Version6)
             {
-                signatureType = bcpgIn.ReadByte();
-                keyAlgorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
-                hashAlgorithm = (HashAlgorithmTag) bcpgIn.ReadByte();
+                signatureType = bcpgIn.RequireByte();
+                keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
+                hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
 
                 int hashedLength;
 
                 if (version == Version6)
                 {
-                    hashedLength = (bcpgIn.ReadByte() << 24)
-                        | (bcpgIn.ReadByte() << 16)
-                        | (bcpgIn.ReadByte() << 8)
-                        | bcpgIn.ReadByte();
+                    hashedLength = (int)StreamUtilities.RequireUInt32BE(bcpgIn);
                 }
                 else
                 {
-                    hashedLength = (bcpgIn.ReadByte() << 8)
-                        | bcpgIn.ReadByte();
+                    hashedLength = StreamUtilities.RequireUInt16BE(bcpgIn);
                 }
                 byte[] hashed = new byte[hashedLength];
-
 				bcpgIn.ReadFully(hashed);
 
 				//
@@ -150,19 +136,14 @@ namespace Org.BouncyCastle.Bcpg
 
                 if (version == Version6)
                 {
-                    unhashedLength = (bcpgIn.ReadByte() << 24)
-                        | (bcpgIn.ReadByte() << 16)
-                        | (bcpgIn.ReadByte() << 8)
-                        | bcpgIn.ReadByte();
+                    unhashedLength = (int)StreamUtilities.RequireUInt32BE(bcpgIn);
                 }
                 else
                 {
-                    unhashedLength = (bcpgIn.ReadByte() << 8)
-                        | bcpgIn.ReadByte();
+                    unhashedLength = StreamUtilities.RequireUInt16BE(bcpgIn);
                 }
 
                 byte[] unhashed = new byte[unhashedLength];
-
 				bcpgIn.ReadFully(unhashed);
 
 				sIn = new SignatureSubpacketsParser(new MemoryStream(unhashed, false));
@@ -216,16 +197,11 @@ namespace Org.BouncyCastle.Bcpg
 				signature = new MPInteger[1]{ v };
                 break;
 			case PublicKeyAlgorithmTag.Dsa:
+            case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
+            case PublicKeyAlgorithmTag.ElGamalGeneral:
                 MPInteger r = new MPInteger(bcpgIn);
                 MPInteger s = new MPInteger(bcpgIn);
 				signature = new MPInteger[2]{ r, s };
-                break;
-            case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
-            case PublicKeyAlgorithmTag.ElGamalGeneral:
-                MPInteger p = new MPInteger(bcpgIn);
-                MPInteger g = new MPInteger(bcpgIn);
-                MPInteger y = new MPInteger(bcpgIn);
-				signature = new MPInteger[3]{ p, g, y };
                 break;
             case PublicKeyAlgorithmTag.ECDsa:
             case PublicKeyAlgorithmTag.EdDsa_Legacy:

@@ -76,10 +76,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiBody(Asn1TaggedObject.GetInstance(obj));
         }
 
-        public static PkiBody GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(taggedObject, declaredExplicit, GetInstance);
-        }
+        public static PkiBody GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static PkiBody GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly int m_tagNo;
         private readonly Asn1Encodable m_body;

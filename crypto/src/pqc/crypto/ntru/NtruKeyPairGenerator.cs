@@ -2,44 +2,46 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa;
-using Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {
-    public class NtruKeyPairGenerator : IAsymmetricCipherKeyPairGenerator
+    public class NtruKeyPairGenerator
+        : IAsymmetricCipherKeyPairGenerator
     {
-        private NtruKeyGenerationParameters _keygenParameters;
-        private SecureRandom _random;
+        private NtruKeyGenerationParameters m_keyGenParameters;
+        private SecureRandom m_random;
 
         public void Init(KeyGenerationParameters parameters)
         {
-            _keygenParameters = (NtruKeyGenerationParameters)parameters;
-            _random = parameters.Random;
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            m_keyGenParameters = (NtruKeyGenerationParameters)parameters;
+            m_random = parameters.Random;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            // Debug.Assert(this._random != null);
-            NtruParameterSet parameterSet = _keygenParameters.NtruParameters.ParameterSet;
+            var parameters = m_keyGenParameters.NtruParameters;
+            var parameterSet = parameters.ParameterSet;
 
-            var seed = new byte[parameterSet.SampleFgBytes()];
-            _random.NextBytes(seed);
+            var seed = SecureRandom.GetNextBytes(m_random, parameterSet.SampleFgBytes());
 
             NtruOwcpa owcpa = new NtruOwcpa(parameterSet);
             OwcpaKeyPair owcpaKeys = owcpa.KeyPair(seed);
 
             byte[] publicKey = owcpaKeys.PublicKey;
-            byte[] privateKey = new byte[parameterSet.NtruSecretKeyBytes()];
-            byte[] owcpaPrivateKey = owcpaKeys.PrivateKey;
-            Array.Copy(owcpaPrivateKey, 0, privateKey, 0, owcpaPrivateKey.Length);
-            //
-            byte[] prfBytes = new byte[parameterSet.PrfKeyBytes];
-            _random.NextBytes(prfBytes);
-            Array.Copy(prfBytes, 0, privateKey, parameterSet.OwcpaSecretKeyBytes(), prfBytes.Length);
 
-            return new AsymmetricCipherKeyPair(new NtruPublicKeyParameters(_keygenParameters.NtruParameters, publicKey),
-                new NtruPrivateKeyParameters(_keygenParameters.NtruParameters, privateKey));
+            byte[] privateKey = Arrays.CopyOf(owcpaKeys.PrivateKey, parameterSet.NtruSecretKeyBytes());
+            m_random.NextBytes(privateKey, parameterSet.OwcpaSecretKeyBytes(), parameterSet.PrfKeyBytes);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new AsymmetricCipherKeyPair(
+                new NtruPublicKeyParameters(parameters, publicKey),
+                new NtruPrivateKeyParameters(parameters, privateKey));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
 			}
 
 			if (!(kParam is DHPrivateKeyParameters dhPrivateKeyParameters))
-				throw new ArgumentException("DHEngine expects DHPrivateKeyParameters");
+				throw new ArgumentException($"{nameof(DHAgreement)} expects {nameof(DHPrivateKeyParameters)}");
 
 			this.key = dhPrivateKeyParameters;
 			this.dhParams = dhPrivateKeyParameters.Parameters;

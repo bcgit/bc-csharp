@@ -17,14 +17,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public ParametersWithRandom(ICipherParameters parameters, SecureRandom random)
         {
-			if (parameters == null)
-				throw new ArgumentNullException(nameof(parameters));
-			if (random == null)
-				throw new ArgumentNullException(nameof(random));
-
-			m_parameters = parameters;
-			m_random = random;
-		}
+			m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+            m_random = random ?? throw new ArgumentNullException(nameof(random));
+        }
 
         public ICipherParameters Parameters => m_parameters;
 

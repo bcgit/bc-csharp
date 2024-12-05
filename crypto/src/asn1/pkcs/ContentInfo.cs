@@ -1,11 +1,10 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
     public class ContentInfo
         : Asn1Encodable
     {
-        private readonly DerObjectIdentifier	contentType;
-        private readonly Asn1Encodable			content;
-
         public static ContentInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -15,54 +14,52 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new ContentInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        private ContentInfo(
-            Asn1Sequence seq)
+        public static ContentInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ContentInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static ContentInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ContentInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly DerObjectIdentifier m_contentType;
+        private readonly Asn1Encodable m_content;
+
+        private ContentInfo(Asn1Sequence seq)
         {
-            contentType = (DerObjectIdentifier) seq[0];
+            int count = seq.Count;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_contentType = DerObjectIdentifier.GetInstance(seq[0]);
 
             if (seq.Count > 1)
             {
-                content = ((Asn1TaggedObject) seq[1]).GetExplicitBaseObject();
+                m_content = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
             }
         }
 
-        public ContentInfo(
-            DerObjectIdentifier	contentType,
-            Asn1Encodable		content)
+        public ContentInfo(DerObjectIdentifier contentType, Asn1Encodable content)
         {
-            this.contentType = contentType;
-            this.content = content;
+            m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            m_content = content;
         }
 
-        public DerObjectIdentifier ContentType
-        {
-            get { return contentType; }
-        }
+        public DerObjectIdentifier ContentType => m_contentType;
 
-        public Asn1Encodable Content
-        {
-            get { return content; }
-        }
+        public Asn1Encodable Content => m_content;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * ContentInfo ::= Sequence {
          *          contentType ContentType,
-         *          content
-         *          [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+         *          content [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
          * </pre>
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(contentType);
-
-            if (content != null)
-            {
-                v.Add(new BerTaggedObject(0, content));
-            }
-
-            return new BerSequence(v);
+            return m_content == null
+                ?  new BerSequence(m_contentType)
+                :  new BerSequence(m_contentType, new BerTaggedObject(0, m_content));
         }
     }
 }

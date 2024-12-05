@@ -2,47 +2,61 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Icao
 {
-	public class LdsVersionInfo
+    public class LdsVersionInfo
 		: Asn1Encodable
 	{
-		private DerPrintableString ldsVersion;
-		private DerPrintableString unicodeVersion;
+        public static LdsVersionInfo GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is LdsVersionInfo ldsVersionInfo)
+                return ldsVersionInfo;
+            return new LdsVersionInfo(Asn1Sequence.GetInstance(obj));
+        }
 
-		public LdsVersionInfo(string ldsVersion, string unicodeVersion)
+        public static LdsVersionInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LdsVersionInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static LdsVersionInfo GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is LdsVersionInfo ldsVersionInfo)
+                return ldsVersionInfo;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new LdsVersionInfo(asn1Sequence);
+
+            return null;
+        }
+
+        public static LdsVersionInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new LdsVersionInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private DerPrintableString m_ldsVersion;
+        private DerPrintableString m_unicodeVersion;
+
+        private LdsVersionInfo(Asn1Sequence seq)
 		{
-			this.ldsVersion = new DerPrintableString(ldsVersion);
-			this.unicodeVersion = new DerPrintableString(unicodeVersion);
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+			m_ldsVersion = DerPrintableString.GetInstance(seq[0]);
+			m_unicodeVersion = DerPrintableString.GetInstance(seq[1]);
 		}
 
-		private LdsVersionInfo(Asn1Sequence seq)
-		{
-			if (seq.Count != 2)
-				throw new ArgumentException("sequence wrong size for LDSVersionInfo", "seq");
+        public LdsVersionInfo(string ldsVersion, string unicodeVersion)
+        {
+            m_ldsVersion = new DerPrintableString(ldsVersion);
+            m_unicodeVersion = new DerPrintableString(unicodeVersion);
+        }
 
-			this.ldsVersion = DerPrintableString.GetInstance(seq[0]);
-			this.unicodeVersion = DerPrintableString.GetInstance(seq[1]);
-		}
+		public virtual string GetLdsVersion() => m_ldsVersion.GetString();
 
-		public static LdsVersionInfo GetInstance(object obj)
-		{
-			if (obj is LdsVersionInfo)
-				return (LdsVersionInfo)obj;
-
-			if (obj != null)
-				return new LdsVersionInfo(Asn1Sequence.GetInstance(obj));
-
-			return null;
-		}
-
-		public virtual string GetLdsVersion()
-		{
-			return ldsVersion.GetString();
-		}
-
-		public virtual string GetUnicodeVersion()
-		{
-			return unicodeVersion.GetString();
-		}
+		public virtual string GetUnicodeVersion() => m_unicodeVersion.GetString();
 
 		/**
 		 * <pre>
@@ -53,9 +67,6 @@ namespace Org.BouncyCastle.Asn1.Icao
 		 * </pre>
 		 * @return
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return new DerSequence(ldsVersion, unicodeVersion);
-		}
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_ldsVersion, m_unicodeVersion);
 	}
 }

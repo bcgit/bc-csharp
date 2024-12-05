@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.X509;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
@@ -31,10 +33,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PbmParameter(Asn1Sequence.GetInstance(obj));
         }
 
-        public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new PbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static PbmParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PbmParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_salt;
         private readonly AlgorithmIdentifier m_owf;
@@ -43,6 +46,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private PbmParameter(Asn1Sequence seq)
         {
+            int count = seq.Count;
+            if (count != 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_salt = Asn1OctetString.GetInstance(seq[0]);
             m_owf = AlgorithmIdentifier.GetInstance(seq[1]);
             m_iterationCount = DerInteger.GetInstance(seq[2]);
@@ -50,17 +57,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public PbmParameter(byte[] salt, AlgorithmIdentifier owf, int iterationCount, AlgorithmIdentifier mac)
-            : this(new DerOctetString(salt), owf, new DerInteger(iterationCount), mac)
+            : this(DerOctetString.FromContents(salt), owf, new DerInteger(iterationCount), mac)
         {
         }
 
         public PbmParameter(Asn1OctetString salt, AlgorithmIdentifier owf, DerInteger iterationCount,
             AlgorithmIdentifier mac)
         {
-            m_salt = salt;
-            m_owf = owf;
-            m_iterationCount = iterationCount;
-            m_mac = mac;
+            m_salt = salt ?? throw new ArgumentNullException(nameof(salt));
+            m_owf = owf ?? throw new ArgumentNullException(nameof(owf));
+            m_iterationCount = iterationCount ?? throw new ArgumentNullException(nameof(iterationCount));
+            m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
         public virtual DerInteger IterationCount => m_iterationCount;

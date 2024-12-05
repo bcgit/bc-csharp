@@ -576,6 +576,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return Arrays.AreEqual(this.fingerprint, fingerprint);
         }
 
+        public bool HasFingerprint(byte[] fingerprint)
+        {
+            return Arrays.AreEqual(this.fingerprint, fingerprint);
+        }
+
         /// <summary>
         /// Check if this key has an algorithm type that makes it suitable to use for encryption.
         /// </summary>

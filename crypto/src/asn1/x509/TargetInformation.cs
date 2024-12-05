@@ -1,10 +1,6 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
+    /**
 	 * Target information extension for attributes certificates according to RFC
 	 * 3281.
 	 * 
@@ -13,12 +9,10 @@ namespace Org.BouncyCastle.Asn1.X509
 	 * </pre>
 	 * 
 	 */
-	public class TargetInformation
+    public class TargetInformation
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence targets;
-
-		/**
+        /**
 		 * Creates an instance of a TargetInformation from the given object.
 		 * <p>
 		 * <code>obj</code> can be a TargetInformation or a {@link Asn1Sequence}</p>
@@ -27,34 +21,34 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @return A TargetInformation instance.
 		 * @throws ArgumentException if the given object cannot be interpreted as TargetInformation.
 		 */
-		public static TargetInformation GetInstance(
-			object obj)
-		{
-			if (obj is TargetInformation)
-			{
-				return (TargetInformation) obj;
-			}
+        public static TargetInformation GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is TargetInformation targetInformation)
+                return targetInformation;
+            return new TargetInformation(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj is Asn1Sequence)
-			{
-				return new TargetInformation((Asn1Sequence) obj);
-			}
+        public static TargetInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TargetInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
-		}
+        public static TargetInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new TargetInformation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-		/**
+        private readonly Asn1Sequence m_targets;
+
+        /**
 		 * Constructor from a Asn1Sequence.
 		 * 
 		 * @param seq The Asn1Sequence.
 		 * @throws ArgumentException if the sequence does not contain
 		 *             correctly encoded Targets elements.
 		 */
-		private TargetInformation(
-			Asn1Sequence targets)
-		{
-			this.targets = targets;
-		}
+        private TargetInformation(Asn1Sequence targets)
+        {
+            m_targets = targets;
+        }
 
         /**
 		 * Returns the targets in this target information extension.
@@ -63,10 +57,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * 
 		 * @return Returns the targets.
 		 */
-        public virtual Targets[] GetTargetsObjects()
-        {
-            return targets.MapElements(Targets.GetInstance);
-        }
+        public virtual Targets[] GetTargetsObjects() => m_targets.MapElements(Targets.GetInstance);
 
         /**
 		 * Constructs a target information from a single targets element. 
@@ -74,10 +65,9 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * 
 		 * @param targets A Targets instance.
 		 */
-        public TargetInformation(
-			Targets targets)
+        public TargetInformation(Targets targets)
 		{
-			this.targets = new DerSequence(targets);
+			m_targets = new DerSequence(targets);
 		}
 
 		/**
@@ -87,8 +77,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		 *
 		 * @param targets An array with {@link Targets}.
 		 */
-		public TargetInformation(
-			Target[] targets)
+		public TargetInformation(Target[] targets)
 			: this(new Targets(targets))
 		{
 		}
@@ -110,9 +99,6 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * 
 		 * @return an Asn1Object
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return targets;
-		}
+		public override Asn1Object ToAsn1Object() => m_targets;
 	}
 }

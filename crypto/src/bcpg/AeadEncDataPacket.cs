@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -25,13 +24,13 @@ namespace Org.BouncyCastle.Bcpg
         public AeadEncDataPacket(BcpgInputStream bcpgIn)
             : base(bcpgIn, PacketTag.ReservedAeadEncryptedData)
         {
-            m_version = (byte)bcpgIn.ReadByte();
+            m_version = bcpgIn.RequireByte();
             if (m_version != Version1)
                 throw new ArgumentException("wrong AEAD packet version: " + m_version);
 
-            m_algorithm = (SymmetricKeyAlgorithmTag)bcpgIn.ReadByte();
-            m_aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.ReadByte();
-            m_chunkSize = (byte)bcpgIn.ReadByte();
+            m_algorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
+            m_aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
+            m_chunkSize = bcpgIn.RequireByte();
 
             m_iv = new byte[GetIVLength(m_aeadAlgorithm)];
             bcpgIn.ReadFully(m_iv);
@@ -56,10 +55,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public int ChunkSize => m_chunkSize;
 
-        public byte[] GetIV()
-        {
-            return m_iv;
-        }
+        public byte[] GetIV() => m_iv;
 
         public static int GetIVLength(AeadAlgorithmTag aeadAlgorithm)
         {

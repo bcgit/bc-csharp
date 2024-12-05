@@ -25,6 +25,30 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static PkiStatusInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+		{
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new PkiStatusInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static PkiStatusInfo GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is PkiStatusInfo pkiStatusInfo)
+                return pkiStatusInfo;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+#pragma warning disable CS0618 // Type or member is obsolete
+                return new PkiStatusInfo(asn1Sequence);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return null;
+        }
+
         private readonly DerInteger m_status;
 		private readonly PkiFreeText m_statusString;
 		private readonly DerBitString m_failInfo;
@@ -32,31 +56,24 @@ namespace Org.BouncyCastle.Asn1.Cmp
         [Obsolete("Use 'GetInstance' instead")]
         public PkiStatusInfo(Asn1Sequence seq)
 		{
-			m_status = DerInteger.GetInstance(seq[0]);
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_statusString = null;
-			m_failInfo = null;
+			m_status = DerInteger.GetInstance(seq[pos++]);
+			m_statusString = Asn1Utilities.ReadOptional(seq, ref pos, PkiFreeText.GetOptional);
+            m_failInfo = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
 
-			if (seq.Count > 2)
-			{
-				m_statusString = PkiFreeText.GetInstance(seq[1]);
-				m_failInfo = DerBitString.GetInstance(seq[2]);
-			}
-			else if (seq.Count > 1)
-			{
-				object obj = seq[1];
-				if (obj is DerBitString)
-				{
-					m_failInfo = DerBitString.GetInstance(obj);
-				}
-				else
-				{
-					m_statusString = PkiFreeText.GetInstance(obj);
-				}
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
-		public PkiStatusInfo(int status)
+        public PkiStatusInfo(PkiStatusEncodable status)
+        {
+			m_status = DerInteger.GetInstance(status.ToAsn1Object());
+        }
+
+        public PkiStatusInfo(int status)
 		{
 			m_status = new DerInteger(status);
 			m_statusString = null;

@@ -14,10 +14,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertResponse(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertResponse GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertResponse(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertResponse GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertResponse(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertResponse GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertResponse(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_certReqId;
 		private readonly PkiStatusInfo m_status;
@@ -26,32 +27,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		private CertResponse(Asn1Sequence seq)
 		{
-			m_certReqId = DerInteger.GetInstance(seq[0]);
-			m_status = PkiStatusInfo.GetInstance(seq[1]);
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count >= 3)
-			{
-				if (seq.Count == 3)
-				{
-					Asn1Encodable o = seq[2];
-					if (o is Asn1OctetString octetString)
-					{
-						m_rspInfo = octetString;
-					}
-					else
-					{
-						m_certifiedKeyPair = CertifiedKeyPair.GetInstance(o);
-					}
-				}
-				else
-				{
-					m_certifiedKeyPair = CertifiedKeyPair.GetInstance(seq[2]);
-					m_rspInfo = Asn1OctetString.GetInstance(seq[3]);
-				}
-			}
-		}
+            m_certReqId = DerInteger.GetInstance(seq[pos++]);
+            m_status = PkiStatusInfo.GetInstance(seq[pos++]);
+            m_certifiedKeyPair = Asn1Utilities.ReadOptional(seq, ref pos, CertifiedKeyPair.GetOptional);
+            m_rspInfo = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional);
 
-		public CertResponse(DerInteger certReqId, PkiStatusInfo status)
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
+
+        public CertResponse(DerInteger certReqId, PkiStatusInfo status)
 			: this(certReqId, status, null, null)
 		{
 		}

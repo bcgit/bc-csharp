@@ -1,107 +1,69 @@
 using System;
-using System.Collections.Generic;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
-	public class DHDomainParameters
+    public class DHDomainParameters
 		: Asn1Encodable
 	{
-		private readonly DerInteger p, g, q, j;
-		private readonly DHValidationParms validationParms;
-
-		public static DHDomainParameters GetInstance(Asn1TaggedObject obj, bool isExplicit)
-		{
-			return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
-		}
-
 		public static DHDomainParameters GetInstance(object obj)
 		{
-			if (obj == null || obj is DHDomainParameters)
-				return (DHDomainParameters)obj;
-
-			if (obj is Asn1Sequence)
-				return new DHDomainParameters((Asn1Sequence)obj);
-
-			throw new ArgumentException("Invalid DHDomainParameters: " + Platform.GetTypeName(obj), "obj");
+			if (obj == null)
+				return null;
+			if (obj is DHDomainParameters dhDomainParameters)
+				return dhDomainParameters;
+			return new DHDomainParameters(Asn1Sequence.GetInstance(obj));
 		}
 
-		public DHDomainParameters(DerInteger p, DerInteger g, DerInteger q, DerInteger j,
-			DHValidationParms validationParms)
-		{
-			if (p == null)
-				throw new ArgumentNullException("p");
-			if (g == null)
-				throw new ArgumentNullException("g");
-			if (q == null)
-				throw new ArgumentNullException("q");
+        public static DHDomainParameters GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
+            new DHDomainParameters(Asn1Sequence.GetInstance(obj, isExplicit));
 
-			this.p = p;
-			this.g = g;
-			this.q = q;
-			this.j = j;
-			this.validationParms = validationParms;
-		}
+        public static DHDomainParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DHDomainParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-		private DHDomainParameters(Asn1Sequence seq)
-		{
-			if (seq.Count < 3 || seq.Count > 5)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+        private readonly DerInteger m_p, m_g, m_q, m_j;
+        private readonly DHValidationParms m_validationParms;
 
-			var e = seq.GetEnumerator();
-			this.p = DerInteger.GetInstance(GetNext(e));
-			this.g = DerInteger.GetInstance(GetNext(e));
-			this.q = DerInteger.GetInstance(GetNext(e));
+        private DHDomainParameters(Asn1Sequence seq)
+        {
+            int count = seq.Count, pos = 0;
+            if (count < 3 || count > 5)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			Asn1Encodable next = GetNext(e);
+			m_p = DerInteger.GetInstance(seq[pos++]);
+            m_g = DerInteger.GetInstance(seq[pos++]);
+            m_q = DerInteger.GetInstance(seq[pos++]);
+			m_j = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
+            m_validationParms = Asn1Utilities.ReadOptional(seq, ref pos, DHValidationParms.GetOptional);
 
-			if (next != null && next is DerInteger)
-			{
-				this.j = DerInteger.GetInstance(next);
-				next = GetNext(e);
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
-			if (next != null)
-			{
-				this.validationParms = DHValidationParms.GetInstance(next.ToAsn1Object());
-			}
-		}
+        public DHDomainParameters(DerInteger p, DerInteger g, DerInteger q, DerInteger j,
+            DHValidationParms validationParms)
+        {
+            m_p = p ?? throw new ArgumentNullException(nameof(p));
+            m_g = g ?? throw new ArgumentNullException(nameof(g));
+            m_q = q ?? throw new ArgumentNullException(nameof(q));
+            m_j = j;
+            m_validationParms = validationParms;
+        }
 
-		private static Asn1Encodable GetNext(IEnumerator<Asn1Encodable> e)
-		{
-			return e.MoveNext() ? (Asn1Encodable)e.Current : null;
-		}
+        public DerInteger P => m_p;
 
-		public DerInteger P
-		{
-			get { return this.p; }
-		}
+		public DerInteger G => m_g;
 
-		public DerInteger G
-		{
-			get { return this.g; }
-		}
+		public DerInteger Q => m_q;
 
-		public DerInteger Q
-		{
-			get { return this.q; }
-		}
+		public DerInteger J => m_j;
 
-		public DerInteger J
-		{
-			get { return this.j; }
-		}
-
-		public DHValidationParms ValidationParms
-		{
-			get { return this.validationParms; }
-		}
+        public DHValidationParms ValidationParms => m_validationParms;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(p, g, q);
-            v.AddOptional(j, validationParms);
+            Asn1EncodableVector v = new Asn1EncodableVector(5);
+            v.Add(m_p, m_g, m_q);
+            v.AddOptional(m_j, m_validationParms);
             return new DerSequence(v);
         }
 	}

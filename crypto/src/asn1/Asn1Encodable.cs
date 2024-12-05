@@ -9,27 +9,18 @@ namespace Org.BouncyCastle.Asn1
         public const string Der = "DER";
         public const string DL = "DL";
 
-        public virtual void EncodeTo(Stream output)
-        {
-            ToAsn1Object().EncodeTo(output);
-        }
+        public virtual void EncodeTo(Stream output) => ToAsn1Object().EncodeTo(output);
 
-        public virtual void EncodeTo(Stream output, string encoding)
-        {
-            ToAsn1Object().EncodeTo(output, encoding);
-        }
+        public virtual void EncodeTo(Stream output, string encoding) => ToAsn1Object().EncodeTo(output, encoding);
 
 		// TODO[api] Make virtual and override in Asn1Object
-		public byte[] GetEncoded()
-        {
-            return ToAsn1Object().InternalGetEncoded(Ber);
-        }
+		public byte[] GetEncoded() => GetEncoded(Ber, preAlloc: 0, postAlloc: 0);
 
         // TODO[api] Make virtual and override in Asn1Object
-        public byte[] GetEncoded(string encoding)
-        {
-			return ToAsn1Object().InternalGetEncoded(encoding);
-        }
+        public byte[] GetEncoded(string encoding) => GetEncoded(encoding, preAlloc: 0, postAlloc: 0);
+
+        internal virtual byte[] GetEncoded(string encoding, int preAlloc, int postAlloc) =>
+			ToAsn1Object().GetEncoded(encoding, preAlloc, postAlloc);
 
         /**
 		* Return the DER encoding of the object, null if the DER encoding can not be made.

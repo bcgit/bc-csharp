@@ -159,6 +159,11 @@ namespace Org.BouncyCastle.Tls.Tests
                 return "rsa_pss_384";
             case SignatureAlgorithm.rsa_pss_pss_sha512:
                 return "rsa_pss_512";
+
+            // TODO[RFC 9189] Choose names here and apply reverse mappings in GetCACertResource(String)
+            case SignatureAlgorithm.gostr34102012_256:
+            case SignatureAlgorithm.gostr34102012_512:
+
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
@@ -357,8 +362,7 @@ namespace Org.BouncyCastle.Tls.Tests
             if (pem.Type.Equals("EC PRIVATE KEY"))
             {
                 ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(pem.Content);
-                AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey,
-                    pKey.GetParameters());
+                AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, pKey.Parameters);
                 PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey);
                 return PrivateKeyFactory.CreateKey(privInfo);
             }

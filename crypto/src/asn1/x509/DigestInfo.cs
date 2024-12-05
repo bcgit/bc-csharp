@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
     /**
@@ -15,63 +13,55 @@ namespace Org.BouncyCastle.Asn1.X509
     public class DigestInfo
         : Asn1Encodable
     {
-        private readonly byte[] digest;
-        private readonly AlgorithmIdentifier algID;
-
-		public static DigestInfo GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static DigestInfo GetInstance(object obj)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
-        }
-
-		public static DigestInfo GetInstance(
-            object obj)
-        {
-            if (obj is DigestInfo)
-            {
-                return (DigestInfo) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new DigestInfo((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj == null)
+                return null;
+            if (obj is DigestInfo digestInfo)
+                return digestInfo;
+            return new DigestInfo(Asn1Sequence.GetInstance(obj));
 		}
 
-		public DigestInfo(
-            AlgorithmIdentifier	algID,
-            byte[]				digest)
+        public static DigestInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+            new DigestInfo(Asn1Sequence.GetInstance(obj, explicitly));
+
+        public static DigestInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new DigestInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+
+        private readonly AlgorithmIdentifier m_digestAlgorithm;
+        private readonly Asn1OctetString m_digest;
+
+        private DigestInfo(Asn1Sequence seq)
         {
-            this.digest = digest;
-            this.algID = algID;
+            int count = seq.Count;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
+            m_digest = Asn1OctetString.GetInstance(seq[1]);
         }
 
-		private DigestInfo(
-            Asn1Sequence seq)
+        public DigestInfo(AlgorithmIdentifier algID, byte[] digest)
         {
-			if (seq.Count != 2)
-				throw new ArgumentException("Wrong number of elements in sequence", "seq");
-
-            algID = AlgorithmIdentifier.GetInstance(seq[0]);
-			digest = Asn1OctetString.GetInstance(seq[1]).GetOctets();
-		}
-
-		public AlgorithmIdentifier AlgorithmID
-		{
-			get { return algID; }
-		}
-
-		public byte[] GetDigest()
-        {
-            return digest;
+            m_digestAlgorithm = algID ?? throw new ArgumentNullException(nameof(algID));
+            m_digest = DerOctetString.FromContents(digest);
         }
 
-		public override Asn1Object ToAsn1Object()
+        public DigestInfo(AlgorithmIdentifier digestAlgorithm, Asn1OctetString digest)
         {
-			return new DerSequence(algID, new DerOctetString(digest));
+            m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
+            m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
         }
+
+        [Obsolete("Use 'DigestAlgorithm' property instead")]
+        public AlgorithmIdentifier AlgorithmID => m_digestAlgorithm;
+
+        public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
+
+        public Asn1OctetString Digest => m_digest;
+
+        public byte[] GetDigest() => m_digest.GetOctets();
+
+		public override Asn1Object ToAsn1Object() => new DerSequence(m_digestAlgorithm, m_digest);
     }
 }

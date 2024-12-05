@@ -82,7 +82,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             BigInteger input = new BigInteger(1, inBuf, inOff, inLen);
 
-            if (input.CompareTo(m_key.Modulus) >= 0)
+            if (input.CompareTo(BigInteger.One) <= 0)
+                throw new DataLengthException("input too small for RSA cipher.");
+
+            if (input.CompareTo(m_key.Modulus.Subtract(BigInteger.One)) >= 0)
                 throw new DataLengthException("input too large for RSA cipher.");
 
             return input;
@@ -127,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             // m = h * q + mQ
             BigInteger m = h.Multiply(q).Add(mQ);
 
-            // defence against Arjen Lenstra’s CRT attack
+            // defence against Arjen Lenstraï¿½s CRT attack
             BigInteger check = m.ModPow(crt.PublicExponent, crt.Modulus);
             if (!check.Equals(input))
                 throw new InvalidOperationException("RSA engine faulty decryption/signing detected");

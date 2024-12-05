@@ -6,8 +6,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class NameConstraints
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence m_permitted, m_excluded;
-
 		public static NameConstraints GetInstance(object obj)
 		{
 			if (obj == null)
@@ -21,25 +19,33 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public static NameConstraints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new NameConstraints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
+
+        public static NameConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new NameConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly Asn1Sequence m_permitted, m_excluded;
 
         [Obsolete("Use 'GetInstance' instead")]
         public NameConstraints(Asn1Sequence seq)
 		{
-			foreach (Asn1TaggedObject o in seq)
-			{
-				switch (o.TagNo)
-				{
-				case 0:
-					m_permitted = Asn1Sequence.GetInstance(o, false);
-					break;
-				case 1:
-					m_excluded = Asn1Sequence.GetInstance(o, false);
-					break;
-				}
-			}
-		}
+            int count = seq.Count, pos = 0;
+            if (count < 0 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_permitted = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Sequence.GetTagged);
+            m_excluded = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Sequence.GetTagged);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
         /**
 		 * Constructor from a given details.
@@ -49,27 +55,10 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * @param permitted Permitted subtrees
 		 * @param excluded Excluded subtrees
 		 */
-		public NameConstraints(IList<GeneralSubtree> permitted, IList<GeneralSubtree> excluded)
+        public NameConstraints(IList<GeneralSubtree> permitted, IList<GeneralSubtree> excluded)
 		{
-			if (permitted != null)
-			{
-				m_permitted = CreateSequence(permitted);
-			}
-
-			if (excluded != null)
-			{
-				m_excluded = CreateSequence(excluded);
-			}
-		}
-
-		private DerSequence CreateSequence(IList<GeneralSubtree> subtrees)
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(subtrees.Count);
-			foreach (var subtree in subtrees)
-			{
-				v.Add(subtree);
-			}
-            return new DerSequence(v);
+			m_permitted = CreateSequence(permitted);
+			m_excluded = CreateSequence(excluded);
 		}
 
 		public Asn1Sequence PermittedSubtrees => m_permitted;
@@ -87,5 +76,8 @@ namespace Org.BouncyCastle.Asn1.X509
             v.AddOptionalTagged(false, 1, m_excluded);
             return new DerSequence(v);
         }
-	}
+
+        private static DerSequence CreateSequence(IList<GeneralSubtree> subtrees) =>
+            subtrees == null ? null : DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(subtrees));
+    }
 }

@@ -17,10 +17,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertStatus(Asn1Sequence.GetInstance(obj));
         }
 
-        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return new CertStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static CertStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new CertStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_certHash;
 		private readonly DerInteger m_certReqID;
@@ -29,37 +30,27 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private CertStatus(Asn1Sequence seq)
 		{
-			m_certHash = Asn1OctetString.GetInstance(seq[0]);
-			m_certReqID = DerInteger.GetInstance(seq[1]);
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 4)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			if (seq.Count > 2)
-			{
-				for (int t = 2; t < seq.Count; t++)
-				{
-					Asn1Object p = seq[t].ToAsn1Object();
-					if (p is Asn1Sequence s)
-					{
-						m_statusInfo = PkiStatusInfo.GetInstance(s);
-					}
-					if (p is Asn1TaggedObject dto)
-					{
-						if (!dto.HasContextTag(0))
-							throw new ArgumentException("unknown tag " + Asn1Utilities.GetTagText(dto));
+            m_certHash = Asn1OctetString.GetInstance(seq[pos++]);
+            m_certReqID = DerInteger.GetInstance(seq[pos++]);
+            m_statusInfo = Asn1Utilities.ReadOptional(seq, ref pos, PkiStatusInfo.GetOptional);
+            m_hashAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged);
 
-						m_hashAlg = AlgorithmIdentifier.GetInstance(dto, true);
-					}
-				}
-			}
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
         public CertStatus(byte[] certHash, BigInteger certReqID)
-            : this(certHash, new DerInteger(certReqID))
+            : this(certHash, certReqID, null, null)
         {
         }
 
         public CertStatus(byte[] certHash, DerInteger certReqID)
 		{
-			m_certHash = new DerOctetString(certHash);
+			m_certHash = DerOctetString.FromContents(certHash);
 			m_certReqID = certReqID;
             m_statusInfo = null;
             m_hashAlg = null;
@@ -67,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo)
 		{
-            m_certHash = new DerOctetString(certHash);
+            m_certHash = DerOctetString.FromContents(certHash);
             m_certReqID = new DerInteger(certReqID);
             m_statusInfo = statusInfo;
             m_hashAlg = null;
@@ -75,7 +66,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo, AlgorithmIdentifier hashAlg)
         {
-            m_certHash = new DerOctetString(certHash);
+            m_certHash = DerOctetString.FromContents(certHash);
             m_certReqID = new DerInteger(certReqID);
             m_statusInfo = statusInfo;
             m_hashAlg = hashAlg;

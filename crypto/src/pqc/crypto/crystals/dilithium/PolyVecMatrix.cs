@@ -1,19 +1,21 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
+﻿using System.Diagnostics;
+
+namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class PolyVecMatrix
     {
         private int K, L;
-        public PolyVecL[] Matrix;
+        internal PolyVec[] Matrix;
 
-        public PolyVecMatrix(DilithiumEngine Engine)
+        public PolyVecMatrix(DilithiumEngine engine)
         {
-            K = Engine.K;
-            L = Engine.L;
-            Matrix = new PolyVecL[K];
+            K = engine.K;
+            L = engine.L;
+            Matrix = new PolyVec[K];
 
             for (int i = 0; i < K; i++)
             {
-                Matrix[i] = new PolyVecL(Engine);
+                Matrix[i] = new PolyVec(engine, L);
             }
         }
 
@@ -29,8 +31,11 @@
             }
         }
 
-        public void PointwiseMontgomery(PolyVecK t, PolyVecL v)
+        public void PointwiseMontgomery(PolyVec t, PolyVec v)
         {
+            Debug.Assert(t.Vec.Length == K);
+            Debug.Assert(v.Vec.Length == L);
+
             int i;
             for (i = 0; i < K; ++i)
             {

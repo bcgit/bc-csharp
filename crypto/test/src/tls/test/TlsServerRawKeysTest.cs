@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     Console.WriteLine("--------------------------------------------------------------------------------");
                     Console.WriteLine("Accepted " + s);
                     ServerTask serverTask = new ServerTask(s, stdout, tlsVersion);
-                    Thread t = new Thread(new ThreadStart(serverTask.Run));
+                    Thread t = new Thread(serverTask.Run);
                     t.Start();
                 }
             }

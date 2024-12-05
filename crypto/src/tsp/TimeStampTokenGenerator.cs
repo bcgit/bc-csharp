@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
@@ -14,7 +13,6 @@ using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
@@ -38,10 +36,9 @@ namespace Org.BouncyCastle.Tsp
         private IStore<X509Certificate> x509Certs;
         private IStore<X509Crl> x509Crls;
         private IStore<X509V2AttributeCertificate> x509AttrCerts;
-        // TODO Port changes from bc-java
-        //private Dictionary<> otherRevoc = new Dictionary<>();
+        private Dictionary<DerObjectIdentifier, IStore<Asn1Encodable>> otherRevoc =
+            new Dictionary<DerObjectIdentifier, IStore<Asn1Encodable>>();
         private SignerInfoGenerator signerInfoGenerator;
-        IDigestFactory digestCalculator;
 
         private Resolution resolution = Resolution.R_SECONDS;
       
@@ -70,35 +67,32 @@ namespace Org.BouncyCastle.Tsp
             bool isIssuerSerialIncluded)
         {
             this.signerInfoGenerator = signerInfoGen;
-            this.digestCalculator = digestCalculator;
             this.tsaPolicyOID = tsaPolicy;
 
-            if (signerInfoGenerator.certificate == null)
+            X509Certificate assocCert = signerInfoGen.certificate ??
                 throw new ArgumentException("SignerInfoGenerator must have an associated certificate");
 
-            X509Certificate assocCert = signerInfoGenerator.certificate;
             TspUtil.ValidateCertificate(assocCert);
+
+            var digestAlgID = (AlgorithmIdentifier)digestCalculator.AlgorithmDetails;
+            var digestAlgOid = digestAlgID.Algorithm;
 
             try
             {
-                byte[] certEnc = assocCert.GetEncoded();
+                var certHash = DerOctetString.WithContents(
+                    X509.X509Utilities.CalculateDigest(digestCalculator, assocCert.GetEncoded()));
 
-                IStreamCalculator<IBlockResult> calculator = digestCalculator.CreateCalculator();
-
-                using (var stream = calculator.Stream)
+                IssuerSerial issuerSerial = null;
+                if (isIssuerSerialIncluded)
                 {
-                    stream.Write(certEnc, 0, certEnc.Length);
+                    issuerSerial = new IssuerSerial(
+                        issuer: new GeneralNames(new GeneralName(assocCert.IssuerDN)),
+                        serial: assocCert.CertificateStructure.SerialNumber);
                 }
 
-                if (((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm.Equals(OiwObjectIdentifiers.IdSha1))
+                if (OiwObjectIdentifiers.IdSha1.Equals(digestAlgOid))
                 {
-                    EssCertID essCertID = new EssCertID(
-                       calculator.GetResult().Collect(),
-                       isIssuerSerialIncluded ?
-                           new IssuerSerial(
-                               new GeneralNames(
-                                   new GeneralName(assocCert.IssuerDN)),
-                               new DerInteger(assocCert.SerialNumber)) : null);
+                    EssCertID essCertID = new EssCertID(certHash, issuerSerial);
 
                     this.signerInfoGenerator = signerInfoGen.NewBuilder()
                         .WithSignedAttributeGenerator(new TableGen(signerInfoGen, essCertID))
@@ -106,19 +100,13 @@ namespace Org.BouncyCastle.Tsp
                 }
                 else
                 {
-                    AlgorithmIdentifier digestAlgID = new AlgorithmIdentifier(
-                        ((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm);
+                    // TODO Why reconstruct this? (if normalizing the parameters should use DigestAlgorithmFinder??)
+                    digestAlgID = new AlgorithmIdentifier(digestAlgOid);
 
-                    EssCertIDv2 essCertID = new EssCertIDv2(
-                        calculator.GetResult().Collect(),
-                        isIssuerSerialIncluded ?
-                            new IssuerSerial(
-                                new GeneralNames(
-                                    new GeneralName(assocCert.IssuerDN)),
-                                new DerInteger(assocCert.SerialNumber)) : null);
+                    EssCertIDv2 essCertIDv2 = new EssCertIDv2(digestAlgID, certHash, issuerSerial);
 
                     this.signerInfoGenerator = signerInfoGen.NewBuilder()
-                        .WithSignedAttributeGenerator(new TableGen2(signerInfoGen, essCertID))
+                        .WithSignedAttributeGenerator(new TableGen2(signerInfoGen, essCertIDv2))
                         .Build(signerInfoGen.contentSigner, signerInfoGen.certificate);
                 }
             }
@@ -218,6 +206,12 @@ namespace Org.BouncyCastle.Tsp
             this.x509Crls = crls;
         }
 
+        public void AddOtherRevocationInfos(DerObjectIdentifier otherRevInfoFormat,
+            IStore<Asn1Encodable> otherRevInfoStore)
+        {
+            otherRevoc[otherRevInfoFormat] = otherRevInfoStore;
+        }
+
         public void SetAccuracySeconds(
             int accuracySeconds)
         {
@@ -264,10 +258,8 @@ namespace Org.BouncyCastle.Tsp
             BigInteger serialNumber,
             DateTime genTime, X509Extensions additionalExtensions)
         {
-            DerObjectIdentifier digestAlgOID = new DerObjectIdentifier(request.MessageImprintAlgOid);
-
-            AlgorithmIdentifier algID = new AlgorithmIdentifier(digestAlgOID, DerNull.Instance);
-            MessageImprint messageImprint = new MessageImprint(algID, request.GetMessageImprintDigest());
+            AlgorithmIdentifier algID = request.MessageImprintAlgID;
+            MessageImprint messageImprint = new MessageImprint(algID, request.MessageImprint.HashedMessage);
 
             Accuracy accuracy = null;
             if (accuracySeconds > 0 || accuracyMillis > 0 || accuracyMicros > 0)
@@ -312,9 +304,7 @@ namespace Org.BouncyCastle.Tsp
             }
 
             if (tsaPolicy == null)
-            { 
                 throw new TspValidationException("request contains no policy", PkiFailureInfo.UnacceptedPolicy);
-            }
 
             X509Extensions respExtensions = request.Extensions;
             if (additionalExtensions != null)
@@ -322,25 +312,27 @@ namespace Org.BouncyCastle.Tsp
                 X509ExtensionsGenerator extGen = new X509ExtensionsGenerator();
 
                 if (respExtensions != null)
-                {                    
-                    foreach(object oid in respExtensions.ExtensionOids)
+                {
+                    foreach(var oid in respExtensions.ExtensionOids)
                     {
-                        DerObjectIdentifier id = DerObjectIdentifier.GetInstance(oid);
-                        extGen.AddExtension(id, respExtensions.GetExtension(DerObjectIdentifier.GetInstance(id)));
+                        extGen.AddExtension(oid, respExtensions.GetExtension(oid));
                     }                   
                 }
 
-                foreach (object oid in additionalExtensions.ExtensionOids)
+                foreach (var oid in additionalExtensions.ExtensionOids)
                 {
-                    DerObjectIdentifier id = DerObjectIdentifier.GetInstance(oid);
-                    extGen.AddExtension(id, additionalExtensions.GetExtension(DerObjectIdentifier.GetInstance(id)));
-
+                    extGen.AddExtension(oid, additionalExtensions.GetExtension(oid));
                 }
-           
+
                 respExtensions = extGen.Generate();
             }
 
-            var timeStampTime = new Asn1GeneralizedTime(WithResolution(genTime, resolution));
+            /*
+             * RFC 3161. The ASN.1 GeneralizedTime syntax can include fraction-of-second details. Such syntax, without
+             * the restrictions from RFC 2459 Section 4.1.2.5.2, where GeneralizedTime is limited to represent the
+             * time with a granularity of one second, may be used here.
+             */
+            var timeStampTime = new DerGeneralizedTime(WithResolution(genTime, resolution));
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
                 new DerInteger(serialNumber), timeStampTime, accuracy,
@@ -359,6 +351,13 @@ namespace Org.BouncyCastle.Tsp
                 }
 
                 signedDataGenerator.AddCrls(x509Crls);
+
+                foreach (KeyValuePair<DerObjectIdentifier, IStore<Asn1Encodable>> entry in otherRevoc)
+                {
+                    signedDataGenerator.AddOtherRevocationInfos(
+                        otherRevInfoFormat: entry.Key,
+                        otherRevInfoStore: entry.Value);
+                }
 
                 signedDataGenerator.AddSignerInfoGenerator(signerInfoGenerator);
 

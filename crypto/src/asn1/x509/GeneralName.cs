@@ -46,49 +46,71 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public static GeneralName GetInstance(object obj)
         {
-			if (obj == null)
-				return null;
-			if (obj is GeneralName generalName)
-				return generalName;
-			return GetInstanceSelection(Asn1TaggedObject.GetInstance(obj));
-		}
+            if (obj == null)
+                return null;
 
-		public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly)
-        {
-            return Asn1Utilities.GetInstanceFromChoice(tagObj, explicitly, GetInstance);
+            if (obj is Asn1Encodable element)
+            {
+                var result = GetOptional(element);
+                if (result != null)
+                    return result;
+            }
+
+            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        private static GeneralName GetInstanceSelection(Asn1TaggedObject taggedObject)
-		{
-            if (taggedObject.HasContextTag())
-			{
-				int tag = taggedObject.TagNo;
+		public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly) =>
+            Asn1Utilities.GetInstanceChoice(tagObj, explicitly, GetInstance);
 
-				switch (tag)
-				{
+        public static GeneralName GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is GeneralName generalName)
+                return generalName;
+
+            if (element is Asn1TaggedObject taggedObject)
+            {
+                Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
+                if (baseObject != null)
+                    return new GeneralName(taggedObject.TagNo, baseObject);
+            }
+
+            return null;
+        }
+
+        public static GeneralName GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
+        {
+            if (taggedObject.HasContextTag())
+            {
+                switch (taggedObject.TagNo)
+                {
 				case EdiPartyName:
 				case OtherName:
 				case X400Address:
-					return new GeneralName(tag, Asn1Sequence.GetInstance(taggedObject, false));
+					return Asn1Sequence.GetInstance(taggedObject, false);
 
 				case DnsName:
 				case Rfc822Name:
 				case UniformResourceIdentifier:
-					return new GeneralName(tag, DerIA5String.GetInstance(taggedObject, false));
+					return DerIA5String.GetInstance(taggedObject, false);
 
 				case DirectoryName:
 					// CHOICE so explicit
-					return new GeneralName(tag, X509Name.GetInstance(taggedObject, true));
+					return X509Name.GetInstance(taggedObject, true);
 
 				case IPAddress:
-					return new GeneralName(tag, Asn1OctetString.GetInstance(taggedObject, false));
+					return Asn1OctetString.GetInstance(taggedObject, false);
 
 				case RegisteredID:
-					return new GeneralName(tag, DerObjectIdentifier.GetInstance(taggedObject, false));
-				}
+					return DerObjectIdentifier.GetInstance(taggedObject, false);
+                }
             }
-
-            throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(taggedObject));
+            return null;
         }
 
         private readonly int m_tag;

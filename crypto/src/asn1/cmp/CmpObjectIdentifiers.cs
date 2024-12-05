@@ -1,5 +1,9 @@
 using System;
 
+using Org.BouncyCastle.Asn1.Crmf;
+using Org.BouncyCastle.Asn1.Misc;
+using Org.BouncyCastle.Asn1.X509;
+
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public static class CmpObjectIdentifiers
@@ -9,12 +13,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /**
          * id-PasswordBasedMac OBJECT IDENTIFIER ::= {1 2 840 113533 7 66 13}
          */
-        public static readonly DerObjectIdentifier passwordBasedMac = new DerObjectIdentifier("1.2.840.113533.7.66.13");
+        public static readonly DerObjectIdentifier passwordBasedMac = CrmfObjectIdentifiers.passwordBasedMac;
+
+        /**
+         * id-KemBasedMac OBJECT IDENTIFIER ::= {1 2 840 113533 7 66 16}
+         */
+        public static readonly DerObjectIdentifier kemBasedMac = MiscObjectIdentifiers.Entrust.Branch("66.16");
 
         /**
          * id-DHBasedMac OBJECT IDENTIFIER ::= {1 2 840 113533 7 66 30}
          */
-        public static readonly DerObjectIdentifier dhBasedMac = new DerObjectIdentifier("1.2.840.113533.7.66.30");
+        public static readonly DerObjectIdentifier dhBasedMac = MiscObjectIdentifiers.Entrust.Branch("66.30");
 
         // Example InfoTypeAndValue contents include, but are not limited
         // to, the following (un-comment in this ASN.1 module and use as
@@ -59,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         //   id-it   OBJECT IDENTIFIER ::= {id-pkix 4}
 
         /** RFC 4120: id-it: PKIX.4 = 1.3.6.1.5.5.7.4 */
-        public static readonly DerObjectIdentifier id_it = new DerObjectIdentifier("1.3.6.1.5.5.7.4");
+        public static readonly DerObjectIdentifier id_it = X509ObjectIdentifiers.IdPkix.Branch("4");
 
         /**
          * RFC 4120: 1.3.6.1.5.5.7.4.1
@@ -180,57 +189,72 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /**
          * RFC 4211: it-pkip: PKIX.5 = 1.3.6.1.5.5.7.5
          */
-        public static readonly DerObjectIdentifier id_pkip = new DerObjectIdentifier("1.3.6.1.5.5.7.5");
+        public static readonly DerObjectIdentifier id_pkip = CrmfObjectIdentifiers.id_pkip;
 
         /**
          * RFC 4211: it-regCtrl: 1.3.6.1.5.5.7.5.1
          */
-        public static readonly DerObjectIdentifier id_regCtrl = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1");
+        public static readonly DerObjectIdentifier id_regCtrl = CrmfObjectIdentifiers.id_regCtrl;
+
         /**
          * RFC 4211: it-regInfo: 1.3.6.1.5.5.7.5.2
          */
-        public static readonly DerObjectIdentifier id_regInfo = new DerObjectIdentifier("1.3.6.1.5.5.7.5.2");
+        public static readonly DerObjectIdentifier id_regInfo = CrmfObjectIdentifiers.id_regInfo;
 
 
         /**
          * 1.3.6.1.5.5.7.5.1.1
          */
-        public static readonly DerObjectIdentifier regCtrl_regToken = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.1");
+        public static readonly DerObjectIdentifier regCtrl_regToken = CrmfObjectIdentifiers.id_regCtrl_regToken;
         /**
          * 1.3.6.1.5.5.7.5.1.2
          */
-        public static readonly DerObjectIdentifier regCtrl_authenticator = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.2");
+        public static readonly DerObjectIdentifier regCtrl_authenticator = CrmfObjectIdentifiers.id_regCtrl_authenticator;
         /**
          * 1.3.6.1.5.5.7.5.1.3
          */
-        public static readonly DerObjectIdentifier regCtrl_pkiPublicationInfo = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.3");
+        public static readonly DerObjectIdentifier regCtrl_pkiPublicationInfo = CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo;
         /**
          * 1.3.6.1.5.5.7.5.1.4
          */
-        public static readonly DerObjectIdentifier regCtrl_pkiArchiveOptions = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.4");
+        public static readonly DerObjectIdentifier regCtrl_pkiArchiveOptions = CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions;
         /**
          * 1.3.6.1.5.5.7.5.1.5
          */
-        public static readonly DerObjectIdentifier regCtrl_oldCertID = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.5");
+        public static readonly DerObjectIdentifier regCtrl_oldCertID = CrmfObjectIdentifiers.id_regCtrl_oldCertID;
         /**
          * 1.3.6.1.5.5.7.5.1.6
          */
-        public static readonly DerObjectIdentifier regCtrl_protocolEncrKey = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.6");
+        public static readonly DerObjectIdentifier regCtrl_protocolEncrKey = CrmfObjectIdentifiers.id_regCtrl_protocolEncrKey;
 
         /**
          * From RFC4210:
          * id-regCtrl-altCertTemplate OBJECT IDENTIFIER ::= {id-regCtrl 7}; 1.3.6.1.5.5.7.1.7
          */
-        public static readonly DerObjectIdentifier regCtrl_altCertTemplate = new DerObjectIdentifier("1.3.6.1.5.5.7.5.1.7");
+        public static readonly DerObjectIdentifier regCtrl_altCertTemplate = id_regCtrl.Branch("7");
+
+        /**
+         * id-regCtrl-algId OBJECT IDENTIFIER ::= { iso(1)
+         * identified-organization(3) dod(6) internet(1) security(5)
+         * mechanisms(5) pkix(7) pkip(5) regCtrl(1) 11 }
+         */
+        public static readonly DerObjectIdentifier id_regCtrl_algId = id_regCtrl.Branch("11");
+
+        /**
+         * id-regCtrl-rsaKeyLen OBJECT IDENTIFIER ::= { iso(1)
+         * identified-organization(3) dod(6) internet(1) security(5)
+         * mechanisms(5) pkix(7) pkip(5) regCtrl(1) 12 }
+         */
+        public static readonly DerObjectIdentifier id_regCtrl_rsaKeyLen = id_regCtrl.Branch("12");
 
         /**
          * RFC 4211: it-regInfo-utf8Pairs: 1.3.6.1.5.5.7.5.2.1
          */
-        public static readonly DerObjectIdentifier regInfo_utf8Pairs = new DerObjectIdentifier("1.3.6.1.5.5.7.5.2.1");
+        public static readonly DerObjectIdentifier regInfo_utf8Pairs = CrmfObjectIdentifiers.id_regInfo_utf8Pairs;
         /**
          * RFC 4211: it-regInfo-certReq: 1.3.6.1.5.5.7.5.2.1
          */
-        public static readonly DerObjectIdentifier regInfo_certReq = new DerObjectIdentifier("1.3.6.1.5.5.7.5.2.2");
+        public static readonly DerObjectIdentifier regInfo_certReq = CrmfObjectIdentifiers.id_regInfo_certReq;
 
         /**
          * 1.2.840.113549.1.9.16.1.21
@@ -240,29 +264,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * id-ct-encKeyWithID OBJECT IDENTIFIER ::= {id-ct 21}
          * </p>
          */
-        public static readonly DerObjectIdentifier ct_encKeyWithID = new DerObjectIdentifier("1.2.840.113549.1.9.16.1.21");
-
-
-        /**
-         * id-regCtrl-algId OBJECT IDENTIFIER ::= { iso(1)
-         * identified-organization(3) dod(6) internet(1) security(5)
-         * mechanisms(5) pkix(7) pkip(5) regCtrl(1) 11 }
-         */
-        public static readonly DerObjectIdentifier id_regCtrl_algId = id_pkip.Branch("1.11");
-
-        /**
-         * id-regCtrl-rsaKeyLen OBJECT IDENTIFIER ::= { iso(1)
-         * identified-organization(3) dod(6) internet(1) security(5)
-         * mechanisms(5) pkix(7) pkip(5) regCtrl(1) 12 }
-         */
-        public static readonly DerObjectIdentifier id_regCtrl_rsaKeyLen = id_pkip.Branch("1.12");
-
-        // TODO Update once OID allocated.
-#if false
-        /**
-         * id-KemBasedMac OBJECT IDENTIFIER ::= {1 2 840 113533 7 66 TBD4}
-         */
-        public static readonly DerObjectIdentifier id_KemBasedMac = new DerObjectIdentifier("1.2.840.113533.7.66.TBD4");
-#endif
+        public static readonly DerObjectIdentifier ct_encKeyWithID = CrmfObjectIdentifiers.id_ct_encKeyWithID;
     }
 }

@@ -1,6 +1,5 @@
 using Org.BouncyCastle.Utilities;
 using System;
-using System.Data.SqlTypes;
 using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -44,12 +43,12 @@ namespace Org.BouncyCastle.Bcpg
             BcpgInputStream bcpgIn)
             :base(PacketTag.SymmetricKeyEncryptedSessionKey)
         {
-            version = bcpgIn.ReadByte();
+            version = bcpgIn.RequireByte();
 
             switch (version)
             {
                 case Version4:
-                    encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.ReadByte();
+                    encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
                     s2k = new S2k(bcpgIn);
                     secKeyData = bcpgIn.ReadAll();
                     break;
@@ -59,8 +58,8 @@ namespace Org.BouncyCastle.Bcpg
                     // https://www.rfc-editor.org/rfc/rfc9580#name-version-6-symmetric-key-enc
                     // SymmAlgo + AEADAlgo + S2KCount + S2K + IV
                     int next5Fields5Count = bcpgIn.ReadByte();
-                    encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.ReadByte();
-                    aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.ReadByte();
+                    encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
+                    aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
 
                     int s2kOctetCount = bcpgIn.ReadByte();
                     s2kBytes = new byte[s2kOctetCount];

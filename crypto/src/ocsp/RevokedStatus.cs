@@ -19,12 +19,16 @@ namespace Org.BouncyCastle.Ocsp
 
 		public RevokedStatus(DateTime revocationDate)
 		{
-			m_revokedInfo = new RevokedInfo(new Asn1GeneralizedTime(revocationDate));
+			var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(revocationDate);
+
+            m_revokedInfo = new RevokedInfo(revocationTime);
 		}
 
         public RevokedStatus(DateTime revocationDate, int reason)
 		{
-			m_revokedInfo = new RevokedInfo(new Asn1GeneralizedTime(revocationDate), new CrlReason(reason));
+            var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(revocationDate);
+
+            m_revokedInfo = new RevokedInfo(revocationTime, new CrlReason(reason));
 		}
 
 		public DateTime RevocationTime

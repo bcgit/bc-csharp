@@ -137,6 +137,9 @@ namespace Org.BouncyCastle.X509
 			return digestResult.Collect();
         }
 
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf) =>
+            CalculateDigest(digestFactory, buf, 0, buf.Length);
+
         internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf, int off, int len)
         {
             var digestCalculator = digestFactory.CreateCalculator();
@@ -201,7 +204,7 @@ namespace Org.BouncyCastle.X509
 				hashAlgId,
 				new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
 				new DerInteger(saltSize),
-				new DerInteger(1));
+				DerInteger.One);
 		}
 
         internal static DerBitString CollectDerBitString(IBlockResult result)
@@ -268,9 +271,13 @@ namespace Org.BouncyCastle.X509
 
         internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString expected)
         {
-            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable);
+            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable).Collect();
 
-            return Arrays.FixedTimeEquals(result.Collect(), expected.GetOctets());
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Arrays.FixedTimeEquals(result, expected.GetOctetsSpan());
+#else
+            return Arrays.FixedTimeEquals(result, expected.GetOctets());
+#endif
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,

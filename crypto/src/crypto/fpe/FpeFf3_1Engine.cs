@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 if ((length & 1) != 0)
                     throw new ArgumentException("input must be an even number of bytes for a wide radix");
 
-                ushort[] u16In = Pack.BE_To_UInt16(inBuf, inOff, length);
+                ushort[] u16In = Pack.BE_To_UInt16(inBuf, inOff, length / 2);
                 ushort[] u16Out = SP80038G.EncryptFF3_1w(baseCipher, fpeParameters.Radix, fpeParameters.GetTweak(),
                     u16In, 0, u16In.Length);
                 enc = Pack.UInt16_To_BE(u16Out, 0, u16Out.Length);
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
                 if ((length & 1) != 0)
                     throw new ArgumentException("input must be an even number of bytes for a wide radix");
 
-                ushort[] u16In = Pack.BE_To_UInt16(inBuf, inOff, length);
+                ushort[] u16In = Pack.BE_To_UInt16(inBuf, inOff, length / 2);
                 ushort[] u16Out = SP80038G.DecryptFF3_1w(baseCipher, fpeParameters.Radix, fpeParameters.GetTweak(),
                     u16In, 0, u16In.Length);
                 dec = Pack.UInt16_To_BE(u16Out, 0, u16Out.Length);

@@ -98,6 +98,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			foreach (RecipientInformation recipient in c)
 			{
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+				Assert.True(recipient.RecipientID.Match(ReciCert));
 
 				byte[] recData = recipient.GetContent(ReciKP.Private);
 

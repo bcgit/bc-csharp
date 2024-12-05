@@ -46,10 +46,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 			}
 
 			if (forSigning && !k.IsPrivate)
-				throw new InvalidKeyException("Signing Requires Private Key.");
+				throw new InvalidKeyException("Signing requires private key.");
 
 			if (!forSigning && k.IsPrivate)
-				throw new InvalidKeyException("Verification Requires Public Key.");
+				throw new InvalidKeyException("Verification requires public key.");
 
 			Reset();
 

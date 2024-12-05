@@ -36,10 +36,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiStatusEncodable(DerInteger.GetInstance(obj));
         }
 
-        public static PkiStatusEncodable GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return GetInstance(DerInteger.GetInstance(taggedObject, declaredExplicit));
-        }
+        public static PkiStatusEncodable GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiStatusEncodable(DerInteger.GetInstance(taggedObject, declaredExplicit));
+
+        public static PkiStatusEncodable GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new PkiStatusEncodable(DerInteger.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_status;
 

@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Tls
         public const int tls13_hkdf_sha384 = 5;
         //public const int tls13_hkdf_sha512 = 6;
         public const int tls13_hkdf_sm3 = 7;
+        public const int tls_prf_gostr3411_2012_256 = 8;
 
         public static string GetName(int prfAlgorithm)
         {
@@ -36,6 +37,8 @@ namespace Org.BouncyCastle.Tls
                 return "tls13_hkdf_sha384";
             case tls13_hkdf_sm3:
                 return "tls13_hkdf_sm3";
+            case tls_prf_gostr3411_2012_256:
+                return "tls_prf_gostr3411_2012_256";
             default:
                 return "UNKNOWN";
             }

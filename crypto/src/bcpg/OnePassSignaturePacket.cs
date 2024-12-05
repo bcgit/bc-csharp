@@ -1,6 +1,7 @@
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
+using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -40,27 +41,20 @@ namespace Org.BouncyCastle.Bcpg
 			BcpgInputStream	bcpgIn)
 			:base(PacketTag.OnePassSignature)
 		{
-			version = bcpgIn.ReadByte();
+			version = bcpgIn.RequireByte();
 			if (version != Version3 && version != Version6)
 			{
                 throw new UnsupportedPacketVersionException($"unsupported OpenPGP One Pass Signature packet version: {version}");
             }
 
-			sigType = bcpgIn.ReadByte();
-			hashAlgorithm = (HashAlgorithmTag) bcpgIn.ReadByte();
-			keyAlgorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
+			sigType = bcpgIn.RequireByte();
+			hashAlgorithm = (HashAlgorithmTag) bcpgIn.RequireByte();
+			keyAlgorithm = (PublicKeyAlgorithmTag) bcpgIn.RequireByte();
 
             if (version == Version3)
 			{
-				keyId |= (long)bcpgIn.ReadByte() << 56;
-				keyId |= (long)bcpgIn.ReadByte() << 48;
-				keyId |= (long)bcpgIn.ReadByte() << 40;
-				keyId |= (long)bcpgIn.ReadByte() << 32;
-				keyId |= (long)bcpgIn.ReadByte() << 24;
-				keyId |= (long)bcpgIn.ReadByte() << 16;
-				keyId |= (long)bcpgIn.ReadByte() << 8;
-				keyId |= (uint)bcpgIn.ReadByte();
-			}
+				keyId = (long)StreamUtilities.RequireUInt64BE(bcpgIn);
+            }
 			else
 			{
                 //Version 6
@@ -73,7 +67,7 @@ namespace Org.BouncyCastle.Bcpg
 				keyId = (long)Pack.BE_To_UInt64(fingerprint);
             }
 
-			nested = bcpgIn.ReadByte();
+			nested = bcpgIn.RequireByte();
 
 			EnforceConstraints();
         }

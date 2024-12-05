@@ -45,10 +45,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             this.privKey = ecPrivateKeyParameters;
         }
 
-        public virtual int GetFieldSize()
-        {
-            return (privKey.Parameters.Curve.FieldSize + 7) / 8;
-        }
+        public virtual int GetFieldSize() => privKey.Parameters.Curve.FieldElementEncodingLength;
 
         public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
         {

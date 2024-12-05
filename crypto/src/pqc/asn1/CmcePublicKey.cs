@@ -22,28 +22,55 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         public static CmcePublicKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CmcePublicKey(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private byte[] t;
+        public static CmcePublicKey GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is CmcePublicKey cmcePublicKey)
+                return cmcePublicKey;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+#pragma warning disable CS0618 // Type or member is obsolete
+                return new CmcePublicKey(asn1Sequence);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return null;
+        }
+
+        public static CmcePublicKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new CmcePublicKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private readonly Asn1OctetString m_t;
 
         public CmcePublicKey(byte[] t)
         {
-            this.t = t;
+            m_t = DerOctetString.FromContents(t);
         }
 
         [Obsolete("Use 'GetInstance' instead")]
         public CmcePublicKey(Asn1Sequence seq)
         {
-            t = Arrays.Clone(Asn1OctetString.GetInstance(seq[0]).GetOctets());
+            int count = seq.Count;
+            if (count != 1)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_t = Asn1OctetString.GetInstance(seq[0]);
         }
 
-        public byte[] T => Arrays.Clone(t);
+        public byte[] T => Arrays.Clone(m_t.GetOctets());
 
-        public Asn1Object ToAsn1Primitive()
-        {
-            return new DerSequence(new DerOctetString(t));
-        }
+        public Asn1Object ToAsn1Primitive() => new DerSequence(m_t);
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {

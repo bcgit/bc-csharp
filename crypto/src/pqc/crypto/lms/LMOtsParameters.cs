@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -29,7 +31,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LMOtsParameters shake256_n24_w4 = new LMOtsParameters(15, 24, 4, 51, 4, 1500, NistObjectIdentifiers.IdShake256Len);
         public static LMOtsParameters shake256_n24_w8 = new LMOtsParameters(16, 24, 8, 26, 0, 1020, NistObjectIdentifiers.IdShake256Len);
 
-        private static Dictionary<object, LMOtsParameters> Suppliers = new Dictionary<object, LMOtsParameters>
+        private static Dictionary<int, LMOtsParameters> ParametersByID = new Dictionary<int, LMOtsParameters>
         {
             { sha256_n32_w1.ID, sha256_n32_w1 },
             { sha256_n32_w2.ID, sha256_n32_w2 },
@@ -53,7 +55,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         };
 
         public static LMOtsParameters GetParametersByID(int id) =>
-            CollectionUtilities.GetValueOrNull(Suppliers, id);
+            CollectionUtilities.GetValueOrNull(ParametersByID, id);
+
+        internal static LMOtsParameters ParseByID(BinaryReader binaryReader)
+        {
+            int id = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (!ParametersByID.TryGetValue(id, out var parameters))
+                throw new InvalidDataException($"unknown LMOtsParameters {id}");
+            return parameters;
+        }
 
         private readonly int m_id;
         private readonly int m_n;

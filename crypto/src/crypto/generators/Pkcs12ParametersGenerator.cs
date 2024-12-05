@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -19,11 +20,10 @@ namespace Org.BouncyCastle.Crypto.Generators
         : PbeParametersGenerator
     {
         public const int KeyMaterial = 1;
-        public const int IVMaterial  = 2;
+        public const int IVMaterial = 2;
         public const int MacMaterial = 3;
 
         private readonly IDigest digest;
-
         private readonly int u;
         private readonly int v;
 
@@ -33,13 +33,11 @@ namespace Org.BouncyCastle.Crypto.Generators
          * @param digest the digest to be used as the source of derived keys.
          * @exception ArgumentException if an unknown digest is passed in.
          */
-        public Pkcs12ParametersGenerator(
-            IDigest digest)
+        public Pkcs12ParametersGenerator(IDigest digest)
         {
             this.digest = digest;
-
-            u = digest.GetDigestSize();
-            v = digest.GetByteLength();
+            this.u = digest.GetDigestSize();
+            this.v = digest.GetByteLength();
         }
 
         /**
@@ -47,79 +45,59 @@ namespace Org.BouncyCastle.Crypto.Generators
          * as a BigInteger of length (b.Length * 8) bits. The result is
          * modulo 2^b.Length in case of overflow.
          */
-        private void Adjust(
-            byte[]  a,
-            int     aOff,
-            byte[]  b)
+        private void Adjust(byte[] a, int aOff, byte[] b)
         {
-            int  x = (b[b.Length - 1] & 0xff) + (a[aOff + b.Length - 1] & 0xff) + 1;
+            uint x = (uint)b[b.Length - 1] + (uint)a[aOff + b.Length - 1] + 1U;
 
             a[aOff + b.Length - 1] = (byte)x;
-            x = (int) ((uint) x >> 8);
+            x >>= 8;
 
             for (int i = b.Length - 2; i >= 0; i--)
             {
-                x += (b[i] & 0xff) + (a[aOff + i] & 0xff);
+                x += (uint)b[i] + (uint)a[aOff + i];
                 a[aOff + i] = (byte)x;
-                x = (int) ((uint) x >> 8);
+                x >>= 8;
             }
+        }
+
+        private byte[] GenerateDerivedKey(byte idByte, int n)
+        {
+            byte[] dKey = new byte[n];
+            GenerateDerivedKey(idByte, dKey);
+            return dKey;
         }
 
         /**
          * generation of a derived key ala Pkcs12 V1.0.
          */
-        private byte[] GenerateDerivedKey(
-            int idByte,
-            int n)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void GenerateDerivedKey(byte idByte, Span<byte> dKey)
+#else
+        private void GenerateDerivedKey(byte idByte, byte[] dKey)
+#endif
         {
             byte[] D = new byte[v];
-            byte[] dKey = new byte[n];
+            Arrays.Fill(D, idByte);
 
-            for (int i = 0; i != D.Length; i++)
-            {
-                D[i] = (byte)idByte;
-            }
-
-            byte[] S;
-
-            if ((mSalt != null) && (mSalt.Length != 0))
+            byte[] S = Array.Empty<byte>();
+            if (!Arrays.IsNullOrEmpty(mSalt))
             {
                 S = new byte[v * ((mSalt.Length + v - 1) / v)];
-
-                for (int i = 0; i != S.Length; i++)
-                {
-                    S[i] = mSalt[i % mSalt.Length];
-                }
-            }
-            else
-            {
-                S = new byte[0];
+                RepeatFill(mSalt, S);
             }
 
-            byte[] P;
-
-            if ((mPassword != null) && (mPassword.Length != 0))
+            byte[] P = Array.Empty<byte>();
+            if (!Arrays.IsNullOrEmpty(mPassword))
             {
                 P = new byte[v * ((mPassword.Length + v - 1) / v)];
-
-                for (int i = 0; i != P.Length; i++)
-                {
-                    P[i] = mPassword[i % mPassword.Length];
-                }
-            }
-            else
-            {
-                P = new byte[0];
+                RepeatFill(mPassword, P);
             }
 
-            byte[]  I = new byte[S.Length + P.Length];
+            byte[] I = Arrays.Concatenate(S, P);
 
-            Array.Copy(S, 0, I, 0, S.Length);
-            Array.Copy(P, 0, I, S.Length, P.Length);
-
-            byte[]  B = new byte[v];
-            int     c = (n + u - 1) / u;
-            byte[]  A = new byte[u];
+            byte[] A = new byte[u];
+            byte[] B = new byte[v];
+            int c = (dKey.Length + u - 1) / u;
 
             for (int i = 1; i <= c; i++)
             {
@@ -133,16 +111,23 @@ namespace Org.BouncyCastle.Crypto.Generators
                     digest.DoFinal(A, 0);
                 }
 
-                for (int j = 0; j != B.Length; j++)
+                RepeatFill(A, B);
+
+                for (int j_v = 0; j_v < I.Length; j_v += v)
                 {
-                    B[j] = A[j % A.Length];
+                    Adjust(I, j_v, B);
                 }
 
-                for (int j = 0; j != I.Length / v; j++)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                if (i == c)
                 {
-                    Adjust(I, j * v, B);
+                    dKey.Slice((i - 1) * u).CopyFrom(A);
                 }
-
+                else
+                {
+                    A.CopyTo(dKey.Slice((i - 1) * u));
+                }
+#else
                 if (i == c)
                 {
                     Array.Copy(A, 0, dKey, (i - 1) * u, dKey.Length - ((i - 1) * u));
@@ -151,14 +136,11 @@ namespace Org.BouncyCastle.Crypto.Generators
                 {
                     Array.Copy(A, 0, dKey, (i - 1) * u, A.Length);
                 }
+#endif
             }
-
-            return dKey;
         }
 
-        public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize)
+        public override ICipherParameters GenerateDerivedParameters(string algorithm, int keySize)
         {
             keySize /= 8;
 
@@ -167,10 +149,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
         }
 
-        public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize,
-            int		ivSize)
+        public override ICipherParameters GenerateDerivedParameters(string algorithm, int keySize, int ivSize)
         {
             keySize /= 8;
             ivSize /= 8;
@@ -178,9 +157,14 @@ namespace Org.BouncyCastle.Crypto.Generators
             byte[] dKey = GenerateDerivedKey(KeyMaterial, keySize);
             KeyParameter key = ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ParametersWithIV.Create(key, ivSize, this,
+                (bytes, self) => self.GenerateDerivedKey(IVMaterial, bytes));
+#else
             byte[] iv = GenerateDerivedKey(IVMaterial, ivSize);
 
             return new ParametersWithIV(key, iv, 0, ivSize);
+#endif
         }
 
         /**
@@ -190,14 +174,29 @@ namespace Org.BouncyCastle.Crypto.Generators
          * @param keySize the size of the key we want (in bits)
          * @return a KeyParameter object.
          */
-        public override ICipherParameters GenerateDerivedMacParameters(
-            int keySize)
+        public override ICipherParameters GenerateDerivedMacParameters(int keySize)
         {
             keySize /= 8;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return KeyParameter.Create(keySize, this,
+                (bytes, self) => self.GenerateDerivedKey(MacMaterial, bytes));
+#else
             byte[] dKey = GenerateDerivedKey(MacMaterial, keySize);
 
             return new KeyParameter(dKey, 0, keySize);
+#endif
+        }
+
+        private static void RepeatFill(byte[] x, byte[] z)
+        {
+            int len_x = x.Length, len_z = z.Length, pos = 0;
+            while (pos < len_z - len_x)
+            {
+                Array.Copy(x, 0, z, pos, len_x);
+                pos += len_x;
+            }
+            Array.Copy(x, 0, z, pos, len_z - pos);
         }
     }
 }
