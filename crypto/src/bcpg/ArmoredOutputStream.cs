@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Bcpg
         : BaseOutputStream
     {
         public static readonly string HeaderVersion = "Version";
-        private readonly bool showVersion;
 
         private static readonly byte[] encodingTable =
         {
@@ -368,10 +367,7 @@ namespace Org.BouncyCastle.Bcpg
 
                 DoWrite(headerStart + type + headerTail + NewLine);
 
-                // https://www.rfc-editor.org/rfc/rfc9580#name-version-armor-header
-                // To minimize metadata, implementations SHOULD NOT emit this key and its corresponding value except
-                // for debugging purposes with explicit user consent.
-                if (showVersion && m_headers.TryGetValue(HeaderVersion, out var versionHeaders))
+                if (m_headers.TryGetValue(HeaderVersion, out var versionHeaders))
                 {
                     WriteHeaderEntry(HeaderVersion, versionHeaders[0]);
                 }

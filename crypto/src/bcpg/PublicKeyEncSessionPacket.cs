@@ -3,6 +3,7 @@ using System.IO;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Crypto.Utilities;
+using System;
 
 namespace Org.BouncyCastle.Bcpg
 {

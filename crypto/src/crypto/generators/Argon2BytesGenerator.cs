@@ -150,12 +150,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private void FillMemoryBlocks()
         {
-            FillBlock filler = new FillBlock();
-            Position position = new Position();
             for (int pass = 0; pass < parameters.Iterations; ++pass)
             {
-                position.pass = pass;
-
                 for (int slice = 0; slice < Argon2SyncPoints; ++slice)
                 {
                     if (m_taskFactory == null || parameters.Parallelism <= 1)
@@ -455,8 +451,6 @@ namespace Org.BouncyCastle.Crypto.Generators
                 digest.BlockUpdate(outLenBytes, 0, outLenBytes.Length);
                 digest.BlockUpdate(input, 0, input.Length);
                 digest.DoFinal(outBuffer, 0);
-
-                int halfLen = blake2bLength / 2, outPos = outOff;
                 Array.Copy(outBuffer, 0, output, outPos, halfLen);
 #endif
                 outPos += halfLen;
@@ -776,3 +770,4 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
     }
 }
+

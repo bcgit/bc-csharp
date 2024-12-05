@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		{
 			using (MemoryStream bOut = new MemoryStream())
 			{
-				using (ArmoredOutputStream aOut = new ArmoredOutputStream(bOut))
+				using (ArmoredOutputStream aOut = new ArmoredOutputStream(bOut, addVersionHeader: false))
 				{
 					aOut.Write(sample, 0, sample.Length);
 				}
@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             using (MemoryStream bOut = new MemoryStream())
             {
-                using (ArmoredOutputStream aOut = new ArmoredOutputStream(bOut, showVersion: true))
+                using (ArmoredOutputStream aOut = new ArmoredOutputStream(bOut, addVersionHeader: true))
                 {
                     aOut.Write(sample, 0, sample.Length);
                 }
