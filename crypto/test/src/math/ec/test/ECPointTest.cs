@@ -12,7 +12,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 namespace Org.BouncyCastle.Math.EC.Tests
 {
     /**
-     * Test class for {@link org.bouncycastle.math.ec.ECPoint ECPoint}. All
+     * Test class for {@link Org.BouncyCastle.Math.ec.ECPoint ECPoint}. All
      * literature values are taken from "Guide to elliptic curve cryptography",
      * Darrel Hankerson, Alfred J. Menezes, Scott Vanstone, 2004, Springer-Verlag
      * New York, Inc.

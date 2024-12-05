@@ -230,7 +230,7 @@ namespace Org.BouncyCastle.Cms
 		 *
 		 * @param type type of store to create
 		 * @return a store of attribute certificates
-		 * @exception org.bouncycastle.x509.NoSuchStoreException if the store type isn't available.
+		 * @exception Org.BouncyCastle.X509.NoSuchStoreException if the store type isn't available.
 		 * @exception CmsException if a general exception prevents creation of the X509Store
 		 */
 		public IStore<X509V2AttributeCertificate> GetAttributeCertificates()

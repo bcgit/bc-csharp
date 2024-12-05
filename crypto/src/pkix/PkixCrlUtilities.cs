@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pkix
 		/// </summary>
 		/// <param name="crlSelector">a {@link X509CRLStoreSelector} object that will be used
 		/// to select the CRLs</param>
-		/// <param name="crlStores">a List containing only {@link org.bouncycastle.x509.X509Store
+		/// <param name="crlStores">a List containing only {@link Org.BouncyCastle.X509.X509Store
 		/// X509Store} objects. These are used to search for CRLs</param>
 		/// <returns>a Collection of all found {@link X509CRL X509CRL} objects. May be
 		/// empty but never <code>null</code>.

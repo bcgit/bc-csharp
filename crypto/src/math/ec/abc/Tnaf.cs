@@ -614,7 +614,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
         }
 
         /**
-        * Multiplies a {@link org.bouncycastle.math.ec.AbstractF2mPoint AbstractF2mPoint}
+        * Multiplies a {@link Org.BouncyCastle.Math.EC.AbstractF2mPoint AbstractF2mPoint}
         * by a <code>BigInteger</code> using the reduced <code>&#964;</code>-adic
         * NAF (RTNAF) method.
         * @param p The AbstractF2mPoint to Multiply.
@@ -633,7 +633,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
         }
 
         /**
-        * Multiplies a {@link org.bouncycastle.math.ec.AbstractF2mPoint AbstractF2mPoint}
+        * Multiplies a {@link Org.BouncyCastle.Math.EC.AbstractF2mPoint AbstractF2mPoint}
         * by an element <code>&#955;</code> of <code><b>Z</b>[&#964;]</code>
         * using the <code>&#964;</code>-adic NAF (TNAF) method.
         * @param p The AbstractF2mPoint to Multiply.
@@ -652,7 +652,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
         }
 
         /**
-        * Multiplies a {@link org.bouncycastle.math.ec.AbstractF2mPoint AbstractF2mPoint}
+        * Multiplies a {@link Org.BouncyCastle.Math.EC.AbstractF2mPoint AbstractF2mPoint}
         * by an element <code>&#955;</code> of <code><b>Z</b>[&#964;]</code>
         * using the <code>&#964;</code>-adic NAF (TNAF) method, given the TNAF
         * of <code>&#955;</code>.

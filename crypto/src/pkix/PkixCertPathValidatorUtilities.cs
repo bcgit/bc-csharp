@@ -765,7 +765,7 @@ namespace Org.BouncyCastle.Pkix
 		 *
 		 * @param dp The distribution point for which the complete CRL
 		 * @param cert The <code>X509Certificate</code> or
-		 *            {@link org.bouncycastle.x509.X509AttributeCertificate} for
+		 *            {@link Org.BouncyCastle.X509.X509AttributeCertificate} for
 		 *            which the CRL should be searched.
 		 * @param currentDate The date for which the delta CRLs must be valid.
 		 * @param paramsPKIX The extended PKIX parameters.

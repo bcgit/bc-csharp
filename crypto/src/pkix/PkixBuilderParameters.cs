@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Pkix
 		* <code>PKIXBuilderParameters</code>.
 		* 
 		* @param params Parameters to set.
-		* @see org.bouncycastle.x509.ExtendedPKIXParameters#setParams(java.security.cert.PKIXParameters)
+		* @see Org.BouncyCastle.X509.ExtendedPKIXParameters#setParams(java.security.cert.PKIXParameters)
 		*/
 		protected override void SetParams(PkixParameters parameters)
 		{

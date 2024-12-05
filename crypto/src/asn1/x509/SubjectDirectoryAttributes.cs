@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.X509
 	 *     AttributeValue ::= ANY DEFINED BY AttributeType
 	 * </pre>
 	 *
-	 * @see org.bouncycastle.asn1.x509.X509Name for AttributeType ObjectIdentifiers.
+	 * @see Org.BouncyCastle.Asn1.X509.X509Name for AttributeType ObjectIdentifiers.
 	 */
     public class SubjectDirectoryAttributes
 		: Asn1Encodable
