@@ -69,12 +69,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.m_publicKey = parent.m_publicKey;
         }
 
-        public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc)
-        {
-            LmsPrivateKeyParameters pKey = GetInstance(privEnc);
-            pKey.m_publicKey = LmsPublicKeyParameters.GetInstance(pubEnc);
-            return pKey;
-        }
+        public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
+            Parse(privEnc, 0, privEnc.Length, LmsPublicKeyParameters.Parse(pubEnc));
 
         public static LmsPrivateKeyParameters GetInstance(object src)
         {
@@ -85,10 +81,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return Parse(binaryReader);
 
             if (src is Stream stream)
-                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+                return Parse(stream);
 
             if (src is byte[] bytes)
-                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+                return Parse(bytes);
 
             throw new ArgumentException($"cannot parse {src}");
         }
@@ -115,6 +111,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
 
             return new LmsPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
+        }
+
+        internal static LmsPrivateKeyParameters Parse(Stream stream) =>
+            BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+        internal static LmsPrivateKeyParameters Parse(byte[] buf) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+
+        internal static LmsPrivateKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
+
+        internal static LmsPrivateKeyParameters Parse(byte[] buf, int off, int len, LmsPublicKeyParameters publicKey)
+        {
+            LmsPrivateKeyParameters pKey = Parse(buf, off, len);
+            pKey.m_publicKey = publicKey;
+            return pKey;
         }
 
         internal LMOtsPrivateKey GetCurrentOtsKey()

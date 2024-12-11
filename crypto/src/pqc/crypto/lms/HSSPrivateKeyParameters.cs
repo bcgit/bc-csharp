@@ -50,12 +50,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_indexLimit = indexLimit;
         }
 
-        public static HssPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc)
-        {
-            HssPrivateKeyParameters pKey = GetInstance(privEnc);
-            pKey.m_publicKey = HssPublicKeyParameters.GetInstance(pubEnc);
-            return pKey;
-        }
+        public static HssPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
+            Parse(privEnc, 0, privEnc.Length, HssPublicKeyParameters.Parse(pubEnc));
 
         public static HssPrivateKeyParameters GetInstance(object src)
         {
@@ -66,10 +62,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return Parse(binaryReader);
 
             if (src is Stream stream)
-                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+                return Parse(stream);
 
             if (src is byte[] bytes)
-                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+                return Parse(bytes);
 
             throw new ArgumentException($"cannot parse {src}");
         }
@@ -101,6 +97,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
 
             return new HssPrivateKeyParameters(d, keys, signatures, index, maxIndex, limited);
+        }
+
+        internal static HssPrivateKeyParameters Parse(Stream stream) =>
+            BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+        internal static HssPrivateKeyParameters Parse(byte[] buf) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+
+        internal static HssPrivateKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
+
+        internal static HssPrivateKeyParameters Parse(byte[] buf, int off, int len, HssPublicKeyParameters publicKey)
+        {
+            HssPrivateKeyParameters pKey = Parse(buf, off, len);
+            pKey.m_publicKey = publicKey;
+            return pKey;
         }
 
         [Obsolete("Use 'Level' instead")]
@@ -137,10 +149,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             lock (this) m_index++;
         }
 
-        private static HssPrivateKeyParameters MakeCopy(HssPrivateKeyParameters privateKeyParameters)
-        {
-            return GetInstance(privateKeyParameters.GetEncoded());
-        }
+        private static HssPrivateKeyParameters MakeCopy(HssPrivateKeyParameters privateKeyParameters) =>
+            Parse(privateKeyParameters.GetEncoded());
 
         protected void UpdateHierarchy(IList<LmsPrivateKeyParameters> newKeys, IList<LmsSignature> newSig)
         {

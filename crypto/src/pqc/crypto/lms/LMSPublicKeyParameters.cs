@@ -32,10 +32,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return Parse(binaryReader);
 
             if (src is Stream stream)
-                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+                return Parse(stream);
 
             if (src is byte[] bytes)
-                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+                return Parse(bytes);
 
             throw new ArgumentException($"cannot parse {src}");
         }
@@ -51,6 +51,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             return new LmsPublicKeyParameters(sigParameter, otsParameter, T1, I);
         }
+
+        internal static LmsPublicKeyParameters Parse(Stream stream) =>
+            BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+        internal static LmsPublicKeyParameters Parse(byte[] buf) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+
+        internal static LmsPublicKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
 
         public override byte[] GetEncoded() => ToByteArray();
 

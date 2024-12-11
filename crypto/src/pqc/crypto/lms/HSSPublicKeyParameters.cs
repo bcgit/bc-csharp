@@ -27,10 +27,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return Parse(binaryReader);
 
             if (src is Stream stream)
-                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+                return Parse(stream);
 
             if (src is byte[] bytes)
-                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+                return Parse(bytes);
 
             throw new ArgumentException($"cannot parse {src}");
         }
@@ -41,6 +41,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LmsPublicKeyParameters lmsPublicKey = LmsPublicKeyParameters.Parse(binaryReader);
             return new HssPublicKeyParameters(L, lmsPublicKey);
         }
+
+        internal static HssPublicKeyParameters Parse(Stream stream) =>
+            BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+        internal static HssPublicKeyParameters Parse(byte[] buf) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+
+        internal static HssPublicKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
 
         [Obsolete("Use 'Level' instead")]
         public int L => m_level;

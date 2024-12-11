@@ -57,18 +57,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
                 DerBitString pubKey = keyInfo.PublicKey;
 
-                if (Pack.BE_To_UInt32(keyEnc, 0) == 1)
+                if (keyEnc.Length >= 4 && Pack.BE_To_UInt32(keyEnc, 0) == 1)
                 {
+                    LmsPublicKeyParameters publicKey = null;
                     if (pubKey != null)
                     {
                         byte[] pubEnc = pubKey.GetOctets();
 
-                        return LmsPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length),
-                            Arrays.CopyOfRange(pubEnc, 4, pubEnc.Length));
+                        publicKey = LmsPublicKeyParameters.Parse(pubEnc, 4, pubEnc.Length - 4);
                     }
 
-                    return LmsPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                    return LmsPrivateKeyParameters.Parse(keyEnc, 4, keyEnc.Length - 4, publicKey);
                 }
+
+                throw new ArgumentException("invalid LMS private key");
             }
             if (algOid.On(BCObjectIdentifiers.pqc_kem_mceliece))
             {
