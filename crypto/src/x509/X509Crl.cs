@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.X509
                 v.Add(tbsSeq[i]);
             }
 
-            v.Add(X509Utilities.TrimExtensions(0, extensions));
+            v.Add(new DerTaggedObject(true, 0, extensions.ToAsn1ObjectTrimmed()));
 
 			return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
         }
@@ -500,10 +500,10 @@ namespace Org.BouncyCastle.X509
 			}
 		}
 
-        private CachedEncoding GetCachedEncoding()
-        {
-			return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
-        }
+        internal byte[] GetEncodedInternal() => GetCachedEncoding().GetEncoded();
+
+        private CachedEncoding GetCachedEncoding() =>
+			Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
 
 		private static CachedEncoding CreateCachedEncoding(CertificateList c)
 		{
