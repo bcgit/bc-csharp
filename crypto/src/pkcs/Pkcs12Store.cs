@@ -684,8 +684,7 @@ namespace Org.BouncyCastle.Pkcs
                 var name = m_keysOrder[(int)i];
                 var privKey = m_keys[name];
 
-                byte[] kSalt = new byte[SaltSize];
-                random.NextBytes(kSalt);
+                byte[] kSalt = SecureRandom.GetNextBytes(random, SaltSize);
 
                 DerObjectIdentifier bagOid;
                 Asn1Encodable bagData;
@@ -773,9 +772,7 @@ namespace Org.BouncyCastle.Pkcs
             //
             // certificate processing
             //
-            byte[] cSalt = new byte[SaltSize];
-
-            random.NextBytes(cSalt);
+            byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
 
             Asn1EncodableVector certBags = new Asn1EncodableVector(m_keys.Count);
             Pkcs12PbeParams     cParams = new Pkcs12PbeParams(cSalt, MinIterations);
@@ -788,9 +785,7 @@ namespace Org.BouncyCastle.Pkcs
             {
                 string name = m_keysOrder[(int)i];
                 X509CertificateEntry certEntry = GetCertificate(name);
-                CertBag cBag = new CertBag(
-                    PkcsObjectIdentifiers.X509Certificate,
-                    new DerOctetString(certEntry.Certificate.GetEncoded()));
+                CertBag cBag = CreateCertBag(certEntry.Certificate);
 
                 Asn1EncodableVector fName = new Asn1EncodableVector();
 
@@ -857,9 +852,7 @@ namespace Org.BouncyCastle.Pkcs
                 if (m_keys.ContainsKey(alias))
                     continue;
 
-                CertBag cBag = new CertBag(
-                    PkcsObjectIdentifiers.X509Certificate,
-                    new DerOctetString(cert.Certificate.GetEncoded()));
+                CertBag cBag = CreateCertBag(cert.Certificate);
 
                 Asn1EncodableVector fName = new Asn1EncodableVector();
 
@@ -949,9 +942,7 @@ namespace Org.BouncyCastle.Pkcs
                 if (doneCerts.Contains(cert))
                     continue;
 
-                CertBag cBag = new CertBag(
-                    PkcsObjectIdentifiers.X509Certificate,
-                    new DerOctetString(cert.GetEncoded()));
+                CertBag cBag = CreateCertBag(cert);
 
                 Asn1EncodableVector fName = new Asn1EncodableVector();
 
@@ -1044,34 +1035,30 @@ namespace Org.BouncyCastle.Pkcs
             return Arrays.FixedTimeEquals(macResult, mac.Digest.GetOctets());
         }
 
-        private static byte[] CryptPbeData(
-            bool                forEncryption,
-            AlgorithmIdentifier algId,
-            char[]              password,
-            bool                wrongPkcs12Zero,
-            byte[]              data)
+        private static CertBag CreateCertBag(X509Certificate c) =>
+            new CertBag(PkcsObjectIdentifiers.X509Certificate, new DerOctetString(c.GetEncoded()));
+
+        private static byte[] CryptPbeData(bool forEncryption, AlgorithmIdentifier algID, char[] password,
+            bool wrongPkcs12Zero, byte[] data)
         {
-            IBufferedCipher cipher = PbeUtilities.CreateEngine(algId) as IBufferedCipher;
+            if (!(PbeUtilities.CreateEngine(algID) is IBufferedCipher cipher))
+                throw new Exception("Unknown encryption algorithm: " + algID.Algorithm);
 
-            if (cipher == null)
-                throw new Exception("Unknown encryption algorithm: " + algId.Algorithm);
-
-            if (PkcsObjectIdentifiers.IdPbeS2.Equals(algId.Algorithm))
+            Asn1Encodable pbeParameters;
+            if (PkcsObjectIdentifiers.IdPbeS2.Equals(algID.Algorithm))
             {
-                PbeS2Parameters pbeParameters = PbeS2Parameters.GetInstance(algId.Parameters);
-                ICipherParameters cipherParams = PbeUtilities.GenerateCipherParameters(
-                    algId.Algorithm, password, pbeParameters);
-                cipher.Init(forEncryption, cipherParams);
-                return cipher.DoFinal(data);
+                wrongPkcs12Zero = false;
+                pbeParameters = PbeS2Parameters.GetInstance(algID.Parameters);
             }
             else
             {
-                Pkcs12PbeParams pbeParameters = Pkcs12PbeParams.GetInstance(algId.Parameters);
-                ICipherParameters cipherParams = PbeUtilities.GenerateCipherParameters(
-                    algId.Algorithm, password, wrongPkcs12Zero, pbeParameters);
-                cipher.Init(forEncryption, cipherParams);
-                return cipher.DoFinal(data);
+                pbeParameters = Pkcs12PbeParams.GetInstance(algID.Parameters);
             }
+
+            ICipherParameters cipherParameters = PbeUtilities.GenerateCipherParameters(algID.Algorithm, password,
+                wrongPkcs12Zero, pbeParameters);
+            cipher.Init(forEncryption, cipherParameters);
+            return cipher.DoFinal(data);
         }
 
         private static void Clear<K, V>(Dictionary<K, V> d, List<K> o)
