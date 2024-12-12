@@ -471,25 +471,9 @@ namespace Org.BouncyCastle.Pkix
 			return validPolicyTree;
 		}
 
-		internal static void GetCertStatus(
-			DateTime validDate,
-			X509Crl crl,
-			object cert,
-			CertStatus certStatus)
+		internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CertStatus certStatus)
 		{
-			X509Crl bcCRL;
-
-			try
-			{
-				bcCRL = new X509Crl(CertificateList.GetInstance((Asn1Sequence)Asn1Sequence.FromByteArray(crl.GetEncoded())));
-			}
-			catch (Exception exception)
-			{
-				throw new Exception("X509Crl could not be created.", exception);
-			}
-
-			X509CrlEntry crl_entry = (X509CrlEntry)bcCRL.GetRevokedCertificate(GetSerialNumber(cert));
-
+			X509CrlEntry crl_entry = crl.GetRevokedCertificate(GetSerialNumber(cert));
 			if (crl_entry == null)
 				return;
 
