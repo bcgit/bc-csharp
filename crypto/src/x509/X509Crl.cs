@@ -182,7 +182,7 @@ namespace Org.BouncyCastle.X509
         {
             var tbsCertList = c.TbsCertList;
 
-            if (!X509SignatureUtilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertList.Signature))
+            if (!X509Utilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertList.Signature))
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
 
 			return X509Utilities.VerifySignature(verifier, tbsCertList, c.Signature);

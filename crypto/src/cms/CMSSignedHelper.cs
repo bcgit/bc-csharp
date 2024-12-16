@@ -205,11 +205,7 @@ namespace Org.BouncyCastle.Cms
         internal static AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
-            var parameters = algID.Parameters;
-            if (parameters == null || DerNull.Instance.Equals(parameters))
-                return digestAlgorithmFinder.Find(algID.Algorithm);
-
-            return algID;
+            return X509Utilities.HasAbsentParameters(algID) ? digestAlgorithmFinder.Find(algID.Algorithm) : algID;
         }
 
         internal static DerObjectIdentifier GetEncOid(AsymmetricKeyParameter key, string digestOID)

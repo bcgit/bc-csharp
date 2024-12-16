@@ -712,7 +712,7 @@ namespace Org.BouncyCastle.X509
         {
             var tbsCertificate = c.TbsCertificate;
 
-            if (!X509SignatureUtilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
+            if (!X509Utilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
             return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);

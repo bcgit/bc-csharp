@@ -86,6 +86,20 @@ namespace Org.BouncyCastle.X509
 			m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 		}
 
+        internal static bool AreEquivalentAlgorithms(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
+        {
+            if (!id1.Algorithm.Equals(id2.Algorithm))
+                return false;
+
+            // TODO Java has a property to control whether absent parameters can match NULL parameters
+            {
+                if (HasAbsentParameters(id1) && HasAbsentParameters(id2))
+                    return true;
+            }
+
+            return Objects.Equals(id1.Parameters, id2.Parameters);
+        }
+
 		internal static byte[] CalculateDigest(AlgorithmIdentifier digestAlgorithm, Asn1Encodable asn1Encodable)
 		{
             var digest = DigestUtilities.GetDigest(digestAlgorithm.Algorithm);
@@ -203,6 +217,11 @@ namespace Org.BouncyCastle.X509
         {
             return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
         }
+
+        internal static bool HasAbsentParameters(AlgorithmIdentifier algID) => IsAbsentParameters(algID.Parameters);
+
+        internal static bool IsAbsentParameters(Asn1Encodable parameters) =>
+            parameters == null || DerNull.Instance.Equals(parameters);
 
         internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString expected)
         {
