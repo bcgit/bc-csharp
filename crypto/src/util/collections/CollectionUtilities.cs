@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Org.BouncyCastle.Utilities.Collections
 {
+    // TODO[api] Make static
     public abstract class CollectionUtilities
     {
         public static void CollectMatches<T>(ICollection<T> matches, ISelector<T> selector,
@@ -114,6 +115,19 @@ namespace Org.BouncyCastle.Utilities.Collections
             }
             sb.Append(']');
             return sb.ToString();
+        }
+
+        public static bool TryAdd<K, V>(IDictionary<K, V> d, K k, V v)
+        {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return d.TryAdd(k, v);
+#else
+            if (d.ContainsKey(k))
+                return false;
+
+            d.Add(k, v);
+            return true;
+#endif
         }
     }
 }
