@@ -397,7 +397,7 @@ namespace Org.BouncyCastle.Cms
         public void AddSignerInfoGenerator(SignerInfoGenerator signerInfoGenerator)
         {
             signerInfs.Add(
-				new SignerInf(this, signerInfoGenerator.contentSigner, signerInfoGenerator.sigId,
+				new SignerInf(this, signerInfoGenerator.contentSigner, signerInfoGenerator.sigID,
 					signerInfoGenerator.signedGen, signerInfoGenerator.unsignedGen, null));
         }
 

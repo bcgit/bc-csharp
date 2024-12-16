@@ -7,48 +7,19 @@ namespace Org.BouncyCastle.Cms
 {
     public class SignerInfoGenerator
     {
-        internal X509Certificate certificate;
-        internal ISignatureFactory contentSigner;
-        internal SignerIdentifier sigId;
-        internal CmsAttributeTableGenerator signedGen;
-        internal CmsAttributeTableGenerator unsignedGen;
-        private bool isDirectSignature;
+        internal readonly SignerIdentifier sigID;
+        internal readonly ISignatureFactory contentSigner;
+        internal readonly CmsAttributeTableGenerator signedGen;
+        internal readonly CmsAttributeTableGenerator unsignedGen;
+        internal readonly X509Certificate certificate;
 
-        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureFactory signerFactory)
-            : this(sigId, signerFactory, false)
+        internal SignerInfoGenerator(SignerIdentifier sigID, ISignatureFactory contentSigner, bool isDirectSignature,
+            CmsAttributeTableGenerator signedGen, CmsAttributeTableGenerator unsignedGen, X509Certificate certificate)
         {
-
-        }
-
-        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureFactory signerFactory, bool isDirectSignature)
-        {
-            this.sigId = sigId;
-            this.contentSigner = signerFactory;
-            this.isDirectSignature = isDirectSignature;
-            if (this.isDirectSignature)
-            {
-                this.signedGen = null;
-                this.unsignedGen = null;
-            }
-            else
-            {
-                this.signedGen = new DefaultSignedAttributeTableGenerator();
-                this.unsignedGen = null;
-            }
-        }
-
-        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureFactory contentSigner,
-            CmsAttributeTableGenerator signedGen, CmsAttributeTableGenerator unsignedGen)
-        {
-            this.sigId = sigId;
+            this.sigID = sigID;
             this.contentSigner = contentSigner;
             this.signedGen = signedGen;
             this.unsignedGen = unsignedGen;
-            this.isDirectSignature = false;
-        }
-
-        internal void SetAssociatedCertificate(X509Certificate certificate)
-        {
             this.certificate = certificate;
         }
 
@@ -57,22 +28,20 @@ namespace Org.BouncyCastle.Cms
             SignerInfoGeneratorBuilder builder = new SignerInfoGeneratorBuilder();
             builder.WithSignedAttributeGenerator(signedGen);
             builder.WithUnsignedAttributeGenerator(unsignedGen);
-            builder.SetDirectSignature(isDirectSignature);
+            builder.SetDirectSignature(hasNoSignedAttributes: signedGen == null);
             return builder;
         }
-
     }
 
     public class SignerInfoGeneratorBuilder
     {
-        private bool directSignature;
-        private CmsAttributeTableGenerator signedGen;
-        private CmsAttributeTableGenerator unsignedGen;
+        private bool m_directSignature;
+        private CmsAttributeTableGenerator m_signedGen;
+        private CmsAttributeTableGenerator m_unsignedGen;
 
         public SignerInfoGeneratorBuilder()
         {
         }
-    
 
         /**
          * If the passed in flag is true, the signer signature will be based on the data, not
@@ -82,8 +51,7 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInfoGeneratorBuilder SetDirectSignature(bool hasNoSignedAttributes)
         {
-            this.directSignature = hasNoSignedAttributes;
-
+            m_directSignature = hasNoSignedAttributes;
             return this;
         }
 
@@ -95,8 +63,7 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInfoGeneratorBuilder WithSignedAttributeGenerator(CmsAttributeTableGenerator signedGen)
         {
-            this.signedGen = signedGen;
-
+            m_signedGen = signedGen;
             return this;
         }
 
@@ -108,8 +75,7 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInfoGeneratorBuilder WithUnsignedAttributeGenerator(CmsAttributeTableGenerator unsignedGen)
         {
-            this.unsignedGen = unsignedGen;
-
+            m_unsignedGen = unsignedGen;
             return this;
         }
 
@@ -123,13 +89,9 @@ namespace Org.BouncyCastle.Cms
          */
         public SignerInfoGenerator Build(ISignatureFactory contentSigner, X509Certificate certificate)
         {
-            SignerIdentifier sigId = new SignerIdentifier(new IssuerAndSerialNumber(certificate.CertificateStructure));
+            SignerIdentifier sigID = new SignerIdentifier(new IssuerAndSerialNumber(certificate.CertificateStructure));
 
-            SignerInfoGenerator sigInfoGen = CreateGenerator(contentSigner, sigId);
-
-            sigInfoGen.SetAssociatedCertificate(certificate);
-
-            return sigInfoGen;
+            return CreateGenerator(contentSigner, sigID, certificate);
         }
 
         /**
@@ -140,31 +102,32 @@ namespace Org.BouncyCastle.Cms
          * @param subjectKeyIdentifier    key identifier to identify the public key for verifying the signature.
          * @return  a SignerInfoGenerator
          */
+        // TODO[api] Rename 'signerFactory' to 'contentSigner' for consistency with other 'Build' method
         public SignerInfoGenerator Build(ISignatureFactory signerFactory, byte[] subjectKeyIdentifier)
         {
-            SignerIdentifier sigId = new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
+            SignerIdentifier sigID = new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
 
-            return CreateGenerator(signerFactory, sigId);
+            return CreateGenerator(signerFactory, sigID, certificate: null);
         }
 
-        private SignerInfoGenerator CreateGenerator(ISignatureFactory contentSigner, SignerIdentifier sigId)
+        private SignerInfoGenerator CreateGenerator(ISignatureFactory contentSigner, SignerIdentifier sigID,
+            X509Certificate certificate)
         {
-            if (directSignature)
+            CmsAttributeTableGenerator signedGen = m_signedGen;
+            CmsAttributeTableGenerator unsignedGen = m_unsignedGen;
+
+            if (m_directSignature)
             {
-                return new SignerInfoGenerator(sigId, contentSigner, true);
+                signedGen = null;
+                unsignedGen = null;
+            }
+            else if (signedGen == null)
+            {
+                signedGen = new DefaultSignedAttributeTableGenerator();
             }
 
-            if (signedGen != null || unsignedGen != null)
-            {
-                if (signedGen == null)
-                {
-                    signedGen = new DefaultSignedAttributeTableGenerator();
-                }
-
-                return new SignerInfoGenerator(sigId, contentSigner, signedGen, unsignedGen);
-            }
-
-            return new SignerInfoGenerator(sigId, contentSigner);
+            return new SignerInfoGenerator(sigID, contentSigner, m_directSignature, signedGen, unsignedGen,
+                certificate);
         }
     }
 }
