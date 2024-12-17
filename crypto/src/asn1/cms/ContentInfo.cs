@@ -39,9 +39,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public ContentInfo(DerObjectIdentifier contentType, Asn1Encodable content)
         {
-            // TODO[cms] Blocked by CmsSignedDataGenerator.GenerateCounterSigners transient usage of null here
-            //m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
-            m_contentType = contentType;
+            m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             m_content = content;
         }
 

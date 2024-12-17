@@ -415,14 +415,19 @@ namespace Org.BouncyCastle.Cms
 				signedAttrGen, unsignedAttrGen, baseSignedTable));
 		}
 
-		/**
-        * generate a signed object that for a CMS Signed Data object
-        */
-        public CmsSignedData Generate(
-            CmsProcessable content)
-        {
-            return Generate(content, false);
-        }
+        /**
+         * generate a signed object that for a CMS Signed Data object
+         */
+        public CmsSignedData Generate(CmsProcessable content) => Generate(content, encapsulate: false);
+
+        /**
+         * generate a signed object that for a CMS Signed Data
+         * object - if encapsulate is true a copy
+         * of the message will be included in the signature with the
+         * default content type "data".
+         */
+        public CmsSignedData Generate(CmsProcessable content, bool encapsulate) =>
+			Generate(signedContentType: Data, content, encapsulate);
 
         /**
         * generate a signed object that for a CMS Signed Data
@@ -455,18 +460,14 @@ namespace Org.BouncyCastle.Cms
 			//
             // add the SignerInfo objects
             //
-            bool isCounterSignature = (signedContentType == null);
+            DerObjectIdentifier contentTypeOid = new DerObjectIdentifier(signedContentType);
 
-            DerObjectIdentifier contentTypeOid = isCounterSignature
-                ?   null
-				:	new DerObjectIdentifier(signedContentType);
-
-            foreach (SignerInf signer in signerInfs)
+            foreach (SignerInf signerInf in signerInfs)
             {
 				try
                 {
-					digestAlgs.Add(signer.DigestAlgorithmID);
-                    signerInfos.Add(signer.ToSignerInfo(contentTypeOid, content));
+					digestAlgs.Add(signerInf.DigestAlgorithmID);
+                    signerInfos.Add(signerInf.ToSignerInfo(contentTypeOid, content));
 				}
                 catch (IOException e)
                 {
@@ -537,19 +538,6 @@ namespace Org.BouncyCastle.Cms
         }
 
         /**
-        * generate a signed object that for a CMS Signed Data
-        * object - if encapsulate is true a copy
-        * of the message will be included in the signature with the
-        * default content type "data".
-        */
-        public CmsSignedData Generate(
-            CmsProcessable	content,
-            bool			encapsulate)
-        {
-            return this.Generate(Data, content, encapsulate);
-        }
-
-		/**
 		* generate a set of one or more SignerInformation objects representing counter signatures on
 		* the passed in SignerInformation object.
 		*
@@ -557,10 +545,46 @@ namespace Org.BouncyCastle.Cms
 		* @param sigProvider the provider to be used for counter signing.
 		* @return a store containing the signers.
 		*/
-		public SignerInformationStore GenerateCounterSigners(
-			SignerInformation signer)
-		{
-			return this.Generate(null, new CmsProcessableByteArray(signer.GetSignature()), false).GetSignerInfos();
-		}
-	}
+        public SignerInformationStore GenerateCounterSigners(SignerInformation signer)
+        {
+            m_digests.Clear();
+
+            CmsProcessable content = new CmsProcessableByteArray(signer.GetSignature());
+
+            var signerInformations = new List<SignerInformation>();
+
+            foreach (SignerInformation _signer in _signers)
+            {
+				var signerInfo = _signer.ToSignerInfo();
+                signerInformations.Add(new SignerInformation(signerInfo, null, content, null));
+            }
+
+            foreach (SignerInf signerInf in signerInfs)
+            {
+                try
+                {
+                    var signerInfo = signerInf.ToSignerInfo(null, content);
+                    signerInformations.Add(new SignerInformation(signerInfo, null, content, null));
+                }
+                catch (IOException e)
+                {
+                    throw new CmsException("encoding error.", e);
+                }
+                catch (InvalidKeyException e)
+                {
+                    throw new CmsException("key inappropriate for signature.", e);
+                }
+                catch (SignatureException e)
+                {
+                    throw new CmsException("error creating signature.", e);
+                }
+                catch (CertificateEncodingException e)
+                {
+                    throw new CmsException("error creating sid.", e);
+                }
+            }
+
+			return new SignerInformationStore(signerInformations);
+        }
+    }
 }
