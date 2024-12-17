@@ -39,50 +39,45 @@ namespace Org.BouncyCastle.Cms
 		protected readonly Asn1Set signedAttributeSet;
 		protected readonly Asn1Set unsignedAttributeSet;
 
-		internal SignerInformation(
-			SignerInfo			info,
-			DerObjectIdentifier	contentType,
-			CmsProcessable		content,
-			byte[]				calculatedDigest)
-		{
-			this.info = info;
-			this.sid = new SignerID();
-			this.contentType = contentType;
-			this.isCounterSignature = contentType == null;
+        internal SignerInformation(SignerInfo info, DerObjectIdentifier contentType, CmsProcessable content,
+            byte[] calculatedDigest)
+        {
+            this.info = info;
+            this.sid = new SignerID();
+            this.contentType = contentType;
+            this.isCounterSignature = contentType == null;
 
-			try
-			{
-				SignerIdentifier s = info.SignerID;
+            try
+            {
+                SignerIdentifier s = info.SignerID;
 
-				if (s.IsTagged)
-				{
-					Asn1OctetString octs = Asn1OctetString.GetInstance(s.ID);
+                if (s.IsTagged)
+                {
+                    var subjectKeyIdentifier = (Asn1OctetString)s.ID;
 
-					sid.SubjectKeyIdentifier = octs.GetEncoded(Asn1Encodable.Der);
-				}
-				else
-				{
-					Asn1.Cms.IssuerAndSerialNumber iAnds =
-						Asn1.Cms.IssuerAndSerialNumber.GetInstance(s.ID);
+                    sid.SubjectKeyIdentifier = subjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
+                }
+                else
+                {
+                    var issuerAndSerialNumber = Asn1.Cms.IssuerAndSerialNumber.GetInstance(s.ID);
 
-					sid.Issuer = iAnds.Name;
-					sid.SerialNumber = iAnds.SerialNumber.Value;
-				}
-			}
-			catch (IOException)
-			{
-				throw new ArgumentException("invalid sid in SignerInfo");
-			}
+                    sid.Issuer = issuerAndSerialNumber.Issuer;
+                    sid.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
+                }
+            }
+            catch (IOException)
+            {
+                throw new ArgumentException("invalid sid in SignerInfo");
+            }
 
-			this.digestAlgorithm = info.DigestAlgorithm;
-			this.signedAttributeSet = info.AuthenticatedAttributes;
-			this.unsignedAttributeSet = info.UnauthenticatedAttributes;
-			this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
-			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
+            this.digestAlgorithm = info.DigestAlgorithm;
+            this.signedAttributeSet = info.AuthenticatedAttributes;
+            this.unsignedAttributeSet = info.UnauthenticatedAttributes;
+            this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
+            this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
 
-			this.content = content;
-			this.calculatedDigest = calculatedDigest;
-
+            this.content = content;
+            this.calculatedDigest = calculatedDigest;
         }
 
         /**

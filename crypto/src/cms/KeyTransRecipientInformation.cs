@@ -3,14 +3,14 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Asn1Pkcs = Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.X509;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Crypto.Operators;
+
+using Asn1Pkcs = Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -22,32 +22,31 @@ namespace Org.BouncyCastle.Cms
     public class KeyTransRecipientInformation
         : RecipientInformation
     {
-        private KeyTransRecipientInfo info;
+        private readonly KeyTransRecipientInfo m_info;
 
-		internal KeyTransRecipientInformation(
-			KeyTransRecipientInfo	info,
-			CmsSecureReadable		secureReadable)
-			: base(info.KeyEncryptionAlgorithm, secureReadable)
-		{
-            this.info = info;
+        internal KeyTransRecipientInformation(KeyTransRecipientInfo info, CmsSecureReadable secureReadable)
+            : base(info.KeyEncryptionAlgorithm, secureReadable)
+        {
             this.rid = new RecipientID();
 
-			RecipientIdentifier r = info.RecipientIdentifier;
+            m_info = info;
 
-			try
+            RecipientIdentifier r = info.RecipientIdentifier;
+
+            try
             {
                 if (r.IsTagged)
                 {
-                    Asn1OctetString octs = Asn1OctetString.GetInstance(r.ID);
+                    var subjectKeyIdentifier = (Asn1OctetString)r.ID;
 
-					rid.SubjectKeyIdentifier = octs.GetEncoded(Asn1Encodable.Der);
+                    rid.SubjectKeyIdentifier = subjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
                 }
                 else
                 {
-                    Asn1.Cms.IssuerAndSerialNumber iAnds = Asn1.Cms.IssuerAndSerialNumber.GetInstance(r.ID);
+                    var issuerAndSerialNumber = (Asn1.Cms.IssuerAndSerialNumber)r.ID;
 
-					rid.Issuer = iAnds.Name;
-                    rid.SerialNumber = iAnds.SerialNumber.Value;
+                    rid.Issuer = issuerAndSerialNumber.Issuer;
+                    rid.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
                 }
             }
             catch (IOException)
@@ -75,8 +74,7 @@ namespace Org.BouncyCastle.Cms
 
 		internal KeyParameter UnwrapKey(ICipherParameters key)
 		{
-			byte[] encryptedKey = info.EncryptedKey.GetOctets();
-            
+			byte[] encryptedKey = m_info.EncryptedKey.GetOctets();
 
 			try
 			{
