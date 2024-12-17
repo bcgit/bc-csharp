@@ -37,24 +37,25 @@ namespace Org.BouncyCastle.X509
 		}
 
 		public AttributeCertificateHolder(X509Name issuerName, BigInteger serialNumber)
+			: this(issuerName, new DerInteger(serialNumber))
 		{
-			m_holder = new Holder(
-				new IssuerSerial(
-					GenerateGeneralNames(issuerName),
-					new DerInteger(serialNumber)));
 		}
 
-		public AttributeCertificateHolder(X509Certificate cert)
-		{
-			m_holder = new Holder(
-				new IssuerSerial(
-					GenerateGeneralNames(cert.IssuerDN),
-					new DerInteger(cert.SerialNumber)));
-		}
+        public AttributeCertificateHolder(X509Name issuerName, DerInteger serialNumber)
+        {
+            m_holder = new Holder(new IssuerSerial(issuerName, serialNumber));
+        }
 
-		public AttributeCertificateHolder(X509Name principal)
+        public AttributeCertificateHolder(X509Certificate cert)
 		{
-			m_holder = new Holder(GenerateGeneralNames(principal));
+			var c = cert.CertificateStructure;
+
+            m_holder = new Holder(new IssuerSerial(c.Issuer, c.SerialNumber));
+        }
+
+        public AttributeCertificateHolder(X509Name principal)
+		{
+			m_holder = new Holder(new GeneralNames(new GeneralName(principal)));
 		}
 
 		/**
@@ -139,8 +140,6 @@ namespace Org.BouncyCastle.X509
 		 *         digest info is set.
 		 */
 		public string OtherObjectTypeID => m_holder.ObjectDigestInfo?.OtherObjectTypeID.Id;
-
-		private GeneralNames GenerateGeneralNames(X509Name principal) => new GeneralNames(new GeneralName(principal));
 
 		private bool MatchesDN(X509Name subject, GeneralNames targets)
 		{
