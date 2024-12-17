@@ -518,11 +518,7 @@ namespace Org.BouncyCastle.Cms
             BerSequenceGenerator sigGen = new BerSequenceGenerator(
 				sGen.GetRawOutputStream(), 0, true);
 
-            bool isCounterSignature = (signedContentType == null);
-
-            DerObjectIdentifier contentTypeOid = isCounterSignature
-                ? null
-                : new DerObjectIdentifier(signedContentType);
+            DerObjectIdentifier contentTypeOid = new DerObjectIdentifier(signedContentType);
 
             sigGen.AddObject(CalculateVersion(contentTypeOid));
 
@@ -555,7 +551,7 @@ namespace Org.BouncyCastle.Cms
         	// Let all the digests see the data as it is written
 			Stream digStream = AttachDigestsToOutputStream(m_messageDigests.Values, teeStream);
 
-			return new CmsSignedDataOutputStream(this, digStream, signedContentType, sGen, sigGen, eiGen, octGen);
+			return new CmsSignedDataOutputStream(this, digStream, contentTypeOid, sGen, sigGen, eiGen, octGen);
         }
 
         private void RegisterDigestOid(DerObjectIdentifier digestOid)
@@ -729,29 +725,24 @@ namespace Org.BouncyCastle.Cms
 			private readonly CmsSignedDataStreamGenerator outer;
 
 			private Stream					_out;
-            private DerObjectIdentifier		_contentOID;
+            private DerObjectIdentifier		_contentOid;
             private BerSequenceGenerator	_sGen;
             private BerSequenceGenerator	_sigGen;
             private BerSequenceGenerator	_eiGen;
 			private BerOctetStringGenerator _octGen;
 
-            public CmsSignedDataOutputStream(
-				CmsSignedDataStreamGenerator	outer,
-				Stream							outStream,
-                string							contentOID,
-                BerSequenceGenerator			sGen,
-                BerSequenceGenerator			sigGen,
-                BerSequenceGenerator			eiGen,
-                BerOctetStringGenerator			octGen)
+            internal CmsSignedDataOutputStream(CmsSignedDataStreamGenerator outer, Stream outStream,
+				DerObjectIdentifier contentOid, BerSequenceGenerator sGen, BerSequenceGenerator sigGen,
+                BerSequenceGenerator eiGen, BerOctetStringGenerator octGen)
             {
-				this.outer = outer;
+                this.outer = outer;
 
-				_out = outStream;
-                _contentOID = new DerObjectIdentifier(contentOID);
+                _out = outStream;
+                _contentOid = contentOid;
                 _sGen = sGen;
                 _sigGen = sigGen;
                 _eiGen = eiGen;
-				_octGen = octGen;
+                _octGen = octGen;
             }
 
 			public override void Write(byte[] buffer, int offset, int count)
@@ -837,7 +828,7 @@ namespace Org.BouncyCastle.Cms
                     byte[] calculatedDigest = outer.m_messageHashes[digestName];
                     outer.m_digests[digestOid] = (byte[])calculatedDigest.Clone();
 
-                    signerInfos.Add(signerInfoGen.Generate(_contentOID, calculatedDigest));
+                    signerInfos.Add(signerInfoGen.Generate(_contentOid, calculatedDigest));
                 }
 
                 //
