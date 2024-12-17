@@ -16,7 +16,8 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
 	[TestFixture]
-	public class RsaTest
+    [NonParallelizable] // Pkcs1Encoding.StrictLengthEnabled
+    public class RsaTest
 		: SimpleTest
 	{
         /*
