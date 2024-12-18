@@ -582,6 +582,40 @@ namespace Org.BouncyCastle.Cms.Tests
             CheckSignerStoreReplacement(s, signers);
         }
 
+		[Test]
+		public void TestWithDefiniteLength()
+		{
+			byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
+            CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
+
+            var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+
+			var signatureFactory = new Asn1SignatureFactory("SHA1withRSA", OrigKP.Private);
+			var signerInfoGenerator = new SignerInfoGeneratorBuilder()
+                .SetDirectSignature(true)
+                .Build(signatureFactory, OrigCert);
+
+            gen.AddSignerInfoGenerator(signerInfoGenerator);
+
+			gen.AddCertificates(x509Certs);
+
+            gen.UseDefiniteLength = true;
+
+			CmsSignedData s = gen.Generate(msg, false);
+
+			Assert.True(s.ContentInfo.ToAsn1Object().GetType() == typeof(DLSequence));
+
+			Asn1Encodable content = s.ContentInfo.Content;
+			Assert.True(content is SignedData);
+			Assert.True(content.ToAsn1Object().GetType() == typeof(DLSequence));
+
+			byte[] expectedContentDigest = DigestUtilities.CalculateDigest("SHA1", msgBytes);
+
+			VerifySignatures(s, expectedContentDigest);
+		}
+
         // NB: C# build doesn't support "no attributes" version of CmsSignedDataGenerator.Generate
         //[Test]
         //public void TestSha1WithRsaNoAttributes()

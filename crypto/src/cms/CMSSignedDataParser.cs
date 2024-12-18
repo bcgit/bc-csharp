@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -55,11 +54,12 @@ namespace Org.BouncyCastle.Cms
     public class CmsSignedDataParser
 		: CmsContentInfoParser
 	{
-		private SignedDataParser        _signedData;
+        private readonly Dictionary<DerObjectIdentifier, IDigest> m_digests =
+			new Dictionary<DerObjectIdentifier, IDigest>();
+
+        private SignedDataParser        _signedData;
 		private DerObjectIdentifier		_signedContentType;
 		private CmsTypedStream          _signedContent;
-		private Dictionary<string, IDigest> m_digests;
-		private HashSet<string> m_digestOids;
 
 		private SignerInformationStore  _signerInfoStore;
 		private Asn1Set                 _certSet, _crlSet;
@@ -102,25 +102,21 @@ namespace Org.BouncyCastle.Cms
 			{
 				this._signedContent = signedContent;
 				this._signedData = SignedDataParser.GetInstance(this.contentInfo.GetContent(Asn1Tags.Sequence));
-				m_digests = new Dictionary<string, IDigest>(StringComparer.OrdinalIgnoreCase);
-				m_digestOids = new HashSet<string>();
 
 				Asn1SetParser digAlgs = _signedData.GetDigestAlgorithms();
 				IAsn1Convertible o;
 
 				while ((o = digAlgs.ReadObject()) != null)
 				{
-					AlgorithmIdentifier id = AlgorithmIdentifier.GetInstance(o);
+					AlgorithmIdentifier digAlgID = AlgorithmIdentifier.GetInstance(o);
 
 					try
 					{
-                        DerObjectIdentifier digestOid = id.Algorithm;
-						string digestName = CmsSignedHelper.GetDigestAlgName(digestOid);
+                        DerObjectIdentifier digAlgOid = digAlgID.Algorithm;
 
-						if (!this.m_digests.ContainsKey(digestName))
+						if (!m_digests.ContainsKey(digAlgOid))
 						{
-							m_digests[digestName] = CmsSignedHelper.GetDigestInstance(digestName);
-							m_digestOids.Add(digestOid.Id);
+							m_digests[digAlgOid] = DigestUtilities.GetDigest(digAlgOid);
 						}
 					}
 					catch (SecurityUtilityException)
@@ -133,13 +129,11 @@ namespace Org.BouncyCastle.Cms
 				// If the message is simply a certificate chain message GetContent() may return null.
 				//
 				ContentInfoParser cont = _signedData.GetEncapContentInfo();
-				Asn1OctetStringParser octs = (Asn1OctetStringParser)
-					cont.GetContent(Asn1Tags.OctetString);
+				Asn1OctetStringParser octs = (Asn1OctetStringParser)cont.GetContent(Asn1Tags.OctetString);
 
 				if (octs != null)
 				{
-					CmsTypedStream ctStr = new CmsTypedStream(
-						cont.ContentType.Id, octs.GetOctetStream());
+					CmsTypedStream ctStr = new CmsTypedStream(cont.ContentType.GetID(), octs.GetOctetStream());
 
 					if (_signedContent == null)
 					{
@@ -176,7 +170,15 @@ namespace Org.BouncyCastle.Cms
 
 		public ISet<string> DigestOids
 		{
-			get { return new HashSet<string>(m_digestOids); }
+			get
+			{
+				HashSet<string> result = new HashSet<string>();
+				foreach (var digestOid in m_digests.Keys)
+				{
+					result.Add(digestOid.GetID());
+				}
+				return result;
+			}
 		}
 
 		/**
@@ -191,7 +193,7 @@ namespace Org.BouncyCastle.Cms
 				PopulateCertCrlSets();
 
 				var signerInfos = new List<SignerInformation>();
-                var hashes = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+                var hashes = new Dictionary<DerObjectIdentifier, byte[]>();
 
 				foreach (var digest in m_digests)
 				{
@@ -206,9 +208,8 @@ namespace Org.BouncyCastle.Cms
 					while ((o = s.ReadObject()) != null)
 					{
 						SignerInfo info = SignerInfo.GetInstance(o);
-						string digestName = CmsSignedHelper.GetDigestAlgName(info.DigestAlgorithm.Algorithm);
 
-						byte[] hash = hashes[digestName];
+						byte[] hash = hashes[info.DigestAlgorithm.Algorithm];
 
 						signerInfos.Add(new SignerInformation(info, _signedContentType, null, hash));
 					}
@@ -346,7 +347,7 @@ namespace Org.BouncyCastle.Cms
 
 			CmsTypedStream signedContent = parser.GetSignedContent();
 			bool encapsulate = (signedContent != null);
-			Stream contentOut = gen.Open(outStr, parser.SignedContentType.Id, encapsulate);
+			Stream contentOut = gen.Open(outStr, parser.SignedContentType.GetID(), encapsulate);
 			if (encapsulate)
 			{
 				Streams.PipeAll(signedContent.ContentStream, contentOut);
@@ -386,7 +387,7 @@ namespace Org.BouncyCastle.Cms
 
 			CmsTypedStream signedContent = parser.GetSignedContent();
 			bool encapsulate = (signedContent != null);
-			Stream contentOut = gen.Open(outStr, parser.SignedContentType.Id, encapsulate);
+			Stream contentOut = gen.Open(outStr, parser.SignedContentType.GetID(), encapsulate);
 			if (encapsulate)
 			{
 				Streams.PipeAll(signedContent.ContentStream, contentOut);

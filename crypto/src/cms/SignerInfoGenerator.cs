@@ -1,4 +1,3 @@
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
@@ -100,7 +99,7 @@ namespace Org.BouncyCastle.Cms
         // TODO[api] 'contentSigner' => 'signatureFactory'
         public SignerInfoGenerator Build(ISignatureFactory contentSigner, X509Certificate certificate)
         {
-            SignerIdentifier sigID = new SignerIdentifier(new IssuerAndSerialNumber(certificate.CertificateStructure));
+            SignerIdentifier sigID = CmsUtilities.GetSignerIdentifier(certificate);
 
             return CreateGenerator(contentSigner, sigID, certificate);
         }
@@ -116,7 +115,7 @@ namespace Org.BouncyCastle.Cms
         // TODO[api] 'signerFactory' => 'signatureFactory'
         public SignerInfoGenerator Build(ISignatureFactory signerFactory, byte[] subjectKeyIdentifier)
         {
-            SignerIdentifier sigID = new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
+            SignerIdentifier sigID = CmsUtilities.GetSignerIdentifier(subjectKeyIdentifier);
 
             return CreateGenerator(signerFactory, sigID, certificate: null);
         }

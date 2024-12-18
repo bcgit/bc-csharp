@@ -74,8 +74,8 @@ namespace Org.BouncyCastle.Cms
 
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
-        internal IList<SignerInformation> _signers = new List<SignerInformation>();
-        internal IDictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
+        internal List<SignerInformation> _signers = new List<SignerInformation>();
+        internal Dictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
@@ -90,10 +90,7 @@ namespace Org.BouncyCastle.Cms
         /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
         protected CmsSignedGenerator(SecureRandom random)
         {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            m_random = random;
+            m_random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
         internal protected virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
@@ -180,31 +177,27 @@ namespace Org.BouncyCastle.Cms
             return result;
         }
 
+        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         public bool UseDerForCerts
         {
             get { return _useDerForCerts; }
             set { this._useDerForCerts = value; }
         }
 
+        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         public bool UseDerForCrls
         {
             get { return _useDerForCrls; }
             set { this._useDerForCrls = value; }
         }
 
-        internal virtual void AddSignerCallback(
-            SignerInformation si)
+        internal virtual void AddSignerCallback(SignerInformation signerInformation)
         {
         }
 
-        internal static SignerIdentifier GetSignerIdentifier(X509Certificate cert)
-        {
-            return new SignerIdentifier(CmsUtilities.GetIssuerAndSerialNumber(cert));
-        }
+        internal static SignerIdentifier GetSignerIdentifier(X509Certificate c) => CmsUtilities.GetSignerIdentifier(c);
 
-        internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier)
-        {
-            return new SignerIdentifier(new DerOctetString(subjectKeyIdentifier));
-        }
+        internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier) =>
+            CmsUtilities.GetSignerIdentifier(subjectKeyIdentifier);
     }
 }

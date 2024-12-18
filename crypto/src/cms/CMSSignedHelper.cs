@@ -148,16 +148,15 @@ namespace Org.BouncyCastle.Cms
             if (m_digestAlgs.TryGetValue(digestOid, out var name))
                 return name;
 
-            return digestOid.Id;
+            return digestOid.GetID();
         }
 
-        internal static AlgorithmIdentifier GetEncAlgorithmIdentifier(DerObjectIdentifier encOid,
-            Asn1Encodable sigX509Parameters)
+        internal static AlgorithmIdentifier GetSigAlgID(DerObjectIdentifier sigAlgOid, Asn1Encodable sigAlgParams)
         {
-            if (m_noParams.Contains(encOid))
-                return new AlgorithmIdentifier(encOid);
+            if (m_noParams.Contains(sigAlgOid))
+                return new AlgorithmIdentifier(sigAlgOid);
 
-            return new AlgorithmIdentifier(encOid, sigX509Parameters);
+            return new AlgorithmIdentifier(sigAlgOid, sigAlgParams);
         }
 
         internal static string[] GetDigestAliases(string algName)
@@ -175,32 +174,12 @@ namespace Org.BouncyCastle.Cms
             if (m_encryptionAlgs.TryGetValue(encryptionOid, out var name))
                 return name;
 
-            return encryptionOid.Id;
+            return encryptionOid.GetID();
         }
 
-        internal static IDigest GetDigestInstance(string algorithm)
-        {
-            try
-            {
-                return DigestUtilities.GetDigest(algorithm);
-            }
-            catch (SecurityUtilityException)
-            {
-                // This is probably superfluous on C#, since no provider infrastructure,
-                // assuming DigestUtilities already knows all the aliases
-                foreach (string alias in GetDigestAliases(algorithm))
-                {
-                    try { return DigestUtilities.GetDigest(alias); }
-                    catch (SecurityUtilityException) {}
-                }
-                throw;
-            }
-        }
+        internal static IDigest GetDigestInstance(string algorithm) => DigestUtilities.GetDigest(algorithm);
 
-        internal static ISigner GetSignatureInstance(string algorithm)
-        {
-            return SignerUtilities.GetSigner(algorithm);
-        }
+        internal static ISigner GetSignatureInstance(string algorithm) => SignerUtilities.GetSigner(algorithm);
 
         internal static AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
             IDigestAlgorithmFinder digestAlgorithmFinder)
