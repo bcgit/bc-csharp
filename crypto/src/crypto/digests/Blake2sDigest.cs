@@ -31,18 +31,22 @@ namespace Org.BouncyCastle.Crypto.Digests
             ---------------+--------+-----------+------+------------+
      */
 
-    /**
-     * Implementation of the cryptographic hash function BLAKE2s.
-     * <p/>
-     * BLAKE2s offers a built-in keying mechanism to be used directly
-     * for authentication ("Prefix-MAC") rather than a HMAC construction.
-     * <p/>
-     * BLAKE2s offers a built-in support for a salt for randomized hashing
-     * and a personal string for defining a unique hash function for each application.
-     * <p/>
-     * BLAKE2s is optimized for 32-bit platforms and produces digests of any size
-     * between 1 and 32 bytes.
-     */
+    /// <summary>
+    /// Implementation of the cryptographic hash function BLAKE2s. 
+    /// BLAKE2s is optimized for 32-bit platforms and produces digests of any size
+    /// between 1 and 32 bytes.
+    /// </summary>
+    /// 
+    /// <remarks>
+    /// <para>
+    /// BLAKE2s offers a built-in keying mechanism to be used directly
+    /// for authentication ("Prefix-MAC") rather than a HMAC construction.
+    /// </para>
+    /// <para>
+    /// BLAKE2s is optimized for 32-bit platforms and produces digests of any size
+    /// between 1 and 32 bytes.
+    /// </para>
+    /// </remarks>
     public sealed class Blake2sDigest
         : IDigest
     {
@@ -130,14 +134,18 @@ namespace Org.BouncyCastle.Crypto.Digests
         // For Tree Hashing Mode, not used here:
         // private long f1 = 0L; // finalization flag, for last node: ~0L
 
-        /**
-         * BLAKE2s-256 for hashing.
-         */
+        /// <summary>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/>.
+        /// </summary>
         public Blake2sDigest()
             : this(256)
         {
         }
 
+        /// <summary>
+        /// Constructs a new instance of <see cref="Blake2sDigest"/> from another <see cref="Blake2sDigest"/>./>.
+        /// </summary>
+        /// <param name="digest">The original instance of <see cref="Blake2sDigest"/> that is copied.</param>
         public Blake2sDigest(Blake2sDigest digest)
         {
             this.bufferPos = digest.bufferPos;
@@ -160,11 +168,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.innerHashLength = digest.innerHashLength;
         }
 
-        /**
-         * BLAKE2s for hashing.
-         *
-         * @param digestBits the desired digest length in bits. Must be a multiple of 8 and less than 256.
-         */
+        /// <summary>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/> with a given digest size.
+        /// </summary>
+        /// <param name="digestBits">Digest size in bits.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2sDigest(int digestBits)
         {
             if (digestBits < 8 || digestBits > 256 || digestBits % 8 != 0)
@@ -175,33 +183,38 @@ namespace Org.BouncyCastle.Crypto.Digests
             Init(null, null, null);
         }
 
-        /**
-         * BLAKE2s for authentication ("Prefix-MAC mode").
-         * <p/>
-         * After calling the doFinal() method, the key will remain to be used for
-         * further computations of this instance. The key can be overwritten using
-         * the clearKey() method.
-         *
-         * @param key a key up to 32 bytes or null
-         */
+        /// <summary>
+        /// <para>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/> with a key.
+        /// </para>
+        /// 
+        /// Blake2s for authentication ("Prefix-MAC mode").
+        /// After calling the <see cref="DoFinal(byte[], int)"/> method, the key will
+        /// remain to be used for further computations of this instance.
+        /// The key can be cleared using the <see cref="ClearKey"/> method.
+        /// </summary>
+        /// <param name="key">A key up to 32 bytes or null.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2sDigest(byte[] key)
         {
             Init(null, null, key);
         }
 
-        /**
-         * BLAKE2s with key, required digest length, salt and personalization.
-         * <p/>
-         * After calling the doFinal() method, the key, the salt and the personal
-         * string will remain and might be used for further computations with this
-         * instance. The key can be overwritten using the clearKey() method, the
-         * salt (pepper) can be overwritten using the clearSalt() method.
-         *
-         * @param key             a key up to 32 bytes or null
-         * @param digestBytes     from 1 up to 32 bytes
-         * @param salt            8 bytes or null
-         * @param personalization 8 bytes or null
-         */
+        /// <summary>
+        /// <para>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/> with a key, required digest length (in bytes), salt and personalization.
+        /// </para>
+        /// 
+        /// After calling the <see cref="DoFinal(byte[], int)"/> method, the key, the salt and the personalization
+        /// will remain and might be used for further computations with this instance.
+        /// The key can be overwritten using the <see cref="ClearKey"/> method, the salt (pepper)
+        /// can be overwritten using the <see cref="ClearSalt"/> method.
+        /// </summary>
+        /// <param name="key">A key up to 32 bytes or null.</param>
+        /// <param name="digestBytes">Digest length from 1 to 32 bytes.</param>
+        /// <param name="salt">A 8 bytes or nullable salt.</param>
+        /// <param name="personalization">A 8 bytes or null personalization.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2sDigest(byte[] key, int digestBytes, byte[] salt, byte[] personalization)
         {
             if (digestBytes < 1 || digestBytes > 32)
@@ -306,11 +319,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             internalState[15] = blake2s_IV[7];// ^ f1 with f1 = 0
         }
 
-        /**
-         * Update the message digest with a single byte.
-         *
-         * @param b the input byte to be entered.
-         */
+        /// <inheritdoc />
         public void Update(byte b)
         {
             // process the buffer if full else add to buffer:
@@ -338,13 +347,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        /**
-         * Update the message digest with a block of bytes.
-         *
-         * @param message the byte array containing the data.
-         * @param offset  the offset into the byte array where the data starts.
-         * @param len     the length of the data.
-         */
+        /// <inheritdoc />
         public void BlockUpdate(byte[] message, int offset, int len)
         {
             if (message == null || len == 0)
@@ -404,6 +407,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc />
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (input.IsEmpty)
@@ -458,13 +462,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        /**
-         * Close the digest, producing the final digest value. The doFinal() call
-         * leaves the digest reset. Key, salt and personal string remain.
-         *
-         * @param out       the array the digest is to be copied into.
-         * @param outOffset the offset into the out array the digest is to start at.
-         */
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="DoFinal(byte[], int)"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The byte array the digest is to be copied into.</param>
+        /// <param name="outOffset">The offset into the byte array the digest is to start at.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(byte[] output, int outOffset)
         {
             Check.OutputLength(output, outOffset, digestLength, "output buffer too short");
@@ -502,6 +507,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="DoFinal(Span{byte})"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The span the digest is to be copied into.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(Span<byte> output)
         {
             Check.OutputLength(output, digestLength, "output buffer too short");
@@ -535,10 +547,10 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        /**
-         * Reset the digest back to its initial state. The key, the salt and the
-         * personal string will remain for further computations.
-         */
+        /// <summary>
+        /// Reset the digest back to it's initial state.
+        /// The key, the salt and the personalization will remain for further computations.
+        /// </summary>
         public void Reset()
         {
             bufferPos = 0;
@@ -559,6 +571,13 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void Compress(ReadOnlySpan<byte> message)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Blake2s_X86.IsSupported)
+            {
+                Blake2s_X86.Compress(f0 == uint.MaxValue, chainValue, message, t0, t1, blake2s_IV);
+                return;
+            }
+#endif
             InitializeInternalState();
 
             Span<uint> m = stackalloc uint[16];
@@ -629,37 +648,28 @@ namespace Org.BouncyCastle.Crypto.Digests
             internalState[posB] = Integers.RotateRight(internalState[posB] ^ internalState[posC], 7);
         }
 
-        /**
-         * Return the algorithm name.
-         *
-         * @return the algorithm name
-         */
+        /// <inheritdoc />
         public string AlgorithmName => "BLAKE2s";
 
-        /**
-         * Return the size in bytes of the digest produced by this message digest.
-         *
-         * @return the size in bytes of the digest produced by this message digest.
-         */
+        /// <inheritdoc />
         public int GetDigestSize()
         {
             return digestLength;
         }
 
-        /**
-         * Return the size in bytes of the internal buffer the digest applies its
-         * compression function to.
-         *
-         * @return byte length of the digest's internal buffer.
-         */
+        /// <summary>
+        ///  Return the size in bytes of the internal buffer the digest applies it's compression 
+        ///  function to.
+        ///  </summary>
+        /// <returns>The byte length of the digests internal buffer.</returns>
         public int GetByteLength()
         {
             return BLOCK_LENGTH_BYTES;
         }
 
-        /**
-         * Overwrite the key if it is no longer used (zeroization).
-         */
+        /// <summary>
+        /// Clears the key.
+        /// </summary>
         public void ClearKey()
         {
             if (key != null)
@@ -669,10 +679,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        /**
-         * Overwrite the salt (pepper) if it is secret and no longer used
-         * (zeroization).
-         */
+       /// <summary>
+       /// Clears the salt (pepper).
+       /// </summary>
         public void ClearSalt()
         {
             if (salt != null)
