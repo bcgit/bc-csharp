@@ -318,5 +318,34 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.AreEqual(Name + ": Okay", resultText);
 		}
+
+        [Test, Explicit]
+        public void Bench()
+        {
+            var digest = new Blake2bDigest();
+
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024; ++i)
+            {
+                for (int j = 0; j < 1024; ++j)
+                {
+                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    digest.BlockUpdate(data);
+#else
+                    digest.BlockUpdate(data, 0, 1024);
+#endif
+                }
+
+                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.DoFinal(data);
+#else
+                digest.DoFinal(data, 0);
+#endif
+            }
+        }
     }
 }

@@ -35,31 +35,34 @@ namespace Org.BouncyCastle.Crypto.Digests
 
     internal static class Blake2s_X86
     {
-        public static bool IsSupported => Avx2.IsSupported && BitConverter.IsLittleEndian;
+        internal static bool IsSupported =>
+            Org.BouncyCastle.Runtime.Intrinsics.X86.Sse41.IsEnabled &&
+            Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Compress(bool isFinal, Span<uint> hashBuffer, ReadOnlySpan<byte> message, uint totalSegmentsLow, uint totalSegmentsHigh, ReadOnlySpan<uint> blakeIV)
+        internal static void Compress(Span<uint> hashBuffer, ReadOnlySpan<uint> blakeIV, uint t0, uint t1, uint f0,
+            ReadOnlySpan<byte> message)
         {
             if (!IsSupported)
                 throw new PlatformNotSupportedException(nameof(Blake2s_X86));
 
-            Debug.Assert(message.Length >= Unsafe.SizeOf<uint>() * 8);
             Debug.Assert(hashBuffer.Length >= 8);
+            Debug.Assert(blakeIV.Length >= 8);
+            Debug.Assert(message.Length >= 64);
 
             var hashBytes = MemoryMarshal.AsBytes(hashBuffer);
             var ivBytes = MemoryMarshal.AsBytes(blakeIV);
 
-            var r_14 = isFinal ? uint.MaxValue : 0;
-            var t_0 = Vector128.Create(totalSegmentsLow, totalSegmentsHigh, r_14, 0);
+            var t_0 = Vector128.Create(t0, t1, f0, 0);
 
-            Vector128<uint> row1 = LoadVector128<uint>(hashBytes);
-            Vector128<uint> row2 = LoadVector128<uint>(hashBytes[Vector128<byte>.Count..]);
-            Vector128<uint> row3 = LoadVector128<uint>(ivBytes);
-            Vector128<uint> row4 = LoadVector128<uint>(ivBytes[Vector128<byte>.Count..]);
+            var row1 = MemoryMarshal.Read<Vector128<uint>>(hashBytes);
+            var row2 = MemoryMarshal.Read<Vector128<uint>>(hashBytes[16..]);
+            var row3 = MemoryMarshal.Read<Vector128<uint>>(ivBytes);
+            var row4 = MemoryMarshal.Read<Vector128<uint>>(ivBytes[16..]);
             row4 = Sse2.Xor(row4, t_0);
 
-            Vector128<uint> orig_1 = row1;
-            Vector128<uint> orig_2 = row2;
+            var orig_1 = row1;
+            var orig_2 = row2;
 
             Perform10Rounds(message, ref row1, ref row2, ref row3, ref row4);
 
@@ -68,20 +71,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Sse2.Xor(row1, orig_1);
             row2 = Sse2.Xor(row2, orig_2);
 
-            Store(row1, hashBytes);
-            Store(row2, hashBytes[Vector128<byte>.Count..]);
+            MemoryMarshal.Write(hashBytes, ref row1);
+            MemoryMarshal.Write(hashBytes[16..], ref row2);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Perform10Rounds(ReadOnlySpan<byte> m, ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4)
+        private static void Perform10Rounds(ReadOnlySpan<byte> m, ref Vector128<uint> row1, ref Vector128<uint> row2,
+            ref Vector128<uint> row3, ref Vector128<uint> row4)
         {
-            Debug.Assert(m.Length >= Unsafe.SizeOf<uint>() * 16);
-
-            #region Rounds
-            var m0 = LoadVector128<uint>(m);
-            var m1 = LoadVector128<uint>(m[Vector128<byte>.Count..]);
-            var m2 = LoadVector128<uint>(m[(Vector128<byte>.Count * 2)..]);
-            var m3 = LoadVector128<uint>(m[(Vector128<byte>.Count * 3)..]);
+#region Rounds
+            var m0 = MemoryMarshal.Read<Vector128<uint>>(m);
+            var m1 = MemoryMarshal.Read<Vector128<uint>>(m[16..]);
+            var m2 = MemoryMarshal.Read<Vector128<uint>>(m[32..]);
+            var m3 = MemoryMarshal.Read<Vector128<uint>>(m[48..]);
 
             //ROUND 1
             var b1 = Sse.Shuffle(m0.AsSingle(), m1.AsSingle(), 0b_10_00_10_00).AsUInt32();
@@ -290,11 +292,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             b4 = Sse2.Shuffle(t2, 0b_01_10_11_00);
 
             Round(ref row1, ref row2, ref row3, ref row4, b1, b2, b3, b4);
-            #endregion
+#endregion
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Round(ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4, Vector128<uint> b1, Vector128<uint> b2, Vector128<uint> b3, Vector128<uint> b4)
+        private static void Round(ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3,
+            ref Vector128<uint> row4, Vector128<uint> b1, Vector128<uint> b2, Vector128<uint> b3, Vector128<uint> b4)
         {
             Vector128<byte> r8 = Vector128.Create((byte)1, 2, 3, 0, 5, 6, 7, 4, 9, 10, 11, 8, 13, 14, 15, 12);
             Vector128<byte> r16 = Vector128.Create((byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
@@ -327,7 +330,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void G1(Vector128<byte> r16, ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4, Vector128<uint> b0)
+        private static void G1(Vector128<byte> r16, ref Vector128<uint> row1, ref Vector128<uint> row2,
+            ref Vector128<uint> row3, ref Vector128<uint> row4, Vector128<uint> b0)
         {
             row1 = Sse2.Add(Sse2.Add(row1, b0), row2);
             row4 = Sse2.Xor(row4, row1);
@@ -339,7 +343,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void G2(Vector128<byte> r8, ref Vector128<uint> row1, ref Vector128<uint> row2, ref Vector128<uint> row3, ref Vector128<uint> row4, Vector128<uint> b0)
+        private static void G2(Vector128<byte> r8, ref Vector128<uint> row1, ref Vector128<uint> row2,
+            ref Vector128<uint> row3, ref Vector128<uint> row4, Vector128<uint> b0)
         {
             row1 = Sse2.Add(Sse2.Add(row1, b0), row2);
             row4 = Sse2.Xor(row4, row1);
@@ -364,20 +369,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Sse2.Shuffle(row1, 0b_00_11_10_01);
             row3 = Sse2.Shuffle(row3, 0b_10_01_00_11);
             row4 = Sse2.Shuffle(row4, 0b_01_00_11_10);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<T> LoadVector128<T>(ReadOnlySpan<byte> source) where T : struct
-        {
-            Debug.Assert(source.Length >= Unsafe.SizeOf<Vector128<byte>>());
-            return MemoryMarshal.Read<Vector128<T>>(source);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Store<T>(Vector128<T> vector, Span<byte> destination) where T : struct
-        {
-            Debug.Assert(destination.Length >= Unsafe.SizeOf<Vector128<byte>>());
-            MemoryMarshal.Write(destination, ref vector);
         }
     }
 }

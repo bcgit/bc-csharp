@@ -49,44 +49,48 @@ namespace Org.BouncyCastle.Crypto.Digests
     public sealed class Blake2bDigest
         : IDigest
     {
-        // Blake2b Initialization Vector:
-        private static readonly ulong[] blake2b_IV =
-            // Produced from the square root of primes 2, 3, 5, 7, 11, 13, 17, 19.
-            // The same as SHA-512 IV.
-            {
-                0x6a09e667f3bcc908UL, 0xbb67ae8584caa73bUL, 0x3c6ef372fe94f82bUL,
-                0xa54ff53a5f1d36f1UL, 0x510e527fade682d1UL, 0x9b05688c2b3e6c1fUL,
-                0x1f83d9abfb41bd6bUL, 0x5be0cd19137e2179UL
-            };
-
-        // Message word permutations:
-        private static readonly byte[,] blake2b_sigma =
+        /*
+         * BLAKE2b Initialization Vector (the same as SHA-512 IV).
+         *
+         * Produced from the square root of primes 2, 3, 5, 7, 11, 13, 17, 19.
+         */
+        private static readonly ulong[] IV =
         {
-            { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-            { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },
-            { 11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4 },
-            { 7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8 },
-            { 9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13 },
-            { 2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9 },
-            { 12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11 },
-            { 13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10 },
-            { 6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5 },
-            { 10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0 },
-            { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-            { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 }
+            0x6a09e667f3bcc908UL, 0xbb67ae8584caa73bUL, 0x3c6ef372fe94f82bUL, 0xa54ff53a5f1d36f1UL,
+            0x510e527fade682d1UL, 0x9b05688c2b3e6c1fUL, 0x1f83d9abfb41bd6bUL, 0x5be0cd19137e2179UL
+        };
+
+        // Message word permutations
+        private static readonly byte[] Sigma =
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+            14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3,
+            11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4,
+            7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8,
+            9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13,
+            2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9,
+            12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11,
+            13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10,
+            6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5,
+            10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+            14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3,
         };
 
         private const int ROUNDS = 12; // to use for Catenas H'
         private const int BLOCK_LENGTH_BYTES = 128;// bytes
 
+        private readonly ulong[] chainValue = new ulong[8]; // State vector, in the BLAKE2 paper it is called h
+
+        // Whenever this buffer overflows, it will be processed in the Compress() function.
+        // For performance issues, long messages will not use this buffer.
+        private readonly byte[] buffer = new byte[BLOCK_LENGTH_BYTES];
+
         // General parameters:
         private int digestLength = 64; // 1- 64 bytes
-        private int keyLength = 0; // 0 - 64 bytes for keyed hashing for MAC
-        private byte[] salt = null;// new byte[16];
-        private byte[] personalization = null;// new byte[16];
-
-        // the key
-        private byte[] key = null;
+        private byte[] m_salt = null;// new byte[16];
+        private byte[] m_personalization = null;// new byte[16];
+        private byte[] m_key = null;
 
         // Tree hashing parameters:
         // Because this class does not implement the Tree Hashing Mode,
@@ -97,17 +101,8 @@ namespace Org.BouncyCastle.Crypto.Digests
 	     * nodeDepth = 0; private int innerHashLength = 0;
 	     */
 
-        // whenever this buffer overflows, it will be processed
-        // in the Compress() function.
-        // For performance issues, long messages will not use this buffer.
-        private byte[] buffer = null;// new byte[BLOCK_LENGTH_BYTES];
         // Position of last inserted byte:
         private int bufferPos = 0;// a value from 0 up to 128
-
-        private ulong[] internalState = new ulong[16]; // In the Blake2b paper it is
-        // called: v
-        private ulong[] chainValue = null; // state vector, in the Blake2b paper it
-        // is called: h
 
         private ulong t0 = 0UL; // holds last significant bits, counter (counts bytes)
         private ulong t1 = 0UL; // counter: Length up to 2^128 are supported
@@ -130,14 +125,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// <param name="digest">The original instance of <see cref="Blake2bDigest"/> that is copied.</param>
         public Blake2bDigest(Blake2bDigest digest)
         {
+            Array.Copy(digest.chainValue, 0, chainValue, 0, 8);
+            Array.Copy(digest.buffer, 0, buffer, 0, BLOCK_LENGTH_BYTES);
+
             this.bufferPos = digest.bufferPos;
-            this.buffer = Arrays.Clone(digest.buffer);
-            this.keyLength = digest.keyLength;
-            this.key = Arrays.Clone(digest.key);
+            this.m_key = Arrays.Clone(digest.m_key);
             this.digestLength = digest.digestLength;
-            this.chainValue = Arrays.Clone(digest.chainValue);
-            this.personalization = Arrays.Clone(digest.personalization);
-            this.salt = Arrays.Clone(digest.salt);
+            this.m_personalization = Arrays.Clone(digest.m_personalization);
+            this.m_salt = Arrays.Clone(digest.m_salt);
             this.t0 = digest.t0;
             this.t1 = digest.t1;
             this.f0 = digest.f0;
@@ -153,9 +148,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (digestSize < 8 || digestSize > 512 || digestSize % 8 != 0)
                 throw new ArgumentException("BLAKE2b digest bit length must be a multiple of 8 and not greater than 512");
 
-            buffer = new byte[BLOCK_LENGTH_BYTES];
-            keyLength = 0;
             this.digestLength = digestSize / 8;
+
             Init();
         }
 
@@ -173,20 +167,16 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// <exception cref="ArgumentException"></exception>
         public Blake2bDigest(byte[] key)
         {
-            buffer = new byte[BLOCK_LENGTH_BYTES];
-            if (key != null)
+            this.digestLength = 64;
+
+            if (key != null && key.Length > 0)
             {
-                this.key = new byte[key.Length];
-                Array.Copy(key, 0, this.key, 0, key.Length);
-
                 if (key.Length > 64)
-                    throw new ArgumentException("Keys > 64 are not supported");
+                    throw new ArgumentException("Keys > 64 are not supported", nameof(key));
 
-                keyLength = key.Length;
-                Array.Copy(key, 0, buffer, 0, key.Length);
-                bufferPos = BLOCK_LENGTH_BYTES; // zero padding
+                m_key = (byte[])key.Clone();
             }
-            digestLength = 64;
+
             Init();
         }
 
@@ -211,84 +201,69 @@ namespace Org.BouncyCastle.Crypto.Digests
                 throw new ArgumentException("Invalid digest length (required: 1 - 64)");
 
             this.digestLength = digestLength;
-            this.buffer = new byte[BLOCK_LENGTH_BYTES];
+
+            if (key != null && key.Length > 0)
+            {
+                if (key.Length > 64)
+                    throw new ArgumentException("Keys > 64 are not supported", nameof(key));
+
+                m_key = (byte[])key.Clone();
+            }
 
             if (salt != null)
             {
                 if (salt.Length != 16)
-                    throw new ArgumentException("salt length must be exactly 16 bytes");
+                    throw new ArgumentException("salt length must be exactly 16 bytes", nameof(salt));
 
-                this.salt = new byte[16];
-                Array.Copy(salt, 0, this.salt, 0, salt.Length);
+                m_salt = (byte[])salt.Clone();
             }
+
             if (personalization != null)
             {
                 if (personalization.Length != 16)
-                    throw new ArgumentException("personalization length must be exactly 16 bytes");
+                    throw new ArgumentException("personalization length must be exactly 16 bytes",
+                        nameof(personalization));
 
-                this.personalization = new byte[16];
-                Array.Copy(personalization, 0, this.personalization, 0, personalization.Length);
+                m_personalization = (byte[])personalization.Clone();
             }
-            if (key != null)
-            {
-                if (key.Length > 64)
-                    throw new ArgumentException("Keys > 64 are not supported");
 
-                this.key = new byte[key.Length];
-                Array.Copy(key, 0, this.key, 0, key.Length);
-
-                keyLength = key.Length;
-                Array.Copy(key, 0, buffer, 0, key.Length);
-                bufferPos = BLOCK_LENGTH_BYTES; // zero padding
-            }
             Init();
         }
 
-        // initialize chainValue
         private void Init()
         {
-            if (chainValue == null)
+            int keyLength = 0;
+            if (m_key != null)
             {
-                chainValue = new ulong[8];
-
-                chainValue[0] = blake2b_IV[0] ^ (ulong)(digestLength | (keyLength << 8) | 0x1010000);
-
-                // 0x1010000 = ((fanout << 16) | (depth << 24) | (leafLength <<
-                // 32));
-                // with fanout = 1; depth = 0; leafLength = 0;
-                chainValue[1] = blake2b_IV[1];// ^ nodeOffset; with nodeOffset = 0;
-                chainValue[2] = blake2b_IV[2];// ^ ( nodeDepth | (innerHashLength << 8) );
-                // with nodeDepth = 0; innerHashLength = 0;
-
-                chainValue[3] = blake2b_IV[3];
-
-                chainValue[4] = blake2b_IV[4];
-                chainValue[5] = blake2b_IV[5];
-                if (salt != null)
-                {
-                    chainValue[4] ^= Pack.LE_To_UInt64(salt, 0);
-                    chainValue[5] ^= Pack.LE_To_UInt64(salt, 8);
-                }
-
-                chainValue[6] = blake2b_IV[6];
-                chainValue[7] = blake2b_IV[7];
-                if (personalization != null)
-                {
-                    chainValue[6] ^= Pack.LE_To_UInt64(personalization, 0);
-                    chainValue[7] ^= Pack.LE_To_UInt64(personalization, 8);
-                }
+                keyLength = m_key.Length;
+                Array.Copy(m_key, 0, buffer, 0, keyLength);
+                //Arrays.Fill(buffer, keyLength, BLOCK_LENGTH_BYTES, 0);
+                bufferPos = BLOCK_LENGTH_BYTES; // zero padding
             }
-        }
 
-        private void InitializeInternalState()
-        {
-            // initialize v:
-            Array.Copy(chainValue, 0, internalState, 0, chainValue.Length);
-            Array.Copy(blake2b_IV, 0, internalState, chainValue.Length, 4);
-            internalState[12] = t0 ^ blake2b_IV[4];
-            internalState[13] = t1 ^ blake2b_IV[5];
-            internalState[14] = f0 ^ blake2b_IV[6];
-            internalState[15] = blake2b_IV[7];// ^ f1 with f1 = 0
+            chainValue[0] = IV[0] ^ (ulong)(digestLength | (keyLength << 8) | 0x1010000);
+            // 0x1010000 = ((fanout << 16) | (depth << 24) | (leafLength << 32));
+            // with fanout = 1; depth = 0; leafLength = 0;
+            chainValue[1] = IV[1];// ^ nodeOffset; with nodeOffset = 0;
+            chainValue[2] = IV[2];// ^ ( nodeDepth | (innerHashLength << 8) );
+            // with nodeDepth = 0; innerHashLength = 0;
+            chainValue[3] = IV[3];
+
+            chainValue[4] = IV[4];
+            chainValue[5] = IV[5];
+            if (m_salt != null)
+            {
+                chainValue[4] ^= Pack.LE_To_UInt64(m_salt, 0);
+                chainValue[5] ^= Pack.LE_To_UInt64(m_salt, 8);
+            }
+
+            chainValue[6] = IV[6];
+            chainValue[7] = IV[7];
+            if (m_personalization != null)
+            {
+                chainValue[6] ^= Pack.LE_To_UInt64(m_personalization, 0);
+                chainValue[7] ^= Pack.LE_To_UInt64(m_personalization, 8);
+            }
         }
 
         /// <inheritdoc />
@@ -452,7 +427,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             Compress(buffer, 0);
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
-            Array.Clear(internalState, 0, internalState.Length);
 
             int full = digestLength >> 3, partial = digestLength & 7;
             Pack.UInt64_To_LE(chainValue, 0, full, output, outOffset);
@@ -462,8 +436,6 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Pack.UInt64_To_LE(chainValue[full], bytes, 0);
                 Array.Copy(bytes, 0, output, outOffset + digestLength - partial, partial);
             }
-
-            Array.Clear(chainValue, 0, chainValue.Length);
 
             Reset();
 
@@ -491,7 +463,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             Compress(buffer);
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
-            Array.Clear(internalState, 0, internalState.Length);
 
             int full = digestLength >> 3, partial = digestLength & 7;
             Pack.UInt64_To_LE(chainValue.AsSpan(0, full), output);
@@ -501,8 +472,6 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Pack.UInt64_To_LE(chainValue[full], bytes);
                 bytes[..partial].CopyTo(output[(digestLength - partial)..]);
             }
-
-            Array.Clear(chainValue, 0, chainValue.Length);
 
             Reset();
 
@@ -520,13 +489,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             f0 = 0L;
             t0 = 0L;
             t1 = 0L;
-            chainValue = null;
+
             Array.Clear(buffer, 0, buffer.Length);
-            if (key != null)
-            {
-                Array.Copy(key, 0, buffer, 0, key.Length);
-                bufferPos = BLOCK_LENGTH_BYTES; // zero padding
-            }
+
             Init();
         }
 
@@ -536,112 +501,129 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP3_0_OR_GREATER
             if (Blake2b_X86.IsSupported)
             {
-                Blake2b_X86.Compress(f0 == ulong.MaxValue, chainValue, message, t0, t1, blake2b_IV);
+                Blake2b_X86.Compress(chainValue, IV, t0, t1, f0, message);
                 return;
             }
 #endif
-            InitializeInternalState();
 
             Span<ulong> m = stackalloc ulong[16];
             Pack.LE_To_UInt64(message, m);
 
+            ulong v0 = chainValue[0];
+            ulong v1 = chainValue[1];
+            ulong v2 = chainValue[2];
+            ulong v3 = chainValue[3];
+            ulong v4 = chainValue[4];
+            ulong v5 = chainValue[5];
+            ulong v6 = chainValue[6];
+            ulong v7 = chainValue[7];
+            ulong v8 = IV[0];
+            ulong v9 = IV[1];
+            ulong va = IV[2];
+            ulong vb = IV[3];
+            ulong vc = IV[4] ^ t0;
+            ulong vd = IV[5] ^ t1;
+            ulong ve = IV[6] ^ f0;
+            ulong vf = IV[7];       // ^ f1, with f1 == 0
+
             for (int round = 0; round < ROUNDS; round++)
             {
-                // G apply to columns of internalState:m[blake2b_sigma[round][2 * blockPos]] /+1
-                G(m[blake2b_sigma[round, 0]], m[blake2b_sigma[round, 1]], 0, 4, 8, 12);
-                G(m[blake2b_sigma[round, 2]], m[blake2b_sigma[round, 3]], 1, 5, 9, 13);
-                G(m[blake2b_sigma[round, 4]], m[blake2b_sigma[round, 5]], 2, 6, 10, 14);
-                G(m[blake2b_sigma[round, 6]], m[blake2b_sigma[round, 7]], 3, 7, 11, 15);
-                // G apply to diagonals of internalState:
-                G(m[blake2b_sigma[round, 8]], m[blake2b_sigma[round, 9]], 0, 5, 10, 15);
-                G(m[blake2b_sigma[round, 10]], m[blake2b_sigma[round, 11]], 1, 6, 11, 12);
-                G(m[blake2b_sigma[round, 12]], m[blake2b_sigma[round, 13]], 2, 7, 8, 13);
-                G(m[blake2b_sigma[round, 14]], m[blake2b_sigma[round, 15]], 3, 4, 9, 14);
+                int pos = round * 16;
+
+                // Apply G to columns of internal state
+                G(m[Sigma[pos +  0]], m[Sigma[pos +  1]], ref v0, ref v4, ref v8, ref vc);
+                G(m[Sigma[pos +  2]], m[Sigma[pos +  3]], ref v1, ref v5, ref v9, ref vd);
+                G(m[Sigma[pos +  4]], m[Sigma[pos +  5]], ref v2, ref v6, ref va, ref ve);
+                G(m[Sigma[pos +  6]], m[Sigma[pos +  7]], ref v3, ref v7, ref vb, ref vf);
+
+                // Apply G to diagonals of internal state
+                G(m[Sigma[pos +  8]], m[Sigma[pos +  9]], ref v0, ref v5, ref va, ref vf);
+                G(m[Sigma[pos + 10]], m[Sigma[pos + 11]], ref v1, ref v6, ref vb, ref vc);
+                G(m[Sigma[pos + 12]], m[Sigma[pos + 13]], ref v2, ref v7, ref v8, ref vd);
+                G(m[Sigma[pos + 14]], m[Sigma[pos + 15]], ref v3, ref v4, ref v9, ref ve);
             }
 
-            // update chain values:
-            for (int offset = 0; offset < chainValue.Length; offset++)
-            {
-                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
-            }
+            chainValue[0] ^= v0 ^ v8;
+            chainValue[1] ^= v1 ^ v9;
+            chainValue[2] ^= v2 ^ va;
+            chainValue[3] ^= v3 ^ vb;
+            chainValue[4] ^= v4 ^ vc;
+            chainValue[5] ^= v5 ^ vd;
+            chainValue[6] ^= v6 ^ ve;
+            chainValue[7] ^= v7 ^ vf;
         }
 #else
         private void Compress(byte[] message, int messagePos)
         {
-            InitializeInternalState();
-
             ulong[] m = new ulong[16];
             Pack.LE_To_UInt64(message, messagePos, m);
 
+            ulong v0 = chainValue[0];
+            ulong v1 = chainValue[1];
+            ulong v2 = chainValue[2];
+            ulong v3 = chainValue[3];
+            ulong v4 = chainValue[4];
+            ulong v5 = chainValue[5];
+            ulong v6 = chainValue[6];
+            ulong v7 = chainValue[7];
+            ulong v8 = IV[0];
+            ulong v9 = IV[1];
+            ulong va = IV[2];
+            ulong vb = IV[3];
+            ulong vc = IV[4] ^ t0;
+            ulong vd = IV[5] ^ t1;
+            ulong ve = IV[6] ^ f0;
+            ulong vf = IV[7];       // ^ f1, with f1 == 0
+
             for (int round = 0; round < ROUNDS; round++)
             {
-                // G apply to columns of internalState:m[blake2b_sigma[round][2 * blockPos]] /+1
-                G(m[blake2b_sigma[round,0]], m[blake2b_sigma[round,1]], 0, 4, 8, 12);
-                G(m[blake2b_sigma[round,2]], m[blake2b_sigma[round,3]], 1, 5, 9, 13);
-                G(m[blake2b_sigma[round,4]], m[blake2b_sigma[round,5]], 2, 6, 10, 14);
-                G(m[blake2b_sigma[round,6]], m[blake2b_sigma[round,7]], 3, 7, 11, 15);
-                // G apply to diagonals of internalState:
-                G(m[blake2b_sigma[round,8]], m[blake2b_sigma[round,9]], 0, 5, 10, 15);
-                G(m[blake2b_sigma[round,10]], m[blake2b_sigma[round,11]], 1, 6, 11, 12);
-                G(m[blake2b_sigma[round,12]], m[blake2b_sigma[round,13]], 2, 7, 8, 13);
-                G(m[blake2b_sigma[round,14]], m[blake2b_sigma[round,15]], 3, 4, 9, 14);
+                int pos = round * 16;
+
+                // Apply G to columns of internal state
+                G(m[Sigma[pos +  0]], m[Sigma[pos +  1]], ref v0, ref v4, ref v8, ref vc);
+                G(m[Sigma[pos +  2]], m[Sigma[pos +  3]], ref v1, ref v5, ref v9, ref vd);
+                G(m[Sigma[pos +  4]], m[Sigma[pos +  5]], ref v2, ref v6, ref va, ref ve);
+                G(m[Sigma[pos +  6]], m[Sigma[pos +  7]], ref v3, ref v7, ref vb, ref vf);
+
+                // Apply G to diagonals of internal state
+                G(m[Sigma[pos +  8]], m[Sigma[pos +  9]], ref v0, ref v5, ref va, ref vf);
+                G(m[Sigma[pos + 10]], m[Sigma[pos + 11]], ref v1, ref v6, ref vb, ref vc);
+                G(m[Sigma[pos + 12]], m[Sigma[pos + 13]], ref v2, ref v7, ref v8, ref vd);
+                G(m[Sigma[pos + 14]], m[Sigma[pos + 15]], ref v3, ref v4, ref v9, ref ve);
             }
 
-            // update chain values:
-            for (int offset = 0; offset < chainValue.Length; offset++)
-            {
-                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
-            }
+            chainValue[0] ^= v0 ^ v8;
+            chainValue[1] ^= v1 ^ v9;
+            chainValue[2] ^= v2 ^ va;
+            chainValue[3] ^= v3 ^ vb;
+            chainValue[4] ^= v4 ^ vc;
+            chainValue[5] ^= v5 ^ vd;
+            chainValue[6] ^= v6 ^ ve;
+            chainValue[7] ^= v7 ^ vf;
         }
 #endif
-
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private void G(ulong m1, ulong m2, int posA, int posB, int posC, int posD)
-        {
-            internalState[posA] = internalState[posA] + internalState[posB] + m1;
-            internalState[posD] = Rotr64(internalState[posD] ^ internalState[posA], 32);
-            internalState[posC] = internalState[posC] + internalState[posD];
-            internalState[posB] = Rotr64(internalState[posB] ^ internalState[posC], 24); // replaces 25 of BLAKE
-            internalState[posA] = internalState[posA] + internalState[posB] + m2;
-            internalState[posD] = Rotr64(internalState[posD] ^ internalState[posA], 16);
-            internalState[posC] = internalState[posC] + internalState[posD];
-            internalState[posB] = Rotr64(internalState[posB] ^ internalState[posC], 63); // replaces 11 of BLAKE
-        }
-
-        private static ulong Rotr64(ulong x, int rot)
-        {
-            return x >> rot | x << -rot;
-        }
 
         /// <inheritdoc />
         public string AlgorithmName => "BLAKE2b";
 
         /// <inheritdoc />
-        public int GetDigestSize()
-        {
-            return digestLength;
-        }
+        public int GetDigestSize() => digestLength;
 
         /// <summary>
         ///  Return the size in bytes of the internal buffer the digest applies it's compression 
         ///  function to.
         ///  </summary>
         /// <returns>The byte length of the digests internal buffer.</returns>
-        public int GetByteLength()
-        {
-            return BLOCK_LENGTH_BYTES;
-        }
+        public int GetByteLength() => BLOCK_LENGTH_BYTES;
 
         /// <summary>
         /// Clears the key.
         /// </summary>
         public void ClearKey()
         {
-            if (key != null)
+            if (m_key != null)
             {
-                Array.Clear(key, 0, key.Length);
+                Array.Clear(m_key, 0, m_key.Length);
                 Array.Clear(buffer, 0, buffer.Length);
             }
         }
@@ -651,10 +633,26 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// </summary>
         public void ClearSalt()
         {
-            if (salt != null)
+            if (m_salt != null)
             {
-                Array.Clear(salt, 0, salt.Length);
+                Array.Clear(m_salt, 0, m_salt.Length);
             }
+        }
+
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private static void G(ulong m1, ulong m2, ref ulong a, ref ulong b, ref ulong c, ref ulong d)
+        {
+            a += b + m1;
+            d = Longs.RotateRight(d ^ a, 32);
+            c += d;
+            b = Longs.RotateRight(b ^ c, 24);
+
+            a += b + m2;
+            d = Longs.RotateRight(d ^ a, 16);
+            c += d;
+            b = Longs.RotateRight(b ^ c, 63);
         }
     }
 }
