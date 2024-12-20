@@ -133,8 +133,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             n <<= (mf - 2);
             int fftSize = 1 << (fft - 2);
 
-            int[] Q = new int[2 * fftSize];
-            int[] R = new int[2 * fftSize];
+            int[] Q = new int[2 * fftSize + 1];
+            int[] R = new int[2 * fftSize + 1];
 
             int[] Q0 = new int[fftSize];
             int[] Q1 = new int[fftSize];
