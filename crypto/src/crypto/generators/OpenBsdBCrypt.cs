@@ -12,6 +12,9 @@ namespace Org.BouncyCastle.Crypto.Generators
      * designed by Niels Provos and David Mazières, using the
      * String format and the Base64 encoding
      * of the reference implementation on OpenBSD
+     * <p>
+     * Passwords are encoded using UTF-8 when provided as char[]. Encoded passwords longer than
+     * 72 bytes are truncated and all remaining bytes are ignored.
      */
     public class OpenBsdBCrypt
     {
