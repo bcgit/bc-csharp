@@ -62,6 +62,7 @@
     -->
     <NoWarn>$(NoWarn);CP0002;CP0005;CP0006</NoWarn>
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
