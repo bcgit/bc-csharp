@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] marker = { (byte)0x50, (byte)0x47, (byte)0x50 };
 
         public MarkerPacket(BcpgInputStream bcpgIn)
+            :base(PacketTag.Marker)
         {
             bcpgIn.ReadFully(marker);
         }

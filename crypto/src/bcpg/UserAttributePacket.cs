@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public UserAttributePacket(
             BcpgInputStream bcpgIn)
+            :base(PacketTag.UserAttribute)
         {
             UserAttributeSubpacketsParser sIn = new UserAttributeSubpacketsParser(bcpgIn);
             UserAttributeSubpacket sub;
@@ -28,6 +29,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public UserAttributePacket(
             UserAttributeSubpacket[] subpackets)
+            : base(PacketTag.UserAttribute)
         {
             this.subpackets = subpackets;
         }
