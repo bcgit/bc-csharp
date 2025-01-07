@@ -88,7 +88,9 @@ namespace Org.BouncyCastle.Utilities.Collections
             if (!d.TryGetValue(k, out v))
                 return false;
 
-            d.Remove(k);
+            if (!d.Remove(k))
+                throw new InvalidOperationException();
+
             return true;
         }
 
