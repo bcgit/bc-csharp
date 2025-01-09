@@ -169,13 +169,9 @@ namespace Org.BouncyCastle.Pkcs
         protected virtual void LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo encPrivKeyInfo, Asn1Set bagAttributes,
             char[] password, bool wrongPkcs12Zero)
         {
-            if (password != null)
-            {
-                PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(
-                    password, wrongPkcs12Zero, encPrivKeyInfo);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(password, wrongPkcs12Zero, encPrivKeyInfo);
 
-                LoadKeyBag(privInfo, bagAttributes);
-            }
+            LoadKeyBag(privateKeyInfo, bagAttributes);
         }
 
         public void Load(Stream input, char[] password)
@@ -187,9 +183,13 @@ namespace Org.BouncyCastle.Pkcs
             ContentInfo info = pfx.AuthSafe;
             bool wrongPkcs12Zero = false;
 
+            bool passwordNeeded = false;
+
             var macData = pfx.MacData;
             if (macData != null) // check the mac code
             {
+                passwordNeeded = true;
+
                 if (password == null)
                     throw new ArgumentNullException(nameof(password), "no password supplied when one expected");
 
@@ -207,14 +207,6 @@ namespace Org.BouncyCastle.Pkcs
                         throw new IOException("PKCS12 key store MAC invalid - wrong password or corrupted file.");
                     }
                 }
-            }
-            else if (password != null)
-            {
-                string ignoreProperty = Platform.GetEnvironmentVariable(IgnoreUselessPasswordProperty);
-                bool ignore = ignoreProperty != null && Platform.EqualsIgnoreCase("true", ignoreProperty);
-
-                if (!ignore)
-                    throw new IOException("password supplied for keystore that does not require one");
             }
 
             Clear(m_keys, m_keysOrder);
@@ -240,43 +232,45 @@ namespace Org.BouncyCastle.Pkcs
                     }
                     else if (PkcsObjectIdentifiers.EncryptedData.Equals(oid))
                     {
-                        if (password != null)
-                        {
-                            EncryptedData d = EncryptedData.GetInstance(ci.Content);
-                            octets = CryptPbeData(false, d.EncryptionAlgorithm,
-                                password, wrongPkcs12Zero, d.Content.GetOctets());
-                        }
+                        passwordNeeded = true;
+
+                        EncryptedData d = EncryptedData.GetInstance(ci.Content);
+                        octets = CryptPbeData(false, d.EncryptionAlgorithm, password, wrongPkcs12Zero,
+                            data: d.Content.GetOctets());
                     }
                     else
                     {
                         // TODO Other data types
                     }
 
-                    if (octets != null)
+                    if (octets == null)
+                        continue;
+
+                    Asn1Sequence seq = Asn1Sequence.GetInstance(octets);
+
+                    foreach (var element in seq)
                     {
-                        Asn1Sequence seq = Asn1Sequence.GetInstance(octets);
+                        var safeBag = SafeBag.GetInstance(element);
+                        var safeBagID = safeBag.BagID;
 
-                        foreach (Asn1Sequence subSeq in seq)
+                        if (PkcsObjectIdentifiers.CertBag.Equals(safeBagID))
                         {
-                            SafeBag b = SafeBag.GetInstance(subSeq);
+                            certBags.Add(safeBag);
+                        }
+                        else if (PkcsObjectIdentifiers.KeyBag.Equals(safeBagID))
+                        {
+                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValue), safeBag.BagAttributes);
+                        }
+                        else if (PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag.Equals(safeBagID))
+                        {
+                            passwordNeeded = true;
 
-                            if (PkcsObjectIdentifiers.CertBag.Equals(b.BagID))
-                            {
-                                certBags.Add(b);
-                            }
-                            else if (PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag.Equals(b.BagID))
-                            {
-                                LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(b.BagValue),
-                                    b.BagAttributes, password, wrongPkcs12Zero);
-                            }
-                            else if (PkcsObjectIdentifiers.KeyBag.Equals(b.BagID))
-                            {
-                                LoadKeyBag(PrivateKeyInfo.GetInstance(b.BagValue), b.BagAttributes);
-                            }
-                            else
-                            {
-                                // TODO Other bag types
-                            }
+                            LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValue),
+                                safeBag.BagAttributes, password, wrongPkcs12Zero);
+                        }
+                       else
+                        {
+                            // TODO Other bag types
                         }
                     }
                 }
@@ -382,6 +376,15 @@ namespace Org.BouncyCastle.Pkcs
                         Map(m_certs, m_certsOrder, alias, certEntry);
                     }
                 }
+            }
+
+            if (!passwordNeeded && password != null)
+            {
+                string ignoreProperty = Platform.GetEnvironmentVariable(IgnoreUselessPasswordProperty);
+                bool ignore = ignoreProperty != null && Platform.EqualsIgnoreCase("true", ignoreProperty);
+
+                if (!ignore)
+                    throw new IOException("password supplied for keystore that does not require one");
             }
         }
 
