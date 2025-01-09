@@ -289,8 +289,12 @@ namespace Org.BouncyCastle.Pkcs
             foreach (SafeBag b in certBags)
             {
                 CertBag certBag = CertBag.GetInstance(b.BagValue);
-                byte[] octets = ((Asn1OctetString)certBag.CertValue).GetOctets();
-                X509Certificate cert = new X509CertificateParser().ReadCertificate(octets);
+
+                if (!PkcsObjectIdentifiers.X509Certificate.Equals(certBag.CertID))
+                    throw new Exception("Unsupported certificate type: " + certBag.CertID);
+
+                var certValue = Asn1OctetString.GetInstance(certBag.CertValue);
+                X509Certificate cert = new X509CertificateParser().ReadCertificate(certValue.GetOctets());
 
                 //
                 // set the attributes
