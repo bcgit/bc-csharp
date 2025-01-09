@@ -35,9 +35,8 @@ namespace Org.BouncyCastle.Pkcs
             new Dictionary<CertID, X509CertificateEntry>();
         private readonly List<CertID> m_chainCertsOrder = new List<CertID>();
 
-        // TODO Should also use StringComparer.OrdinalIgnoreCase?
         private readonly Dictionary<string, X509CertificateEntry> m_keyCerts =
-            new Dictionary<string, X509CertificateEntry>();
+            new Dictionary<string, X509CertificateEntry>(StringComparer.OrdinalIgnoreCase);
 
         private readonly DerObjectIdentifier keyAlgorithm;
         private readonly DerObjectIdentifier keyPrfAlgorithm;
