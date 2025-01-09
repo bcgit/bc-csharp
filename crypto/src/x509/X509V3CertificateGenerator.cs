@@ -228,6 +228,8 @@ namespace Org.BouncyCastle.X509
 
         public void AddExtension(Asn1.X509.Extension extension) => extGenerator.AddExtension(extension);
 
+        public void AddExtensions(X509Extensions extensions) => extGenerator.AddExtensions(extensions);
+
         /// <summary>
         /// Add a given extension field for the standard extensions tag (tag 3),
         /// copying the extension value from another certificate.
