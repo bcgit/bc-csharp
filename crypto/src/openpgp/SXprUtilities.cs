@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
      * http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob;f=agent/keyformat.txt;h=42c4b1f06faf1bbe71ffadc2fee0fad6bec91a97;hb=refs/heads/master
      * </p>
      */
+    // TODO[api] Make static
     public sealed class SXprUtilities
     {
         private SXprUtilities()
@@ -47,7 +48,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             for (int i = 0; i != chars.Length; i++)
             {
-                chars[i] = (char)input.ReadByte();
+                chars[i] = Convert.ToChar(input.ReadByte());
             }
 
             return new string(chars);
@@ -60,7 +61,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             byte[] data = new byte[len];
 
-            Streams.ReadFully(input, data);
+            if (len != Streams.ReadFully(input, data))
+                throw new EndOfStreamException();
 
             return data;
         }
@@ -83,30 +85,27 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             int ch = input.ReadByte();
             if (ch != '(')
-                throw new IOException("unknown character encountered");
+                throw new IOException("unknown character encountered: " + Convert.ToChar(ch));
         }
 
         internal static void SkipCloseParenthesis(Stream input)
         {
             int ch = input.ReadByte();
             if (ch != ')')
-                throw new IOException("unknown character encountered");
+                throw new IOException("unknown character encountered: " + Convert.ToChar(ch));
         }
 
         private class MyS2k : S2k
         {
-            private readonly long mIterationCount64;
+            private readonly long m_iterationCount64;
 
             internal MyS2k(HashAlgorithmTag algorithm, byte[] iv, long iterationCount64)
                 : base(algorithm, iv, (int)iterationCount64)
             {
-                this.mIterationCount64 = iterationCount64;
+                m_iterationCount64 = iterationCount64;
             }
 
-            public override long IterationCount
-            {
-                get { return mIterationCount64; }
-            }
+            public override long IterationCount => m_iterationCount64;
         }
     }
 }
