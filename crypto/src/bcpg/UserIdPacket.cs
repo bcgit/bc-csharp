@@ -14,16 +14,19 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] idData;
 
         public UserIdPacket(BcpgInputStream bcpgIn)
+            :base(PacketTag.UserId)
         {
             this.idData = bcpgIn.ReadAll();
         }
 
 		public UserIdPacket(string id)
+            : base(PacketTag.UserId)
         {
             this.idData = Encoding.UTF8.GetBytes(id);
         }
 
         public UserIdPacket(byte[] rawId)
+            : base(PacketTag.UserId)
         {
             this.idData = Arrays.Clone(rawId);
         }

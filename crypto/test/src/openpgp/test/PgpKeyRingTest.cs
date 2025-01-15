@@ -2440,7 +2440,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     // this should succeed
                     PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(newPass);
 
-                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageChecksum)
+                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageSha1)
                     {
                         Fail("usage/key ID mismatch");
                     }
