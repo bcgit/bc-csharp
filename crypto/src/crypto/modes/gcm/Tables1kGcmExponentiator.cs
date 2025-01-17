@@ -22,7 +22,15 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             lookupPowX2.Add(y);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void ExponentiateX(long pow, byte[] output)
+        {
+            ExponentiateX(pow, output.AsSpan());
+        }
+        public void ExponentiateX(long pow, Span<byte> output)
+#else
+        public void ExponentiateX(long pow, byte[] output)
+#endif
         {
             GcmUtilities.FieldElement y;
             GcmUtilities.One(out y);
