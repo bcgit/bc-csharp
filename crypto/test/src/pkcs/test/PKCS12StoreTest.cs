@@ -1343,7 +1343,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             basicStoreTest(privKey, chain,
                 NistObjectIdentifiers.IdAes256Cbc,
                 PkcsObjectIdentifiers.IdHmacWithSha256,
-                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc);
+                null);
         }
 
 		private void basicStoreTest(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain,
@@ -1454,11 +1454,21 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			}
 
 			// check the certificate encryption
-			EncryptedData cb = EncryptedData.GetInstance(c2.Content);
-
-            if (!cb.EncryptionAlgorithm.Algorithm.Equals(certAlgorithm))
+			if (certAlgorithm == null)
 			{
-				Fail("cert encryption algorithm wrong");
+				if (!c2.ContentType.Equals(PkcsObjectIdentifiers.Data))
+				{
+					Fail("there should be no certificate encryption, but content type is not Data");
+				}
+			}
+			else
+			{
+				EncryptedData cb = EncryptedData.GetInstance(c2.Content);
+
+				if (!cb.EncryptionAlgorithm.Algorithm.Equals(certAlgorithm))
+				{
+					Fail("cert encryption algorithm wrong");
+				}
 			}
 		}
 
