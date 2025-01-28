@@ -5,6 +5,7 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -1333,17 +1334,23 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
             basicStoreTest(privKey, chain,
 				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
+				null,
 				PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc );
 			basicStoreTest(privKey, chain,
 				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
+				null,
 				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc );
-		}
+            basicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes256Cbc,
+                PkcsObjectIdentifiers.IdHmacWithSha256,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc);
+        }
 
 		private void basicStoreTest(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain,
-			DerObjectIdentifier keyAlgorithm, DerObjectIdentifier certAlgorithm)
+			DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm, DerObjectIdentifier certAlgorithm)
 		{
 			Pkcs12Store store = new Pkcs12StoreBuilder()
-				.SetKeyAlgorithm(keyAlgorithm)
+				.SetKeyAlgorithm(keyAlgorithm, keyPrfAlgorithm)
 				.SetCertAlgorithm(certAlgorithm)
 				.Build();
 
@@ -1420,7 +1427,28 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
 
 			// check the key encryption
-            if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(keyAlgorithm))
+			if (keyPrfAlgorithm != null)	// PBES2 + PBKDF2
+			{
+				if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(PkcsObjectIdentifiers.IdPbeS2))
+                {
+                    Fail("key encryption PBES2 expected, but it is different");
+                }
+				PbeS2Parameters pbes2Parameters = PbeS2Parameters.GetInstance(encInfo.EncryptionAlgorithm.Parameters);
+				if (!pbes2Parameters.EncryptionScheme.Algorithm.Equals(keyAlgorithm))
+				{
+                    Fail("key encryption algorithm within PBES2 wrong");
+                }
+				if (!pbes2Parameters.KeyDerivationFunc.Algorithm.Equals(PkcsObjectIdentifiers.IdPbkdf2))
+				{
+                    Fail("key derivation algorithm within PBES2 should be Pbkdf2");
+                }
+				Pbkdf2Params pbkdf2Params = Pbkdf2Params.GetInstance(pbes2Parameters.KeyDerivationFunc.Parameters);
+				if (!pbkdf2Params.Prf.Algorithm.Equals(keyPrfAlgorithm))
+                {
+                    Fail("key derivation PRF algorithm within PBES2 wrong");
+                }
+            }
+			else if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(keyAlgorithm))
 			{
 				Fail("key encryption algorithm wrong");
 			}
