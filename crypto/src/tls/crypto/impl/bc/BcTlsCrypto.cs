@@ -424,6 +424,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             switch (signatureScheme)
             {
             case SignatureScheme.sm2sig_sm3:
+            // TODO[tls] Test coverage before adding
+            case SignatureScheme.mldsa44:
+            case SignatureScheme.mldsa65:
+            case SignatureScheme.mldsa87:
                 return false;
             default:
             {

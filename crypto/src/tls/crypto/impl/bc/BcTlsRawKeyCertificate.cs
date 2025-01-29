@@ -220,6 +220,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             //    return new BcTls13Verifier(verifier);
             //}
 
+            case SignatureScheme.mldsa44:
+            case SignatureScheme.mldsa65:
+            case SignatureScheme.mldsa87:
+            {
+                var mlDsaAlgOid = PqcUtilities.GetMLDsaObjectidentifier(signatureScheme);
+                ValidateMLDsa(mlDsaAlgOid);
+
+                var publicKey = GetPubKeyMLDsa();
+
+                var verifier = SignerUtilities.InitSigner(mlDsaAlgOid, forSigning: false, publicKey, random: null);
+
+                return new BcTls13Verifier(verifier);
+            }
+
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
@@ -352,6 +366,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         /// <exception cref="IOException"/>
+        public virtual MLDsaPublicKeyParameters GetPubKeyMLDsa()
+        {
+            try
+            {
+                return (MLDsaPublicKeyParameters)GetPublicKey();
+            }
+            catch (InvalidCastException e)
+            {
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not ML-DSA", e);
+            }
+        }
+
+        /// <exception cref="IOException"/>
         public virtual RsaKeyParameters GetPubKeyRsa()
         {
             try
@@ -415,6 +442,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected virtual bool SupportsKeyUsage(int keyUsageBits)
         {
             return true;
+        }
+
+        protected virtual bool SupportsMLDsa(DerObjectIdentifier mlDsaAlgOid)
+        {
+            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
+            return PqcUtilities.SupportsMLDsa(pubKeyAlgID, mlDsaAlgOid);
         }
 
         protected virtual bool SupportsRsa_Pkcs1()
@@ -506,6 +539,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                     throw new TlsFatalAlert(AlertDescription.internal_error);
                 }
             }
+        }
+
+        /// <exception cref="IOException"/>
+        protected virtual void ValidateMLDsa(DerObjectIdentifier mlDsaAlgOid)
+        {
+            if (!SupportsMLDsa(mlDsaAlgOid))
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "No support for ML-DSA signature scheme");
         }
 
         /// <exception cref="IOException"/>
