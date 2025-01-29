@@ -761,43 +761,23 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        // TODO[api] Redundant with generic version
         public static void Fill(byte[] buf, byte b)
         {
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Array.Fill(buf, b);
-#else
-            int i = buf.Length;
-            while (i > 0)
-            {
-                buf[--i] = b;
-            }
-#endif
+            Fill<byte>(buf, b);
         }
 
+        // TODO[api] Redundant with generic version
         [CLSCompliant(false)]
         public static void Fill(ulong[] buf, ulong b)
         {
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Array.Fill(buf, b);
-#else
-            int i = buf.Length;
-            while (i > 0)
-            {
-                buf[--i] = b;
-            }
-#endif
+            Fill<ulong>(buf, b);
         }
 
+        // TODO[api] Redundant with generic version
         public static void Fill(byte[] buf, int from, int to, byte b)
         {
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Array.Fill(buf, b, from, count: to - from);
-#else
-            for (int i = from; i < to; ++i)
-            {
-                buf[i] = b;
-            }
-#endif
+            Fill<byte>(buf, from, to, b);
         }
 
         public static void Fill<T>(T[] ts, T t)
@@ -805,7 +785,21 @@ namespace Org.BouncyCastle.Utilities
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Array.Fill(ts, t);
 #else
+            ValidateBuffer(ts);
             for (int i = 0; i < ts.Length; ++i)
+            {
+                ts[i] = t;
+            }
+#endif
+        }
+
+        public static void Fill<T>(T[] ts, int from, int to, T t)
+        {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(ts, t, startIndex: from, count: to - from);
+#else
+            ValidateRange(ts, from, to);
+            for (int i = from; i < to; ++i)
             {
                 ts[i] = t;
             }
@@ -1167,6 +1161,12 @@ namespace Org.BouncyCastle.Utilities
         public static bool IsNullOrEmpty(object[] array)
         {
             return null == array || array.Length < 1;
+        }
+
+        public static void ValidateBuffer<T>(T[] buf)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
         }
 
         public static void ValidateRange<T>(T[] buf, int from, int to)
