@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.OpenSsl
         {
             try
             {
-                return new X509CertificateParser().ReadCertificate(pemObject.Content);
+                return new X509Certificate(pemObject.Content);
             }
             catch (Exception e)
             {
@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.OpenSsl
         {
             try
             {
-                return new X509CrlParser().ReadCrl(pemObject.Content);
+                return new X509Crl(pemObject.Content);
             }
             catch (Exception e)
             {

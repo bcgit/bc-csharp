@@ -288,7 +288,7 @@ namespace Org.BouncyCastle.Pkcs
                     throw new Exception("Unsupported certificate type: " + certBag.CertID);
 
                 var certValue = Asn1OctetString.GetInstance(certBag.CertValue);
-                X509Certificate cert = new X509CertificateParser().ReadCertificate(certValue.GetOctets());
+                X509Certificate cert = new X509Certificate(certValue.GetOctets());
 
                 //
                 // set the attributes
