@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public virtual DerObjectIdentifier CertID => m_certID;
 
-        // TODO[api] Prefer returning Asn1Encodable
+        // TODO[api] Prefer returning IAsn1Convertible
         public virtual Asn1Object CertValue => m_certValue;
 
 		public override Asn1Object ToAsn1Object() => new DerSequence(m_certID, new DerTaggedObject(0, m_certValue));

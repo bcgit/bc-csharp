@@ -22,24 +22,13 @@ namespace Org.BouncyCastle.Security
 {
     public static class PrivateKeyFactory
     {
-        public static AsymmetricKeyParameter CreateKey(
-            byte[] privateKeyInfoData)
-        {
-            return CreateKey(
-                PrivateKeyInfo.GetInstance(
-                    Asn1Object.FromByteArray(privateKeyInfoData)));
-        }
+        public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData) =>
+            CreateKey(PrivateKeyInfo.GetInstance(privateKeyInfoData));
 
-        public static AsymmetricKeyParameter CreateKey(
-            Stream inStr)
-        {
-            return CreateKey(
-                PrivateKeyInfo.GetInstance(
-                    Asn1Object.FromStream(inStr)));
-        }
+        public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
+            CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
-        public static AsymmetricKeyParameter CreateKey(
-            PrivateKeyInfo keyInfo)
+        public static AsymmetricKeyParameter CreateKey(PrivateKeyInfo keyInfo)
         {
             AlgorithmIdentifier algID = keyInfo.PrivateKeyAlgorithm;
             DerObjectIdentifier algOid = algID.Algorithm;
@@ -423,32 +412,16 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
-        public static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            EncryptedPrivateKeyInfo encInfo)
-        {
-            return CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(passPhrase, encInfo));
-        }
+        public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, EncryptedPrivateKeyInfo encInfo) =>
+            CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(passPhrase, encInfo));
 
-        public static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            byte[] encryptedPrivateKeyInfoData)
-        {
-            return DecryptKey(passPhrase, Asn1Object.FromByteArray(encryptedPrivateKeyInfoData));
-        }
+        public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, byte[] encryptedPrivateKeyInfoData) =>
+            DecryptKey(passPhrase, EncryptedPrivateKeyInfo.GetInstance(encryptedPrivateKeyInfoData));
 
-        public static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            Stream encryptedPrivateKeyInfoStream)
+        public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, Stream encryptedPrivateKeyInfoStream)
         {
-            return DecryptKey(passPhrase, Asn1Object.FromStream(encryptedPrivateKeyInfoStream));
-        }
-
-        private static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            Asn1Object asn1Object)
-        {
-            return DecryptKey(passPhrase, EncryptedPrivateKeyInfo.GetInstance(asn1Object));
+            return DecryptKey(passPhrase,
+                EncryptedPrivateKeyInfo.GetInstance(Asn1Object.FromStream(encryptedPrivateKeyInfoStream)));
         }
 
         public static byte[] EncryptKey(

@@ -50,39 +50,25 @@ namespace Org.BouncyCastle.Asn1
         /// </exception>
         public static Asn1Object FromByteArray(byte[] data)
 		{
-            try
-			{
-                int limit = data.Length;
-                using (var asn1In = new Asn1InputStream(new MemoryStream(data, false), limit))
-                {
-                    Asn1Object result = asn1In.ReadObject();
-                    if (asn1In.Position != limit)
-                        throw new IOException("extra data found after object");
-                    return result;
-                }
-			}
-			catch (InvalidCastException)
-			{
-				throw new IOException("cannot recognise object in byte array");
-			}
+            int limit = data.Length;
+            using (var asn1In = new Asn1InputStream(new MemoryStream(data, false), limit))
+            {
+                Asn1Object result = asn1In.ReadObject();
+                if (asn1In.Position != limit)
+                    throw new IOException("extra data found after object");
+                return result;
+            }
 		}
 
         internal static Asn1Object FromMemoryStream(MemoryStream memoryStream)
         {
-            try
+            int limit = Convert.ToInt32(memoryStream.Length);
+            using (var asn1In = new Asn1InputStream(memoryStream, limit))
             {
-                int limit = Convert.ToInt32(memoryStream.Length);
-                using (var asn1In = new Asn1InputStream(memoryStream, limit))
-                {
-                    Asn1Object result = asn1In.ReadObject();
-                    if (asn1In.Position != limit)
-                        throw new IOException("extra data found after object");
-                    return result;
-                }
-            }
-            catch (InvalidCastException)
-            {
-                throw new IOException("cannot recognise object in byte array");
+                Asn1Object result = asn1In.ReadObject();
+                if (asn1In.Position != limit)
+                    throw new IOException("extra data found after object");
+                return result;
             }
         }
 
@@ -92,23 +78,13 @@ namespace Org.BouncyCastle.Asn1
         /// <exception cref="IOException">If there is a problem parsing the data.</exception>
         public static Asn1Object FromStream(Stream inStr)
 		{
-			try
-			{
-                using (var asn1In = new Asn1InputStream(inStr, int.MaxValue, leaveOpen: true))
-                {
-                    return asn1In.ReadObject();
-                }
-			}
-			catch (InvalidCastException)
-			{
-				throw new IOException("cannot recognise object in stream");
-			}
+            using (var asn1In = new Asn1InputStream(inStr, int.MaxValue, leaveOpen: true))
+            {
+                return asn1In.ReadObject();
+            }
 		}
 
-		public sealed override Asn1Object ToAsn1Object()
-        {
-            return this;
-        }
+        public sealed override Asn1Object ToAsn1Object() => this;
 
         internal abstract IAsn1Encoding GetEncoding(int encoding);
 

@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray(bytes));
+                    return (DerBitString)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

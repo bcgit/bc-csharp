@@ -63,6 +63,8 @@ namespace Org.BouncyCastle.X509
 			this.certificateIssuer = loadCertificateIssuer();
 		}
 
+        public virtual CrlEntry CrlEntry => c;
+
 		private X509Name loadCertificateIssuer()
 		{
 			if (!isIndirect)
@@ -110,7 +112,7 @@ namespace Org.BouncyCastle.X509
 		{
 			try
 			{
-				return c.GetDerEncoded();
+				return c.GetEncoded(Asn1Encodable.Der);
 			}
 			catch (Exception e)
 			{

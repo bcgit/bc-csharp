@@ -122,13 +122,9 @@ namespace Org.BouncyCastle.OpenSsl
 
         private AsymmetricKeyParameter ReadRsaPublicKey(PemObject pemObject)
         {
-            RsaPublicKeyStructure rsaPubStructure = RsaPublicKeyStructure.GetInstance(
-                Asn1Object.FromByteArray(pemObject.Content));
+            RsaPublicKeyStructure rsaPublicKey = RsaPublicKeyStructure.GetInstance(pemObject.Content);
 
-            return new RsaKeyParameters(
-                false, // not private
-                rsaPubStructure.Modulus, 
-                rsaPubStructure.PublicExponent);
+            return new RsaKeyParameters(isPrivate: false, rsaPublicKey.Modulus, rsaPublicKey.PublicExponent);
         }
 
         private AsymmetricKeyParameter ReadPublicKey(PemObject pemObject)
@@ -213,8 +209,7 @@ namespace Org.BouncyCastle.OpenSsl
         {
             try
             {
-                return Asn1.Cms.ContentInfo.GetInstance(
-                    Asn1Object.FromByteArray(pemObject.Content));
+                return Asn1.Cms.ContentInfo.GetInstance(pemObject.Content);
             }
             catch (Exception e)
             {

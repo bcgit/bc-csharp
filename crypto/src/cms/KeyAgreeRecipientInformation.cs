@@ -119,9 +119,7 @@ namespace Org.BouncyCastle.Cms
 
             if (agreeAlgID.Id.Equals(CmsEnvelopedGenerator.ECMqvSha1Kdf))
             {
-                byte[] ukmEncoding = m_info.UserKeyingMaterial.GetOctets();
-                MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(
-                    Asn1Object.FromByteArray(ukmEncoding));
+                MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(m_info.UserKeyingMaterial.GetOctets());
 
                 AsymmetricKeyParameter ephemeralKey = GetPublicKeyFromOriginatorPublicKey(
                     receiverPrivateKey, ukm.EphemeralPublicKey);
