@@ -780,10 +780,8 @@ namespace Org.BouncyCastle.Pkcs
             //
             // certificate processing
             //
-            byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
 
             Asn1EncodableVector certBags = new Asn1EncodableVector(m_keys.Count);
-            Pkcs12PbeParams     cParams = new Pkcs12PbeParams(cSalt, MinIterations);
             var doneCerts = new HashSet<X509Certificate>();
 
             for (uint i = reverseCertificates ? (uint)m_keysOrder.Count-1 : 0;
@@ -930,10 +928,18 @@ namespace Org.BouncyCastle.Pkcs
             }
             else
             {
-                AlgorithmIdentifier cAlgId = new AlgorithmIdentifier(certAlgorithm, cParams.ToAsn1Object());
+                // TODO Support specifying PBES2 cAlgId somehow (OID not sufficient)
+
+                // TODO Configurable salt length?
+                byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
+                // TODO Configurable number of iterations?
+                Asn1Encodable cParams = new Pkcs12PbeParams(cSalt, MinIterations);
+                AlgorithmIdentifier cAlgId = new AlgorithmIdentifier(certAlgorithm, cParams);
+
                 byte[] certBytes = CryptPbeData(true, cAlgId, password, false, certBagsEncoding);
-                EncryptedData cInfo = new EncryptedData(PkcsObjectIdentifiers.Data, cAlgId, new BerOctetString(certBytes));
-                certsInfo = new ContentInfo(PkcsObjectIdentifiers.EncryptedData, cInfo.ToAsn1Object());
+
+                certsInfo = new ContentInfo(PkcsObjectIdentifiers.EncryptedData,
+                    new EncryptedData(PkcsObjectIdentifiers.Data, cAlgId, new BerOctetString(certBytes)));
             }
 
             ContentInfo[] info = new ContentInfo[]{ keysInfo, certsInfo };
