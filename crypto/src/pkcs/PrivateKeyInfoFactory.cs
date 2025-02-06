@@ -253,13 +253,8 @@ namespace Org.BouncyCastle.Pkcs
                 if (seed != null)
                     return PrivateKeyInfo.Create(algID, new DerOctetString(seed), attributes, publicKey: null);
 
+                // NOTE: The public key can be derived from the private key
                 DerBitString publicKey = null;
-                MLDsaPublicKeyParameters mlDsaPubKey = mlDsaKey.GetPublicKey();
-                if (mlDsaPubKey != null)
-                {
-                    // TODO[pqc] Avoid redundant copies?
-                    publicKey = new DerBitString(publicKey.GetEncoded());
-                }
 
                 return PrivateKeyInfo.Create(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
             }
