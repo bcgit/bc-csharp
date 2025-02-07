@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_subjectAltPublicKey = subjectPublicKeyInfo.PublicKey;
         }
 
-        public AlgorithmIdentifier Algorithm => Algorithm;
+        public AlgorithmIdentifier Algorithm => m_algorithm;
 
         public DerBitString SubjectAltPublicKey => m_subjectAltPublicKey;
 
