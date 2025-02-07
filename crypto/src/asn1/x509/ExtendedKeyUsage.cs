@@ -81,6 +81,8 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public IList<DerObjectIdentifier> GetAllUsages() => new List<DerObjectIdentifier>(m_usageTable);
 
+        public DerObjectIdentifier[] GetAllUsagesArray() => m_seq.MapElements(DerObjectIdentifier.GetInstance);
+
         public int Count => m_usageTable.Count;
 
         public override Asn1Object ToAsn1Object() => m_seq;

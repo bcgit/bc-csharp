@@ -31,59 +31,64 @@ namespace Org.BouncyCastle.Crypto.Digests
             ---------------+--------+-----------+------+------------+
      */
 
-    /**
-     * Implementation of the cryptographic hash function BLAKE2s.
-     * <p/>
-     * BLAKE2s offers a built-in keying mechanism to be used directly
-     * for authentication ("Prefix-MAC") rather than a HMAC construction.
-     * <p/>
-     * BLAKE2s offers a built-in support for a salt for randomized hashing
-     * and a personal string for defining a unique hash function for each application.
-     * <p/>
-     * BLAKE2s is optimized for 32-bit platforms and produces digests of any size
-     * between 1 and 32 bytes.
-     */
+    /// <summary>
+    /// Implementation of the cryptographic hash function BLAKE2s. 
+    /// BLAKE2s is optimized for 32-bit platforms and produces digests of any size
+    /// between 1 and 32 bytes.
+    /// </summary>
+    /// 
+    /// <remarks>
+    /// <para>
+    /// BLAKE2s offers a built-in keying mechanism to be used directly
+    /// for authentication ("Prefix-MAC") rather than a HMAC construction.
+    /// </para>
+    /// <para>
+    /// BLAKE2s is optimized for 32-bit platforms and produces digests of any size
+    /// between 1 and 32 bytes.
+    /// </para>
+    /// </remarks>
     public sealed class Blake2sDigest
         : IDigest
     {
-        /**
-         * BLAKE2s Initialization Vector
-         **/
-        private static readonly uint[] blake2s_IV =
-            // Produced from the square root of primes 2, 3, 5, 7, 11, 13, 17, 19.
-            // The same as SHA-256 IV.
-            {
-                0x6a09e667, 0xbb67ae85, 0x3c6ef372,
-                0xa54ff53a, 0x510e527f, 0x9b05688c,
-                0x1f83d9ab, 0x5be0cd19
-            };
+        /*
+         * BLAKE2s Initialization Vector (the same as SHA-256 IV).
+         *
+         * Produced from the square root of primes 2, 3, 5, 7, 11, 13, 17, 19.
+         */
+        private static readonly uint[] IV =
+        {
+            0x6a09e667U, 0xbb67ae85U, 0x3c6ef372U, 0xa54ff53aU, 0x510e527fU, 0x9b05688cU, 0x1f83d9abU, 0x5be0cd19U
+        };
 
-        /**
-         * Message word permutations
-         **/
-        private static readonly byte[,] blake2s_sigma =
-            {
-                { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-                { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },
-                { 11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4 },
-                { 7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8 },
-                { 9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13 },
-                { 2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9 },
-                { 12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11 },
-                { 13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10 },
-                { 6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5 },
-                { 10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0 }
-            };
+        // Message word permutations
+        private static readonly byte[] Sigma =
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+            14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3,
+            11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4,
+            7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8,
+            9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13,
+            2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9,
+            12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11,
+            13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10,
+            6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5,
+            10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0,
+        };
 
         private const int ROUNDS = 10; // to use for Catenas H'
         private const int BLOCK_LENGTH_BYTES = 64;// bytes
 
+        private readonly uint[] chainValue = new uint[8]; // State vector, in the BLAKE2 paper it is called h
+
+        // Whenever this buffer overflows, it will be processed in the Compress() function.
+        // For performance issues, long messages will not use this buffer.
+        private readonly byte[] buffer = new byte[BLOCK_LENGTH_BYTES];
+
         // General parameters:
         private int digestLength = 32; // 1- 32 bytes
-        private int keyLength = 0; // 0 - 32 bytes for keyed hashing for MAC
-        private byte[] salt = null;
-        private byte[] personalization = null;
-        private byte[] key = null;
+        private byte[] m_salt = null;
+        private byte[] m_personalization = null;
+        private byte[] m_key = null;
 
         // Tree hashing parameters:
         // The Tree Hashing Mode is not supported but these are used for the XOF implementation
@@ -95,23 +100,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         private int innerHashLength = 0;
 
         /**
-         * Whenever this buffer overflows, it will be processed in the Compress()
-         * function. For performance issues, long messages will not use this buffer.
-         */
-        private byte[] buffer = null;
-        /**
          * Position of last inserted byte
          **/
         private int bufferPos = 0;// a value from 0 up to BLOCK_LENGTH_BYTES
-
-        /**
-         * Internal state, in the BLAKE2 paper it is called v
-         **/
-        private uint[] internalState = new uint[16];
-        /**
-         * State vector, in the BLAKE2 paper it is called h
-         **/
-        private uint[] chainValue = null;
 
         // counter (counts bytes): Length up to 2^64 are supported
         /**
@@ -130,28 +121,31 @@ namespace Org.BouncyCastle.Crypto.Digests
         // For Tree Hashing Mode, not used here:
         // private long f1 = 0L; // finalization flag, for last node: ~0L
 
-        /**
-         * BLAKE2s-256 for hashing.
-         */
+        /// <summary>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/>.
+        /// </summary>
         public Blake2sDigest()
             : this(256)
         {
         }
 
+        /// <summary>
+        /// Constructs a new instance of <see cref="Blake2sDigest"/> from another <see cref="Blake2sDigest"/>./>.
+        /// </summary>
+        /// <param name="digest">The original instance of <see cref="Blake2sDigest"/> that is copied.</param>
         public Blake2sDigest(Blake2sDigest digest)
         {
+            Array.Copy(digest.chainValue, 0, chainValue, 0, 8);
+            Array.Copy(digest.buffer, 0, buffer, 0, BLOCK_LENGTH_BYTES);
+
             this.bufferPos = digest.bufferPos;
-            this.buffer = Arrays.Clone(digest.buffer);
-            this.keyLength = digest.keyLength;
-            this.key = Arrays.Clone(digest.key);
+            this.m_key = Arrays.Clone(digest.m_key);
             this.digestLength = digest.digestLength;
-            this.internalState = Arrays.Clone(digest.internalState);
-            this.chainValue = Arrays.Clone(digest.chainValue);
             this.t0 = digest.t0;
             this.t1 = digest.t1;
             this.f0 = digest.f0;
-            this.salt = Arrays.Clone(digest.salt);
-            this.personalization = Arrays.Clone(digest.personalization);
+            this.m_salt = Arrays.Clone(digest.m_salt);
+            this.m_personalization = Arrays.Clone(digest.m_personalization);
             this.fanout = digest.fanout;
             this.depth = digest.depth;
             this.leafLength = digest.leafLength;
@@ -160,65 +154,104 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.innerHashLength = digest.innerHashLength;
         }
 
-        /**
-         * BLAKE2s for hashing.
-         *
-         * @param digestBits the desired digest length in bits. Must be a multiple of 8 and less than 256.
-         */
+        /// <summary>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/> with a given digest size.
+        /// </summary>
+        /// <param name="digestBits">Digest size in bits.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2sDigest(int digestBits)
         {
             if (digestBits < 8 || digestBits > 256 || digestBits % 8 != 0)
                 throw new ArgumentException("BLAKE2s digest bit length must be a multiple of 8 and not greater than 256");
 
-            digestLength = digestBits / 8;
+            this.digestLength = digestBits / 8;
 
-            Init(null, null, null);
+            Init();
         }
 
-        /**
-         * BLAKE2s for authentication ("Prefix-MAC mode").
-         * <p/>
-         * After calling the doFinal() method, the key will remain to be used for
-         * further computations of this instance. The key can be overwritten using
-         * the clearKey() method.
-         *
-         * @param key a key up to 32 bytes or null
-         */
+        /// <summary>
+        /// <para>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/> with a key.
+        /// </para>
+        /// 
+        /// Blake2s for authentication ("Prefix-MAC mode").
+        /// After calling the <see cref="DoFinal(byte[], int)"/> method, the key will
+        /// remain to be used for further computations of this instance.
+        /// The key can be cleared using the <see cref="ClearKey"/> method.
+        /// </summary>
+        /// <param name="key">A key up to 32 bytes or null.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2sDigest(byte[] key)
         {
-            Init(null, null, key);
+            this.digestLength = 32;
+
+            if (key != null && key.Length > 0)
+            {
+                if (key.Length > 32)
+                    throw new ArgumentException("Keys > 32 are not supported", nameof(key));
+
+                m_key = (byte[])key.Clone();
+            }
+
+            Init();
         }
 
-        /**
-         * BLAKE2s with key, required digest length, salt and personalization.
-         * <p/>
-         * After calling the doFinal() method, the key, the salt and the personal
-         * string will remain and might be used for further computations with this
-         * instance. The key can be overwritten using the clearKey() method, the
-         * salt (pepper) can be overwritten using the clearSalt() method.
-         *
-         * @param key             a key up to 32 bytes or null
-         * @param digestBytes     from 1 up to 32 bytes
-         * @param salt            8 bytes or null
-         * @param personalization 8 bytes or null
-         */
+        /// <summary>
+        /// <para>
+        /// Initializes a new instance of <see cref="Blake2sDigest"/> with a key, required digest length (in bytes), salt and personalization.
+        /// </para>
+        /// 
+        /// After calling the <see cref="DoFinal(byte[], int)"/> method, the key, the salt and the personalization
+        /// will remain and might be used for further computations with this instance.
+        /// The key can be overwritten using the <see cref="ClearKey"/> method, the salt (pepper)
+        /// can be overwritten using the <see cref="ClearSalt"/> method.
+        /// </summary>
+        /// <param name="key">A key up to 32 bytes or null.</param>
+        /// <param name="digestBytes">Digest length from 1 to 32 bytes.</param>
+        /// <param name="salt">A 8 bytes or nullable salt.</param>
+        /// <param name="personalization">A 8 bytes or null personalization.</param>
+        /// <exception cref="ArgumentException"></exception>
         public Blake2sDigest(byte[] key, int digestBytes, byte[] salt, byte[] personalization)
+            : this(digestBytes, key, salt, personalization, offset: 0L)
+        {
+        }
+
+        // XOF root hash parameters
+        internal Blake2sDigest(int digestBytes, byte[] key, byte[] salt, byte[] personalization, long offset)
         {
             if (digestBytes < 1 || digestBytes > 32)
                 throw new ArgumentException("Invalid digest length (required: 1 - 32)");
 
             this.digestLength = digestBytes;
 
-            Init(salt, personalization, key);
-        }
+            if (key != null && key.Length > 0)
+            {
+                if (key.Length > 32)
+                    throw new ArgumentException("Keys > 32 are not supported", nameof(key));
 
-        // XOF root hash parameters
-        internal Blake2sDigest(int digestBytes, byte[] key, byte[] salt, byte[] personalization, long offset)
-        {
-            digestLength = digestBytes;
-            nodeOffset = offset;
+                m_key = (byte[])key.Clone();
+            }
 
-            Init(salt, personalization, key);
+            if (salt != null)
+            {
+                if (salt.Length != 8)
+                    throw new ArgumentException("salt length must be exactly 8 bytes", nameof(salt));
+
+                m_salt = (byte[])salt.Clone();
+            }
+
+            if (personalization != null)
+            {
+                if (personalization.Length != 8)
+                    throw new ArgumentException("personalization length must be exactly 8 bytes",
+                        nameof(personalization));
+
+                m_personalization = (byte[])personalization.Clone();
+            }
+
+            this.nodeOffset = offset;
+
+            Init();
         }
 
         // XOF internal hash parameters
@@ -232,85 +265,46 @@ namespace Org.BouncyCastle.Crypto.Digests
             innerHashLength = hashLength;
             nodeDepth = 0;
 
-            Init(null, null, null);
+            Init();
         }
 
-        // initialize the digest's parameters
-        private void Init(byte[] salt, byte[] personalization, byte[] key)
+        private void Init()
         {
-            buffer = new byte[BLOCK_LENGTH_BYTES];
-
-            if (key != null && key.Length > 0)
+            int keyLength = 0;
+            if (m_key != null)
             {
-                keyLength = key.Length;
-                if (keyLength > 32)
-                    throw new ArgumentException("Keys > 32 bytes are not supported");
-
-                this.key = new byte[keyLength];
-                Array.Copy(key, 0, this.key, 0, keyLength);
-                Array.Copy(key, 0, buffer, 0, keyLength);
+                keyLength = m_key.Length;
+                Array.Copy(m_key, 0, buffer, 0, keyLength);
+                //Arrays.Fill(buffer, keyLength, BLOCK_LENGTH_BYTES, 0);
                 bufferPos = BLOCK_LENGTH_BYTES; // zero padding
             }
 
-            if (chainValue == null)
+            chainValue[0] = IV[0] ^ (uint)(digestLength | (keyLength << 8) | ((fanout << 16) | (depth << 24)));
+            chainValue[1] = IV[1] ^ (uint)leafLength;
+
+            int nofHi = (int)(nodeOffset >> 32);
+            int nofLo = (int)nodeOffset;
+            chainValue[2] = IV[2] ^ (uint)nofLo;
+            chainValue[3] = IV[3] ^ (uint)(nofHi | (nodeDepth << 16) | (innerHashLength << 24));
+
+            chainValue[4] = IV[4];
+            chainValue[5] = IV[5];
+            if (m_salt != null)
             {
-                chainValue = new uint[8];
+                chainValue[4] ^= Pack.LE_To_UInt32(m_salt, 0);
+                chainValue[5] ^= Pack.LE_To_UInt32(m_salt, 4);
+            }
 
-                chainValue[0] = blake2s_IV[0]
-                    ^ (uint)(digestLength | (keyLength << 8) | ((fanout << 16) | (depth << 24)));
-                chainValue[1] = blake2s_IV[1] ^ (uint)leafLength;
-
-                int nofHi = (int)(nodeOffset >> 32);
-                int nofLo = (int)nodeOffset;
-                chainValue[2] = blake2s_IV[2] ^ (uint)nofLo;
-                chainValue[3] = blake2s_IV[3] ^ (uint)(nofHi | (nodeDepth << 16) | (innerHashLength << 24));
-
-                chainValue[4] = blake2s_IV[4];
-                chainValue[5] = blake2s_IV[5];
-                if (salt != null)
-                {
-                    if (salt.Length != 8)
-                        throw new ArgumentException("Salt length must be exactly 8 bytes");
-
-                    this.salt = new byte[8];
-                    Array.Copy(salt, 0, this.salt, 0, salt.Length);
-
-                    chainValue[4] ^= Pack.LE_To_UInt32(salt, 0);
-                    chainValue[5] ^= Pack.LE_To_UInt32(salt, 4);
-                }
-
-                chainValue[6] = blake2s_IV[6];
-                chainValue[7] = blake2s_IV[7];
-                if (personalization != null)
-                {
-                    if (personalization.Length != 8)
-                        throw new ArgumentException("Personalization length must be exactly 8 bytes");
-
-                    this.personalization = new byte[8];
-                    Array.Copy(personalization, 0, this.personalization, 0, personalization.Length);
-
-                    chainValue[6] ^= Pack.LE_To_UInt32(personalization, 0);
-                    chainValue[7] ^= Pack.LE_To_UInt32(personalization, 4);
-                }
+            chainValue[6] = IV[6];
+            chainValue[7] = IV[7];
+            if (m_personalization != null)
+            {
+                chainValue[6] ^= Pack.LE_To_UInt32(m_personalization, 0);
+                chainValue[7] ^= Pack.LE_To_UInt32(m_personalization, 4);
             }
         }
 
-        private void InitializeInternalState()
-        {
-            // initialize v:
-            Array.Copy(chainValue, 0, internalState, 0, chainValue.Length);
-            Array.Copy(blake2s_IV, 0, internalState, chainValue.Length, 4);
-            internalState[12] = t0 ^ blake2s_IV[4];
-            internalState[13] = t1 ^ blake2s_IV[5];
-            internalState[14] = f0 ^ blake2s_IV[6];
-            internalState[15] = blake2s_IV[7];// ^ f1 with f1 = 0
-        }
-
-        /**
-         * Update the message digest with a single byte.
-         *
-         * @param b the input byte to be entered.
-         */
+        /// <inheritdoc />
         public void Update(byte b)
         {
             // process the buffer if full else add to buffer:
@@ -338,13 +332,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        /**
-         * Update the message digest with a block of bytes.
-         *
-         * @param message the byte array containing the data.
-         * @param offset  the offset into the byte array where the data starts.
-         * @param len     the length of the data.
-         */
+        /// <inheritdoc />
         public void BlockUpdate(byte[] message, int offset, int len)
         {
             if (message == null || len == 0)
@@ -404,6 +392,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc />
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (input.IsEmpty)
@@ -458,13 +447,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        /**
-         * Close the digest, producing the final digest value. The doFinal() call
-         * leaves the digest reset. Key, salt and personal string remain.
-         *
-         * @param out       the array the digest is to be copied into.
-         * @param outOffset the offset into the out array the digest is to start at.
-         */
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="DoFinal(byte[], int)"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The byte array the digest is to be copied into.</param>
+        /// <param name="outOffset">The offset into the byte array the digest is to start at.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(byte[] output, int outOffset)
         {
             Check.OutputLength(output, outOffset, digestLength, "output buffer too short");
@@ -482,7 +472,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             Compress(buffer, 0);
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
-            Array.Clear(internalState, 0, internalState.Length);
 
             int full = digestLength >> 2, partial = digestLength & 3;
             Pack.UInt32_To_LE(chainValue, 0, full, output, outOffset);
@@ -493,8 +482,6 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Array.Copy(bytes, 0, output, outOffset + digestLength - partial, partial);
             }
 
-            Array.Clear(chainValue, 0, chainValue.Length);
-
             Reset();
 
             return digestLength;
@@ -502,6 +489,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Close the digest, producing the final digest value.</summary>
+        /// <remarks>
+        ///  The <see cref="DoFinal(Span{byte})"/> call leaves the digest reset. 
+        ///  Key, salt and personal string remain.
+        /// </remarks>
+        /// <param name="output">The span the digest is to be copied into.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(Span<byte> output)
         {
             Check.OutputLength(output, digestLength, "output buffer too short");
@@ -516,7 +510,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             Compress(buffer);
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
-            Array.Clear(internalState, 0, internalState.Length);
 
             int full = digestLength >> 2, partial = digestLength & 3;
             Pack.UInt32_To_LE(chainValue.AsSpan(0, full), output);
@@ -527,158 +520,186 @@ namespace Org.BouncyCastle.Crypto.Digests
                 bytes[..partial].CopyTo(output[(digestLength - partial)..]);
             }
 
-            Array.Clear(chainValue, 0, chainValue.Length);
-
             Reset();
 
             return digestLength;
         }
 #endif
 
-        /**
-         * Reset the digest back to its initial state. The key, the salt and the
-         * personal string will remain for further computations.
-         */
+        /// <summary>
+        /// Reset the digest back to it's initial state.
+        /// The key, the salt and the personalization will remain for further computations.
+        /// </summary>
         public void Reset()
         {
             bufferPos = 0;
             f0 = 0;
             t0 = 0;
             t1 = 0;
-            chainValue = null;
-            Array.Clear(buffer, 0, buffer.Length);
-            if (key != null)
-            {
-                Array.Copy(key, 0, buffer, 0, key.Length);
-                bufferPos = BLOCK_LENGTH_BYTES; // zero padding
-            }
 
-            Init(this.salt, this.personalization, this.key);
+            Array.Clear(buffer, 0, buffer.Length);
+
+            Init();
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void Compress(ReadOnlySpan<byte> message)
         {
-            InitializeInternalState();
+#if NETCOREAPP3_0_OR_GREATER
+            if (Blake2s_X86.IsSupported)
+            {
+                Blake2s_X86.Compress(chainValue, IV, t0, t1, f0, message);
+                return;
+            }
+#endif
 
             Span<uint> m = stackalloc uint[16];
             Pack.LE_To_UInt32(message, m);
 
+            uint v0 = chainValue[0];
+            uint v1 = chainValue[1];
+            uint v2 = chainValue[2];
+            uint v3 = chainValue[3];
+            uint v4 = chainValue[4];
+            uint v5 = chainValue[5];
+            uint v6 = chainValue[6];
+            uint v7 = chainValue[7];
+            uint v8 = IV[0];
+            uint v9 = IV[1];
+            uint va = IV[2];
+            uint vb = IV[3];
+            uint vc = IV[4] ^ t0;
+            uint vd = IV[5] ^ t1;
+            uint ve = IV[6] ^ f0;
+            uint vf = IV[7];       // ^ f1, with f1 == 0
+
             for (int round = 0; round < ROUNDS; round++)
             {
+                int pos = round * 16;
+
                 // G apply to columns of internalState: m[blake2s_sigma[round][2 * blockPos]] /+1
-                G(m[blake2s_sigma[round, 0]], m[blake2s_sigma[round, 1]], 0, 4, 8, 12);
-                G(m[blake2s_sigma[round, 2]], m[blake2s_sigma[round, 3]], 1, 5, 9, 13);
-                G(m[blake2s_sigma[round, 4]], m[blake2s_sigma[round, 5]], 2, 6, 10, 14);
-                G(m[blake2s_sigma[round, 6]], m[blake2s_sigma[round, 7]], 3, 7, 11, 15);
+                G(m[Sigma[pos +  0]], m[Sigma[pos +  1]], ref v0, ref v4, ref v8, ref vc);
+                G(m[Sigma[pos +  2]], m[Sigma[pos +  3]], ref v1, ref v5, ref v9, ref vd);
+                G(m[Sigma[pos +  4]], m[Sigma[pos +  5]], ref v2, ref v6, ref va, ref ve);
+                G(m[Sigma[pos +  6]], m[Sigma[pos +  7]], ref v3, ref v7, ref vb, ref vf);
+
                 // G apply to diagonals of internalState:
-                G(m[blake2s_sigma[round, 8]], m[blake2s_sigma[round, 9]], 0, 5, 10, 15);
-                G(m[blake2s_sigma[round, 10]], m[blake2s_sigma[round, 11]], 1, 6, 11, 12);
-                G(m[blake2s_sigma[round, 12]], m[blake2s_sigma[round, 13]], 2, 7, 8, 13);
-                G(m[blake2s_sigma[round, 14]], m[blake2s_sigma[round, 15]], 3, 4, 9, 14);
+                G(m[Sigma[pos +  8]], m[Sigma[pos +  9]], ref v0, ref v5, ref va, ref vf);
+                G(m[Sigma[pos + 10]], m[Sigma[pos + 11]], ref v1, ref v6, ref vb, ref vc);
+                G(m[Sigma[pos + 12]], m[Sigma[pos + 13]], ref v2, ref v7, ref v8, ref vd);
+                G(m[Sigma[pos + 14]], m[Sigma[pos + 15]], ref v3, ref v4, ref v9, ref ve);
             }
 
-            // update chain values:
-            for (int offset = 0; offset < chainValue.Length; offset++)
-            {
-                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
-            }
+            chainValue[0] ^= v0 ^ v8;
+            chainValue[1] ^= v1 ^ v9;
+            chainValue[2] ^= v2 ^ va;
+            chainValue[3] ^= v3 ^ vb;
+            chainValue[4] ^= v4 ^ vc;
+            chainValue[5] ^= v5 ^ vd;
+            chainValue[6] ^= v6 ^ ve;
+            chainValue[7] ^= v7 ^ vf;
         }
 #else
         private void Compress(byte[] message, int messagePos)
         {
-            InitializeInternalState();
-
             uint[] m = new uint[16];
             Pack.LE_To_UInt32(message, messagePos, m);
 
+            uint v0 = chainValue[0];
+            uint v1 = chainValue[1];
+            uint v2 = chainValue[2];
+            uint v3 = chainValue[3];
+            uint v4 = chainValue[4];
+            uint v5 = chainValue[5];
+            uint v6 = chainValue[6];
+            uint v7 = chainValue[7];
+            uint v8 = IV[0];
+            uint v9 = IV[1];
+            uint va = IV[2];
+            uint vb = IV[3];
+            uint vc = IV[4] ^ t0;
+            uint vd = IV[5] ^ t1;
+            uint ve = IV[6] ^ f0;
+            uint vf = IV[7];       // ^ f1, with f1 == 0
+
             for (int round = 0; round < ROUNDS; round++)
             {
+                int pos = round * 16;
+
                 // G apply to columns of internalState: m[blake2s_sigma[round][2 * blockPos]] /+1
-                G(m[blake2s_sigma[round,0]], m[blake2s_sigma[round,1]], 0, 4, 8, 12);
-                G(m[blake2s_sigma[round,2]], m[blake2s_sigma[round,3]], 1, 5, 9, 13);
-                G(m[blake2s_sigma[round,4]], m[blake2s_sigma[round,5]], 2, 6, 10, 14);
-                G(m[blake2s_sigma[round,6]], m[blake2s_sigma[round,7]], 3, 7, 11, 15);
+                G(m[Sigma[pos +  0]], m[Sigma[pos +  1]], ref v0, ref v4, ref v8, ref vc);
+                G(m[Sigma[pos +  2]], m[Sigma[pos +  3]], ref v1, ref v5, ref v9, ref vd);
+                G(m[Sigma[pos +  4]], m[Sigma[pos +  5]], ref v2, ref v6, ref va, ref ve);
+                G(m[Sigma[pos +  6]], m[Sigma[pos +  7]], ref v3, ref v7, ref vb, ref vf);
+
                 // G apply to diagonals of internalState:
-                G(m[blake2s_sigma[round,8]], m[blake2s_sigma[round,9]], 0, 5, 10, 15);
-                G(m[blake2s_sigma[round,10]], m[blake2s_sigma[round,11]], 1, 6, 11, 12);
-                G(m[blake2s_sigma[round,12]], m[blake2s_sigma[round,13]], 2, 7, 8, 13);
-                G(m[blake2s_sigma[round,14]], m[blake2s_sigma[round,15]], 3, 4, 9, 14);
+                G(m[Sigma[pos +  8]], m[Sigma[pos +  9]], ref v0, ref v5, ref va, ref vf);
+                G(m[Sigma[pos + 10]], m[Sigma[pos + 11]], ref v1, ref v6, ref vb, ref vc);
+                G(m[Sigma[pos + 12]], m[Sigma[pos + 13]], ref v2, ref v7, ref v8, ref vd);
+                G(m[Sigma[pos + 14]], m[Sigma[pos + 15]], ref v3, ref v4, ref v9, ref ve);
             }
 
-            // update chain values:
-            for (int offset = 0; offset < chainValue.Length; offset++)
-            {
-                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
-            }
+            chainValue[0] ^= v0 ^ v8;
+            chainValue[1] ^= v1 ^ v9;
+            chainValue[2] ^= v2 ^ va;
+            chainValue[3] ^= v3 ^ vb;
+            chainValue[4] ^= v4 ^ vc;
+            chainValue[5] ^= v5 ^ vd;
+            chainValue[6] ^= v6 ^ ve;
+            chainValue[7] ^= v7 ^ vf;
         }
 #endif
 
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private void G(uint m1, uint m2, int posA, int posB, int posC, int posD)
-        {
-            internalState[posA] = internalState[posA] + internalState[posB] + m1;
-            internalState[posD] = Integers.RotateRight(internalState[posD] ^ internalState[posA], 16);
-            internalState[posC] = internalState[posC] + internalState[posD];
-            internalState[posB] = Integers.RotateRight(internalState[posB] ^ internalState[posC], 12);
-            internalState[posA] = internalState[posA] + internalState[posB] + m2;
-            internalState[posD] = Integers.RotateRight(internalState[posD] ^ internalState[posA], 8);
-            internalState[posC] = internalState[posC] + internalState[posD];
-            internalState[posB] = Integers.RotateRight(internalState[posB] ^ internalState[posC], 7);
-        }
-
-        /**
-         * Return the algorithm name.
-         *
-         * @return the algorithm name
-         */
+        /// <inheritdoc />
         public string AlgorithmName => "BLAKE2s";
 
-        /**
-         * Return the size in bytes of the digest produced by this message digest.
-         *
-         * @return the size in bytes of the digest produced by this message digest.
-         */
-        public int GetDigestSize()
-        {
-            return digestLength;
-        }
+        /// <inheritdoc />
+        public int GetDigestSize() => digestLength;
 
-        /**
-         * Return the size in bytes of the internal buffer the digest applies its
-         * compression function to.
-         *
-         * @return byte length of the digest's internal buffer.
-         */
-        public int GetByteLength()
-        {
-            return BLOCK_LENGTH_BYTES;
-        }
+        /// <summary>
+        ///  Return the size in bytes of the internal buffer the digest applies it's compression 
+        ///  function to.
+        ///  </summary>
+        /// <returns>The byte length of the digests internal buffer.</returns>
+        public int GetByteLength() => BLOCK_LENGTH_BYTES;
 
-        /**
-         * Overwrite the key if it is no longer used (zeroization).
-         */
+        /// <summary>
+        /// Clears the key.
+        /// </summary>
         public void ClearKey()
         {
-            if (key != null)
+            if (m_key != null)
             {
-                Array.Clear(key, 0, key.Length);
+                Array.Clear(m_key, 0, m_key.Length);
                 Array.Clear(buffer, 0, buffer.Length);
             }
         }
 
-        /**
-         * Overwrite the salt (pepper) if it is secret and no longer used
-         * (zeroization).
-         */
+       /// <summary>
+       /// Clears the salt (pepper).
+       /// </summary>
         public void ClearSalt()
         {
-            if (salt != null)
+            if (m_salt != null)
             {
-                Array.Clear(salt, 0, salt.Length);
+                Array.Clear(m_salt, 0, m_salt.Length);
             }
+        }
+
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private static void G(uint m1, uint m2, ref uint a, ref uint b, ref uint c, ref uint d)
+        {
+            a += b + m1;
+            d = Integers.RotateRight(d ^ a, 16);
+            c += d;
+            b = Integers.RotateRight(b ^ c, 12);
+
+            a += b + m2;
+            d = Integers.RotateRight(d ^ a, 8);
+            c += d;
+            b = Integers.RotateRight(b ^ c, 7);
         }
     }
 }

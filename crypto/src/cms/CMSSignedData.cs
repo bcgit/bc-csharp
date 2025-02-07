@@ -377,6 +377,11 @@ namespace Org.BouncyCastle.Cms
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
 			SignerInformationStore signerInformationStore, IDigestAlgorithmFinder digestAlgorithmFinder)
 		{
+			// keep ourselves compatible with what was there before - issue with
+			// NULL appearing and disappearing in AlgorithmIdentifier parameters.
+			digestAlgorithmFinder = new PreserveAbsentParameters(digestAlgorithmFinder,
+				signedData.EnumerateDigestAlgorithmIDs());
+
             //
             // copy
             //
@@ -523,5 +528,57 @@ namespace Org.BouncyCastle.Cms
 
 			return cms;
 		}
+
+        internal IEnumerable<AlgorithmIdentifier> EnumerateDigestAlgorithmIDs()
+        {
+            foreach (var entry in signedData.DigestAlgorithms)
+            {
+                 yield return AlgorithmIdentifier.GetInstance(entry);
+            }
+        }
+
+        private class PreserveAbsentParameters
+            : IDigestAlgorithmFinder
+        {
+            private readonly IDigestAlgorithmFinder m_inner;
+            private readonly Dictionary<DerObjectIdentifier, AlgorithmIdentifier> m_existing;
+
+            internal PreserveAbsentParameters(IDigestAlgorithmFinder inner,
+                IEnumerable<AlgorithmIdentifier> existingAlgIDs)
+            {
+                m_inner = inner ?? throw new ArgumentNullException(nameof(inner));
+                m_existing = BuildExisting(existingAlgIDs ?? throw new ArgumentNullException(nameof(existingAlgIDs)));
+            }
+
+            public AlgorithmIdentifier Find(AlgorithmIdentifier signatureAlgorithm) =>
+                Preserve(m_inner.Find(signatureAlgorithm));
+
+            public AlgorithmIdentifier Find(DerObjectIdentifier digestOid) =>
+                m_existing.TryGetValue(digestOid, out var result) ? result : m_inner.Find(digestOid);
+
+            public AlgorithmIdentifier Find(string digestName) => Preserve(m_inner.Find(digestName));
+
+            private AlgorithmIdentifier Preserve(AlgorithmIdentifier algID)
+            {
+                if (X509Utilities.HasAbsentParameters(algID) &&
+                    m_existing.TryGetValue(algID.Algorithm, out var result))
+                {
+                    return result;
+                }
+
+                return algID;
+            }
+
+            private static Dictionary<DerObjectIdentifier, AlgorithmIdentifier> BuildExisting(
+                IEnumerable<AlgorithmIdentifier> existingAlgIDs)
+            {
+                var result = new Dictionary<DerObjectIdentifier, AlgorithmIdentifier>();
+                foreach (var existingAlgID in existingAlgIDs)
+                {
+                    CollectionUtilities.TryAdd(result, existingAlgID.Algorithm, existingAlgID);
+                }
+                return result;
+            }
+        }
 	}
 }

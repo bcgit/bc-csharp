@@ -21,16 +21,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             byte[] K = new byte[key.Parameters.Sha512Bytes];
             byte[] u = new byte[key.Parameters.NBytes];
             byte[] v = new byte[key.Parameters.N1n2Bytes];
-            byte[] d = new byte[key.Parameters.Sha512Bytes];
             byte[] salt = new byte[key.Parameters.SaltSizeBytes];
             byte[] pk = key.PublicKey;
             byte[] seed = new byte[48];
 
             sr.NextBytes(seed);
 
-            engine.Encaps(u, v, K, d, pk, seed, salt);
+            engine.Encaps(u, v, K, pk, seed, salt);
 
-            byte[] cipherText = Arrays.ConcatenateAll(u, v, d, salt);
+            byte[] cipherText = Arrays.ConcatenateAll(u, v, salt);
 
             return new SecretWithEncapsulationImpl(K, cipherText);
         }

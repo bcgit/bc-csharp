@@ -137,39 +137,58 @@ namespace Org.BouncyCastle.Cms
 
         internal static Asn1Set ConvertToDLSet(ISet<AlgorithmIdentifier> digestAlgs)
         {
-			Asn1EncodableVector v = new Asn1EncodableVector(digestAlgs.Count);
-			foreach (var digestAlg in digestAlgs)
-			{
-				v.Add(digestAlg);
-			}
-			return DLSet.FromVector(v);
+            Asn1EncodableVector v = new Asn1EncodableVector(digestAlgs.Count);
+            foreach (var digestAlg in digestAlgs)
+            {
+                v.Add(digestAlg);
+            }
+            return DLSet.FromVector(v);
         }
 
-        internal static Asn1Set CreateBerSetFromList(IEnumerable<Asn1Encodable> elements)
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-			foreach (Asn1Encodable element in elements)
-			{
-				v.Add(element);
-			}
-			return BerSet.FromVector(v);
-		}
+        internal static Asn1Set CreateBerSetFromList(List<Asn1Encodable> elements)
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
+            foreach (Asn1Encodable element in elements)
+            {
+                v.Add(element);
+            }
+            return BerSet.FromVector(v);
+        }
 
-		internal static Asn1Set CreateDerSetFromList(IEnumerable<Asn1Encodable> elements)
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-			foreach (Asn1Encodable element in elements)
-			{
-				v.Add(element);
-			}
+        internal static Asn1Set CreateDerSetFromList(List<Asn1Encodable> elements)
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
+            foreach (Asn1Encodable element in elements)
+            {
+                v.Add(element);
+            }
             return DerSet.FromVector(v);
-		}
+        }
 
-		internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509Certificate cert)
-		{
-			TbsCertificateStructure tbsCert = cert.TbsCertificate;
-			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber);
-		}
+        internal static Asn1Set CreateDLSetFromList(List<Asn1Encodable> elements)
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
+            foreach (Asn1Encodable element in elements)
+            {
+                v.Add(element);
+            }
+            return DLSet.FromVector(v);
+        }
+
+        internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(TbsCertificateStructure c) =>
+            new IssuerAndSerialNumber(c.Issuer, c.SerialNumber);
+
+        internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509CertificateStructure c) =>
+            GetIssuerAndSerialNumber(c.TbsCertificate);
+
+        internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(X509Certificate c) =>
+            GetIssuerAndSerialNumber(c.TbsCertificate);
+
+        internal static SignerIdentifier GetSignerIdentifier(X509Certificate c) =>
+            new SignerIdentifier(GetIssuerAndSerialNumber(c));
+
+        internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier) =>
+            new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
 
         internal static Asn1.Cms.AttributeTable ParseAttributeTable(Asn1SetParser parser)
         {

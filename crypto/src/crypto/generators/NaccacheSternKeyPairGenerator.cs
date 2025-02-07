@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 		/*
 		 * (non-Javadoc)
 		 *
-		 * @see org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator#init(org.bouncycastle.crypto.KeyGenerationParameters)
+		 * @see Org.BouncyCastle.Crypto.AsymmetricCipherKeyPairGenerator#init(Org.BouncyCastle.Crypto.KeyGenerationParameters)
 		 */
 		public void Init(KeyGenerationParameters parameters)
 		{
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 		/*
 		 * (non-Javadoc)
 		 *
-		 * @see org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator#generateKeyPair()
+		 * @see Org.BouncyCastle.Crypto.AsymmetricCipherKeyPairGenerator#generateKeyPair()
 		 */
 		public AsymmetricCipherKeyPair GenerateKeyPair()
 		{

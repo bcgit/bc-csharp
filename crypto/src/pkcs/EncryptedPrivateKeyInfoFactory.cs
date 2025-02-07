@@ -45,8 +45,7 @@ namespace Org.BouncyCastle.Pkcs
             int				iterationCount,
             PrivateKeyInfo	keyInfo)
         {
-            IBufferedCipher cipher = PbeUtilities.CreateEngine(algorithm) as IBufferedCipher;
-            if (cipher == null)
+            if (!(PbeUtilities.CreateEngine(algorithm) is IBufferedCipher cipher))
                 throw new Exception("Unknown encryption algorithm: " + algorithm);
 
             Asn1Encodable pbeParameters = PbeUtilities.GenerateAlgorithmParameters(
@@ -56,9 +55,10 @@ namespace Org.BouncyCastle.Pkcs
             cipher.Init(true, cipherParameters);
             byte[] encoding = cipher.DoFinal(keyInfo.GetEncoded());
 
-            DerObjectIdentifier oid = PbeUtilities.GetObjectIdentifier(algorithm);
-            AlgorithmIdentifier algID = new AlgorithmIdentifier(oid, pbeParameters);
-            return new EncryptedPrivateKeyInfo(algID, encoding);
+            var oid = PbeUtilities.GetObjectIdentifier(algorithm);
+            var encryptionAlgorithm = new AlgorithmIdentifier(oid, pbeParameters);
+            var encryptedData = DerOctetString.WithContents(encoding);
+            return new EncryptedPrivateKeyInfo(encryptionAlgorithm, encryptedData);
         }
 
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
@@ -84,8 +84,7 @@ namespace Org.BouncyCastle.Pkcs
             SecureRandom random,
             PrivateKeyInfo keyInfo)
         {
-            IBufferedCipher cipher = CipherUtilities.GetCipher(cipherAlgorithm) as IBufferedCipher;
-            if (cipher == null)
+            if (!(CipherUtilities.GetCipher(cipherAlgorithm) is IBufferedCipher cipher))
                 throw new Exception("Unknown encryption algorithm: " + cipherAlgorithm);
 
             Asn1Encodable pbeParameters = PbeUtilities.GenerateAlgorithmParameters(
@@ -95,8 +94,9 @@ namespace Org.BouncyCastle.Pkcs
             cipher.Init(true, cipherParameters);
             byte[] encoding = cipher.DoFinal(keyInfo.GetEncoded());
 
-            AlgorithmIdentifier algID = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPbeS2, pbeParameters);
-            return new EncryptedPrivateKeyInfo(algID, encoding);
+            var encryptionAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPbeS2, pbeParameters);
+            var encryptedData = DerOctetString.WithContents(encoding);
+            return new EncryptedPrivateKeyInfo(encryptionAlgorithm, encryptedData);
         }
     }
 }

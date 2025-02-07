@@ -32,31 +32,26 @@ namespace Org.BouncyCastle.Cms
         {
             try
             {
-                foreach (Asn1Encodable rek in info.RecipientEncryptedKeys)
+                foreach (Asn1Encodable element in info.RecipientEncryptedKeys)
                 {
-                    RecipientEncryptedKey id = RecipientEncryptedKey.GetInstance(rek.ToAsn1Object());
+                    RecipientEncryptedKey id = RecipientEncryptedKey.GetInstance(element);
+                    Asn1.Cms.KeyAgreeRecipientIdentifier karid = id.Identifier;
+                    Asn1.Cms.IssuerAndSerialNumber iAndSN = karid.IssuerAndSerialNumber;
 
                     RecipientID rid = new RecipientID();
-
-                    Asn1.Cms.KeyAgreeRecipientIdentifier karid = id.Identifier;
-
-                    Asn1.Cms.IssuerAndSerialNumber iAndSN = karid.IssuerAndSerialNumber;
                     if (iAndSN != null)
                     {
-                        rid.Issuer = iAndSN.Name;
+                        rid.Issuer = iAndSN.Issuer;
                         rid.SerialNumber = iAndSN.SerialNumber.Value;
                     }
                     else
                     {
-                        Asn1.Cms.RecipientKeyIdentifier rKeyID = karid.RKeyID;
+                        // Note: 'date' and 'other' fields of RecipientKeyIdentifier appear to be only informational
 
-                        // Note: 'date' and 'other' fields of RecipientKeyIdentifier appear to be only informational 
-
-                        rid.SubjectKeyIdentifier = rKeyID.SubjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
+                        rid.SubjectKeyIdentifier = karid.RKeyID.SubjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
                     }
 
-                    infos.Add(new KeyAgreeRecipientInformation(info, rid, id.EncryptedKey,
-                        secureReadable));
+                    infos.Add(new KeyAgreeRecipientInformation(info, rid, id.EncryptedKey, secureReadable));
                 }
             }
             catch (IOException e)
@@ -86,14 +81,12 @@ namespace Org.BouncyCastle.Cms
             Asn1.Cms.IssuerAndSerialNumber iAndSN = originator.IssuerAndSerialNumber;
             if (iAndSN != null)
             {
-                origID.Issuer = iAndSN.Name;
+                origID.Issuer = iAndSN.Issuer;
                 origID.SerialNumber = iAndSN.SerialNumber.Value;
             }
             else
             {
-                SubjectKeyIdentifier ski = originator.SubjectKeyIdentifier;
-
-                origID.SubjectKeyIdentifier = ski.GetEncoded(Asn1Encodable.Der);
+                origID.SubjectKeyIdentifier = originator.SubjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
             }
 
             return GetPublicKeyFromOriginatorID(origID);

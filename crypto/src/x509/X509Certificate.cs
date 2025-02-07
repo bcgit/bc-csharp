@@ -662,7 +662,7 @@ namespace Org.BouncyCastle.X509
                 }
             }
 
-            v.Add(X509Utilities.TrimExtensions(3, extensions));
+            v.Add(new DerTaggedObject(true, 3, extensions.ToAsn1ObjectTrimmed()));
 
             return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
         }
@@ -712,16 +712,16 @@ namespace Org.BouncyCastle.X509
         {
             var tbsCertificate = c.TbsCertificate;
 
-            if (!X509SignatureUtilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
+            if (!X509Utilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
             return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);
         }
 
-        private CachedEncoding GetCachedEncoding()
-        {
-            return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
-        }
+        internal byte[] GetEncodedInternal() => GetCachedEncoding().GetEncoded();
+
+        private CachedEncoding GetCachedEncoding() =>
+            Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
 
         private static CachedEncoding CreateCachedEncoding(X509CertificateStructure c)
         {
@@ -739,9 +739,7 @@ namespace Org.BouncyCastle.X509
             return new CachedEncoding(encoding, exception);
         }
 
-        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
-        {
-            return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-        }
+        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c) =>
+            PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
     }
 }

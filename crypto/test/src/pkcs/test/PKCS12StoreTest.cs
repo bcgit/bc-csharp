@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using NUnit.Framework;
 
@@ -13,6 +12,8 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tests;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
@@ -1472,7 +1473,45 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			IsTrue(store.GetCertificateChain("test").Length == 1);
 		}
 
-		public override string Name
+		private void CheckNoDuplicateOracleTrustedCertAttribute()
+		{
+			var random = new SecureRandom();
+
+			string certificateAlias = "myAlias";
+			string keystorePassword = "myPassword";
+
+			var kp1 = TestUtilities.GenerateRsaKeyPair();
+            var kp2 = TestUtilities.GenerateRsaKeyPair();
+
+			// generate certificate
+			X509Certificate rootCertificate = TestUtilities.GenerateRootCert(kp1, new X509Name("CN=KP1 ROOT"));
+			X509Certificate originalCertificate = TestUtilities.GenerateEndEntityCert(kp2.Public,
+				new X509Name("CN=KP3 EE"), KeyPurposeID.id_kp_capwapAC, KeyPurposeID.id_kp_capwapWTP, kp1.Private,
+				rootCertificate);
+
+            // store original certificate to a truststore
+            var firstTrustStore = new Pkcs12StoreBuilder().Build();
+			firstTrustStore.SetCertificateEntry(certificateAlias, new X509CertificateEntry(originalCertificate));
+			var bOut = new MemoryStream();
+			firstTrustStore.Save(bOut, keystorePassword.ToCharArray(), random);
+
+			// read certificate from the truststore
+			var firstTrustStoreReadAgain = new Pkcs12StoreBuilder().Build();
+			firstTrustStoreReadAgain.Load(new MemoryStream(bOut.ToArray()), keystorePassword.ToCharArray());
+			var certificateReadFromFirstTrustStore = firstTrustStoreReadAgain.GetCertificate(certificateAlias);
+
+            var secondTrustStore = new Pkcs12StoreBuilder().Build();
+			secondTrustStore.SetCertificateEntry(certificateAlias,
+				new X509CertificateEntry(certificateReadFromFirstTrustStore.Certificate));
+			bOut = new MemoryStream();
+			secondTrustStore.Save(bOut, keystorePassword.ToCharArray(), random);
+
+            // TODO Some other way to check that 'id_oracle_pkcs12_trusted_key_usage' is not duplicated?
+            //KeyStore secondTrustStoreReadWithoutBc = KeyStore.getInstance("PKCS12", "SunJSSE");
+            //secondTrustStoreReadWithoutBc.load(new ByteArrayInputStream(bOut.toByteArray()), keystorePassword.toCharArray());
+        }
+
+        public override string Name
 		{
 			get { return "PKCS12Store"; }
 		}
@@ -1483,7 +1522,8 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			DoTestPkcs12Store();
 			DoTestLoadRepeatedLocalKeyID();
 			DoTestHmacSha384();
-		}
+			CheckNoDuplicateOracleTrustedCertAttribute();
+        }
 
 		[Test]
 		public void TestFunction()
@@ -1492,7 +1532,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText, resultText);
 		}
-
 
 		[Test]
 		public void TestFriendlyName()
@@ -1508,11 +1547,11 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			MemoryStream outStream = new MemoryStream();
 			store1.Save(outStream, storePassword, new SecureRandom());
 			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
-			
-			String alias1 = store1.Aliases.First();
-			String alias2 = store2.Aliases.First();
 
-			Pkcs12Entry cert2 = store2.GetKey(alias2);
+            string alias1 = GetFirst(store1.Aliases);
+            string alias2 = GetFirst(store2.Aliases);
+
+            Pkcs12Entry cert2 = store2.GetKey(alias2);
 			if (cert2.HasFriendlyName)
 			{
 				Fail("with overwriteFriendlyName=false, default friendlyName should not be written to new store");
@@ -1527,10 +1566,10 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			store1.Save(outStream, storePassword, new SecureRandom());
 			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
-			alias1 = store1.Aliases.First();
-			alias2 = store2.Aliases.First();
+			alias1 = GetFirst(store1.Aliases);
+            alias2 = GetFirst(store2.Aliases);
 
-			cert2 = store2.GetKey(alias2);
+            cert2 = store2.GetKey(alias2);
 			if (!cert2.HasFriendlyName)
 			{
 				Fail("with overwriteFriendlyName=true, default friendlyName should be written to new store");
@@ -1545,10 +1584,10 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			store1.Save(outStream, storePassword, new SecureRandom());
 			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
-			alias1 = store1.Aliases.First();
-			alias2 = store2.Aliases.First();
+            alias1 = GetFirst(store1.Aliases);
+            alias2 = GetFirst(store2.Aliases);
 
-			if (alias2.Equals("my_custom_friendly_name"))
+            if (alias2.Equals("my_custom_friendly_name"))
 			{
 				Fail("with overwriteFriendlyName=true, default friendlyName should be written to new store");
 			}
@@ -1564,12 +1603,14 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			store1.Save(outStream, storePassword, new SecureRandom());
 			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
-			alias2 = store2.Aliases.First();
+			alias2 = GetFirst(store2.Aliases);
 
 			if (!alias2.Equals("my_custom_friendly_name"))
 			{
 				Fail("with overwriteFriendlyName=false, added friendlyName should be written to new store");
 			}
 		}
-	}
+
+		private static T GetFirst<T>(IEnumerable<T> e) => CollectionUtilities.RequireNext(e.GetEnumerator());
+    }
 }

@@ -268,16 +268,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         private static LmsKeyParameters GetLmsKeyParameters(byte[] keyEnc)
         {
-            if (Pack.BE_To_UInt32(keyEnc, 0) == 1U)
-                return LmsPublicKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+            if (keyEnc.Length >= 4 && Pack.BE_To_UInt32(keyEnc, 0) == 1U)
+                return LmsPublicKeyParameters.Parse(keyEnc, 4, keyEnc.Length - 4);
 
-            // public key with extra tree height
-            if (keyEnc.Length == 64)
-            {
-                keyEnc = Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length);
-            }
-
-            return HssPublicKeyParameters.GetInstance(keyEnc);
+            return HssPublicKeyParameters.Parse(keyEnc);
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete

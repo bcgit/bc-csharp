@@ -631,11 +631,9 @@ namespace Org.BouncyCastle.Tsp.Tests
 		{
 			SignerInfoGeneratorBuilder signerInfoGenBuilder = new SignerInfoGeneratorBuilder();
 
-			IssuerSerial issuerSerial = new IssuerSerial(
-				new GeneralNames(
-					new GeneralName(
-						X509CertificateStructure.GetInstance(cert.GetEncoded()).Issuer)),
-				new DerInteger(cert.SerialNumber));
+			var c = cert.CertificateStructure;
+
+			IssuerSerial issuerSerial = new IssuerSerial(c.Issuer, c.SerialNumber);
 
 			byte[] certHash256;
 			byte[] certHash;

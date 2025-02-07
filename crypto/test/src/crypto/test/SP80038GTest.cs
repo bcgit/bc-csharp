@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void ImplTestDisable()
         {
-            Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "true");
+            Environment.SetEnvironmentVariable("Org.BouncyCastle.Fpe.Disable", "true");
             try
             {
                 ImplTestFF1();
@@ -297,9 +297,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 IsEquals("FPE disabled", e.Message);
             }
-            Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "false");
+            Environment.SetEnvironmentVariable("Org.BouncyCastle.Fpe.Disable", "false");
 
-            Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable_ff1", "true");
+            Environment.SetEnvironmentVariable("Org.BouncyCastle.Fpe.Disable_Ff1", "true");
             try
             {
                 ImplTestFF1();
@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             ImplTestFF3_1();
-            Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable_ff1", "false");
+            Environment.SetEnvironmentVariable("Org.Bouncycastle.Fpe.Disable_Ff1", "false");
         }
 
         private void ImplTestFF3_1_255()

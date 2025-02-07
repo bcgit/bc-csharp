@@ -14,20 +14,6 @@ namespace Org.BouncyCastle.X509
 {
     internal class X509SignatureUtilities
 	{
-        internal static bool AreEquivalentAlgorithms(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
-        {
-            if (!id1.Algorithm.Equals(id2.Algorithm))
-                return false;
-
-            // TODO Java has a property to control whether absent parameters can match NULL parameters
-            {
-                if (IsAbsentOrEmptyParameters(id1.Parameters) && IsAbsentOrEmptyParameters(id2.Parameters))
-                    return true;
-            }
-
-			return Objects.Equals(id1.Parameters, id2.Parameters);
-        }
-
 		/**
 		 * Return the digest algorithm using one of the standard JCA string
 		 * representations rather than the algorithm identifier (if possible).
@@ -89,7 +75,7 @@ namespace Org.BouncyCastle.X509
 			DerObjectIdentifier sigAlgOid = sigAlgID.Algorithm;
 			Asn1Encodable sigAlgParams = sigAlgID.Parameters;
 
-			if (!IsAbsentOrEmptyParameters(sigAlgParams))
+			if (!X509Utilities.IsAbsentParameters(sigAlgParams))
 			{
                 if (PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
 				{
@@ -107,8 +93,5 @@ namespace Org.BouncyCastle.X509
 
 			return SignerUtilities.GetEncodingName(sigAlgOid) ?? sigAlgOid.GetID();
 		}
-
-        private static bool IsAbsentOrEmptyParameters(Asn1Encodable parameters) =>
-            parameters == null || DerNull.Instance.Equals(parameters);
     }
 }

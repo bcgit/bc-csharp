@@ -62,10 +62,11 @@ namespace Org.BouncyCastle.Security
             if (!m_keyEntries.TryGetValue(alias, out JksKeyEntry keyEntry))
                 return null;
 
-            if (!JksObfuscationAlg.Equals(keyEntry.keyData.EncryptionAlgorithm))
+            var epki = keyEntry.keyInfo;
+            if (!JksObfuscationAlg.Equals(epki.EncryptionAlgorithm))
                 throw new IOException("unknown encryption algorithm");
 
-            byte[] encryptedData = keyEntry.keyData.GetEncryptedData();
+            byte[] encryptedData = epki.GetEncryptedData();
 
             // key length is encryptedData - salt - checksum
             int pkcs8Len = encryptedData.Length - 40;
@@ -73,13 +74,8 @@ namespace Org.BouncyCastle.Security
             IDigest digest = DigestUtilities.GetDigest("SHA-1");
 
             // key decryption
-            byte[] keyStream = CalculateKeyStream(digest, password, encryptedData, pkcs8Len);
-            byte[] pkcs8Key = new byte[pkcs8Len];
-            for (int i = 0; i < pkcs8Len; ++i)
-            {
-                pkcs8Key[i] = (byte)(encryptedData[20 + i] ^ keyStream[i]);
-            }
-            Array.Clear(keyStream, 0, keyStream.Length);
+            byte[] pkcs8Key = CalculateKeyStream(digest, password, encryptedData, pkcs8Len);
+            Bytes.XorTo(pkcs8Len, encryptedData, 20, pkcs8Key, 0);
 
             // integrity check
             byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
@@ -87,7 +83,14 @@ namespace Org.BouncyCastle.Security
             if (!Arrays.FixedTimeEquals(20, encryptedData, pkcs8Len + 20, checksum, 0))
                 throw new IOException("cannot recover key");
 
-            return PrivateKeyFactory.CreateKey(pkcs8Key);
+            try
+            {
+                return PrivateKeyFactory.CreateKey(pkcs8Key);
+            }
+            finally
+            {
+                Array.Clear(pkcs8Key, 0, pkcs8Key.Length);
+            }
 #endif
         }
 
@@ -101,10 +104,11 @@ namespace Org.BouncyCastle.Security
             if (!m_keyEntries.TryGetValue(alias, out JksKeyEntry keyEntry))
                 return null;
 
-            if (!JksObfuscationAlg.Equals(keyEntry.keyData.EncryptionAlgorithm))
+            var epki = keyEntry.keyInfo;
+            if (!JksObfuscationAlg.Equals(epki.EncryptionAlgorithm))
                 throw new IOException("unknown encryption algorithm");
 
-            byte[] encryptedData = keyEntry.keyData.GetEncryptedData();
+            byte[] encryptedData = epki.GetEncryptedData();
 
             // key length is encryptedData - salt - checksum
             int pkcs8Len = encryptedData.Length - 40;
@@ -112,13 +116,8 @@ namespace Org.BouncyCastle.Security
             IDigest digest = DigestUtilities.GetDigest("SHA-1");
 
             // key decryption
-            byte[] keyStream = CalculateKeyStream(digest, password, encryptedData, pkcs8Len);
-            byte[] pkcs8Key = new byte[pkcs8Len];
-            for (int i = 0; i < pkcs8Len; ++i)
-            {
-                pkcs8Key[i] = (byte)(encryptedData[20 + i] ^ keyStream[i]);
-            }
-            Array.Clear(keyStream, 0, keyStream.Length);
+            byte[] pkcs8Key = CalculateKeyStream(digest, password, encryptedData, pkcs8Len);
+            Bytes.XorTo(pkcs8Len, encryptedData, 20, pkcs8Key, 0);
 
             // integrity check
             byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
@@ -126,7 +125,14 @@ namespace Org.BouncyCastle.Security
             if (!Arrays.FixedTimeEquals(20, encryptedData, pkcs8Len + 20, checksum, 0))
                 throw new IOException("cannot recover key");
 
-            return PrivateKeyFactory.CreateKey(pkcs8Key);
+            try
+            {
+                return PrivateKeyFactory.CreateKey(pkcs8Key);
+            }
+            finally
+            {
+                Array.Clear(pkcs8Key, 0, pkcs8Key.Length);
+            }
         }
 #endif
 
@@ -248,20 +254,20 @@ namespace Org.BouncyCastle.Security
 
             IDigest digest = DigestUtilities.GetDigest("SHA-1");
 
+            // integrity protection
             byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
             Array.Copy(checksum, 0, protectedKey, 20 + pkcs8Key.Length, 20);
 
+            // key encryption
             byte[] keyStream = CalculateKeyStream(digest, password, protectedKey, pkcs8Key.Length);
-            for (int i = 0; i != keyStream.Length; i++)
-            {
-                protectedKey[20 + i] = (byte)(pkcs8Key[i] ^ keyStream[i]);
-            }
+            Bytes.Xor(pkcs8Key.Length, pkcs8Key, 0, keyStream, 0, protectedKey, 20);
             Array.Clear(keyStream, 0, keyStream.Length);
 
             try
             {
-                var epki = new EncryptedPrivateKeyInfo(JksObfuscationAlg, protectedKey);
-                m_keyEntries.Add(alias, new JksKeyEntry(DateTime.UtcNow, epki.GetEncoded(), CloneChain(chain)));
+                var encryptedData = DerOctetString.WithContents(protectedKey);
+                var epki = new EncryptedPrivateKeyInfo(JksObfuscationAlg, encryptedData);
+                m_keyEntries.Add(alias, new JksKeyEntry(DateTime.UtcNow, epki, CloneChain(chain)));
             }
             catch (Exception e)
             {
@@ -288,20 +294,20 @@ namespace Org.BouncyCastle.Security
 
             IDigest digest = DigestUtilities.GetDigest("SHA-1");
 
+            // integrity protection
             byte[] checksum = GetKeyChecksum(digest, password, pkcs8Key);
             Array.Copy(checksum, 0, protectedKey, 20 + pkcs8Key.Length, 20);
 
+            // key encryption
             byte[] keyStream = CalculateKeyStream(digest, password, protectedKey, pkcs8Key.Length);
-            for (int i = 0; i != keyStream.Length; i++)
-            {
-                protectedKey[20 + i] = (byte)(pkcs8Key[i] ^ keyStream[i]);
-            }
+            Bytes.Xor(pkcs8Key.Length, pkcs8Key, 0, keyStream, 0, protectedKey, 20);
             Array.Clear(keyStream, 0, keyStream.Length);
 
             try
             {
-                var epki = new EncryptedPrivateKeyInfo(JksObfuscationAlg, protectedKey);
-                m_keyEntries.Add(alias, new JksKeyEntry(DateTime.UtcNow, epki.GetEncoded(), CloneChain(chain)));
+                var encryptedData = DerOctetString.WithContents(protectedKey);
+                var epki = new EncryptedPrivateKeyInfo(JksObfuscationAlg, encryptedData);
+                m_keyEntries.Add(alias, new JksKeyEntry(DateTime.UtcNow, epki, CloneChain(chain)));
             }
             catch (Exception e)
             {
@@ -428,7 +434,7 @@ namespace Org.BouncyCastle.Security
                 BinaryWriters.WriteInt32BigEndian(bw, 1);
                 WriteUtf(bw, alias);
                 WriteDateTime(bw, keyEntry.date);
-                WriteBufferWithInt32Length(bw, keyEntry.keyData.GetEncoded());
+                WriteBufferWithInt32Length(bw, keyEntry.keyInfo.GetEncoded());
 
                 X509Certificate[] chain = keyEntry.chain;
                 int chainLength = chain == null ? 0 : chain.Length;
@@ -803,12 +809,6 @@ namespace Org.BouncyCastle.Security
             return Encoding.UTF8.GetString(utfBytes.ToArray());
         }
 
-        private static void WriteBufferWithInt16Length(BinaryWriter bw, byte[] buffer)
-        {
-            BinaryWriters.WriteInt16BigEndian(bw, Convert.ToInt16(buffer.Length));
-            bw.Write(buffer);
-        }
-
         private static void WriteBufferWithInt32Length(BinaryWriter bw, byte[] buffer)
         {
             BinaryWriters.WriteInt32BigEndian(bw, buffer.Length);
@@ -824,7 +824,7 @@ namespace Org.BouncyCastle.Security
         private static void WriteTypedCertificate(BinaryWriter bw, X509Certificate cert)
         {
             WriteUtf(bw, "X.509");
-            WriteBufferWithInt32Length(bw, cert.GetEncoded());
+            WriteBufferWithInt32Length(bw, cert.GetEncodedInternal());
         }
 
         private static void WriteUtf(BinaryWriter bw, string s)
@@ -887,7 +887,11 @@ namespace Org.BouncyCastle.Security
                 }
             }
 
-            WriteBufferWithInt16Length(bw, mUtfBytes.ToArray());
+            byte[] buffer = mUtfBytes.GetBuffer();
+            short length = Convert.ToInt16(mUtfBytes.Length);
+
+            BinaryWriters.WriteInt16BigEndian(bw, length);
+            bw.Write(buffer, 0, length);
         }
 
         /**
@@ -908,13 +912,18 @@ namespace Org.BouncyCastle.Security
         private sealed class JksKeyEntry
         {
             internal readonly DateTime date;
-            internal readonly EncryptedPrivateKeyInfo keyData;
+            internal readonly EncryptedPrivateKeyInfo keyInfo;
             internal readonly X509Certificate[] chain;
 
-            internal JksKeyEntry(DateTime date, byte[] keyData, X509Certificate[] chain)
+            internal JksKeyEntry(DateTime date, byte[] keyInfoEncoding, X509Certificate[] chain)
+                : this(date, EncryptedPrivateKeyInfo.GetInstance(keyInfoEncoding), chain)
+            {
+            }
+
+            internal JksKeyEntry(DateTime date, EncryptedPrivateKeyInfo keyInfo, X509Certificate[] chain)
             {
                 this.date = date;
-                this.keyData = EncryptedPrivateKeyInfo.GetInstance(Asn1Sequence.GetInstance(keyData));
+                this.keyInfo = keyInfo;
                 this.chain = chain;
             }
         }

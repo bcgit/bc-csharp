@@ -90,6 +90,9 @@ namespace Org.BouncyCastle.Tsp
 		*/
 		public void Validate(IList<string> algorithms, IList<string> policies, IList<string> extensions)
 		{
+            if (algorithms == null)
+                throw new TspValidationException("no algorithms associated with request", PkiFailureInfo.BadAlg);
+
 			if (!algorithms.Contains(this.MessageImprintAlgOid))
 				throw new TspValidationException("request contains unknown algorithm", PkiFailureInfo.BadAlg);
 

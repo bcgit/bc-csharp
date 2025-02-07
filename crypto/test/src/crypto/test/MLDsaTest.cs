@@ -197,8 +197,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] sk = Hex.Decode(data["sk"]);
             byte[] sm = Hex.Decode(data["sm"]);
 
-            byte[] context = null;
-            if (data.TryGetValue("context", out var contextValue))
+            string contextValue = data["context"];
+            byte[] context;
+            if (string.Equals("none", contextValue, StringComparison.OrdinalIgnoreCase))
+            {
+                context = null;
+            }
+            else if (string.Equals("zero_length", contextValue, StringComparison.OrdinalIgnoreCase))
+            {
+                context = Array.Empty<byte>();
+            }
+            else
             {
                 context = Hex.Decode(contextValue);
             }

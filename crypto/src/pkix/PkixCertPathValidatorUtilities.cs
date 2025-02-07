@@ -471,25 +471,9 @@ namespace Org.BouncyCastle.Pkix
 			return validPolicyTree;
 		}
 
-		internal static void GetCertStatus(
-			DateTime validDate,
-			X509Crl crl,
-			object cert,
-			CertStatus certStatus)
+		internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CertStatus certStatus)
 		{
-			X509Crl bcCRL;
-
-			try
-			{
-				bcCRL = new X509Crl(CertificateList.GetInstance((Asn1Sequence)Asn1Sequence.FromByteArray(crl.GetEncoded())));
-			}
-			catch (Exception exception)
-			{
-				throw new Exception("X509Crl could not be created.", exception);
-			}
-
-			X509CrlEntry crl_entry = (X509CrlEntry)bcCRL.GetRevokedCertificate(GetSerialNumber(cert));
-
+			X509CrlEntry crl_entry = crl.GetRevokedCertificate(GetSerialNumber(cert));
 			if (crl_entry == null)
 				return;
 
@@ -765,7 +749,7 @@ namespace Org.BouncyCastle.Pkix
 		 *
 		 * @param dp The distribution point for which the complete CRL
 		 * @param cert The <code>X509Certificate</code> or
-		 *            {@link org.bouncycastle.x509.X509AttributeCertificate} for
+		 *            {@link Org.BouncyCastle.X509.X509AttributeCertificate} for
 		 *            which the CRL should be searched.
 		 * @param currentDate The date for which the delta CRLs must be valid.
 		 * @param paramsPKIX The extended PKIX parameters.

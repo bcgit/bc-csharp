@@ -326,6 +326,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        public int Count => m_ordering.Count;
+
 		/**
 		 * return an Enumeration of the extension field's object ids.
 		 */
@@ -383,6 +385,30 @@ namespace Org.BouncyCastle.Asn1.X509
 			return new DerSequence(v);
         }
 
+        internal Asn1Sequence ToAsn1ObjectTrimmed()
+        {
+            int count = m_ordering.Count - (m_extensions.ContainsKey(AltSignatureValue) ? 1 : 0);
+
+            Asn1EncodableVector v = new Asn1EncodableVector(count);
+
+            foreach (DerObjectIdentifier oid in m_ordering)
+            {
+                if (AltSignatureValue.Equals(oid))
+                    continue;
+
+                X509Extension ext = m_extensions[oid];
+                if (ext.IsCritical)
+                {
+                    v.Add(new DerSequence(oid, DerBoolean.True, ext.Value));
+                }
+                else
+                {
+                    v.Add(new DerSequence(oid, ext.Value));
+                }
+            }
+
+            return new DerSequence(v);
+        }
 		public bool Equivalent(X509Extensions other)
 		{
 			if (m_extensions.Count != other.m_extensions.Count)

@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 	*       }
 	* </pre>
 	* 
-	* @see org.bouncycastle.asn1.x509.sigi.PersonalData
+	* @see Org.BouncyCastle.Asn1.X509.sigi.PersonalData
 	* 
 	*/
 	public class NameOrPseudonym

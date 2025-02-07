@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Pkcs;
@@ -580,6 +581,40 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CheckSignerStoreReplacement(s, signers);
         }
+
+		[Test]
+		public void TestWithDefiniteLength()
+		{
+			byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
+            CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
+
+            var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+
+			var signatureFactory = new Asn1SignatureFactory("SHA1withRSA", OrigKP.Private);
+			var signerInfoGenerator = new SignerInfoGeneratorBuilder()
+                .SetDirectSignature(true)
+                .Build(signatureFactory, OrigCert);
+
+            gen.AddSignerInfoGenerator(signerInfoGenerator);
+
+			gen.AddCertificates(x509Certs);
+
+            gen.UseDefiniteLength = true;
+
+			CmsSignedData s = gen.Generate(msg, false);
+
+			Assert.True(s.ContentInfo.ToAsn1Object().GetType() == typeof(DLSequence));
+
+			Asn1Encodable content = s.ContentInfo.Content;
+			Assert.True(content is SignedData);
+			Assert.True(content.ToAsn1Object().GetType() == typeof(DLSequence));
+
+			byte[] expectedContentDigest = DigestUtilities.CalculateDigest("SHA1", msgBytes);
+
+			VerifySignatures(s, expectedContentDigest);
+		}
 
         // NB: C# build doesn't support "no attributes" version of CmsSignedDataGenerator.Generate
         //[Test]
@@ -1494,6 +1529,64 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestSignerInfoGenCopyConstructor()
+		{
+            /*
+			 * NOTE: The point of this test in bc-java is to check that the SignerInfoGenerator "copy constructor"
+			 * actually copies everything into the new object (in particular the certificate was being missed).
+			 * bc-csharp only has the NewBuilder() method; the signatureFactory and certificate can't be included in the
+			 * builder since they are only arguments to the final Build call. Probably the way the builder works should
+			 * be overhauled so that Build() has no parameters, and everything from a SignerInfoGenerator can be copied
+			 * into it via a BuildCopy() method.
+			 */
+
+            var sha256Signer = new Asn1SignatureFactory("SHA256withRSA", OrigKP.Private);
+
+			SignerInfoGenerator signerInfoGen = new SignerInfoGeneratorBuilder().Build(sha256Signer, OrigCert);
+
+			var signedAttrGen = new MyGenerator(signerInfoGen.SignedAttributeTableGenerator, signerInfoGen.Certificate);
+
+			SignerInfoGenerator newSignerInfoGen = signerInfoGen.NewBuilder()
+				.WithSignedAttributeGenerator(signedAttrGen)
+				.Build(signerInfoGen.SignatureFactory, signerInfoGen.Certificate);
+
+			Assert.AreSame(newSignerInfoGen.Certificate, signerInfoGen.Certificate);
+			Assert.AreSame(newSignerInfoGen.UnsignedAttributeTableGenerator, signerInfoGen.UnsignedAttributeTableGenerator);
+            Assert.AreSame(newSignerInfoGen.SignedAttributeTableGenerator, signedAttrGen);
+        }
+
+        // TODO There seems to be something reusable here; similar producers of IdAASigningCertificate(V2) elsewhere
+        private class MyGenerator
+            : CmsAttributeTableGenerator
+        {
+			private readonly CmsAttributeTableGenerator m_inner;
+			private readonly X509Certificate m_certificate;
+
+            internal MyGenerator(CmsAttributeTableGenerator inner, X509Certificate certificate)
+			{
+				m_inner = inner ?? throw new ArgumentNullException(nameof(inner));
+                m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+            }
+
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
+            {
+                Asn1.Cms.AttributeTable table = m_inner.GetAttributes(parameters);
+
+				if (table[Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2] != null)
+					return table;
+
+                byte[] certHash256 = DigestUtilities.CalculateDigest("SHA256", m_certificate.GetEncoded());
+
+                var c = m_certificate.CertificateStructure;
+                var essCertIDv2 = new EssCertIDv2(certHash256,
+                    new Asn1.X509.IssuerSerial(c.Issuer, c.SerialNumber));
+				var signingCertificateV2 = new SigningCertificateV2(essCertIDv2);
+
+				return table.Add(Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2, signingCertificateV2);
+			}
+        }
+
+        [Test]
 		public void TestMsPkcs7()
 		{
 			var data = GetInput("Pkcs7SignedContent.p7b");

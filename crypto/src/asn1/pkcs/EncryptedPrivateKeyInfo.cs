@@ -35,11 +35,20 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_encryptedData = Asn1OctetString.GetInstance(seq[1]);
         }
 
+        // TODO[api] Change parameter names to match fields
         public EncryptedPrivateKeyInfo(AlgorithmIdentifier algId, byte[] encoding)
         {
             m_encryptionAlgorithm = algId ?? throw new ArgumentNullException(nameof(algId));
             m_encryptedData = DerOctetString.FromContents(encoding);
         }
+
+        public EncryptedPrivateKeyInfo(AlgorithmIdentifier encryptionAlgorithm, Asn1OctetString encryptedData)
+        {
+            m_encryptionAlgorithm = encryptionAlgorithm ?? throw new ArgumentNullException(nameof(encryptionAlgorithm));
+            m_encryptedData = encryptedData ?? throw new ArgumentNullException(nameof(encryptedData));
+        }
+
+        public Asn1OctetString EncryptedData => m_encryptedData;
 
         public AlgorithmIdentifier EncryptionAlgorithm => m_encryptionAlgorithm;
 

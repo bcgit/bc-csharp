@@ -62,11 +62,11 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
 
             // No support for thread-local override in C# version
-            //IsTrue(!Properties.SetThreadOverride("org.bouncycastle.asn1.allow_unsafe_integer", true));
+            //IsTrue(!Properties.SetThreadOverride("Org.BouncyCastle.Asn1.Allow_Unsafe_Integer", true));
 
             //new DerInteger(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b"));
 
-            //IsTrue(Properties.RemoveThreadOverride("org.bouncycastle.asn1.allow_unsafe_integer"));
+            //IsTrue(Properties.RemoveThreadOverride("Org.BouncyCastle.Asn1.Allow_Unsafe_Integer"));
 
             try
             {

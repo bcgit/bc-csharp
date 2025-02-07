@@ -39,50 +39,45 @@ namespace Org.BouncyCastle.Cms
 		protected readonly Asn1Set signedAttributeSet;
 		protected readonly Asn1Set unsignedAttributeSet;
 
-		internal SignerInformation(
-			SignerInfo			info,
-			DerObjectIdentifier	contentType,
-			CmsProcessable		content,
-			byte[]				calculatedDigest)
-		{
-			this.info = info;
-			this.sid = new SignerID();
-			this.contentType = contentType;
-			this.isCounterSignature = contentType == null;
+        internal SignerInformation(SignerInfo info, DerObjectIdentifier contentType, CmsProcessable content,
+            byte[] calculatedDigest)
+        {
+            this.info = info;
+            this.sid = new SignerID();
+            this.contentType = contentType;
+            this.isCounterSignature = contentType == null;
 
-			try
-			{
-				SignerIdentifier s = info.SignerID;
+            try
+            {
+                SignerIdentifier s = info.SignerID;
 
-				if (s.IsTagged)
-				{
-					Asn1OctetString octs = Asn1OctetString.GetInstance(s.ID);
+                if (s.IsTagged)
+                {
+                    var subjectKeyIdentifier = (Asn1OctetString)s.ID;
 
-					sid.SubjectKeyIdentifier = octs.GetEncoded(Asn1Encodable.Der);
-				}
-				else
-				{
-					Asn1.Cms.IssuerAndSerialNumber iAnds =
-						Asn1.Cms.IssuerAndSerialNumber.GetInstance(s.ID);
+                    sid.SubjectKeyIdentifier = subjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
+                }
+                else
+                {
+                    var issuerAndSerialNumber = Asn1.Cms.IssuerAndSerialNumber.GetInstance(s.ID);
 
-					sid.Issuer = iAnds.Name;
-					sid.SerialNumber = iAnds.SerialNumber.Value;
-				}
-			}
-			catch (IOException)
-			{
-				throw new ArgumentException("invalid sid in SignerInfo");
-			}
+                    sid.Issuer = issuerAndSerialNumber.Issuer;
+                    sid.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
+                }
+            }
+            catch (IOException)
+            {
+                throw new ArgumentException("invalid sid in SignerInfo");
+            }
 
-			this.digestAlgorithm = info.DigestAlgorithm;
-			this.signedAttributeSet = info.AuthenticatedAttributes;
-			this.unsignedAttributeSet = info.UnauthenticatedAttributes;
-			this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
-			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
+            this.digestAlgorithm = info.DigestAlgorithm;
+            this.signedAttributeSet = info.AuthenticatedAttributes;
+            this.unsignedAttributeSet = info.UnauthenticatedAttributes;
+            this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
+            this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
 
-			this.content = content;
-			this.calculatedDigest = calculatedDigest;
-
+            this.content = content;
+            this.calculatedDigest = calculatedDigest;
         }
 
         /**
@@ -104,7 +99,7 @@ namespace Org.BouncyCastle.Cms
             this.unsignedAttributeSet = info.UnauthenticatedAttributes;
             this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
 			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
-			
+
 			this.calculatedDigest = baseInfo.calculatedDigest;
             this.signedAttributeTable = baseInfo.signedAttributeTable;
             this.unsignedAttributeTable = baseInfo.unsignedAttributeTable;
@@ -141,23 +136,12 @@ namespace Org.BouncyCastle.Cms
 		/**
 		* return the object identifier for the signature.
 		*/
-		public string DigestAlgOid
-		{
-            get { return digestAlgorithm.Algorithm.Id; }
-		}
+        public string DigestAlgOid => digestAlgorithm.Algorithm.GetID();
 
 		/**
 		* return the signature parameters, or null if there aren't any.
 		*/
-		public Asn1Object DigestAlgParams
-		{
-			get
-			{
-				Asn1Encodable ae = digestAlgorithm.Parameters;
-
-				return ae == null ? null : ae.ToAsn1Object();
-			}
-		}
+        public Asn1Object DigestAlgParams => digestAlgorithm.Parameters?.ToAsn1Object();
 
 		/**
 		 * return the content digest that was calculated during verification.
@@ -165,9 +149,7 @@ namespace Org.BouncyCastle.Cms
 		public byte[] GetContentDigest()
 		{
 			if (resultDigest == null)
-			{
 				throw new InvalidOperationException("method can only be called after verify.");
-			}
 
 			return (byte[])resultDigest.Clone();
 		}
@@ -189,15 +171,7 @@ namespace Org.BouncyCastle.Cms
 		* return the signature/encryption algorithm parameters, or null if
 		* there aren't any.
 		*/
-		public Asn1Object EncryptionAlgParams
-		{
-			get
-			{
-				Asn1Encodable ae = encryptionAlgorithm.Parameters;
-
-				return ae == null ? null : ae.ToAsn1Object();
-			}
-		}
+        public Asn1Object EncryptionAlgParams => encryptionAlgorithm.Parameters?.ToAsn1Object();
 
 		/**
 		* return a table of the signed attributes - indexed by
@@ -234,10 +208,7 @@ namespace Org.BouncyCastle.Cms
 		/**
 		* return the encoded signature
 		*/
-		public byte[] GetSignature()
-		{
-			return (byte[]) signature.Clone();
-		}
+        public byte[] GetSignature() => (byte[])signature.Clone();
 
 		/**
 		* Return a SignerInformationStore containing the counter signatures attached to this
@@ -254,9 +225,7 @@ namespace Org.BouncyCastle.Cms
 			*/
 			Asn1.Cms.AttributeTable unsignedAttributeTable = UnsignedAttributes;
 			if (unsignedAttributeTable == null)
-			{
                 return new SignerInformationStore(new List<SignerInformation>(0));
-			}
 
             var counterSignatures = new List<SignerInformation>();
 
@@ -280,7 +249,7 @@ namespace Org.BouncyCastle.Cms
 					// TODO Throw an appropriate exception?
 				}
 
-				foreach (Asn1Encodable asn1Obj in values)
+				foreach (Asn1Encodable element in values)
 				{
 					/*
 					Countersignature values have the same meaning as SignerInfo values
@@ -296,13 +265,11 @@ namespace Org.BouncyCastle.Cms
 					      octets of the DER encoding of the signatureValue field of the
 					      SignerInfo value with which the attribute is associated.
 					*/
-					SignerInfo si = SignerInfo.GetInstance(asn1Obj.ToAsn1Object());
+					SignerInfo signerInfo = SignerInfo.GetInstance(element);
 
-                    string digestName = CmsSignedHelper.GetDigestAlgName(si.DigestAlgorithm.Algorithm);
-                    IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
-                    byte[] hash = DigestUtilities.DoFinal(digest, GetSignature());
+					byte[] hash = DigestUtilities.CalculateDigest(signerInfo.DigestAlgorithm.Algorithm, signature);
 
-					counterSignatures.Add(new SignerInformation(si, null, null, hash));
+					counterSignatures.Add(new SignerInformation(signerInfo, null, null, hash));
 				}
 			}
 
@@ -320,15 +287,16 @@ namespace Org.BouncyCastle.Cms
 
 		private bool DoVerify(AsymmetricKeyParameter publicKey)
 		{
-			DerObjectIdentifier sigAlgOid = this.encryptionAlgorithm.Algorithm;
-			Asn1Encodable sigParams = this.encryptionAlgorithm.Parameters;
-			string digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
+			var sigAlgID = this.encryptionAlgorithm;
+			var sigAlgOid = sigAlgID.Algorithm;
+			var sigAlgParams = sigAlgID.Parameters;
 
-			if (digestName.Equals(sigAlgOid.Id))
+			string digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
+			if (digestName.Equals(sigAlgOid.GetID()))
 			{
 				digestName = CmsSignedHelper.GetDigestAlgName(digestAlgorithm.Algorithm);
 			}
-			
+
 			IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
 			ISigner sig;
 
@@ -337,7 +305,7 @@ namespace Org.BouncyCastle.Cms
 				// RFC 4056 2.2
 				// When the id-RSASSA-PSS algorithm identifier is used for a signature,
 				// the AlgorithmIdentifier parameters field MUST contain RSASSA-PSS-params.
-				if (sigParams == null)
+				if (sigAlgParams == null)
 					throw new CmsException("RSASSA-PSS signature must specify algorithm parameters");
 
 				try
@@ -345,8 +313,7 @@ namespace Org.BouncyCastle.Cms
 					// TODO Provide abstract configuration mechanism
 					// (via alternate SignerUtilities.GetSigner method taking ASN.1 params)
 
-					Asn1.Pkcs.RsassaPssParameters pss = Asn1.Pkcs.RsassaPssParameters.GetInstance(
-						sigParams.ToAsn1Object());
+					Asn1.Pkcs.RsassaPssParameters pss = Asn1.Pkcs.RsassaPssParameters.GetInstance(sigAlgParams);
 
                     if (!pss.HashAlgorithm.Algorithm.Equals(this.digestAlgorithm.Algorithm))
 						throw new CmsException("RSASSA-PSS signature parameters specified incorrect hash algorithm");
@@ -495,7 +462,7 @@ namespace Org.BouncyCastle.Cms
 						else
 						{
 							// need to decrypt signature and check message bytes
-							return VerifyDigest(resultDigest, publicKey, GetSignature());
+							return VerifyDigest(resultDigest, publicKey, signature);
 						}
 					}
 					else if (content != null)
@@ -517,7 +484,7 @@ namespace Org.BouncyCastle.Cms
 					sig.BlockUpdate(tmp, 0, tmp.Length);
 				}
 
-				return sig.VerifySignature(this.GetSignature());
+				return sig.VerifySignature(signature);
 			}
 			catch (InvalidKeyException e)
 			{
@@ -533,28 +500,17 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		private bool IsNull(
-			Asn1Encodable o)
-		{
-			return (o is Asn1Null) || (o == null);
-		}
-
-		private DigestInfo DerDecode(
-			byte[] encoding)
+		private DigestInfo DerDecode(byte[] encoding)
 		{
 			if (encoding[0] != (int)(Asn1Tags.Constructed | Asn1Tags.Sequence))
-			{
 				throw new IOException("not a digest info object");
-			}
 
-			DigestInfo digInfo = DigestInfo.GetInstance(Asn1Object.FromByteArray(encoding));
+			DigestInfo digInfo = DigestInfo.GetInstance(encoding);
 
 			// length check to avoid Bleichenbacher vulnerability
 
 			if (digInfo.GetEncoded().Length != encoding.Length)
-			{
 				throw new CmsException("malformed RSA signature");
-			}
 
 			return digInfo;
 		}
@@ -575,15 +531,13 @@ namespace Org.BouncyCastle.Cms
 
 					DigestInfo digInfo = DerDecode(decrypt);
 
-                    if (!digInfo.DigestAlgorithm.Algorithm.Equals(digestAlgorithm.Algorithm))
-					{
-						return false;
-					}
+					var digAlgID = digInfo.DigestAlgorithm;
 
-					if (!IsNull(digInfo.DigestAlgorithm.Parameters))
-					{
+                    if (!digAlgID.Algorithm.Equals(digestAlgorithm.Algorithm))
 						return false;
-					}
+
+					if (!X509Utilities.HasAbsentParameters(digAlgID))
+						return false;
 
 					byte[] sigHash = digInfo.GetDigest();
 
@@ -622,11 +576,10 @@ namespace Org.BouncyCastle.Cms
 		* verify that the given public key successfully handles and confirms the
 		* signature associated with this signer.
 		*/
-		public bool Verify(
-			AsymmetricKeyParameter pubKey)
+		public bool Verify(AsymmetricKeyParameter pubKey)
 		{
 			if (pubKey.IsPrivate)
-				throw new ArgumentException("Expected public key", "pubKey");
+				throw new ArgumentException("Expected public key", nameof(pubKey));
 
 			// Optional, but still need to validate if present
 			GetSigningTime();
@@ -640,8 +593,7 @@ namespace Org.BouncyCastle.Cms
 		* attribute is available, that the certificate was valid at the time the
 		* signature was generated.
 		*/
-		public bool Verify(
-			X509Certificate cert)
+		public bool Verify(X509Certificate cert)
 		{
 			Asn1.Cms.Time signingTime = GetSigningTime();
 			if (signingTime != null)
@@ -662,13 +614,11 @@ namespace Org.BouncyCastle.Cms
 			return info;
 		}
 
-		private Asn1Object GetSingleValuedSignedAttribute(
-			DerObjectIdentifier attrOID, string printableName)
+		private Asn1Object GetSingleValuedSignedAttribute(DerObjectIdentifier attrOid, string printableName)
 		{
-
 			Asn1.Cms.AttributeTable unsignedAttrTable = this.UnsignedAttributes;
 			if (unsignedAttrTable != null
-				&& unsignedAttrTable.GetAll(attrOID).Count > 0)
+				&& unsignedAttrTable.GetAll(attrOid).Count > 0)
 			{
 				throw new CmsException("The " + printableName
 					+ " attribute MUST NOT be an unsigned attribute");
@@ -676,27 +626,25 @@ namespace Org.BouncyCastle.Cms
 
 			Asn1.Cms.AttributeTable signedAttrTable = this.SignedAttributes;
 			if (signedAttrTable == null)
-			{
 				return null;
-			}
 
-			Asn1EncodableVector v = signedAttrTable.GetAll(attrOID);
+			Asn1EncodableVector v = signedAttrTable.GetAll(attrOid);
 			switch (v.Count)
 			{
-				case 0:
-					return null;
-				case 1:
-					Asn1.Cms.Attribute t = (Asn1.Cms.Attribute) v[0];
-					Asn1Set attrValues = t.AttrValues;
+			case 0:
+				return null;
+			case 1:
+				Asn1.Cms.Attribute t = (Asn1.Cms.Attribute)v[0];
+				Asn1Set attrValues = t.AttrValues;
 
-					if (attrValues.Count != 1)
-						throw new CmsException("A " + printableName
-							+ " attribute MUST have a single attribute value");
+				if (attrValues.Count != 1)
+					throw new CmsException("A " + printableName
+						+ " attribute MUST have a single attribute value");
 
-					return attrValues[0].ToAsn1Object();
-				default:
-					throw new CmsException("The SignedAttributes in a signerInfo MUST NOT include multiple instances of the "
-						+ printableName + " attribute");
+				return attrValues[0].ToAsn1Object();
+			default:
+				throw new CmsException("The SignedAttributes in a signerInfo MUST NOT include multiple instances of the "
+					+ printableName + " attribute");
 			}
 		}
 
@@ -727,11 +675,10 @@ namespace Org.BouncyCastle.Cms
 		* @param unsignedAttributes the unsigned attributes to add.
 		* @return a copy of the original SignerInformationObject with the changed attributes.
 		*/
-		public static SignerInformation ReplaceUnsignedAttributes(
-			SignerInformation		signerInformation,
-			Asn1.Cms.AttributeTable	unsignedAttributes)
-		{
-			SignerInfo sInfo = signerInformation.info;
+        public static SignerInformation ReplaceUnsignedAttributes(SignerInformation signerInformation,
+            Asn1.Cms.AttributeTable unsignedAttributes)
+        {
+            SignerInfo sInfo = signerInformation.info;
 			Asn1Set unsignedAttr = null;
 
 			if (unsignedAttributes != null)
@@ -760,11 +707,10 @@ namespace Org.BouncyCastle.Cms
 		 * @param counterSigners signer info objects carrying counter signature.
 		 * @return a copy of the original SignerInformationObject with the changed attributes.
 		 */
-		public static SignerInformation AddCounterSigners(
-			SignerInformation		signerInformation,
-			SignerInformationStore	counterSigners)
-		{
-			// TODO Perform checks from RFC 3852 11.4
+        public static SignerInformation AddCounterSigners(SignerInformation signerInformation,
+            SignerInformationStore counterSigners)
+        {
+            // TODO Perform checks from RFC 3852 11.4
 
 			SignerInfo sInfo = signerInformation.info;
 			Asn1.Cms.AttributeTable unsignedAttr = signerInformation.UnsignedAttributes;

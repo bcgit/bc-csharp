@@ -7,12 +7,13 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-    /**
-     * Password hashing scheme BCrypt,
-     * designed by Niels Provos and David Mazières, using the
-     * String format and the Base64 encoding
-     * of the reference implementation on OpenBSD
-     */
+    /// <summary>Password hashing scheme BCrypt.</summary>
+    /// <remarks>
+    /// Designed by Niels Provos and David Mazières, using the string format and the Base64 encoding of the reference
+    /// implementation in OpenBSD. Passwords are encoded using UTF-8 when provided as char[]. Encoded passwords longer than
+    /// 72 bytes are truncated and all remaining bytes are ignored.
+    /// </remarks>
+    // TODO[api] Make static
     public class OpenBsdBCrypt
     {
         private static readonly byte[] EncodingTable = // the Bcrypts encoding table for OpenBSD
@@ -44,10 +45,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             AllowedVersions.Add("2y");
             AllowedVersions.Add("2b");
 
-            for (int i = 0; i < DecodingTable.Length; i++)
-            {
-                DecodingTable[i] = (byte)0xff;
-            }
+            Arrays.Fill(DecodingTable, 0xFF);
 
             for (int i = 0; i < EncodingTable.Length; i++)
             {
@@ -74,18 +72,16 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (!AllowedVersions.Contains(version))
                 throw new ArgumentException("Version " + version + " is not accepted by this implementation.", "version");
 
+            byte[] key = BCrypt.Generate(password, salt, cost);
+
             StringBuilder sb = new StringBuilder(60);
             sb.Append('$');
             sb.Append(version);
             sb.Append('$');
             sb.Append(cost < 10 ? ("0" + cost) : cost.ToString());
             sb.Append('$');
-            sb.Append(EncodeData(salt));
-
-            byte[] key = BCrypt.Generate(password, salt, cost);
-
-            sb.Append(EncodeData(key));
-
+            EncodeData(sb, salt);
+            EncodeData(sb, key);
             return sb.ToString();
         }
 
@@ -99,10 +95,8 @@ namespace Org.BouncyCastle.Crypto.Generators
          * @param password the password
          * @return a 60 character Bcrypt String
          */
-        public static string Generate(char[] password, byte[] salt, int cost)
-        {
-            return Generate(DefaultVersion, password, salt, cost);
-        }
+        public static string Generate(char[] password, byte[] salt, int cost) =>
+            Generate(DefaultVersion, password, salt, cost);
 
         /**
          * Creates a 60 character Bcrypt String, including
@@ -117,31 +111,27 @@ namespace Org.BouncyCastle.Crypto.Generators
         public static string Generate(string version, char[] password, byte[] salt, int cost)
         {
             if (!AllowedVersions.Contains(version))
-                throw new ArgumentException("Version " + version + " is not accepted by this implementation.", "version");
+                throw new ArgumentException($"Version {version} is not accepted by this implementation.", nameof(version));
             if (password == null)
-                throw new ArgumentNullException("password");
+                throw new ArgumentNullException(nameof(password));
             if (salt == null)
-                throw new ArgumentNullException("salt");
+                throw new ArgumentNullException(nameof(salt));
             if (salt.Length != 16)
                 throw new DataLengthException("16 byte salt required: " + salt.Length);
 
             if (cost < 4 || cost > 31) // Minimum rounds: 16, maximum 2^31
-                throw new ArgumentException("Invalid cost factor.", "cost");
+                throw new ArgumentException("Invalid cost factor.", nameof(cost));
 
             byte[] psw = Strings.ToUtf8ByteArray(password);
 
             // 0 termination:
 
-            byte[] tmp = new byte[psw.Length >= 72 ? 72 : psw.Length + 1];
-            int copyLen = System.Math.Min(psw.Length, tmp.Length);
-            Array.Copy(psw, 0, tmp, 0, copyLen);
-
+            int tmpLen = System.Math.Min(72, psw.Length + 1);
+            byte[] tmp = Arrays.CopyOf(psw, tmpLen);
             Array.Clear(psw, 0, psw.Length);
 
             string rv = CreateBcryptString(version, tmp, salt, cost);
-
             Array.Clear(tmp, 0, tmp.Length);
-
             return rv;
         }
 
@@ -167,21 +157,19 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (!AllowedVersions.Contains(version))
                 throw new ArgumentException("Bcrypt version '" + version + "' is not supported by this implementation", "bcryptString");
 
-            int cost;
-            try
-            {
-                cost = int.Parse(bcryptString.Substring(4, 2));
-            }
-            catch (Exception nfe)
-            {
-                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), "bcryptString", nfe);
-            }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (!int.TryParse(bcryptString.AsSpan(4, 2), out int cost))
+#else
+            if (!int.TryParse(bcryptString.Substring(4, 2), out int cost))
+#endif
+                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), nameof(bcryptString));
+
             if (cost < 4 || cost > 31)
                 throw new ArgumentException("Invalid cost factor: " + cost + ", 4 < cost < 31 expected.");
 
             // check password:
             if (password == null)
-                throw new ArgumentNullException("Missing password.");
+                throw new ArgumentNullException("Missing password.", nameof(password));
 
             int start = bcryptString.LastIndexOf('$') + 1, end = bcryptString.Length - 31;
             byte[] salt = DecodeSaltString(bcryptString.Substring(start, end - start));
@@ -197,7 +185,7 @@ namespace Org.BouncyCastle.Crypto.Generators
          * @param 	a byte representation of the salt or the password
          * @return 	the Bcrypt base64 string
          */
-        private static string EncodeData(byte[] data)
+        private static void EncodeData(StringBuilder sb, byte[] data)
         {
             if (data.Length != 24 && data.Length != 16) // 192 bit key or 128 bit salt expected
                 throw new DataLengthException("Invalid length: " + data.Length + ", 24 for key or 16 for salt expected");
@@ -206,40 +194,36 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (data.Length == 16)//salt
             {
                 salt = true;
-                byte[] tmp = new byte[18];// zero padding
-                Array.Copy(data, 0, tmp, 0, data.Length);
-                data = tmp;
+                data = Arrays.CopyOf(data, 18); // zero padding
             }
             else // key
             {
-                data[data.Length - 1] = (byte)0;
+                data[data.Length - 1] = 0x00;
             }
 
             MemoryStream mOut = new MemoryStream();
-            int len = data.Length;
 
-            uint a1, a2, a3;
-            int i;
-            for (i = 0; i < len; i += 3)
+            for (int i = 0; i < data.Length; i += 3)
             {
-                a1 = data[i];
-                a2 = data[i + 1];
-                a3 = data[i + 2];
+                uint a1 = data[i];
+                uint a2 = data[i + 1];
+                uint a3 = data[i + 2];
 
-                mOut.WriteByte(EncodingTable[(a1 >> 2) & 0x3f]);
+                mOut.WriteByte(EncodingTable[a1 >> 2]);
                 mOut.WriteByte(EncodingTable[((a1 << 4) | (a2 >> 4)) & 0x3f]);
                 mOut.WriteByte(EncodingTable[((a2 << 2) | (a3 >> 6)) & 0x3f]);
                 mOut.WriteByte(EncodingTable[a3 & 0x3f]);
             }
 
-            string result = Strings.FromByteArray(mOut.ToArray());
+            byte[] buf = mOut.GetBuffer();
+            int len = Convert.ToInt32(mOut.Length);
+
             int resultLen = salt
                 ? 22  // truncate padding
-                : result.Length - 1;
+                : len - 1;
 
-            return result.Substring(0, resultLen);
+            Strings.AppendFromByteArray(sb, buf, 0, resultLen);
         }
-
 
         /*
          * decodes the bcrypt base 64 encoded SaltString
@@ -253,49 +237,42 @@ namespace Org.BouncyCastle.Crypto.Generators
          */
         private static byte[] DecodeSaltString(string saltString)
         {
-            char[] saltChars = saltString.ToCharArray();
+            if (saltString.Length != 22)// bcrypt salt must be 22 (16 bytes)
+                throw new DataLengthException("Invalid base64 salt length: " + saltString.Length + " , 22 required.");
 
-            MemoryStream mOut = new MemoryStream(16);
-            byte b1, b2, b3, b4;
-
-            if (saltChars.Length != 22)// bcrypt salt must be 22 (16 bytes)
-                throw new DataLengthException("Invalid base64 salt length: " + saltChars.Length + " , 22 required.");
+            // Padding: add two '\u0000'
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<char> saltChars = stackalloc char[24];
+            saltString.CopyTo(saltChars);
+#else
+            char[] saltChars = new char[24];
+            saltString.CopyTo(0, saltChars, 0, 22);
+#endif
 
             // check string for invalid characters:
-            for (int i = 0; i < saltChars.Length; i++)
+            for (int i = 0; i < 22; i++)
             {
-                int value = saltChars[i];
+                int value = Convert.ToInt32(saltChars[i]);
                 if (value > 122 || value < 46 || (value > 57 && value < 65))
                     throw new ArgumentException("Salt string contains invalid character: " + value, "saltString");
             }
 
-            // Padding: add two '\u0000'
-            char[] tmp = new char[22 + 2];
-            Array.Copy(saltChars, 0, tmp, 0, saltChars.Length);
-            saltChars = tmp;
+            MemoryStream mOut = new MemoryStream(16);
 
-            int len = saltChars.Length;
-
-            for (int i = 0; i < len; i += 4)
+            for (int i = 0; i < 24; i += 4)
             {
-                b1 = DecodingTable[saltChars[i]];
-                b2 = DecodingTable[saltChars[i + 1]];
-                b3 = DecodingTable[saltChars[i + 2]];
-                b4 = DecodingTable[saltChars[i + 3]];
+                byte b1 = DecodingTable[saltChars[i]];
+                byte b2 = DecodingTable[saltChars[i + 1]];
+                byte b3 = DecodingTable[saltChars[i + 2]];
+                byte b4 = DecodingTable[saltChars[i + 3]];
 
                 mOut.WriteByte((byte)((b1 << 2) | (b2 >> 4)));
                 mOut.WriteByte((byte)((b2 << 4) | (b3 >> 2)));
                 mOut.WriteByte((byte)((b3 << 6) | b4));
             }
 
-            byte[] saltBytes = mOut.ToArray();
-
-            // truncate:
-            byte[] tmpSalt = new byte[16];
-            Array.Copy(saltBytes, 0, tmpSalt, 0, tmpSalt.Length);
-            saltBytes = tmpSalt;
-
-            return saltBytes;
+            // truncate to 16 bytes:
+            return Arrays.CopyOf(mOut.GetBuffer(), 16);
         }
     }
 }

@@ -13,8 +13,8 @@ namespace Org.BouncyCastle.X509.Store
 	* This class is an <code>Selector</code> like implementation to select
 	* attribute certificates from a given set of criteria.
 	*
-	* @see org.bouncycastle.x509.X509AttributeCertificate
-	* @see org.bouncycastle.x509.X509Store
+	* @see Org.BouncyCastle.X509.X509AttributeCertificate
+	* @see Org.BouncyCastle.X509.X509Store
 	*/
 	public class X509AttrCertStoreSelector
 		: ISelector<X509V2AttributeCertificate>

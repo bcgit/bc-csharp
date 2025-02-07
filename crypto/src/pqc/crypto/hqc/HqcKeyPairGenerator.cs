@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         {
             HqcEngine engine = hqcKeyGenerationParameters.Parameters.Engine;
             byte[] pk = new byte[40 + N_BYTE];
-            byte[] sk = new byte[40 + 40 + N_BYTE];
+            byte[] sk = new byte[40 + 40 + k + N_BYTE];
 
             engine.GenKeyPair(pk, sk, seed);
 
