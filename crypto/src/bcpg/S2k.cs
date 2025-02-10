@@ -1,6 +1,7 @@
 using System;
 using System.IO;
-
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -15,73 +16,121 @@ namespace Org.BouncyCastle.Bcpg
         public const int Simple = 0;
         public const int Salted = 1;
         public const int SaltedAndIterated = 3;
+        public const int Argon2 = 4;
         public const int GnuDummyS2K = 101;
         public const int GnuProtectionModeNoPrivateKey = 1;
         public const int GnuProtectionModeDivertToCard = 2;
 
-        internal int type;
-        internal HashAlgorithmTag algorithm;
-        internal byte[] iv;
-        internal int itCount = -1;
-        internal int protectionMode = -1;
+        private readonly int type;
+        private readonly HashAlgorithmTag algorithm;
+        private readonly byte[] iv;
+        
+        private readonly int itCount = -1;
+        private readonly int protectionMode = -1;
 
-        internal S2k(Stream inStr)
+        // params for Argon2
+        private readonly int passes;
+        private readonly int parallelism;
+        private readonly int memorySizeExponent;
+
+        internal S2k(
+            Stream inStr)
         {
 			type = StreamUtilities.RequireByte(inStr);
-            algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
 
-            //
-            // if this happens we have a dummy-S2k packet.
-            //
-            if (type != GnuDummyS2K)
+            switch (type)
             {
-                if (type != 0)
-                {
-					iv = new byte[8];
+                case Simple:
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
+                    break;
+
+                case Salted:
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
+                    iv = new byte[8];
                     StreamUtilities.RequireBytes(inStr, iv);
+                    break;
 
-					if (type == 3)
-					{
-						itCount = inStr.ReadByte();
-					}
-				}
+                case SaltedAndIterated:
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
+                    iv = new byte[8];
+                    StreamUtilities.RequireBytes(inStr, iv);
+                    itCount = StreamUtilities.RequireByte(inStr);
+                    break;
+
+                case Argon2:
+                    iv = new byte[16];
+                    StreamUtilities.RequireBytes(inStr, iv);
+                    passes = StreamUtilities.RequireByte(inStr);
+                    parallelism = StreamUtilities.RequireByte(inStr);
+                    memorySizeExponent = StreamUtilities.RequireByte(inStr);
+                    break;
+
+                case GnuDummyS2K:
+                    algorithm = (HashAlgorithmTag)StreamUtilities.RequireByte(inStr);
+                    //inStr.ReadByte(); // G
+                    //inStr.ReadByte(); // N
+                    //inStr.ReadByte(); // U
+                    //protectionMode = inStr.ReadByte(); // protection mode
+                    uint GNU_ = StreamUtilities.RequireUInt32BE(inStr);
+                    protectionMode = (byte)GNU_;
+                    break;
+
+                default:
+                    throw new UnsupportedPacketVersionException($"Invalid S2K type: {type}");
             }
-            else
-            {
-                //inStr.ReadByte(); // G
-                //inStr.ReadByte(); // N
-                //inStr.ReadByte(); // U
-                //protectionMode = inStr.ReadByte(); // protection mode
-                uint GNU_ = StreamUtilities.RequireUInt32BE(inStr);
-                protectionMode = (byte)GNU_;
-            }
+
         }
 
+        /// <summary>Constructs a specifier for a simple S2K generation</summary>
+        /// <param name="algorithm">the digest algorithm to use.</param>
         public S2k(
             HashAlgorithmTag algorithm)
         {
-            this.type = 0;
+            this.type = Simple;
             this.algorithm = algorithm;
         }
 
+        /// <summary>Constructs a specifier for a salted S2K generation</summary>
+        /// <param name="algorithm">the digest algorithm to use.</param>
+        /// <param name="iv">the salt to apply to input to the key generation</param>
         public S2k(
             HashAlgorithmTag algorithm,
             byte[] iv)
         {
-            this.type = 1;
+            this.type = Salted;
             this.algorithm = algorithm;
-            this.iv = iv;
+            this.iv = Arrays.Clone(iv);
         }
 
+        /// <summary>Constructs a specifier for a salted and iterated S2K generation</summary>
+        /// <param name="algorithm">the digest algorithm to iterate.</param>
+        /// <param name="iv">the salt to apply to input to the key generation</param>
+        /// <param name="itCount">the single byte iteration count specifier</param>
         public S2k(
             HashAlgorithmTag algorithm,
             byte[] iv,
             int itCount)
         {
-            this.type = 3;
+            this.type = SaltedAndIterated;
             this.algorithm = algorithm;
-            this.iv = iv;
+            this.iv = Arrays.Clone(iv);
             this.itCount = itCount;
+        }
+
+        /// <summary>Constructs a specifier for an S2K method using Argon2</summary>
+        public S2k(byte[] salt, int passes, int parallelism, int memorySizeExponent)
+        {
+            this.type = Argon2;
+            this.iv = Arrays.Clone(salt);
+            this.passes = passes;
+            this.parallelism = parallelism;
+            this.memorySizeExponent = memorySizeExponent;
+        }
+
+        /// <summary>Constructs a specifier for an S2K method using Argon2</summary>
+        public S2k(Argon2Parameters argon2Params)
+            :this(argon2Params.Salt, argon2Params.Passes, argon2Params.Parallelism, argon2Params.MemSizeExp)
+        {
         }
 
         public virtual int Type
@@ -113,30 +162,183 @@ namespace Org.BouncyCastle.Bcpg
 			get { return protectionMode; }
         }
 
+        /// <summary>The number of passes - only if Argon2</summary>
+        public int Passes
+        {
+            get { return passes; }
+        }
+
+        /// <summary>The degree of parallelism - only if Argon2</summary>
+        public int Parallelism
+        {
+            get { return parallelism; }
+        }
+
+        /// <summary>The memory size exponent - only if Argon2</summary>
+        public int MemorySizeExponent
+        {
+            get { return memorySizeExponent; }
+        }
+        
         public override void Encode(
             BcpgOutputStream bcpgOut)
         {
-            bcpgOut.WriteByte((byte) type);
-            bcpgOut.WriteByte((byte) algorithm);
-
-            if (type != GnuDummyS2K)
+            switch (type)
             {
-                if (type != 0)
-                {
+                case Simple:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
+                    break;
+
+                case Salted:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
                     bcpgOut.Write(iv);
-                }
+                    break;
 
-                if (type == 3)
-                {
-                    bcpgOut.WriteByte((byte) itCount);
-                }
+                case SaltedAndIterated:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
+                    bcpgOut.Write(iv);
+                    bcpgOut.WriteByte((byte)itCount);
+                    break;
+
+                case Argon2:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.Write(iv);
+                    bcpgOut.WriteByte((byte)passes);
+                    bcpgOut.WriteByte((byte)parallelism);
+                    bcpgOut.WriteByte((byte)memorySizeExponent);
+                    break;
+
+                case GnuDummyS2K:
+                    bcpgOut.WriteByte((byte)type);
+                    bcpgOut.WriteByte((byte)algorithm);
+                    bcpgOut.WriteByte((byte)'G');
+                    bcpgOut.WriteByte((byte)'N');
+                    bcpgOut.WriteByte((byte)'U');
+                    bcpgOut.WriteByte((byte)protectionMode);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown S2K type {type}");
             }
-            else
+        }
+
+        /// <summary>
+        /// Parameters for Argon2 S2K
+        /// <see href="https://www.rfc-editor.org/rfc/rfc9580#s2k-argon2">Sect. 3.7.1.4 of RFC 9580</see>
+        /// </summary>
+        public class Argon2Parameters
+        {
+            private readonly byte[] salt;
+            private readonly int passes;
+            private readonly int parallelism;
+            private readonly int memSizeExp;
+
+            internal byte[] Salt => salt;
+            internal int Passes => passes;
+            internal int Parallelism => parallelism;
+            internal int MemSizeExp => memSizeExp;
+
+            /// <summary>
+            /// Uniformly safe and recommended parameters not tailored to any hardware.
+            /// Uses Argon2id, 1 pass, 4 parallelism, 2 GiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            public Argon2Parameters()
+                :this (CryptoServicesRegistrar.GetSecureRandom())
             {
-                bcpgOut.WriteByte((byte) 'G');
-                bcpgOut.WriteByte((byte) 'N');
-                bcpgOut.WriteByte((byte) 'U');
-                bcpgOut.WriteByte((byte) protectionMode);
+            }
+
+
+            /// <summary>
+            /// Uniformly safe and recommended parameters not tailored to any hardware.
+            /// Uses Argon2id, 1 pass, 4 parallelism, 2 GiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            /// <param name="secureRandom"></param>
+            public Argon2Parameters(SecureRandom secureRandom)
+                : this(1, 4, 21, secureRandom)
+            {
+            }
+
+            /// <summary>
+            /// Create customized Argon2 S2K parameters.
+            /// </summary>
+            /// <param name="passes">number of iterations, must be greater than 0</param>
+            /// <param name="parallelism">number of lanes, must be greater 0</param>
+            /// <param name="memSizeExp">exponent for memory consumption, must be between 3+ceil(log_2(p)) and 31</param>
+            /// <param name="secureRandom">A secure random generator</param>
+            /// <exception cref="ArgumentException"></exception>
+            public Argon2Parameters(int passes, int parallelism, int memSizeExp, SecureRandom secureRandom)
+                :this(GenerateSalt(secureRandom), passes, parallelism, memSizeExp)
+            {
+            }
+
+            /// <summary>
+            /// Create customized Argon2 S2K parameters.
+            /// </summary>
+            /// <param name="salt">16 bytes of random salt</param>
+            /// <param name="passes">number of iterations, must be greater than 0</param>
+            /// <param name="parallelism">number of lanes, must be greater 0</param>
+            /// <param name="memSizeExp">exponent for memory consumption, must be between 3+ceil(log_2(p)) and 31</param>
+            /// <exception cref="ArgumentException"></exception>
+            public Argon2Parameters(byte[] salt, int passes, int parallelism, int memSizeExp)
+            {
+                if (salt.Length != 16)
+                {
+                    throw new ArgumentException("Argon2 uses 16 bytes of salt");
+                }
+                this.salt = salt;
+
+                if (passes < 1)
+                {
+                    throw new ArgumentException("Number of passes MUST be positive, non-zero");
+                }
+                this.passes = passes;
+
+                if (parallelism < 1)
+                {
+                    throw new ArgumentException("Parallelism MUST be positive, non-zero.");
+                }
+                this.parallelism = parallelism;
+
+                // log_2(p) = log_e(p) / log_e(2)
+                double log2_p = System.Math.Log(parallelism) / System.Math.Log(2);
+                // see https://www.rfc-editor.org/rfc/rfc9580#name-argon2
+                if (memSizeExp < (3 + System.Math.Ceiling(log2_p)) || memSizeExp > 31)
+                {
+                    throw new ArgumentException("Memory size exponent MUST be between 3+ceil(log_2(parallelism)) and 31");
+                }
+                this.memSizeExp = memSizeExp;
+            }
+            
+            /// <summary>
+            /// Uniformly safe and recommended parameters not tailored to any hardware.
+            /// Uses Argon2id, 1 pass, 4 parallelism, 2 GiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            public static Argon2Parameters UniversallyRecommendedParameters()
+            {
+                return new Argon2Parameters(1, 4, 21, CryptoServicesRegistrar.GetSecureRandom());
+            }
+
+            /// <summary>
+            /// Recommended parameters for memory constrained environments(64MiB RAM).
+            /// Uses Argon2id with 3 passes, 4 lanes and 64 MiB RAM.
+            /// <see href="https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.1"> RFC 9106: §4. Parameter Choice</see>
+            /// </summary>
+            public static Argon2Parameters MemoryConstrainedParameters()
+            {
+                return new Argon2Parameters(3, 4, 16, CryptoServicesRegistrar.GetSecureRandom());
+            }
+
+            private static byte[] GenerateSalt(SecureRandom secureRandom)
+            {
+                byte[] salt = new byte[16];
+                secureRandom.NextBytes(salt);
+                return salt;
             }
         }
     }

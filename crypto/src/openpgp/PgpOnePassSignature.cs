@@ -1,14 +1,11 @@
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>A one pass signature object.</remarks>
+    /// <remarks>A one pass signature object.</remarks>
     public class PgpOnePassSignature
     {
         private static OnePassSignaturePacket Cast(Packet packet)
@@ -55,6 +52,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			try
             {
                 sig.Init(false, key);
+                if (sigPack.Version == OnePassSignaturePacket.Version6)
+                {
+                    byte[] salt = sigPack.GetSignatureSalt();
+                    sig.BlockUpdate(salt, 0, salt.Length);
+                }
             }
 			catch (InvalidKeyException e)
             {
@@ -147,7 +149,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Verify the calculated signature against the passed in PgpSignature.</summary>
         public bool Verify(PgpSignature pgpSig)
         {
-            byte[] trailer = pgpSig.GetSignatureTrailer();
+            return Verify(pgpSig, Array.Empty<byte>());
+        }
+
+        public bool Verify(PgpSignature pgpSig, byte[] additionalMetadata)
+        {
+            // the versions of the Signature and the One-Pass Signature must be aligned as specified in
+            // https://www.rfc-editor.org/rfc/rfc9580#signed-message-versions
+            if (pgpSig.Version == SignaturePacket.Version6 && sigPack.Version != OnePassSignaturePacket.Version6)
+            {
+                return false;
+            }
+            if (pgpSig.Version < SignaturePacket.Version6 && sigPack.Version != OnePassSignaturePacket.Version3)
+            {
+                return false;
+            }
+            // Additional metadata for v5 signatures
+            byte[] trailer = pgpSig.GetSignatureTrailer(additionalMetadata);
 
 			sig.BlockUpdate(trailer, 0, trailer.Length);
 
@@ -159,7 +177,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			get { return sigPack.KeyId; }
         }
 
-		public int SignatureType
+        public int Version
+        {
+            get { return sigPack.Version; }
+        }
+
+        public int SignatureType
         {
             get { return sigPack.SignatureType; }
         }
@@ -174,7 +197,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			get { return sigPack.KeyAlgorithm; }
 		}
 
-		public byte[] GetEncoded()
+        public byte[] GetSignatureSalt()
+        {
+            return sigPack.GetSignatureSalt();
+        }
+
+        public byte[] GetFingerprint()
+        {
+            return sigPack.GetFingerprint();
+        }
+
+        public byte[] GetEncoded()
         {
             var bOut = new MemoryStream();
 

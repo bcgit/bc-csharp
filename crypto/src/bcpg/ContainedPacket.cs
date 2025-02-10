@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -7,6 +6,11 @@ namespace Org.BouncyCastle.Bcpg
     public abstract class ContainedPacket
         : Packet
     {
+        protected ContainedPacket(PacketTag packetTag)
+            : base(packetTag)
+        {
+        }
+
         public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
