@@ -1,4 +1,7 @@
 ﻿using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.IO;
 
 namespace Org.BouncyCastle.Tls.Crypto
@@ -44,7 +47,7 @@ namespace Org.BouncyCastle.Tls.Crypto
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         // TODO[api] Add a parameter for how much (D)TLSInnerPlaintext padding to add
         TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
-            int headerAllocation, ReadOnlySpan<byte> plaintext);
+            int headerAllocation, ReadOnlySpan<byte> plaintext, ArrayPool<byte> pool = null);
 #endif
 
         /// <summary>Decode the passed in ciphertext using the current bulk cipher.</summary>
