@@ -3,12 +3,11 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
-	/**
+    /**
 	 * The <i>Service Provider Interface</i> (<b>SPI</b>)
 	 * for the {@link CertPathValidator CertPathValidator} class. All
 	 * <code>CertPathValidator</code> implementations must include a class (the
@@ -30,7 +29,7 @@ namespace Org.BouncyCastle.Pkix
 	 * manipulating a different <code>CertPathValidatorSpi</code> instance need not
 	 * synchronize.
 	 */
-	/// <summary>
+    /// <summary>
     /// CertPathValidatorSpi implementation for X.509 Certificate validation a la RFC
     /// 3280.
     /// </summary>
@@ -111,8 +110,8 @@ namespace Org.BouncyCastle.Pkix
 
             policySet.Add(Rfc3280CertPathUtilities.ANY_POLICY);
 
-            var validPolicyTree = new PkixPolicyNode(new List<PkixPolicyNode>(), 0, policySet, null,
-                new HashSet<PolicyQualifierInfo>(), Rfc3280CertPathUtilities.ANY_POLICY, false);
+            var validPolicyTree = new PkixPolicyNode(null, 0, policySet, null, new HashSet<PolicyQualifierInfo>(),
+                Rfc3280CertPathUtilities.ANY_POLICY, false);
 
             policyNodes[0].Add(validPolicyTree);
 
@@ -188,10 +187,10 @@ namespace Org.BouncyCastle.Pkix
                 throw new PkixCertPathValidatorException("Subject of trust anchor could not be (re)encoded.", ex, -1);
             }
 
-            AlgorithmIdentifier workingAlgId = null;
+            AlgorithmIdentifier workingAlgID;
             try
             {
-                workingAlgId = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
+                workingAlgID = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
             }
             catch (PkixCertPathValidatorException e)
             {
@@ -199,8 +198,8 @@ namespace Org.BouncyCastle.Pkix
                         "Algorithm identifier of public key of trust anchor could not be read.", e, -1);
             }
 
-//			DerObjectIdentifier workingPublicKeyAlgorithm = workingAlgId.Algorithm;
-//			Asn1Encodable workingPublicKeyParameters = workingAlgId.Parameters;
+            //DerObjectIdentifier workingPublicKeyAlgorithm = workingAlgID.Algorithm;
+            //Asn1Encodable workingPublicKeyParameters = workingAlgID.Parameters;
 
             //
             // (k)
@@ -362,11 +361,11 @@ namespace Org.BouncyCastle.Pkix
                         throw new PkixCertPathValidatorException("Next working key could not be retrieved.", e, index);
                     }
 
-                    workingAlgId = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
+                    workingAlgID = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
                     // (f)
-//                    workingPublicKeyAlgorithm = workingAlgId.Algorithm;
+                    //workingPublicKeyAlgorithm = workingAlgID.Algorithm;
                     // (e)
-//                    workingPublicKeyParameters = workingAlgId.Parameters;
+                    //workingPublicKeyParameters = workingAlgID.Parameters;
                 }
             }
 

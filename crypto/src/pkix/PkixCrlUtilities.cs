@@ -7,20 +7,35 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
+    // TODO[api] Make static
     public class PkixCrlUtilities
 	{
 		// TODO[api] Redundant
-		public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
+		public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix) =>
+            ImplFindCrls(crlSelector, paramsPkix);
+
+        public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix) =>
+            ImplFindCrls(crlSelector, paramsPkix);
+
+        // TODO[api] Redundant
+        public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
+			DateTime currentDate)
 		{
-            return FindCrls((ISelector<X509Crl>)crlSelector, paramsPkix);
+            return ImplFindCrls(crlSelector, paramsPkix, currentDate);
         }
 
-        public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix)
+        public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
+			DateTime currentDate)
+		{
+			return ImplFindCrls(crlSelector, paramsPkix, currentDate);
+		}
+
+        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix)
         {
             // get complete CRL(s)
             try
             {
-                return FindCrls(crlSelector, paramsPkix.GetStoresCrl());
+                return ImplFindCrls(crlSelector, paramsPkix.GetStoresCrl());
             }
             catch (Exception e)
             {
@@ -28,17 +43,10 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        // TODO[api] Redundant
-        public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
+        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
 			DateTime currentDate)
 		{
-            return FindCrls((ISelector<X509Crl>)crlSelector, paramsPkix, currentDate);
-        }
-
-        public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
-			DateTime currentDate)
-		{
-            var initialSet = FindCrls(crlSelector, paramsPkix);
+            var initialSet = ImplFindCrls(crlSelector, paramsPkix);
 
             var finalSet = new HashSet<X509Crl>();
 			DateTime validityDate = currentDate;
@@ -71,19 +79,19 @@ namespace Org.BouncyCastle.Pkix
 			return finalSet;
 		}
 
-		/// <summary>
-		/// crl checking
-		/// Return a Collection of all CRLs found in the X509Store's that are
-		/// matching the crlSelect criteriums.
-		/// </summary>
-		/// <param name="crlSelector">a {@link X509CRLStoreSelector} object that will be used
-		/// to select the CRLs</param>
-		/// <param name="crlStores">a List containing only {@link Org.BouncyCastle.X509.X509Store
-		/// X509Store} objects. These are used to search for CRLs</param>
-		/// <returns>a Collection of all found {@link X509CRL X509CRL} objects. May be
-		/// empty but never <code>null</code>.
-		/// </returns>
-		private HashSet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, IEnumerable<IStore<X509Crl>> crlStores)
+        /// <summary>
+        /// crl checking
+        /// Return a Collection of all CRLs found in the X509Store's that are
+        /// matching the crlSelect criteriums.
+        /// </summary>
+        /// <param name="crlSelector">a {@link X509CRLStoreSelector} object that will be used
+        /// to select the CRLs</param>
+        /// <param name="crlStores">a List containing only {@link Org.BouncyCastle.X509.X509Store
+        /// X509Store} objects. These are used to search for CRLs</param>
+        /// <returns>a Collection of all found {@link X509CRL X509CRL} objects. May be
+        /// empty but never <code>null</code>.
+        /// </returns>
+        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, IEnumerable<IStore<X509Crl>> crlStores)
 		{
             var crls = new HashSet<X509Crl>();
 

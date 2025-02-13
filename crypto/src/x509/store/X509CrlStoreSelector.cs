@@ -230,35 +230,38 @@ namespace Org.BouncyCastle.X509.Store
 					return false;
 			}
 
-			DerInteger dci = null;
-			try
+			// TODO[pkix] Do we always need to parse the Delta CRL Indicator extension?
 			{
-				Asn1OctetString bytes = c.GetExtensionValue(X509Extensions.DeltaCrlIndicator);
-				if (bytes != null)
+				DerInteger baseCrlNumber = null;
+				try
 				{
-					dci = DerInteger.GetInstance(X509ExtensionUtilities.FromExtensionValue(bytes));
+					Asn1OctetString dci = c.GetExtensionValue(X509Extensions.DeltaCrlIndicator);
+					if (dci != null)
+					{
+						baseCrlNumber = DerInteger.GetInstance(X509ExtensionUtilities.FromExtensionValue(dci));
+					}
 				}
-			}
-			catch (Exception)
-			{
-				return false;
-			}
-
-			if (dci == null)
-			{
-				if (DeltaCrlIndicatorEnabled)
+				catch (Exception)
+				{
 					return false;
-			}
-			else
-			{
-				if (CompleteCrlEnabled)
-					return false;
+				}
 
-				if (maxBaseCrlNumber != null && dci.PositiveValue.CompareTo(maxBaseCrlNumber) > 0)
-					return false;
-			}
+				if (baseCrlNumber == null)
+				{
+					if (DeltaCrlIndicatorEnabled)
+						return false;
+				}
+				else
+				{
+					if (CompleteCrlEnabled)
+						return false;
 
-			if (issuingDistributionPointEnabled)
+					if (maxBaseCrlNumber != null && baseCrlNumber.PositiveValue.CompareTo(maxBaseCrlNumber) > 0)
+						return false;
+				}
+            }
+
+            if (issuingDistributionPointEnabled)
 			{
 				Asn1OctetString idp = c.GetExtensionValue(X509Extensions.IssuingDistributionPoint);
 				if (issuingDistributionPoint == null)
