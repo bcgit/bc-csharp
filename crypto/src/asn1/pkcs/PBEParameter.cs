@@ -45,6 +45,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		public BigInteger IterationCount => m_iterationCount.Value;
 
+        public DerInteger IterationCountObject => m_iterationCount;
+
+        public Asn1OctetString Salt => m_salt;
+
 		public override Asn1Object ToAsn1Object() => new DerSequence(m_salt, m_iterationCount);
 	}
 }

@@ -26,8 +26,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         : Asn1Encodable
     {
         private readonly Asn1Sequence m_data;
-        //        private readonly DerObjectIdentifier bagId;
-        //        private readonly Asn1Object bagValue;
 
         public static EncryptedData GetInstance(object obj)
         {

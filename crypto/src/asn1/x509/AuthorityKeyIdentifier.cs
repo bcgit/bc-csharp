@@ -145,6 +145,8 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public BigInteger AuthorityCertSerialNumber => m_authorityCertSerialNumber?.Value;
 
+        public Asn1OctetString KeyIdentifier => m_keyIdentifier;
+
         /**
          * Produce an object suitable for an Asn1OutputStream.
          */

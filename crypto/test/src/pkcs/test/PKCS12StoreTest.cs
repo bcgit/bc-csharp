@@ -1450,7 +1450,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
                 IsEquals("With key encryption, expected 'Pkcs8ShroudedKeyBag'",
                     PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, sb.BagID);
 
-                EncryptedPrivateKeyInfo epki = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
+                EncryptedPrivateKeyInfo epki = EncryptedPrivateKeyInfo.GetInstance(sb.BagValueEncodable);
 
                 CheckEncryptionAlgorithm("key", epki.EncryptionAlgorithm, keyAlgorithm, keyPrfAlgorithm);
             }

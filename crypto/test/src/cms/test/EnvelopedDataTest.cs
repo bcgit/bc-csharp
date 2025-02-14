@@ -382,7 +382,7 @@ namespace Org.BouncyCastle.Cms.Tests
             Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.RC2Cbc);
 
             RC2CbcParameter rc2P = RC2CbcParameter.GetInstance(ed.EncryptionAlgorithmID.Parameters);
-            Assert.AreEqual(160, rc2P.RC2ParameterVersion.IntValueExact);
+            Assert.AreEqual(160, rc2P.RC2ParameterVersionData.IntValueExact);
 
             var c = recipients.GetRecipients();
 

@@ -89,7 +89,11 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 		public DateTime CrlIssuedTime => m_crlIssuedTime.ToDateTime(2049);
 
+        public Asn1UtcTime CrlIssuedTimeObject => m_crlIssuedTime;
+
 		public BigInteger CrlNumber => m_crlNumber?.Value;
+
+        public DerInteger CrlNumberObject => m_crlNumber;
 
 		public override Asn1Object ToAsn1Object()
 		{

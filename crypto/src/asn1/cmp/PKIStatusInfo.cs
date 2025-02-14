@@ -96,6 +96,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 		public BigInteger Status => m_status.Value;
 
+		public DerInteger StatusObject => m_status;
+
 		public PkiFreeText StatusString => m_statusString;
 
 		public DerBitString FailInfo => m_failInfo;

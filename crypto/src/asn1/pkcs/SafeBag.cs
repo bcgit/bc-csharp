@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             new SafeBag(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_bagID;
-        private readonly Asn1Object m_bagValue;
+        private readonly Asn1Encodable m_bagValue;
         private readonly Asn1Set m_bagAttributes;
 
         private SafeBag(Asn1Sequence seq)
@@ -31,19 +31,20 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_bagID = DerObjectIdentifier.GetInstance(seq[pos++]);
-            m_bagValue = Asn1TaggedObject.GetInstance(seq[pos++], Asn1Tags.ContextSpecific, 0)
-                .GetExplicitBaseObject().ToAsn1Object();
+            m_bagValue = Asn1TaggedObject.GetInstance(seq[pos++], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
             m_bagAttributes = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Set.GetOptional);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        // TODO[api] Remove as redundant
         public SafeBag(DerObjectIdentifier oid, Asn1Object obj)
             : this(oid, obj, null)
         {
         }
 
+        // TODO[api] Remove as redundant
         public SafeBag(DerObjectIdentifier oid, Asn1Object obj, Asn1Set bagAttributes)
         {
             m_bagID = oid ?? throw new ArgumentNullException(nameof(oid));
@@ -51,18 +52,34 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_bagAttributes = bagAttributes;
         }
 
+        public SafeBag(DerObjectIdentifier bagID, Asn1Encodable bagValue)
+            : this(bagID, bagValue, null)
+        {
+        }
+
+        public SafeBag(DerObjectIdentifier bagID, Asn1Encodable bagValue, Asn1Set bagAttributes)
+        {
+            m_bagID = bagID ?? throw new ArgumentNullException(nameof(bagID));
+            m_bagValue = bagValue ?? throw new ArgumentNullException(nameof(bagValue));
+            m_bagAttributes = bagAttributes;
+        }
+
         public DerObjectIdentifier BagID => m_bagID;
 
-        public Asn1Object BagValue => m_bagValue;
+        // TODO[api] Return Asn1Encodable (and obsolete BagValueEncodable)
+        public Asn1Object BagValue => m_bagValue.ToAsn1Object();
+
+        public Asn1Encodable BagValueEncodable => m_bagValue;
 
         public Asn1Set BagAttributes => m_bagAttributes;
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(3);
-            v.Add(m_bagID, new DerTaggedObject(0, m_bagValue));
-            v.AddOptional(m_bagAttributes);
-            return new DerSequence(v);
+            var taggedBagValue = new DerTaggedObject(isExplicit: true, 0, m_bagValue);
+
+            return m_bagAttributes == null
+                ?   new DerSequence(m_bagID, taggedBagValue)
+                :   new DerSequence(m_bagID, taggedBagValue, m_bagAttributes);
         }
     }
 }

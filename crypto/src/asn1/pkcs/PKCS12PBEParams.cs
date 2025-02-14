@@ -43,7 +43,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public BigInteger Iterations => m_iterations.Value;
 
+        public DerInteger IterationsObject => m_iterations;
+
         public byte[] GetIV() => m_iv.GetOctets();
+
+        public Asn1OctetString IV => m_iv;
 
         public override Asn1Object ToAsn1Object() => new DerSequence(m_iv, m_iterations);
     }

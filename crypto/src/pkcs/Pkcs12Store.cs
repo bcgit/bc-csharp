@@ -262,13 +262,13 @@ namespace Org.BouncyCastle.Pkcs
                         }
                         else if (PkcsObjectIdentifiers.KeyBag.Equals(safeBagID))
                         {
-                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValue), safeBag.BagAttributes);
+                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValueEncodable), safeBag.BagAttributes);
                         }
                         else if (PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag.Equals(safeBagID))
                         {
                             passwordNeeded = true;
 
-                            LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValue),
+                            LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValueEncodable),
                                 safeBag.BagAttributes, password, wrongPkcs12Zero);
                         }
                         else
@@ -285,12 +285,12 @@ namespace Org.BouncyCastle.Pkcs
 
             foreach (SafeBag b in certBags)
             {
-                CertBag certBag = CertBag.GetInstance(b.BagValue);
+                CertBag certBag = CertBag.GetInstance(b.BagValueEncodable);
 
                 if (!PkcsObjectIdentifiers.X509Certificate.Equals(certBag.CertID))
                     throw new Exception("Unsupported certificate type: " + certBag.CertID);
 
-                var certValue = Asn1OctetString.GetInstance(certBag.CertValue);
+                var certValue = Asn1OctetString.GetInstance(certBag.CertValueEncodable);
                 X509Certificate cert = new X509Certificate(certValue.GetOctets());
 
                 //
@@ -498,10 +498,10 @@ namespace Org.BouncyCastle.Pkcs
                 {
                     AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.GetInstance(akiValue.GetOctets());
 
-                    byte[] keyID = aki.GetKeyIdentifier();
+                    var keyID = aki.KeyIdentifier;
                     if (keyID != null)
                     {
-                        nextC = CollectionUtilities.GetValueOrNull(m_chainCerts, new CertID(keyID));
+                        nextC = CollectionUtilities.GetValueOrNull(m_chainCerts, new CertID(keyID.GetOctets()));
                     }
                 }
 
@@ -774,7 +774,7 @@ namespace Org.BouncyCastle.Pkcs
                             new DerSet(subjectKeyID)));
                 }
 
-                keyBags.Add(new SafeBag(bagOid, bagData.ToAsn1Object(), DerSet.FromVector(kName)));
+                keyBags.Add(new SafeBag(bagOid, bagData, DerSet.FromVector(kName)));
             }
 
             byte[] keyBagsEncoding = new DerSequence(keyBags).GetDerEncoded();
@@ -826,7 +826,7 @@ namespace Org.BouncyCastle.Pkcs
                             new DerSet(subjectKeyID)));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
 
                 doneCerts.Add(certEntry.Certificate);
             }
@@ -887,7 +887,7 @@ namespace Org.BouncyCastle.Pkcs
                     fName.Add(new DerSequence(MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage, attrValue));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
 
                 doneCerts.Add(cert.Certificate);
             }
@@ -919,7 +919,7 @@ namespace Org.BouncyCastle.Pkcs
                     fName.Add(new DerSequence(oid, new DerSet(certEntry[oid])));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
             }
 
             byte[] certBagsEncoding = new DerSequence(certBags).GetDerEncoded();

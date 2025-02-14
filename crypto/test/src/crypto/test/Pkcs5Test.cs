@@ -105,12 +105,13 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Pbkdf2Params func = Pbkdf2Params.GetInstance(alg.KeyDerivationFunc.Parameters);
                 EncryptionScheme scheme = alg.EncryptionScheme;
 
-                if (func.KeyLength != null)
+                var keyLengthObject = func.KeyLengthObject;
+                if (keyLengthObject != null)
                 {
-                    keySize = func.KeyLength.IntValue * 8;
+                    keySize = keyLengthObject.IntValueExact * 8;
                 }
 
-                int iterationCount = func.IterationCount.IntValue;
+                int iterationCount = func.IterationCountObject.IntValueExact;
                 byte[] salt = func.GetSalt();
 
                 generator.Init(PbeParametersGenerator.Pkcs5PasswordToBytes(password), salt, iterationCount);
