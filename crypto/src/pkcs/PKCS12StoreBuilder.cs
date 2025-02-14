@@ -43,6 +43,7 @@ namespace Org.BouncyCastle.Pkcs
 		public Pkcs12StoreBuilder SetKeyAlgorithm(DerObjectIdentifier keyAlgorithm)
 		{
 			this.keyAlgorithm = keyAlgorithm;
+			this.keyPrfAlgorithm = null;
 			return this;
 		}
 
@@ -53,6 +54,7 @@ namespace Org.BouncyCastle.Pkcs
 			this.keyPrfAlgorithm = keyPrfAlgorithm;
 			return this;
 		}
+
 		public Pkcs12StoreBuilder SetUseDerEncoding(bool useDerEncoding)
 		{
 			this.useDerEncoding = useDerEncoding;
