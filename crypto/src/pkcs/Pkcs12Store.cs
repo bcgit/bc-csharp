@@ -38,9 +38,10 @@ namespace Org.BouncyCastle.Pkcs
         private readonly Dictionary<string, X509CertificateEntry> m_keyCerts =
             new Dictionary<string, X509CertificateEntry>(StringComparer.OrdinalIgnoreCase);
 
+        private readonly DerObjectIdentifier certAlgorithm;
+        private readonly DerObjectIdentifier certPrfAlgorithm;
         private readonly DerObjectIdentifier keyAlgorithm;
         private readonly DerObjectIdentifier keyPrfAlgorithm;
-        private readonly DerObjectIdentifier certAlgorithm;
         private readonly bool useDerEncoding;
         private readonly bool reverseCertificates;
         private readonly bool overwriteFriendlyName;
@@ -85,12 +86,14 @@ namespace Org.BouncyCastle.Pkcs
             public override int GetHashCode() => Arrays.GetHashCode(m_id);
         }
 
-        internal Pkcs12Store(DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm,
-            DerObjectIdentifier certAlgorithm, bool useDerEncoding, bool reverseCertificates, bool overwriteFriendlyName)
+        internal Pkcs12Store(DerObjectIdentifier certAlgorithm, DerObjectIdentifier certPrfAlgorithm,
+            DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm, bool useDerEncoding,
+            bool reverseCertificates, bool overwriteFriendlyName)
         {
+            this.certAlgorithm = certAlgorithm;
+            this.certPrfAlgorithm = certPrfAlgorithm;
             this.keyAlgorithm = keyAlgorithm;
             this.keyPrfAlgorithm = keyPrfAlgorithm;
-            this.certAlgorithm = certAlgorithm;
             this.useDerEncoding = useDerEncoding;
             this.reverseCertificates = reverseCertificates;
             this.overwriteFriendlyName = overwriteFriendlyName;
@@ -268,7 +271,7 @@ namespace Org.BouncyCastle.Pkcs
                             LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValue),
                                 safeBag.BagAttributes, password, wrongPkcs12Zero);
                         }
-                       else
+                        else
                         {
                             // TODO Other bag types
                         }
@@ -719,7 +722,7 @@ namespace Org.BouncyCastle.Pkcs
                 DerObjectIdentifier bagOid;
                 Asn1Encodable bagData;
 
-                if (password == null)
+                if (password == null || keyAlgorithm == null)
                 {
                     bagOid = PkcsObjectIdentifiers.KeyBag;
                     bagData = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privKey.Key);
@@ -928,18 +931,31 @@ namespace Org.BouncyCastle.Pkcs
             }
             else
             {
-                // TODO Support specifying PBES2 cAlgId somehow (OID not sufficient)
-
                 // TODO Configurable salt length?
                 byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
                 // TODO Configurable number of iterations?
-                Asn1Encodable cParams = new Pkcs12PbeParams(cSalt, MinIterations);
-                AlgorithmIdentifier cAlgId = new AlgorithmIdentifier(certAlgorithm, cParams);
+                int cIterations = MinIterations;
 
-                byte[] certBytes = CryptPbeData(true, cAlgId, password, false, certBagsEncoding);
+                AlgorithmIdentifier encAlgID;
+
+                if (certPrfAlgorithm != null)
+                {
+                    var encParams = PbeUtilities.GenerateAlgorithmParameters(certAlgorithm, certPrfAlgorithm, cSalt,
+                        cIterations, random);
+
+                    encAlgID = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPbeS2, encParams);
+                }
+                else
+                {
+                    var encParams = new Pkcs12PbeParams(cSalt, cIterations);
+
+                    encAlgID = new AlgorithmIdentifier(certAlgorithm, encParams);
+                }
+
+                byte[] certBytes = CryptPbeData(true, encAlgID, password, false, certBagsEncoding);
 
                 certsInfo = new ContentInfo(PkcsObjectIdentifiers.EncryptedData,
-                    new EncryptedData(PkcsObjectIdentifiers.Data, cAlgId, new BerOctetString(certBytes)));
+                    new EncryptedData(PkcsObjectIdentifiers.Data, encAlgID, new BerOctetString(certBytes)));
             }
 
             ContentInfo[] info = new ContentInfo[]{ keysInfo, certsInfo };

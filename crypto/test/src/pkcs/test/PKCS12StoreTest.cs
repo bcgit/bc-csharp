@@ -1328,151 +1328,190 @@ namespace Org.BouncyCastle.Pkcs.Tests
 				}
 			}
 		}
-		private void DoTestSupportedTypes()
-		{
+
+        private void DoTestSupportedTypes()
+        {
             CreateTestCertificateAndKey(out AsymmetricKeyEntry privKey, out X509CertificateEntry[] chain);
 
-            basicStoreTest(privKey, chain,
-				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
-				null,
-				PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc );
-			basicStoreTest(privKey, chain,
-				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
-				null,
-				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc );
-            basicStoreTest(privKey, chain,
-                NistObjectIdentifiers.IdAes256Cbc,
-                PkcsObjectIdentifiers.IdHmacWithSha256,
-                null);
+            BasicStoreTest(privKey, chain,
+                null, null,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null,
+                null, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc, null,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                null, null,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256);
+            BasicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256,
+                null, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256);
+            BasicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes256Cbc, PkcsObjectIdentifiers.IdHmacWithSha512,
+                NistObjectIdentifiers.IdAes256Cbc, PkcsObjectIdentifiers.IdHmacWithSha512);
         }
 
-		private void basicStoreTest(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain,
-			DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm, DerObjectIdentifier certAlgorithm)
-		{
-			Pkcs12Store store = new Pkcs12StoreBuilder()
-				.SetKeyAlgorithm(keyAlgorithm, keyPrfAlgorithm)
-				.SetCertAlgorithm(certAlgorithm)
-				.Build();
+        private void BasicStoreTest(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain,
+            DerObjectIdentifier certAlgorithm, DerObjectIdentifier certPrfAlgorithm, DerObjectIdentifier keyAlgorithm,
+            DerObjectIdentifier keyPrfAlgorithm)
+        {
+            Pkcs12Store store = new Pkcs12StoreBuilder()
+                .SetCertAlgorithm(certAlgorithm, certPrfAlgorithm)
+                .SetKeyAlgorithm(keyAlgorithm, keyPrfAlgorithm)
+                .Build();
 
-			store.SetKeyEntry("key", privKey, chain);
+            store.SetKeyEntry("key", privKey, chain);
 
-			MemoryStream bOut = new MemoryStream();
+            MemoryStream bOut = new MemoryStream();
 
-			store.Save(bOut, passwd, Random);
+            store.Save(bOut, passwd, Random);
 
-			store.Load(new MemoryStream(bOut.ToArray(), false), passwd);
+            store.Load(new MemoryStream(bOut.ToArray(), false), passwd);
 
-			AsymmetricKeyEntry k = store.GetKey("key");
+            AsymmetricKeyEntry k = store.GetKey("key");
 
-			if (!k.Equals(privKey))
-			{
-				Fail("private key didn't match");
-			}
+            if (!k.Equals(privKey))
+            {
+                Fail("private key didn't match");
+            }
 
-			X509CertificateEntry[] c = store.GetCertificateChain("key");
+            X509CertificateEntry[] c = store.GetCertificateChain("key");
 
-			if (c.Length != chain.Length || !c[0].Equals(chain[0]))
-			{
-				Fail("certificates didn't match");
-			}
+            if (c.Length != chain.Length || !c[0].Equals(chain[0]))
+            {
+                Fail("certificates didn't match");
+            }
 
-			// check attributes
-			Pkcs12Entry b1 = k;
-			Pkcs12Entry b2 = chain[0];
+            // check attributes
+            Pkcs12Entry b1 = k;
+            Pkcs12Entry b2 = chain[0];
 
-			if (b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] != null)
-			{
-				DerBmpString name = (DerBmpString)b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName];
+            if (b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] != null)
+            {
+                DerBmpString name = (DerBmpString)b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName];
 
-				if (!name.Equals(new DerBmpString("key")))
-				{
-					Fail("friendly name wrong");
-				}
-			}
-			else
-			{
-				Fail("no friendly name found on key");
-			}
+                if (!name.Equals(new DerBmpString("key")))
+                {
+                    Fail("friendly name wrong");
+                }
+            }
+            else
+            {
+                Fail("no friendly name found on key");
+            }
 
-			if (b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] != null)
-			{
-				Asn1OctetString id = (Asn1OctetString)b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID];
+            if (b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] != null)
+            {
+                Asn1OctetString id = (Asn1OctetString)b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID];
 
-				if (!id.Equals(b2[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID]))
-				{
-					Fail("local key id mismatch");
-				}
-			}
-			else
-			{
-				Fail("no local key id found");
-			}
+                if (!id.Equals(b2[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID]))
+                {
+                    Fail("local key id mismatch");
+                }
+            }
+            else
+            {
+                Fail("no local key id found");
+            }
 
-			//
-			// check algorithm types.
-			//
-			Pfx pfx = Pfx.GetInstance(bOut.ToArray());
+            //
+            // check algorithm types.
+            //
+            Pfx pfx = Pfx.GetInstance(bOut.ToArray());
 
-			ContentInfo cInfo = pfx.AuthSafe;
+            ContentInfo cInfo = pfx.AuthSafe;
 
-			Asn1OctetString auth = (Asn1OctetString)cInfo.Content;
+            Asn1OctetString auth = (Asn1OctetString)cInfo.Content;
 
             Asn1Sequence s1 = Asn1Sequence.GetInstance(auth.GetOctets());
 
-			ContentInfo c1 = ContentInfo.GetInstance(s1[0]);
-			ContentInfo c2 = ContentInfo.GetInstance(s1[1]);
+            ContentInfo c1 = ContentInfo.GetInstance(s1[0]);
+            ContentInfo c2 = ContentInfo.GetInstance(s1[1]);
 
             SafeBag sb = SafeBag.GetInstance(Asn1Sequence.GetInstance(((Asn1OctetString)c1.Content).GetOctets())[0]);
 
-			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
-
-			// check the key encryption
-			if (keyPrfAlgorithm != null)	// PBES2 + PBKDF2
-			{
-				if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(PkcsObjectIdentifiers.IdPbeS2))
-                {
-                    Fail("key encryption PBES2 expected, but it is different");
-                }
-				PbeS2Parameters pbes2Parameters = PbeS2Parameters.GetInstance(encInfo.EncryptionAlgorithm.Parameters);
-				if (!pbes2Parameters.EncryptionScheme.Algorithm.Equals(keyAlgorithm))
-				{
-                    Fail("key encryption algorithm within PBES2 wrong");
-                }
-				if (!pbes2Parameters.KeyDerivationFunc.Algorithm.Equals(PkcsObjectIdentifiers.IdPbkdf2))
-				{
-                    Fail("key derivation algorithm within PBES2 should be Pbkdf2");
-                }
-				Pbkdf2Params pbkdf2Params = Pbkdf2Params.GetInstance(pbes2Parameters.KeyDerivationFunc.Parameters);
-				if (!pbkdf2Params.Prf.Algorithm.Equals(keyPrfAlgorithm))
-                {
-                    Fail("key derivation PRF algorithm within PBES2 wrong");
-                }
+            if (keyAlgorithm == null)
+            {
+                IsEquals("Without key encryption, expected 'KeyBag'", PkcsObjectIdentifiers.KeyBag, sb.BagID);
             }
-			else if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(keyAlgorithm))
-			{
-				Fail("key encryption algorithm wrong");
-			}
+            else
+            {
+                IsEquals("With key encryption, expected 'Pkcs8ShroudedKeyBag'",
+                    PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, sb.BagID);
 
-			// check the certificate encryption
-			if (certAlgorithm == null)
-			{
-				if (!c2.ContentType.Equals(PkcsObjectIdentifiers.Data))
-				{
-					Fail("there should be no certificate encryption, but content type is not Data");
-				}
-			}
-			else
-			{
-				EncryptedData cb = EncryptedData.GetInstance(c2.Content);
+                EncryptedPrivateKeyInfo epki = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
 
-				if (!cb.EncryptionAlgorithm.Algorithm.Equals(certAlgorithm))
-				{
-					Fail("cert encryption algorithm wrong");
-				}
-			}
-		}
+                CheckEncryptionAlgorithm("key", epki.EncryptionAlgorithm, keyAlgorithm, keyPrfAlgorithm);
+            }
 
-		private void DoTestNoExtraLocalKeyID(byte[] store1data)
+            if (certAlgorithm == null)
+            {
+                IsEquals("Without cert encryption, expected 'Data'", PkcsObjectIdentifiers.Data, c2.ContentType);
+            }
+            else
+            {
+                IsEquals("With cert encryption, expected 'EncryptedData'",
+                    PkcsObjectIdentifiers.EncryptedData, c2.ContentType);
+
+                EncryptedData encryptedData = EncryptedData.GetInstance(c2.Content);
+
+                CheckEncryptionAlgorithm("cert", encryptedData.EncryptionAlgorithm, certAlgorithm, certPrfAlgorithm);
+            }
+        }
+
+        private void CheckEncryptionAlgorithm(string type, AlgorithmIdentifier encAlgID,
+            DerObjectIdentifier expectedEncAlgorithm, DerObjectIdentifier expectedPrfAlgorithm)
+        {
+            // Legacy
+            if (expectedPrfAlgorithm == null)
+            {
+                if (!expectedEncAlgorithm.Equals(encAlgID.Algorithm))
+                {
+                    Fail($"{type} legacy encryption algorithm wrong");
+                }
+                return;
+            }
+
+            // PBES2 + PBKDF2
+            if (!PkcsObjectIdentifiers.IdPbeS2.Equals(encAlgID.Algorithm))
+            {
+                Fail($"{type} encryption PBES2 expected, but it is different");
+            }
+
+            var pbes2Parameters = PbeS2Parameters.GetInstance(encAlgID.Parameters);
+
+            if (!expectedEncAlgorithm.Equals(pbes2Parameters.EncryptionScheme.Algorithm))
+            {
+                Fail($"{type} encryption algorithm within PBES2 wrong");
+            }
+
+            var keyDerivationFunc = pbes2Parameters.KeyDerivationFunc;
+
+            if (!PkcsObjectIdentifiers.IdPbkdf2.Equals(keyDerivationFunc.Algorithm))
+            {
+                Fail($"{type} derivation algorithm within PBES2 should be Pbkdf2");
+            }
+
+            var pbkdf2Params = Pbkdf2Params.GetInstance(keyDerivationFunc.Parameters);
+
+            if (!expectedPrfAlgorithm.Equals(pbkdf2Params.Prf.Algorithm))
+            {
+                Fail($"{type} derivation PRF algorithm within PBES2 wrong");
+            }
+        }
+
+        private void DoTestNoExtraLocalKeyID(byte[] store1data)
 		{
 			IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 			kpg.Init(new RsaKeyGenerationParameters(
