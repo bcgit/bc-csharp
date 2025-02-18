@@ -777,31 +777,62 @@ namespace Org.BouncyCastle.Pkix
 			// 5.2.4 (c)
 			deltaSelect.MaxBaseCrlNumber = completeCRLNumber;
 
-			// TODO[pkix] Would adding this to the selector be helpful?
-			//deltaSelect.DeltaCrlIndicatorEnabled = true;
+			// NOTE: Does not restrict to critical DCI extension, so we filter non-critical ones later
+			deltaSelect.DeltaCrlIndicatorEnabled = true;
 
 			// find delta CRLs
-			var temp = PkixCrlUtilities.ImplFindCrls(deltaSelect, pkixParameters, currentDate);
+			var deltaCrls = PkixCrlUtilities.ImplFindCrls(deltaSelect, pkixParameters, currentDate);
+			RetainDeltaCrls(deltaCrls);
 
-			/*
-			 * TODO[pkix] bc-java has an (optional?) CRLDP fallback here when 'temp' is empty. Perhaps that ought to be
-			 * kicking in when 'result' is empty instead?
+            /*
+			 * TODO[pkix] Implement CRLDP fallback?
 			 */
+            //if (deltaCrls.Count < 1 &&
+            //    Platform.EqualsIgnoreCase("true", Platform.GetEnvironmentVariable("Org.BouncyCastle.X509.EnableCrlDP")))
+            //{
+            //    CrlDistPoint id = CrlDistPoint.GetInstance(idp);
+            //    DistributionPoint[] dps = id.GetDistributionPoints();
 
-			var result = new HashSet<X509Crl>();
+            //    for (int i = 0; i < dps.Length; ++i)
+            //    {
+            //        DistributionPointName dpn = dps[i].DistributionPointName;
+            //        if (dpn == null || dpn.Type != DistributionPointName.FullName)
+            //            continue;
 
-			foreach (X509Crl crl in temp)
-			{
-				if (IsDeltaCrl(crl))
-				{
-					result.Add(crl);
-				}
-			}
+            //        // Look for URIs in fullName
+            //        GeneralName[] genNames = GeneralNames.GetInstance(dpn.Name).GetNames();
+            //        for (int j = 0; j < genNames.Length; ++j)
+            //        {
+            //            GeneralName name = genNames[j];
+            //            if (name.TagNo != GeneralName.UniformResourceIdentifier)
+            //                continue;
 
-			return result;
-		}
+            //            try
+            //            {
+            //                PKIXCRLStore store = CrlCache.getCrl(certFact, validityDate,
+            //                    new URI(((ASN1String)name.getName()).getString()));
+            //                if (store != null)
+            //                {
+            //                    deltaCrls = PkixCrlUtilities.ImplFindCrls(deltaSelect, validityDate, Collections.EMPTY_LIST,
+            //                        Collections.singletonList(store)));
+            //                    RetainDeltaCrls(deltaCrls);
+            //                }
+            //                break;
+            //            }
+            //            catch (Exception)
+            //            {
+            //                // ignore...  TODO: maybe log
+            //            }
+            //        }
+            //    }
+            //}
 
-		private static bool IsDeltaCrl(X509Crl crl) => HasCriticalExtension(crl, X509Extensions.DeltaCrlIndicator);
+            return deltaCrls;
+        }
+
+        private static bool IsDeltaCrl(X509Crl crl) => HasCriticalExtension(crl, X509Extensions.DeltaCrlIndicator);
+
+        private static void RetainDeltaCrls(HashSet<X509Crl> crls) => crls.RemoveWhere(crl => !IsDeltaCrl(crl));
 
         internal static void AddAdditionalStoresFromCrlDistributionPoint(CrlDistPoint crldp, PkixParameters pkixParams)
         {
