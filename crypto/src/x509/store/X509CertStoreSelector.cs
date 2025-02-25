@@ -10,7 +10,7 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
 {
-	public class X509CertStoreSelector
+    public class X509CertStoreSelector
 		: ISelector<X509Certificate>
 	{
 		// TODO Missing criteria?
@@ -117,9 +117,6 @@ namespace Org.BouncyCastle.X509.Store
 			set { keyUsage = Arrays.Clone(value); }
 		}
 
-		/// <summary>
-		/// An <code>ISet</code> of <code>DerObjectIdentifier</code> objects.
-		/// </summary>
 		public ISet<DerObjectIdentifier> Policy
 		{
 			get { return CopySet(policy); }
@@ -195,85 +192,71 @@ namespace Org.BouncyCastle.X509.Store
 			if (certificateValid != null && !c.IsValid(certificateValid.Value))
 				return false;
 
-			if (extendedKeyUsage != null)
-			{
-				var eku = c.GetExtendedKeyUsage();
+            if (extendedKeyUsage != null && extendedKeyUsage.Count > 0)
+            {
+                var eku = c.GetExtendedKeyUsage();
 
-				// Note: if no extended key usage set, all key purposes are implicitly allowed
+                // Note: if no extended key usage set, all key purposes are implicitly allowed
 
-				if (eku != null)
-				{
-					foreach (DerObjectIdentifier oid in extendedKeyUsage)
-					{
-						if (!eku.Contains(oid))
-							return false;
-					}
-				}
-			}
+                if (eku != null && !eku.Contains(KeyPurposeID.AnyExtendedKeyUsage))
+                {
+                    foreach (DerObjectIdentifier oid in extendedKeyUsage)
+                    {
+                        if (!eku.Contains(oid))
+                            return false;
+                    }
+                }
+            }
 
-			if (issuer != null && !issuer.Equivalent(c.IssuerDN, !ignoreX509NameOrdering))
+            if (issuer != null && !issuer.Equivalent(c.IssuerDN, !ignoreX509NameOrdering))
 				return false;
 
-			if (keyUsage != null)
-			{
-				bool[] ku = c.GetKeyUsage();
+            if (keyUsage != null)
+            {
+                bool[] ku = c.GetKeyUsage();
 
-				// Note: if no key usage set, all key purposes are implicitly allowed
+                // Note: if no key usage set, all key purposes are implicitly allowed
 
-				if (ku != null)
+                if (ku != null)
+                {
+                    for (int i = 0; i < keyUsage.Length; ++i)
+                    {
+                        if (keyUsage[i] && (i >= ku.Length || !ku[i]))
+                            return false;
+                    }
+                }
+            }
+
+            if (policy != null)
+            {
+                Asn1Sequence certificatePolicies = Asn1Sequence.GetInstance(
+                    X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.CertificatePolicies));
+
+                if (certificatePolicies == null || certificatePolicies.Count < 1)
+                    return false;
+
+                if (policy.Count > 0 && !PoliciesIntersect(policy, certificatePolicies))
+                    return false;
+            }
+
+            if (privateKeyValid != null)
+            {
+                var privateKeyUsagePeriod = PrivateKeyUsagePeriod.GetInstance(
+                    X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.PrivateKeyUsagePeriod));
+
+				if (privateKeyUsagePeriod != null)
 				{
-					for (int i = 0; i < 9; ++i)
-					{
-						if (keyUsage[i] && !ku[i])
-							return false;
-					}
-				}
-			}
+                    var notBefore = privateKeyUsagePeriod.NotBefore;
+                    if (notBefore != null && notBefore.ToDateTime().CompareTo(privateKeyValid.Value) > 0)
+                        return false;
 
-			if (policy != null)
-			{
-				Asn1OctetString extVal = c.GetExtensionValue(X509Extensions.CertificatePolicies);
-				if (extVal == null)
-					return false;
+                    var notAfter = privateKeyUsagePeriod.NotAfter;
+                    if (notAfter != null && notAfter.ToDateTime().CompareTo(privateKeyValid.Value) < 0)
+                        return false;
+                }
+            }
 
-				Asn1Sequence certPolicies = Asn1Sequence.GetInstance(
-					X509ExtensionUtilities.FromExtensionValue(extVal));
-
-				if (policy.Count < 1 && certPolicies.Count < 1)
-					return false;
-
-				bool found = false;
-				foreach (PolicyInformation pi in certPolicies)
-				{
-					if (policy.Contains(pi.PolicyIdentifier))
-					{
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-					return false;
-			}
-
-			if (privateKeyValid != null)
-			{
-				Asn1OctetString extVal = c.GetExtensionValue(X509Extensions.PrivateKeyUsagePeriod);
-				if (extVal == null)
-					return false;
-
-				PrivateKeyUsagePeriod pkup = PrivateKeyUsagePeriod.GetInstance(
-					X509ExtensionUtilities.FromExtensionValue(extVal));
-
-				DateTime dt = privateKeyValid.Value;
-				DateTime notAfter = pkup.NotAfter.ToDateTime();
-				DateTime notBefore = pkup.NotBefore.ToDateTime();
-
-				if (dt.CompareTo(notAfter) > 0 || dt.CompareTo(notBefore) < 0)
-					return false;
-			}
-
-			if (serialNumber != null && !serialNumber.Equals(c.SerialNumber))
+            if (serialNumber != null && !serialNumber.Equals(c.SerialNumber))
 				return false;
 
             if (subject != null && !subject.Equivalent(c.SubjectDN, !ignoreX509NameOrdering))
@@ -287,8 +270,7 @@ namespace Org.BouncyCastle.X509.Store
             if (subjectPublicKey != null && !subjectPublicKey.Equals(subjectPublicKeyInfo))
 				return false;
 
-			if (subjectPublicKeyAlgID != null
-				&& !subjectPublicKeyAlgID.Equals(subjectPublicKeyInfo.Algorithm))
+			if (subjectPublicKeyAlgID != null && !subjectPublicKeyAlgID.Equals(subjectPublicKeyInfo.Algorithm))
 				return false;
 
 			return true;
@@ -314,7 +296,7 @@ namespace Org.BouncyCastle.X509.Store
 			return s == null ? null : new HashSet<T>(s);
 		}
 
-		private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier	oid)
+        private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier	oid)
 		{
 			if (b == null)
 				return true;
@@ -326,5 +308,16 @@ namespace Org.BouncyCastle.X509.Store
 
 			return Arrays.AreEqual(b, extVal.GetOctets());
 		}
-	}
+
+        private static bool PoliciesIntersect(ISet<DerObjectIdentifier> policy, Asn1Sequence certificatePolicies)
+        {
+            foreach (var element in certificatePolicies)
+            {
+                var policyInformation = PolicyInformation.GetInstance(element);
+                if (policy.Contains(policyInformation.PolicyIdentifier))
+                    return true;
+            }
+            return false;
+        }
+    }
 }
