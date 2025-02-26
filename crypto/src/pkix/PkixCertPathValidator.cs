@@ -78,8 +78,6 @@ namespace Org.BouncyCastle.Pkix
 
                 if (trust == null)
                     throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, -1);
-
-                CheckCertificate(trust.TrustedCert);
             }
             catch (Exception e)
             {
@@ -243,16 +241,7 @@ namespace Org.BouncyCastle.Pkix
                 // at the end of the for loop and initialized the
                 // first time from the TrustAnchor
                 //
-                cert = (X509Certificate)certs[index];
-
-                try
-                {
-                    CheckCertificate(cert);
-                }
-                catch (Exception e)
-                {
-                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, index);
-                }
+                cert = certs[index];
 
                 //
                 // 6.1.3
@@ -421,22 +410,6 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index);
-        }
-
-        internal static void CheckCertificate(X509Certificate cert)
-        {
-            Exception cause = null;
-            try
-            {
-                if (cert.TbsCertificate != null)
-                    return;
-            }
-            catch (Exception e)
-            {
-                cause = e;
-            }
-
-            throw new Exception("unable to process TBSCertificate", cause);
         }
     }
 }

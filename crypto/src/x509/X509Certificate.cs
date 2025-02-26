@@ -79,9 +79,10 @@ namespace Org.BouncyCastle.X509
         {
         }
 
+        // TODO[api] Change parameter name to 'certificate'
         public X509Certificate(X509CertificateStructure c)
         {
-            this.c = c;
+            this.c = c ?? throw new ArgumentNullException(nameof(c));
 
             try
             {
