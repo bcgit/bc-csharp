@@ -23,10 +23,12 @@ namespace Org.BouncyCastle.X509.Store
         private bool m_ignoreX509NameOrdering;
         private X509Name m_issuer;
         private bool[] m_keyUsage;
+        private bool m_matchAllSubjectAltNames = true;
         private ISet<DerObjectIdentifier> m_policy;
         private DateTime? m_privateKeyValid;
         private BigInteger m_serialNumber;
         private X509Name m_subject;
+        private ISet<GeneralName> m_subjectAlternativeNames;
         private byte[] m_subjectKeyIdentifier;
         private SubjectPublicKeyInfo m_subjectPublicKey;
         private DerObjectIdentifier m_subjectPublicKeyAlgID;
@@ -45,10 +47,12 @@ namespace Org.BouncyCastle.X509.Store
             m_ignoreX509NameOrdering = o.m_ignoreX509NameOrdering;
             m_issuer = o.m_issuer;
             m_keyUsage = o.m_keyUsage;
+            m_matchAllSubjectAltNames = o.m_matchAllSubjectAltNames;
             m_policy = o.m_policy;
             m_privateKeyValid = o.m_privateKeyValid;
             m_serialNumber = o.m_serialNumber;
             m_subject = o.m_subject;
+            m_subjectAlternativeNames = o.m_subjectAlternativeNames;
             m_subjectKeyIdentifier = o.m_subjectKeyIdentifier;
             m_subjectPublicKey = o.m_subjectPublicKey;
             m_subjectPublicKeyAlgID = o.m_subjectPublicKeyAlgID;
@@ -110,6 +114,12 @@ namespace Org.BouncyCastle.X509.Store
             set { m_keyUsage = Arrays.Clone(value); }
         }
 
+        public bool MatchAllSubjectAltNames
+        {
+            get { return m_matchAllSubjectAltNames; }
+            set { m_matchAllSubjectAltNames = value; }
+        }
+
         public ISet<DerObjectIdentifier> Policy
         {
             get { return CopySet(m_policy); }
@@ -132,6 +142,12 @@ namespace Org.BouncyCastle.X509.Store
         {
             get { return m_subject; }
             set { m_subject = value; }
+        }
+
+        public ISet<GeneralName> SubjectAlternativeNames
+        {
+            get { return CopySet(m_subjectAlternativeNames); }
+            set { m_subjectAlternativeNames = CopySet(value); }
         }
 
         /// <remarks>
@@ -200,6 +216,9 @@ namespace Org.BouncyCastle.X509.Store
                 return false;
 
             if (m_policy != null && !MatchPolicy(c))
+                return false;
+
+            if (!CollectionUtilities.IsNullOrEmpty(m_subjectAlternativeNames) && !MatchSubjectAlternativeNames(c))
                 return false;
 
             return true;
@@ -314,6 +333,29 @@ namespace Org.BouncyCastle.X509.Store
 
             return true;
         }
+
+        private bool MatchSubjectAlternativeNames(X509Certificate c)
+        {
+            GeneralNames generalNames = GeneralNames.GetInstance(
+                X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.SubjectAlternativeName));
+
+            if (generalNames == null)
+                return false;
+
+            GeneralName[] names = generalNames.GetNames();
+
+            foreach (var name in m_subjectAlternativeNames)
+            {
+                bool match = ContainsGeneralName(names, name);
+                if (match != m_matchAllSubjectAltNames)
+                    return match;
+            }
+
+            return m_matchAllSubjectAltNames;
+        }
+
+        private static bool ContainsGeneralName(GeneralName[] names, GeneralName name) =>
+            Array.IndexOf(names, name) >= 0;
 
         private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier oid)
         {
