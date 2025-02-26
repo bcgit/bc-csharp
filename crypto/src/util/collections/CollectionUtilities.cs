@@ -56,6 +56,11 @@ namespace Org.BouncyCastle.Utilities.Collections
             return d.TryGetValue(k, out var v) ? v : null;
         }
 
+        public static bool IsNullOrEmpty<T>(ICollection<T> c)
+        {
+            return c == null || c.Count < 1;
+        }
+
         public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
         {
             return new EnumerableProxy<T>(e);

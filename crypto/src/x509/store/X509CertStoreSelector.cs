@@ -11,303 +11,322 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.X509.Store
 {
     public class X509CertStoreSelector
-		: ISelector<X509Certificate>
-	{
-		// TODO Missing criteria?
+        : ISelector<X509Certificate>
+    {
+        // TODO Missing criteria?
 
-		private byte[] authorityKeyIdentifier;
-		private int basicConstraints = -1;
-		private X509Certificate certificate;
-		private DateTime? certificateValid;
-		private ISet<DerObjectIdentifier> extendedKeyUsage;
-        private bool ignoreX509NameOrdering;
-		private X509Name issuer;
-		private bool[] keyUsage;
-		private ISet<DerObjectIdentifier> policy;
-		private DateTime? privateKeyValid;
-		private BigInteger serialNumber;
-		private X509Name subject;
-		private byte[] subjectKeyIdentifier;
-		private SubjectPublicKeyInfo subjectPublicKey;
-		private DerObjectIdentifier subjectPublicKeyAlgID;
+        private byte[] m_authorityKeyIdentifier;
+        private int m_basicConstraints = -1;
+        private X509Certificate m_certificate;
+        private DateTime? m_certificateValid;
+        private ISet<DerObjectIdentifier> m_extendedKeyUsage;
+        private bool m_ignoreX509NameOrdering;
+        private X509Name m_issuer;
+        private bool[] m_keyUsage;
+        private ISet<DerObjectIdentifier> m_policy;
+        private DateTime? m_privateKeyValid;
+        private BigInteger m_serialNumber;
+        private X509Name m_subject;
+        private byte[] m_subjectKeyIdentifier;
+        private SubjectPublicKeyInfo m_subjectPublicKey;
+        private DerObjectIdentifier m_subjectPublicKeyAlgID;
 
-		public X509CertStoreSelector()
-		{
-		}
+        public X509CertStoreSelector()
+        {
+        }
 
-		public X509CertStoreSelector(
-			X509CertStoreSelector o)
-		{
-			this.authorityKeyIdentifier = o.AuthorityKeyIdentifier;
-			this.basicConstraints = o.BasicConstraints;
-			this.certificate = o.Certificate;
-			this.certificateValid = o.CertificateValid;
-			this.extendedKeyUsage = o.ExtendedKeyUsage;
-            this.ignoreX509NameOrdering = o.IgnoreX509NameOrdering;
-			this.issuer = o.Issuer;
-			this.keyUsage = o.KeyUsage;
-			this.policy = o.Policy;
-			this.privateKeyValid = o.PrivateKeyValid;
-			this.serialNumber = o.SerialNumber;
-			this.subject = o.Subject;
-			this.subjectKeyIdentifier = o.SubjectKeyIdentifier;
-			this.subjectPublicKey = o.SubjectPublicKey;
-			this.subjectPublicKeyAlgID = o.SubjectPublicKeyAlgID;
-		}
+        public X509CertStoreSelector(X509CertStoreSelector o)
+        {
+            m_authorityKeyIdentifier = o.m_authorityKeyIdentifier;
+            m_basicConstraints = o.m_basicConstraints;
+            m_certificate = o.m_certificate;
+            m_certificateValid = o.m_certificateValid;
+            m_extendedKeyUsage = o.m_extendedKeyUsage;
+            m_ignoreX509NameOrdering = o.m_ignoreX509NameOrdering;
+            m_issuer = o.m_issuer;
+            m_keyUsage = o.m_keyUsage;
+            m_policy = o.m_policy;
+            m_privateKeyValid = o.m_privateKeyValid;
+            m_serialNumber = o.m_serialNumber;
+            m_subject = o.m_subject;
+            m_subjectKeyIdentifier = o.m_subjectKeyIdentifier;
+            m_subjectPublicKey = o.m_subjectPublicKey;
+            m_subjectPublicKeyAlgID = o.m_subjectPublicKeyAlgID;
+        }
 
-		public virtual object Clone()
-		{
-			return new X509CertStoreSelector(this);
-		}
+        public virtual object Clone()
+        {
+            return new X509CertStoreSelector(this);
+        }
 
         /// <remarks>
 		/// A DER encoding of an ASN.1 AuthorityKeyIdentifier value.
         /// </remarks>
 		public byte[] AuthorityKeyIdentifier
-		{
-			get { return Arrays.Clone(authorityKeyIdentifier); }
-			set { authorityKeyIdentifier = Arrays.Clone(value); }
-		}
+        {
+            get { return Arrays.Clone(m_authorityKeyIdentifier); }
+            set { m_authorityKeyIdentifier = Arrays.Clone(value); }
+        }
 
-		public int BasicConstraints
-		{
-			get { return basicConstraints; }
-			set
-			{
-				if (value < -2)
-					throw new ArgumentException("value can't be less than -2", "value");
+        public int BasicConstraints
+        {
+            get { return m_basicConstraints; }
+            set { m_basicConstraints = CheckBasicConstraints(value); }
+        }
 
-				basicConstraints = value;
-			}
-		}
+        public X509Certificate Certificate
+        {
+            get { return m_certificate; }
+            set { m_certificate = value; }
+        }
 
-		public X509Certificate Certificate
-		{
-			get { return certificate; }
-			set { this.certificate = value; }
-		}
+        public DateTime? CertificateValid
+        {
+            get { return m_certificateValid; }
+            set { m_certificateValid = value; }
+        }
 
-		public DateTime? CertificateValid
-		{
-			get { return certificateValid; }
-			set { certificateValid = value; }
-		}
-
-		public ISet<DerObjectIdentifier> ExtendedKeyUsage
-		{
-			get { return CopySet(extendedKeyUsage); }
-			set { extendedKeyUsage = CopySet(value); }
-		}
+        public ISet<DerObjectIdentifier> ExtendedKeyUsage
+        {
+            get { return CopySet(m_extendedKeyUsage); }
+            set { m_extendedKeyUsage = CopySet(value); }
+        }
 
         public bool IgnoreX509NameOrdering
         {
-            get { return ignoreX509NameOrdering; }
-            set { this.ignoreX509NameOrdering = value; }
+            get { return m_ignoreX509NameOrdering; }
+            set { m_ignoreX509NameOrdering = value; }
         }
 
-		public X509Name Issuer
-		{
-			get { return issuer; }
-			set { issuer = value; }
-		}
+        public X509Name Issuer
+        {
+            get { return m_issuer; }
+            set { m_issuer = value; }
+        }
 
-		public bool[] KeyUsage
-		{
-			get { return Arrays.Clone(keyUsage); }
-			set { keyUsage = Arrays.Clone(value); }
-		}
+        public bool[] KeyUsage
+        {
+            get { return Arrays.Clone(m_keyUsage); }
+            set { m_keyUsage = Arrays.Clone(value); }
+        }
 
-		public ISet<DerObjectIdentifier> Policy
-		{
-			get { return CopySet(policy); }
-			set { policy = CopySet(value); }
-		}
+        public ISet<DerObjectIdentifier> Policy
+        {
+            get { return CopySet(m_policy); }
+            set { m_policy = CopySet(value); }
+        }
 
-		public DateTime? PrivateKeyValid
-		{
-			get { return privateKeyValid; }
-			set { privateKeyValid = value; }
-		}
+        public DateTime? PrivateKeyValid
+        {
+            get { return m_privateKeyValid; }
+            set { m_privateKeyValid = value; }
+        }
 
-		public BigInteger SerialNumber
-		{
-			get { return serialNumber; }
-			set { serialNumber = value; }
-		}
+        public BigInteger SerialNumber
+        {
+            get { return m_serialNumber; }
+            set { m_serialNumber = value; }
+        }
 
-		public X509Name Subject
-		{
-			get { return subject; }
-			set { subject = value; }
-		}
+        public X509Name Subject
+        {
+            get { return m_subject; }
+            set { m_subject = value; }
+        }
 
         /// <remarks>
 		/// A DER encoding of an ASN.1 SubjectKeyIdentifier (OCTET STRING) value.
         /// </remarks>
         public byte[] SubjectKeyIdentifier
-		{
-			get { return Arrays.Clone(subjectKeyIdentifier); }
-			set { subjectKeyIdentifier = Arrays.Clone(value); }
-		}
+        {
+            get { return Arrays.Clone(m_subjectKeyIdentifier); }
+            set { m_subjectKeyIdentifier = Arrays.Clone(value); }
+        }
 
-		public SubjectPublicKeyInfo SubjectPublicKey
-		{
-			get { return subjectPublicKey; }
-			set { subjectPublicKey = value; }
-		}
+        public SubjectPublicKeyInfo SubjectPublicKey
+        {
+            get { return m_subjectPublicKey; }
+            set { m_subjectPublicKey = value; }
+        }
 
-		public DerObjectIdentifier SubjectPublicKeyAlgID
-		{
-			get { return subjectPublicKeyAlgID; }
-			set { subjectPublicKeyAlgID = value; }
-		}
+        public DerObjectIdentifier SubjectPublicKeyAlgID
+        {
+            get { return m_subjectPublicKeyAlgID; }
+            set { m_subjectPublicKeyAlgID = value; }
+        }
 
-		public virtual bool Match(X509Certificate c)
-		{
-			if (c == null)
-				return false;
+        public virtual bool Match(X509Certificate c)
+        {
+            if (c == null)
+                return false;
 
-			if (!MatchExtension(authorityKeyIdentifier, c, X509Extensions.AuthorityKeyIdentifier))
-				return false;
+            if (m_certificate != null && !m_certificate.Equals(c))
+                return false;
 
-			if (basicConstraints != -1)
-			{
-				int bc = c.GetBasicConstraints();
+            if (m_serialNumber != null && !m_serialNumber.Equals(c.SerialNumber))
+                return false;
 
-				if (basicConstraints == -2)
-				{
-					if (bc != -1)
-						return false;
-				}
-				else
-				{
-					if (bc < basicConstraints)
-						return false;
-				}
-			}
+            if (m_issuer != null && !m_issuer.Equivalent(c.IssuerDN, !m_ignoreX509NameOrdering))
+                return false;
 
-			if (certificate != null && !certificate.Equals(c))
-				return false;
+            if (m_subject != null && !m_subject.Equivalent(c.SubjectDN, !m_ignoreX509NameOrdering))
+                return false;
 
-			if (certificateValid != null && !c.IsValid(certificateValid.Value))
-				return false;
+            if (m_certificateValid != null && !c.IsValid(m_certificateValid.Value))
+                return false;
 
-            if (extendedKeyUsage != null && extendedKeyUsage.Count > 0)
-            {
-                var eku = c.GetExtendedKeyUsage();
+            if (m_subjectPublicKey != null && !m_subjectPublicKey.Equals(c.SubjectPublicKeyInfo))
+                return false;
 
-                // Note: if no extended key usage set, all key purposes are implicitly allowed
+            if (m_basicConstraints != -1 && !MatchBasicConstraints(c))
+                return false;
 
-                if (eku != null && !eku.Contains(KeyPurposeID.AnyExtendedKeyUsage))
-                {
-                    foreach (DerObjectIdentifier oid in extendedKeyUsage)
-                    {
-                        if (!eku.Contains(oid))
-                            return false;
-                    }
-                }
-            }
+            if (m_keyUsage != null && !MatchKeyUsage(c))
+                return false;
 
-            if (issuer != null && !issuer.Equivalent(c.IssuerDN, !ignoreX509NameOrdering))
-				return false;
+            if (!CollectionUtilities.IsNullOrEmpty(m_extendedKeyUsage) && !MatchExtendedKeyUsage(c))
+                return false;
 
-            if (keyUsage != null)
-            {
-                bool[] ku = c.GetKeyUsage();
+            if (!MatchExtension(m_subjectKeyIdentifier, c, X509Extensions.SubjectKeyIdentifier))
+                return false;
 
-                // Note: if no key usage set, all key purposes are implicitly allowed
+            if (!MatchExtension(m_authorityKeyIdentifier, c, X509Extensions.AuthorityKeyIdentifier))
+                return false;
 
-                if (ku != null)
-                {
-                    for (int i = 0; i < keyUsage.Length; ++i)
-                    {
-                        if (keyUsage[i] && (i >= ku.Length || !ku[i]))
-                            return false;
-                    }
-                }
-            }
+            if (m_privateKeyValid != null && !MatchPrivateKeyValid(c))
+                return false;
 
-            if (policy != null)
-            {
-                Asn1Sequence certificatePolicies = Asn1Sequence.GetInstance(
-                    X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.CertificatePolicies));
+            if (m_subjectPublicKeyAlgID != null && !m_subjectPublicKeyAlgID.Equals(c.SubjectPublicKeyInfo.Algorithm))
+                return false;
 
-                if (certificatePolicies == null || certificatePolicies.Count < 1)
-                    return false;
+            if (m_policy != null && !MatchPolicy(c))
+                return false;
 
-                if (policy.Count > 0 && !PoliciesIntersect(policy, certificatePolicies))
-                    return false;
-            }
+            return true;
+        }
 
-            if (privateKeyValid != null)
-            {
-                var privateKeyUsagePeriod = PrivateKeyUsagePeriod.GetInstance(
-                    X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.PrivateKeyUsagePeriod));
+        protected internal int GetHashCodeOfSubjectKeyIdentifier() => Arrays.GetHashCode(m_subjectKeyIdentifier);
 
-				if (privateKeyUsagePeriod != null)
-				{
-                    var notBefore = privateKeyUsagePeriod.NotBefore;
-                    if (notBefore != null && notBefore.ToDateTime().CompareTo(privateKeyValid.Value) > 0)
-                        return false;
+        protected internal bool MatchesIssuer(X509CertStoreSelector other) => IssuersMatch(m_issuer, other.m_issuer);
 
-                    var notAfter = privateKeyUsagePeriod.NotAfter;
-                    if (notAfter != null && notAfter.ToDateTime().CompareTo(privateKeyValid.Value) < 0)
-                        return false;
-                }
-            }
-
-            if (serialNumber != null && !serialNumber.Equals(c.SerialNumber))
-				return false;
-
-            if (subject != null && !subject.Equivalent(c.SubjectDN, !ignoreX509NameOrdering))
-				return false;
-
-			if (!MatchExtension(subjectKeyIdentifier, c, X509Extensions.SubjectKeyIdentifier))
-				return false;
-
-			SubjectPublicKeyInfo subjectPublicKeyInfo = c.SubjectPublicKeyInfo;
-
-            if (subjectPublicKey != null && !subjectPublicKey.Equals(subjectPublicKeyInfo))
-				return false;
-
-			if (subjectPublicKeyAlgID != null && !subjectPublicKeyAlgID.Equals(subjectPublicKeyInfo.Algorithm))
-				return false;
-
-			return true;
-		}
-
-		protected internal int GetHashCodeOfSubjectKeyIdentifier() => Arrays.GetHashCode(subjectKeyIdentifier);
-
-		protected internal bool MatchesIssuer(X509CertStoreSelector other) => IssuersMatch(issuer, other.issuer);
-
-		protected internal bool MatchesSerialNumber(X509CertStoreSelector other) =>
-			Objects.Equals(serialNumber, other.serialNumber);
+        protected internal bool MatchesSerialNumber(X509CertStoreSelector other) =>
+            Objects.Equals(m_serialNumber, other.m_serialNumber);
 
         protected internal bool MatchesSubjectKeyIdentifier(X509CertStoreSelector other) =>
-			Arrays.AreEqual(subjectKeyIdentifier, other.subjectKeyIdentifier);
+            Arrays.AreEqual(m_subjectKeyIdentifier, other.m_subjectKeyIdentifier);
 
-		private static bool IssuersMatch(X509Name a, X509Name b)
-		{
-			return a == null ? b == null : a.Equivalent(b, true);
-		}
+        private static bool IssuersMatch(X509Name a, X509Name b)
+        {
+            return a == null ? b == null : a.Equivalent(b, true);
+        }
 
-		private static ISet<T> CopySet<T>(ISet<T> s)
-		{
-			return s == null ? null : new HashSet<T>(s);
-		}
+        private static ISet<T> CopySet<T>(ISet<T> s)
+        {
+            return s == null ? null : new HashSet<T>(s);
+        }
 
-        private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier	oid)
-		{
-			if (b == null)
-				return true;
+        private static int CheckBasicConstraints(int basicConstraints)
+        {
+            if (basicConstraints < -2)
+                throw new ArgumentException("can't be less than -2", nameof(basicConstraints));
 
-			Asn1OctetString extVal = c.GetExtensionValue(oid);
+            return basicConstraints;
+        }
 
-			if (extVal == null)
-				return false;
+        private bool MatchBasicConstraints(X509Certificate c)
+        {
+            int maxPathLen = c.GetBasicConstraints();
 
-			return Arrays.AreEqual(b, extVal.GetOctets());
-		}
+            if (m_basicConstraints == -2)
+                return maxPathLen == -1;
+
+            return maxPathLen >= m_basicConstraints;
+        }
+
+        private bool MatchExtendedKeyUsage(X509Certificate c)
+        {
+            IList<DerObjectIdentifier> eku = c.GetExtendedKeyUsage();
+            if (eku != null && !eku.Contains(KeyPurposeID.AnyExtendedKeyUsage))
+            {
+                foreach (DerObjectIdentifier oid in m_extendedKeyUsage)
+                {
+                    if (!eku.Contains(oid))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        private bool MatchKeyUsage(X509Certificate c)
+        {
+            bool[] ku = c.GetKeyUsage();
+            if (ku != null)
+            {
+                for (int i = 0; i < m_keyUsage.Length; ++i)
+                {
+                    if (m_keyUsage[i] && (i >= ku.Length || !ku[i]))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        private bool MatchPolicy(X509Certificate c)
+        {
+            Asn1Sequence certificatePolicies = Asn1Sequence.GetInstance(
+                X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.CertificatePolicies));
+
+            if (certificatePolicies == null || certificatePolicies.Count < 1)
+                return false;
+
+            return m_policy.Count < 1 || PoliciesIntersect(m_policy, certificatePolicies);
+        }
+
+        private bool MatchPrivateKeyValid(X509Certificate c)
+        {
+            var privateKeyUsagePeriod = PrivateKeyUsagePeriod.GetInstance(
+                X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.PrivateKeyUsagePeriod));
+
+            if (privateKeyUsagePeriod != null)
+            {
+                var validityUtc = m_privateKeyValid.Value.ToUniversalTime();
+
+                var notBefore = privateKeyUsagePeriod.NotBefore;
+                if (notBefore != null)
+                {
+                    var notBeforeUtc = notBefore.ToDateTime().ToUniversalTime();
+
+                    // NOTE: DateTime.CompareTo ignores DateTimeKind, so ensure we compare UTC values
+                    if (notBeforeUtc.CompareTo(validityUtc) > 0)
+                        return false;
+                }
+
+                var notAfter = privateKeyUsagePeriod.NotAfter;
+                if (notAfter != null)
+                {
+                    var notAfterUtc = notAfter.ToDateTime().ToUniversalTime();
+
+                    // NOTE: DateTime.CompareTo ignores DateTimeKind, so ensure we compare UTC values
+                    if (notAfterUtc.CompareTo(validityUtc) < 0)
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier oid)
+        {
+            if (b == null)
+                return true;
+
+            Asn1OctetString extVal = c.GetExtensionValue(oid);
+
+            if (extVal == null)
+                return false;
+
+            return Arrays.AreEqual(b, extVal.GetOctets());
+        }
 
         private static bool PoliciesIntersect(ISet<DerObjectIdentifier> policy, Asn1Sequence certificatePolicies)
         {
