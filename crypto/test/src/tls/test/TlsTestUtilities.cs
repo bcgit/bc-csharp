@@ -371,7 +371,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static PemObject LoadPemResource(string resource)
         {
-            Stream s = SimpleTest.GetTestDataAsStream("tls." + resource);
+            Stream s = SimpleTest.FindTestResource("tls", "credentials", resource);
             using (var p = new PemReader(new StreamReader(s)))
             {
                 return p.ReadPemObject();
