@@ -139,6 +139,19 @@ namespace Org.BouncyCastle.Asn1.X509
             m_authorityCertSerialNumber = serialNumber == null ? null : new DerInteger(serialNumber);
         }
 
+        public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier)
+            : this(keyIdentifier, authorityCertIssuer: null, authorityCertSerialNumber: null)
+        {
+        }
+
+        public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier, GeneralNames authorityCertIssuer,
+            DerInteger authorityCertSerialNumber)
+        {
+            m_keyIdentifier = keyIdentifier;
+            m_authorityCertIssuer = authorityCertIssuer;
+            m_authorityCertSerialNumber = authorityCertSerialNumber;
+        }
+
         public byte[] GetKeyIdentifier() => m_keyIdentifier?.GetOctets();
 
         public GeneralNames AuthorityCertIssuer => m_authorityCertIssuer;
