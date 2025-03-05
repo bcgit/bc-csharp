@@ -234,24 +234,6 @@ namespace Org.BouncyCastle.X509.Store
         protected internal bool MatchesSubjectKeyIdentifier(X509CertStoreSelector other) =>
             Arrays.AreEqual(m_subjectKeyIdentifier, other.m_subjectKeyIdentifier);
 
-        private static bool IssuersMatch(X509Name a, X509Name b)
-        {
-            return a == null ? b == null : a.Equivalent(b, true);
-        }
-
-        private static ISet<T> CopySet<T>(ISet<T> s)
-        {
-            return s == null ? null : new HashSet<T>(s);
-        }
-
-        private static int CheckBasicConstraints(int basicConstraints)
-        {
-            if (basicConstraints < -2)
-                throw new ArgumentException("can't be less than -2", nameof(basicConstraints));
-
-            return basicConstraints;
-        }
-
         private bool MatchBasicConstraints(X509Certificate c)
         {
             int maxPathLen = c.GetBasicConstraints();
@@ -354,8 +336,20 @@ namespace Org.BouncyCastle.X509.Store
             return m_matchAllSubjectAltNames;
         }
 
+        private static int CheckBasicConstraints(int basicConstraints)
+        {
+            if (basicConstraints < -2)
+                throw new ArgumentException("can't be less than -2", nameof(basicConstraints));
+
+            return basicConstraints;
+        }
+
         private static bool ContainsGeneralName(GeneralName[] names, GeneralName name) =>
             Array.IndexOf(names, name) >= 0;
+
+        private static ISet<T> CopySet<T>(ISet<T> s) => s == null ? null : new HashSet<T>(s);
+
+        private static bool IssuersMatch(X509Name a, X509Name b) => a == null ? b == null : a.Equivalent(b, true);
 
         private static bool MatchExtension(byte[] b, X509Certificate c, DerObjectIdentifier oid)
         {
