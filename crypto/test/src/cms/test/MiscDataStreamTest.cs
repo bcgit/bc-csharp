@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -13,79 +12,56 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	[TestFixture]
-	public class MiscDataStreamTest
+    [TestFixture]
+    [Parallelizable(ParallelScope.All)]
+    public class MiscDataStreamTest
 	{
 		private const string TestMessage = "Hello World!";
-		private const string SignDN = "O=Bouncy Castle, C=AU";
-		private static AsymmetricCipherKeyPair signKP;
-		private static X509Certificate signCert;
 
 		private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
 		private static AsymmetricCipherKeyPair origKP;
 		private static X509Certificate origCert;
 
-		private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
-		//		private static AsymmetricCipherKeyPair reciKP;
-		//		private static X509Certificate reciCert;
+        private static AsymmetricCipherKeyPair origDsaKP;
+        private static X509Certificate origDsaCert;
 
-		private static AsymmetricCipherKeyPair origDsaKP;
-		private static X509Certificate origDsaCert;
+        private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
+        //private static AsymmetricCipherKeyPair reciKP;
+        //private static X509Certificate reciCert;
+
+        private const string SignDN = "O=Bouncy Castle, C=AU";
+        private static AsymmetricCipherKeyPair signKP;
+        private static X509Certificate signCert;
 
 		private static X509Crl signCrl;
 		private static X509Crl origCrl;
 
-		private static AsymmetricCipherKeyPair SignKP
-		{
-			get { return signKP == null ? (signKP = CmsTestUtil.MakeKeyPair()) : signKP; }
-		}
+        private static AsymmetricCipherKeyPair OrigKP => CmsTestUtil.InitKP(ref origKP, CmsTestUtil.MakeKeyPair);
 
-		private static AsymmetricCipherKeyPair OrigKP
-		{
-			get { return origKP == null ? (origKP = CmsTestUtil.MakeKeyPair()) : origKP; }
-		}
+        private static AsymmetricCipherKeyPair OrigDsaKP =>
+            CmsTestUtil.InitKP(ref origDsaKP, CmsTestUtil.MakeDsaKeyPair);
 
-		//		private static AsymmetricCipherKeyPair ReciKP
-		//		{
-		//			get { return reciKP == null ? (reciKP = CmsTestUtil.MakeKeyPair()) : reciKP; }
-		//		}
+        //private static AsymmetricCipherKeyPair ReciKP => CmsTestUtil.InitKP(ref reciKP, CmsTestUtil.MakeKeyPair);
 
-		private static AsymmetricCipherKeyPair OrigDsaKP
-		{
-			get { return origDsaKP == null ? (origDsaKP = CmsTestUtil.MakeDsaKeyPair()) : origDsaKP; }
-		}
+        private static AsymmetricCipherKeyPair SignKP => CmsTestUtil.InitKP(ref signKP, CmsTestUtil.MakeKeyPair);
 
-		private static X509Certificate SignCert
-		{
-			get { return signCert == null ? (signCert = CmsTestUtil.MakeCertificate(SignKP, SignDN, SignKP, SignDN)) : signCert; }
-		}
+        private static X509Certificate OrigCert => CmsTestUtil.InitCertificate(ref origCert,
+            () => CmsTestUtil.MakeCertificate(OrigKP, OrigDN, SignKP, SignDN));
 
-		private static X509Certificate OrigCert
-		{
-			get { return origCert == null ? (origCert = CmsTestUtil.MakeCertificate(OrigKP, OrigDN, SignKP, SignDN)) : origCert; }
-		}
+        private static X509Certificate OrigDsaCert => CmsTestUtil.InitCertificate(ref origDsaCert,
+            () => CmsTestUtil.MakeCertificate(OrigDsaKP, OrigDN, SignKP, SignDN));
 
-		//		private static X509Certificate ReciCert
-		//		{
-		//			get { return reciCert == null ? (reciCert = CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN)) : reciCert; }
-		//		}
+        //private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
+        //    () => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
 
-		private static X509Certificate OrigDsaCert
-		{
-			get { return origDsaCert == null ? (origDsaCert = CmsTestUtil.MakeCertificate(OrigDsaKP, OrigDN, SignKP, SignDN)) : origDsaCert; }
-		}
+        private static X509Certificate SignCert => CmsTestUtil.InitCertificate(ref signCert,
+            () => CmsTestUtil.MakeCertificate(SignKP, SignDN, SignKP, SignDN));
 
-		private static X509Crl SignCrl
-		{
-			get { return signCrl == null ? (signCrl = CmsTestUtil.MakeCrl(SignKP)) : signCrl; }
-		}
+        private static X509Crl OrigCrl => CmsTestUtil.InitCrl(ref origCrl, () => CmsTestUtil.MakeCrl(OrigKP));
 
-		private static X509Crl OrigCrl
-		{
-			get { return origCrl == null ? (origCrl = CmsTestUtil.MakeCrl(OrigKP)) : origCrl; }
-		}
+        private static X509Crl SignCrl => CmsTestUtil.InitCrl(ref signCrl, () => CmsTestUtil.MakeCrl(SignKP));
 
-		private void VerifySignatures(CmsSignedDataParser sp, byte[] contentDigest)
+        private void VerifySignatures(CmsSignedDataParser sp, byte[] contentDigest)
 		{
 			IStore<X509Certificate> certStore = sp.GetCertificates();
 			SignerInformationStore signers = sp.GetSignerInfos();

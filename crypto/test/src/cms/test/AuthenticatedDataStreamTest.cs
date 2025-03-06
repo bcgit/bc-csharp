@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 
@@ -11,7 +10,8 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	[TestFixture]
+    [TestFixture]
+	[Parallelizable(ParallelScope.All)]
 	public class AuthenticatedDataStreamTest
 	{
 		private const string SignDN = "O=Bouncy Castle, C=AU";
@@ -36,45 +36,31 @@ namespace Org.BouncyCastle.Cms.Tests
 		private static AsymmetricCipherKeyPair reciECKP;
 		private static X509Certificate reciECCert;
 
-		private static AsymmetricCipherKeyPair SignKP
-		{
-			get { return signKP == null ? (signKP = CmsTestUtil.MakeKeyPair()) : signKP; }
-		}
+        private static AsymmetricCipherKeyPair OrigECKP =>
+            CmsTestUtil.InitKP(ref origECKP, CmsTestUtil.MakeECDsaKeyPair);
 
-		private static AsymmetricCipherKeyPair ReciKP
-		{
-			get { return reciKP == null ? (reciKP = CmsTestUtil.MakeKeyPair()) : reciKP; }
-		}
+        private static AsymmetricCipherKeyPair ReciECKP =>
+            CmsTestUtil.InitKP(ref reciECKP, CmsTestUtil.MakeECDsaKeyPair);
 
-		private static X509Certificate ReciCert
-		{
-			get { return reciCert == null ? (reciCert = CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN)) : reciCert; }
-		}
+        private static AsymmetricCipherKeyPair ReciKP => CmsTestUtil.InitKP(ref reciKP, CmsTestUtil.MakeKeyPair);
 
-		private static AsymmetricCipherKeyPair OrigECKP
-		{
-			get { return origECKP == null ? (origECKP = CmsTestUtil.MakeECDsaKeyPair()) : origECKP; }
-		}
+        private static AsymmetricCipherKeyPair SignKP => CmsTestUtil.InitKP(ref signKP, CmsTestUtil.MakeKeyPair);
 
-		private static AsymmetricCipherKeyPair ReciECKP
-		{
-			get { return reciECKP == null ? (reciECKP = CmsTestUtil.MakeECDsaKeyPair()) : reciECKP; }
-		}
+        private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
+            () => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
 
-		private static X509Certificate ReciECCert
-		{
-			get { return reciECCert == null ? (reciECCert = CmsTestUtil.MakeCertificate(ReciECKP, ReciDN, SignKP, SignDN)) : reciECCert; }
-		}
+        private static X509Certificate ReciECCert => CmsTestUtil.InitCertificate(ref reciECCert,
+            () => CmsTestUtil.MakeCertificate(ReciECKP, ReciDN, SignKP, SignDN));
 
-		[Test]
+        [Test]
 		public void TestKeyTransDESede()
 		{
-            tryKeyTrans(Encoding.ASCII.GetBytes("Eric H. Echidna"), CmsEnvelopedGenerator.DesEde3Cbc);
+            TryKeyTrans(Encoding.ASCII.GetBytes("Eric H. Echidna"), CmsEnvelopedGenerator.DesEde3Cbc);
             // force multiple octet-string
-            tryKeyTrans(new byte[2500], CmsEnvelopedGenerator.DesEde3Cbc);
+            TryKeyTrans(new byte[2500], CmsEnvelopedGenerator.DesEde3Cbc);
         }
 
-		private void tryKeyTrans(byte[] data, string macAlg)
+		private void TryKeyTrans(byte[] data, string macAlg)
 		{
 			CmsAuthenticatedDataStreamGenerator adGen = new CmsAuthenticatedDataStreamGenerator();
 

@@ -14,7 +14,8 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Cms.Tests
 {
     [TestFixture]
-	public class Rfc4134Test
+    [Parallelizable(ParallelScope.All)]
+    public class Rfc4134Test
 	{
 		private static readonly byte[] exContent = GetRfc4134Data("ExContent.bin");
 		private static readonly byte[] sha1 = Hex.Decode("406aec085279ba6e16022d9e0629c0229687dd48");
