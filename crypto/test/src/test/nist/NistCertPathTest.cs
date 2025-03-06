@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -15,7 +14,7 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tests.Nist
 {
-	[TestFixture]
+    [TestFixture]
 	public class NistCertPathTest
 	{
 		private static readonly string GOOD_CA_CERT = "GoodCACert";
@@ -759,7 +758,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			if (Certs.TryGetValue(certName, out var cachedCert))
 				return cachedCert;
 
-			using (Stream fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt"))
+            using (var fs = SimpleTest.FindTestResource("PKITS", "certs", certName + ".crt"))
             {
 				var cert = new X509CertificateParser().ReadCertificate(fs);
 				Certs[certName] = cert;
@@ -772,7 +771,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			if (Crls.TryGetValue(crlName, out var cachedCrl))
 				return cachedCrl;
 
-			using (Stream fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl"))
+            using (var fs = SimpleTest.FindTestResource("PKITS", "crls", crlName + ".crl"))
 			{
 				var crl = new X509CrlParser().ReadCrl(fs);
 				Crls[crlName] = crl;

@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Tests.Nist
     /**
      * NIST CertPath test data for RFC 3280
      */
-	[TestFixture]
+    [TestFixture]
     public class NistCertPathTest2
     {
         private static readonly string ANY_POLICY = "2.5.29.32.0";
@@ -426,7 +426,7 @@ namespace Org.BouncyCastle.Tests.Nist
             if (m_certs.TryGetValue(certName, out var cachedCert))
                 return cachedCert;
 
-            using (var fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt"))
+            using (var fs = SimpleTest.FindTestResource("PKITS", "certs", certName + ".crt"))
             {
                 var cert = new X509CertificateParser().ReadCertificate(fs);
                 m_certs[certName] = cert;
@@ -439,7 +439,7 @@ namespace Org.BouncyCastle.Tests.Nist
             if (m_crls.TryGetValue(crlName, out var cachedCrl))
                 return cachedCrl;
 
-            using (var fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl"))
+            using (var fs = SimpleTest.FindTestResource("PKITS", "crls", crlName + ".crl"))
             {
                 var crl = new X509CrlParser().ReadCrl(fs);
                 m_crls[crlName] = crl;
