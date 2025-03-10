@@ -12,6 +12,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Tls.Crypto.Tests
 {
     [TestFixture]
+    [Parallelizable(ParallelScope.All)]
     public class BcTlsCryptoTest
     {
         private static readonly byte[] ClientHello = Hex("01 00 00 c0 03 03 cb 34 ec b1 e7 81 63"
@@ -179,9 +180,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 if (!NamedGroup.RefersToASpecificFiniteField(namedGroup) || !m_crypto.HasNamedGroup(namedGroup))
                     continue;
 
-                ImplTestDHDomain(new TlsDHConfig(namedGroup, false));
-                ImplTestDHDomain(new TlsDHConfig(namedGroup, true));
+                ImplTestDHDomain(new TlsDHConfig(namedGroup, padded: false));
+                ImplTestDHDomain(new TlsDHConfig(namedGroup, padded: true));
             }
+        }
+
+        [Test]
+        public void TestDHExplicit()
+        {
+            if (!m_crypto.HasDHAgreement())
+                return;
 
             var groups = new TestTlsDHGroupVerifier().Groups;
             foreach (DHGroup dhGroup in groups)
@@ -196,7 +204,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
                 int namedGroup = TlsDHUtilities.GetNamedGroupForDHParameters(p, g);
 
-                // Already tested the named groups
+                // Named groups tested elsewhere
                 if (NamedGroup.RefersToASpecificFiniteField(namedGroup))
                     continue;
 
