@@ -103,11 +103,11 @@ namespace Org.BouncyCastle.Tls
         public const int arbitrary_explicit_char2_curves = 0xFF02;
 
         /*
-         * draft-connolly-tls-mlkem-key-agreement-03
+         * draft-connolly-tls-mlkem-key-agreement-05
          */
-        public const int MLKEM512 = 0x0512;
-        public const int MLKEM768 = 0x0768;
-        public const int MLKEM1024 = 0x1024;
+        public const int MLKEM512 = 0x0200;
+        public const int MLKEM768 = 0x0201;
+        public const int MLKEM1024 = 0x0202;
 
         /* Names of the actual underlying elliptic curves (not necessarily matching the NamedGroup names). */
         private static readonly string[] CurveNames = new string[]{ "sect163k1", "sect163r1", "sect163r2", "sect193r1",

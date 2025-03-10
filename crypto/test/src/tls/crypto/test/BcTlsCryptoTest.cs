@@ -446,6 +446,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         }
 
         [Test]
+        public void TestKemDomain()
+        {
+            if (!m_crypto.HasKemAgreement())
+                return;
+
+            for (int namedGroup = 0; namedGroup < 0x10000; ++namedGroup)
+            {
+                if (!NamedGroup.RefersToASpecificKem(namedGroup) || !m_crypto.HasNamedGroup(namedGroup))
+                    continue;
+
+                ImplTestKemDomain(namedGroup);
+            }
+        }
+
+        [Test]
         public void TestSignaturesLegacy()
         {
             short[] signatureAlgorithms = new short[]{ SignatureAlgorithm.dsa, SignatureAlgorithm.ecdsa,
@@ -604,11 +619,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
         private void ImplTestAgreement(TlsAgreement aA, TlsAgreement aB)
         {
-            byte[] pA = aA.GenerateEphemeral();
-            byte[] pB = aB.GenerateEphemeral();
+            // NOTE: Order is important since some agreements are actually KEMs
 
-            aA.ReceivePeerValue(pB);
+            byte[] pA = aA.GenerateEphemeral();
             aB.ReceivePeerValue(pA);
+
+            byte[] pB = aB.GenerateEphemeral();
+            aA.ReceivePeerValue(pB);
 
             TlsSecret sA = aA.CalculateSecret();
             TlsSecret sB = aB.CalculateSecret();
@@ -649,6 +666,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 TlsAgreement aB = d.CreateECDH();
 
                 ImplTestAgreement(aA, aB);
+            }
+        }
+
+        private void ImplTestKemDomain(int namedGroup)
+        {
+            TlsKemDomain clientDomain = m_crypto.CreateKemDomain(new TlsKemConfig(namedGroup, isServer: false));
+            TlsKemDomain serverDomain = m_crypto.CreateKemDomain(new TlsKemConfig(namedGroup, isServer: true));
+
+            for (int i = 0; i < 2; ++i)
+            {
+                TlsAgreement clientKem = clientDomain.CreateKem();
+                TlsAgreement serverKem = serverDomain.CreateKem();
+
+                ImplTestAgreement(clientKem, serverKem);
             }
         }
 
