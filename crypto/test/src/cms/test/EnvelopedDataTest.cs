@@ -17,6 +17,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
@@ -49,6 +50,12 @@ namespace Org.BouncyCastle.Cms.Tests
 		private static X509Certificate reciECCert;
 		private static AsymmetricCipherKeyPair reciECKP2;
 		private static X509Certificate reciECCert2;
+        private static AsymmetricCipherKeyPair reciMLKem512KP;
+        private static X509Certificate reciMLKem512Cert;
+        private static AsymmetricCipherKeyPair reciMLKem768KP;
+        private static X509Certificate reciMLKem768Cert;
+        private static AsymmetricCipherKeyPair reciMLKem1024KP;
+        private static X509Certificate reciMLKem1024Cert;
 
         private static AsymmetricCipherKeyPair OrigECKP =>
             CmsTestUtil.InitKP(ref origECKP, CmsTestUtil.MakeECDsaKeyPair);
@@ -57,6 +64,15 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static AsymmetricCipherKeyPair ReciECKP =>
             CmsTestUtil.InitKP(ref reciECKP, CmsTestUtil.MakeECDsaKeyPair);
+
+        private static AsymmetricCipherKeyPair ReciMLKem512KP =>
+            CmsTestUtil.InitKP(ref reciMLKem512KP, CmsTestUtil.MakeMLKem512KeyPair);
+
+        private static AsymmetricCipherKeyPair ReciMLKem768KP =>
+            CmsTestUtil.InitKP(ref reciMLKem768KP, CmsTestUtil.MakeMLKem768KeyPair);
+
+        private static AsymmetricCipherKeyPair ReciMLKem1024KP =>
+            CmsTestUtil.InitKP(ref reciMLKem1024KP, CmsTestUtil.MakeMLKem1024KeyPair);
 
         private static AsymmetricCipherKeyPair ReciECKP2 =>
             CmsTestUtil.InitKP(ref reciECKP2, CmsTestUtil.MakeECDsaKeyPair);
@@ -71,6 +87,15 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static X509Certificate ReciECCert2 => CmsTestUtil.InitCertificate(ref reciECCert2,
             () => CmsTestUtil.MakeCertificate(ReciECKP2, ReciDN2, SignKP, SignDN));
+
+        private static X509Certificate ReciMLKem512Cert => CmsTestUtil.InitCertificate(ref reciMLKem512Cert,
+            () => CmsTestUtil.MakeCertificate(ReciMLKem512KP, ReciDN, SignKP, SignDN));
+
+        private static X509Certificate ReciMLKem768Cert => CmsTestUtil.InitCertificate(ref reciMLKem768Cert,
+            () => CmsTestUtil.MakeCertificate(ReciMLKem768KP, ReciDN, SignKP, SignDN));
+
+        private static X509Certificate ReciMLKem1024Cert => CmsTestUtil.InitCertificate(ref reciMLKem1024Cert,
+            () => CmsTestUtil.MakeCertificate(ReciMLKem1024KP, ReciDN, SignKP, SignDN));
 
         private static readonly byte[] oldKEK = Base64.Decode(
 			"MIAGCSqGSIb3DQEHA6CAMIACAQIxQaI/MD0CAQQwBwQFAQIDBAUwDQYJYIZIAWUDBAEFBQAEI"
@@ -313,7 +338,133 @@ namespace Org.BouncyCastle.Cms.Tests
 			"l43OVnBpGM+FjQ=="
 		);
 
-		[Test]
+        //[Test]
+        //public void TestMLKem512()
+        //{
+        //    byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");
+
+        //    // Send response with encrypted certificate
+        //    CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+
+        //    // note: use cert req ID as key ID, don't want to use issuer/serial in this case!
+        //    edGen.AddKemRecipient( // ...or AddRecipientInfoGenerator?
+        //        PkcsObjectIdentifiers.IdAlgHkdfWithSha256.GetID(),
+        //        ReciMLKem512Cert,
+        //        CmsEnvelopedGenerator.Aes128Wrap);
+
+        //    CmsEnvelopedData ed = edGen.Generate(
+        //        new CmsProcessableByteArray(data),
+        //        CmsEnvelopedGenerator.Aes128Cbc);
+
+        //    RecipientInformationStore recipients = ed.GetRecipientInfos();
+
+        //    Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.Aes128Cbc);
+
+        //    var c = recipients.GetRecipients();
+
+        //    Assert.AreEqual(1, c.Count);
+
+        //    int expectedLength = new DefaultKemEncapsulationLengthProvider().getEncapsulationLength(
+        //        SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ReciMLKem512KP.Public).Algorithm);
+
+        //    foreach (KemRecipientInformation recipient in c)
+        //    {
+        //        Assert.AreEqual(expectedLength, recipient.GetEncapsulation().Length);
+
+        //        Assert.AreEqual(NistObjectIdentifiers.id_alg_ml_kem_512.GetID(), recipient.KeyEncryptionAlgOid);
+
+        //        CmsTypedStream contentStream = recipient.GetContentStream(ReciMLKem512KP.Private);
+
+        //        Assert.AreEqual(PkcsObjectIdentifiers.Data.GetID(), contentStream.ContentType);
+        //        Assert.True(Arrays.AreEqual(data, Streams.ReadAll(contentStream.ContentStream)));
+        //    }
+        //}
+
+        //[Test]
+        //public void TestMLKem768()
+        //{
+        //    byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");
+
+        //    // Send response with encrypted certificate
+        //    CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+
+        //    // note: use cert req ID as key ID, don't want to use issuer/serial in this case!
+        //    edGen.AddKemRecipient( // ...or AddRecipientInfoGenerator?
+        //        PkcsObjectIdentifiers.IdAlgHkdfWithSha256.GetID(),
+        //        ReciMLKem768Cert,
+        //        CmsEnvelopedGenerator.Aes256Wrap);
+
+        //    CmsEnvelopedData ed = edGen.Generate(
+        //        new CmsProcessableByteArray(data),
+        //        CmsEnvelopedGenerator.Aes256Cbc);
+
+        //    RecipientInformationStore recipients = ed.GetRecipientInfos();
+
+        //    Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.Aes256Cbc);
+
+        //    var c = recipients.GetRecipients();
+
+        //    Assert.AreEqual(1, c.Count);
+
+        //    int expectedLength = new DefaultKemEncapsulationLengthProvider().getEncapsulationLength(
+        //        SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ReciMLKem768KP.Public).Algorithm);
+
+        //    foreach (KemRecipientInformation recipient in c)
+        //    {
+        //        Assert.AreEqual(expectedLength, recipient.GetEncapsulation().Length);
+
+        //        Assert.AreEqual(NistObjectIdentifiers.id_alg_ml_kem_768.GetID(), recipient.KeyEncryptionAlgOid);
+
+        //        CmsTypedStream contentStream = recipient.GetContentStream(ReciMLKem768KP.Private);
+
+        //        Assert.AreEqual(PkcsObjectIdentifiers.Data.GetID(), contentStream.ContentType);
+        //        Assert.True(Arrays.AreEqual(data, Streams.ReadAll(contentStream.ContentStream)));
+        //    }
+        //}
+
+        //[Test]
+        //public void TestMLKem1024()
+        //{
+        //    byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");
+
+        //    // Send response with encrypted certificate
+        //    CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+
+        //    // note: use cert req ID as key ID, don't want to use issuer/serial in this case!
+        //    edGen.AddKemRecipient( // ...or AddRecipientInfoGenerator?
+        //        PkcsObjectIdentifiers.IdAlgHkdfWithSha256.GetID(),
+        //        ReciMLKem1024Cert,
+        //        CmsEnvelopedGenerator.Aes256Wrap);
+
+        //    CmsEnvelopedData ed = edGen.Generate(
+        //        new CmsProcessableByteArray(data),
+        //        CmsEnvelopedGenerator.Aes256Cbc);
+
+        //    RecipientInformationStore recipients = ed.GetRecipientInfos();
+
+        //    Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.Aes256Cbc);
+
+        //    var c = recipients.GetRecipients();
+
+        //    Assert.AreEqual(1, c.Count);
+
+        //    int expectedLength = new DefaultKemEncapsulationLengthProvider().getEncapsulationLength(
+        //        SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ReciMLKem1024KP.Public).Algorithm);
+
+        //    foreach (KemRecipientInformation recipient in c)
+        //    {
+        //        Assert.AreEqual(expectedLength, recipient.GetEncapsulation().Length);
+
+        //        Assert.AreEqual(NistObjectIdentifiers.id_alg_ml_kem_1024.GetID(), recipient.KeyEncryptionAlgOid);
+
+        //        CmsTypedStream contentStream = recipient.GetContentStream(ReciMLKem1024KP.Private);
+
+        //        Assert.AreEqual(PkcsObjectIdentifiers.Data.GetID(), contentStream.ContentType);
+        //        Assert.True(Arrays.AreEqual(data, Streams.ReadAll(contentStream.ContentStream)));
+        //    }
+        //}
+
+        [Test]
 		public void TestKeyTrans()
 		{
 			byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");

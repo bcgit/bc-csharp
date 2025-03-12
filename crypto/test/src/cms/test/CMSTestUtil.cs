@@ -6,13 +6,13 @@ using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
@@ -30,6 +30,14 @@ namespace Org.BouncyCastle.Cms.Tests
 		private static IAsymmetricCipherKeyPairGenerator dsaKpg;
 		private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
 		private static IAsymmetricCipherKeyPairGenerator ecDsaKpg;
+        private static IAsymmetricCipherKeyPairGenerator ed25519Kpg;
+        private static IAsymmetricCipherKeyPairGenerator ed448Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlDsa44Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlDsa65Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlDsa87Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlKem512Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlKem768Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlKem1024Kpg;
 
         public static CipherKeyGenerator aes128KG;
         public static CipherKeyGenerator aes192KG;
@@ -139,9 +147,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			new RsaKeyGenerationParameters(BigInteger.ValueOf(17), Random, 1024, 25));
 
         private static IAsymmetricCipherKeyPairGenerator GostKpg => InitKpg(ref gostKpg, "GOST3410", () =>
-			new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
+            new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
 
-		private static IAsymmetricCipherKeyPairGenerator DsaKpg => InitKpg(ref dsaKpg, "DSA", () =>
+        private static IAsymmetricCipherKeyPairGenerator DsaKpg => InitKpg(ref dsaKpg, "DSA", () =>
 		{
             DsaParameters dsaSpec = new DsaParameters(
                 new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
@@ -155,6 +163,30 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static IAsymmetricCipherKeyPairGenerator ECDsaKpg => InitKpg(ref ecDsaKpg, "ECDSA", () =>
             new KeyGenerationParameters(Random, 239));
+
+		private static IAsymmetricCipherKeyPairGenerator Ed25519Kpg => InitKpg(ref ed25519Kpg, "Ed25519", () =>
+			new Ed25519KeyGenerationParameters(Random));
+
+        private static IAsymmetricCipherKeyPairGenerator Ed448Kpg => InitKpg(ref ed448Kpg, "Ed448", () =>
+            new Ed448KeyGenerationParameters(Random));
+
+        private static IAsymmetricCipherKeyPairGenerator MLDsa44Kpg => InitKpg(ref mlDsa44Kpg, "ML-DSA-44", () =>
+			new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+
+        private static IAsymmetricCipherKeyPairGenerator MLDsa65Kpg => InitKpg(ref mlDsa65Kpg, "ML-DSA-65", () =>
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+
+        private static IAsymmetricCipherKeyPairGenerator MLDsa87Kpg => InitKpg(ref mlDsa87Kpg, "ML-DSA-87", () =>
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+
+        private static IAsymmetricCipherKeyPairGenerator MLKem512Kpg => InitKpg(ref mlKem512Kpg, "ML-KEM-512", () =>
+            new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_512));
+
+        private static IAsymmetricCipherKeyPairGenerator MLKem768Kpg => InitKpg(ref mlKem768Kpg, "ML-KEM-768", () =>
+            new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_768));
+
+        private static IAsymmetricCipherKeyPairGenerator MLKem1024Kpg => InitKpg(ref mlKem1024Kpg, "ML-KEM-1024", () =>
+            new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_1024));
 
         private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
 
@@ -232,6 +264,22 @@ namespace Org.BouncyCastle.Cms.Tests
         public static AsymmetricCipherKeyPair MakeECGostKeyPair() => ECGostKpg.GenerateKeyPair();
 
         public static AsymmetricCipherKeyPair MakeECDsaKeyPair() => ECDsaKpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeEd25519KeyPair() => Ed25519Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeEd448KeyPair() => Ed448Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeMLDsa44KeyPair() => MLDsa44Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeMLDsa65KeyPair() => MLDsa65Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeMLDsa87KeyPair() => MLDsa87Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeMLKem512KeyPair() => MLKem512Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeMLKem768KeyPair() => MLKem768Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeMLKem1024KeyPair() => MLKem1024Kpg.GenerateKeyPair();
 
         public static KeyParameter MakeAes128Key() =>
             ParameterUtilities.CreateKeyParameter("AES", aes128KG.GenerateKey());
@@ -374,6 +422,10 @@ namespace Org.BouncyCastle.Cms.Tests
 
         internal static string GetSignatureAlgorithm(AsymmetricKeyParameter publicKey)
         {
+            /*
+             * NOTE: Current ALL test certificates are issued under a SHA1withRSA root, so these are mostly redundant.
+             */
+
             if (publicKey is RsaKeyParameters)
                 return "SHA1WithRSA";
 
@@ -383,7 +435,19 @@ namespace Org.BouncyCastle.Cms.Tests
             if (publicKey is ECPublicKeyParameters ecPub)
                 return ecPub.AlgorithmName == "ECGOST3410" ? "GOST3411withECGOST3410" : "SHA1withECDSA";
 
-            return "GOST3411WithGOST3410";
+            if (publicKey is Gost3410PublicKeyParameters)
+                return "GOST3411WithGOST3410";
+
+            if (publicKey is Ed25519PublicKeyParameters)
+                return "Ed25519";
+
+            if (publicKey is Ed448PublicKeyParameters)
+                return "Ed448";
+
+            if (publicKey is MLDsaPublicKeyParameters mlDsa)
+                return mlDsa.Parameters.Name;
+
+            throw new NotSupportedException("Algorithm handlers incomplete");
         }
 
         internal static IStore<X509V2AttributeCertificate> MakeAttrCertStore(
