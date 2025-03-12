@@ -119,6 +119,8 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
+            internal int GeneratedVersion => m_signerID.IsTagged ? 3 : 1;
+
             internal SignerInfo Generate(DerObjectIdentifier contentType, byte[] calculatedDigest)
             {
                 AlgorithmIdentifier digAlgID = m_digAlgID;
@@ -652,26 +654,14 @@ namespace Org.BouncyCastle.Cms
 				return DerInteger.Four;
 			}
 
-            if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) || CheckForVersion3(_signers))
+            if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) ||
+                CheckForVersion3(_signers, m_signerInfoGens))
             {
                 return DerInteger.Three;
             }
 
             return DerInteger.One;
         }
-
-		private bool CheckForVersion3(IList<SignerInformation> signerInfos)
-		{
-			foreach (SignerInformation si in signerInfos)
-			{
-				SignerInfo s = SignerInfo.GetInstance(si.ToSignerInfo());
-
-				if (s.Version.IntValueExact == 3)
-					return true;
-			}
-
-			return false;
-		}
 
 		private static Stream AttachDigestsToOutputStream(IEnumerable<IDigest> digests, Stream s)
 		{
@@ -682,6 +672,25 @@ namespace Org.BouncyCastle.Cms
 			}
 			return result;
 		}
+
+        private static bool CheckForVersion3(IList<SignerInformation> signerInfos,
+            IList<SignerInfoGeneratorImpl> signerInfoGens)
+        {
+            foreach (SignerInformation si in signerInfos)
+            {
+                SignerInfo s = si.ToSignerInfo();
+                if (s.Version.HasValue(3))
+                    return true;
+            }
+
+            foreach (SignerInfoGeneratorImpl signerInfoGen in signerInfoGens)
+            {
+                if (signerInfoGen.GeneratedVersion == 3)
+                    return true;
+            }
+
+            return false;
+        }
 
 		private static Stream GetSafeOutputStream(Stream s) => s ?? Stream.Null;
 

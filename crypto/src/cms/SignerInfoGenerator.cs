@@ -24,6 +24,8 @@ namespace Org.BouncyCastle.Cms
 
         public X509Certificate Certificate => m_certificate;
 
+        public int GeneratedVersion => m_sigID.IsTagged ? 3 : 1;
+
         public SignerInfoGeneratorBuilder NewBuilder()
         {
             SignerInfoGeneratorBuilder builder = new SignerInfoGeneratorBuilder();
