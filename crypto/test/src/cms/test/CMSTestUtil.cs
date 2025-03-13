@@ -409,9 +409,10 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			crlGen.AddCrlEntry(BigInteger.One, now, CrlReason.PrivilegeWithdrawn);
 
-			crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
+            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
-			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
+            return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
 		}
 
         /*

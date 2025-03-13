@@ -1679,7 +1679,7 @@ namespace Org.BouncyCastle.Tests
             crlGen.AddCrlEntry(BigInteger.One, now, CrlReason.PrivilegeWithdrawn);
 
             crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
-                new AuthorityKeyIdentifierStructure(pair.Public));
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
             X509Crl crl = crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null));
 
@@ -1688,14 +1688,11 @@ namespace Org.BouncyCastle.Tests
                 Fail("failed CRL issuer test");
             }
 
-            Asn1OctetString authExt = crl.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-
-            if (authExt == null)
+            var authKeyID = X509ExtensionUtilities.GetAuthorityKeyIdentifier(crl);
+            if (authKeyID == null)
             {
                 Fail("failed to find CRL extension");
             }
-
-            AuthorityKeyIdentifier authId = new AuthorityKeyIdentifierStructure(authExt);
 
             X509CrlEntry entry = crl.GetRevokedCertificate(BigInteger.One);
 
@@ -1766,7 +1763,8 @@ namespace Org.BouncyCastle.Tests
 
             crlGen.AddCrlEntry(BigInteger.One, now, entryExtensions);
 
-            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
+            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
             X509Crl crl = crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null));
 
@@ -1775,14 +1773,11 @@ namespace Org.BouncyCastle.Tests
                 Fail("failed CRL issuer test");
             }
 
-            Asn1OctetString authExt = crl.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-
-            if (authExt == null)
+            var authKeyID = X509ExtensionUtilities.GetAuthorityKeyIdentifier(crl);
+            if (authKeyID == null)
             {
                 Fail("failed to find CRL extension");
             }
-
-            AuthorityKeyIdentifier authId = new AuthorityKeyIdentifierStructure(authExt);
 
             X509CrlEntry entry = crl.GetRevokedCertificate(BigInteger.One);
 
@@ -1853,7 +1848,8 @@ namespace Org.BouncyCastle.Tests
 
             crlGen.AddCrlEntry(BigInteger.One, now, entryExtensions);
 
-            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
+            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
             X509Crl crl = crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null));
 
@@ -1862,14 +1858,11 @@ namespace Org.BouncyCastle.Tests
                 Fail("failed CRL issuer test");
             }
 
-            Asn1OctetString authExt = crl.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-
-            if (authExt == null)
+            var authKeyID = X509ExtensionUtilities.GetAuthorityKeyIdentifier(crl);
+            if (authKeyID == null)
             {
                 Fail("failed to find CRL extension");
             }
-
-            AuthorityKeyIdentifier authId = new AuthorityKeyIdentifierStructure(authExt);
 
             X509CrlEntry entry = crl.GetRevokedCertificate(BigInteger.One);
 
@@ -1919,7 +1912,8 @@ namespace Org.BouncyCastle.Tests
 
             crlGen.AddCrlEntry(BigInteger.Two, now, entryExtensions);
 
-            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
+            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
             X509Crl newCrl = crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null));
 

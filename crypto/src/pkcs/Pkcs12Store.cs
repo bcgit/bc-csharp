@@ -14,6 +14,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -51,13 +52,7 @@ namespace Org.BouncyCastle.Pkcs
         private const int MinIterations = 1024;
         private const int SaltSize = 20;
 
-        private static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter pubKey)
-        {
-            return new SubjectKeyIdentifier(
-                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
-        }
-
-        internal struct CertID
+        private struct CertID
             : IEquatable<CertID>
         {
             private readonly byte[] m_id;
@@ -68,7 +63,7 @@ namespace Org.BouncyCastle.Pkcs
             }
 
             internal CertID(X509Certificate cert)
-                : this(CreateSubjectKeyID(cert.GetPublicKey()).GetKeyIdentifier())
+                : this(CreateLocalKeyID(cert).GetOctets())
             {
             }
 
@@ -764,14 +759,7 @@ namespace Org.BouncyCastle.Pkcs
                 //
                 if (privKey[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] == null)
                 {
-                    X509CertificateEntry ct = GetCertificate(name);
-                    AsymmetricKeyParameter pubKey = ct.Certificate.GetPublicKey();
-                    SubjectKeyIdentifier subjectKeyID = CreateSubjectKeyID(pubKey);
-
-                    kName.Add(
-                        new DerSequence(
-                            PkcsObjectIdentifiers.Pkcs9AtLocalKeyID,
-                            new DerSet(subjectKeyID)));
+                    AddLocalKeyID(kName, GetCertificate(name));
                 }
 
                 keyBags.Add(new SafeBag(bagOid, bagData, DerSet.FromVector(kName)));
@@ -817,13 +805,7 @@ namespace Org.BouncyCastle.Pkcs
                 //
                 if (certEntry[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] == null)
                 {
-                    AsymmetricKeyParameter pubKey = certEntry.Certificate.GetPublicKey();
-                    SubjectKeyIdentifier subjectKeyID = CreateSubjectKeyID(pubKey);
-
-                    fName.Add(
-                        new DerSequence(
-                            PkcsObjectIdentifiers.Pkcs9AtLocalKeyID,
-                            new DerSet(subjectKeyID)));
+                    AddLocalKeyID(fName, certEntry);
                 }
 
                 certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
@@ -1034,8 +1016,17 @@ namespace Org.BouncyCastle.Pkcs
             return Arrays.FixedTimeEquals(macResult, mac.Digest.GetOctets());
         }
 
+        private static void AddLocalKeyID(Asn1EncodableVector v, X509CertificateEntry certEntry) =>
+            AddLocalKeyID(v, certEntry.Certificate);
+
+        private static void AddLocalKeyID(Asn1EncodableVector v, X509Certificate c) =>
+            v.Add(new DerSequence(PkcsObjectIdentifiers.Pkcs9AtLocalKeyID, new DerSet(CreateLocalKeyID(c))));
+
         private static CertBag CreateCertBag(X509Certificate c) =>
             new CertBag(PkcsObjectIdentifiers.X509Certificate, new DerOctetString(c.GetEncoded()));
+
+        private static Asn1OctetString CreateLocalKeyID(X509Certificate certificate) =>
+            X509ExtensionUtilities.CalculateKeyIdentifier(certificate);
 
         private static byte[] CryptPbeData(bool forEncryption, AlgorithmIdentifier algID, char[] password,
             bool wrongPkcs12Zero, byte[] data)

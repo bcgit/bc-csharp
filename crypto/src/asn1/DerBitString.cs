@@ -207,6 +207,10 @@ namespace Org.BouncyCastle.Asn1
         public virtual byte[] GetOctets()
         {
             CheckOctetAligned();
+
+            if (m_contents.Length == 1)
+                return Asn1OctetString.EmptyOctets;
+
             return Arrays.CopyOfRange(m_contents, 1, m_contents.Length);
         }
 

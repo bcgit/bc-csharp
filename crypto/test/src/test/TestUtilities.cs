@@ -78,7 +78,9 @@ namespace Org.BouncyCastle.Tests
 
             crlGen.AddCrlEntry(serialNumber, utcNow, CrlReason.PrivilegeWithdrawn);
 
-            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCert));
+            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(caCert));
+
             crlGen.AddExtension(X509Extensions.CrlNumber, false, new CrlNumber(BigInteger.One));
 
             return crlGen.Generate(new Asn1SignatureFactory("SHA256withRSA", caKey, null));
