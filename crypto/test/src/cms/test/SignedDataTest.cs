@@ -980,6 +980,30 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestECDsaSha3_224Encapsulated()
+		{
+			EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-224withECDSA");
+		}
+
+        [Test]
+        public void TestECDsaSha3_256Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-256withECDSA");
+        }
+
+        [Test]
+        public void TestECDsaSha3_384Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-384withECDSA");
+        }
+
+        [Test]
+        public void TestECDsaSha3_512Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-512withECDSA");
+        }
+
+		[Test]
 		public void TestDsaEncapsulated()
 		{
 			EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha1);
