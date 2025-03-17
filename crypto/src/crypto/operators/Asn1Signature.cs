@@ -115,17 +115,17 @@ namespace Org.BouncyCastle.Crypto.Operators
 			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha256);
 			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha384);
 			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha512);
-			AddNoParams(X9ObjectIdentifiers.IdDsaWithSha1);
-            AddNoParams(OiwObjectIdentifiers.DsaWithSha1); 
+            AddNoParams(X9ObjectIdentifiers.IdDsaWithSha1);
+            AddNoParams(OiwObjectIdentifiers.DsaWithSha1);
             AddNoParams(NistObjectIdentifiers.DsaWithSha224);
-			AddNoParams(NistObjectIdentifiers.DsaWithSha256);
-			AddNoParams(NistObjectIdentifiers.DsaWithSha384);
-			AddNoParams(NistObjectIdentifiers.DsaWithSha512);
+            AddNoParams(NistObjectIdentifiers.DsaWithSha256);
+            AddNoParams(NistObjectIdentifiers.DsaWithSha384);
+            AddNoParams(NistObjectIdentifiers.DsaWithSha512);
 
-			//
-			// RFC 4491
-			//
-			AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
+            //
+            // RFC 4491
+            //
+            AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
 			AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 
             //
@@ -145,6 +145,22 @@ namespace Org.BouncyCastle.Crypto.Operators
 
 			AlgorithmIdentifier sha512AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, DerNull.Instance);
             ExParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
+
+            /*
+             * DSA with SHA3
+             */
+            AddAlgorithm("SHA3-224WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_224, isNoParams: true);
+            AddAlgorithm("SHA3-256WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_256, isNoParams: true);
+            AddAlgorithm("SHA3-384WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_384, isNoParams: true);
+            AddAlgorithm("SHA3-512WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_512, isNoParams: true);
+
+            /*
+             * ECDSA with SHA3
+             */
+            AddAlgorithm("SHA3-224WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_224, isNoParams: true);
+            AddAlgorithm("SHA3-256WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_256, isNoParams: true);
+            AddAlgorithm("SHA3-384WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_384, isNoParams: true);
+            AddAlgorithm("SHA3-512WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_512, isNoParams: true);
 
             /*
              * EdDSA
@@ -301,6 +317,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// <summary>
         /// Allows enumeration of the signature names supported by the verifier provider.
         /// </summary>
+        // TODO[api] Remove method and cleanup underlying implementation
         public static IEnumerable<string> SignatureAlgNames => X509Utilities.GetSigNames();
     }
 
@@ -385,6 +402,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// <summary>
         /// Allows enumeration of the signature names supported by the verifier provider.
         /// </summary>
+        // TODO[api] Remove method and cleanup underlying implementation
         public IEnumerable<string> SignatureAlgNames => X509Utilities.GetSigNames();
     }
 }

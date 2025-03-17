@@ -217,6 +217,26 @@ namespace Org.BouncyCastle.Security
             AlgorithmMap["SHA-512WITHDSA"] = "SHA-512withDSA";
             AlgorithmOidMap[NistObjectIdentifiers.DsaWithSha512] = "SHA-512withDSA";
 
+            AlgorithmMap["DSAWITHSHA3-224"] = "SHA3-224withDSA";
+            AlgorithmMap["SHA3-224/DSA"] = "SHA3-224withDSA";
+            AlgorithmMap["SHA3-224WITHDSA"] = "SHA3-224withDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdDsaWithSha3_224] = "SHA3-224withDSA";
+
+            AlgorithmMap["DSAWITHSHA3-256"] = "SHA3-256withDSA";
+            AlgorithmMap["SHA3-256/DSA"] = "SHA3-256withDSA";
+            AlgorithmMap["SHA3-256WITHDSA"] = "SHA3-256withDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdDsaWithSha3_256] = "SHA3-256withDSA";
+
+            AlgorithmMap["DSAWITHSHA3-384"] = "SHA3-384withDSA";
+            AlgorithmMap["SHA3-384/DSA"] = "SHA3-384withDSA";
+            AlgorithmMap["SHA3-384WITHDSA"] = "SHA3-384withDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdDsaWithSha3_384] = "SHA3-384withDSA";
+
+            AlgorithmMap["DSAWITHSHA3-512"] = "SHA3-512withDSA";
+            AlgorithmMap["SHA3-512/DSA"] = "SHA3-512withDSA";
+            AlgorithmMap["SHA3-512WITHDSA"] = "SHA3-512withDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdDsaWithSha3_512] = "SHA3-512withDSA";
+
             AlgorithmMap["NONEWITHECDSA"] = "NONEwithECDSA";
             AlgorithmMap["ECDSAWITHNONE"] = "NONEwithECDSA";
 
@@ -266,6 +286,26 @@ namespace Org.BouncyCastle.Security
             AlgorithmMap["ECDSAWITHRIPEMD160"] = "RIPEMD160withECDSA";
             AlgorithmMap["RIPEMD160WITHECDSA"] = "RIPEMD160withECDSA";
             AlgorithmOidMap[TeleTrusTObjectIdentifiers.ECSignWithRipeMD160] = "RIPEMD160withECDSA";
+
+            AlgorithmMap["SHA3-224/ECDSA"] = "SHA3-224withECDSA";
+            AlgorithmMap["ECDSAWITHSHA3-224"] = "SHA3-224withECDSA";
+            AlgorithmMap["SHA3-224WITHECDSA"] = "SHA3-224withECDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdEcdsaWithSha3_224] = "SHA3-224withECDSA";
+
+            AlgorithmMap["SHA3-256/ECDSA"] = "SHA3-256withECDSA";
+            AlgorithmMap["ECDSAWITHSHA3-256"] = "SHA3-256withECDSA";
+            AlgorithmMap["SHA3-256WITHECDSA"] = "SHA3-256withECDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdEcdsaWithSha3_256] = "SHA3-256withECDSA";
+
+            AlgorithmMap["SHA3-384/ECDSA"] = "SHA3-384withECDSA";
+            AlgorithmMap["ECDSAWITHSHA3-384"] = "SHA3-384withECDSA";
+            AlgorithmMap["SHA3-384WITHECDSA"] = "SHA3-384withECDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdEcdsaWithSha3_384] = "SHA3-384withECDSA";
+
+            AlgorithmMap["SHA3-512/ECDSA"] = "SHA3-512withECDSA";
+            AlgorithmMap["ECDSAWITHSHA3-512"] = "SHA3-512withECDSA";
+            AlgorithmMap["SHA3-512WITHECDSA"] = "SHA3-512withECDSA";
+            AlgorithmOidMap[NistObjectIdentifiers.IdEcdsaWithSha3_512] = "SHA3-512withECDSA";
 
             AlgorithmMap["NONEWITHCVC-ECDSA"] = "NONEwithCVC-ECDSA";
             AlgorithmMap["CVC-ECDSAWITHNONE"] = "NONEwithCVC-ECDSA";
@@ -358,6 +398,26 @@ namespace Org.BouncyCastle.Security
             AlgorithmMap["RIPEMD160WITHPLAIN-ECDSA"] = "RIPEMD160withPLAIN-ECDSA";
             AlgorithmOidMap[BsiObjectIdentifiers.ecdsa_plain_RIPEMD160] = "RIPEMD160withPLAIN-ECDSA";
 
+            AlgorithmMap["SHA3-224/PLAIN-ECDSA"] = "SHA3-224withPLAIN-ECDSA";
+            AlgorithmMap["PLAIN-ECDSAWITHSHA3-224"] = "SHA3-224withPLAIN-ECDSA";
+            AlgorithmMap["SHA3-224WITHPLAIN-ECDSA"] = "SHA3-224withPLAIN-ECDSA";
+            AlgorithmOidMap[BsiObjectIdentifiers.ecdsa_plain_SHA3_224] = "SHA3-224withPLAIN-ECDSA";
+
+            AlgorithmMap["SHA3-256/PLAIN-ECDSA"] = "SHA3-256withPLAIN-ECDSA";
+            AlgorithmMap["PLAIN-ECDSAWITHSHA3-256"] = "SHA3-256withPLAIN-ECDSA";
+            AlgorithmMap["SHA3-256WITHPLAIN-ECDSA"] = "SHA3-256withPLAIN-ECDSA";
+            AlgorithmOidMap[BsiObjectIdentifiers.ecdsa_plain_SHA3_256] = "SHA3-256withPLAIN-ECDSA";
+
+            AlgorithmMap["SHA3-384/PLAIN-ECDSA"] = "SHA3-384withPLAIN-ECDSA";
+            AlgorithmMap["PLAIN-ECDSAWITHSHA3-384"] = "SHA3-384withPLAIN-ECDSA";
+            AlgorithmMap["SHA3-384WITHPLAIN-ECDSA"] = "SHA3-384withPLAIN-ECDSA";
+            AlgorithmOidMap[BsiObjectIdentifiers.ecdsa_plain_SHA3_384] = "SHA3-384withPLAIN-ECDSA";
+
+            AlgorithmMap["SHA3-512/PLAIN-ECDSA"] = "SHA3-512withPLAIN-ECDSA";
+            AlgorithmMap["PLAIN-ECDSAWITHSHA3-512"] = "SHA3-512withPLAIN-ECDSA";
+            AlgorithmMap["SHA3-512WITHPLAIN-ECDSA"] = "SHA3-512withPLAIN-ECDSA";
+            AlgorithmOidMap[BsiObjectIdentifiers.ecdsa_plain_SHA3_512] = "SHA3-512withPLAIN-ECDSA";
+
             AlgorithmMap["SHA1WITHECNR"] = "SHA-1withECNR";
             AlgorithmMap["SHA-1WITHECNR"] = "SHA-1withECNR";
             AlgorithmMap["SHA224WITHECNR"] = "SHA-224withECNR";
@@ -432,6 +492,15 @@ namespace Org.BouncyCastle.Security
             Oids["RIPEMD256withRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256;
 
             Oids["SHA-1withDSA"] = X9ObjectIdentifiers.IdDsaWithSha1;
+            Oids["SHA-224withDSA"] = NistObjectIdentifiers.DsaWithSha224;
+            Oids["SHA-256withDSA"] = NistObjectIdentifiers.DsaWithSha256;
+            Oids["SHA-384withDSA"] = NistObjectIdentifiers.DsaWithSha384;
+            Oids["SHA-512withDSA"] = NistObjectIdentifiers.DsaWithSha512;
+
+            Oids["SHA3-224withDSA"] = NistObjectIdentifiers.IdDsaWithSha3_224;
+            Oids["SHA3-256withDSA"] = NistObjectIdentifiers.IdDsaWithSha3_256;
+            Oids["SHA3-384withDSA"] = NistObjectIdentifiers.IdDsaWithSha3_384;
+            Oids["SHA3-512withDSA"] = NistObjectIdentifiers.IdDsaWithSha3_512;
 
             Oids["SHA-1withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha1;
             Oids["SHA-224withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha224;
@@ -439,6 +508,11 @@ namespace Org.BouncyCastle.Security
             Oids["SHA-384withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
             Oids["SHA-512withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
             Oids["RIPEMD160withECDSA"] = TeleTrusTObjectIdentifiers.ECSignWithRipeMD160;
+
+            Oids["SHA3-224withECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_224;
+            Oids["SHA3-256withECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_256;
+            Oids["SHA3-384withECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_384;
+            Oids["SHA3-512withECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_512;
 
             Oids["SHA-1withCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_1;
             Oids["SHA-224withCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_224;
@@ -452,6 +526,11 @@ namespace Org.BouncyCastle.Security
             Oids["SHA-384withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA384;
             Oids["SHA-512withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA512;
             Oids["RIPEMD160withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_RIPEMD160;
+
+            Oids["SHA3-224withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA3_224;
+            Oids["SHA3-256withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA3_256;
+            Oids["SHA3-384withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA3_384;
+            Oids["SHA3-512withPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA3_512;
 
             Oids["GOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
             Oids["ECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;

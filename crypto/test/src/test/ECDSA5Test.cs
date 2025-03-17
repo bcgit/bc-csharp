@@ -1,13 +1,17 @@
-using System;
+using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Bsi;
+using Org.BouncyCastle.Asn1.Eac;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -15,39 +19,33 @@ namespace Org.BouncyCastle.Tests
 {
     [TestFixture]
     public class ECDsa5Test
-        : SimpleTest
     {
 //		private static readonly byte[] k1 = Hex.Decode("d5014e4b60ef2ba8b6211b4062ba3224e0427dd3");
 //		private static readonly byte[] k2 = Hex.Decode("345e8d05c075c3a508df729a1685690e68fcfb8c8117847e89063bca1f85d968fd281540b6e13bd1af989a1fbf17e06462bf511f9d0b140fb48ac1b1baa5bded");
 //
-//		private SecureRandom random = FixedSecureRandom.From(k1, k2);
+//		private SecureRandom Random = FixedSecureRandom.From(k1, k2);
 
         [Test]
         public void DecodeTest()
         {
-//			EllipticCurve curve = new EllipticCurve(
-//				new ECFieldFp(new BigInteger("6277101735386680763835789423207666416083908700390324961279")), // q
-//				new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16), // a
-//				new BigInteger("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16)); // b
             ECCurve curve = new FpCurve(
                 new BigInteger("6277101735386680763835789423207666416083908700390324961279"), // q
                 new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16), // a
                 new BigInteger("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16)); // b
 
-//			ECPoint p = ECPointUtil.DecodePoint(curve, Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012"));
             ECPoint p = curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012"));
 
-            BigInteger x = p.XCoord.ToBigInteger(); //p.getAffineX();
+            BigInteger x = p.AffineXCoord.ToBigInteger();
 
             if (!x.Equals(new BigInteger("188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012", 16)))
             {
-                Fail("x uncompressed incorrectly");
+                Assert.Fail("x uncompressed incorrectly");
             }
 
-            BigInteger y = p.YCoord.ToBigInteger(); //p.getAffineX();
+            BigInteger y = p.AffineYCoord.ToBigInteger();
             if (!y.Equals(new BigInteger("7192b95ffc8da78631011ed6b24cdd573f977a11e794811", 16)))
             {
-                Fail("y uncompressed incorrectly");
+                Assert.Fail("y uncompressed incorrectly");
             }
         }
 
@@ -112,21 +110,21 @@ namespace Org.BouncyCastle.Tests
 
             if (!sgr.VerifySignature(sigBytes))
             {
-                Fail("239 Bit EC verification failed");
+                Assert.Fail("239 Bit EC verification failed");
             }
 
-            BigInteger[] sig = derDecode(sigBytes);
+            BigInteger[] sig = DerDecode(sigBytes);
 
             if (!r.Equals(sig[0]))
             {
-                Fail("r component wrong." + SimpleTest.NewLine
+                Assert.Fail("r component wrong." + SimpleTest.NewLine
                     + " expecting: " + r + SimpleTest.NewLine
                     + " got      : " + sig[0]);
             }
 
             if (!s.Equals(sig[1]))
             {
-                Fail("s component wrong." + SimpleTest.NewLine
+                Assert.Fail("s component wrong." + SimpleTest.NewLine
                     + " expecting: " + s + SimpleTest.NewLine
                     + " got      : " + sig[1]);
             }
@@ -194,24 +192,65 @@ namespace Org.BouncyCastle.Tests
 
             if (!sgr.VerifySignature(sigBytes))
             {
-                Fail("239 Bit EC verification failed");
+                Assert.Fail("239 Bit EC verification failed");
             }
 
-            BigInteger[] sig = derDecode(sigBytes);
+            BigInteger[] sig = DerDecode(sigBytes);
 
             if (!r.Equals(sig[0]))
             {
-                Fail("r component wrong." + SimpleTest.NewLine
+                Assert.Fail("r component wrong." + SimpleTest.NewLine
                     + " expecting: " + r + SimpleTest.NewLine
                     + " got      : " + sig[0]);
             }
 
             if (!s.Equals(sig[1]))
             {
-                Fail("s component wrong." + SimpleTest.NewLine
+                Assert.Fail("s component wrong." + SimpleTest.NewLine
                     + " expecting: " + s + SimpleTest.NewLine
                     + " got      : " + sig[1]);
             }
+        }
+
+        // test BSI algorithm support.
+        [Test]
+        public void TestBSI()
+        {
+            var random = new SecureRandom();
+
+            var kpg = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
+            kpg.Init(new ECKeyGenerationParameters(TeleTrusTObjectIdentifiers.BrainpoolP512R1, random));
+
+            var kp = kpg.GenerateKeyPair();
+
+            byte[] data = Encoding.UTF8.GetBytes("Hello World!!!");
+            string[] cvcAlgs = { "SHA1WITHCVC-ECDSA", "SHA224WITHCVC-ECDSA", "SHA256WITHCVC-ECDSA",
+                "SHA384WITHCVC-ECDSA", "SHA512WITHCVC-ECDSA" };
+            DerObjectIdentifier[] cvcOids = { EacObjectIdentifiers.id_TA_ECDSA_SHA_1,
+                EacObjectIdentifiers.id_TA_ECDSA_SHA_224, EacObjectIdentifiers.id_TA_ECDSA_SHA_256,
+                EacObjectIdentifiers.id_TA_ECDSA_SHA_384, EacObjectIdentifiers.id_TA_ECDSA_SHA_512 };
+
+            ImplTestBsiAlgorithms(kp, data, cvcAlgs, cvcOids);
+
+            string[] plainAlgs = { "SHA1WITHPLAIN-ECDSA", "SHA224WITHPLAIN-ECDSA", "SHA256WITHPLAIN-ECDSA",
+                "SHA384WITHPLAIN-ECDSA", "SHA512WITHPLAIN-ECDSA", "RIPEMD160WITHPLAIN-ECDSA", "SHA3-224WITHPLAIN-ECDSA",
+                "SHA3-256WITHPLAIN-ECDSA", "SHA3-384WITHPLAIN-ECDSA", "SHA3-512WITHPLAIN-ECDSA" };
+            DerObjectIdentifier[] plainOids = { BsiObjectIdentifiers.ecdsa_plain_SHA1,
+                BsiObjectIdentifiers.ecdsa_plain_SHA224, BsiObjectIdentifiers.ecdsa_plain_SHA256,
+                BsiObjectIdentifiers.ecdsa_plain_SHA384, BsiObjectIdentifiers.ecdsa_plain_SHA512,
+                BsiObjectIdentifiers.ecdsa_plain_RIPEMD160, BsiObjectIdentifiers.ecdsa_plain_SHA3_224,
+                BsiObjectIdentifiers.ecdsa_plain_SHA3_256, BsiObjectIdentifiers.ecdsa_plain_SHA3_384,
+                BsiObjectIdentifiers.ecdsa_plain_SHA3_512 };
+
+            ImplTestBsiAlgorithms(kp, data, plainAlgs, plainOids);
+
+            //kpg = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
+            var kgp = new ECKeyGenerationParameters(SecObjectIdentifiers.SecP521r1, random);
+            kpg.Init(kgp);
+
+            kp = kpg.GenerateKeyPair();
+
+            ImplTestBsiSigSize(kp, kgp.DomainParameters.N, "SHA224WITHPLAIN-ECDSA");
         }
 
         [Test]
@@ -262,14 +301,13 @@ namespace Org.BouncyCastle.Tests
 
             if (!s.VerifySignature(sigBytes))
             {
-                Fail("ECDSA verification failed");
+                Assert.Fail("ECDSA verification failed");
             }
         }
 
-        protected BigInteger[] derDecode(
-            byte[] encoding)
+        private static BigInteger[] DerDecode(byte[] encoding)
         {
-            Asn1Sequence s = (Asn1Sequence) Asn1Object.FromByteArray(encoding);
+            Asn1Sequence s = Asn1Sequence.GetInstance(encoding);
 
             return new BigInteger[]
             {
@@ -278,17 +316,44 @@ namespace Org.BouncyCastle.Tests
             };
         }
 
-        public override string Name
+        private static void ImplTestBsiAlgorithms(AsymmetricCipherKeyPair kp, byte[] data, string[] algs,
+            DerObjectIdentifier[] oids)
         {
-            get { return "ECDSA5"; }
+            for (int i = 0; i != algs.Length; i++)
+            {
+                var sig1 = SignerUtilities.GetSigner(algs[i]);
+                var sig2 = SignerUtilities.GetSigner(oids[i]);
+
+                sig1.Init(forSigning: true, kp.Private);
+                sig1.BlockUpdate(data, 0, data.Length);
+
+                byte[] sig = sig1.GenerateSignature();
+
+                sig2.Init(forSigning: false, kp.Public);
+                sig2.BlockUpdate(data, 0, data.Length);
+
+                Assert.True(sig2.VerifySignature(sig), "BSI CVC signature failed: " + algs[i]);
+            }
         }
 
-        public override void PerformTest()
+        private static void ImplTestBsiSigSize(AsymmetricCipherKeyPair kp, BigInteger order, string alg)
         {
-            DecodeTest();
-            TestECDsa239BitPrime();
-            TestECDsa239BitBinary();
-            TestGeneration();
+            for (int i = 0; i != 20; i++)
+            {
+                var sig1 = SignerUtilities.GetSigner(alg);
+                var sig2 = SignerUtilities.GetSigner(alg);
+
+                sig1.Init(forSigning: true, kp.Private);
+                sig1.Update((byte)i);
+
+                byte[] sig = sig1.GenerateSignature();
+
+                Assert.AreEqual(2 * ((order.BitLength + 7) / 8), sig.Length);
+                sig2.Init(forSigning: false, kp.Public);
+                sig2.Update((byte)i);
+
+                Assert.True(sig2.VerifySignature(sig), "BSI CVC signature failed: " + alg);
+            }
         }
     }
 }
