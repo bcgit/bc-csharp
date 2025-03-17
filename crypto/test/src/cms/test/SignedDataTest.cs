@@ -1003,7 +1003,55 @@ namespace Org.BouncyCastle.Cms.Tests
             EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-512withECDSA");
         }
 
-		[Test]
+        [Test]
+        public void TestPlainECDsaSha224Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA224withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha256Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA256withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha384Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA384withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha512Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA512withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha3_224Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-224withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha3_256Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-256withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha3_384Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-384withPLAIN-ECDSA");
+        }
+
+        [Test]
+        public void TestPlainECDsaSha3_512Encapsulated()
+        {
+            EncapsulatedTestAlt(SignECDsaKP, SignECDsaCert, "SHA3-512withPLAIN-ECDSA");
+        }
+
+        [Test]
 		public void TestDsaEncapsulated()
 		{
 			EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha1);

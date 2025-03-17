@@ -191,11 +191,12 @@ namespace Org.BouncyCastle.Operators.Utilities
 #pragma warning restore CS0618 // Type or member is obsolete
 
             AddAlgorithm("SHA1WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA1);
-            AddAlgorithm("RIPEMD160WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_RIPEMD160);
             AddAlgorithm("SHA224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA224);
             AddAlgorithm("SHA256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA256);
             AddAlgorithm("SHA384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA384);
             AddAlgorithm("SHA512WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA512);
+            AddAlgorithm("RIPEMD160WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_RIPEMD160);
+
             AddAlgorithm("SHA3-224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_224);
             AddAlgorithm("SHA3-256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
             AddAlgorithm("SHA3-384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
@@ -288,6 +289,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_512);
 
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
+            NoParams.Add(OiwObjectIdentifiers.DsaWithSha1);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
@@ -298,6 +300,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
 
+            //NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);

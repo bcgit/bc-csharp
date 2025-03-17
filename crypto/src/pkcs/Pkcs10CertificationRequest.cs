@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Nist;
@@ -139,6 +140,18 @@ namespace Org.BouncyCastle.Pkcs
             m_algorithms.Add("SHA3-384WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_384);
             m_algorithms.Add("SHA3-512WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_512);
 
+            m_algorithms.Add("SHA1WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            m_algorithms.Add("SHA224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA224);
+            m_algorithms.Add("SHA256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA256);
+            m_algorithms.Add("SHA384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA384);
+            m_algorithms.Add("SHA512WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA512);
+            m_algorithms.Add("RIPEMD160WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_RIPEMD160);
+
+            m_algorithms.Add("SHA3-224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_224);
+            m_algorithms.Add("SHA3-256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
+            m_algorithms.Add("SHA3-384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
+            m_algorithms.Add("SHA3-512WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_512);
+
             m_algorithms.Add("Ed25519", EdECObjectIdentifiers.id_Ed25519);
             m_algorithms.Add("Ed448", EdECObjectIdentifiers.id_Ed448);
 
@@ -205,6 +218,17 @@ namespace Org.BouncyCastle.Pkcs
             m_noParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_256);
             m_noParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
             m_noParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
+
+            //m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA512);
+
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_224);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_512);
 
             //
             // RFC 4491

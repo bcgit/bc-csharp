@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.GM;
@@ -93,7 +94,13 @@ namespace Org.BouncyCastle.Crypto.Operators
 			Algorithms.Add("SHA256WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
 			Algorithms.Add("SHA384WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
 			Algorithms.Add("SHA512WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
-			Algorithms.Add("GOST3411WITHGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
+            Algorithms.Add("SHA1withPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            Algorithms.Add("SHA224withPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA224);
+            Algorithms.Add("SHA256withPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA256);
+            Algorithms.Add("SHA384withPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA384);
+            Algorithms.Add("SHA512withPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA512);
+            Algorithms.Add("RIPEMD160withPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_RIPEMD160);
+            Algorithms.Add("GOST3411WITHGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
 			Algorithms.Add("GOST3411WITHGOST3410-94", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
 			Algorithms.Add("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 			Algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
@@ -110,17 +117,25 @@ namespace Org.BouncyCastle.Crypto.Operators
             // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
             // The parameters field SHALL be NULL for RSA based signature algorithms.
             //
-            AddNoParams(X9ObjectIdentifiers.ECDsaWithSha1);
-			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha224);
-			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha256);
-			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha384);
-			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha512);
+
             AddNoParams(X9ObjectIdentifiers.IdDsaWithSha1);
             AddNoParams(OiwObjectIdentifiers.DsaWithSha1);
             AddNoParams(NistObjectIdentifiers.DsaWithSha224);
             AddNoParams(NistObjectIdentifiers.DsaWithSha256);
             AddNoParams(NistObjectIdentifiers.DsaWithSha384);
             AddNoParams(NistObjectIdentifiers.DsaWithSha512);
+
+            AddNoParams(X9ObjectIdentifiers.ECDsaWithSha1);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha224);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha256);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha384);
+			AddNoParams(X9ObjectIdentifiers.ECDsaWithSha512);
+
+            //AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA224);
+            AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA256);
+            AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA384);
+            AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA512);
 
             //
             // RFC 4491
@@ -161,6 +176,11 @@ namespace Org.BouncyCastle.Crypto.Operators
             AddAlgorithm("SHA3-256WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_256, isNoParams: true);
             AddAlgorithm("SHA3-384WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_384, isNoParams: true);
             AddAlgorithm("SHA3-512WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_512, isNoParams: true);
+
+            AddAlgorithm("SHA3-224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_224, isNoParams: true);
+            AddAlgorithm("SHA3-256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_256, isNoParams: true);
+            AddAlgorithm("SHA3-384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_384, isNoParams: true);
+            AddAlgorithm("SHA3-512WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_512, isNoParams: true);
 
             /*
              * EdDSA
