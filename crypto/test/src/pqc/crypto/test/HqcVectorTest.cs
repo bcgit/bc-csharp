@@ -15,6 +15,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class HqcVectorTest
     {
+        [Test]
+        public void TestReedSolomon()
+        {
+            byte[] seed = Hex.Decode("416a32ada1c7a569c34d5334273a781c340aac25eb7614271aa6930d0358fb30fd87e111336a29e165dc60d9643a3e9b");
+            byte[] kemSeed = Hex.Decode("13f36c0636ff93af6d702f7774097c185bf67cddc9b09f9b584d736c4faf40e073b0499efa0c926e9a44fec1e45ee4cf");
+            FixedSecureRandom random = new FixedSecureRandom(
+                new FixedSecureRandom.Source[] { new FixedSecureRandom.Data(seed) });
+            HqcKeyPairGenerator kpGen = new HqcKeyPairGenerator();
+            HqcKeyGenerationParameters genParam = new HqcKeyGenerationParameters(random, HqcParameters.hqc128);
+            kpGen.Init(genParam);
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+            HqcPublicKeyParameters pubParams = (HqcPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((HqcPublicKeyParameters)kp.Public));
+            HqcPrivateKeyParameters privParams = (HqcPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((HqcPrivateKeyParameters)kp.Private));
+
+            HqcKemGenerator hqcEncCipher = new HqcKemGenerator(new FixedSecureRandom(new FixedSecureRandom.Source[] { new FixedSecureRandom.Data(kemSeed) }));
+            ISecretWithEncapsulation secWenc = hqcEncCipher.GenerateEncapsulated(pubParams);
+            byte[] generated_cipher_text = secWenc.GetEncapsulation();
+
+            byte[] secret = secWenc.GetSecret();
+
+
+            // KEM Dec
+            HqcKemExtractor hqcDecCipher = new HqcKemExtractor(privParams);
+
+            byte[] dec_key = hqcDecCipher.ExtractSecret(generated_cipher_text);
+
+            Assert.True(Arrays.AreEqual(dec_key, secret));
+        }
+
         private static readonly Dictionary<string, HqcParameters> Parameters = new Dictionary<string, HqcParameters>()
         {
             { "HQC-128.rsp", HqcParameters.hqc128 },
