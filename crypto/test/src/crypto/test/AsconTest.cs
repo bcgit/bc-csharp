@@ -365,7 +365,13 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestVectorsXof_AsconXof128()
         {
-            ImplTestVectorsXof(new AsconXof128(), "crypto/ascon/asconxof128", "LWC_HASH_KAT_256.txt");
+            ImplTestVectorsXof(new AsconXof128(), "crypto/ascon/asconxof128", "LWC_XOF_KAT_128_512.txt");
+        }
+
+        [Test]
+        public void TestVectorsXof_AsconCXof128()
+        {
+            ImplTestVectorsCXof128("crypto/ascon/asconcxof128", "LWC_CXOF_KAT_128_512.txt");
         }
 
         private static void CheckAeadCipher(int aeadLen, int ivLen, int msgLen, int strength,
@@ -515,7 +521,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 length += ascon.ProcessBytes(plaintext, split, plaintextLength - split, output, length);
                 length += ascon.DoFinal(output, length);
 
-                Assert.IsTrue(Arrays.AreEqual(ciphertext, 0, ciphertextLength, output, 0, length),
+                Assert.True(Arrays.AreEqual(ciphertext, 0, ciphertextLength, output, 0, length),
                     "encryption failed with split: " + split);
             }
 
@@ -534,7 +540,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 length += ascon.ProcessBytes(ciphertext, split, ciphertextLength - split, output, length);
                 length += ascon.DoFinal(output, length);
 
-                Assert.IsTrue(Arrays.AreEqual(plaintext, 0, plaintextLength, output, 0, length),
+                Assert.True(Arrays.AreEqual(plaintext, 0, plaintextLength, output, 0, length),
                     "decryption failed with split: " + split);
             }
         }
@@ -989,7 +995,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                             ascon.BlockUpdate(ptByte, 0, split);
                             ascon.BlockUpdate(ptByte, split, ptByte.Length - split);
                             ascon.DoFinal(hash, 0);
-                            Assert.IsTrue(Arrays.AreEqual(expected, hash));
+                            Assert.True(Arrays.AreEqual(expected, hash));
                         }
                     }
                     else
@@ -1089,24 +1095,11 @@ namespace Org.BouncyCastle.Crypto.Tests
                     if (data.Length == 1)
                     {
                         string count = map["Count"];
-                        byte[] ptByte = Hex.Decode(map["Msg"]);
+                        byte[] input = Hex.Decode(map["Msg"]);
                         byte[] expected = Hex.Decode(map["MD"]);
                         map.Clear();
 
-                        byte[] hash = new byte[ascon.GetDigestSize()];
-
-                        ascon.BlockUpdate(ptByte, 0, ptByte.Length);
-                        ascon.DoFinal(hash, 0);
-                        Assert.True(Arrays.AreEqual(expected, hash));
-
-                        if (ptByte.Length > 1)
-                        {
-                            int split = random.Next(1, ptByte.Length);
-                            ascon.BlockUpdate(ptByte, 0, split);
-                            ascon.BlockUpdate(ptByte, split, ptByte.Length - split);
-                            ascon.DoFinal(hash, 0);
-                            Assert.IsTrue(Arrays.AreEqual(expected, hash));
-                        }
+                        ImplTestVectorXof(random, ascon, input, expected);
                     }
                     else
                     {
@@ -1120,6 +1113,79 @@ namespace Org.BouncyCastle.Crypto.Tests
                         }
                     }
                 }
+            }
+        }
+
+        private static void ImplTestVectorsCXof128(string path, string filename)
+        {
+            Random random = new Random();
+
+            var buf = new Dictionary<string, string>();
+            using (var src = new StreamReader(SimpleTest.FindTestResource(path, filename)))
+            {
+                Dictionary<string, string> map = new Dictionary<string, string>();
+                string line;
+                while ((line = src.ReadLine()) != null)
+                {
+                    var data = line.Split(' ');
+                    if (data.Length == 1)
+                    {
+                        string count = map["Count"];
+                        byte[] input = Hex.Decode(map["Msg"]);
+                        byte[] z = Hex.Decode(map["Z"]);
+                        byte[] expected = Hex.Decode(map["MD"]);
+                        map.Clear();
+
+                        var ascon = new AsconCXof128(z);
+
+                        ImplTestVectorXof(random, ascon, input, expected);
+                    }
+                    else
+                    {
+                        if (data.Length >= 3)
+                        {
+                            map[data[0].Trim()] = data[2].Trim();
+                        }
+                        else
+                        {
+                            map[data[0].Trim()] = "";
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void ImplTestVectorXof(Random random, IXof ascon, byte[] input, byte[] expected)
+        {
+            int outputLength = expected.Length;
+            byte[] output = new byte[outputLength];
+
+            {
+                ascon.BlockUpdate(input, 0, input.Length);
+                ascon.OutputFinal(output, 0, outputLength);
+                Assert.True(Arrays.AreEqual(expected, output));
+            }
+
+            if (input.Length > 1)
+            {
+                Array.Clear(output, 0, outputLength);
+
+                int splitInput = random.Next(1, input.Length);
+                ascon.BlockUpdate(input, 0, splitInput);
+                ascon.BlockUpdate(input, splitInput, input.Length - splitInput);
+                ascon.OutputFinal(output, 0, outputLength);
+                Assert.True(Arrays.AreEqual(expected, output));
+            }
+
+            if (outputLength > 1)
+            {
+                Array.Clear(output, 0, outputLength);
+
+                int splitOutput = random.Next(1, outputLength);
+                ascon.BlockUpdate(input, 0, input.Length);
+                ascon.Output(output, 0, splitOutput);
+                ascon.OutputFinal(output, splitOutput, outputLength - splitOutput);
+                Assert.True(Arrays.AreEqual(expected, output));
             }
         }
 

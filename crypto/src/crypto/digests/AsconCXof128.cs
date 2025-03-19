@@ -265,9 +265,9 @@ namespace Org.BouncyCastle.Crypto.Digests
                 P12();
                 Pack.UInt64_To_LE(S0, m_buf);
                 Array.Copy(m_buf, 0, output, outOff, outLen);
+                m_bufPos = outLen;
             }
 
-            m_bufPos = outLen;
             return result;
 #endif
         }
@@ -320,9 +320,9 @@ namespace Org.BouncyCastle.Crypto.Digests
                 P12();
                 Pack.UInt64_To_LE(S0, m_buf);
                 output.CopyFrom(m_buf);
+                m_bufPos = output.Length;
             }
 
-            m_bufPos = output.Length;
             return result;
         }
 #endif
@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             S4 = 0x8f3f1d02d432bc46UL;
 
             ulong bitLength = Convert.ToUInt64(zLen) << 3;
-            Pack.UInt64_To_LE(bitLength, m_buf);
+            S0 ^= bitLength;
             P12();
             BlockUpdate(z, zOff, zLen);
             PadAndAbsorb();
