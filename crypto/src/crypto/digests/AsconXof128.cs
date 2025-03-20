@@ -204,22 +204,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (!m_squeezing)
             {
-                FinishAbsorbing();
-
-                if (outLen >= 8)
-                {
-                    Pack.UInt64_To_LE(S0, output, outOff);
-                    outOff += 8;
-                    outLen -= 8;
-                }
-                else
-                {
-                    Pack.UInt64_To_LE(S0, m_buf);
-                    m_bufPos = 0;
-                }
+                PadAndAbsorb();
+                m_squeezing = true;
+                m_bufPos = 8;
             }
-
-            if (m_bufPos < 8)
+            else if (m_bufPos < 8)
             {
                 int available = 8 - m_bufPos;
                 if (outLen <= available)
@@ -232,7 +221,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Array.Copy(m_buf, m_bufPos, output, outOff, available);
                 outOff += available;
                 outLen -= available;
-                //m_bufPos = 8;
+                m_bufPos = 8;
             }
 
             while (outLen >= 8)
@@ -262,21 +251,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (!m_squeezing)
             {
-                FinishAbsorbing();
-
-                if (output.Length >= 8)
-                {
-                    Pack.UInt64_To_LE(S0, output);
-                    output = output[8..];
-                }
-                else
-                {
-                    Pack.UInt64_To_LE(S0, m_buf);
-                    m_bufPos = 0;
-                }
+                PadAndAbsorb();
+                m_squeezing = true;
+                m_bufPos = 8;
             }
-
-            if (m_bufPos < 8)
+            else if (m_bufPos < 8)
             {
                 int available = 8 - m_bufPos;
                 if (output.Length <= available)
@@ -288,7 +267,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
                 output[..available].CopyFrom(m_buf.AsSpan(m_bufPos));
                 output = output[available..];
-                //m_bufPos = 8;
+                m_bufPos = 8;
             }
 
             while (output.Length >= 8)
@@ -310,21 +289,11 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        private void FinishAbsorbing()
-        {
-            PadAndAbsorb();
-
-            m_bufPos = m_buf.Length;
-            m_squeezing = true;
-        }
-
         private void PadAndAbsorb()
         {
             int finalBits = m_bufPos << 3;
             S0 ^= Pack.LE_To_UInt64(m_buf, 0) & (0x00FFFFFFFFFFFFFFUL >> (56 - finalBits));
             S0 ^= 0x01UL << finalBits;
-
-            P12();
         }
 
         private void P12()

@@ -243,6 +243,30 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestOutputXof_AsconXof()
+        {
+            ImplTestOutputXof(new AsconXof(AsconXof.AsconParameters.AsconXof));
+        }
+
+        [Test]
+        public void TestOutputXof_AsconXofA()
+        {
+            ImplTestOutputXof(new AsconXof(AsconXof.AsconParameters.AsconXofA));
+        }
+
+        [Test]
+        public void TestOutputXof_AsconXof128()
+        {
+            ImplTestOutputXof(new AsconXof128());
+        }
+
+        [Test]
+        public void TestOutputXof_AsconCXof128()
+        {
+            ImplTestOutputXof(new AsconCXof128());
+        }
+
+        [Test]
         public void TestParametersDigest_AsconHash()
         {
             ImplTestParametersDigest(new AsconDigest(AsconDigest.AsconParameters.AsconHash), 32);
@@ -936,6 +960,32 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        private static void ImplTestOutputXof(IXof ascon)
+        {
+            Random random = new Random();
+
+            byte[] expected = new byte[64];
+            ascon.OutputFinal(expected, 0, expected.Length);
+
+            byte[] output = new byte[64];
+            for (int i = 0; i < 64; ++i)
+            {
+                random.NextBytes(output);
+
+                int pos = 0;
+                while (pos <= output.Length - 16)
+                {
+                    int len = random.Next(0, 17);
+                    ascon.Output(output, pos, len);
+                    pos += len;
+                }
+
+                ascon.OutputFinal(output, pos, output.Length - pos);
+
+                Assert.True(Arrays.AreEqual(expected, output));
+            }
+        }
+
         private static void ImplTestParametersDigest(IDigest ascon, int digestSize)
         {
             Assert.AreEqual(digestSize, ascon.GetDigestSize(), ascon.AlgorithmName + ": digest size is not correct");
@@ -1161,6 +1211,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] output = new byte[outputLength];
 
             {
+                random.NextBytes(output);
+
                 ascon.BlockUpdate(input, 0, input.Length);
                 ascon.OutputFinal(output, 0, outputLength);
                 Assert.True(Arrays.AreEqual(expected, output));
@@ -1168,7 +1220,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             if (input.Length > 1)
             {
-                Array.Clear(output, 0, outputLength);
+                random.NextBytes(output);
 
                 int splitInput = random.Next(1, input.Length);
                 ascon.BlockUpdate(input, 0, splitInput);
@@ -1179,7 +1231,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             if (outputLength > 1)
             {
-                Array.Clear(output, 0, outputLength);
+                random.NextBytes(output);
 
                 int splitOutput = random.Next(1, outputLength);
                 ascon.BlockUpdate(input, 0, input.Length);
