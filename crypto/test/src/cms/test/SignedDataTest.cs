@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 using NUnit.Framework;
@@ -11,6 +12,7 @@ using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Cert.Tests;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Pkcs;
@@ -18,6 +20,7 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
@@ -390,6 +393,18 @@ namespace Org.BouncyCastle.Cms.Tests
 			+ "2bNo8XnlVXhu4pXfkn64en3yBcqnQusczr1XkhEq7K5DMccUGqxfGxEj2joq"
 			+ "g5+CWIP1dz4F4yB0rNCEGEFigVESryFAzSdJuoM0dgBDI0czNQD9lBQ7l2UW"
 			+ "4fwPDeINgCE2190+uVyEom2E");
+
+		private static byte[] signedData_mldsa44 = LoadPemContents("pkix/cms/mldsa", "SignedData_ML-DSA-44.pem");
+		private static byte[] signedData_mldsa65 = LoadPemContents("pkix/cms/mldsa", "SignedData_ML-DSA-65.pem");
+		private static byte[] signedData_mldsa87 = LoadPemContents("pkix/cms/mldsa", "SignedData_ML-DSA-87.pem");
+
+		private static byte[] LoadPemContents(string path, string name)
+		{
+            using (var pemReader = new PemReader(new StreamReader(SimpleTest.FindTestResource(path, name))))
+			{
+                return pemReader.ReadPemObject().Content;
+            }
+		}
 
 		static SignedDataTest()
 		{
@@ -1114,6 +1129,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
+        // TODO[mldsa]
         //[Test]
         //public void TestMLDsa44()
         //{
@@ -1131,6 +1147,7 @@ namespace Org.BouncyCastle.Cms.Tests
         //        expectedDigAlgID);
         //}
 
+        // TODO[mldsa]
         //[Test]
         //public void TestMLDsa65()
         //{
@@ -1148,6 +1165,7 @@ namespace Org.BouncyCastle.Cms.Tests
         //        expectedDigAlgID);
         //}
 
+        // TODO[mldsa]
         //[Test]
         //public void TestMLDsa87()
         //{
@@ -1931,6 +1949,27 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
+        // TODO[mldsa]
+        //[Test]
+        //public void VerifySignedDataMLDsa44()
+        //{
+        //    ImplVerifySignedData(signedData_mldsa44, SampleCredentials.ML_DSA_44);
+        //}
+
+        // TODO[mldsa]
+        //[Test]
+        //public void VerifySignedDataMLDsa65()
+        //{
+        //    ImplVerifySignedData(signedData_mldsa65, SampleCredentials.ML_DSA_65);
+        //}
+
+        // TODO[mldsa]
+        //[Test]
+        //public void VerifySignedDataMLDsa87()
+        //{
+        //    ImplVerifySignedData(signedData_mldsa87, SampleCredentials.ML_DSA_87);
+        //}
+
         private static void DoTestSample(string sigName)
         {
             CmsSignedData sig = new CmsSignedData(GetInput(sigName));
@@ -1947,6 +1986,24 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         private static byte[] GetInput(string name) => SimpleTest.GetTestData("cms.sigs." + name);
+
+        private static void ImplVerifySignedData(byte[] signedData, SampleCredentials credentials)
+        {
+            CmsSignedData sd = new CmsSignedData(signedData);
+
+            // External signer verification
+            {
+                var signers = sd.GetSignerInfos();
+
+                foreach (var signer in signers)
+                {
+					// Verify using the certificate from the supplied credentials
+					Assert.IsTrue(signer.Verify(credentials.Certificate));
+				}
+            }
+
+            // TODO Built-in signer verification (see bc-java)
+        }
 
         private static void RsaDigestTest(string signatureAlgorithmName)
         {
