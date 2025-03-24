@@ -16,50 +16,6 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class Grain128AeadTest
     {
         [Test]
-        public void TestVectors()
-        {
-            Grain128AeadEngine grain = new Grain128AeadEngine();
-            var buf = new Dictionary<string, string>();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.LWC_AEAD_KAT_128_96.txt")))
-            {
-                string line;
-                string[] data;
-                byte[] ptByte, adByte;
-                byte[] rv;
-                Dictionary<string, string> map = new Dictionary<string, string>();
-                while ((line = src.ReadLine()) != null)
-                {
-                    data = line.Split(' ');
-                    if (data.Length == 1)
-                    {
-                        var param = new ParametersWithIV(new KeyParameter(Hex.Decode(map["Key"])), Hex.Decode(map["Nonce"]));
-                        grain.Init(true, param);
-                        adByte = Hex.Decode(map["AD"]);
-                        grain.ProcessAadBytes(adByte, 0, adByte.Length);
-                        ptByte = Hex.Decode(map["PT"]);
-                        rv = new byte[ptByte.Length];
-                        grain.ProcessBytes(ptByte, 0, ptByte.Length, rv, 0);
-                        byte[] mac = new byte[8];
-                        grain.DoFinal(mac, 0);
-                        Assert.True(Arrays.AreEqual(Arrays.Concatenate(rv, mac), Hex.Decode(map["CT"])));
-                        map.Clear();
-                    }
-                    else
-                    {
-                        if (data.Length >= 3)
-                        {
-                            map[data[0].Trim()] = data[2].Trim();
-                        }
-                        else
-                        {
-                            map[data[0].Trim()] = "";
-                        }
-                    }
-                }
-            }
-        }
-
-        [Test]
         public void TestSplitUpdate()
         {
             byte[] Key = Hex.Decode("000102030405060708090A0B0C0D0E0F");
@@ -85,13 +41,18 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.True(Arrays.AreEqual(rv, CT));
 
+            // NOTE: Need to re-create to avoid nonce re-use exception
+            grain = new Grain128AeadEngine();
+            grain.Init(true, param);
+
             grain.ProcessBytes(PT, 0, 10, rv, 0);
+
             try
             {
                 grain.ProcessAadByte(0x01);
                 Assert.Fail("no exception");
             }
-            catch (ArgumentException e)
+            catch (InvalidOperationException e)
             {
                 Assert.IsTrue(e.Message.Contains("associated data must be added before plaintext/ciphertext"));
             }
@@ -101,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 grain.ProcessAadBytes(AD, 0, AD.Length);
                 Assert.Fail("no exception");
             }
-            catch (ArgumentException e)
+            catch (InvalidOperationException e)
             {
                 Assert.IsTrue(e.Message.Contains("associated data must be added before plaintext/ciphertext"));
             }
@@ -132,13 +93,18 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.IsTrue(Arrays.AreEqual(rv, CT));
 
+            // NOTE: Need to re-create to avoid nonce re-use exception
+            grain = new Grain128AeadEngine();
+            grain.Init(true, param);
+
             grain.ProcessBytes(PT, 0, 10, rv, 0);
+
             try
             {
                 grain.ProcessAadByte(0x01);
                 Assert.Fail("no exception");
             }
-            catch (ArgumentException e)
+            catch (InvalidOperationException e)
             {
                 Assert.IsTrue(e.Message.Contains("associated data must be added before plaintext/ciphertext"));
             }
@@ -148,7 +114,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 grain.ProcessAadBytes(AD, 0, AD.Length);
                 Assert.Fail("no exception");
             }
-            catch (ArgumentException e)
+            catch (InvalidOperationException e)
             {
                 Assert.IsTrue(e.Message.Contains("associated data must be added before plaintext/ciphertext"));
             }
@@ -192,6 +158,86 @@ namespace Org.BouncyCastle.Crypto.Tests
             catch (ArgumentException e)
             {
                 Assert.IsTrue(e.Message.Contains("Grain-128AEAD key must be 128 bits long"));
+            }
+        }
+
+        [Test]
+        public void TestVectors()
+        {
+            Random random = new Random();
+
+            var data = new Dictionary<string, string>();
+            using (var src = new StreamReader(SimpleTest.FindTestResource("crypto", "LWC_AEAD_KAT_128_96.txt")))
+            {
+                string line;
+                while ((line = src.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (line.StartsWith("#"))
+                        continue;
+
+                    if (line.Length > 0)
+                    {
+                        int a = line.IndexOf('=');
+                        if (a >= 0)
+                        {
+                            data[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
+                        }
+                        continue;
+                    }
+
+                    if (data.Count > 0)
+                    {
+                        RunTestVector(random, data);
+                        data.Clear();
+                    }
+                }
+
+                if (data.Count > 0)
+                {
+                    RunTestVector(random, data);
+                    data.Clear();
+                }
+            }
+        }
+
+        private static void RunTestVector(Random random, Dictionary<string, string> data)
+        {
+            byte[] key = Hex.Decode(data["Key"]);
+            byte[] nonce = Hex.Decode(data["Nonce"]);
+            byte[] pt = Hex.Decode(data["PT"]);
+            byte[] ad = Hex.Decode(data["AD"]);
+            byte[] ct = Hex.Decode(data["CT"]);
+
+            var cipher = new Grain128AeadEngine();
+            var parameters = new ParametersWithIV(new KeyParameter(key), nonce);
+
+            // Encrypt
+            {
+                cipher.Init(true, parameters);
+
+                byte[] rv = new byte[cipher.GetOutputSize(pt.Length)];
+                random.NextBytes(rv); // should overwrite any existing data
+
+                cipher.ProcessAadBytes(ad, 0, ad.Length);
+                int len = cipher.ProcessBytes(pt, 0, pt.Length, rv, 0);
+                len += cipher.DoFinal(rv, len);
+
+                Assert.True(Arrays.AreEqual(rv, 0, len, ct, 0, ct.Length));
+            }
+
+            // Decrypt
+            {
+                cipher.Init(false, parameters);
+
+                byte[] rv = new byte[cipher.GetOutputSize(ct.Length)];
+                random.NextBytes(rv); // should overwrite any existing data
+
+                cipher.ProcessAadBytes(ad, 0, ad.Length);
+                int len = cipher.ProcessBytes(ct, 0, ct.Length, rv, 0);
+                len += cipher.DoFinal(rv, len);
+
+                Assert.True(Arrays.AreEqual(rv, 0, len, pt, 0, pt.Length));
             }
         }
     }
