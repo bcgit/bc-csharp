@@ -455,12 +455,12 @@ namespace Org.BouncyCastle.Cms
 			//
             // add the precalculated SignerInfo objects.
             //
-            foreach (SignerInformation signer in _signers)
+            foreach (SignerInformation _signer in _signers)
             {
                 // TODO Configure an IDigestAlgorithmFinder
-                CmsUtilities.AddDigestAlgs(digestAlgs, signer, DefaultDigestAlgorithmFinder.Instance);
+                CmsUtilities.AddDigestAlgs(digestAlgs, _signer, DefaultDigestAlgorithmFinder.Instance);
                 // TODO Verify the content type and calculated digest match the precalculated SignerInfo
-                signerInfos.Add(signer.ToSignerInfo());
+                signerInfos.Add(_signer.ToSignerInfo());
             }
 
 			//

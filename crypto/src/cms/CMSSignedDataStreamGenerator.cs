@@ -663,7 +663,7 @@ namespace Org.BouncyCastle.Cms
             return DerInteger.One;
         }
 
-		private static Stream AttachDigestsToOutputStream(IEnumerable<IDigest> digests, Stream s)
+        private static Stream AttachDigestsToOutputStream(IEnumerable<IDigest> digests, Stream s)
 		{
 			Stream result = s;
 			foreach (IDigest digest in digests)
@@ -818,28 +818,28 @@ namespace Org.BouncyCastle.Cms
                 // add the precalculated SignerInfo objects.
                 //
                 {
-                    foreach (SignerInformation signer in outer._signers)
+                    foreach (SignerInformation _signer in outer._signers)
                     {
                         // TODO Verify the content type and calculated digest match the precalculated SignerInfo
-//						if (!signer.ContentType.Equals(_contentOID))
+//						if (!_signer.ContentType.Equals(_contentOID))
 //						{
 //							// TODO The precalculated content type did not match - error?
 //						}
 //
-//						byte[] calculatedDigest = (byte[])outer._digests[signer.DigestAlgOid];
+//						byte[] calculatedDigest = (byte[])outer._digests[_signer.DigestAlgOid];
 //						if (calculatedDigest == null)
 //						{
 //							// TODO We can't confirm this digest because we didn't calculate it - error?
 //						}
 //						else
 //						{
-//							if (!Arrays.AreEqual(signer.GetContentDigest(), calculatedDigest))
+//							if (!Arrays.AreEqual(_signer.GetContentDigest(), calculatedDigest))
 //							{
 //								// TODO The precalculated digest did not match - error?
 //							}
 //						}
 
-                        signerInfos.Add(signer.ToSignerInfo());
+                        signerInfos.Add(_signer.ToSignerInfo());
                     }
                 }
 
