@@ -101,6 +101,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             case PacketTag.Marker:
                 return new PgpMarker(bcpgIn);
+            case PacketTag.Padding:
+                return new PgpPadding(bcpgIn);
             case PacketTag.Experimental1:
             case PacketTag.Experimental2:
             case PacketTag.Experimental3:
