@@ -665,8 +665,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        // TODO Make private again and call from PerformTest
-        public void doTestExceptions()
+        private void ImplTestExceptions()
         {
             // TODO Put back in
 //			SecretKeyFactory skF = null;
@@ -1046,6 +1045,21 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
+        private void ImplTestDoFinal()
+        {
+            int INPUT_LENGTH = 32;
+            int offset = 1;
+            byte[] PT = new byte[INPUT_LENGTH + offset];
+            var KEY = ParameterUtilities.CreateKeyParameter("AES", new byte[16]);
+            var c = CipherUtilities.GetCipher("AES/ECB/NoPadding");
+            c.Init(forEncryption: true, KEY);
+            int len = c.DoFinal(PT, 0, INPUT_LENGTH, PT, offset);
+
+            byte[] expected = Hex.Decode("0066e94bd4ef8a2c3b884cfa59ca342b2e66e94bd4ef8a2c3b884cfa59ca342b2e");
+
+            IsTrue("expected not match PT", AreEqual(expected, PT));
+        }
+
         public override void PerformTest()
         {
             for (int i = 0; i != cipherTests1.Length; i += 2)
@@ -1080,7 +1094,8 @@ namespace Org.BouncyCastle.Tests
                 }
             }
 
-            doTestExceptions();
+            ImplTestExceptions();
+            ImplTestDoFinal();
         }
 
         [Test]
