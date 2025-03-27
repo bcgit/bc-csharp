@@ -73,8 +73,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (++m_bufPos == Rate)
             {
                 S0 ^= Pack.LE_To_UInt64(m_buf, 0);
-                P12();
                 m_bufPos = 0;
+                P12();
             }
         }
 
@@ -103,8 +103,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (m_bufPos > 0)
             {
                 Array.Copy(input, inOff, m_buf, m_bufPos, available);
-                inPos += available;
                 S0 ^= Pack.LE_To_UInt64(m_buf, 0);
+                inPos = available;
+                //m_bufPos = Rate;
                 P12();
             }
 
@@ -112,8 +113,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             while ((remaining = inLen - inPos) >= Rate)
             {
                 S0 ^= Pack.LE_To_UInt64(input, inOff + inPos);
-                P12();
                 inPos += Rate;
+                P12();
             }
 
             Array.Copy(input, inOff + inPos, m_buf, 0, remaining);
@@ -139,15 +140,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
                 S0 ^= Pack.LE_To_UInt64(m_buf);
-                P12();
                 input = input[available..];
+                //m_bufPos = Rate;
+                P12();
             }
 
             while (input.Length >= Rate)
             {
                 S0 ^= Pack.LE_To_UInt64(input);
-                P12();
                 input = input[Rate..];
+                P12();
             }
 
             input.CopyTo(m_buf);
@@ -335,7 +337,8 @@ namespace Org.BouncyCastle.Crypto.Digests
                 S3 = 0x2ab14907720780b6UL;
                 S4 = 0x8f3f1d02d432bc46UL;
 
-                S0 ^= Convert.ToUInt64(zLen) << 3;
+                ulong bitLength = Convert.ToUInt64(zLen) << 3;
+                S0 ^= bitLength;
                 P12();
                 BlockUpdate(z, zOff, zLen);
                 PadAndAbsorb();

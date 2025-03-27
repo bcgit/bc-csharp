@@ -250,6 +250,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
 #else
+            // TODO
+            //Check.OutputLength(outBytes, outOff, ??, "output buffer too short");
+
             bool forEncryption = CheckData();
 
             int resultLength = 0;
@@ -338,6 +341,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            // TODO
+            //Check.OutputLength(output, ??, "output buffer too short");
+
             bool forEncryption = CheckData();
 
             int resultLength = 0;
@@ -384,9 +390,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (m_bufPos >= Rate)
                 {
                     ProcessBufferDecrypt(m_buf, output[resultLength..]);
+                    resultLength += Rate;
+
                     m_bufPos -= Rate;
                     m_buf.AsSpan(0, m_bufPos).CopyFrom(m_buf.AsSpan(Rate));
-                    resultLength += Rate;
 
                     available += Rate;
                     if (input.Length < available)
@@ -610,7 +617,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 // Pad buffer instead of XOR with Pad(m_bufPos)
                 m_buf[m_bufPos] = 0x01;
 
-                if (m_bufPos >= 8) // Rate == 16 is implied
+                if (m_bufPos >= 8)
                 {
                     S0 ^= Pack.LE_To_UInt64(m_buf, 0);
                     S1 ^= Pack.LE_To_UInt64(m_buf, 8) & (ulong.MaxValue >> (56 - ((m_bufPos - 8) << 3)));
@@ -732,7 +739,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             Debug.Assert(input.Length < Rate);
 
-            if (input.Length >= 8) // Rate == 16 is implied
+            if (input.Length >= 8)
             {
                 ulong t0 = Pack.LE_To_UInt64(input);
                 Pack.UInt64_To_LE(S0 ^ t0, output);
@@ -774,7 +781,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             Debug.Assert(input.Length < Rate);
 
-            if (input.Length >= 8) // Rate == 16 is implied
+            if (input.Length >= 8)
             {
                 S0 ^= Pack.LE_To_UInt64(input);
                 Pack.UInt64_To_LE(S0, output);
@@ -785,7 +792,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     ProcessFinalEncrypt64(input, output[8..], ref S1);
                 }
 
-                S1 ^= Pad(input.Length - 8);
+                S1 ^= Pad(input.Length);
             }
             else
             {
@@ -804,6 +811,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             int inLen = input.Length;
             Debug.Assert(1 <= inLen && inLen < 8);
+            Debug.Assert(output.Length >= inLen);
 
             s ^= Pack.LE_To_UInt64_Low(input);
             Pack.UInt64_To_LE_Low(s, output[..inLen]);
@@ -855,7 +863,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 		{
             Debug.Assert(inLen < Rate);
 
-            if (inLen >= 8) // Rate == 16 is implied
+            if (inLen >= 8)
 			{
 				ulong t0 = Pack.LE_To_UInt64(input, inOff);
                 Pack.UInt64_To_LE(S0 ^ t0, output, outOff);
@@ -897,7 +905,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 		{
             Debug.Assert(inLen < Rate);
 
-            if (inLen >= 8) // Rate == 16 is implied
+            if (inLen >= 8)
 			{
 				S0 ^= Pack.LE_To_UInt64(input, inOff);
                 Pack.UInt64_To_LE(S0, output, outOff);
