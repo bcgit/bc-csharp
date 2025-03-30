@@ -113,7 +113,10 @@ namespace Org.BouncyCastle.Cms
                     IDigest dig = DigestUtilities.GetDigest(digAlgOid);
                     if (content != null)
                     {
-                        content.Write(new DigestSink(dig));
+                        using (var stream = new DigestSink(dig))
+                        {
+                            content.Write(stream);
+                        }
                     }
                     hash = DigestUtilities.DoFinal(dig);
                     m_outer.m_digests.Add(digAlgOid, hash);

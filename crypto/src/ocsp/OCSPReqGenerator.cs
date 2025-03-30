@@ -132,9 +132,12 @@ namespace Org.BouncyCastle.Ocsp
 				DerBitString bitSig;
 				try
 				{
-					tbsReq.EncodeTo(new SignerSink(signer), Asn1Encodable.Der);
+					using (var stream = new SignerSink(signer))
+					{
+                        tbsReq.EncodeTo(stream, Asn1Encodable.Der);
+                    }
 
-					bitSig = new DerBitString(signer.GenerateSignature());
+                    bitSig = new DerBitString(signer.GenerateSignature());
 				}
 				catch (Exception e)
 				{

@@ -368,7 +368,10 @@ namespace Org.BouncyCastle.Cms
 				{
 					if (content != null)
 					{
-						content.Write(new DigestSink(digest));
+						using (var stream = new DigestSink(digest))
+						{
+							content.Write(stream);
+						}
 					}
 					else if (signedAttributeSet == null)
 					{
@@ -470,7 +473,10 @@ namespace Org.BouncyCastle.Cms
                         try
                         {
                             // TODO Use raw signature of the hash value instead
-                            content.Write(new SignerSink(sig));
+                            using (var stream = new SignerSink(sig))
+                            {
+                                content.Write(stream);
+                            }
                         }
                         catch (SignatureException e)
                         {
