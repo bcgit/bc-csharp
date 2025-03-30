@@ -170,22 +170,22 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator Ed448Kpg => InitKpg(ref ed448Kpg, "Ed448", () =>
             new Ed448KeyGenerationParameters(Random));
 
-        private static IAsymmetricCipherKeyPairGenerator MLDsa44Kpg => InitKpg(ref mlDsa44Kpg, "ML-DSA-44", () =>
+        private static IAsymmetricCipherKeyPairGenerator MLDsa44Kpg => InitKpg(ref mlDsa44Kpg, "ML-DSA", () =>
 			new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
 
-        private static IAsymmetricCipherKeyPairGenerator MLDsa65Kpg => InitKpg(ref mlDsa65Kpg, "ML-DSA-65", () =>
-            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+        private static IAsymmetricCipherKeyPairGenerator MLDsa65Kpg => InitKpg(ref mlDsa65Kpg, "ML-DSA", () =>
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_65));
 
-        private static IAsymmetricCipherKeyPairGenerator MLDsa87Kpg => InitKpg(ref mlDsa87Kpg, "ML-DSA-87", () =>
-            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+        private static IAsymmetricCipherKeyPairGenerator MLDsa87Kpg => InitKpg(ref mlDsa87Kpg, "ML-DSA", () =>
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_87));
 
-        private static IAsymmetricCipherKeyPairGenerator MLKem512Kpg => InitKpg(ref mlKem512Kpg, "ML-KEM-512", () =>
+        private static IAsymmetricCipherKeyPairGenerator MLKem512Kpg => InitKpg(ref mlKem512Kpg, "ML-KEM", () =>
             new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_512));
 
-        private static IAsymmetricCipherKeyPairGenerator MLKem768Kpg => InitKpg(ref mlKem768Kpg, "ML-KEM-768", () =>
+        private static IAsymmetricCipherKeyPairGenerator MLKem768Kpg => InitKpg(ref mlKem768Kpg, "ML-KEM", () =>
             new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_768));
 
-        private static IAsymmetricCipherKeyPairGenerator MLKem1024Kpg => InitKpg(ref mlKem1024Kpg, "ML-KEM-1024", () =>
+        private static IAsymmetricCipherKeyPairGenerator MLKem1024Kpg => InitKpg(ref mlKem1024Kpg, "ML-KEM", () =>
             new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_1024));
 
         private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
