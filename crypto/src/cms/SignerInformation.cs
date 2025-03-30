@@ -330,16 +330,16 @@ namespace Org.BouncyCastle.Cms
 
 					IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
 
-					if (signedAttributeSet == null && calculatedDigest != null)
-					{
-                        sig = PssSigner.CreateRawSigner(rsa, pssDigest, pssDigest, saltLength, PssSigner.TrailerImplicit);
+                    if (signedAttributeSet == null)
+                    {
+                        sig = PssSigner.CreateRawSigner(rsa, pssDigest, saltLength);
                     }
                     else
-					{
-						sig = new PssSigner(rsa, pssDigest, saltLength);
-					}
-				}
-				catch (Exception e)
+                    {
+                        sig = new PssSigner(rsa, pssDigest, saltLength);
+                    }
+                }
+                catch (Exception e)
 				{
 					throw new CmsException("failed to set RSASSA-PSS signature parameters", e);
 				}
@@ -450,26 +450,24 @@ namespace Org.BouncyCastle.Cms
 	            }
 			}
 
-			try
-			{
-				sig.Init(false, publicKey);
+            try
+            {
+                sig.Init(false, publicKey);
 
-				if (signedAttributeSet == null)
-				{
-					if (calculatedDigest != null)
-					{
-						if (sig is PssSigner)
-						{
-							sig.BlockUpdate(resultDigest, 0, resultDigest.Length);
-						}
-						else
-						{
-							// need to decrypt signature and check message bytes
-							return VerifyDigest(resultDigest, publicKey, signature);
-						}
-					}
-					else if (content != null)
-					{
+                if (signedAttributeSet == null)
+                {
+                    if (sig is PssSigner)
+                    {
+                        // sig was created as a raw id-RSASSA-PSS signer above
+                        sig.BlockUpdate(resultDigest, 0, resultDigest.Length);
+                    }
+                    else if (calculatedDigest != null)
+                    {
+                        // need to decrypt signature and check message bytes
+                        return VerifyDigest(resultDigest, publicKey, signature);
+                    }
+                    else if (content != null)
+                    {
                         try
                         {
                             // TODO Use raw signature of the hash value instead
@@ -482,31 +480,31 @@ namespace Org.BouncyCastle.Cms
                         {
                             throw new CmsStreamException("signature problem: " + e);
                         }
-					}
-				}
-				else
-				{
-					byte[] tmp = this.GetEncodedSignedAttributes();
-					sig.BlockUpdate(tmp, 0, tmp.Length);
-				}
+                    }
+                }
+                else
+                {
+                    byte[] tmp = this.GetEncodedSignedAttributes();
+                    sig.BlockUpdate(tmp, 0, tmp.Length);
+                }
 
-				return sig.VerifySignature(signature);
-			}
-			catch (InvalidKeyException e)
-			{
-				throw new CmsException("key not appropriate to signature in message.", e);
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("can't process mime object to create signature.", e);
-			}
-			catch (SignatureException e)
-			{
-				throw new CmsException("invalid signature format in message: " + e.Message, e);
-			}
-		}
+                return sig.VerifySignature(signature);
+            }
+            catch (InvalidKeyException e)
+            {
+                throw new CmsException("key not appropriate to signature in message.", e);
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("can't process mime object to create signature.", e);
+            }
+            catch (SignatureException e)
+            {
+                throw new CmsException("invalid signature format in message: " + e.Message, e);
+            }
+        }
 
-		private DigestInfo DerDecode(byte[] encoding)
+        private DigestInfo DerDecode(byte[] encoding)
 		{
 			if (encoding[0] != (int)(Asn1Tags.Constructed | Asn1Tags.Sequence))
 				throw new IOException("not a digest info object");
