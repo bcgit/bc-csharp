@@ -453,40 +453,25 @@ namespace Org.BouncyCastle.Cms
 
             try
             {
+                if (signedAttributeSet != null)
+                    return VerifySignature(sig, publicKey, GetEncodedSignedAttributes(), signature);
+
+                // sig was created as a raw id-RSASSA-PSS signer above
+                if (sig is PssSigner)
+                    return VerifySignature(sig, publicKey, resultDigest, signature);
+
+                if (resultDigest != null && TryGetRawVerifier(out var rawVerifier))
+                    return VerifySignature(rawVerifier, publicKey, resultDigest, signature);
+
                 sig.Init(false, publicKey);
 
-                if (signedAttributeSet == null)
+                // Currently would already have thrown if null, but leave test in case null will mean "empty"
+                if (content != null)
                 {
-                    if (sig is PssSigner)
+                    using (var stream = new SignerSink(sig))
                     {
-                        // sig was created as a raw id-RSASSA-PSS signer above
-                        sig.BlockUpdate(resultDigest, 0, resultDigest.Length);
+                        content.Write(stream);
                     }
-                    else if (calculatedDigest != null)
-                    {
-                        // need to decrypt signature and check message bytes
-                        return VerifyDigest(resultDigest, publicKey, signature);
-                    }
-                    else if (content != null)
-                    {
-                        try
-                        {
-                            // TODO Use raw signature of the hash value instead
-                            using (var stream = new SignerSink(sig))
-                            {
-                                content.Write(stream);
-                            }
-                        }
-                        catch (SignatureException e)
-                        {
-                            throw new CmsStreamException("signature problem: " + e);
-                        }
-                    }
-                }
-                else
-                {
-                    byte[] tmp = this.GetEncodedSignedAttributes();
-                    sig.BlockUpdate(tmp, 0, tmp.Length);
                 }
 
                 return sig.VerifySignature(signature);
@@ -505,66 +490,35 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        private DigestInfo DerDecode(byte[] encoding)
-		{
-			if (encoding[0] != (int)(Asn1Tags.Constructed | Asn1Tags.Sequence))
-				throw new IOException("not a digest info object");
+        private bool TryGetRawVerifier(out ISigner rawVerifier)
+        {
+            string algorithm = CmsSignedHelper.GetEncryptionAlgName(encryptionAlgorithm.Algorithm);
 
-			DigestInfo digInfo = DigestInfo.GetInstance(encoding);
+            // TODO GOST, ECGOST?
 
-			// length check to avoid Bleichenbacher vulnerability
-
-			if (digInfo.GetEncoded().Length != encoding.Length)
-				throw new CmsException("malformed RSA signature");
-
-			return digInfo;
-		}
-
-		private bool VerifyDigest(byte[] digest, AsymmetricKeyParameter publicKey, byte[] signature)
-		{
-			string algorithm = CmsSignedHelper.GetEncryptionAlgName(encryptionAlgorithm.Algorithm);
-
-			try
-			{
-				if (algorithm.Equals("RSA"))
-				{
-					// TODO Use Prehash instead of NullDigest?
-					ISigner sig = new RsaDigestSigner(new NullDigest(), digestAlgorithm);
-
-					sig.Init(false, publicKey);
-
-					sig.BlockUpdate(digest, 0, digest.Length);
-
-					return sig.VerifySignature(signature);
-				}
-				else if (algorithm.Equals("DSA"))
-				{
-					ISigner sig = CmsSignedHelper.GetSignatureInstance("NONEwithDSA");
-
-					sig.Init(false, publicKey);
-
-					sig.BlockUpdate(digest, 0, digest.Length);
-
-					return sig.VerifySignature(signature);
-				}
-				else
-				{
-					throw new CmsException("algorithm: " + algorithm + " not supported in base signatures.");
-				}
-			}
-			catch (SecurityUtilityException)
-			{
-				throw;
-			}
-			catch (GeneralSecurityException e)
-			{
-				throw new CmsException("Exception processing signature: " + e, e);
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("Exception decoding signature: " + e, e);
-			}
-		}
+            if ("RSA".Equals(algorithm))
+            {
+                rawVerifier = new RsaDigestSigner(new NullDigest(), digestAlgorithm);
+            }
+            else if ("ECDSA".Equals(algorithm))
+            {
+                rawVerifier = CmsSignedHelper.GetSignatureInstance("NONEwithECDSA");
+            }
+            else if ("PLAIN-ECDSA".Equals(algorithm))
+            {
+                rawVerifier = CmsSignedHelper.GetSignatureInstance("NONEwithPLAIN-ECDSA");
+            }
+            else if ("DSA".Equals(algorithm))
+            {
+                rawVerifier = CmsSignedHelper.GetSignatureInstance("NONEwithDSA");
+            }
+            else
+            {
+                rawVerifier = default;
+                return false;
+            }
+            return true;
+        }
 
 		/**
 		* verify that the given public key successfully handles and confirms the
@@ -740,5 +694,13 @@ namespace Org.BouncyCastle.Cms
 				signerInformation.content,
 				null);
 		}
-	}
+
+        private static bool VerifySignature(ISigner verifier, ICipherParameters parameters, byte[] message,
+            byte[] signature)
+        {
+            verifier.Init(false, parameters);
+            verifier.BlockUpdate(message, 0, message.Length);
+            return verifier.VerifySignature(signature);
+        }
+    }
 }
