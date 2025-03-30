@@ -291,28 +291,21 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		private static void VerifySigner(SignerInformation signer, X509Certificate cert)
-		{
-			if (cert.GetPublicKey() is DsaPublicKeyParameters)
-			{
-				DsaPublicKeyParameters key = (DsaPublicKeyParameters)cert.GetPublicKey();
+        private static void VerifySigner(SignerInformation signer, X509Certificate cert)
+        {
+            if (cert.GetPublicKey() is DsaPublicKeyParameters dsa)
+            {
+                if (dsa.Parameters == null)
+                {
+                    Assert.IsTrue(signer.Verify(GetInheritedKey(dsa)));
+                    return;
+                }
+            }
 
-				if (key.Parameters == null)
-				{
-					Assert.IsTrue(signer.Verify(GetInheritedKey(key)));
-				}
-				else
-				{
-					Assert.IsTrue(signer.Verify(cert));
-				}
-			}
-			else
-			{
-				Assert.IsTrue(signer.Verify(cert));
-			}
-		}
+            Assert.IsTrue(signer.Verify(cert));
+        }
 
-		private static DsaPublicKeyParameters GetInheritedKey(DsaPublicKeyParameters dsaPubKey)
+        private static DsaPublicKeyParameters GetInheritedKey(DsaPublicKeyParameters dsaPubKey)
 		{
 			X509Certificate cert = new X509CertificateParser().ReadCertificate(
 				GetRfc4134Data("CarlDSSSelf.cer"));
