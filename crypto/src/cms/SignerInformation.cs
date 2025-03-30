@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Signers;
@@ -527,25 +528,14 @@ namespace Org.BouncyCastle.Cms
 			{
 				if (algorithm.Equals("RSA"))
 				{
-					IBufferedCipher c = CipherUtilities.GetCipher(Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption);
+					// TODO Use Prehash instead of NullDigest?
+					ISigner sig = new RsaDigestSigner(new NullDigest(), digestAlgorithm);
 
-					c.Init(false, publicKey);
+					sig.Init(false, publicKey);
 
-					byte[] decrypt = c.DoFinal(signature);
+					sig.BlockUpdate(digest, 0, digest.Length);
 
-					DigestInfo digInfo = DerDecode(decrypt);
-
-					var digAlgID = digInfo.DigestAlgorithm;
-
-                    if (!digAlgID.Algorithm.Equals(digestAlgorithm.Algorithm))
-						return false;
-
-					if (!X509Utilities.HasAbsentParameters(digAlgID))
-						return false;
-
-					byte[] sigHash = digInfo.GetDigest();
-
-					return Arrays.FixedTimeEquals(digest, sigHash);
+					return sig.VerifySignature(signature);
 				}
 				else if (algorithm.Equals("DSA"))
 				{
