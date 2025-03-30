@@ -500,27 +500,23 @@ namespace Org.BouncyCastle.Cms
 
             Asn1OctetString encapContent = null;
             if (encapsulate)
-            {
-                MemoryStream bOut = new MemoryStream();
-                if (content != null)
                 {
                     try
                     {
-                        content.Write(bOut);
-                    }
-                    catch (IOException e)
-                    {
-                        throw new CmsException("encapsulation error.", e);
-                    }
-                }
+                    byte[] encapContentOctets = CmsUtilities.GetByteArray(content);
 
                 if (_useDefiniteLength)
                 {
-                    encapContent = new DerOctetString(bOut.ToArray());
+                        encapContent = new DerOctetString(encapContentOctets);
                 }
                 else
                 {
-                    encapContent = new BerOctetString(bOut.ToArray());
+                        encapContent = new BerOctetString(encapContentOctets);
+                    }
+                }
+                catch (IOException e)
+                {
+                    throw new CmsException("encapsulation error.", e);
                 }
             }
 

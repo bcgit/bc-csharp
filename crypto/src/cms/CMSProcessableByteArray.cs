@@ -1,8 +1,8 @@
-using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -26,6 +26,8 @@ namespace Org.BouncyCastle.Cms
 	        this.bytes = bytes;
 	        this.type = type;
 	    }
+
+		public byte[] GetByteArray() => Arrays.Clone(bytes);
 
 	    public DerObjectIdentifier Type
 	    {

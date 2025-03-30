@@ -46,14 +46,9 @@ namespace Org.BouncyCastle.Tsp
 
 			try
 			{
-				CmsProcessable content = m_tsToken.SignedContent;
-				MemoryStream bOut = new MemoryStream();
+                m_tstInfo = new TimeStampTokenInfo(TstInfo.GetInstance(CmsUtilities.GetByteArray(m_tsToken.SignedContent)));
 
-				content.Write(bOut);
-
-				m_tstInfo = new TimeStampTokenInfo(TstInfo.GetInstance(bOut.ToArray()));
-
-				Asn1.Cms.Attribute attr = m_tsaSignerInfo.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificate];
+                Asn1.Cms.Attribute attr = m_tsaSignerInfo.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificate];
 
 				if (attr != null)
 				{
