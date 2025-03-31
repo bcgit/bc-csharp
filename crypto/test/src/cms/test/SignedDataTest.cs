@@ -1129,61 +1129,58 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-        // TODO[mldsa]
-        //[Test]
-        //public void TestMLDsa44()
-        //{
-        //    /*
-        //     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
-        //     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
-        //     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
-        //     * omitted.
-        //     *
-        //     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-        //     */
-        //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+		[Test]
+		public void TestMLDsa44()
+		{
+			/*
+             * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+             * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
+             * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
+             * omitted.
+             *
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-        //    EncapsulatedTestAlt(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
-        //        expectedDigAlgID);
-        //}
+			EncapsulatedTestAlt(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
+				expectedDigAlgID);
+		}
 
-        // TODO[mldsa]
-        //[Test]
-        //public void TestMLDsa65()
-        //{
-        //    /*
-        //     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
-        //     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
-        //     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
-        //     * omitted.
-        //     *
-        //     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-        //     */
-        //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+		[Test]
+		public void TestMLDsa65()
+		{
+			/*
+		     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+		     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
+		     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
+		     * omitted.
+		     *
+		     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+		     */
+			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-        //    EncapsulatedTestAlt(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
-        //        expectedDigAlgID);
-        //}
+			EncapsulatedTestAlt(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
+				expectedDigAlgID);
+		}
 
-        // TODO[mldsa]
-        //[Test]
-        //public void TestMLDsa87()
-        //{
-        //    /*
-        //     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
-        //     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
-        //     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
-        //     * omitted.
-        //     *
-        //     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-        //     */
-        //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+		[Test]
+		public void TestMLDsa87()
+		{
+			/*
+		     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+		     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
+		     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
+		     * omitted.
+		     *
+		     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+		     */
+			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-        //    EncapsulatedTestAlt(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
-        //        expectedDigAlgID);
-        //}
+			EncapsulatedTestAlt(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
+				expectedDigAlgID);
+		}
 
-        private void RsaPssTest(string digestName, string digestOID)
+		private void RsaPssTest(string digestName, string digestOID)
 		{
 			byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
 			CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
@@ -1949,26 +1946,23 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-        // TODO[mldsa]
-        //[Test]
-        //public void VerifySignedDataMLDsa44()
-        //{
-        //    ImplVerifySignedData(signedData_mldsa44, SampleCredentials.ML_DSA_44);
-        //}
+        [Test]
+        public void VerifySignedDataMLDsa44()
+        {
+            ImplVerifySignedData(signedData_mldsa44, SampleCredentials.ML_DSA_44);
+        }
 
-        // TODO[mldsa]
-        //[Test]
-        //public void VerifySignedDataMLDsa65()
-        //{
-        //    ImplVerifySignedData(signedData_mldsa65, SampleCredentials.ML_DSA_65);
-        //}
+        [Test]
+        public void VerifySignedDataMLDsa65()
+        {
+            ImplVerifySignedData(signedData_mldsa65, SampleCredentials.ML_DSA_65);
+        }
 
-        // TODO[mldsa]
-        //[Test]
-        //public void VerifySignedDataMLDsa87()
-        //{
-        //    ImplVerifySignedData(signedData_mldsa87, SampleCredentials.ML_DSA_87);
-        //}
+        [Test]
+        public void VerifySignedDataMLDsa87()
+        {
+            ImplVerifySignedData(signedData_mldsa87, SampleCredentials.ML_DSA_87);
+        }
 
         private static void DoTestSample(string sigName)
         {

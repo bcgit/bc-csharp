@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
@@ -65,11 +66,28 @@ namespace Org.BouncyCastle.Cms
                 CmsAttributeTableGenerator unsAttrGen,
                 Asn1.Cms.AttributeTable baseSignedTable)
             {
+                ISignatureFactory signatureFactory;
+                if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+                {
+                    // TODO Other digests may be acceptable; keep a list and check against it
+
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid))
+                        throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+
+                    var sigAlgID = new AlgorithmIdentifier(sigAlgOid);
+
+                    signatureFactory = new Asn1SignatureFactory(sigAlgID, key, random);
+                }
+                else
+            {
                 string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
                 string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
 
+                    signatureFactory = new Asn1SignatureFactory(signatureName, key, random);
+                }
+
                 m_outer = outer;
-                m_signatureFactory = new Asn1SignatureFactory(signatureName, key, random);
+                m_signatureFactory = signatureFactory;
                 m_signerID = signerID;
                 // TODO Configure an IDigestAlgorithmFinder
                 m_digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
@@ -88,13 +106,29 @@ namespace Org.BouncyCastle.Cms
                 Asn1.Cms.AttributeTable baseSignedTable)
             {
                 var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
+                var sigAlgOid = sigAlgID.Algorithm;
+                var sigAlgParams = sigAlgID.Parameters;
+
+                AlgorithmIdentifier digAlgID;
+                if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+                {
+                    if (sigAlgParams != null)
+                        throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
+
+                    // TODO Other digest might be supported; allow customization
+                    digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, null);
+                }
+                else
+                {
+                    // TODO Configure an IDigestAlgorithmFinder
+                    digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(sigAlgID);
+                }
 
                 m_outer = outer;
                 m_signatureFactory = signatureFactory;
                 m_signerID = signerID;
-                // TODO Configure an IDigestAlgorithmFinder
-                m_digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(sigAlgID);
-                m_sigAlgOid = sigAlgID.Algorithm;
+                m_digAlgID = digAlgID;
+                m_sigAlgOid = sigAlgOid;
                 m_sAttrGen = sAttrGen;
                 m_unsAttrGen = unsAttrGen;
                 m_baseSignedTable = baseSignedTable;
@@ -104,9 +138,6 @@ namespace Org.BouncyCastle.Cms
             {
                 AlgorithmIdentifier digAlgID = m_digAlgID;
                 DerObjectIdentifier digAlgOid = digAlgID.Algorithm;
-
-                string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
-                string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(m_sigAlgOid);
 
                 if (!m_outer.m_digests.TryGetValue(digAlgOid, out var hash))
                 {
@@ -148,7 +179,7 @@ namespace Org.BouncyCastle.Cms
                     }
                     else if (content != null)
                     {
-                        // TODO Use raw signature of the hash value instead
+                        // TODO Use raw signature of the hash value instead (when sig alg uses external digest)
                         content.Write(sigStr);
                     }
                 }
@@ -169,9 +200,19 @@ namespace Org.BouncyCastle.Cms
                     unsignedAttr = m_outer.GetAttributeSet(unsigned);
                 }
 
+                AlgorithmIdentifier sigAlgID;
+                if (MLDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out MLDsaParameters mlDsaParameters))
+                {
+                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                }
+                else
+                {
+                    string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                    string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(m_sigAlgOid);
+
                 // TODO[RSAPSS] Need the ability to specify non-default parameters
                 Asn1Encodable sigAlgParams = SignerUtilities.GetDefaultX509Parameters(signatureName);
-                AlgorithmIdentifier sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
+                    sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
 
                 if (m_sAttrGen == null)
                 {
@@ -180,6 +221,7 @@ namespace Org.BouncyCastle.Cms
                     {
                         digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
                     }
+                }
                 }
 
                 return new SignerInfo(m_signerID, digAlgID, signedAttr, sigAlgID, new DerOctetString(sigBytes),
@@ -475,6 +517,7 @@ namespace Org.BouncyCastle.Cms
             {
                 try
                 {
+                    // TODO Need to use something like CmsUilities.AddDigestAlgs (see above) here?
                     var signerInfo = signerInf.ToSignerInfo(encapContentType, content);
                     digestAlgs.Add(signerInfo.DigestAlgorithm);
                     signerInfos.Add(signerInfo);

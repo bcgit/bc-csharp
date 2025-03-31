@@ -4,11 +4,13 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.IO;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -288,20 +290,47 @@ namespace Org.BouncyCastle.Cms
 
 		private bool DoVerify(AsymmetricKeyParameter publicKey)
 		{
+			var digAlgID = this.digestAlgorithm;
+			var digAlgOid = digAlgID.Algorithm;
+			var digAlgParams = digAlgID.Parameters;
+
 			var sigAlgID = this.encryptionAlgorithm;
 			var sigAlgOid = sigAlgID.Algorithm;
 			var sigAlgParams = sigAlgID.Parameters;
 
-			string digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
-			if (digestName.Equals(sigAlgOid.GetID()))
-			{
-				digestName = CmsSignedHelper.GetDigestAlgName(digestAlgorithm.Algorithm);
-			}
-
-			IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
+			string digestName;
 			ISigner sig;
 
-			if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
+			if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+			{
+                if (sigAlgParams != null)
+					throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
+
+                if (signedAttributeSet == null)
+				{
+                    /*
+                     * draft-ietf-lamps-cms-ml-dsa-02 3.3. When processing a SignerInfo signed using ML-DSA, if no signed
+                     * attributes are present, implementations MUST ignore the content of the digestAlgorithm field.
+                     */
+                    digestName = null;
+				}
+				else
+				{
+					// TODO Other digests may be acceptable; keep a list and check against it
+
+					/*
+					 * draft-ietf-lamps-cms-ml-dsa-02 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
+					 * identifier is used and the parameters field MUST be omitted.
+					 */
+					if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
+						throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+
+					digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+				}
+
+                sig = SignerUtilities.GetSigner(sigAlgOid);
+			}
+			else if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
 			{
 				// RFC 4056 2.2
 				// When the id-RSASSA-PSS algorithm identifier is used for a signature,
@@ -316,12 +345,12 @@ namespace Org.BouncyCastle.Cms
 
 					Asn1.Pkcs.RsassaPssParameters pss = Asn1.Pkcs.RsassaPssParameters.GetInstance(sigAlgParams);
 
-                    if (!pss.HashAlgorithm.Algorithm.Equals(this.digestAlgorithm.Algorithm))
+                    if (!pss.HashAlgorithm.Algorithm.Equals(digAlgOid))
 						throw new CmsException("RSASSA-PSS signature parameters specified incorrect hash algorithm");
                     if (!pss.MaskGenAlgorithm.Algorithm.Equals(Asn1.Pkcs.PkcsObjectIdentifiers.IdMgf1))
 						throw new CmsException("RSASSA-PSS signature parameters specified unknown MGF");
 
-                    IDigest pssDigest = DigestUtilities.GetDigest(pss.HashAlgorithm.Algorithm);
+                    IDigest pssDigest = DigestUtilities.GetDigest(digAlgOid);
                     int saltLength = pss.SaltLength.IntValueExact;
 
                     // RFC 4055 3.1
@@ -329,29 +358,38 @@ namespace Org.BouncyCastle.Cms
                     if (!Asn1.Pkcs.RsassaPssParameters.DefaultTrailerField.Equals(pss.TrailerField))
 						throw new CmsException("RSASSA-PSS signature parameters must have trailerField of 1");
 
-					IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
 
-                    if (signedAttributeSet == null)
-                    {
+                    IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
+
+					if (signedAttributeSet == null)
+					{
                         sig = PssSigner.CreateRawSigner(rsa, pssDigest, saltLength);
                     }
                     else
-                    {
-                        sig = new PssSigner(rsa, pssDigest, saltLength);
-                    }
-                }
-                catch (Exception e)
+					{
+						sig = new PssSigner(rsa, pssDigest, saltLength);
+					}
+				}
+				catch (Exception e)
 				{
 					throw new CmsException("failed to set RSASSA-PSS signature parameters", e);
 				}
 			}
 			else
 			{
-				// TODO Probably too strong a check at the moment
-				//				if (sigParams != null)
-				//					throw new CmsException("unrecognised signature parameters provided");
+				if (!X509Utilities.IsAbsentParameters(sigAlgParams))
+					throw new CmsException("unrecognised signature parameters provided");
 
-				string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
+				digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
+				if (digestName.Equals(sigAlgOid.GetID()))
+				{
+					digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+				}
+
+                // TODO Create raw verifier in case signedAttributeSet == null? (as for id-RSASSA-PSS above)
+
+                string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
 
                 sig = CmsSignedHelper.GetSignatureInstance(signatureName);
 
@@ -360,37 +398,49 @@ namespace Org.BouncyCastle.Cms
             }
 
             try
-			{
-				if (calculatedDigest != null)
-				{
-					resultDigest = calculatedDigest;
-				}
-				else
-				{
-					if (content != null)
-					{
-						using (var stream = new DigestSink(digest))
-						{
-							content.Write(stream);
-						}
-					}
-					else if (signedAttributeSet == null)
-					{
-						// TODO Get rid of this exception and just treat content==null as empty not missing?
-						throw new CmsException("data not encapsulated in signature - use detached constructor.");
-					}
+            {
+                if (signedAttributeSet == null && mlDsaParameters != null) // TODO EdDSA, SLH-DSA
+                {
+                    if (content == null)
+                    {
+                        // TODO Get rid of this exception and just treat content==null as empty not missing?
+                        throw new CmsException("data not encapsulated in signature - use detached constructor.");
+                    }
 
-					resultDigest = DigestUtilities.DoFinal(digest);
-				}
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("can't process mime object to create signature.", e);
-			}
+                    resultDigest = null;
+                }
+                else if (calculatedDigest != null)
+                {
+                    resultDigest = calculatedDigest;
+                }
+                else
+                {
+                    var digest = CmsSignedHelper.GetDigestInstance(digestName);
 
-			// RFC 3852 11.1 Check the content-type attribute is correct
-			{
-				Asn1Object validContentType = GetSingleValuedSignedAttribute(
+                    if (content != null)
+                    {
+                        using (var stream = new DigestSink(digest))
+                        {
+                            content.Write(stream);
+                        }
+                    }
+                    else if (signedAttributeSet == null)
+                    {
+                        // TODO Get rid of this exception and just treat content==null as empty not missing?
+                        throw new CmsException("data not encapsulated in signature - use detached constructor.");
+                    }
+
+                    resultDigest = DigestUtilities.DoFinal(digest);
+                }
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("can't process mime object to create signature.", e);
+            }
+
+            // RFC 3852 11.1 Check the content-type attribute is correct
+            {
+                Asn1Object validContentType = GetSingleValuedSignedAttribute(
 					CmsAttributes.ContentType, "content-type");
 				if (validContentType == null)
 				{
@@ -520,11 +570,11 @@ namespace Org.BouncyCastle.Cms
             return true;
         }
 
-		/**
+        /**
 		* verify that the given public key successfully handles and confirms the
 		* signature associated with this signer.
 		*/
-		public bool Verify(AsymmetricKeyParameter pubKey)
+        public bool Verify(AsymmetricKeyParameter pubKey)
 		{
 			if (pubKey.IsPrivate)
 				throw new ArgumentException("Expected public key", nameof(pubKey));
