@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -285,6 +286,87 @@ namespace Org.BouncyCastle.Crypto.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        [Test, Explicit]
+        public void BenchXof_Shake128()
+        {
+            ImplBenchXof(new ShakeDigest(128));
+        }
+
+        [Test, Explicit]
+        public void BenchXof_Shake256()
+        {
+            ImplBenchXof(new ShakeDigest(256));
+        }
+
+        [Test]
+        public void TestOutputXof_Shake128()
+        {
+            ImplTestOutputXof(new ShakeDigest(128));
+        }
+
+        [Test]
+        public void TestOutputXof_Shake256()
+        {
+            ImplTestOutputXof(new ShakeDigest(256));
+        }
+
+        private static void ImplBenchXof(IXof xof)
+        {
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024; ++i)
+            {
+                for (int j = 0; j < 1024; ++j)
+                {
+                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    xof.BlockUpdate(data);
+#else
+                    xof.BlockUpdate(data, 0, 1024);
+#endif
+                }
+
+                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                xof.OutputFinal(data);
+#else
+                xof.OutputFinal(data, 0, data.Length);
+#endif
+            }
+        }
+
+        private static void ImplTestOutputXof(IXof xof)
+        {
+            int rate = xof.GetByteLength();
+            int maxStep = rate * 3;
+            int totalOutput = maxStep * rate;
+            int iterations = 64;
+
+            Random random = new Random();
+
+            byte[] expected = new byte[totalOutput];
+            xof.OutputFinal(expected, 0, expected.Length);
+
+            byte[] output = new byte[expected.Length];
+            for (int i = 0; i < iterations; ++i)
+            {
+                random.NextBytes(output);
+
+                int pos = 0;
+                while (pos <= output.Length - maxStep)
+                {
+                    int len = random.Next(0, maxStep + 1);
+                    xof.Output(output, pos, len);
+                    pos += len;
+                }
+
+                xof.OutputFinal(output, pos, output.Length - pos);
+
+                Assert.True(Arrays.AreEqual(expected, output));
+            }
         }
 
         internal class TestVector

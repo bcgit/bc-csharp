@@ -58,15 +58,26 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int OutputFinal(byte[] output, int outOff, int outLen)
         {
+            Check.OutputLength(output, outOff, outLen, "output buffer is too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return OutputFinal(output.AsSpan(outOff, outLen));
+#else
             int length = Output(output, outOff, outLen);
 
             Reset();
 
             return length;
+#endif
         }
 
         public virtual int Output(byte[] output, int outOff, int outLen)
         {
+            Check.OutputLength(output, outOff, outLen, "output buffer is too short");
+
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Output(output.AsSpan(outOff, outLen));
+#else
             if (!squeezing)
             {
                 AbsorbBits(0x0F, 4);
@@ -75,6 +86,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             Squeeze(output, outOff, (long)outLen << 3);
 
             return outLen;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -137,7 +149,11 @@ namespace Org.BouncyCastle.Crypto.Digests
                 AbsorbBits(finalInput, finalBits);
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Squeeze(output.AsSpan(outOff, outLen));
+#else
             Squeeze(output, outOff, (long)outLen << 3);
+#endif
 
             Reset();
 
