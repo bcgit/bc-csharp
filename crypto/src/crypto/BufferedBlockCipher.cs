@@ -4,7 +4,6 @@ using System.Diagnostics;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -224,19 +223,17 @@ namespace Org.BouncyCastle.Crypto
 				Debug.Assert(updateOutputSize >= blockSize);
                 Check.OutputLength(output, outOff, updateOutputSize, "output buffer too short");
 
-                // Handle destructive overlap using a temporary output buffer
-				if (output == input && SegmentsOverlap(outOff, blockSize, inOff + available, length - available))
-				{
-                    byte[] tmpOutput = new byte[updateOutputSize];
-
-                    int outputLength = ProcessBytes(input, inOff, length, tmpOutput, 0);
-					Array.Copy(tmpOutput, 0, output, outOff, outputLength);
-                    return outputLength;
-                }
-
                 Array.Copy(input, inOff, buf, bufOff, available);
                 inOff += available;
                 length -= available;
+
+                // Handle destructive overlap by copying the remaining input
+                if (output == input && SegmentsOverlap(outOff, blockSize, inOff, length))
+				{
+                    input = new byte[length];
+                    Array.Copy(output, inOff, input, 0, length);
+                    inOff = 0;
+                }
 
                 resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
 				bufOff = 0;
@@ -268,20 +265,16 @@ namespace Org.BouncyCastle.Crypto
                 Debug.Assert(updateOutputSize >= blockSize);
                 Check.OutputLength(output, updateOutputSize, "output buffer too short");
 
-                // Handle destructive overlap using a temporary output buffer
-                if (output[..blockSize].Overlaps(input[available..]))
-                {
-                    Span<byte> tmpOutput = updateOutputSize <= Streams.DefaultBufferSize
-                        ? stackalloc byte[updateOutputSize]
-                        : new byte[updateOutputSize];
-
-                    int outputLength = ProcessBytes(input, tmpOutput);
-                    tmpOutput[..outputLength].CopyTo(output);
-                    return outputLength;
-                }
-
                 input[..available].CopyTo(buf.AsSpan(bufOff));
                 input = input[available..];
+
+                // Handle destructive overlap by copying the remaining input
+                if (output[..blockSize].Overlaps(input))
+                {
+                    byte[] tmp = new byte[input.Length];
+                    input.CopyTo(tmp);
+                    input = tmp;
+                }
 
                 resultLen = m_cipherMode.ProcessBlock(buf, output);
                 bufOff = 0;
