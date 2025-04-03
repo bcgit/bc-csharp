@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -298,39 +299,80 @@ namespace Org.BouncyCastle.Cms
 			var sigAlgOid = sigAlgID.Algorithm;
 			var sigAlgParams = sigAlgID.Parameters;
 
-			string digestName;
-			ISigner sig;
+            string digestName;
+            ISigner sig;
 
-			if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
-			{
+            if (EdECObjectIdentifiers.id_Ed25519.Equals(sigAlgOid))
+            {
                 if (sigAlgParams != null)
-					throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
+                    throw new CmsException("Ed25519 signature cannot specify algorithm parameters");
 
                 if (signedAttributeSet == null)
-				{
+                {
+                    digestName = null;
+                }
+                else
+                {
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
+                        throw new CmsException("Ed25519 signature used with unsupported digest algorithm");
+
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                }
+
+                sig = SignerUtilities.GetSigner(sigAlgOid);
+            }
+            //else if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgOid))
+            //{
+            //    if (sigAlgParams != null)
+            //        throw new CmsException("Ed448 signature cannot specify algorithm parameters");
+
+            //    if (signedAttributeSet == null)
+            //    {
+            //        digestName = null;
+            //    }
+            //    else
+            //    {
+            //        var expectedAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len, new DerInteger(512));
+
+            //        if (!expectedAlgID.Equals(digAlgID))
+            //            throw new CmsException("Ed448 signature used with unsupported digest algorithm");
+
+            //        //digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+            //        digestName = "SHAKE256-512";
+            //    }
+
+            //    sig = SignerUtilities.GetSigner(sigAlgOid);
+            //}
+            else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+            {
+                if (sigAlgParams != null)
+                    throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
+
+                if (signedAttributeSet == null)
+                {
                     /*
                      * draft-ietf-lamps-cms-ml-dsa-02 3.3. When processing a SignerInfo signed using ML-DSA, if no signed
                      * attributes are present, implementations MUST ignore the content of the digestAlgorithm field.
                      */
                     digestName = null;
-				}
-				else
-				{
-					// TODO Other digests may be acceptable; keep a list and check against it
+                }
+                else
+                {
+                    // TODO Other digests may be acceptable; keep a list and check against it
 
-					/*
-					 * draft-ietf-lamps-cms-ml-dsa-02 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
-					 * identifier is used and the parameters field MUST be omitted.
-					 */
-					if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
-						throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+                    /*
+                     * draft-ietf-lamps-cms-ml-dsa-02 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
+                     * identifier is used and the parameters field MUST be omitted.
+                     */
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
+                        throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
 
-					digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
-				}
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                }
 
                 sig = SignerUtilities.GetSigner(sigAlgOid);
-			}
-			else if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
+            }
+            else if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
 			{
 				// RFC 4056 2.2
 				// When the id-RSASSA-PSS algorithm identifier is used for a signature,
@@ -399,7 +441,7 @@ namespace Org.BouncyCastle.Cms
 
             try
             {
-                if (signedAttributeSet == null && mlDsaParameters != null) // TODO EdDSA, SLH-DSA
+                if (signedAttributeSet == null && digestName == null)
                 {
                     if (content == null)
                     {

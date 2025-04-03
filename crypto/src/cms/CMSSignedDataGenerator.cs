@@ -67,7 +67,33 @@ namespace Org.BouncyCastle.Cms
                 Asn1.Cms.AttributeTable baseSignedTable)
             {
                 ISignatureFactory signatureFactory;
-                if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+                if (EdECObjectIdentifiers.id_Ed25519.Equals(sigAlgOid))
+                {
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid))
+                        throw new CmsException("Ed25519 signature used with unsupported digest algorithm");
+
+                    var sigAlgID = new AlgorithmIdentifier(sigAlgOid);
+
+                    signatureFactory = new Asn1SignatureFactory(sigAlgID, key, random);
+                }
+                //else if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgOid))
+                //{
+                //    if (sAttrGen == null)
+                //    {
+                //        if (!NistObjectIdentifiers.IdShake256.Equals(digAlgOid))
+                //            throw new CmsException("Ed448 signature used with unsupported digest algorithm");
+                //    }
+                //    else
+                //    {
+                //        // NOTE: We'd need a complete AlgorithmIdentifier ('digAlgID') instead of only 'digAlgOid'
+                //        throw new ArgumentException("Ed448 cannot be used with this constructor and signed attributes");
+                //    }
+
+                //    var sigAlgID = new AlgorithmIdentifier(sigAlgOid);
+
+                //    signatureFactory = new Asn1SignatureFactory(sigAlgID, key, random);
+                //}
+                else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
                     // TODO Other digests may be acceptable; keep a list and check against it
 
@@ -79,9 +105,9 @@ namespace Org.BouncyCastle.Cms
                     signatureFactory = new Asn1SignatureFactory(sigAlgID, key, random);
                 }
                 else
-            {
-                string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
-                string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
+                {
+                    string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                    string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
 
                     signatureFactory = new Asn1SignatureFactory(signatureName, key, random);
                 }
@@ -110,7 +136,28 @@ namespace Org.BouncyCastle.Cms
                 var sigAlgParams = sigAlgID.Parameters;
 
                 AlgorithmIdentifier digAlgID;
-                if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+                if (EdECObjectIdentifiers.id_Ed25519.Equals(sigAlgOid))
+                {
+                    if (sigAlgParams != null)
+                        throw new CmsException("Ed25519 signature cannot specify algorithm parameters");
+
+                    digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, null);
+                }
+                //else if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgOid))
+                //{
+                //    if (sigAlgParams != null)
+                //        throw new CmsException("Ed448 signature cannot specify algorithm parameters");
+
+                //    if (sAttrGen == null)
+                //    {
+                //        digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
+                //    }
+                //    else
+                //    {
+                //        digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len, new DerInteger(512));
+                //    }
+                //}
+                else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
                     if (sigAlgParams != null)
                         throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
@@ -201,7 +248,15 @@ namespace Org.BouncyCastle.Cms
                 }
 
                 AlgorithmIdentifier sigAlgID;
-                if (MLDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out MLDsaParameters mlDsaParameters))
+                if (EdECObjectIdentifiers.id_Ed25519.Equals(m_sigAlgOid))
+                {
+                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                }
+                //else if (EdECObjectIdentifiers.id_Ed448.Equals(m_sigAlgOid))
+                //{
+                //    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                //}
+                else if (MLDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
                     sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
                 }
@@ -210,18 +265,9 @@ namespace Org.BouncyCastle.Cms
                     string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
                     string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(m_sigAlgOid);
 
-                // TODO[RSAPSS] Need the ability to specify non-default parameters
-                Asn1Encodable sigAlgParams = SignerUtilities.GetDefaultX509Parameters(signatureName);
+                    // TODO[RSAPSS] Need the ability to specify non-default parameters
+                    Asn1Encodable sigAlgParams = SignerUtilities.GetDefaultX509Parameters(signatureName);
                     sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
-
-                if (m_sAttrGen == null)
-                {
-                    // RFC 8419, Section 3.2 - needs to be shake-256, not shake-256-len
-                    if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgID.Algorithm))
-                    {
-                        digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
-                    }
-                }
                 }
 
                 return new SignerInfo(m_signerID, digAlgID, signedAttr, sigAlgID, new DerOctetString(sigBytes),
@@ -546,17 +592,17 @@ namespace Org.BouncyCastle.Cms
 
             Asn1OctetString encapContent = null;
             if (encapsulate)
+            {
+                try
                 {
-                    try
-                    {
                     byte[] encapContentOctets = CmsUtilities.GetByteArray(content);
 
-                if (_useDefiniteLength)
-                {
+                    if (_useDefiniteLength)
+                    {
                         encapContent = new DerOctetString(encapContentOctets);
-                }
-                else
-                {
+                    }
+                    else
+                    {
                         encapContent = new BerOctetString(encapContentOctets);
                     }
                 }

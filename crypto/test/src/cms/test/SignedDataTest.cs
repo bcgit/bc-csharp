@@ -857,20 +857,20 @@ namespace Org.BouncyCastle.Cms.Tests
 			RsaDigestTest("SHA512(256)withRSA");
 		}
 
-        //[Test]
-        //public void TestEd25519()
-        //{
-        //    /*
-        //     * RFC 8419 3.1. When signing with Ed25519, the digestAlgorithm MUST be id-sha512, and the algorithm
-        //     * parameters field MUST be absent.
-        //     * 
-        //     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-        //     */
-        //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+        [Test]
+        public void TestEd25519()
+        {
+            /*
+             * RFC 8419 3.1. When signing with Ed25519, the digestAlgorithm MUST be id-sha512, and the algorithm
+             * parameters field MUST be absent.
+             * 
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-        //    EncapsulatedTestAlt(SignEd25519KP, SignEd25519Cert, "Ed25519", EdECObjectIdentifiers.id_Ed25519,
-        //        expectedDigAlgID);
-        //}
+            EncapsulatedTestAlt(SignEd25519KP, SignEd25519Cert, "Ed25519", EdECObjectIdentifiers.id_Ed25519,
+                expectedDigAlgID);
+        }
 
         //[Test]
         //public void TestEd448()
