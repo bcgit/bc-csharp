@@ -6,6 +6,7 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.NET.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
 	<NoWarn>1591</NoWarn>
+    <LangVersion>10.0</LangVersion>
 
     <AssemblyName>BouncyCastle.Cryptography</AssemblyName>
     <AssemblyTitle>BouncyCastle.NET Cryptography ($(TargetFramework))</AssemblyTitle>
@@ -87,6 +88,13 @@
     <None Include="..\..\packageIcon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+    
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
@@ -98,6 +106,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
