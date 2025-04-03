@@ -471,7 +471,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			CmsSignedData s = gen.Generate(msg, true);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			x509Certs = s.GetCertificates();
 
@@ -524,7 +524,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = gen.Generate(msg, true);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			x509Certs = s.GetCertificates();
 
@@ -565,7 +565,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			CmsSignedData s = gen.Generate(msg, true);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			x509Certs = s.GetCertificates();
 
@@ -618,7 +618,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = gen.Generate(msg, true);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			x509Certs = s.GetCertificates();
 
@@ -872,6 +872,20 @@ namespace Org.BouncyCastle.Cms.Tests
                 expectedDigAlgID);
         }
 
+        [Test]
+        public void TestEd25519Detached()
+        {
+            /*
+             * RFC 8419 3.1. When signing with Ed25519, the digestAlgorithm MUST be id-sha512, and the algorithm
+             * parameters field MUST be absent.
+             * 
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignEd25519KP, SignEd25519Cert, "Ed25519", EdECObjectIdentifiers.id_Ed25519, expectedDigAlgID);
+        }
+
         //[Test]
         //public void TestEd448()
         //{
@@ -886,6 +900,22 @@ namespace Org.BouncyCastle.Cms.Tests
         //        new DerInteger(512));
 
         //    EncapsulatedTestAlt(SignEd448KP, SignEd448Cert, "Ed448", EdECObjectIdentifiers.id_Ed448, expectedDigAlgID);
+        //}
+
+        //[Test]
+        //public void TestEd448Detached()
+        //{
+        //    /*
+        //     * RFC 8419 3.1. When signing with Ed448, the digestAlgorithm MUST be id-shake256-len, the algorithm
+        //     * parameters field MUST be present, and the parameter MUST contain 512, encoded as a positive integer
+        //     * value.
+        //     * 
+        //     * We confirm here that our implementation defaults to id-shake256-len/512 for the digest algorithm.
+        //     */
+        //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len,
+        //        new DerInteger(512));
+
+        //    DetachedTest(SignEd448KP, SignEd448Cert, "Ed448", EdECObjectIdentifiers.id_Ed448, expectedDigAlgID);
         //}
 
         [Test]
@@ -1147,6 +1177,23 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestMLDsa44Detached()
+		{
+			/*
+             * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+             * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
+             * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
+             * omitted.
+             *
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+			DetachedTest(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
+				expectedDigAlgID);
+		}
+
+		[Test]
 		public void TestMLDsa65()
 		{
 			/*
@@ -1163,7 +1210,24 @@ namespace Org.BouncyCastle.Cms.Tests
 				expectedDigAlgID);
 		}
 
-		[Test]
+        [Test]
+        public void TestMLDsa65Detached()
+        {
+            /*
+		     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+		     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
+		     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
+		     * omitted.
+		     *
+		     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+		     */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
+                expectedDigAlgID);
+        }
+
+        [Test]
 		public void TestMLDsa87()
 		{
 			/*
@@ -1177,6 +1241,23 @@ namespace Org.BouncyCastle.Cms.Tests
 			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
 			EncapsulatedTestAlt(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
+				expectedDigAlgID);
+		}
+
+		[Test]
+		public void TestMLDsa87Detached()
+		{
+			/*
+		     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+		     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
+		     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
+		     * omitted.
+		     *
+		     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+		     */
+			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
 				expectedDigAlgID);
 		}
 
@@ -1240,7 +1321,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(3, s.Version);
 
-            s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+            s = new CmsSignedData(s.GetEncoded());
 
             x509Certs = s.GetCertificates();
 			x509Crls = s.GetCrls();
@@ -1281,7 +1362,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = gen.Generate(msg, true);
 
-            s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+            s = new CmsSignedData(s.GetEncoded());
 
             x509Certs = s.GetCertificates();
 			x509Crls = s.GetCrls();
@@ -1333,7 +1414,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsSignedData s = gen.Generate(msg, true);
 
-            s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+            s = new CmsSignedData(s.GetEncoded());
 
             var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
             Assert.Greater(digestAlgorithms.Count, 0);
@@ -1419,7 +1500,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             s = gen.Generate(msg, true);
 
-            s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+            s = new CmsSignedData(s.GetEncoded());
 
             x509Certs = s.GetCertificates();
             x509Crls = s.GetCrls();
@@ -1456,7 +1537,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			CmsSignedData s = gen.Generate(msg, true);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			x509Certs = s.GetCertificates();
 			x509Crls = s.GetCrls();
@@ -1500,7 +1581,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = gen.Generate(msg, true);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			x509Certs = s.GetCertificates();
 			x509Crls = s.GetCrls();
@@ -1523,10 +1604,128 @@ namespace Org.BouncyCastle.Cms.Tests
 			CheckSignerStoreReplacement(s, signers);
 		}
 
-		//
-		// signerInformation store replacement test.
-		//
-		private void CheckSignerStoreReplacement(
+        private void DetachedTest(AsymmetricCipherKeyPair signaturePair, X509Certificate signatureCert,
+            string signatureAlgorithm, DerObjectIdentifier sigAlgOid)
+        {
+            DetachedTest(signaturePair, signatureCert, signatureAlgorithm, sigAlgOid, null);
+        }
+
+        private void DetachedTest(AsymmetricCipherKeyPair signaturePair, X509Certificate signatureCert,
+            string signatureAlgorithm, DerObjectIdentifier sigAlgOid, AlgorithmIdentifier expectedDigAlgID)
+        {
+            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+
+            var x509Certs = CmsTestUtil.MakeCertStore(signatureCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+
+            gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
+                new Asn1SignatureFactory(signatureAlgorithm, signaturePair.Private), signatureCert));
+
+            gen.AddCertificates(x509Certs);
+
+            CmsSignedData s = gen.Generate(msg);
+
+            s = new CmsSignedData(msg, s.GetEncoded());
+
+            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            Assert.Greater(digestAlgorithms.Count, 0);
+
+            if (expectedDigAlgID != null)
+            {
+                Assert.True(digestAlgorithms.Contains(expectedDigAlgID));
+            }
+
+            x509Certs = s.GetCertificates();
+
+            SignerInformationStore signers = s.GetSignerInfos();
+
+            foreach (SignerInformation signer in signers.GetSigners())
+            {
+                var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
+
+                var certEnum = certCollection.GetEnumerator();
+
+                certEnum.MoveNext();
+                X509Certificate cert = certEnum.Current;
+
+                if (sigAlgOid != null)
+                {
+                    Assert.AreEqual(sigAlgOid.GetID(), signer.EncryptionAlgOid);
+                    if (NoParams.Contains(sigAlgOid))
+                    {
+                        Assert.Null(signer.EncryptionAlgParams);
+                    }
+                    else
+                    {
+                        Assert.AreEqual(DerNull.Instance, signer.EncryptionAlgParams);
+                    }
+                }
+
+                digestAlgorithms.Remove(signer.DigestAlgorithmID);
+
+                Assert.True(signer.Verify(cert));
+            }
+
+            Assert.AreEqual(digestAlgorithms.Count, 0);
+
+            //
+            // check signer information lookup
+            //
+
+            // TODO[cms] Need equivalent constructor/helper
+            //SignerId sid = new JcaSignerId(signatureCert);
+            SignerID signerID;
+            {
+                var issuerAndSerialNumber = new Asn1.Cms.IssuerAndSerialNumber(signatureCert.CertificateStructure);
+
+                signerID = new SignerID();
+                signerID.Issuer = issuerAndSerialNumber.Issuer;
+                signerID.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
+            }
+
+            var collection = signers.GetSigners(signerID);
+
+            Assert.AreEqual(1, collection.Count);
+            Assert.True(collection[0] is SignerInformation);
+
+            //
+            // try using existing signer
+            //
+
+            gen = new CmsSignedDataGenerator();
+
+            gen.AddSigners(s.GetSignerInfos());
+
+            gen.AddCertificates(s.GetCertificates());
+
+            s = gen.Generate(msg);
+
+            s = new CmsSignedData(msg, s.GetEncoded());
+
+            x509Certs = s.GetCertificates();
+
+            signers = s.GetSignerInfos();
+
+            foreach (SignerInformation signer in signers.GetSigners())
+            {
+                var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
+
+                var certEnum = certCollection.GetEnumerator();
+
+                certEnum.MoveNext();
+                X509Certificate cert = certEnum.Current;
+
+                Assert.IsTrue(signer.Verify(cert));
+            }
+
+            CheckSignerStoreReplacement(s, signers);
+        }
+
+        //
+        // signerInformation store replacement test.
+        //
+        private void CheckSignerStoreReplacement(
 			CmsSignedData orig,
 			SignerInformationStore signers)
 		{
@@ -1586,7 +1785,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsSignedData s = gen.Generate(null, false);
 
-			s = new CmsSignedData(ContentInfo.GetInstance(s.GetEncoded()));
+			s = new CmsSignedData(s.GetEncoded());
 
 			VerifySignatures(s);
 		}
