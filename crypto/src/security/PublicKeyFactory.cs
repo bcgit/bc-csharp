@@ -361,7 +361,7 @@ namespace Org.BouncyCastle.Security
                     // TODO[pqc] Avoid redundant copies?
                     return SlhDsaPublicKeyParameters.FromEncoding(slhDsaParameters, encoding: publicKey.GetOctets());
 
-                // TODO[pqc] Remove support for legacy/prototype formats?
+                // TODO[api] Eventually remove legacy support for OCTET STRING encoding
                 if (bytesLength > publicKeyLength)
                 {
                     try
@@ -379,6 +379,7 @@ namespace Org.BouncyCastle.Security
                     }
                     catch (Exception)
                     {
+                        // Ignore
                     }
                 }
             }

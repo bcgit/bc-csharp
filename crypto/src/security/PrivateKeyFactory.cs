@@ -461,16 +461,34 @@ namespace Org.BouncyCastle.Security
             }
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
+                // NOTE: We ignore the publicKey field since the private key already includes the public key
+                // TODO[pqc] Validate the public key if it is included?
+
+                int privateKeyLength = slhDsaParameters.ParameterSet.PrivateKeyLength;
+
                 var privateKey = keyInfo.PrivateKey;
-                int length = privateKey.GetOctetsLength();
+                int octetsLength = privateKey.GetOctetsLength();
 
-                var parameterSet = slhDsaParameters.ParameterSet;
-
-                if (length == parameterSet.PrivateKeyLength)
-                {
-                    // NOTE: We ignore the publicKey field since the private key includes it anyway
-                    // TODO[pqc] Validate the public key if it is included?
+                if (octetsLength == privateKeyLength)
                     return SlhDsaPrivateKeyParameters.FromEncoding(slhDsaParameters, encoding: privateKey.GetOctets());
+
+                // TODO[api] Eventually remove legacy support for OCTET STRING encoding
+                if (octetsLength > privateKeyLength)
+                {
+                    try
+                    {
+                        var asn1Object = Asn1Object.FromByteArray(privateKey.GetOctets());
+
+                        if (asn1Object is Asn1OctetString octetString)
+                        {
+                            var encoding = octetString.GetOctets();
+                            return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore
+                    }
                 }
 
                 throw new ArgumentException("invalid " + slhDsaParameters.Name + " private key");
