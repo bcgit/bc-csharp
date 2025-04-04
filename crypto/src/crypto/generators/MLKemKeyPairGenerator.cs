@@ -22,9 +22,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             engine.GenerateKemKeyPair(out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk, out byte[] nonce,
                 out byte[] seed);
 
-            MLKemPublicKeyParameters pubKey = new MLKemPublicKeyParameters(m_parameters, t, rho);
-            MLKemPrivateKeyParameters privKey = new MLKemPrivateKeyParameters(m_parameters, s, hpk, nonce, t, rho, seed);
-            return new AsymmetricCipherKeyPair(pubKey, privKey);
+            return CreateKeyPair(m_parameters, t, rho, s, hpk, nonce, seed);
         }
 
         internal AsymmetricCipherKeyPair InternalGenerateKeyPair(byte[] d, byte[] z)
@@ -34,9 +32,17 @@ namespace Org.BouncyCastle.Crypto.Generators
             engine.GenerateKemKeyPairInternal(d, z, out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk,
                 out byte[] nonce, out byte[] seed);
 
-            MLKemPublicKeyParameters pubKey = new MLKemPublicKeyParameters(m_parameters, t, rho);
-            MLKemPrivateKeyParameters privKey = new MLKemPrivateKeyParameters(m_parameters, s, hpk, nonce, t, rho, seed);
-            return new AsymmetricCipherKeyPair(pubKey, privKey);
+            return CreateKeyPair(m_parameters, t, rho, s, hpk, nonce, seed);
+        }
+
+        private static AsymmetricCipherKeyPair CreateKeyPair(MLKemParameters parameters, byte[] t, byte[] rho, byte[] s,
+            byte[] hpk, byte[] nonce, byte[] seed)
+        {
+            var format = MLKemPrivateKeyParameters.Format.SeedAndEncoding;
+
+            return new AsymmetricCipherKeyPair(
+                publicParameter: new MLKemPublicKeyParameters(parameters, t, rho),
+                privateParameter: new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed, format));
         }
     }
 }
