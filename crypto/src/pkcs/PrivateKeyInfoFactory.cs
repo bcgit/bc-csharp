@@ -249,14 +249,12 @@ namespace Org.BouncyCastle.Pkcs
             {
                 var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
 
-                byte[] seed = mlDsaKey.GetSeed();
-                if (seed != null)
-                    return PrivateKeyInfo.Create(algID, new DerOctetString(seed), attributes, publicKey: null);
+                var privateKeyAsn1 = GetMLDsaPrivateKeyAsn1(mlDsaKey);
 
                 // NOTE: The public key can be derived from the private key
-                DerBitString publicKey = null;
+                byte[] publicKey = null;
 
-                return PrivateKeyInfo.Create(algID, new DerOctetString(mlDsaKey.GetEncoded()), attributes, publicKey);
+                return new PrivateKeyInfo(algID, privateKeyAsn1, attributes, publicKey);
             }
 
             if (privateKey is MLKemPrivateKeyParameters mlKemKey)
@@ -323,6 +321,20 @@ namespace Org.BouncyCastle.Pkcs
             for (int i = 0; i != size; i++)
             {
                 encKey[offSet + i] = val[val.Length - 1 - i];
+            }
+        }
+
+        private static Asn1Encodable GetMLDsaPrivateKeyAsn1(MLDsaPrivateKeyParameters key)
+        {
+            switch (key.PreferredFormat)
+            {
+            case MLDsaPrivateKeyParameters.Format.EncodingOnly:
+                return new DerOctetString(key.GetEncoded());
+            case MLDsaPrivateKeyParameters.Format.SeedOnly:
+                return new DerTaggedObject(false, 0, new DerOctetString(key.GetSeed()));
+            case MLDsaPrivateKeyParameters.Format.SeedAndEncoding:
+            default:
+                return new DerSequence(new DerOctetString(key.GetSeed()), new DerOctetString(key.GetEncoded()));
             }
         }
 

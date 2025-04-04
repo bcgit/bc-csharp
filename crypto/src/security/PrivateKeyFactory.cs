@@ -335,23 +335,63 @@ namespace Org.BouncyCastle.Security
             }
             else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
             {
+                // NOTE: We ignore the publicKey field since the private key already includes the public key
+                // TODO[pqc] Validate the public key if it is included?
+
                 var privateKey = keyInfo.PrivateKey;
                 int length = privateKey.GetOctetsLength();
 
-                var parameterSet = mlDsaParameters.ParameterSet;
-
-                if (length == parameterSet.SeedLength)
+                // TODO[api] Eventually remove legacy support for raw octets
                 {
-                    // NOTE: We ignore the publicKey field since we will recover it from the seed anyway
-                    // TODO[pqc] Validate the public key if it is included?
-                    return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed: privateKey.GetOctets());
+                    var parameterSet = mlDsaParameters.ParameterSet;
+
+                    if (length == parameterSet.SeedLength)
+                        return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed: privateKey.GetOctets());
+
+                    if (length == parameterSet.PrivateKeyLength)
+                        return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding: privateKey.GetOctets());
                 }
 
-                if (length == parameterSet.PrivateKeyLength)
+                try
                 {
-                    // NOTE: We ignore the publicKey field since we will derive it anyway
-                    // TODO[pqc] Validate the public key if it is included?
-                    return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding: privateKey.GetOctets());
+                    var asn1Object = Asn1Object.FromByteArray(privateKey.GetOctets());
+
+                    if (asn1Object is Asn1TaggedObject taggedSeedOnly)
+                    {
+                        // SeedOnly is a [CONTEXT 0] IMPLICIT OCTET STRING
+                        if (taggedSeedOnly.HasContextTag(0))
+                        {
+                            var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
+                            return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed);
+                        }
+                    }
+                    else if (asn1Object is Asn1OctetString encodingOnly)
+                    {
+                        // EncodingOnly is an OCTET STRING
+                        var encoding = encodingOnly.GetOctets();
+                        return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding);
+                    }
+                    else if (asn1Object is Asn1Sequence sequence)
+                    {
+                        // SeedAndEncoding is a SEQUENCE containing a seed OCTET STRING and an encoding OCTET STRING
+                        if (sequence.Count == 2)
+                        {
+                            var seed = Asn1OctetString.GetInstance(sequence[0]).GetOctets();
+                            var encoding = Asn1OctetString.GetInstance(sequence[1]).GetOctets();
+
+                            var fromSeed = MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed,
+                                preferredFormat: MLDsaPrivateKeyParameters.Format.SeedAndEncoding);
+
+                            if (!Arrays.FixedTimeEquals(fromSeed.GetEncoded(), encoding))
+                                throw new ArgumentException("inconsistent " + mlDsaParameters.Name + " private key");
+
+                            return fromSeed;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore
                 }
 
                 throw new ArgumentException("invalid " + mlDsaParameters.Name + " private key");
@@ -382,8 +422,11 @@ namespace Org.BouncyCastle.Security
                     if (asn1Object is Asn1TaggedObject taggedSeedOnly)
                     {
                         // SeedOnly is a [CONTEXT 0] IMPLICIT OCTET STRING
-                        var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
-                        return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed);
+                        if (taggedSeedOnly.HasContextTag(0))
+                        {
+                            var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
+                            return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed);
+                        }
                     }
                     else if (asn1Object is Asn1OctetString encodingOnly)
                     {
