@@ -118,6 +118,44 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public bool Verify(Ed25519.Algorithm algorithm, byte[] ctx, ReadOnlySpan<byte> msg, ReadOnlySpan<byte> sig)
+        {
+            switch (algorithm)
+            {
+            case Ed25519.Algorithm.Ed25519:
+            {
+                if (null != ctx)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                return Ed25519.Verify(sig, m_publicPoint, msg);
+            }
+            case Ed25519.Algorithm.Ed25519ctx:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                return Ed25519.Verify(sig, m_publicPoint, ctx, msg);
+            }
+            case Ed25519.Algorithm.Ed25519ph:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                return Ed25519.VerifyPrehash(sig, m_publicPoint, ctx, ph: msg);
+            }
+            default:
+            {
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+            }
+        }
+#endif
+
         private static Ed25519.PublicPoint Parse(byte[] buf, int off)
         {
             return Ed25519.ValidatePublicKeyPartialExport(buf, off)

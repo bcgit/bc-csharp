@@ -118,6 +118,44 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Sign(Ed448.Algorithm algorithm, byte[] ctx, ReadOnlySpan<byte> msg, Span<byte> sig)
+        {
+            Ed448PublicKeyParameters publicKey = GeneratePublicKey();
+
+            Span<byte> pk = stackalloc byte[Ed448.PublicKeySize];
+            publicKey.Encode(pk);
+
+            switch (algorithm)
+            {
+            case Ed448.Algorithm.Ed448:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                Ed448.Sign(data, pk, ctx, msg, sig);
+                break;
+            }
+            case Ed448.Algorithm.Ed448ph:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                Ed448.SignPrehash(data, pk, ctx, ph: msg, sig);
+                break;
+            }
+            default:
+            {
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+            }
+        }
+#endif
+
         private static Ed448PublicKeyParameters CreatePublicKey(byte[] data) =>
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             new Ed448PublicKeyParameters(Ed448.GeneratePublicKey(data));

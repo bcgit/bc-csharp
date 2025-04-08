@@ -942,6 +942,55 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)zc;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint MulAddTo(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> zz)
+        {
+            ulong y_0 = y[0];
+            ulong y_1 = y[1];
+            ulong y_2 = y[2];
+            ulong y_3 = y[3];
+            ulong y_4 = y[4];
+            ulong y_5 = y[5];
+            ulong y_6 = y[6];
+            ulong y_7 = y[7];
+
+            ulong zc = 0;
+            for (int i = 0; i < 8; ++i)
+            {
+                ulong c = 0, x_i = x[i];
+                c += x_i * y_0 + zz[i + 0];
+                zz[i + 0] = (uint)c;
+                c >>= 32;
+                c += x_i * y_1 + zz[i + 1];
+                zz[i + 1] = (uint)c;
+                c >>= 32;
+                c += x_i * y_2 + zz[i + 2];
+                zz[i + 2] = (uint)c;
+                c >>= 32;
+                c += x_i * y_3 + zz[i + 3];
+                zz[i + 3] = (uint)c;
+                c >>= 32;
+                c += x_i * y_4 + zz[i + 4];
+                zz[i + 4] = (uint)c;
+                c >>= 32;
+                c += x_i * y_5 + zz[i + 5];
+                zz[i + 5] = (uint)c;
+                c >>= 32;
+                c += x_i * y_6 + zz[i + 6];
+                zz[i + 6] = (uint)c;
+                c >>= 32;
+                c += x_i * y_7 + zz[i + 7];
+                zz[i + 7] = (uint)c;
+                c >>= 32;
+
+                zc += c + zz[i + 8];
+                zz[i + 8] = (uint)zc;
+                zc >>= 32;
+            }
+            return (uint)zc;
+        }
+#endif
+
         public static ulong Mul33Add(uint w, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
         {
             Debug.Assert(w >> 31 == 0);
