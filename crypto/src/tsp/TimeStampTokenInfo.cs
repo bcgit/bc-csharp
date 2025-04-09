@@ -1,15 +1,16 @@
 using System;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Tsp
 {
-	public class TimeStampTokenInfo
-	{
-		private static TstInfo ParseTstInfo(byte[] tstInfoEncoding)
-		{
+    public class TimeStampTokenInfo
+    {
+        private static TstInfo ParseTstInfo(byte[] tstInfoEncoding)
+        {
             try
             {
                 return TstInfo.GetInstance(tstInfoEncoding);
@@ -20,105 +21,54 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        private TstInfo		tstInfo;
-		private DateTime	genTime;
+        private readonly TstInfo m_tstInfo;
+        private readonly DateTime m_genTime;
 
         public TimeStampTokenInfo(byte[] tstInfoEncoding)
-			: this(ParseTstInfo(tstInfoEncoding))
-		{
+            : this(ParseTstInfo(tstInfoEncoding))
+        {
         }
 
-        public TimeStampTokenInfo(
-			TstInfo tstInfo)
-		{
-			this.tstInfo = tstInfo;
+        public TimeStampTokenInfo(TstInfo tstInfo)
+        {
+            m_tstInfo = tstInfo;
 
-			try
-			{
-				this.genTime = tstInfo.GenTime.ToDateTime();
-			}
-			catch (Exception e)
-			{
-				throw new TspException("unable to parse genTime field: " + e.Message);
-			}
-		}
+            try
+            {
+                m_genTime = tstInfo.GenTime.ToDateTime();
+            }
+            catch (Exception e)
+            {
+                throw new TspException("unable to parse genTime field: " + e.Message);
+            }
+        }
 
-		public bool IsOrdered
-		{
-			get { return tstInfo.Ordering.IsTrue; }
-		}
+        public bool IsOrdered => m_tstInfo.Ordering.IsTrue;
 
-		public Accuracy Accuracy
-		{
-			get { return tstInfo.Accuracy; }
-		}
+        public Accuracy Accuracy => m_tstInfo.Accuracy;
 
-		public DateTime GenTime
-		{
-			get { return genTime; }
-		}
+        public DateTime GenTime => m_genTime;
 
-		public GenTimeAccuracy GenTimeAccuracy
-		{
-			get
-			{
-				return this.Accuracy == null
-					?	null
-					:	new GenTimeAccuracy(this.Accuracy);
-			}
-		}
+        public GenTimeAccuracy GenTimeAccuracy => Accuracy == null ? null : new GenTimeAccuracy(Accuracy);
 
-		public string Policy
-		{
-			get { return tstInfo.Policy.Id; }
-		}
+        public string Policy => m_tstInfo.Policy.GetID();
 
-		public BigInteger SerialNumber
-		{
-			get { return tstInfo.SerialNumber.Value; }
-		}
+        public BigInteger SerialNumber => m_tstInfo.SerialNumber.Value;
 
-		public GeneralName Tsa
-		{
-			get { return tstInfo.Tsa; }
-		}
+        public GeneralName Tsa => m_tstInfo.Tsa;
 
-		/**
-		 * @return the nonce value, null if there isn't one.
-		 */
-		public BigInteger Nonce
-		{
-			get
-			{
-				return tstInfo.Nonce == null
-					?	null
-					:	tstInfo.Nonce.Value;
-			}
-		}
+        public BigInteger Nonce => m_tstInfo.Nonce?.Value;
 
-		public AlgorithmIdentifier HashAlgorithm
-		{
-			get { return tstInfo.MessageImprint.HashAlgorithm; }
-		}
+        public AlgorithmIdentifier HashAlgorithm => m_tstInfo.MessageImprint.HashAlgorithm;
 
-		public string MessageImprintAlgOid
-		{
-            get { return tstInfo.MessageImprint.HashAlgorithm.Algorithm.Id; }
-		}
+        public string MessageImprintAlgOid => m_tstInfo.MessageImprint.HashAlgorithm.Algorithm.GetID();
 
-		public byte[] GetMessageImprintDigest()
-		{
-			return tstInfo.MessageImprint.GetHashedMessage();
-		}
+        public Asn1OctetString MessageImprintDigest => m_tstInfo.MessageImprint.HashedMessage;
 
-		public byte[] GetEncoded()
-		{
-			return tstInfo.GetEncoded();
-		}
+        public byte[] GetMessageImprintDigest() => m_tstInfo.MessageImprint.GetHashedMessage();
 
-		public TstInfo TstInfo
-		{
-			get { return tstInfo; }
-		}
-	}
+        public byte[] GetEncoded() => m_tstInfo.GetEncoded();
+
+        public TstInfo TstInfo => m_tstInfo;
+    }
 }

@@ -31,8 +31,8 @@ namespace Org.BouncyCastle.Tsp
         private int accuracyMicros = -1;
         private bool ordering = false;
         private GeneralName tsa = null;
-        private DerObjectIdentifier tsaPolicyOID;
-    
+        private DerObjectIdentifier m_tsaPolicyOid;
+
         private IStore<X509Certificate> x509Certs;
         private IStore<X509Crl> x509Crls;
         private IStore<X509V2AttributeCertificate> x509AttrCerts;
@@ -49,25 +49,19 @@ namespace Org.BouncyCastle.Tsp
         }
 
         /**
-		 * basic creation - only the default attributes will be included here.
-		 */
-        public TimeStampTokenGenerator(
-            AsymmetricKeyParameter key,
-            X509Certificate cert,
-            string digestOID,
+         * basic creation - only the default attributes will be included here.
+         */
+        public TimeStampTokenGenerator(AsymmetricKeyParameter key, X509Certificate cert, string digestOID,
             string tsaPolicyOID)
             : this(key, cert, digestOID, tsaPolicyOID, null, null)
         {
         }
 
-        public TimeStampTokenGenerator(
-            SignerInfoGenerator signerInfoGen,
-            IDigestFactory digestCalculator,
-            DerObjectIdentifier tsaPolicy,
-            bool isIssuerSerialIncluded)
+        public TimeStampTokenGenerator(SignerInfoGenerator signerInfoGen, IDigestFactory digestCalculator,
+            DerObjectIdentifier tsaPolicy, bool isIssuerSerialIncluded)
         {
             this.signerInfoGenerator = signerInfoGen;
-            this.tsaPolicyOID = tsaPolicy;
+            m_tsaPolicyOid = tsaPolicy;
 
             X509Certificate assocCert = signerInfoGen.Certificate ??
                 throw new ArgumentException("SignerInfoGenerator must have an associated certificate");
@@ -82,33 +76,24 @@ namespace Org.BouncyCastle.Tsp
                 var certHash = DerOctetString.WithContents(
                     X509.X509Utilities.CalculateDigest(digestCalculator, assocCert.GetEncoded()));
 
-                IssuerSerial issuerSerial = null;
-                if (isIssuerSerialIncluded)
-                {
-                    var c = assocCert.CertificateStructure;
+                var issuerSerial = isIssuerSerialIncluded ? X509.X509Utilities.CreateIssuerSerial(assocCert) : null;
 
-                    issuerSerial = new IssuerSerial(c.Issuer, c.SerialNumber);
-                }
-
+                CmsAttributeTableGenerator signedGen;
                 if (OiwObjectIdentifiers.IdSha1.Equals(digestAlgOid))
                 {
-                    EssCertID essCertID = new EssCertID(certHash, issuerSerial);
-
-                    this.signerInfoGenerator = signerInfoGen.NewBuilder()
-                        .WithSignedAttributeGenerator(new TableGen(signerInfoGen, essCertID))
-                        .Build(signerInfoGen.SignatureFactory, signerInfoGen.Certificate);
+                    signedGen = new TableGen(signerInfoGen, new EssCertID(certHash, issuerSerial));
                 }
                 else
                 {
                     // TODO Why reconstruct this? (if normalizing the parameters should use DigestAlgorithmFinder??)
                     digestAlgID = new AlgorithmIdentifier(digestAlgOid);
 
-                    EssCertIDv2 essCertIDv2 = new EssCertIDv2(digestAlgID, certHash, issuerSerial);
-
-                    this.signerInfoGenerator = signerInfoGen.NewBuilder()
-                        .WithSignedAttributeGenerator(new TableGen2(signerInfoGen, essCertIDv2))
-                        .Build(signerInfoGen.SignatureFactory, signerInfoGen.Certificate);
+                    signedGen = new TableGen2(signerInfoGen, new EssCertIDv2(digestAlgID, certHash, issuerSerial));
                 }
+
+                this.signerInfoGenerator = signerInfoGen.NewBuilder()
+                    .WithSignedAttributeGenerator(signedGen)
+                    .Build(signerInfoGen.SignatureFactory, signerInfoGen.Certificate);
             }
             catch (Exception ex)
             {
@@ -119,13 +104,8 @@ namespace Org.BouncyCastle.Tsp
         /**
          * create with a signer with extra signed/unsigned attributes.
          */
-        public TimeStampTokenGenerator(
-           AsymmetricKeyParameter key,
-           X509Certificate cert,
-           string digestOID,
-           string tsaPolicyOID,
-           Asn1.Cms.AttributeTable signedAttr,
-           Asn1.Cms.AttributeTable unsignedAttr)
+        public TimeStampTokenGenerator(AsymmetricKeyParameter key, X509Certificate cert, string digestOID,
+            string tsaPolicyOID, Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
             : this(
                 MakeInfoGenerator(key, cert, new DerObjectIdentifier(digestOID), signedAttr, unsignedAttr),
                 Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
@@ -134,12 +114,8 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
-        internal static SignerInfoGenerator MakeInfoGenerator(
-          AsymmetricKeyParameter key,
-          X509Certificate cert,
-          DerObjectIdentifier digestOid,
-          Asn1.Cms.AttributeTable signedAttr,
-          Asn1.Cms.AttributeTable unsignedAttr)
+        internal static SignerInfoGenerator MakeInfoGenerator(AsymmetricKeyParameter key, X509Certificate cert,
+            DerObjectIdentifier digestOid, Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
         {
             TspUtil.ValidateCertificate(cert);
 
@@ -156,39 +132,18 @@ namespace Org.BouncyCastle.Tsp
                 signedAttrs = new Dictionary<DerObjectIdentifier, object>();
             }
 
-            //try
-            //{
-            //    byte[] hash = DigestUtilities.CalculateDigest("SHA1", cert.GetEncoded());
-
-            //    EssCertID essCertid = new EssCertID(hash);
-
-            //    Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(
-            //        PkcsObjectIdentifiers.IdAASigningCertificate,
-            //        new DerSet(new SigningCertificate(essCertid)));
-
-            //    signedAttrs[attr.AttrType] = attr;
-            //}
-            //catch (CertificateEncodingException e)
-            //{
-            //    throw new TspException("Exception processing certificate.", e);
-            //}
-            //catch (SecurityUtilityException e)
-            //{
-            //    throw new TspException("Can't find a SHA-1 implementation.", e);
-            //}
-
             string digestName = CmsSignedHelper.GetDigestAlgName(digestOid);
             DerObjectIdentifier encOid = CmsSignedHelper.GetEncOid(key, digestOid.Id);
             string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(encOid);
+            var contentSigner = new Asn1SignatureFactory(signatureName, key);
 
-            Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
+            var signedGen = new DefaultSignedAttributeTableGenerator(new Asn1.Cms.AttributeTable(signedAttrs));
+            var unsignedGen = new SimpleAttributeTableGenerator(unsignedAttr);
+
             return new SignerInfoGeneratorBuilder()
-             .WithSignedAttributeGenerator(
-                new DefaultSignedAttributeTableGenerator(
-                    new Asn1.Cms.AttributeTable(signedAttrs)))
-              .WithUnsignedAttributeGenerator(
-                new SimpleAttributeTableGenerator(unsignedAttr))
-                .Build(sigfact, cert);
+                .WithSignedAttributeGenerator(signedGen)
+                .WithUnsignedAttributeGenerator(unsignedGen)
+                .Build(contentSigner, cert);
         }
 
         public void SetAttributeCertificates(IStore<X509V2AttributeCertificate> attributeCertificates)
@@ -242,23 +197,15 @@ namespace Org.BouncyCastle.Tsp
             this.tsa = tsa;
         }
 
-        //------------------------------------------------------------------------------
+        public TimeStampToken Generate(TimeStampRequest request, BigInteger serialNumber, DateTime genTime) =>
+            Generate(request, serialNumber, genTime, null);
 
-        public TimeStampToken Generate(
-           TimeStampRequest request,
-           BigInteger serialNumber,
-           DateTime genTime)
+        public TimeStampToken Generate(TimeStampRequest request, BigInteger serialNumber, DateTime genTime,
+            X509Extensions additionalExtensions)
         {
-            return Generate(request, serialNumber, genTime, null);
-        }
+            var timeStampReq = request.TimeStampReq;
 
-        public TimeStampToken Generate(
-            TimeStampRequest request,
-            BigInteger serialNumber,
-            DateTime genTime, X509Extensions additionalExtensions)
-        {
-            AlgorithmIdentifier algID = request.MessageImprintAlgID;
-            MessageImprint messageImprint = new MessageImprint(algID, request.MessageImprint.HashedMessage);
+            var messageImprint = timeStampReq.MessageImprint;
 
             Accuracy accuracy = null;
             if (accuracySeconds > 0 || accuracyMillis > 0 || accuracyMicros > 0)
@@ -290,19 +237,9 @@ namespace Org.BouncyCastle.Tsp
                 derOrdering = DerBoolean.GetInstance(ordering);
             }
 
-            DerInteger nonce = null;
-            if (request.Nonce != null)
-            {
-                nonce = new DerInteger(request.Nonce);
-            }
- 
-            DerObjectIdentifier tsaPolicy = tsaPolicyOID;
-            if (request.ReqPolicy != null)
-            {
-                tsaPolicy = new DerObjectIdentifier(request.ReqPolicy);
-            }
+            DerInteger nonce = timeStampReq.Nonce;
 
-            if (tsaPolicy == null)
+            DerObjectIdentifier tsaPolicy = timeStampReq.ReqPolicy ?? m_tsaPolicyOid ??
                 throw new TspValidationException("request contains no policy", PkiFailureInfo.UnacceptedPolicy);
 
             X509Extensions respExtensions = request.Extensions;
@@ -363,7 +300,7 @@ namespace Org.BouncyCastle.Tsp
                 CmsSignedData signedData = signedDataGenerator.Generate(
                     PkcsObjectIdentifiers.IdCTTstInfo.Id,
                     new CmsProcessableByteArray(derEncodedTstInfo),
-                    true);
+                    encapsulate: true);
 
                 return new TimeStampToken(signedData);
             }
@@ -375,10 +312,6 @@ namespace Org.BouncyCastle.Tsp
             {
                 throw new TspException("Exception encoding info", e);
             }
-            //catch (InvalidAlgorithmParameterException e)
-            //{
-            //    throw new TspException("Exception handling CertStore CRLs", e);
-            //}
         }
 
         private static DateTime WithResolution(DateTime dateTime, Resolution resolution)
@@ -394,7 +327,7 @@ namespace Org.BouncyCastle.Tsp
             case Resolution.R_MILLISECONDS:
                 return DateTimeUtilities.WithPrecisionMillisecond(dateTime);
             default:
-                throw new InvalidOperationException();
+                throw new ArgumentException("Invalid enum value", nameof(resolution));
             }
         }
 
