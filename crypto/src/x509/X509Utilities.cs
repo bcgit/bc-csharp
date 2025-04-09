@@ -166,17 +166,6 @@ namespace Org.BouncyCastle.X509
             return streamCalculator.GetResult();
         }
 
-        private static RsassaPssParameters CreatePssParams(
-			AlgorithmIdentifier	hashAlgId,
-			int					saltSize)
-		{
-			return new RsassaPssParameters(
-				hashAlgId,
-				new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
-				new DerInteger(saltSize),
-				DerInteger.One);
-		}
-
         internal static DerBitString CollectDerBitString(IBlockResult result)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -193,8 +182,11 @@ namespace Org.BouncyCastle.X509
             return new DerBitString(data);
         }
 
-        // TODO[api] Remove (along with m_algorithms) when callers are obsoleted
-        internal static IEnumerable<string> GetAlgNames() => CollectionUtilities.Proxy(m_algorithms.Keys);
+        internal static IssuerSerial CreateIssuerSerial(X509Certificate certificate) =>
+            CreateIssuerSerial(certificate.CertificateStructure);
+
+        internal static IssuerSerial CreateIssuerSerial(X509CertificateStructure certificate) =>
+            new IssuerSerial(certificate.Issuer, certificate.SerialNumber);
 
         internal static DerBitString GenerateBitString(IStreamCalculator<IBlockResult> streamCalculator,
 			Asn1Encodable asn1Encodable)
@@ -217,6 +209,9 @@ namespace Org.BouncyCastle.X509
         {
             return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
         }
+
+        // TODO[api] Remove (along with m_algorithms) when callers are obsoleted
+        internal static IEnumerable<string> GetAlgNames() => CollectionUtilities.Proxy(m_algorithms.Keys);
 
         internal static bool HasAbsentParameters(AlgorithmIdentifier algID) => IsAbsentParameters(algID.Parameters);
 

@@ -48,9 +48,7 @@ namespace Org.BouncyCastle.X509
 
         public AttributeCertificateHolder(X509Certificate cert)
 		{
-			var c = cert.CertificateStructure;
-
-            m_holder = new Holder(new IssuerSerial(c.Issuer, c.SerialNumber));
+			m_holder = new Holder(X509Utilities.CreateIssuerSerial(cert));
         }
 
         public AttributeCertificateHolder(X509Name principal)
