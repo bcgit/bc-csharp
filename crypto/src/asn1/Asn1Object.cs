@@ -48,25 +48,14 @@ namespace Org.BouncyCastle.Asn1
         /// <exception cref="IOException">
         /// If there is a problem parsing the data, or parsing an object did not exhaust the available data.
         /// </exception>
-        public static Asn1Object FromByteArray(byte[] data)
-		{
-            int limit = data.Length;
-            using (var asn1In = new Asn1InputStream(new MemoryStream(data, false), limit))
-            {
-                Asn1Object result = asn1In.ReadObject();
-                if (asn1In.Position != limit)
-                    throw new IOException("extra data found after object");
-                return result;
-            }
-		}
+        public static Asn1Object FromByteArray(byte[] data) => FromMemoryStream(new MemoryStream(data, false));
 
         internal static Asn1Object FromMemoryStream(MemoryStream memoryStream)
         {
-            int limit = Convert.ToInt32(memoryStream.Length);
-            using (var asn1In = new Asn1InputStream(memoryStream, limit))
+            using (var asn1In = new Asn1InputStream(memoryStream))
             {
                 Asn1Object result = asn1In.ReadObject();
-                if (asn1In.Position != limit)
+                if (asn1In.Position != asn1In.Length)
                     throw new IOException("extra data found after object");
                 return result;
             }
@@ -78,7 +67,8 @@ namespace Org.BouncyCastle.Asn1
         /// <exception cref="IOException">If there is a problem parsing the data.</exception>
         public static Asn1Object FromStream(Stream inStr)
 		{
-            using (var asn1In = new Asn1InputStream(inStr, int.MaxValue, leaveOpen: true))
+            int limit = Asn1InputStream.FindLimit(inStr);
+            using (var asn1In = new Asn1InputStream(inStr, limit, leaveOpen: true))
             {
                 return asn1In.ReadObject();
             }
